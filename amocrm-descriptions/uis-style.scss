@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css?family=Exo+2&display=swap');
+
+.cmg-uis-settings-logo {
+    {image:uis_description_logo}
+    position: relative;
+    margin: 0 auto;
+}
+
+.cmg-uis-settings-title {
+    text-align: center;
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 500;
+    font-size: 24px;
+}
+
+.cmg-uis-settings-title-main {
+    margin: 35px 0 50px 0;
+}
+
+.cmg-uis-settings-icons-first-line {
+    margin: 0 auto;
+    width: 589px;
+}
+
+.cmg-uis-settings-icon-block {
+    text-align: center;
+    width: 183px;
+    height: 148px;
+    float: left;
+    margin-right: 20px;
+}
+
+.cmg-uis-settings-icon-block:nth-last-child(2) {
+    margin-right: 0;
+}
+
+.cmg-uis-settings-icons-second-line {
+    margin: 32px auto 0 auto;
+    width: 386px;
+}
+
+.cmg-uis-settings-icon-text {
+    margin-top: 20px;
+}
+
+.cmg-uis-settings-icon {
+    {image:uis_description_settings_icon}
+    margin: 0 auto;
+}
+
+.cmg-uis-settings-russia-icon {
+    {image:uis_description_russia_icon}
+    margin: 0 auto;
+}
+
+.cmg-uis-settings-save-number-icon {
+    {image:uis_description_save_number_icon}
+    margin: 0 auto;
+}
+
+.cmg-uis-settings-mobile-icon {
+    {image:uis_description_mobile_icon}
+    margin: 0 auto;
+}
+
+.cmg-uis-settings-communication-icon {
+    {image:uis_description_communication_icon}
+    margin: 0 auto;
+}
+
+.cmg-uis-settings-free-try-block {
+    background: #f7f7f7;
+    text-align: center;
+    padding: 24px 32px 28px 32px;
+    font-size: 17px;
+    margin-top: 55px;
+
+    .cmg-uis-settings-button {
+        margin-top: 28px;
+    }
+}
+
+.cmg-uis-clients-communication {
+    margin: 48px 0 24px 0;
+}
+
+.cmg-uis-settings-list {
+    padding: 0 0 0 20px;
+    margin: 0;
+}
+
+.cmg-uis-settings-list li {
+    margin:  0 0 20px 0;
+    position: relative;
+    list-style-type: none;
+}
+
+.cmg-uis-settings-list li::before {
+    background: #00a8ec;
+    border-radius: 6px;
+    width: 6px;
+    height: 6px;
+    position: absolute;
+    top: 7px;
+    left: -20px;
+    display: block;
+    content: '';
+}
+
+.cmg-uis-settings-support-block {
+    background: #f7f7f7;
+    padding: 24px 32px 28px 32px;
+    margin: 48px 0 63px 0;
+}
+
+.cmg-uis-settings-support-title {
+    margin-bottom: 20px;
+}
+
+.cmg-uis-settings-support-phone-block {
+    font-size: 17px;
+    margin-bottom: 20px;
+}
+
+.cmg-uis-settings-support-phone {
+    color:#3572b0;
+    text-decoration: underline;
+}
+
+.cmg-uis-settings-information-for-operator-block {
+    font-size: 13px;
+}
+
+.cmg-uis-settings-login-subdomain-labels {
+    float: left;
+    margin: 0 50px 0 0;
+}
+
+.cmg-uis-settings-information_for_operator-title {
+    margin-bottom: 16px;
+}
+
+.cmg-uis-settings-login-subdomain-values {
+    font-weight: bold;
+    float: left;
+}
+
+.cmg-uis-settings-agreement-checkbox-label {
+    margin-top: 23px;
+    position: relative;
+    padding-left: 20px;
+    display: block;
+    font-size: 13px;
+    color: #5b5b5b;
+}
+
+.cmg-uis-settings-agreement-checkbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.cmg-uis-widget {
+    #cmg_choose_the_pill_buttons {
+        margin: 20px 0 0 0;
+
+        .button-input.cmg-settings-tab-active {
+            background: #fcfcfc;
+            border-bottom-width: 0;
+        }
+
+        .button-input {
+            background: #f7f7f7;
+            border-top-width: 1px;
+            border-right-width: 1px;
+            border-left-width: 1px;
+            border-style: solid;
+            border-color: #dbdedf;
+            border-radius: 3px 0px 0px 0px;
+            position: relative;
+            padding: 8px 10px;
+            opacity: 1;
+            height: 37px;
+            top: 1px;
+        }
+
+        .button-input-disabled {
+            color: #bdbdbd;
+        }
+
+        .button-input:last-child {
+            border-left-width: 0;
+            border-radius: 0px 3px 0px 0px;
+        }
+
+        .button-input+.button-input {
+            margin: 0;
+        }
+    }
+
+    #widget_settings__fields_wrapper {
+        background: #fcfcfc;
+        border: 1px solid #dbdedf;
+        border-radius: 0px 3px 3px 3px;
+        padding: 9px 12px 20px 12px;
+        margin: 0;
+
+        .cmg-uis-settings-button {
+            margin-top: 12px;
+        }
+    }
+
+    .widget_settings_block__title_field {
+        margin: 12px 0 4px 0;
+    }
+
+    .cmg-uis-settings-button, .cmg-uis-widget #widget_settings__fields_wrapper .button-input {
+        background: #00aaea;
+        border-radius: 3px;
+        color: #fff;
+        font-size: 14px;
+        padding: 8px 10px;
+        cursor: pointer;
+        font-weight: bold;
+        display: inline-block;
+    }
+
+    .widget-settings-block__desc-expander_hidden {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+        height: auto !important;
+    }
+
+    .widget-settings-block__desc-expander {
+        display: none;
+    }
+}
+
+.cmg-uis-settings-button.button-input-disabled,
+.cmg-uis-widget #widget_settings__fields_wrapper .button-input.button-input-disabled {
+    cursor: default;
+    background: #e4e3e2;
+    color: #fff;
+}

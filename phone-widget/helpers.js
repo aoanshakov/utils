@@ -647,6 +647,8 @@ define(function () {
                 errors = new JsTester_Queue(),
                 errorNotifications = new ErrorNotifications(errors);
 
+            handleWidgetModulesRequired = handleWidgetModulesRequired || function () {};
+
             var libs = [
                 'http://127.0.0.1/amocrm_deploy/Util.js',
                 'http://127.0.0.1/amocrm_deploy/Notification.js',

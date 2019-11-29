@@ -1,0 +1,23 @@
+#!/bin/bash
+
+cd $HOME
+
+git clone git@git.dev.uis.st:web/comagic_web.git
+cd comagic_web
+
+if [ ! -d $HOME/.pip ]
+then
+    mkdir $HOME/.pip
+fi
+
+chmod +x venv.sh
+cp /home/pip.conf $HOME/.pip/pip.conf
+
+./venv.sh <<< "y"
+
+chmod -x venv.sh
+rm $HOME/.pip/pip.conf
+.venv/bin/pip install --upgrade Wand numpy
+
+npm install
+rm package-lock.json
