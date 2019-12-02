@@ -25,10 +25,10 @@ then
     fi
 fi
 
-if [ !-d /usr/local/src/utils ]
+if [ ! -d /usr/local/src/utils ]
 then
     cd /usr/local/src
-    git clone https://github.com/aoanshakov/utils.git
+    git clone git@github.com:aoanshakov/utils.git
 
     if [ -n $user ]
     then
@@ -36,7 +36,7 @@ then
     fi
 fi
 
-if [ !-d /usr/local/src/amocrm_widget ]
+if [ ! -d /usr/local/src/amocrm_widget ]
 then
     cd /usr/local/src
     git clone git@git.dev.uis.st:crm/amocrm_widget.git

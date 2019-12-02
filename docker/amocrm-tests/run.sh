@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ !-d /usr/local/src ]
+if [ ! -d /usr/local/src ]
 then
     echo "workspace directory not exists"
     exit 1

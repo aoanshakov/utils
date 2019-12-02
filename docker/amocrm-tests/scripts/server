@@ -1,6 +1,6 @@
 #!/bin/bash
 
 ln -s /usr/local/src/amocrm-widget-web-root /var/www/html/amocrm-widget
-ln -s /usr/local/src/amocrm-tests /var/www/html/amocrm-tests
+ln -s /usr/local/src/utils/amocrm-tests /var/www/html/amocrm-tests
 
 /etc/init.d/apache2 start
