@@ -542,7 +542,7 @@ define(function () {
         widget.langs = i18n;
 
         widget.params = {
-            path: 'http://127.0.0.1/amocrm_deploy',
+            path: '/amocrm-widget',
             widget_code: 'uis_widget',
             phone: userData.get('phone'),
             name: userData.get('name')
@@ -573,7 +573,7 @@ define(function () {
 
         window.getDebugOptions = function () {
             return {
-                libsUrl: 'http://127.0.0.1/amocrm_deploy'
+                libsUrl: '/amocrm-widget'
             };
         };
 
@@ -638,7 +638,7 @@ define(function () {
 
     function Setuper (files) {
         return function (ajax, handleWidgetModulesRequired) {
-            var i18n = JSON.parse(files['http://127.0.0.1/amocrm_deploy/i18n/ru.json']),
+            var i18n = JSON.parse(files['/amocrm-widget/i18n/ru.json']),
                 notifications,
                 phoneIconClickHandler,
                 widgetActions,
@@ -650,10 +650,10 @@ define(function () {
             handleWidgetModulesRequired = handleWidgetModulesRequired || function () {};
 
             var libs = [
-                'http://127.0.0.1/amocrm_deploy/Util.js',
-                'http://127.0.0.1/amocrm_deploy/Notification.js',
-                'http://127.0.0.1/amocrm_deploy/Comagic.js',
-                'http://127.0.0.1/amocrm_deploy/Specificity.js'
+                '/amocrm-widget/Util.js',
+                '/amocrm-widget/Notification.js',
+                '/amocrm-widget/Comagic.js',
+                '/amocrm-widget/Specificity.js'
             ].filter(function (path) {
                 return path in files;
             });
@@ -718,7 +718,7 @@ define(function () {
     };
 
     namespace.createSetuper = function (handleFilesLoaded) {
-        loadFiles('http://127.0.0.1/amocrm_deploy', [
+        loadFiles('/amocrm-widget', [
             'i18n/ru.json',
             'script.js',
             'accounting.js',

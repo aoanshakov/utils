@@ -8,7 +8,7 @@ define(function () {
                             '<div class="widget-settings__base-space">' +
                                 '<div class="widget_main_info">' +
                                     '<div class="widget_settings_block__img">' +
-                                        '<img src="http://127.0.0.1/amocrm_deploy/images/logo_main.png">' +
+                                        '<img src="/amocrm-widget/images/logo_main.png">' +
                                     '</div>' +
                                     '<div class="widget_settings_block__head">' +
                                         '<div class="widget_settings_block__title h-text-overflow" title="' +

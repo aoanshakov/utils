@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
     requirejs.config({
-        baseUrl: 'http://127.0.0.1/amocrm_deploy',
+        baseUrl: '/amocrm-widget',
         paths: {
-            cmg: 'http://127.0.0.1/amocrm_deploy'
+            cmg: '/amocrm-widget'
         }
     });
 

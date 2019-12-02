@@ -375,14 +375,14 @@ tests.addTest(function (
                 spendTime(50);
 
                 ajax.recentRequest().
-                    expectToHavePath('/amocrm_deploy/templates/Online.twig').
+                    expectToHavePath('/amocrm-widget/templates/Online.twig').
                     expectToHaveMethod('GET').
-                    respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/Online.twig']);
+                    respondSuccessfullyWith(files['/amocrm-widget/templates/Online.twig']);
 
                 ajax.recentRequest().
-                    expectToHavePath('/amocrm_deploy/templates/EmployeeStatus.twig').
+                    expectToHavePath('/amocrm-widget/templates/EmployeeStatus.twig').
                     expectToHaveMethod('GET').
-                    respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/EmployeeStatus.twig']);
+                    respondSuccessfullyWith(files['/amocrm-widget/templates/EmployeeStatus.twig']);
 
                 sip.recentRequest().
                     expectToHaveMethod('REGISTER').
@@ -408,9 +408,9 @@ tests.addTest(function (
                     widget.callbacks.settings($('.widget-settings__modal .modal-body'));
 
                     ajax.recentRequest().
-                        expectToHavePath('/amocrm_deploy/templates/Settings.twig').
+                        expectToHavePath('/amocrm-widget/templates/Settings.twig').
                         expectToHaveMethod('GET').
-                        respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/Settings.twig']);
+                        respondSuccessfullyWith(files['/amocrm-widget/templates/Settings.twig']);
                     
                     spendTime(1000);
 
@@ -520,10 +520,10 @@ tests.addTest(function (
                                 });
 
                             ajax.recentRequest().
-                                expectToHavePath('/amocrm_deploy/templates/ModalWindow.twig').
+                                expectToHavePath('/amocrm-widget/templates/ModalWindow.twig').
                                 expectToHaveMethod('GET').
                                 respondSuccessfullyWith(files[
-                                    'http://127.0.0.1/amocrm_deploy/templates/ModalWindow.twig'
+                                    '/amocrm-widget/templates/ModalWindow.twig'
                                 ]);
 
                             spendTime(1000);
@@ -614,10 +614,10 @@ tests.addTest(function (
                                     });
 
                                 ajax.recentRequest().
-                                    expectToHavePath('/amocrm_deploy/templates/ModalWindow.twig').
+                                    expectToHavePath('/amocrm-widget/templates/ModalWindow.twig').
                                     expectToHaveMethod('GET').
                                     respondSuccessfullyWith(files[
-                                        'http://127.0.0.1/amocrm_deploy/templates/ModalWindow.twig'
+                                        '/amocrm-widget/templates/ModalWindow.twig'
                                     ]);
 
                                 spendTime(1000);
@@ -710,10 +710,10 @@ tests.addTest(function (
                                             });
 
                                         ajax.recentRequest().
-                                            expectToHavePath('/amocrm_deploy/templates/ModalWindow.twig').
+                                            expectToHavePath('/amocrm-widget/templates/ModalWindow.twig').
                                             expectToHaveMethod('GET').
                                             respondSuccessfullyWith(files[
-                                                'http://127.0.0.1/amocrm_deploy/templates/ModalWindow.twig'
+                                                '/amocrm-widget/templates/ModalWindow.twig'
                                             ]);
 
                                         spendTime(1000);
@@ -782,10 +782,10 @@ tests.addTest(function (
                                 });
 
                             ajax.recentRequest().
-                                expectToHavePath('/amocrm_deploy/templates/ModalWindow.twig').
+                                expectToHavePath('/amocrm-widget/templates/ModalWindow.twig').
                                 expectToHaveMethod('GET').
                                 respondSuccessfullyWith(files[
-                                    'http://127.0.0.1/amocrm_deploy/templates/ModalWindow.twig'
+                                    '/amocrm-widget/templates/ModalWindow.twig'
                                 ]);
 
                             spendTime(1000);
@@ -828,17 +828,17 @@ tests.addTest(function (
                                 });
 
                             ajax.recentRequest().
-                                expectToHavePath('/amocrm_deploy/templates/PhoneEnteringWindow.twig').
+                                expectToHavePath('/amocrm-widget/templates/PhoneEnteringWindow.twig').
                                 expectToHaveMethod('GET').
                                 respondSuccessfullyWith(files[
-                                    'http://127.0.0.1/amocrm_deploy/templates/PhoneEnteringWindow.twig'
+                                    '/amocrm-widget/templates/PhoneEnteringWindow.twig'
                                 ]);
 
                             ajax.recentRequest().
-                                expectToHavePath('/amocrm_deploy/templates/ModalWindow.twig').
+                                expectToHavePath('/amocrm-widget/templates/ModalWindow.twig').
                                 expectToHaveMethod('GET').
                                 respondSuccessfullyWith(files[
-                                    'http://127.0.0.1/amocrm_deploy/templates/ModalWindow.twig'
+                                    '/amocrm-widget/templates/ModalWindow.twig'
                                 ]);
 
                             spendTime(1000);
@@ -1511,14 +1511,14 @@ tests.addTest(function (
                     rtcConnectionsMock.getConnectionAtIndex(0).connect();
 
                     ajax.recentRequest().
-                        expectToHavePath('/amocrm_deploy/templates/InCall.twig').
+                        expectToHavePath('/amocrm-widget/templates/InCall.twig').
                         expectToHaveMethod('GET').
-                        respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/InCall.twig']);
+                        respondSuccessfullyWith(files['/amocrm-widget/templates/InCall.twig']);
 
                     ajax.recentRequest().
-                        expectToHavePath('/amocrm_deploy/templates/CallStatus.twig').
+                        expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
                         expectToHaveMethod('GET').
-                        respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/CallStatus.twig']);
+                        respondSuccessfullyWith(files['/amocrm-widget/templates/CallStatus.twig']);
 
                     Promise.runAll();
                     userMedia.allowMediaInput();
@@ -1587,14 +1587,14 @@ tests.addTest(function (
                     rtcConnectionsMock.getConnectionAtIndex(0).connect();
 
                     ajax.recentRequest().
-                        expectToHavePath('/amocrm_deploy/templates/InCall.twig').
+                        expectToHavePath('/amocrm-widget/templates/InCall.twig').
                         expectToHaveMethod('GET').
-                        respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/InCall.twig']);
+                        respondSuccessfullyWith(files['/amocrm-widget/templates/InCall.twig']);
 
                     ajax.recentRequest().
-                        expectToHavePath('/amocrm_deploy/templates/CallStatus.twig').
+                        expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
                         expectToHaveMethod('GET').
-                        respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/CallStatus.twig']);
+                        respondSuccessfullyWith(files['/amocrm-widget/templates/CallStatus.twig']);
 
                     Promise.runAll();
                     userMedia.allowMediaInput();
@@ -1694,19 +1694,19 @@ tests.addTest(function (
                             });
 
                             ajax.recentRequest().
-                                expectToHavePath('/amocrm_deploy/templates/IncomingCall.twig').
+                                expectToHavePath('/amocrm-widget/templates/IncomingCall.twig').
                                 expectToHaveMethod('GET').
                                 respondSuccessfullyWith(
-                                    files['http://127.0.0.1/amocrm_deploy/templates/IncomingCall.twig']
+                                    files['/amocrm-widget/templates/IncomingCall.twig']
                                 );
                             
                             spendTime(10);
 
                             ajax.recentRequest().
-                                expectToHavePath('/amocrm_deploy/templates/CallStatus.twig').
+                                expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
                                 expectToHaveMethod('GET').
                                 respondSuccessfullyWith(files[
-                                    'http://127.0.0.1/amocrm_deploy/templates/CallStatus.twig'
+                                    '/amocrm-widget/templates/CallStatus.twig'
                                 ]);
                         });
 
@@ -1767,9 +1767,9 @@ tests.addTest(function (
                         dialpadButton.click();
 
                         ajax.recentRequest().
-                            expectToHavePath('/amocrm_deploy/templates/Dialpad.twig').
+                            expectToHavePath('/amocrm-widget/templates/Dialpad.twig').
                             expectToHaveMethod('GET').
-                            respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/Dialpad.twig']);
+                            respondSuccessfullyWith(files['/amocrm-widget/templates/Dialpad.twig']);
 
                         numberButton(7).click();
                         numberButton(4).click();
@@ -1787,14 +1787,14 @@ tests.addTest(function (
                         rtcConnectionsMock.getConnectionAtIndex(0).connect();
 
                         ajax.recentRequest().
-                            expectToHavePath('/amocrm_deploy/templates/InCall.twig').
+                            expectToHavePath('/amocrm-widget/templates/InCall.twig').
                             expectToHaveMethod('GET').
-                            respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/InCall.twig']);
+                            respondSuccessfullyWith(files['/amocrm-widget/templates/InCall.twig']);
 
                         ajax.recentRequest().
-                            expectToHavePath('/amocrm_deploy/templates/CallStatus.twig').
+                            expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
                             expectToHaveMethod('GET').
-                            respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/CallStatus.twig']);
+                            respondSuccessfullyWith(files['/amocrm-widget/templates/CallStatus.twig']);
 
                         Promise.runAll();
                         userMedia.allowMediaInput();
@@ -1881,10 +1881,10 @@ tests.addTest(function (
                                 });
 
                                 ajax.recentRequest().
-                                    expectToHavePath('/amocrm_deploy/templates/IncomingCall.twig').
+                                    expectToHavePath('/amocrm-widget/templates/IncomingCall.twig').
                                     expectToHaveMethod('GET').
                                     respondSuccessfullyWith(
-                                        files['http://127.0.0.1/amocrm_deploy/templates/IncomingCall.twig']
+                                        files['/amocrm-widget/templates/IncomingCall.twig']
                                     );
                                 spendTime(10);
                             });
@@ -1981,23 +1981,23 @@ tests.addTest(function (
                         });
 
                         ajax.recentRequest().
-                            expectToHavePath('/amocrm_deploy/templates/IncomingCall.twig').
+                            expectToHavePath('/amocrm-widget/templates/IncomingCall.twig').
                             expectToHaveMethod('GET').
                             respondSuccessfullyWith(files[
-                                'http://127.0.0.1/amocrm_deploy/templates/IncomingCall.twig'
+                                '/amocrm-widget/templates/IncomingCall.twig'
                             ]);
                         
                         spendTime(50);
 
                         ajax.recentRequest().
-                            expectToHavePath('/amocrm_deploy/templates/CallStatus.twig').
+                            expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
                             expectToHaveMethod('GET').
-                            respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/CallStatus.twig']);
+                            respondSuccessfullyWith(files['/amocrm-widget/templates/CallStatus.twig']);
 
                         ajax.recentRequest().
-                            expectToHavePath('/amocrm_deploy/templates/CallStatus.twig').
+                            expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
                             expectToHaveMethod('GET').
-                            respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/CallStatus.twig']);
+                            respondSuccessfullyWith(files['/amocrm-widget/templates/CallStatus.twig']);
                     });
 
                     it('Отображен номер, телефона с которого производится звонок.', function() {
@@ -2055,26 +2055,26 @@ tests.addTest(function (
                         });
 
                         ajax.recentRequest().
-                            expectToHavePath('/amocrm_deploy/templates/IncomingCall.twig').
+                            expectToHavePath('/amocrm-widget/templates/IncomingCall.twig').
                             expectToHaveMethod('GET').
                             respondSuccessfullyWith(files[
-                                'http://127.0.0.1/amocrm_deploy/templates/IncomingCall.twig'
+                                '/amocrm-widget/templates/IncomingCall.twig'
                             ]);
                         
                         spendTime(50);
 
                         ajax.recentRequest().
-                            expectToHavePath('/amocrm_deploy/templates/CallStatus.twig').
+                            expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
                             expectToHaveMethod('GET').
                             respondSuccessfullyWith(files[
-                                'http://127.0.0.1/amocrm_deploy/templates/CallStatus.twig'
+                                '/amocrm-widget/templates/CallStatus.twig'
                             ]);
 
                         ajax.recentRequest().
-                            expectToHavePath('/amocrm_deploy/templates/CallStatus.twig').
+                            expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
                             expectToHaveMethod('GET').
                             respondSuccessfullyWith(files[
-                                'http://127.0.0.1/amocrm_deploy/templates/CallStatus.twig'
+                                '/amocrm-widget/templates/CallStatus.twig'
                             ]);
 
                     });
@@ -2118,9 +2118,9 @@ tests.addTest(function (
                             receive();
 
                         ajax.recentRequest().
-                            expectToHavePath('/amocrm_deploy/templates/InCall.twig').
+                            expectToHavePath('/amocrm-widget/templates/InCall.twig').
                             expectToHaveMethod('GET').
-                            respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/InCall.twig']);
+                            respondSuccessfullyWith(files['/amocrm-widget/templates/InCall.twig']);
 
                         window.AMOCRM.router.expectToHaveUrl('/contacts/detail/382030');
                     });
@@ -2149,10 +2149,10 @@ tests.addTest(function (
                                 receive();
 
                             ajax.recentRequest().
-                                expectToHavePath('/amocrm_deploy/templates/InCall.twig').
+                                expectToHavePath('/amocrm-widget/templates/InCall.twig').
                                 expectToHaveMethod('GET').
                                 respondSuccessfullyWith(files[
-                                    'http://127.0.0.1/amocrm_deploy/templates/InCall.twig'
+                                    '/amocrm-widget/templates/InCall.twig'
                                 ]);
                         });
                         
@@ -2166,10 +2166,10 @@ tests.addTest(function (
                             hangUpButton.click();
 
                             ajax.recentRequest().
-                                expectToHavePath('/amocrm_deploy/templates/Dialpad.twig').
+                                expectToHavePath('/amocrm-widget/templates/Dialpad.twig').
                                 expectToHaveMethod('GET').
                                 respondSuccessfullyWith(files[
-                                    'http://127.0.0.1/amocrm_deploy/templates/Dialpad.twig'
+                                    '/amocrm-widget/templates/Dialpad.twig'
                                 ]);
 
                             sip.recentRequest().expectToHaveMethod('BYE').response().send();

@@ -226,9 +226,9 @@ tests.addTest(function (
                 widget.callbacks.settings($('.widget-settings__modal .modal-body'));
 
                 ajax.recentRequest().
-                    expectToHavePath('/amocrm_deploy/templates/Settings.twig').
+                    expectToHavePath('/amocrm-widget/templates/Settings.twig').
                     expectToHaveMethod('GET').
-                    respondSuccessfullyWith(files['http://127.0.0.1/amocrm_deploy/templates/Settings.twig']);
+                    respondSuccessfullyWith(files['/amocrm-widget/templates/Settings.twig']);
                 
                 spendTime(1000);
 
