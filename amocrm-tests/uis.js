@@ -242,8 +242,7 @@ tests.addTest(function (
                             phone: '79252117620',
                             name: 'Darya Simha',
                             user_id: 2851135,
-                            widget_type: 'uis',
-                            widget_version: '1.7.0'
+                            widget_type: 'uis'
                         }
                     });
                 }).
@@ -303,8 +302,7 @@ tests.addTest(function (
                                 phone: '79252117620',
                                 name: 'Darya Simha',
                                 user_id: 2851135,
-                                widget_type: 'uis',
-                                widget_version: '1.7.0'
+                                widget_type: 'uis'
                             }
                         });
                     }).
@@ -509,8 +507,7 @@ tests.addTest(function (
                                             phone: '79252117620',
                                             name: 'Darya Simha',
                                             user_id: 2851135,
-                                            widget_type: 'uis',
-                                            widget_version: '1.7.0'
+                                            widget_type: 'uis'
                                         }
                                     });
                                 }).
@@ -556,8 +553,7 @@ tests.addTest(function (
                                                 phone: '79252117620',
                                                 name: 'Darya Simha',
                                                 user_id: 2851135,
-                                                widget_type: 'uis',
-                                                widget_version: '1.7.0'
+                                                widget_type: 'uis'
                                             }
                                         });
                                     }).
@@ -603,8 +599,7 @@ tests.addTest(function (
                                                 phone: '74951234567',
                                                 name: 'Darya Rahvalova',
                                                 user_id: 2851135,
-                                                widget_type: 'uis',
-                                                widget_version: '1.7.0'
+                                                widget_type: 'uis'
                                             }
                                         });
                                     }).
@@ -650,8 +645,7 @@ tests.addTest(function (
                                                     phone: '74951234567',
                                                     name: 'Darya Rahvalova',
                                                     user_id: 2851135,
-                                                    widget_type: 'uis',
-                                                    widget_version: '1.7.0'
+                                                    widget_type: 'uis'
                                                 }
                                             });
                                         }).
@@ -690,8 +684,7 @@ tests.addTest(function (
                                                         phone: '74951234567',
                                                         name: 'Darya Rahvalova',
                                                         user_id: 2851135,
-                                                        widget_type: 'uis',
-                                                        widget_version: '1.7.0'
+                                                        widget_type: 'uis'
                                                     }
                                                 });
                                             }).
@@ -911,8 +904,7 @@ tests.addTest(function (
                                                 phone: '+ 7 (916) 123-45-67',
                                                 name: 'Darya Simha',
                                                 user_id: 2851135,
-                                                widget_type: 'uis',
-                                                widget_version: '1.7.0'
+                                                widget_type: 'uis'
                                             }
                                         });
                                     }).
@@ -949,8 +941,7 @@ tests.addTest(function (
                                                 phone: '74951234567',
                                                 name: 'Darya Rahvalova',
                                                 user_id: 2851135,
-                                                widget_type: 'uis',
-                                                widget_version: '1.7.0'
+                                                widget_type: 'uis'
                                             }
                                         });
                                     }).
@@ -983,8 +974,7 @@ tests.addTest(function (
                                                 phone: '74951234567',
                                                 name: 'Darya Rahvalova',
                                                 user_id: 2851135,
-                                                widget_type: 'uis',
-                                                widget_version: '1.7.0'
+                                                widget_type: 'uis'
                                             }
                                         });
                                     }).
@@ -1067,8 +1057,7 @@ tests.addTest(function (
                                             phone: '79252117620',
                                             name: 'Darya Simha',
                                             user_id: 2851135,
-                                            widget_type: 'uis',
-                                            widget_version: '1.7.0'
+                                            widget_type: 'uis'
                                         }
                                     });
                                 }).
@@ -1128,7 +1117,6 @@ tests.addTest(function (
                                             name: 'Darya Rahvalova',
                                             user_id: 2851135,
                                             widget_type: 'uis',
-                                            widget_version: '1.7.0',
                                             isNew: false,
                                             errorMnemonic: 'error_settings_existing_no_customer',
                                             errorContext: {
@@ -1188,8 +1176,7 @@ tests.addTest(function (
                                                 phone: '79252117620',
                                                 name: 'Darya Simha',
                                                 user_id: 2851135,
-                                                widget_type: 'uis',
-                                                widget_version: '1.7.0'
+                                                widget_type: 'uis'
                                             }
                                         });
                                     }).
@@ -1261,8 +1248,7 @@ tests.addTest(function (
                                                     phone: '74951234567',
                                                     name: 'Darya Rahvalova',
                                                     user_id: 2851135,
-                                                    widget_type: 'uis',
-                                                    widget_version: '1.7.0'
+                                                    widget_type: 'uis'
                                                 }
                                             });
                                         }).
@@ -1295,8 +1281,7 @@ tests.addTest(function (
                                                     phone: '74951234567',
                                                     name: 'Darya Rahvalova',
                                                     user_id: 2851135,
-                                                    widget_type: 'uis',
-                                                    widget_version: '1.7.0'
+                                                    widget_type: 'uis'
                                                 }
                                             });
                                         }).
@@ -1348,8 +1333,7 @@ tests.addTest(function (
                                                     phone: '74951234567',
                                                     name: 'Darya Rahvalova',
                                                     user_id: 2851135,
-                                                    widget_type: 'uis',
-                                                    widget_version: '1.7.0'
+                                                    widget_type: 'uis'
                                                 }
                                             });
                                         }).
@@ -1397,8 +1381,7 @@ tests.addTest(function (
                                                 phone: '79252117620',
                                                 name: 'Darya Simha',
                                                 user_id: 2851135,
-                                                widget_type: 'uis',
-                                                widget_version: '1.7.0'
+                                                widget_type: 'uis'
                                             }
                                         });
                                     }).
@@ -1443,8 +1426,7 @@ tests.addTest(function (
                                                 phone: '79252117620',
                                                 name: 'Darya Simha',
                                                 user_id: 2851135,
-                                                widget_type: 'uis',
-                                                widget_version: '1.7.0'
+                                                widget_type: 'uis'
                                             }
                                         });
                                     }).

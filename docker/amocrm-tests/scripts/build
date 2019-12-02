@@ -27,11 +27,13 @@ grunt
 unzip build/$widget_type/widget.zip -d $web_dir
 cp -r /usr/local/src/utils/amocrm-lib/* $web_dir
 
-cp ${tests_dir}/helpers.js \
-    ${tests_dir}/modal-window.js \
-    ${tests_dir}/promise-mock.js \
-    ${tests_dir}/promise-polyfill.js \
+cp $tests_dir/helpers.js \
+    $tests_dir/modal-window.js \
+    $tests_dir/promise-mock.js \
+    $tests_dir/promise-polyfill.js \
     $web_dir
+
+cp $web_dir/moment.min.js $web_dir/moment.js
 
 if [ -n $user ]
 then

@@ -33,7 +33,7 @@ initialize -u $user
 
 if [ "$action" = "server" ]
 then
-    build -t $widget_type
+    build -t $widget_type -u $user
     server
     bash
 elif [ "$action" = "bash" ]
