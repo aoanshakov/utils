@@ -1,0 +1,39 @@
+#!/bin/bash
+
+user=""
+widget_type="uis"
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "-t" ]
+    then
+        widget_type=$2
+        shift
+    elif [ "$1" = "-u" ]
+    then
+        user=$2
+        shift
+    fi
+
+    shift
+done
+
+tests_dir=/usr/local/src/utils/amocrm-tests
+web_dir=/usr/local/src/amocrm-widget-web-root
+
+rm -rf $web_dir/*
+cd /usr/local/src/amocrm_widget
+grunt
+unzip build/$widget_type/widget.zip -d $web_dir
+cp -r /usr/local/src/utils/amocrm-lib/* $web_dir
+
+cp ${tests_dir}/helpers.js \
+    ${tests_dir}/modal-window.js \
+    ${tests_dir}/promise-mock.js \
+    ${tests_dir}/promise-polyfill.js \
+    $web_dir
+
+if [ -n $user ]
+then
+    chown -R $user:$user $web_dir
+fi

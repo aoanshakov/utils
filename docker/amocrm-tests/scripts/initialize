@@ -1,0 +1,50 @@
+#!/bin/bash
+
+user=""
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "-u" ]
+    then
+        user=$2
+        shift
+    fi
+
+    shift
+done
+
+web_dir=/usr/local/src/amocrm-widget-web-root
+
+if [ ! -d $web_dir ]
+then
+    mkdir $web_dir
+
+    if [ -n $user ]
+    then
+        chown -R $user:$user $web_dir
+    fi
+fi
+
+if [ !-d /usr/local/src/utils ]
+then
+    cd /usr/local/src
+    git clone https://github.com/aoanshakov/utils.git
+
+    if [ -n $user ]
+    then
+        chown -R $user:$user /usr/local/src/utils
+    fi
+fi
+
+if [ !-d /usr/local/src/amocrm_widget ]
+then
+    cd /usr/local/src
+    git clone git@git.dev.uis.st:crm/amocrm_widget.git
+    cd amocrm_widget
+    npm install
+
+    if [ -n $user ]
+    then
+        chown -R $user:$user /usr/local/src/amocrm_widget
+    fi
+fi
