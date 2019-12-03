@@ -19,7 +19,7 @@ while [ -n "$1" ]
 do
     if [ "$1" = "-u" ]
     then
-        user=$2
+        user="-u $2"
         shift
     elif [ "$1" = "-a" ]
     then
@@ -30,7 +30,7 @@ do
     shift
 done
 
-initialize
+initialize $user
 
 if [ $action = "initialize" ]
 then

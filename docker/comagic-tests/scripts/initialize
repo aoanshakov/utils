@@ -83,3 +83,8 @@ fi
 
 npm install
 build
+
+if [ -n $user ]
+then
+    chown -R $user:$user /usr/local/src/comagic-tests
+fi
