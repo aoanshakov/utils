@@ -159,7 +159,7 @@ def get_local_config_new_values(new_values):
     return values
 
 
-def configurate(new_values_path, comagic_web_path):
+def configure(new_values_path, comagic_web_path):
     with open(new_values_path) as new_values:
         new_values = json.load(new_values)
 

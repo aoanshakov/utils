@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cd $HOME/comagic_web/comagic/
+cd /usr/local/src/comagic_web/comagic/
 ../.venv/bin/python runserver.py

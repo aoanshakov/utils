@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cd $HOME/comagic_web
+cd /usr/local/src/comagic_web
 gulp build

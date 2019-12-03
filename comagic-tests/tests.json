@@ -1,0 +1,96 @@
+{
+    "comagic": {
+        "Comagic.base.form.field.MaskedText": [
+            "tests/Comagic.base.form.field.MaskedText.js"
+        ],
+        "Comagic.base.stepwise.Panel": [
+            "tests/Comagic.base.stepwise.Panel.js"
+        ],
+        "account.numbers.buy": [
+            "helpers/AccountNumbers.js",
+            "tests/account.numbers.buy.js"
+        ],
+        "account.numbers.edit": [
+            "helpers/AccountNumbers.js",
+            "tests/account.numbers.edit.js"
+        ],
+        "account.numbers.buy.basic-settings": [
+            "helpers/AccountNumbers.js",
+            "tests/account.numbers.buy.basic-settings.js"
+        ],
+        "account.numbers.buy.connection-settings": [
+            "helpers/AccountNumbers.js",
+            "tests/account.numbers.buy.connection-settings.js"
+        ],
+        "account.numbers.buy.number-verification": [
+            "helpers/AccountNumbers.js",
+            "tests/account.numbers.buy.number-verification.js"
+        ],
+        "account.numbers.grid": [
+            "helpers/AccountNumbers.js",
+            "tests/account.numbers.grid.js"
+        ],
+        "account.invoices": [
+            "helpers/AccountNumbers.js",
+            "tests/account.invoices.js"
+        ],
+        "account.integration.infoclinica": [
+            "helpers/AccountIntegrationInfoclinica.js",
+            "tests/account.integration.infoclinica.js"
+        ],
+        "services.ats.callprocessing": [
+            "helpers/ServicesAtsCallProcessing.js",
+            "tests/services.ats.callprocessing.js"
+        ],
+        "troubletickets": [
+            "helpers/TroubleTicket.js",
+            "tests/troubletickets.js"
+        ],
+        "account.referralprogram": [
+            "helpers/AccountReferralProgram.js",
+            "tests/account.referralprogram.js"
+        ],
+        "account.integration.bitrix24": [
+            "helpers/AccountIntegrationBitrix24.js",
+            "tests/account.integration.bitrix24.js"
+        ],
+        "services.ats.scenario": [
+            "helpers/ServicesAtsScenario.js",
+            "tests/services.ats.scenario.js"
+        ],
+        "services.ats.staff": [
+            "helpers/ServicesAtsStaff.js",
+            "tests/services.ats.staff.js"
+        ],
+        "analytics.call": [
+            "helpers/AnalyticsCall.js",
+            "tests/analytics.call.js"
+        ],
+        "analytics.review": [
+            "helpers/AnalyticsReview.js",
+            "tests/analytics.review.js"
+        ],
+        "analytics.calldistribution": [
+            "helpers/AnalyticsCallDistribution.js",
+            "tests/analytics.calldistribution.js"
+        ],
+        "account.integration.amocrm": [
+            "helpers/AccountIntegrationAmocrm.js",
+            "tests/account.integration.amocrm.js"
+        ],
+        "sitemanagement.appuser": [
+            "helpers/SitemanagementAppuser.js",
+            "tests/sitemanagement.appuser.js"
+        ]
+    },
+    "easystart": {
+        "bitrix": [
+            "helpers/EasystartBitrix.js",
+            "tests/easystart.bitrix.js"
+        ],
+        "amocrm": [
+            "helpers/EasystartAmocrm.js",
+            "tests/easystart.amocrm.js"
+        ]
+    }
+}

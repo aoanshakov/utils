@@ -1,1 +1,8 @@
 *.swp
+comagic-tests/node_modules
+comagic-tests/html/*
+!comagic-tests/html/.keep
+comagic-tests/.venv/*
+!comagic-tests/.venv/requirements.txt
+package-lock.json
+comagic-tests/screenshots/*

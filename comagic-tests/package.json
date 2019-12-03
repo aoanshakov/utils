@@ -1,0 +1,16 @@
+{
+  "name": "comagic-web-frontend-tests",
+  "version": "1.0.0",
+  "description": "Tests for comagic client web interface",
+  "main": "headless-runner.js",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "puppeteer": "^1.18.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

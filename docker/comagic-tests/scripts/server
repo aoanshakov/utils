@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ln -s /usr/local/src/comagic_web/static /var/www/html/static
+ln -s /usr/local/src/utils/comagic-tests /var/www/html/tests
+
+/etc/init.d/apache2 start

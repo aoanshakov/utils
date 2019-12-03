@@ -1,5 +1,0 @@
-#!/bin/bash
-
-/home/venv/bin/python3 /home/configurate $HOME/config.json $HOME/comagic_web
-/home/venv/bin/python3 -m black $HOME/comagic_web/comagic/local_config.py
-/home/venv/bin/python3 -m black $HOME/comagic_web/local_config_db.py

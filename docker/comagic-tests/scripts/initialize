@@ -1,0 +1,85 @@
+#!/bin/bash
+
+user=""
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "-u" ]
+    then
+        user=$2
+        shift
+    fi
+
+    shift
+done
+
+if [ ! -d /usr/local/src/utils ]
+then
+    cd /usr/local/src
+    git clone git@github.com:aoanshakov/utils.git
+
+    if [ -n $user ]
+    then
+        chown -R $user:$user /usr/local/src/utils
+    fi
+fi
+
+if [ -d /usr/local/src/utils/comagic-tests/node_modules && ! -d /usr/local/src/utils/comagic-tests/.venv/bin ]
+then
+    exit 0
+fi
+
+cd /usr/local/src/utils/comagic-tests
+
+VENV_PATH=./.venv
+
+if [ -d $VENV_PATH ]
+then
+    rm -rf $VENV_PATH/bin
+    rm -rf $VENV_PATH/include
+    rm -rf $VENV_PATH/lib
+    rm -rf $VENV_PATH/src
+
+    if [ $? -ne 0 ]
+    then
+        echo 'Не удалось удалить директорию с виртуальной средой'
+        exit 1
+    fi
+fi
+
+virtualenv .venv
+
+if [ $? -ne 0 ]
+then
+    echo 'Не удалось создать виртуальную среду'
+    exit 1
+fi
+
+REQUIREMENTS_PATH=$VENV_PATH/requirements.txt
+
+source $VENV_PATH/bin/activate
+
+if [ $? -ne 0 ]
+    then
+    echo 'Не удалось активировать виртуальную среду'
+    exit 1
+fi
+
+easy_install -U setuptools
+
+if [ $? -ne 0 ]
+    then
+    echo 'Не удалось выполнить команду easy_install'
+    exit 1
+fi
+
+pip install -r $REQUIREMENTS_PATH
+
+if [ $? -ne 0 ]
+    then
+    echo 'Не удалось выполнить команду pip install'
+    exit 1
+fi
+
+npm install
+build

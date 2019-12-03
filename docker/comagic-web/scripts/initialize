@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd $HOME
+cd /usr/local/src
 
 git clone git@git.dev.uis.st:web/comagic_web.git
 cd comagic_web

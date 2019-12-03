@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="{{g.lc }}">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}{{app_page_title}}{% endblock %}</title>
+
+    {% block head %}
+    <link rel="shortcut icon" href="{{url_favicon}}">
+
+    <link rel="stylesheet" type="text/css" href="/static/comagic/resources2/css/{{ theme }}.css">
+
+    {% if config.USE_EMBED_CODE %}
+        {% include 'embed_code.html' %}
+    {% endif %}
+
+    <style>
+    body {
+        background: #FFFFFF !important;
+    }
+
+    #app-loadmask .x-mask-msg {
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+    }
+    </style>
+
+    <script src="/tests/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
+    <script src="/tests/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
+    <script src="/tests/jasmine/lib/jasmine-3.4.0/boot.js"></script>
+    <script src="/tests/jasmine/lib/jasmine-ajax/lib/mock-ajax.js"></script>
+
+    <script type="text/javascript">
+        // guards
+        window.console = window.console || {};
+        window.console.log = window.console.log || function() {};
+        window.console.error = window.console.error || function() {};
+        window.console.debug = window.console.debug || function() {};
+        window.console.time = window.console.time || function() {};
+        // eo guards
+        // application namespace
+        var Comagic = Comagic || {};
+        if (Comagic instanceof Array) { // for the embed code
+            Comagic = {
+                embedCodeQueue: Comagic
+            }
+        }
+        // application config
+        Comagic.account = {
+            userName: '{{ g.user_name }}',
+            userId: parseInt('{{ g.user_id }}', 10),
+            userType: '{{ user_type }}',
+            appState: '{{ app_state }}',
+            appLogin: '{{ app_login }}',
+            appId: '{{ app_id }}',
+            agentUserId: parseInt('{{ g.agent_user_id|default(0, true) }}', 10),
+            systemUserId: parseInt('{{ g.system_user_id }}') || null,
+            permissions: JSON.parse('{{ permissions }}'.replace(/&#34;/g, '"')),
+            availableComponents: {{ available_components|safe }},
+            landings: JSON.parse('{{ landings }}'.replace(/&#34;/g, '"')),
+            lang: 'ru',
+            isTutored:  '{{ is_tutored }}' == 'True',
+            isShowPromoNotification: '{{ is_show_promo_notification }}' == 'True',
+            ssoToken: '{{ sso_token }}',
+            ticketsCountWithNewComments: {{ tickets_count_with_new_comments }},
+            customerId: '{{ g.customer_id }}',
+            isAgentsApp: '{{ is_agents_app }}',
+            isTpShare: '{{ is_tp_share }}' === 'True',
+            isTpTrial: '{{ is_tp_trial }}' === 'True',
+            timeZone: '{{ timezone }}',
+            project: '{{ g.project }}',
+            crmType: '{{ crm_type }}' === 'None' ? null : '{{ crm_type }}'
+        };
+        Comagic.settings = {
+            debugMode: '{{ debug_mode }}',
+            logoUrl: '{{ url_logo }}' !== 'None' && '{{ url_logo }}',
+            smallLogoUrl: '{{ url_small_logo }}' !== 'None' && '{{ url_small_logo }}',
+            agentLogoUrl: '{{ agent_url_logo }}' !== 'None' && '{{ agent_url_logo }}',
+            pageTitle: '{{ app_page_title|safe }}',
+            agreementUrl: '{{ url_agreement }}',
+            eventTrackingInterval: parseInt('{{ config.JS_USER_EVENT_TRACKING_INTERVAL }}', 10),
+            ideaPortalUrl: '{{ url_idea_portal }}',
+            theme: '{{ theme }}',
+            detailedInstructionsUrl: '{{ url_detailed_instructions }}',
+            staticTagsToCRMInstructionsUrl: '{{ url_static_tags_to_crm_instructions }}',
+            voipServer: '{{ voip_server }}',
+            notificationHttpRequestIp: '{{ notification_http_request_ip }}',
+            notificationEmail: '{{ notification_email }}',
+            paymentsInfoText: '{{ payments_info_text }}',
+            paymentsStatus: '{{ payments_status }}' === 'True',
+            webIp: '{{ web_ip }}',
+            pricingUrl: '{{ url_pricing }}',
+            billingCurrency: '{{ billing_currency }}'
+        };
+        Comagic.auth = {
+            csrf_token: '{{ g.csrf_token }}'
+        };
+        Comagic.getAppDomain = function () {
+            return '{{ uis_or_comagic }}'.replace(/&#34;|&#34;/g, '');
+        };
+    </script>
+
+    {% if debug_mode == 'dev' %}
+        {% assets "ext-dev" %}
+            <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+        {% endassets %}
+        {% assets "app-dev" %}
+            {% if ASSET_URL != '/static/comagic/app.js' %}
+                <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+            {% endif %}
+        {% endassets %}
+    {% elif debug_mode == 'debug' %}
+            <script type="text/javascript" src="{{ gen_path }}/ext-debug.{{ g.lc }}.js"></script>
+            <script type="text/javascript" src="{{ gen_path }}/app-debug.{{ g.lc }}.js"></script>
+    {% elif debug_mode == 'prod' %}
+            <script type="text/javascript" src="{{ gen_path }}/ext.{{ g.lc }}.js"></script>
+            <script type="text/javascript" src="{{ gen_path }}/app.{{ g.lc }}.js"></script>
+    {% endif %}
+
+    {% assets "test" %}
+        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+
+    <script type="text/javascript">
+        Ext.Ajax.setExtraParams({
+            csrf_token: Comagic.auth.csrf_token
+        });
+        {% if debug_mode != 'prod' %}
+            ULib.ux.DEBUG = true;
+        {% endif %}
+    </script>
+    {% endblock %}
+<body>
+{% block content %}
+{% endblock %}
+</body>
+</html>

@@ -1,16 +1,16 @@
 #!/bin/bash
 
-if [ ! -d $HOME ]
+if [ ! -d /usr/local/src ]
 then
-    echo "$HOME directory is not exist"
+    echo "Workspace directory is not exist"
     exit 1
 fi
 
-if [ ! -d "$HOME/comagic_web" ]
+if [ ! -d "/usr/local/src/comagic_web" ]
 then
     initialize
     build
-    configurate
+    configure
 fi
 
 if [ -z "$1" ]
@@ -23,9 +23,9 @@ else
     elif [ "$1" = "build" ]
     then
         build
-    elif [ "$1" = "configurate" ]
+    elif [ "$1" = "configure" ]
     then
-        configurate
+        configure
     else
         bash
     fi

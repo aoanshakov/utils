@@ -1,0 +1,4 @@
+#!/bin/bash
+
+/usr/local/src/comagic-tests/.venv/bin/python /usr/local/src/comagic-tests/build-tests.py comagic
+/usr/local/src/comagic-tests/.venv/bin/python /usr/local/src/comagic-tests/build-tests.py easystart
