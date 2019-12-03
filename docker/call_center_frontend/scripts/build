@@ -1,0 +1,5 @@
+#!/bin/bash
+
+/usr/local/src/call_center_frontend/node_modules/.bin/webpack \
+    --mode development \
+    --theme uiscom
