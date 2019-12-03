@@ -24,7 +24,7 @@ then
     fi
 fi
 
-if [ -d /usr/local/src/utils/comagic-tests/node_modules && ! -d /usr/local/src/utils/comagic-tests/.venv/bin ]
+if [ -d /usr/local/src/utils/comagic-tests/.venv/bin ]
 then
     exit 0
 fi
@@ -81,10 +81,15 @@ if [ $? -ne 0 ]
     exit 1
 fi
 
+if [ -d /usr/local/src/utils/comagic-tests/node_modules ]
+then
+    exit 0
+fi
+
 npm install
 build
 
 if [ -n $user ]
 then
-    chown -R $user:$user /usr/local/src/comagic-tests
+    chown -R $user:$user /usr/local/src/utils/comagic-tests
 fi

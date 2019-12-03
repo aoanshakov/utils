@@ -1,4 +1,6 @@
 #!/bin/bash
 
-/usr/local/src/comagic-tests/.venv/bin/python /usr/local/src/comagic-tests/build-tests.py comagic
-/usr/local/src/comagic-tests/.venv/bin/python /usr/local/src/comagic-tests/build-tests.py easystart
+tests_dir=/usr/local/src/utils/comagic-tests
+
+$tests_dir/.venv/bin/python $tests_dir/build-tests.py comagic
+$tests_dir/.venv/bin/python $tests_dir/build-tests.py easystart

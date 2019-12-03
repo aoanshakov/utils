@@ -13,6 +13,8 @@ fi
 chmod +x venv.sh
 cp /home/pip.conf $HOME/.pip/pip.conf
 
+patch -p1 < /home/requirements.txt.diff
+
 ./venv.sh <<< "y"
 
 chmod -x venv.sh
@@ -21,3 +23,10 @@ rm $HOME/.pip/pip.conf
 
 npm install
 rm package-lock.json
+
+if [ -n $COMAGIC_ENV_USER ]
+then
+    chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER /usr/local/src/comagic_web/
+fi
+
+patch -p1 -R < /home/requirements.txt.diff
