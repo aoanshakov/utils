@@ -24,7 +24,7 @@ RUN python3 -m venv /home/venv
 RUN /home/venv/bin/pip3 install black astor
 
 ADD pip.conf /home/pip.conf
-ADD configurate /home/configurate
+ADD configure /home/configure
 ADD scripts/* /usr/bin/
 
 ADD run.sh /run.sh
