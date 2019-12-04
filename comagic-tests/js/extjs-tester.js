@@ -706,10 +706,14 @@ function ExtJsTester_GridTester (
 }
 
 function ExtJsTester_FieldsGetter (form, utils, createFieldTester) {
-    function searchByPropertyValue (propertyName, propertyValue, createFieldTester) {
+    function searchByPropertyValue (propertyName, propertyValue, createFieldTester, additionalCondition) {
         var i,
             length,
             component;
+
+        additionalCondition = additionalCondition || function () {
+            return true;
+        };
 
         if (!form) {
             throw new Error('Форма, в которой осуществляется поиск поля не существует.');
@@ -729,7 +733,7 @@ function ExtJsTester_FieldsGetter (form, utils, createFieldTester) {
         for (i = 0; i < length; i ++) {
             component = components[i];
 
-            if (utils.getTextContent(component[propertyName] + '') == propertyValue) {
+            if (utils.getTextContent(component[propertyName] + '') == propertyValue && additionalCondition(component)) {
                 found.push(component);
 
                 if (component && component.el && component.el.dom && utils.isVisible(component.el.dom)) {
@@ -760,7 +764,9 @@ function ExtJsTester_FieldsGetter (form, utils, createFieldTester) {
         });
     };
     this.withPlaceholder = function (placeholder) {
-        return searchByPropertyValue('emptyText', placeholder, createFieldTester);
+        return searchByPropertyValue('emptyText', placeholder, createFieldTester, function (component) {
+            return !component.getRawValue();
+        });
     };
     this.withBoxLabel = function (boxLabel) {
         return searchByPropertyValue('boxLabel', boxLabel, createFieldTester);
@@ -996,6 +1002,7 @@ function ExtJsTester_Utils (debug) {
 
     var getTypeDescription = this.getTypeDescription,
         findElementByTextContent = this.findElementByTextContent,
+        findElementsByTextContent = this.findElementsByTextContent,
         isVisible = this.isVisible;
 
     this.isVisible = function (domElement) {
@@ -1029,13 +1036,8 @@ function ExtJsTester_Utils (debug) {
     this.getFloatingComponent = function () {
         return Ext.WindowManager.zIndexStack.last();
     };
-    this.findElementByTextContent = function (ascendantElement, desiredTextContent, selector) {
+    function getAscendantElementForFindingElementByText (ascendantElement, desiredTextContent) {
         if (ascendantElement instanceof Ext.Component) {
-            if (!ascendantElement) {
-                throw new Error('Компонент, в котором производится поиск элемента с текстом "' + desiredTextContent +
-                    '" не существует.');
-            }
-
             if (!ascendantElement.el) {
                 throw new Error('Компонент, в котором производится поиск элемента с текстом "' + desiredTextContent +
                     '" не отрендерен.');
@@ -1044,7 +1046,15 @@ function ExtJsTester_Utils (debug) {
             ascendantElement = ascendantElement.el.dom;
         }
 
-        return findElementByTextContent.apply(this, [ascendantElement, desiredTextContent, selector]);
+        return ascendantElement;
+    }
+    this.findElementByTextContent = function (ascendantElement, desiredTextContent, selector) {
+        return findElementByTextContent.apply(this, [getAscendantElementForFindingElementByText(ascendantElement,
+            desiredTextContent), desiredTextContent, selector]);
+    };
+    this.findElementsByTextContent = function (ascendantElement, desiredTextContent, selector) {
+        return findElementsByTextContent.apply(this, [getAscendantElementForFindingElementByText(ascendantElement,
+            desiredTextContent), desiredTextContent, selector]);
     };
 }
 

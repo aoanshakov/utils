@@ -230,22 +230,48 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     click();
                 wait(10);
             });
-            it('Открываю вкладку "Исходящие звонки".', function() {
-                helper.innerTab('Исходящие звонки').mousedown();
-                wait(10);
+            describe('Открываю вкладку "Исходящие звонки".', function() {
+                beforeEach(function() {
+                    helper.innerTab('Исходящие звонки').mousedown();
+                    wait(10);
+                });
 
-                helper.form.combobox().withValue('Другая воронка').clickArrow().option('Нет, все же не последнюю').
-                    click();
-                wait(10);
+                it(
+                    'Нажимаю на кнопку "Добавить воронку". Выбираю значения в выпадающих списках группы условий.',
+                function() {
+                    helper.addFunnelButton.click();
+                    wait(10);
 
-                helper.saveButton.click();
-                wait(10);
+                    helper.listItem('Ну эта уже точно последняя').click();
+                    wait(10);
 
-                helper.requestMultiFunnelsSaving().changeOutgoingSalesFunnel().changeOutgoingSalesFunnel().send();
-                wait(10);
+                    helper.form.combobox().withPlaceholder('Выберите значение').clickArrow().
+                        option('Виртуальный номер').click();
+                    wait(10);
 
-                helper.requestMultiFunnels().send();
-                wait(10);
+                    helper.form.combobox().withPlaceholder('Выберите значение').clickArrow().option('74959759581').
+                        click();
+                    wait(10);
+
+                    helper.form.combobox().withValue('74959759581').clickArrow();
+                    wait(10);
+                });
+                it(
+                    'Выбираю другую воронку. Выбираю другой этап. Нажимаю на кнопку "Сохранить". Настройки сохранены.',
+                function() {
+                    helper.form.combobox().withValue('Другая воронка').clickArrow().option('Нет, все же не последнюю').
+                        click();
+                    wait(10);
+
+                    helper.saveButton.click();
+                    wait(10);
+
+                    helper.requestMultiFunnelsSaving().changeOutgoingSalesFunnel().changeOutgoingSalesFunnel().send();
+                    wait(10);
+
+                    helper.requestMultiFunnels().send();
+                    wait(10);
+                });
             });
         });
         it('Открываю вкладку "Дополнительные поля".', function() {

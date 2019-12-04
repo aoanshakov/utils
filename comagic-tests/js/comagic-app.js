@@ -165,6 +165,9 @@ Ext.application({
             },
             isAppActivated: function () {
                 return true;
+            },
+            hasSimpleDtComponent: function () {
+                return true;
             }
         };
 

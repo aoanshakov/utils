@@ -107,11 +107,11 @@ function JsTester_Tests (factory) {
             error = e;
         }
 
-        it('', function() {
-            if (error) {
+        if (error) {
+            it('Подготавливаюсь к тестированию.', function() {
                 throw error;
-            }
-        });
+            });
+        }
 
         testRunners.forEach(function (runTest) {
             runTest.apply(null, [requestsManager, testersFactory, wait, utils, windowOpener, debug].concat(

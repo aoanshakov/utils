@@ -43,7 +43,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 expectNotToBeChecked();
         });
         it('Сообщение о невозможности подключения телефона по тарифам UIS не отображается.', function() {
-            helper.basicSettingsForm.findElementByTextContent(
+            helper.basicSettingsForm.createTester().forDescendantWithText(
                 'Исходящие звонки с мобильного номера возможны только по тарифам стороннего оператора'
             ).expectToBeHiddenOrNotExist();
         });
@@ -68,7 +68,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                     expectToBeEnabled();
             });
             it('Отображается сообщение о невозможности подключения телефона по тарифам UIS.', function() {
-                helper.basicSettingsForm.findElementByTextContent(
+                helper.basicSettingsForm.createTester().forDescendantWithText(
                     'Исходящие звонки с мобильного номера возможны только по тарифам стороннего оператора'
                 ).expectToBeVisible();
             });

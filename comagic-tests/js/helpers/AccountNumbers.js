@@ -631,9 +631,8 @@ function AccountNumbers(requestsManager, testersFactory, utils) {
 
         this.choosenNumbersListItemWithText = function(desiredText) {
             return testersFactory.createDomElementTester(
-                Ext.fly(utils.findElementByTextContent(choosenNumbersList,
-                    desiredText)).up('.ul-inline-tag-wrapper').
-                    down('.ul-property-remove').dom
+                Ext.fly(utils.findElementsByTextContent(choosenNumbersList, desiredText)[0]).
+                    up('.ul-inline-tag-wrapper').down('.ul-property-remove').dom
             );
         };
 

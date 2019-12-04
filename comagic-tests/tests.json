@@ -31,7 +31,7 @@
             "tests/account.numbers.grid.js"
         ],
         "account.invoices": [
-            "helpers/AccountNumbers.js",
+            "helpers/AccountInvoices.js",
             "tests/account.invoices.js"
         ],
         "account.integration.infoclinica": [
@@ -58,10 +58,6 @@
             "helpers/ServicesAtsScenario.js",
             "tests/services.ats.scenario.js"
         ],
-        "services.ats.staff": [
-            "helpers/ServicesAtsStaff.js",
-            "tests/services.ats.staff.js"
-        ],
         "analytics.call": [
             "helpers/AnalyticsCall.js",
             "tests/analytics.call.js"
@@ -69,10 +65,6 @@
         "analytics.review": [
             "helpers/AnalyticsReview.js",
             "tests/analytics.review.js"
-        ],
-        "analytics.calldistribution": [
-            "helpers/AnalyticsCallDistribution.js",
-            "tests/analytics.calldistribution.js"
         ],
         "account.integration.amocrm": [
             "helpers/AccountIntegrationAmocrm.js",

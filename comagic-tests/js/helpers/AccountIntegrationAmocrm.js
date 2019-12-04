@@ -203,6 +203,9 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         }, {
             id: 1748,
             name: 'Нет, все же не последнюю'
+        }, {
+            id: 9028,
+            name: 'Ну эта уже точно последняя'
         }];
     }
 
@@ -239,6 +242,10 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
             id: 7523,
             funnel_id: 1748,
             name: 'Нужно больше статусов'
+        }, {
+            id: 8205,
+            funnel_id: 9028,
+            name: 'Пришлось добавить этот статус'
         }];
     }
 
@@ -354,8 +361,12 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
                                 name: 'Некий параметр'
                             }],
                             'comagic:amocrm:out_call_profile_condition_event_param': [{
-                                mnemonic: 'other_param',
-                                name: 'Другой параметр'
+                                description: 'Виртуальный номер. Для входящих вызовов - номер, на который позвонил ' +
+                                    'абонент. Для исходящих вызовов - номер, который будет определяться у контакта.',
+                                mnemonic: 'virtual_phone_number',
+                                name: 'Виртуальный номер',
+                                operator: 'sub',
+                                value_list_directory: 'comagic:public:number_capacity_with_common'
                             }],
                             'comagic:amocrm:offline_message_profile_condition_event_param': [{
                                 mnemonic: 'new_param',
@@ -389,6 +400,11 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
                             'comagic:public:click_to_call_vnumber': [{
                                 num_capacity_id: 8319,
                                 vnumber: 79162837542
+                            }],
+                            'comagic:public:number_capacity_with_common': [{
+                                id: '74959759581',
+                                is_service: false,
+                                name: '74959759581'
                             }]
                         }
                     });
@@ -859,12 +875,24 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         });
     });
 
+    this.addFunnelButton = testersFactory.createButtonTester(function () {
+        return Comagic.application.findComponents('button[text="Добавить воронку"]').find(function (button) {
+            return button.el && button.el.dom && utils.isVisible(button.el.dom);
+        });
+    });
+
     this.updateContactOnCallFinishedTimeoutCombobox = function () {
         return testersFactory.createComboBoxTester(utils.getComponentFromDomElement(
             utils.findElementByTextContent(
                 getVisibleTab(),
                 'После завершения звонка обновлять ответственного сотрудника через', '.x-component'
             ).closest('.x-box-target').querySelector('.x-field')
+        ));
+    };
+
+    this.listItem = function (text) {
+        return testersFactory.createDomElementTester(utils.getVisible(
+            utils.findElementsByTextContent(document.body, text, '.x-boundlist-item')
         ));
     };
 }
