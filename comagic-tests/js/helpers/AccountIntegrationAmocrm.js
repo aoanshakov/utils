@@ -33,6 +33,10 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         var bodyParams = {};
 
         return {
+            setConfiguredOutCallResponsible: function () {
+                bodyParams.out_call_responsible = 'configured_responsible';
+                return this;
+            },
             setNotUpdateContact: function () {
                 bodyParams.has_update_contact_on_call_finished_timeout = false;
                 return this;
@@ -745,6 +749,7 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
             is_out_call_lost_auto_task: true,
             is_call_lost_use_employee_schedule: true,
             call_lost_task_duration_id: 9384,
+            out_call_responsible: 'caller',
             click_to_call_num_capacity_id: 8319,
             is_redefine_click_to_call: true,
             out_call_lost_task_target: 'other_target',

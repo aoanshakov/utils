@@ -32,15 +32,20 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
             it(
                 'В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" выбрана ' +
-                'опция "Не обновлять".',
+                'опция "0 мин". В выпадающем списке "Назначать" выбрана опция "На звонящего".',
             function() {
-                helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('Не обновлять');
+                helper.form.combobox().withFieldLabel('Назначать').expectToHaveValue('На звонящего');
+                helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('0 мин');
             });
             it(
                 'Выбираю время в выпдающем спике "После завершения звонка обновлять ответственного сотрудника ' +
-                'через". Нажимаю на кнопку "Сохранить". Сохранено включение обновления ответственного и время ' +
-                'заполнения карточки.',
+                'через". Выбираю опцию "На ответственного из настроек интеграции" в выпадающем списке "Назначать". ' +
+                'Нажимаю на кнопку "Сохранить". Измененные данные сохранены.',
             function() {
+                helper.form.combobox().withFieldLabel('Назначать').clickArrow().
+                    option('На ответственного из настроек интеграции').click();
+                wait(10);
+
                 helper.updateContactOnCallFinishedTimeoutCombobox().clickArrow().option('15 мин').click();
                 wait(10);
 
@@ -52,7 +57,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
         it(
             'Обновление ответственного отключено, время заполнения карточки установлено. Открываю вкладку ' +
             '"Телефония". В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" ' +
-            'выбрана опция "Не обновлять".',
+            'выбрана опция "0 мин".',
         function() {
             helper.requestAmocrmData().set15MinutesContactUpdateTimout().send();
             helper.requestAmocrmStatus().send();
@@ -61,7 +66,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.tabPanel.tab('Телефония').click();
             wait(10);
 
-            helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('Не обновлять');
+            helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('0 мин');
         });
         describe(
             'Обновление ответственного включено, время заполнения карточки установлено. Открываю вкладку ' +
@@ -77,11 +82,11 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             });
 
             it(
-                'Выбираю опцию "Не обновлять" в выпдающем спике "После завершения звонка обновлять ответственного ' +
+                'Выбираю опцию "0 мин" в выпдающем спике "После завершения звонка обновлять ответственного ' +
                 'сотрудника через". Нажимаю на кнопку "Сохранить". Сохранено выключение обновления ответственного и ' +
                 'нулевое время заполнения карточки.',
             function() {
-                helper.updateContactOnCallFinishedTimeoutCombobox().clickArrow().option('Не обновлять').click();
+                helper.updateContactOnCallFinishedTimeoutCombobox().clickArrow().option('0 мин').click();
                 wait(10);
 
                 helper.saveButton.click();
