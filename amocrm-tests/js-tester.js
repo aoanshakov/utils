@@ -974,6 +974,25 @@ function JsTester_Utils (debug) {
     this.expectObjectToContain = function (object, expectedContent) {
         (new JsTester_ParamsContainingExpectation(object))(expectedContent);
     };
+    function getVisible (domElements, handleError) {
+        var results = Array.prototype.filter.call(domElements, (function (domElement) {
+            return this.isVisible(domElement);
+        }).bind(this));
+
+        if (results.length != 1) {
+            handleError(results.length);
+        }
+
+        return results[0];
+    }
+    this.getVisibleSilently = function (domElements) {
+        return getVisible.call(this, domElements, function () {});
+    };
+    this.getVisible = function (domElements) {
+        return getVisible.call(this, domElements, function (count) {
+            throw new Error('Найдено ' + count + ' видимых элементов, тогда как видимым должен быть только один.');
+        });
+    };
 }
 
 function JsTester_OpenedWindow (path, query) {

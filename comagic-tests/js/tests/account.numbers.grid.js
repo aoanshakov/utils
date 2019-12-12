@@ -33,7 +33,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             ), function() {
                 helper.numbersManagementGrid.row().first().column().withHeader('Номер').
                     createTester().forDescendant('.cm-grid-cell-number-warning-icon').
-                    expectTooltipWithText('Не удалось зарегистрировать шлюз').toBeShownOnMouseOver();
+                    expectTooltipContainingText('Произошел сбой подключения.').toBeShownOnMouseOver();
             });
         });
         it((
@@ -46,7 +46,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
 
             helper.numbersManagementGrid.row().first().column().withHeader('Номер').
                 createTester().forDescendant('.cm-grid-cell-number-warning-icon').
-                expectTooltipWithText('Не удалось произвести тестовый звонок').toBeShownOnMouseOver();
+                expectTooltipContainingText('Входящие звонки не фиксируются в системе').toBeShownOnMouseOver();
         });
         describe(
             'Ответ на запрос данных для таблицы номеров содержит успешно добавленный номер стороннего провайдера.',
@@ -101,10 +101,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 helper.numbersManagementGrid.row().first().column().withHeader('Номер').
                     createTester().forDescendant('.cm-grid-cell-number-waiting-icon').
                     expectTooltipWithText('Номер будет добавлен в течении нескольких минут').toBeShownOnMouseOver();
-            });
-            it('Иконка с шестеренкой не отображается в колонке "Номер".', function() {
-                helper.numbersManagementGrid.row().first().column().withHeader('Номер').
-                    createTester().forDescendant('.cm-grid-cell-number-settings-icon').expectNotToExist();
             });
         });
         describe('Ответ на запрос данных для таблицы номеров не содержит номер стороннего провайдера.', function() {

@@ -35,7 +35,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             helper.employeesCombo().option('Ченкова Веселина Добриновна').click();
         });
 
-        xit(
+        it(
             'SIP-линия сотрудника имеет канальность два. Окно с сообщением о том, что канальность SIP-линии не ' +
             'должна быть больше двух не отображается.',
         function() {
@@ -48,7 +48,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             helper.warningWindow.expectToBeHiddenOrNotExist();
             helper.employeesCombo().expectToHaveValue('Ченкова Веселина Добриновна');
         });
-        xit(
+        it(
             'Не удалось выяснить канальность SIP-линии сотрудника. Окно с сообщением о том, что канальность ' +
             'SIP-линии не должна быть больше двух не отображается.',
         function() {
@@ -61,7 +61,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             helper.warningWindow.expectToBeHiddenOrNotExist();
             helper.employeesCombo().expectToHaveValue('Ченкова Веселина Добриновна');
         });
-        xit(
+        it(
             'Попытка выяснить канальность SIP-линии сотрудника завершилась фатальной ошибкой. Окно с сообщением о ' +
             'том, что канальность SIP-линии не должна быть больше двух не отображается.',
         function() {
@@ -74,7 +74,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             helper.warningWindow.expectToBeHiddenOrNotExist();
             helper.employeesCombo().expectToHaveValue('Ченкова Веселина Добриновна');
         });
-        xit(
+        it(
             'При попытке выяснить канальность SIP-линии сотрудника был получен некорректный ответ сервера. Окно с ' +
             'сообщением о том, что канальность SIP-линии не должна быть больше двух не отображается.',
         function() {
@@ -87,7 +87,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             helper.warningWindow.expectToBeHiddenOrNotExist();
             helper.employeesCombo().expectToHaveValue('Ченкова Веселина Добриновна');
         });
-        xit(
+        it(
             'Сотрудник не имеет SIP-линии. Окно с сообщением о том, что канальность SIP-линии не должна быть больше ' +
             'двух не отображается.',
         function() {
@@ -116,7 +116,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                     'Канальность SIP-линии +7 (495) 123-45-67 равна 12.'
                 );
             });
-            return;
             it('Нажимаю на кнопку закрытия окна. Возвращено прежнее значение привязанного сотрудника.', function() {
                 helper.closeButton.click();
 

@@ -317,6 +317,14 @@ define(function () {
 
             return this;
         };
+        this.expectTemporarilyUnavailable = function () {
+            if (status != 480) {
+                throw new Error('Сообщение, должно иметь статус "480 Temporarily Unavailable". Отправленное ' +
+                    'сообщение:' + "\n\n" + message);
+            }
+
+            return this;
+        };
         this.expectRinging = function () {
             if (status != 180) {
                 throw new Error('Сообщение, должно иметь статус "180 Ringing". Отправленное сообщение:' +
@@ -599,23 +607,50 @@ define(function () {
         };
     }
 
+    function ErrorNotificationTextEquality (expectedError) {
+        this.getDescription = function () {
+            return ' ' + expectToHaveError;
+        };
+        this.check = function (actualError) {
+            return actualError == expectedError;
+        };
+    }
+
+    function ErrorNotificationTextInclusion (expectedError) {
+        this.getDescription = function () {
+            return ', содержащее подстроку ' + expectedError;
+        };
+        this.check = function (actualError) {
+            return actualError.includes(expectedError);
+        };
+    }
+
     function ErrorNotifications (errors) {
-        this.expectToHaveError = function (expectedError) {
-            if (!errors.isEmpty()) {
+        function checkError (ErrorChecker, expectedError) {
+            var errorChecker = new ErrorChecker('"' + expectedError + '"');
+
+            if (errors.isEmpty()) {
                 throw new Error(
-                    'Должно быть отображено сообщение "' + expectedError + '", тогда как ни одно сообщение не было ' +
-                    'отображено.'
+                    'Должно быть отображено сообщение' + errorChecker.getDescription() + ', тогда как ни одно ' +
+                    'сообщение не было отображено.'
                 );
             }
             
             var actualError = errors.pop();
             actualError = actualError ? actualError.text : '';
 
-            if (actualError != expectedError) {
+            if (errorChecker.check(actualError)) {
                 throw new Error(
-                    'Должно быть отображено сообщение "' + expectedError + '", а не "' + actualError + '".'
+                    'Должно быть отображено сообщение' + errorChecker.getDescription() + ', тем не менее было ' +
+                    'отображено сообщение "' + actualError + '".'
                 );
             }
+        }
+        this.expectToHaveError = function (expectedError) {
+            checkError(ErrorNotificationTextEquality, expectedError);
+        };
+        this.expectErrorToContain = function (expectedError) {
+            checkError(ErrorNotificationTextInclusion, expectedError);
         };
         this.expectToHaveNoError = function () {
             if (!errors.isEmpty()) {

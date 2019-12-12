@@ -1,5 +1,10 @@
 #!/bin/bash
 
+echo -e "tzdata tzdata/Areas select Europe\ntzdata tzdata/Zones/Europe select Moscow" > /tmp/tz && \
+    debconf-set-selections /tmp/tz && \
+    rm /etc/localtime /etc/timezone && \
+    dpkg-reconfigure -f noninteractive tzdata
+
 action="runclient"
 export COMAGIC_ENV_USER=""
 

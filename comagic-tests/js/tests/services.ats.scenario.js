@@ -39,7 +39,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             helper.expandVideoButton.expectToBeHidden();
             helper.videoWindow.expectToBeHiddenOrNotExist();
         });
-        return;
         describe('Нажимаю на кнопку открытия видеоинструкции.', function() {
             beforeEach(function() {
                 helper.openVideoButton.click();

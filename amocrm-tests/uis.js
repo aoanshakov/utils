@@ -200,9 +200,24 @@ tests.addTest(function (
             return document.querySelector('.widget-settings__modal .modal-overlay');
         });
 
+        var collapseButton = testersFactory.createDomElementTester(function () {
+            return utils.getVisible(document.querySelectorAll('.cmg_collapse'));
+        });
+
+        var expandButton = testersFactory.createDomElementTester(function () {
+            return utils.getVisible(document.querySelectorAll('.cmg_expand'));
+        });
+
+        var widgetBackground = testersFactory.createDomElementTester(function () {
+            return utils.getVisibleSilently(Array.prototype.filter.call(document.querySelectorAll(
+                '.cmg_call__status, .cmg-call-notify-wrapper'
+            ), function (element) {
+                return getComputedStyle(element).visibility != 'hidden';
+            }));
+        });
+
         beforeEach(function() {
             document.body.innerHTML = '';
-            
             registerFiles(files);
         });
 
@@ -1736,8 +1751,201 @@ tests.addTest(function (
                     clickPhoneIcon();
                 });
 
-                it('Установлено состояние "Онлайн" переключателя.', function() {
+                it('Установлено состояние "Онлайн" переключателя. Виджет развернут.', function() {
                     onlineSwitcher.expectToHaveClass('cmg-switcher__on');
+                    widgetBackground.expectToBeVisible();
+                });
+                describe('Нажимаю на кнопку сворачивания виджета.', function() {
+                    beforeEach(function() {
+                        collapseButton.click();
+                    });
+
+                    it('Виджет свернут.', function() {
+                        widgetBackground.expectToBeHiddenOrNotExist();
+                    });
+                    it(
+                        'Нажимаю на иконку с телефоном. Снова нажимаю на иконку с телефоном. Виджет развернут.',
+                    function() {
+                        clickPhoneIcon();
+                        clickPhoneIcon();
+                        widgetBackground.expectToBeVisible();
+                    });
+                    it('Нажимаю на кнопку разврорачивания виджета. Виджет развернут.', function() {
+                        expandButton.click();
+                        widgetBackground.expectToBeVisible();
+                    });
+                    it(
+                        'Нажимаю на кнопку набора номера. Набираю номер. Нажимаю на кнопку звонка. Виджет свернут.',
+                    function() {
+                        dialpadButton.click();
+
+                        ajax.recentRequest().
+                            expectToHavePath('/amocrm-widget/templates/Dialpad.twig').
+                            expectToHaveMethod('GET').
+                            respondSuccessfullyWith(files['/amocrm-widget/templates/Dialpad.twig']);
+
+                        numberButton(7).click();
+                        numberButton(4).click();
+                        numberButton(9).click();
+                        numberButton(5).click();
+                        numberButton(1).click();
+                        numberButton(2).click();
+                        numberButton(3).click();
+                        numberButton(4).click();
+                        numberButton(5).click();
+                        numberButton(6).click();
+                        numberButton(7).click();
+
+                        dialButton.click();
+                        rtcConnectionsMock.getConnectionAtIndex(0).connect();
+
+                        ajax.recentRequest().
+                            expectToHavePath('/amocrm-widget/templates/InCall.twig').
+                            expectToHaveMethod('GET').
+                            respondSuccessfullyWith(files['/amocrm-widget/templates/InCall.twig']);
+
+                        ajax.recentRequest().
+                            expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
+                            expectToHaveMethod('GET').
+                            respondSuccessfullyWith(files[
+                                '/amocrm-widget/templates/CallStatus.twig'
+                            ]);
+
+                        Promise.runAll();
+                        userMedia.allowMediaInput();
+                        Promise.runAll();
+
+
+                        var request = sip.recentRequest().
+                            expectToHaveMethod('INVITE').
+                            expectToHaveServerName('sip:74951234567@vo19.uiscom.ru').
+                            expectHeaderToContain('From',
+                                '"Dar`ya Rahvalova (amoCRM)" <sip:082481@vo19.uiscom.ru>').
+                            expectHeaderToContain('To', '<sip:74951234567@vo19.uiscom.ru>');
+                            
+                        var response = request.response().
+                            setTrying().
+                            copyHeader('Contact');
+                        response.send();
+
+                        request.response().
+                            setToTag(response.getToTag()).
+                            setRinging().
+                            copyHeader('Contact').
+                            send();
+
+                        request.response().
+                            setToTag(response.getToTag()).
+                            copyHeader('Contact').
+                            setBody('v=0').
+                            send();
+
+                        widgetBackground.expectToBeHiddenOrNotExist();
+                    });
+                    describe(
+                        'Получено сообщение о входящем звонке по SIP-протоколу. Получено сообщение с данными ' +
+                        'звонящего. Отправлено SIP-сообщение о том, что телефон зазвонил.',
+                    function() {
+                        beforeEach(function() {
+                            sip.request().
+                                setServerName('vo19.uiscom.ru').
+                                setMethod('INVITE').
+                                setCallReceiverName('Dar`ya Rahvalova (amoCRM)').
+                                setCallReceiverLogin('082481').
+                                setSdpType().
+                                addHeader('From: <sip:79161234567@132.121.82.37:5060;user=phone>').
+                                addHeader('Contact: <sip:79161234567@132.121.82.37:5060;user=phone>').
+                                setBody(
+                                    'v=0',
+                                    'o=bell 53655765 2353687637 IN IР4 12.3.4.5',
+                                    'c=IN IP4 kton.bell-tel.com',
+                                    'm=audio 3456 RTP/AVP 0345'
+                                ).
+                                receive();
+                            
+                            sip.recentResponse().expectTrying();
+                            sip.recentResponse().expectRinging();
+
+                            webSockets.getSocket('wss://va.uiscom.ru:443/crm_websocket').receiveMessage({
+                                event: 'notify',
+                                type: 'call',
+                                data: {
+                                    ani: '79161234567',
+                                    comagic_context: {
+                                        site: 'zakzak.ucoz.net',
+                                        search_query: null,
+                                        campaign: 'dokhera'
+                                    },
+                                    customer: {
+                                        company_name: 'UIS',
+                                        person_name: 'Ivanov Ivan Ivanovich',
+                                        id: 382030
+                                    },
+                                    did: '74951250516',
+                                    start_time: 1565166168
+                                }
+                            });
+
+                            ajax.recentRequest().
+                                expectToHavePath('/amocrm-widget/templates/IncomingCall.twig').
+                                expectToHaveMethod('GET').
+                                respondSuccessfullyWith(files[
+                                    '/amocrm-widget/templates/IncomingCall.twig'
+                                ]);
+                            
+                            spendTime(50);
+
+                            ajax.recentRequest().
+                                expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
+                                expectToHaveMethod('GET').
+                                respondSuccessfullyWith(files[
+                                    '/amocrm-widget/templates/CallStatus.twig'
+                                ]);
+
+                            ajax.recentRequest().
+                                expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
+                                expectToHaveMethod('GET').
+                                respondSuccessfullyWith(files[
+                                    '/amocrm-widget/templates/CallStatus.twig'
+                                ]);
+                        });
+
+                        it('Виджет свернут.', function() {
+                            widgetBackground.expectToBeHiddenOrNotExist();
+                        });
+                        it(
+                            'Нажимаю на кнопку "Ответить". Установлено WebRTC-соединение. В веб-сокет отправлен ' +
+                            'SIP-ответ с сообщением о принятии звонка. Виджет свернут.',
+                        function() {
+                            answerButton.click();
+                            rtcConnectionsMock.getConnectionAtIndex(0).connect();
+                            Promise.runAll();
+
+                            userMedia.allowMediaInput();
+                            Promise.runAll();
+
+                            rtcConnectionsMock.getConnectionAtIndex(0).addCandidate();
+                            Promise.runAll();
+
+                            sip.recentResponse().
+                                expectOk().
+                                request().
+                                setServerName('vo19.uiscom.ru').
+                                setMethod('ACK').
+                                setCallReceiverName('Dar`ya Rahvalova (amoCRM)').
+                                setCallReceiverLogin('082481').
+                                receive();
+
+                            ajax.recentRequest().
+                                expectToHavePath('/amocrm-widget/templates/InCall.twig').
+                                expectToHaveMethod('GET').
+                                respondSuccessfullyWith(files[
+                                    '/amocrm-widget/templates/InCall.twig'
+                                ]);
+
+                            widgetBackground.expectToBeHiddenOrNotExist();
+                        });
+                    });
                 });
                 describe((
                     'Нажимаю на кнопку набора номера. Набираю номер. Нажимаю на кнопку звонка. На сервер по ' +
@@ -1809,6 +2017,19 @@ tests.addTest(function (
                         localStream().expectNotToHaveSource();
                         remoteStream().expectNotToHaveSource();
                     });
+                    it(
+                        'Нажимаю на кнопку сворачивания виджета. Нажимаю на кнопку завершения звонка. Нажимаю на ' +
+                        'иконку с трубкой. Виджет развернут.',
+                    function() {
+                        collapseButton.click();
+                        hangUpButton.click();
+
+                        sip.recentRequest().expectToHaveMethod('BYE').response().send();
+                        spendTime(10);
+
+                        clickPhoneIcon();
+                        widgetBackground.expectToBeVisible();
+                    });
                     describe('Получено сообщение о принятии исходящего звонка.', function() {
                         beforeEach(function() {
                             Promise.runAll();
@@ -1827,6 +2048,7 @@ tests.addTest(function (
                             spendTime(10);
 
                             rtcConnectionsMock.getConnectionAtIndex(0).expectToBeClosed();
+                            errorNotifications.expectErrorToContain('Не удалось выполнить вызов');
                         });
                         it('Источники потоков определены.', function() {
                             localStream().expectToHaveSource();
@@ -2059,11 +2281,40 @@ tests.addTest(function (
 
                     });
 
-                    it('В виджете отображены данные звонящего абонента.', function() {
+                    it('В виджете отображены данные звонящего абонента. Виджет развернут.', function() {
                         abonentInformationBlock.expectToHaveTextContent((
                             'Входящий звонок : 79161234567 Ivanov Ivan Ivanovich , UIS Сайт: zakzak.ucoz.net ' +
                             'Рекламная кампания: dokhera'
                         ));
+
+                        widgetBackground.expectToBeVisible();
+                    });
+                    describe('Нажимаю на кнопку сворачивания виджета.', function() {
+                        beforeEach(function() {
+                            collapseButton.click();
+                        });
+
+                        it('Виджет свернут.', function() {
+                            widgetBackground.expectToBeHiddenOrNotExist();
+                        });
+                        it('Нажимаю на кнопку "Отклонить". Нажимаю на иконку с трубкой. Виджет развернут.', function() {
+                            declineButton.click();
+                            errorNotifications.expectErrorToContain('Не удалось принять вызов');
+
+                            ajax.recentRequest().
+                                expectToHavePath('/amocrm-widget/templates/Dialpad.twig').
+                                expectToHaveMethod('GET').
+                                respondSuccessfullyWith(files['/amocrm-widget/templates/Dialpad.twig']);
+
+                            sip.recentResponse().expectTemporarilyUnavailable();
+
+                            clickPhoneIcon();
+                            widgetBackground.expectToBeVisible();
+                        });
+                        it('Нажимаю на кнопку разворачивания виджета. Виджет развернут.', function() {
+                            expandButton.click();
+                            widgetBackground.expectToBeVisible();
+                        });
                     });
                     it(
                         'Кнопки "Ответить", "Отклонить" и "Открыть контакт" видимы, а кнопка "Закрыть" скрыта.',
@@ -2136,8 +2387,41 @@ tests.addTest(function (
                                 ]);
                         });
                         
-                        it('В виджете отображена длительность разговора.', function() {
+                        it('В виджете отображена длительность разговора. Виджет развернут.', function() {
                             talkTimeBlock.expectToHaveTextContent('00:00');
+                            widgetBackground.expectToBeVisible();
+                        });
+                        describe('Нажимаю на кнопку сворачивания виджета.', function() {
+                            beforeEach(function() {
+                                collapseButton.click();
+                            });
+
+                            it('Виджет свернут.', function() {
+                                widgetBackground.expectToBeHiddenOrNotExist();
+                            });
+                            it(
+                                'Нажимаю на кнопку завершения разговора. Нажимаю на иконку с трубкой. Виджет ' +
+                                'развернут.',
+                            function() {
+                                hangUpButton.click();
+
+                                ajax.recentRequest().
+                                    expectToHavePath('/amocrm-widget/templates/Dialpad.twig').
+                                    expectToHaveMethod('GET').
+                                    respondSuccessfullyWith(files[
+                                        '/amocrm-widget/templates/Dialpad.twig'
+                                    ]);
+
+                                sip.recentRequest().expectToHaveMethod('BYE').response().send();
+                                spendTime(10);
+
+                                clickPhoneIcon();
+                                widgetBackground.expectToBeVisible();
+                            });
+                            it('Нажимаю на кнопку разврорачивания виджета. Виджет развернут.', function() {
+                                expandButton.click();
+                                widgetBackground.expectToBeVisible();
+                            });
                         });
                         it((
                             'Нажимаю на кнопку завершения разговора. В веб-сокет отправлен SIP-запрос с ' +
@@ -2158,6 +2442,111 @@ tests.addTest(function (
                             talkWidget.expectToBeHidden();
                         });
                     });
+                });
+                it(
+                    'Получено сообщение о входящем звонке. SIP-сообщение не было получено. Нажимаю на кнопку набора ' +
+                    'номера. Набираю номер. Нажимаю на кнопку звонка. На сервер по SIP-протоколу отправлено ' +
+                    'сообщение об исходящем звонке. В виджете отображается номер, на который совершается звонок.',
+                function() {
+                    webSockets.getSocket('wss://va.uiscom.ru:443/crm_websocket').receiveMessage({
+                        event: 'notify',
+                        type: 'call',
+                        data: {
+                            ani: '79161234567',
+                            comagic_context: {
+                                site: 'zakzak.ucoz.net',
+                                search_query: null,
+                                campaign: 'dokhera'
+                            },
+                            customer: {
+                                company_name: 'UIS',
+                                person_name: 'Ivanov Ivan Ivanovich',
+                                id: 382030
+                            },
+                            did: '74951250516',
+                            start_time: 1565166168
+                        }
+                    });
+
+                    ajax.recentRequest().
+                        expectToHavePath('/amocrm-widget/templates/IncomingCall.twig').
+                        expectToHaveMethod('GET').
+                        respondSuccessfullyWith(
+                            files['/amocrm-widget/templates/IncomingCall.twig']
+                        );
+                    
+                    spendTime(10);
+
+                    ajax.recentRequest().
+                        expectToHavePath('/amocrm-widget/templates/CallStatus.twig').
+                        expectToHaveMethod('GET').
+                        respondSuccessfullyWith(files[
+                            '/amocrm-widget/templates/CallStatus.twig'
+                        ]);
+
+                    webSockets.getSocket('wss://va.uiscom.ru:443/crm_websocket').receiveMessage({
+                        event: 'notify',
+                        type: 'release_call'
+                    });
+
+                    clickPhoneIcon();
+                    dialpadButton.click();
+
+                    ajax.recentRequest().
+                        expectToHavePath('/amocrm-widget/templates/Dialpad.twig').
+                        expectToHaveMethod('GET').
+                        respondSuccessfullyWith(files['/amocrm-widget/templates/Dialpad.twig']);
+
+                    numberButton(7).click();
+                    numberButton(4).click();
+                    numberButton(9).click();
+                    numberButton(5).click();
+                    numberButton(1).click();
+                    numberButton(2).click();
+                    numberButton(3).click();
+                    numberButton(4).click();
+                    numberButton(5).click();
+                    numberButton(6).click();
+                    numberButton(7).click();
+
+                    dialButton.click();
+                    rtcConnectionsMock.getConnectionAtIndex(0).connect();
+
+                    ajax.recentRequest().
+                        expectToHavePath('/amocrm-widget/templates/InCall.twig').
+                        expectToHaveMethod('GET').
+                        respondSuccessfullyWith(files['/amocrm-widget/templates/InCall.twig']);
+
+                    Promise.runAll();
+                    userMedia.allowMediaInput();
+                    Promise.runAll();
+
+
+                    var request = sip.recentRequest().
+                        expectToHaveMethod('INVITE').
+                        expectToHaveServerName('sip:74951234567@vo19.uiscom.ru').
+                        expectHeaderToContain('From',
+                            '"Dar`ya Rahvalova (amoCRM)" <sip:082481@vo19.uiscom.ru>').
+                        expectHeaderToContain('To', '<sip:74951234567@vo19.uiscom.ru>');
+                        
+                    var response = request.response().
+                        setTrying().
+                        copyHeader('Contact');
+                    response.send();
+
+                    request.response().
+                        setToTag(response.getToTag()).
+                        setRinging().
+                        copyHeader('Contact').
+                        send();
+
+                    request.response().
+                        setToTag(response.getToTag()).
+                        copyHeader('Contact').
+                        setBody('v=0').
+                        send();
+
+                    outgoingCallContactInformation.expectToHaveTextContent('Исходящий звонок: 74951234567');
                 });
             });
         });
