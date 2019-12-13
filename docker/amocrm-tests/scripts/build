@@ -1,6 +1,5 @@
 #!/bin/bash
 
-user=""
 widget_type="uis"
 
 while [ -n "$1" ]
@@ -8,10 +7,6 @@ do
     if [ "$1" = "-t" ]
     then
         widget_type=$2
-        shift
-    elif [ "$1" = "-u" ]
-    then
-        user=$2
         shift
     fi
 
@@ -35,7 +30,7 @@ cp $tests_dir/helpers.js \
 
 cp $web_dir/moment.min.js $web_dir/moment.js
 
-if [ -n $user ]
+if [ -n $COMAGIC_ENV_USER ]
 then
-    chown -R $user:$user $web_dir
+    chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER $web_dir
 fi

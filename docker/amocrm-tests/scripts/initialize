@@ -1,27 +1,14 @@
 #!/bin/bash
 
-user=""
-
-while [ -n "$1" ]
-do
-    if [ "$1" = "-u" ]
-    then
-        user=$2
-        shift
-    fi
-
-    shift
-done
-
 web_dir=/usr/local/src/amocrm-widget-web-root
 
 if [ ! -d $web_dir ]
 then
     mkdir $web_dir
 
-    if [ -n $user ]
+    if [ -n $COMAGIC_ENV_USER ]
     then
-        chown -R $user:$user $web_dir
+        chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER $web_dir
     fi
 fi
 
@@ -30,9 +17,9 @@ then
     cd /usr/local/src
     git clone git@github.com:aoanshakov/utils.git
 
-    if [ -n $user ]
+    if [ -n $COMAGIC_ENV_USER ]
     then
-        chown -R $user:$user /usr/local/src/utils
+        chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER /usr/local/src/utils
     fi
 fi
 
@@ -43,8 +30,8 @@ then
     cd amocrm_widget
     npm install
 
-    if [ -n $user ]
+    if [ -n $COMAGIC_ENV_USER ]
     then
-        chown -R $user:$user /usr/local/src/amocrm_widget
+        chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER /usr/local/src/amocrm_widget
     fi
 fi

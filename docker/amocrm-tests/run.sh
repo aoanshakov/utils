@@ -6,9 +6,9 @@ then
     exit 1
 fi
 
-user=""
 action="server"
 widget_type="uis"
+export COMAGIC_ENV_USER=""
 
 while [ -n "$1" ]
 do
@@ -22,18 +22,18 @@ do
         shift
     elif [ "$1" = "-u" ]
     then
-        user=$2
+        export COMAGIC_ENV_USER=$2
         shift
     fi
 
     shift
 done
 
-initialize -u $user
+initialize
 
 if [ "$action" = "server" ]
 then
-    build -t $widget_type -u $user
+    build -t $widget_type
     server
     bash
 elif [ "$action" = "bash" ]
@@ -41,7 +41,7 @@ then
     bash
 elif [ "$action" = "build" ]
 then
-    build -t $widget_type -u $user
+    build -t $widget_type
 elif [ "$action" = "initialize" ]
 then
     exit 0

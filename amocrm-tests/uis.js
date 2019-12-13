@@ -1745,7 +1745,7 @@ tests.addTest(function (
                     });
                 });
             });
-            describe('Микрофон подключен. Нажимаю на иконку с телефоном.', function() {
+            describe('Микрофон подключен. Нажимаю на иконку с телефоном.', function()  {
                 beforeEach(function() {
                     userMedia.allowMediaInput();
                     clickPhoneIcon();
