@@ -76,13 +76,41 @@
         ]
     },
     "easystart": {
-        "bitrix": [
-            "helpers/EasystartBitrix.js",
-            "tests/easystart.bitrix.js"
-        ],
-        "amocrm": [
+        "amocrm.call.processing": [
             "helpers/EasystartAmocrm.js",
-            "tests/easystart.amocrm.js"
+            "tests/easystart.amocrm.call.processing.js"
+        ],
+        "amocrm.call.processing.phone.confirmation": [
+            "helpers/EasystartAmocrm.js",
+            "tests/easystart.amocrm.call.processing.phone.confirmation.js"
+        ],
+        "amocrm.integration.settings": [
+            "helpers/EasystartAmocrm.js",
+            "tests/easystart.amocrm.integration.settings.js"
+        ],
+        "amocrm.phone.number.and.employees": [
+            "helpers/EasystartAmocrm.js",
+            "tests/easystart.amocrm.phone.number.and.employees.js"
+        ],
+        "amocrm.test.call": [
+            "helpers/EasystartAmocrm.js",
+            "tests/easystart.amocrm.test.call.js"
+        ],
+        "bitrix.call.processing": [
+            "helpers/EasystartBitrix.js",
+            "tests/easystart.bitrix.call.processing.js"
+        ],
+        "bitrix.call.processing.phone.confirmation": [
+            "helpers/EasystartBitrix.js",
+            "tests/easystart.bitrix.call.processing.phone.confirmation.js"
+        ],
+        "bitrix.main.phone.number.and.employees": [
+            "helpers/EasystartBitrix.js",
+            "tests/easystart.bitrix.main.phone.number.and.employees.js"
+        ],
+        "bitrix.test.call": [
+            "helpers/EasystartBitrix.js",
+            "tests/easystart.bitrix.test.call.js"
         ]
     }
 }

@@ -2,22 +2,23 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
     var tester;
     
     beforeEach(function() {
-        tester = new EasystartAmocrm(requestsManager, testersFactory, utils);
+        tester = new EasystartBitrix(requestsManager, testersFactory, utils);
     });
 
     describe(
         'Открываю страницу легкого входа amoCRM. Нажимаю на кнопку "Тестировать бесплатно". Нажимаю на кнпоку ' +
         '"Продолжить". В соответствии с данными, полученными от сервера ранее были выбраны три сотрудника. Отмечаю ' +
         'других трех сотрудников. Нажимаю на кнопку "Продолжить". В соответствии с данными, полученными от сервера ' +
-        'ранее был выбран тип переадресации "Одновременно всем", все выбранные сотрудники принимают звонки на ' +
-        'мобильный телефон и ни у одного из них не номер не был подтвержден. Нажимаю на кнопку "По очереди".',
+        'ранее был выбран тип переадресации "Одновременно всем" и ни у одного из них не номер не был подтвержден. ' +
+        'Синхронизация сотрудников завершена. Нажимаю на кнопку "По очереди".',
     function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
+            tester.tryForFreeButton.click();
+            tester.requestCreateAccount().send();
             wait(100);
 
             tester.settingsStep('Номер телефона').nextButton().click();
-            tester.requestSyncEmployees().setDone().send();
             tester.requestEmployees().send();
             wait(100);
 
@@ -31,6 +32,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             wait(100);
 
             tester.requestChooseEmployees().send();
+
+            tester.requestSyncEmployees().setDone().send();
             wait(100);
 
             tester.sequentialForwardingTypeButton().click();
@@ -43,7 +46,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
         describe('Ввожу номер телефона сотрудника.', function() {
             beforeEach(function() {
                 tester.employeePhoneField().input('9161234567');
-                wait(100);
+                wait();
             });
 
             it('Кнопка "Получить SMS" доступна. Кнопка "Подтвердить" скрыта.', function() {
@@ -77,8 +80,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 });
                 it(
                     'В соответствии с данными, полученными от сервера получение кода подтверждения ' +
-                    'станет снова доступным через четыре минуты. Прошла одна секунда. Кнопка получения ' +
-                    'кода подтвеждения содержит текст "3 минуты 59 секунд".',
+                    'станет снова доступным через четыре минуты. Прошла одна секунда. Кнопка ' +
+                    'получения кода подтвеждения содержит текст "3 минуты 59 секунд".',
                 function() {
                     tester.requestSms().setFourMinutes().send();
                     wait(3);
@@ -110,27 +113,13 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                             wait();
                         });
 
-                        it('Кнопка "Продолжить" заблокирована.', function() {
+                        it(
+                            'Кнопка "Продолжить" заблокирована. Текст "Номер подтвержден" не ' +
+                            'отображается.',
+                        function() {
                             tester.settingsStep('Правила обработки вызовов').nextButton().
                                 expectToBeDisabled();
-                        });
-                        it(
-                            'Нажимаю на кнопку "В виджет". Нажимаю на кнопку "Продолжить". Отправляется ' +
-                            'запрос сохранения правил обработки вызовов, устанавливающий переадресацию в ' +
-                            'виджет для одного из сотрудников.',
-                        function() {
-                            tester.toWidgetRadioButton().click();
-                            wait(3);
 
-                            tester.dialTimeField().fill('15');
-                            wait();
-
-                            tester.settingsStep('Правила обработки вызовов').nextButton().click();
-                            wait(10);
-                            tester.requestCallProcessingConfig().setToWidget().send();
-                            wait(10);
-                        });
-                        it('Текст "Номер подтвержден" не отображается.', function() {
                             tester.callProcessingGrid.row().first().column().
                                 withHeader('Переадресация на телефон сотрудника *').createTester().
                                 forDescendantWithText('Номер подтвержден').expectToBeHiddenOrNotExist();
@@ -142,8 +131,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                             });
 
                             describe(
-                                'В соответствии с данными, полученными от сервера код подтверждения был ' +
-                                'некорректным.',
+                                'В соответствии с данными, полученными от сервера код подтверждения ' +
+                                'был некорректным.',
                             function() {
                                 beforeEach(function() {
                                     tester.requestCodeInput().setCodeInvalid().send();
@@ -154,8 +143,9 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                                     'Отображено сообщение о том, что код подтверждения некорректен. ' +
                                     'Кнопка "Продолжить" заблокирована.',
                                 function() {
-                                    tester.errorMessage('Неверный код, пожалуйста, запросите новый код').
-                                        expectToBeVisible();
+                                    tester.errorMessage(
+                                        'Неверный код, пожалуйста, запросите новый код'
+                                    ).expectToBeVisible();
                                     
                                     tester.settingsStep('Правила обработки вызовов').nextButton().
                                         expectToBeDisabled();
@@ -175,8 +165,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                                 });
                             });
                             describe(
-                                'В соответствии с данными, полученными от сервера код подтверждения был ' +
-                                'корректным.',
+                                'В соответствии с данными, полученными от сервера код подтверждения ' +
+                                'был корректным.',
                             function() {
                                 beforeEach(function() {
                                     wait(200);
@@ -192,62 +182,9 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                                         expectToBeEnabled();
 
                                     tester.callProcessingGrid.row().first().column().
-                                        withHeader('Переадресация на телефон сотрудника *').createTester().
-                                        forDescendantWithText('Номер подтвержден').expectToBeVisible();
-                                });
-                                it(
-                                    'Нажимаю на кнпоку "Продолжить". Нажимаю на кнопку "Назад".Кнопка ' +
-                                    '"Продолжить" доступна. Отображено сообщение "Номер подтвержден".',
-                                function() {
-                                    tester.dialTimeField().fill('15');
-                                    wait(10);
-
-                                    tester.settingsStep('Правила обработки вызовов').nextButton().click();
-                                    wait(10);
-                                    tester.requestCallProcessingConfig().send();
-                                    wait(10);
-
-                                    tester.settingsStep('Настройка интеграции').backButton().click();
-                                    wait(10);
-
-                                    tester.settingsStep('Правила обработки вызовов').nextButton().
-                                        expectToBeEnabled();
-
-                                    tester.callProcessingGrid.row().first().column().
-                                        withHeader('Переадресация на телефон сотрудника *').createTester().
-                                        forDescendantWithText('Номер подтвержден').expectToBeVisible();
-                                });
-                                it(
-                                    'Нажимаю на кнопку "В виджет". Нажимаю на кнпоку "Продолжить". ' +
-                                    'Нажимаю на кнопку "Назад". Нажимаю на кнопку "На мобильный ' +
-                                    'телеофон". Кнопка "Продолжить" заблокирована. Сообщение "Номер ' +
-                                    'подтвержден" не отображается. Кнопка "Получить SMS" видима.',
-                                function() {
-                                    tester.dialTimeField().fill('15');
-                                    wait(10);
-
-                                    tester.toWidgetRadioButton().click();
-                                    wait(10);
-
-                                    tester.settingsStep('Правила обработки вызовов').nextButton().click();
-                                    wait(10);
-                                    tester.requestCallProcessingConfig().setToWidget().send();
-                                    wait(10);
-
-                                    tester.settingsStep('Настройка интеграции').backButton().click();
-                                    wait(10);
-
-                                    tester.toMobilePhoneButton().click();
-                                    wait(10);
-
-                                    tester.settingsStep('Правила обработки вызовов').nextButton().
-                                        expectToBeDisabled();
-
-                                    tester.callProcessingGrid.row().first().column().
-                                        withHeader('Переадресация на телефон сотрудника *').createTester().
-                                        forDescendantWithText('Номер подтвержден').expectToBeHidden();
-
-                                    tester.receiveSmsButton.expectToBeVisible();
+                                        withHeader('Переадресация на телефон сотрудника *').
+                                        createTester().forDescendantWithText('Номер подтвержден').
+                                        expectToBeVisible();
                                 });
                                 it(
                                     'Стираю последнюю цифру телефона сотрудника. Кнопка "Продолжить" ' +
@@ -260,7 +197,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                                         expectToBeDisabled();
                                 });
                                 it(
-                                    'Изменяю номер телефона сотрудника. Кнопка "Продолжить" заблокирована.',
+                                    'Изменяю номер телефона сотрудника. Кнопка "Продолжить" ' +
+                                    'заблокирована.',
                                 function() {
                                     tester.employeePhoneField().fill('9161234568');
                                     wait();
@@ -282,16 +220,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                                             expectToBeDisabled();
                                     });
                                     it(
-                                        'Нажимаю на кнокпку "Одновременно всем". Кнопка "Продолжить" ' +
-                                        'досутпна.',
-                                    function() {
-                                        tester.simoultaneousForwardingTypeButton().click();
-                                        wait(100);
-
-                                        tester.settingsStep('Правила обработки вызовов').nextButton().
-                                            expectToBeEnabled();
-                                    });
-                                    it(
                                         'Изменяю значение поля, находящегося внутри колонки "Время ' +
                                         'дозвона" на корректное. Кнопка "Продолжить" доступна.',
                                     function() {
@@ -302,7 +230,9 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                                             expectToBeEnabled();
                                     });
                                 });
-                                describe('Ввожу номер телефона другого сотрудника частично.', function() {
+                                describe(
+                                    'Ввожу номер телефона другого сотрудника частично.',
+                                function() {
                                     beforeEach(function() {
                                         tester.secondEmployeePhoneField().fill('916234');
                                         wait();
@@ -363,12 +293,12 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                                                         nextButton().expectToBeDisabled();
                                                 });
                                                 it(
-                                                    'Прошло некторое время. До возобновления доступности ' +
-                                                    'кнопки "Получть SMS" осталась одна секунда. Нажимаю ' +
-                                                    'на кнопку "Продолжить". Проходит одна секунда. ' +
-                                                    'Нажимаю на кнопку "Назад". Содержимое колонки ' +
-                                                    '"Переадресация на телефон сотрудника" является ' +
-                                                    'видимым.',
+                                                    'Прошло некторое время. До возобновления ' +
+                                                    'доступности кнопки "Получть SMS" осталась одна ' +
+                                                    'секунда. Нажимаю на кнопку "Продолжить". ' +
+                                                    'Проходит одна секунда. Нажимаю на кнопку ' +
+                                                    '"Назад". Содержимое колонки "Переадресация на ' +
+                                                    'телефон сотрудника" является видимым.',
                                                 function() {
                                                     tester.dialTimeField().fill('15');
                                                     tester.secondEmployeePhoneField().clear();
@@ -390,23 +320,26 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                                                     'сотрудника.',
                                                 function() {
                                                     beforeEach(function() {
-                                                        tester.secondEmployeePhoneField().pressBackspace();
+                                                        tester.secondEmployeePhoneField().
+                                                            pressBackspace();
                                                         wait(3);
                                                     });
 
                                                     it(
-                                                        'Поле "Код из SMS" скрыто. Кнопка "Продолжить" ' +
-                                                        'заблокирована.',
+                                                        'Поле "Код из SMS" скрыто. Кнопка ' +
+                                                        '"Продолжить" заблокирована.',
                                                     function() {
                                                         tester.secondSmsCodeField().expectToBeHidden();
 
-                                                        tester.settingsStep('Правила обработки вызовов').
+                                                        tester.
+                                                            settingsStep('Правила обработки вызовов').
                                                             nextButton().expectToBeDisabled();
                                                     });
                                                     it(
-                                                        'Ввожу заново последнюю цифру номера телефона ' +
-                                                        'другого сотрудника. Поле "Код из SMS" видимо. ' +
-                                                        'Кнопка "Продолжить" заблокирована.',
+                                                        'Ввожу заново последнюю цифру номера ' +
+                                                        'телефона другого сотрудника. Поле "Код из ' +
+                                                        'SMS" видимо. Кнопка "Продолжить" ' +
+                                                        'заблокирована.',
                                                     function() {
                                                         tester.secondEmployeePhoneField().input('8');
                                                         wait(2);
@@ -417,9 +350,9 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                                                             nextButton().expectToBeDisabled();
                                                     });
                                                     it(
-                                                        'Изменил номер телефона другого сотрудника. Поле ' +
-                                                        '"Код из SMS" скрыто. Кнопка "Продолжить" ' +
-                                                        'заблокирована.',
+                                                        'Изменил номер телефона другого сотрудника. ' +
+                                                        'Поле "Код из SMS" скрыто. Кнопка ' +
+                                                        '"Продолжить" заблокирована.',
                                                     function() {
                                                         tester.secondEmployeePhoneField().input('9');
                                                         wait(2);
@@ -434,16 +367,18 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                                         });
                                     });
                                 });
-                                it(
-                                    'Ввожу значение в поле "Время дозвона". Отображен текст "Номер подтвержден".',
-                                function() {
-                                    tester.dialTimeField().fill('15');
-                                    wait();
+                                describe('Ввожу значение в поле "Время дозвона".', function() {
+                                    beforeEach(function() {
+                                        tester.dialTimeField().fill('15');
+                                        wait();
+                                    });
 
-                                    tester.callProcessingGrid.row().first().column().
-                                        withHeader('Переадресация на телефон сотрудника *').
-                                        createTester().forDescendantWithText('Номер подтвержден').
-                                        expectToBeVisible();
+                                    it('Отображен текст "Номер подтвержден".', function() {
+                                        tester.callProcessingGrid.row().first().column().
+                                            withHeader('Переадресация на телефон сотрудника *').
+                                            createTester().forDescendantWithText('Номер подтвержден').
+                                            expectToBeVisible();
+                                    });
                                 });
                             });
                         });

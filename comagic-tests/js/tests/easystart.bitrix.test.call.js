@@ -2,173 +2,26 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
     var tester;
     
     beforeEach(function() {
-        tester = new EasystartAmocrm(requestsManager, testersFactory, utils);
+        tester = new EasystartBitrix(requestsManager, testersFactory, utils);
     });
 
-    describe(
-        'Открываю страницу легкого входа amoCRM. Нажимаю на кнпоку "Продолжить". В соответствии с данными, ' +
-        'полученными от сервера ранее были выбраны три сотрудника. Отмечаю других трех сотрудников. Нажимаю на ' +
-        'кнопку "Продолжить". В соответствии с данными, полученными от сервера ранее был выбран тип переадресации ' +
-        '"Одновременно всем", все выбранные сотрудники принимают звонки на мобильный телефон и ни у одного из них не ' +
-        'номер не был подтвержден. Нажимаю на кнопку "По очереди". Ввожу номер телефона сотрудника. Нажимаю на ' +
-        'кнопку "Получить SMS". Прошло 34 секунды. Ввожу код подтверждения. Нажимаю на кнопку "Подтвердить". В ' +
-        'соответствии с данными, полученными от сервера код подтверждения был корректным. Ввожу значение в поле ' +
-        '"Время дозвона". Нажимаю на кнопку "Продолжить". Нажимаю на кнопку "Продолжить". Нажимаю на кнопку ' +
-        '"Заказать тестовый звонок". Отправлен запрос тестового звонка.',
-    function() {
-        beforeEach(function() {
-            EasyStart.getApplication().checkIfPartnerReady();
-            wait(100);
-
-            tester.settingsStep('Номер телефона').nextButton().click();
-            tester.requestSyncEmployees().setDone().send();
-            tester.requestEmployees().send();
-            wait(100);
-
-            tester.employeesGrid.row().atIndex(1).column().first().checkbox().click();
-            tester.employeesGrid.row().first().column().first().checkbox().click();
-            tester.employeesGrid.row().atIndex(3).column().first().checkbox().click();
-            tester.employeesGrid.row().atIndex(2).column().first().checkbox().click();
-            wait(100);
-
-            tester.settingsStep('Сотрудники').nextButton().click();
-            wait(100);
-
-            tester.requestChooseEmployees().send();
-            wait(100);
-
-            tester.sequentialForwardingTypeButton().click();
-            wait(100);
-
-            tester.employeePhoneField().input('9161234567');
-            wait(100);
-
-            tester.receiveSmsButton.click();
-            tester.requestSms().send();
-            wait();
-
-            wait(2 * 34);
-
-            tester.smsCodeField().input('1234');
-            wait();
-
-            tester.confirmNumberButton.click();
-            wait();
-
-            wait(200);
-            tester.requestCodeInput().send();
-            wait(200);
-
-            tester.dialTimeField().fill('15');
-            wait();
-
-            tester.settingsStep('Правила обработки вызовов').
-                nextButton().click();
-            wait(10);
-            tester.requestCallProcessingConfig().send();
-            wait(10);
-
-            tester.settingsStep('Настройка интеграции').
-                nextButton().click();
-            wait();
-
-            tester.requestIntegrationConfig().send();
-            tester.requestAnswers().send();
-
-            tester.orderTestCallButton.click();
-            tester.requestTestCall().send();
-        });
-
-        it('Кнопка заказа тестового звонка заблокирована.', function() {
-            tester.orderTestCallButton.expectToBeMasked();
-        });
-        describe(
-            'Прошло некоторое время. Отправлен запрос состояния заказа тестового звонка. В соответствии с ответом ' +
-            'сервера тестовый звонок еще не завершен.',
-        function() {
-            beforeEach(function() {
-                wait();
-                tester.requestCallState().send();
-                tester.requestAnswers().send();
-            });
-
-            it('Кнопка заказа тестового звонка заблокирована.', function() {
-                tester.orderTestCallButton.expectToBeMasked();
-            });
-            it('Повторное нажатие на кнопку заказа тестового звонка не приводит к отправке запроса.', function() {
-                tester.orderTestCallButton.click();
-            });
-            describe(
-                'Прошло некоторое время. Отправлен запрос состояния заказа тестового звонка. В соответствии с ' +
-                'ответом сервера тестовый звонок завершен успешно.',
-            function() {
-                beforeEach(function() {
-                    wait();
-                    tester.requestCallState().setProcessed().send();
-                    tester.requestAnswers().send();
-                });
-
-                it('Кнопка заказа тестового звонка доступна.', function() {
-                    tester.orderTestCallButton.expectNotToBeMasked();
-                });
-                it('Сообщение об ошибке не отображено.', function() {
-                    tester.errorMessage('Произошла ошибка').expectToBeHiddenOrNotExist();
-                });
-                it('Повторное нажатие на кнопку заказа тестового звонка приводит к отправке запроса.', function() {
-                    tester.orderTestCallButton.click();
-                    tester.requestTestCall().send();
-                });
-            });
-            describe(
-                'Прошло некоторое время. Отправлен запрос состояния заказа тестового звонка. В соответствии с ' +
-                'ответом сервера тестовый звонок завершен ошибкой.',
-            function() {
-                beforeEach(function() {
-                    wait();
-                    tester.requestCallState().setError().send();
-                    tester.requestAnswers().send();
-                });
-
-                it('Кнопка заказа тестового звонка доступна.', function() {
-                    tester.orderTestCallButton.expectNotToBeMasked();
-                });
-                it('Отображено Сообщение об ошибке.', function() {
-                    tester.errorMessage('Произошла ошибка').expectToBeVisible();
-                });
-                it(
-                    'Нажимаю на кнопку заказа тестового звонка. Прошло некоторое время. Отправлен запрос состояния ' +
-                    'заказа тестового звонка. В соответствии с ответом сервера тестовый звонок завершен успешно. ' +
-                    'Сообщение об ошибке не отображается.',
-                function() {
-                    tester.orderTestCallButton.click();
-                    tester.requestTestCall().send();
-
-                    wait();
-                    tester.requestCallState().setProcessed().send();
-                    tester.requestAnswers().send();
-
-                    tester.errorMessage('Произошла ошибка').expectToBeHiddenOrNotExist();
-                });
-            });
-        });
-    });
     describe(
         'Открываю страницу легкого входа amoCRM. Нажимаю на кнопку "Тестировать бесплатно". Нажимаю на кнпоку ' +
         '"Продолжить". В соответствии с данными, полученными от сервера ранее были выбраны три сотрудника. Отмечаю ' +
         'других трех сотрудников. Нажимаю на кнопку "Продолжить". В соответствии с данными, полученными от сервера ' +
-        'ранее был выбран тип переадресации "Одновременно всем", все выбранные сотрудники принимают звонки на ' +
-        'мобильный телефон и ни у одного из них не номер не был подтвержден. Нажимаю на кнопку "По очереди". Ввожу ' +
-        'номер телефона сотрудника. Нажимаю на кнопку "Получить SMS". Прошло 34 секунды. Ввожу код подтверждения. ' +
-        'Нажимаю на кнопку "Подтвердить". В соответствии с данными, полученными от сервера код подтверждения был ' +
-        'корректным. Ввожу значение в поле "Время дозвона". Нажимаю на кнопку "Продолжить". Нажимаю на кнопку ' +
-        '"Продолжить".',
+        'ранее был выбран тип переадресации "Одновременно всем" и ни у одного из них не номер не был подтвержден. ' +
+        'Синхронизация сотрудников завершена. Нажимаю на кнопку "По очереди". Ввожу номер телефона сотрудника. ' +
+        'Нажимаю на кнопку "Получить SMS". Прошло 34 секунды. Ввожу код подтверждения. Нажимаю на кнопку ' +
+        '"Подтвердить". В соответствии с данными, полученными от сервера код подтверждения был корректным. Ввожу ' +
+        'значение в поле "Время дозвона". Нажимаю на кнопку "Продолжить". Нажимаю на кнопку "Продолжить".',
     function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
+            tester.tryForFreeButton.click();
+            tester.requestCreateAccount().send();
             wait(100);
 
             tester.settingsStep('Номер телефона').nextButton().click();
-            tester.requestSyncEmployees().setDone().send();
             tester.requestEmployees().send();
             wait(100);
 
@@ -184,16 +37,18 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             tester.requestChooseEmployees().send();
             wait(100);
 
+            tester.requestSyncEmployees().setDone().send();
+            wait(100);
+
             tester.sequentialForwardingTypeButton().click();
             wait(100);
 
             tester.employeePhoneField().input('9161234567');
-            wait(100);
+            wait();
 
             tester.receiveSmsButton.click();
             tester.requestSms().send();
             wait();
-
             wait(2 * 34);
 
             tester.smsCodeField().input('1234');
@@ -209,19 +64,21 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             tester.dialTimeField().fill('15');
             wait();
 
-            tester.settingsStep('Правила обработки вызовов').
-                nextButton().click();
+            tester.settingsStep('Правила обработки вызовов').nextButton().click();
             wait(10);
             tester.requestCallProcessingConfig().send();
             wait(10);
 
-            tester.settingsStep('Настройка интеграции').
-                nextButton().click();
+            tester.settingsStep('Настройка интеграции').nextButton().click();
             wait();
-
             tester.requestIntegrationConfig().send();
         });
 
+        it('Нажимаю на кнопку "Заказать тестовый звонок". Отправлен запрос тестового звонка.', function() {
+            tester.requestAnswers().send();
+            tester.orderTestCallButton.click();
+            tester.requestTestCall().send();
+        });
         it(
             'Ответ сервера на запрос звонков содержит сообщение об ошибке. Отображено сообщние об ошибке. Повторный ' +
             'запрос звонков не был отправлен.',
@@ -282,17 +139,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 tester.requestAnswers().addFirstUser().addSecondUser().send();
             });
 
-            it(
-                'Ввожу в поле "День" значение, меньшее текущего времени. При наведении курсора мыши на поле ' +
-                'отображается сообщение о некорректности значения.',
-            function() {
-                tester.floatingForm.textfield().withFieldLabel('День *').fill(tester.previousDay('d.m.Y'));
-                tester.requestAnswers().addFirstUser().addSecondUser().send();
-
-                tester.floatingForm.textfield().withFieldLabel('День *').
-                    expectTooltipContainingText('Дата в этом поле должна быть позже').toBeShownOnMouseOver();
-                tester.requestAnswers().addFirstUser().addSecondUser().send();
-            });
             it('Поля формы заказа обратного звонка заполнены значениями по умолчанию.', function() {
                 tester.floatingForm.textfield().withFieldLabel('День *').expectValueToMatch(/^\d{2}\.\d{2}\.\d{4}$/);
                 tester.floatingForm.textfield().withFieldLabel('С *').expectToHaveValue('11:00');
@@ -303,14 +149,24 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                     tester.floatingForm.textfield().withFieldLabel('Номер телефона *').input('4951234567');
                     tester.requestAnswers().addFirstUser().addSecondUser().send();
 
+                    wait();
+                    tester.requestAnswers().addFirstUser().addSecondUser().send();
+
                     tester.floatingForm.textfield().withFieldLabel('День *').fill(tester.nextDay('d.m.Y'));
+                    tester.requestAnswers().addFirstUser().addSecondUser().send();
+
+                    wait();
                     tester.requestAnswers().addFirstUser().addSecondUser().send();
 
                     tester.floatingForm.textfield().withFieldLabel('С *').fill('13:54');
                     tester.requestAnswers().addFirstUser().addSecondUser().send();
 
+                    wait();
+                    tester.requestAnswers().addFirstUser().addSecondUser().send();
+
                     tester.floatingForm.textfield().withFieldLabel('До *').fill('20:05');
                     tester.requestAnswers().addFirstUser().addSecondUser().send();
+
                     wait();
                     tester.requestAnswers().addFirstUser().addSecondUser().send();
                 });
@@ -324,6 +180,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                     tester.requestAnswers().addFirstUser().addSecondUser().send();
 
                     tester.supportRequestSender.respondUnsuccessfully();
+
                     wait();
                     tester.requestAnswers().addFirstUser().addSecondUser().send();
 
@@ -332,7 +189,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 });
                 it(
                     'Сайтфон не подключен. Нажимаю на кнопку "Заказать обратный звонок". Отображено сообщение об ' +
-                    'ошбибке.',
+                    'ошибке.',
                 function() {
                     tester.supportRequestSender.setNoSitePhone();
                     tester.orderCallbackButton.click();
@@ -365,10 +222,10 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                     it('Отправлена заявка на обратный звонок.', function() {
                         tester.supportRequestSender.expectRequestParamsToContain({
                             email: 'chigrakov@example.com',
-                            message: 'Заявка со страницы amoCRM Легкий вход. Номер телефона пользоватeля ' +
-                                '+74951234567. Удобное время для звонка - ' + tester.nextDay('Y-m-d') + ' с 13:54 до ' +
-                                '20:05',
-                            name: 'Марк Чиграков Брониславович',
+                            message: 'Заявка со страницы Битрикс24 Легкий вход. Номер телефона пользоватeля ' +
+                                '+74951234567. Удобное время для звонка - ' +
+                                tester.nextDay('Y-m-d') + ' с 13:54 до 20:05',
+                            name: 'Марк Брониславович Чиграков',
                             phone: '74951234567'
                         });
                     });
