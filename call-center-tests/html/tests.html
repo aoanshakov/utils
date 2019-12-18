@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Антихаос</title>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/app/build/icon.ico"/>
+    <link rel="stylesheet" type="text/css" href="/app/build/style.css">
+    <script src="/tests/js/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
+    <script src="/tests/js/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
+    <script>
+        var windowLoadHandler = window.onload;
+    </script>
+    <script src="/tests/js/jasmine/lib/jasmine-3.4.0/boot.js"></script>
+    <script>
+        window.onload = windowLoadHandler;
+    </script>
+    <script src="/tests/js/jasmine/lib/jasmine-ajax/lib/mock-ajax.js"></script>
+    <script src="/tests/js/jasmine/console-reporter.js"></script>
+    <script src="/tests/js/js-tester.js"></script>
+    <script type="text/javascript">
+        var tests = new JsTester_Tests(new JsTester_Factory());
+        tests.exposeDebugUtils('jsTestDebug');
+    </script>
+</head>
+<body>
+    <script src="/app/build/bundle.js"></script>
+    <script src="/tests/js/require.js"></script>
+    <script src="/tests/js/call-center-frontend.js"></script>
+    <script src="/tests/js/tests.js"></script>
+</body>
+</html>

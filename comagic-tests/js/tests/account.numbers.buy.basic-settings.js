@@ -53,24 +53,24 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 wait();
             });
 
-            it('Отмечена радиокнопка "Исходящие звонки по тарифам стороннего оператора".', function() {
+            it('Отмечена радиокнопка "Исходящие звонки по тарифам UIS".', function() {
                 helper.basicSettingsForm.radiofield().withBoxLabel('Исходящие звонки по тарифам UIS').
-                    expectNotToBeChecked();
+                    expectToBeChecked();
 
                 helper.basicSettingsForm.radiofield().withBoxLabel('Исходящие звонки по тарифам стороннего оператора').
-                    expectToBeChecked();
+                    expectNotToBeChecked();
             });
-            it('Радиокнопка "Исходящие звонки по тарифам UIS" заблокирована.', function() {
+            it('Радиокнопка "Исходящие звонки по тарифам UIS" доступна.', function() {
                 helper.basicSettingsForm.radiofield().withBoxLabel('Исходящие звонки по тарифам UIS').
-                    expectToBeDisabled();
+                    expectToBeEnabled();
 
                 helper.basicSettingsForm.radiofield().withBoxLabel('Исходящие звонки по тарифам стороннего оператора').
                     expectToBeEnabled();
             });
-            it('Отображается сообщение о невозможности подключения телефона по тарифам UIS.', function() {
+            it('Сообщение о невозможности подключения телефона по тарифам UIS не отображается.', function() {
                 helper.basicSettingsForm.createTester().forDescendantWithText(
                     'Исходящие звонки с мобильного номера возможны только по тарифам стороннего оператора'
-                ).expectToBeVisible();
+                ).expectToBeHiddenOrNotExist();
             });
         });
         describe((

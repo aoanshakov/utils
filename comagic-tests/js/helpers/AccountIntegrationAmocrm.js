@@ -33,6 +33,10 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         var bodyParams = {};
 
         return {
+            setFirstActManual: function () {
+                bodyParams.first_call_act = 'manual';
+                return this;
+            },
             setConfiguredOutCallResponsible: function () {
                 bodyParams.out_call_responsible = 'configured_responsible';
                 return this;
@@ -210,6 +214,9 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         }, {
             id: 9028,
             name: 'Ну эта уже точно последняя'
+        }, {
+            id: 9286,
+            name: 'Воронка для чатов'
         }];
     }
 
@@ -250,6 +257,10 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
             id: 8205,
             funnel_id: 9028,
             name: 'Пришлось добавить этот статус'
+        }, {
+            id: 92857,
+            funnel_id: 9286,
+            name: 'Статус для чатов'
         }];
     }
 
@@ -597,92 +608,106 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
     };
 
     this.requestMultiFunnels = function () {
+        var data = {
+            id: 3208,
+            crm_record: getAmocrmData(),
+            in_call_filters: [{
+                user_id: 8274,
+                user_name: 'Ivanov Ivan Ivanovich',
+                priority: 2,
+                profile: {
+                    sales_funnel_id: 4719,
+                    sales_funnel_status_id: 7185
+                },
+                condition_group: [{
+                    id: 34719,
+                    condition: [{
+                        id: 2918,
+                        param_mnemonic: 'some_param',
+                        condition_operator: 'sub',
+                        value: 'some_value',
+                        is_negative: false
+                    }]
+                }]
+            }],
+            out_call_filters: [{
+                user_id: 2948,
+                user_name: 'Petrov Petr Petrovich',
+                priority: 3,
+                profile: {
+                    sales_funnel_id: 7271,
+                    sales_funnel_status_id: 1958
+                },
+                condition_group: [{
+                    id: 1048,
+                    condition: [{
+                        id: 1845,
+                        param_mnemonic: 'other_param',
+                        condition_operator: 'sub',
+                        value: 'other_value',
+                        is_negative: false
+                    }]
+                }]
+            }],
+            chat_filters: [{
+                user_id: 8174,
+                user_name: 'Petrov Petr Petrovich',
+                priority: 4,
+                profile: {
+                    sales_funnel_id: 8175,
+                    sales_funnel_status_id: 9174
+                },
+                condition_group: [{
+                    id: 9175,
+                    condition: [{
+                        id: 8735,
+                        param_mnemonic: 'different_param',
+                        condition_operator: 'sub',
+                        value: 'different_value',
+                        is_negative: false
+                    }]
+                }]
+            }],
+            offline_message_filters: [{
+                user_id: 1742,
+                user_name: 'Petrov Petr Petrovich',
+                priority: 5,
+                profile: {
+                    sales_funnel_id: 7186,
+                    sales_funnel_status_id: 8195
+                },
+                condition_group: [{
+                    id: 8784,
+                    condition: [{
+                        id: 1755,
+                        param_mnemonic: 'new_param',
+                        condition_operator: 'sub',
+                        value: 'new_value',
+                        is_negative: false
+                    }]
+                }]
+            }]
+        };
+
         return {
+            setFirstActUnsorted: function () {
+                data.crm_record.first_call_act = 'unsorted';
+                return this;
+            },
+            setSecondaryActNoAction: function () {
+                data.crm_record.secondary_call_act = 'no_action';
+                return this;
+            },
+            setFirstActManual: function () {
+                data.crm_record.first_call_act = 'manual';
+                return this;
+            },
             send: function () {
                 requestsManager.recentRequest().
                     expectToHavePath('/account/integration/multifunnels/amocrm/read/').
                     respondSuccessfullyWith({
                         success: true,
-                        data: [{
-                            id: 3208,
-                            crm_record: getAmocrmData(),
-                            in_call_filters: [{
-                                user_id: 8274,
-                                user_name: 'Ivanov Ivan Ivanovich',
-                                priority: 2,
-                                profile: {
-                                    sales_funnel_id: 4719,
-                                    sales_funnel_status_id: 7185
-                                },
-                                condition_group: [{
-                                    id: 34719,
-                                    condition: [{
-                                        id: 2918,
-                                        param_mnemonic: 'some_param',
-                                        condition_operator: 'sub',
-                                        value: 'some_value',
-                                        is_negative: false
-                                    }]
-                                }]
-                            }],
-                            out_call_filters: [{
-                                user_id: 2948,
-                                user_name: 'Petrov Petr Petrovich',
-                                priority: 3,
-                                profile: {
-                                    sales_funnel_id: 7271,
-                                    sales_funnel_status_id: 1958
-                                },
-                                condition_group: [{
-                                    id: 1048,
-                                    condition: [{
-                                        id: 1845,
-                                        param_mnemonic: 'other_param',
-                                        condition_operator: 'sub',
-                                        value: 'other_value',
-                                        is_negative: false
-                                    }]
-                                }]
-                            }],
-                            chat_filters: [{
-                                user_id: 8174,
-                                user_name: 'Petrov Petr Petrovich',
-                                priority: 4,
-                                profile: {
-                                    sales_funnel_id: 8175,
-                                    sales_funnel_status_id: 9174
-                                },
-                                condition_group: [{
-                                    id: 9175,
-                                    condition: [{
-                                        id: 8735,
-                                        param_mnemonic: 'different_param',
-                                        condition_operator: 'sub',
-                                        value: 'different_value',
-                                        is_negative: false
-                                    }]
-                                }]
-                            }],
-                            offline_message_filters: [{
-                                user_id: 1742,
-                                user_name: 'Petrov Petr Petrovich',
-                                priority: 5,
-                                profile: {
-                                    sales_funnel_id: 7186,
-                                    sales_funnel_status_id: 8195
-                                },
-                                condition_group: [{
-                                    id: 8784,
-                                    condition: [{
-                                        id: 1755,
-                                        param_mnemonic: 'new_param',
-                                        condition_operator: 'sub',
-                                        value: 'new_value',
-                                        is_negative: false
-                                    }]
-                                }]
-                            }]
-                        }]
+                        data: [data]
                     });
             }
         };
@@ -744,6 +769,8 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
             out_call_sales_funnel_status_id: 3818,
             in_call_responsible_user_id: 8382,
             out_call_responsible_user_id: 9185,
+            chat_sales_funnel_id: 9286,
+            chat_sales_funnel_status_id: 92857,
             offline_message_responsible_user_id: 8217,
             chat_responsible_user_id: 8295,
             is_out_call_lost_auto_task: true,
@@ -790,6 +817,10 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         var data = getAmocrmData();
 
         return {
+            setFirstActManual: function () {
+                data.first_call_act = 'manual';
+                return this;
+            },
             setUpdateContact: function () {
                 data.has_update_contact_on_call_finished_timeout = true;
                 return this;
@@ -817,18 +848,26 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         };
     };
     this.requestAmocrmStatus = function () {
+        var data = {
+            success: true,
+            data: {
+                unsorted_on: 'N'
+            }
+        };
+
         return {
+            setUnsortedEnabled: function () {
+                data.data.unsorted_on = 'Y';
+                return this;
+            },
             send: function () {
                 requestsManager.recentRequest().
                     expectToHavePath('/account/integration/amocrm_status/').
                     respondSuccessfullyWith({
                         success: true,
-                        data: {
-                            success: true,
-                            unsorted_on: 'Y'
-                        }
+                        data: data 
                     });
-            },
+            }
         };
     };
 
@@ -900,4 +939,30 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
             utils.findElementsByTextContent(document.body, text, '.x-boundlist-item')
         ));
     };
+
+    this.unsortedRadioField = function () {
+        return testersFactory.createRadioFieldTester(getVisibleTab().down(
+            "radiofield[boxLabel='Использовать функциональность \"Неразобранное\"']"
+        ));
+    };
+
+    this.incomingCallsMessage = testersFactory.createDomElementTester(function () {
+        return utils.findElementByTextContent(getVisibleTab(), function (textContent) {
+            return textContent.includes('Активировать эти опции нужно в вкладке "Телефония"');
+        }, '.x-component');
+    });
+
+    this.outboundCallsMessage = testersFactory.createDomElementTester(function () {
+        return utils.findElementByTextContent(getVisibleTab(), function (textContent) {
+            return textContent.includes('Активировать эти опции для исходящих звонков нужно в вкладке "Телефония"');
+        }, '.x-component');
+    });
+
+    this.chatsMessage = testersFactory.createDomElementTester(function () {
+        return utils.findElementByTextContent(getVisibleTab(), function (textContent) {
+            return textContent.includes(
+                'Активировать эти опции для чатов нужно в вкладке "Чаты и заявки" - "Работа с чатами"'
+            );
+        }, '.x-component');
+    });
 }

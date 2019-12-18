@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ln -s /usr/local/src/call_center_frontend /var/www/html/app
+ln -s /usr/local/src/utils/call-center-tests /var/www/html/tests
+
+/etc/init.d/apache2 start

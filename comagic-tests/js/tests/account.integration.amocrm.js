@@ -19,7 +19,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
         
         describe(
             'Обновление ответственного отключено и время заполнения карточки не установлено. Открываю вкладку ' +
-            '"Телефония".',
+            '"Телефония". Нельзя использовать неразобранное.',
         function() {
             beforeEach(function() {
                 helper.requestAmocrmData().send();
@@ -32,10 +32,12 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
             it(
                 'В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" выбрана ' +
-                'опция "0 мин". В выпадающем списке "Назначать" выбрана опция "На звонящего".',
+                'опция "0 мин". В выпадающем списке "Назначать" выбрана опция "На звонящего". Опция "Использовать ' +
+                'функциональность "Неразобранное"" заблокирована.',
             function() {
                 helper.form.combobox().withFieldLabel('Назначать').expectToHaveValue('На звонящего');
                 helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('0 мин');
+                helper.unsortedRadioField().expectToBeDisabled();
             });
             it(
                 'Выбираю время в выпдающем спике "После завершения звонка обновлять ответственного сотрудника ' +
@@ -52,6 +54,156 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.saveButton.click();
                 wait(10);
                 helper.requestAmocrmDataSave().setUpdateContact().set15MinutesContactUpdateTimout().send();
+            });
+        });
+        it(
+            'Открываю вкладку "Телефония". Можно использовать неразобранное. Опция "Использовать функциональность ' +
+            '"Неразобранное"" доступна.',
+        function() {
+            helper.requestAmocrmData().send();
+            helper.requestAmocrmStatus().setUnsortedEnabled().send();
+            wait(10);
+
+            helper.tabPanel.tab('Телефония').click();
+            wait(10);
+
+            helper.unsortedRadioField().expectToBeEnabled();
+        });
+        describe('Открываю вкладку "Мультиворонки".', function() {
+            beforeEach(function() {
+                helper.requestAmocrmData().send();
+                helper.requestAmocrmStatus().send();
+                wait(10);
+
+                helper.tabPanel.tab('Мультиворонки').click();
+                wait(10);
+                helper.requestSyncSalesFunnel().send();
+            });
+
+            describe(
+                'При первичном обращении создается сделка. При повторных обращениях создается сделка. Открыта ' +
+                'вкладка "Входящие звонки".',
+            function() {
+                beforeEach(function() {
+                    helper.requestMultiFunnels().send();
+                    helper.requestSalesFunnel().send();
+                    helper.requestSalesFunnelStatus().send();
+                    wait(10);
+                });
+
+                it(
+                    'Выпдающий список статусов доступен. Отображено сообщение об условиях при которых будут работать ' +
+                    'мультиворонки.',
+                function() {
+                    helper.form.combobox().withValue('Некий статус').expectToBeEnabled();
+                    helper.form.combobox().withValue('Похоже, что нам нужен еще один статус').expectToBeEnabled();
+                    helper.incomingCallsMessage.expectToBeVisible();
+                });
+                it(
+                    'Открываю вкладку "Исходящие звонки". Выпдающий список статусов доступен. Отображено сообщение ' +
+                    'об условиях при которых будут работать мультиворонки.',
+                function() {
+                    helper.innerTab('Исходящие звонки').mousedown();
+                    wait(10);
+
+                    helper.form.combobox().withValue('Другой статус').expectToBeEnabled();
+                    helper.form.combobox().withValue('И даже еще один статус').expectToBeEnabled();
+                    helper.outboundCallsMessage.expectToBeVisible();
+                });
+                it('Открываю вкладку "Чаты". Выпдающий список статусов доступен.', function() {
+                    helper.innerTab('Чаты').mousedown();
+                    wait(10);
+
+                    helper.form.combobox().withValue('Еще один статус').expectToBeEnabled();
+                    helper.form.combobox().withValue('Статус для чатов').expectToBeEnabled();
+                    helper.chatsMessage.expectToBeVisible();
+                });
+            });
+            describe(
+                'При первичном обращении создается сделка. Повторные обращения не обрабатываются. Открыта вкладка ' +
+                '"Входящие звонки".',
+            function() {
+                beforeEach(function() {
+                    helper.requestMultiFunnels().setSecondaryActNoAction().send();
+                    helper.requestSalesFunnel().send();
+                    helper.requestSalesFunnelStatus().send();
+                    wait(10);
+                });
+
+                it('Настройки доступны.', function() {
+                    helper.addFunnelButton.expectToBeEnabled();
+                });
+                it('Открываю вкладку "Исходящие звонки". Настройки доступны.', function() {
+                    helper.innerTab('Исходящие звонки').mousedown();
+                    wait(10);
+
+                    helper.addFunnelButton.expectToBeEnabled();
+                });
+            });
+            describe(
+                'Первичные обращения обрабатываются вручную. Повторные обращения не обрабатываются. Открыта вкладка ' +
+                '"Входящие звонки".',
+            function() {
+                beforeEach(function() {
+                    helper.requestMultiFunnels().setFirstActManual().setSecondaryActNoAction().send();
+                    helper.requestSalesFunnel().send();
+                    helper.requestSalesFunnelStatus().send();
+                    wait(10);
+                });
+
+                it('Настройки заблокированы.', function() {
+                    helper.addFunnelButton.expectToBeDisabled();
+                });
+                it('Открываю вкладку "Исходящие звонки". Настройки заблокированы.', function() {
+                    helper.innerTab('Исходящие звонки').mousedown();
+                    wait(10);
+
+                    helper.addFunnelButton.expectToBeDisabled();
+                });
+            });
+            it(
+                'Первичные обращения обрабатываются вручную. При повторных обращениях создается сделка. Настройки ' +
+                'доступны.',
+            function() {
+                helper.requestMultiFunnels().setFirstActManual().send();
+                helper.requestSalesFunnel().send();
+                helper.requestSalesFunnelStatus().send();
+                wait(10);
+
+                helper.addFunnelButton.expectToBeEnabled();
+            });
+            describe(
+                'Для первичных обращений используется функциональность "Неразобранное". Повторные обращения не ' +
+                'обрабатываются.',
+            function() {
+                beforeEach(function() {
+                    helper.requestMultiFunnels().setFirstActUnsorted().setSecondaryActNoAction().send();
+                    helper.requestSalesFunnel().send();
+                    helper.requestSalesFunnelStatus().send();
+                    wait(10);
+                });
+
+                it('Настройки доступны.', function() {
+                    helper.addFunnelButton.expectToBeEnabled();
+                });
+                it('Выпдающий список статусов заблокирован.', function() {
+                    helper.form.combobox().withValue('Некий статус').expectToBeDisabled();
+                    helper.form.combobox().withValue('Похоже, что нам нужен еще один статус').expectToBeDisabled();
+                });
+                it('Открываю вкладку "Исходящие звонки". Выпдающий список статусов заблокирован.', function() {
+                    helper.innerTab('Исходящие звонки').mousedown();
+                    wait(10);
+
+                    helper.form.combobox().withValue('Другой статус').expectToBeDisabled();
+                    helper.form.combobox().withValue('И даже еще один статус').expectToBeDisabled();
+                });
+                it('Открываю вкладку "Чаты". Выпдающий список статусов доступен.', function() {
+                    helper.innerTab('Чаты').mousedown();
+                    wait(10);
+
+                    helper.form.combobox().withValue('Еще один статус').expectToBeEnabled();
+                    helper.form.combobox().withValue('Статус для чатов').expectToBeEnabled();
+                });
             });
         });
         it(

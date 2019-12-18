@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if [ ! -d /usr/local/src/utils ]
+then
+    cd /usr/local/src
+    git clone git@github.com:aoanshakov/utils.git
+
+    if [ -n $COMAGIC_ENV_USER ]
+    then
+        chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER /usr/local/src/utils
+    fi
+fi
+
+cd /usr/local/src/utils/call-center-tests
+
+if [ -d /usr/local/src/utils/call-center-tests/node_modules ]
+then
+    exit 0
+fi
+
+npm install
+
+if [ -n $COMAGIC_ENV_USER ]
+then
+    chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER /usr/local/src/utils/call-center-tests
+fi

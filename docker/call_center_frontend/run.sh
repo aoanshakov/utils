@@ -45,7 +45,7 @@ then
 
     if [ "$action" = "build" ]
     then
-        action=''
+        action='exit'
     fi
 fi
 
@@ -62,6 +62,9 @@ else
     elif [ "$action" = "build" ]
     then
         build
+    elif [ "$action" = 'exit' ]
+    then
+        exit 0
     else
         bash
     fi
