@@ -15,7 +15,9 @@ tests.addTest(function (
                 ajax: ajax,
                 Sip: Sip,
                 webSockets: webSockets,
-                spendTime: spendTime
+                spendTime: spendTime,
+                rtcConnectionsMock: rtcConnectionsMock,
+                userMedia: userMedia
             });
 
             tester.loginField.fill('ganeva@gmail.com');
@@ -39,7 +41,31 @@ tests.addTest(function (
             tester.requestRegistration().send();
         });
 
-        it('', function() {
+        describe('Набираю номер телефона, используя кнопки.', function() {
+            beforeEach(function() {
+                tester.dialpadButton(7).click();
+                tester.dialpadButton(9).click();
+                tester.dialpadButton(1).click();
+                tester.dialpadButton(6).click();
+                tester.dialpadButton(1).click();
+                tester.dialpadButton(2).click();
+                tester.dialpadButton(3).click();
+                tester.dialpadButton(4).click();
+                tester.dialpadButton(5).click();
+                tester.dialpadButton(6).click();
+                tester.dialpadButton(7).click();
+            });
+
+            xit('Набранный номер телефона отображается в поле для ввода номера телефона.', function() {
+                tester.phoneField.expectToHaveValue('79161234567');
+            });
+            it('Нажимаю на кнопку вызова.', function() {
+                tester.startCallButton.click();
+                tester.connectWebRTC();
+                tester.allowMediaInput();
+                tester.allowMediaInput();
+                tester.requestNameByNumber().send();
+            });
         });
     });
 });

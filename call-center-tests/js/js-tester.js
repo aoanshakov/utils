@@ -203,13 +203,23 @@ function JsTester_MediaDevicesUserMediaGetter (eventHandlers) {
 }
 
 function JsTester_NavigatorMock (getUserMedia, getMediaDevicesUserMedia) {
-    window.navigator.getUserMedia = getUserMedia;
+    var me = this,
+        navigator = window.navigator;
+
+    Object.defineProperty(window, 'navigator', {
+        get: function () {
+            return me;
+        },
+        set: function () {}
+    });
 
     this.mediaDevices = {
-        getUserMedia: getMediaDevicesUserMedia
+        getUserMedia: getMediaDevicesUserMedia,
+        addEventListener: function () {}
     };
 
     this.getUserMedia = getUserMedia;
+    this.userAgent = navigator.userAgent;
 }
 
 function JsTester_RTCPeerConnection (connections) {

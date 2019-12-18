@@ -7,6 +7,8 @@ define(function () {
             Sip = options.Sip,
             webSockets = options.webSockets,
             spendTime = options.spendTime,
+            rtcConnectionsMock = options.rtcConnectionsMock,
+            userMedia = options.userMedia,
             sip;
 
         function authenticatedUser () {
@@ -37,6 +39,10 @@ define(function () {
             return document.querySelector('input[placeholder="Пароль"]');
         });
 
+        this.phoneField = testersFactory.createTextFieldTester(function () {
+            return document.querySelector('input[placeholder="Введите номер..."]');
+        });
+
         this.enterButton = testersFactory.createDomElementTester(function () {
             return utils.descendantOfBody().matchesSelector('button').textEquals('Войти').find();
         });
@@ -44,6 +50,17 @@ define(function () {
         this.rememberMeCheckbox = testersFactory.createDomElementTester(function () {
             return utils.descendantOfBody().matchesSelector('span').textEquals('Запомнить меня').find().
                 closest('label').querySelector('input');
+        });
+
+        this.dialpadButton = function (text) {
+            return testersFactory.createDomElementTester(function () {
+                return utils.descendantOfBody().matchesSelector('.clct-adress-book__dialpad-button').textEquals(text).
+                    find();
+            });
+        };
+
+        this.startCallButton = testersFactory.createDomElementTester(function () {
+            return document.querySelector('.clct-adress-book__dialpad-call--start');
         });
 
         this.requestCalls = function () {
@@ -329,6 +346,16 @@ define(function () {
             webSockets.getSocket(/sup\/ws\/L1G1MyQy6uz624BkJWuy1BW1L9INRWNt5_DW8Ik836A$/).connect();
         };
 
+        this.allowMediaInput = function () {
+            userMedia.allowMediaInput();
+            Promise.runAll();
+        };
+
+        this.connectWebRTC = function () {
+            rtcConnectionsMock.getConnectionAtIndex(0).connect();
+            Promise.runAll();
+        };
+
         this.requestRegistration = function () {
             return {
                 send: function () {
@@ -348,6 +375,20 @@ define(function () {
                         response().
                         copyHeader('Contact').
                         send();
+                }
+            };
+        };
+
+        this.requestNameByNumber = function () {
+            return {
+                send: function () {
+                    ajax.recentRequest().
+                        expectPathToContain('/sup/api/v1/numa/79161234567').
+                        respondSuccessfullyWith({
+                            data: 'Шалева Дора'
+                        });
+
+                    Promise.runAll();
                 }
             };
         };

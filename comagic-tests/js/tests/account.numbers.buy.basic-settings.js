@@ -43,9 +43,12 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 expectNotToBeChecked();
         });
         it('Сообщение о невозможности подключения телефона по тарифам UIS не отображается.', function() {
-            helper.basicSettingsForm.createTester().forDescendantWithText(
-                'Исходящие звонки с мобильного номера возможны только по тарифам стороннего оператора'
-            ).expectToBeHiddenOrNotExist();
+            helper.basicSettingsForm.createTester().forDescendantWithText(function (text) {
+                return text.includes(
+                    'Мобильные номера рекомендуется подключать только для использования по тарифам стороннего ' +
+                    'оператора'
+                );
+            }, '.ul-statictip').expectToBeHiddenOrNotExist();
         });
         describe('Ввожу номер мобильного телефона в поле "Номер".', function() {
             beforeEach(function() {
@@ -53,12 +56,12 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 wait();
             });
 
-            it('Отмечена радиокнопка "Исходящие звонки по тарифам UIS".', function() {
+            it('Отмечена радиокнопка "Исходящие звонки по тарифам стороннего оператора".', function() {
                 helper.basicSettingsForm.radiofield().withBoxLabel('Исходящие звонки по тарифам UIS').
-                    expectToBeChecked();
+                    expectNotToBeChecked();
 
                 helper.basicSettingsForm.radiofield().withBoxLabel('Исходящие звонки по тарифам стороннего оператора').
-                    expectNotToBeChecked();
+                    expectToBeChecked();
             });
             it('Радиокнопка "Исходящие звонки по тарифам UIS" доступна.', function() {
                 helper.basicSettingsForm.radiofield().withBoxLabel('Исходящие звонки по тарифам UIS').
@@ -67,10 +70,13 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 helper.basicSettingsForm.radiofield().withBoxLabel('Исходящие звонки по тарифам стороннего оператора').
                     expectToBeEnabled();
             });
-            it('Сообщение о невозможности подключения телефона по тарифам UIS не отображается.', function() {
-                helper.basicSettingsForm.createTester().forDescendantWithText(
-                    'Исходящие звонки с мобильного номера возможны только по тарифам стороннего оператора'
-                ).expectToBeHiddenOrNotExist();
+            it('Отображается сообщение о невозможности подключения телефона по тарифам UIS.', function() {
+                helper.basicSettingsForm.createTester().forDescendantWithText(function (text) {
+                    return text.includes(
+                        'Мобильные номера рекомендуется подключать только для использования по тарифам стороннего ' +
+                        'оператора'
+                    );
+                }, '.ul-statictip').expectToBeVisible();
             });
         });
         describe((

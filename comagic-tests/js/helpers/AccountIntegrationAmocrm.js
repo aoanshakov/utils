@@ -690,16 +690,32 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         };
 
         return {
+            setOfflineActContact: function () {
+                data.offline_message_act = 'contact';
+                return this;
+            },
+            setOfflineActUnsorted: function () {
+                data.offline_message_act = 'unsorted';
+                return this;
+            },
+            setChatActContact: function () {
+                data.chat_act = 'contact';
+                return this;
+            },
+            setChatActUnsorted: function () {
+                data.chat_act = 'unsorted';
+                return this;
+            },
+            setFirstActManual: function () {
+                data.crm_record.first_call_act = 'manual';
+                return this;
+            },
             setFirstActUnsorted: function () {
                 data.crm_record.first_call_act = 'unsorted';
                 return this;
             },
             setSecondaryActNoAction: function () {
                 data.crm_record.secondary_call_act = 'no_action';
-                return this;
-            },
-            setFirstActManual: function () {
-                data.crm_record.first_call_act = 'manual';
                 return this;
             },
             send: function () {
@@ -790,9 +806,18 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
             sync_time: '2018-12-02T12:43:54.124824',
             sync_state: 'ok',
             sync_error: null,
+
             first_call_act: 'lead',
             secondary_call_act: 'lead',
-            chat_act: 'lead',
+            chat_act: 'lead_and_contact',
+            offline_message_act: 'lead_and_contact',
+
+            is_process_call: true,
+            is_process_out_call: true,
+            is_process_secondary_out_call: true,
+            is_process_chat: true,
+            is_process_offline_message: true,
+
             secondary_call_interval: 72,
             url: 'https://ivanov.amocrm.ru/',
             is_active: true,
@@ -801,14 +826,10 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
             hash: '2gf98FWf92ffwffOIJSp8108OLdfs89332FdfsflSDHP81',
             organization_schedule_id: 9238,
             telephony_provider: 'uis_comagic',
-            is_process_call: true,
-            is_process_out_call: true,
-            is_process_secondary_out_call: true,
             has_update_contact_on_call_finished_timeout: null,
             update_contact_on_call_finished_timeout: null,
             which_talked_user_responsible: 'last',
             check_manager_online: true,
-            is_process_chat: true,
             responsible_manager_source: null
         };
     }
@@ -817,6 +838,22 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         var data = getAmocrmData();
 
         return {
+            setOfflineActContact: function () {
+                data.offline_message_act = 'contact';
+                return this;
+            },
+            setOfflineActUnsorted: function () {
+                data.offline_message_act = 'unsorted';
+                return this;
+            },
+            setChatActContact: function () {
+                data.chat_act = 'contact';
+                return this;
+            },
+            setChatActUnsorted: function () {
+                data.chat_act = 'unsorted';
+                return this;
+            },
             setFirstActManual: function () {
                 data.first_call_act = 'manual';
                 return this;
@@ -962,6 +999,22 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         return utils.findElementByTextContent(getVisibleTab(), function (textContent) {
             return textContent.includes(
                 'Активировать эти опции для чатов нужно в вкладке "Чаты и заявки" - "Работа с чатами"'
+            );
+        }, '.x-component');
+    });
+
+    this.offlineMessage = testersFactory.createDomElementTester(function () {
+        return utils.findElementByTextContent(getVisibleTab(), function (textContent) {
+            return textContent.includes(
+                'Активировать эти опции для офлайн заявок нужно в вкладке "Чаты и заявки" - "Работа с офлайн заявками"'
+            );
+        }, '.x-component');
+    });
+
+    this.noMultiFunnelsForUnsortedMessage = testersFactory.createDomElementTester(function () {
+        return utils.findElementByTextContent(getVisibleTab(), function (textContent) {
+            return textContent.includes(
+                'Для способа обработки "Использовать функциональность Неразобранное" мультиворонки не работают'
             );
         }, '.x-component');
     });

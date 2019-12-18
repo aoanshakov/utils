@@ -17,7 +17,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.requestSalesFunnelComponentTariffInfo().send();
         });
         
-        describe(
+        xdescribe(
             'Обновление ответственного отключено и время заполнения карточки не установлено. Открываю вкладку ' +
             '"Телефония". Нельзя использовать неразобранное.',
         function() {
@@ -56,7 +56,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.requestAmocrmDataSave().setUpdateContact().set15MinutesContactUpdateTimout().send();
             });
         });
-        it(
+        xit(
             'Открываю вкладку "Телефония". Можно использовать неразобранное. Опция "Использовать функциональность ' +
             '"Неразобранное"" доступна.',
         function() {
@@ -81,8 +81,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             });
 
             describe(
-                'При первичном обращении создается сделка. При повторных обращениях создается сделка. Открыта ' +
-                'вкладка "Входящие звонки".',
+                'При первичном обращении создается сделка. Для офлайн сообщений создаются сделки. Для чатов ' +
+                'создаются сделки. При повторных обращениях создается сделка. Открыта вкладка "Входящие звонки".',
             function() {
                 beforeEach(function() {
                     helper.requestMultiFunnels().send();
@@ -91,28 +91,156 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     wait(10);
                 });
 
-                it('Отображено сообщение об условиях при которых будут работать мультиворонки.', function() {
-                    helper.incomingCallsMessage.expectToBeVisible();
+                it('Сообщение об условиях при которых будут работать мультиворонки не отображается.', function() {
+                    helper.incomingCallsMessage.expectToBeHiddenOrNotExist();
+                    helper.outboundCallsMessage.expectToBeHiddenOrNotExist();
+                    helper.chatsMessage.expectToBeHiddenOrNotExist();
+                    helper.offlineMessage.expectToBeHiddenOrNotExist();
                 });
                 it(
-                    'Открываю вкладку "Исходящие звонки". Отображено сообщение об условиях при которых будут ' +
-                    'работать мультиворонки.',
+                    'Открываю вкладку "Исходящие звонки". Сообщение об условиях при которых будут работать ' +
+                    'мультиворонки не отображается.',
                 function() {
                     helper.innerTab('Исходящие звонки').mousedown();
                     wait(10);
 
-                    helper.outboundCallsMessage.expectToBeVisible();
+                    helper.incomingCallsMessage.expectToBeHiddenOrNotExist();
+                    helper.outboundCallsMessage.expectToBeHiddenOrNotExist();
+                    helper.chatsMessage.expectToBeHiddenOrNotExist();
+                    helper.offlineMessage.expectToBeHiddenOrNotExist();
                 });
                 it(
-                    'Открываю вкладку "Чаты". Отображено сообщение об условиях при которых будут работать ' +
-                    'мультиворонки.',
+                    'Открываю вкладку "Офлайн Заявки". Сообщение об условиях при которых будут работать ' +
+                    'мультиворонки не отображается.',
+                function() {
+                    helper.innerTab('Офлайн Заявки').mousedown();
+                    wait(10);
+
+                    helper.incomingCallsMessage.expectToBeHiddenOrNotExist();
+                    helper.outboundCallsMessage.expectToBeHiddenOrNotExist();
+                    helper.chatsMessage.expectToBeHiddenOrNotExist();
+                    helper.offlineMessage.expectToBeHiddenOrNotExist();
+                });
+                it(
+                    'Открываю вкладку "Чаты". Сообщение об условиях при которых будут работать мультиворонки не ' +
+                    'отображается.',
                 function() {
                     helper.innerTab('Чаты').mousedown();
                     wait(10);
 
-                    helper.chatsMessage.expectToBeVisible();
+                    helper.incomingCallsMessage.expectToBeHiddenOrNotExist();
+                    helper.outboundCallsMessage.expectToBeHiddenOrNotExist();
+                    helper.chatsMessage.expectToBeHiddenOrNotExist();
+                    helper.offlineMessage.expectToBeHiddenOrNotExist();
                 });
             });
+            describe(
+                'Первичные обращения обрабатываются вручную. Повторные обращения не обрабатываются. Открыта вкладка ' +
+                '"Входящие звонки".',
+            function() {
+                beforeEach(function() {
+                    helper.requestMultiFunnels().setFirstActManual().setSecondaryActNoAction().send();
+                    helper.requestSalesFunnel().send();
+                    helper.requestSalesFunnelStatus().send();
+                    wait(10);
+                });
+
+                it(
+                    'Настройки заблокированы. Отображено сообщение об условиях при которых будут работать ' +
+                    'мультиворонки. Сообщение о том, что мультиворонки недоступны для неразобранного не отображаются.',
+                function() {
+                    helper.addFunnelButton.expectToBeDisabled();
+                    helper.incomingCallsMessage.expectToBeVisible();
+                    helper.noMultiFunnelsForUnsortedMessage.expectToBeHiddenOrNotExist();
+                });
+                it(
+                    'Открываю вкладку "Исходящие звонки". Настройки заблокированы. Отображено сообщение об условиях ' +
+                    'при которых будут работать мультиворонки.',
+                function() {
+                    helper.innerTab('Исходящие звонки').mousedown();
+                    wait(10);
+
+                    helper.addFunnelButton.expectToBeDisabled();
+                    helper.outboundCallsMessage.expectToBeVisible();
+                });
+            });
+            it(
+                'Для чатов создаются сделки. Повторные обращения не обрабатываются. Открыта вкладка "Входящие ' +
+                'звонки". Открываю вкладку "Чаты". Настройки заблокированы. Отображено сообщение об условиях при ' +
+                'которых будут работать мультиворонки.',
+            function() {
+                helper.requestMultiFunnels().setChatActContact().send();
+                helper.requestSalesFunnel().send();
+                helper.requestSalesFunnelStatus().send();
+                wait(10);
+
+                helper.innerTab('Чаты').mousedown();
+                wait(10);
+
+                helper.addFunnelButton.expectToBeDisabled();
+                helper.chatsMessage.expectToBeVisible();
+            });
+            it(
+                'Для офлайн заявок создаются сделки. Повторные обращения не обрабатываются. Открыта вкладка ' +
+                '"Входящие звонки". Открываю вкладку "Офлайн Заявки". Настройки заблокированы. Отображено сообщение ' +
+                'об условиях при которых будут работать мультиворонки.',
+            function() {
+                helper.requestMultiFunnels().setOfflineActContact().send();
+                helper.requestSalesFunnel().send();
+                helper.requestSalesFunnelStatus().send();
+                wait(10);
+
+                helper.innerTab('Офлайн Заявки').mousedown();
+                wait(10);
+
+                helper.addFunnelButton.expectToBeDisabled();
+                helper.offlineMessage.expectToBeVisible();
+            });
+            it(
+                'Для первичных обращений используется функциональность "Неразобранное". Повторные обращения не ' +
+                'обрабатываются. Настройки заблокированы. Отображается сообщение о том, что мультиворонки недоступны ' +
+                'для неразобранного.',
+            function() {
+                helper.requestMultiFunnels().setFirstActUnsorted().setSecondaryActNoAction().send();
+                helper.requestSalesFunnel().send();
+                helper.requestSalesFunnelStatus().send();
+                wait(10);
+
+                helper.addFunnelButton.expectToBeDisabled();
+                helper.noMultiFunnelsForUnsortedMessage.expectToBeVisible();
+            });
+            it(
+                'Для чатов используется функциональность "Неразобранное". Открываю вкладку "Чаты". Настройки ' +
+                'заблокированы. Отображается сообщение о том, что мультиворонки недоступны для неразобранного.',
+            function() {
+                helper.requestMultiFunnels().setChatActUnsorted().send();
+                helper.requestSalesFunnel().send();
+                helper.requestSalesFunnelStatus().send();
+                wait(10);
+
+                helper.innerTab('Чаты').mousedown();
+                wait(10);
+
+                helper.addFunnelButton.expectToBeDisabled();
+                helper.noMultiFunnelsForUnsortedMessage.expectToBeVisible();
+            });
+            it(
+                'Для офлайн заявок используется функциональность "Неразобранное". Повторные обращения не ' +
+                'обрабатываются. Настройки заблокированы. Отображается сообщение о том, что мультиворонки недоступны ' +
+                'для неразобранного.',
+            function() {
+                helper.requestMultiFunnels().setOfflineActUnsorted().send();
+                helper.requestSalesFunnel().send();
+                helper.requestSalesFunnelStatus().send();
+                wait(10);
+
+                helper.innerTab('Офлайн Заявки').mousedown();
+                wait(10);
+
+                helper.addFunnelButton.expectToBeDisabled();
+                helper.noMultiFunnelsForUnsortedMessage.expectToBeVisible();
+            });
+            return;
             describe(
                 'При первичном обращении создается сделка. Повторные обращения не обрабатываются. Открыта вкладка ' +
                 '"Входящие звонки".',
@@ -134,33 +262,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     helper.addFunnelButton.expectToBeEnabled();
                 });
             });
-            describe(
-                'Первичные обращения обрабатываются вручную. Повторные обращения не обрабатываются. Открыта вкладка ' +
-                '"Входящие звонки".',
-            function() {
-                beforeEach(function() {
-                    helper.requestMultiFunnels().setFirstActManual().setSecondaryActNoAction().send();
-                    helper.requestSalesFunnel().send();
-                    helper.requestSalesFunnelStatus().send();
-                    wait(10);
-                });
-
-                it('Настройки заблокированы.', function() {
-                    helper.addFunnelButton.expectToBeDisabled();
-                });
-                it('Открываю вкладку "Исходящие звонки". Настройки заблокированы.', function() {
-                    helper.innerTab('Исходящие звонки').mousedown();
-                    wait(10);
-
-                    helper.addFunnelButton.expectToBeDisabled();
-                });
-                it('Открываю вкладку "Чаты". Настройки доступны.', function() {
-                    helper.innerTab('Чаты').mousedown();
-                    wait(10);
-
-                    helper.addFunnelButton.expectToBeEnabled();
-                });
-            });
             it(
                 'Первичные обращения обрабатываются вручную. При повторных обращениях создается сделка. Настройки ' +
                 'доступны.',
@@ -172,18 +273,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                 helper.addFunnelButton.expectToBeEnabled();
             });
-            it(
-                'Для первичных обращений используется функциональность "Неразобранное". Повторные обращения не ' +
-                'обрабатываются. Настройки заблокированы.',
-            function() {
-                helper.requestMultiFunnels().setFirstActUnsorted().setSecondaryActNoAction().send();
-                helper.requestSalesFunnel().send();
-                helper.requestSalesFunnelStatus().send();
-                wait(10);
-
-                helper.addFunnelButton.expectToBeDisabled();
-            });
         });
+        return;
         it(
             'Обновление ответственного отключено, время заполнения карточки установлено. Открываю вкладку ' +
             '"Телефония". В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" ' +
@@ -305,6 +396,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.form.radiofield().withBoxLabel('Из сделки').expectToBeChecked();
         });
     });
+    return;
     describe(
         'Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". Открыта вкладка "Доступ к данным".',
     function() {
