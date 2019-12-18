@@ -942,7 +942,7 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
 
     this.unsortedRadioField = function () {
         return testersFactory.createRadioFieldTester(getVisibleTab().down(
-            "radiofield[boxLabel='Использовать функциональность \"Неразобранное\"']"
+            'radiofield[boxLabel="Использовать функциональность \\"Неразобранное\\""]'
         ));
     };
 

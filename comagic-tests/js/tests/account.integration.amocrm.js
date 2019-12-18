@@ -91,31 +91,25 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     wait(10);
                 });
 
-                it(
-                    'Выпдающий список статусов доступен. Отображено сообщение об условиях при которых будут работать ' +
-                    'мультиворонки.',
-                function() {
-                    helper.form.combobox().withValue('Некий статус').expectToBeEnabled();
-                    helper.form.combobox().withValue('Похоже, что нам нужен еще один статус').expectToBeEnabled();
+                it('Отображено сообщение об условиях при которых будут работать мультиворонки.', function() {
                     helper.incomingCallsMessage.expectToBeVisible();
                 });
                 it(
-                    'Открываю вкладку "Исходящие звонки". Выпдающий список статусов доступен. Отображено сообщение ' +
-                    'об условиях при которых будут работать мультиворонки.',
+                    'Открываю вкладку "Исходящие звонки". Отображено сообщение об условиях при которых будут ' +
+                    'работать мультиворонки.',
                 function() {
                     helper.innerTab('Исходящие звонки').mousedown();
                     wait(10);
 
-                    helper.form.combobox().withValue('Другой статус').expectToBeEnabled();
-                    helper.form.combobox().withValue('И даже еще один статус').expectToBeEnabled();
                     helper.outboundCallsMessage.expectToBeVisible();
                 });
-                it('Открываю вкладку "Чаты". Выпдающий список статусов доступен.', function() {
+                it(
+                    'Открываю вкладку "Чаты". Отображено сообщение об условиях при которых будут работать ' +
+                    'мультиворонки.',
+                function() {
                     helper.innerTab('Чаты').mousedown();
                     wait(10);
 
-                    helper.form.combobox().withValue('Еще один статус').expectToBeEnabled();
-                    helper.form.combobox().withValue('Статус для чатов').expectToBeEnabled();
                     helper.chatsMessage.expectToBeVisible();
                 });
             });
@@ -160,6 +154,12 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                     helper.addFunnelButton.expectToBeDisabled();
                 });
+                it('Открываю вкладку "Чаты". Настройки доступны.', function() {
+                    helper.innerTab('Чаты').mousedown();
+                    wait(10);
+
+                    helper.addFunnelButton.expectToBeEnabled();
+                });
             });
             it(
                 'Первичные обращения обрабатываются вручную. При повторных обращениях создается сделка. Настройки ' +
@@ -172,38 +172,16 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                 helper.addFunnelButton.expectToBeEnabled();
             });
-            describe(
+            it(
                 'Для первичных обращений используется функциональность "Неразобранное". Повторные обращения не ' +
-                'обрабатываются.',
+                'обрабатываются. Настройки заблокированы.',
             function() {
-                beforeEach(function() {
-                    helper.requestMultiFunnels().setFirstActUnsorted().setSecondaryActNoAction().send();
-                    helper.requestSalesFunnel().send();
-                    helper.requestSalesFunnelStatus().send();
-                    wait(10);
-                });
+                helper.requestMultiFunnels().setFirstActUnsorted().setSecondaryActNoAction().send();
+                helper.requestSalesFunnel().send();
+                helper.requestSalesFunnelStatus().send();
+                wait(10);
 
-                it('Настройки доступны.', function() {
-                    helper.addFunnelButton.expectToBeEnabled();
-                });
-                it('Выпдающий список статусов заблокирован.', function() {
-                    helper.form.combobox().withValue('Некий статус').expectToBeDisabled();
-                    helper.form.combobox().withValue('Похоже, что нам нужен еще один статус').expectToBeDisabled();
-                });
-                it('Открываю вкладку "Исходящие звонки". Выпдающий список статусов заблокирован.', function() {
-                    helper.innerTab('Исходящие звонки').mousedown();
-                    wait(10);
-
-                    helper.form.combobox().withValue('Другой статус').expectToBeDisabled();
-                    helper.form.combobox().withValue('И даже еще один статус').expectToBeDisabled();
-                });
-                it('Открываю вкладку "Чаты". Выпдающий список статусов доступен.', function() {
-                    helper.innerTab('Чаты').mousedown();
-                    wait(10);
-
-                    helper.form.combobox().withValue('Еще один статус').expectToBeEnabled();
-                    helper.form.combobox().withValue('Статус для чатов').expectToBeEnabled();
-                });
+                helper.addFunnelButton.expectToBeDisabled();
             });
         });
         it(
