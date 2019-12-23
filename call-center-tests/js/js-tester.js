@@ -227,23 +227,32 @@ function JsTester_RTCConnectionSender () {
     };
 }
 
-function JsTester_MediaStream () {
-    this.getAudioTracks = function () {
-        return [{}];
-    };
-}
-
 function JsTester_RTCPeerConnection (options) {
     var connections = options.connections,
-        rtcMediaStreams = options.rtcMediaStreams;
+        mediaStreams = options.mediaStreams;
 
     return function () {
-        var remoteStream = new JsTester_MediaStream(),
-            localStream = new JsTester_MediaStream(),
-            sender = new JsTester_RTCConnectionSender();
+        var remoteStream = mediaStreams.create(),
+            localStream = mediaStreams.create(),
+            sender = new JsTester_RTCConnectionSender(),
+            iceConnectionState;
 
-        rtcMediaStreams.set(remoteStream, this);
-        rtcMediaStreams.set(localStream, this);
+        Object.defineProperty(this, 'iceConnectionState', {
+            get: function () {
+                return iceConnectionState;
+            },
+            set: function (value) {
+                iceConnectionState = value;
+
+                if (iceConnectionState == 'connected') {
+                    mediaStreams.enable(remoteStream);
+                    mediaStreams.enable(localStream);
+                } else {
+                    mediaStreams.disable(remoteStream);
+                    mediaStreams.disable(localStream);
+                }
+            }
+        });
 
         this.iceConnectionState = 'new';
 
@@ -338,8 +347,8 @@ function JsTester_RTCPeerConnectionTester (options) {
             });
         }
     }
-    this.addRemoteStreamPlayingExpectation = function (streamPlayingExpectations) {
-        return streamPlayingExpectations.add(connection.getRemoteStreams()[0]);
+    this.getRemoteStream = function () {
+        return connection.getRemoteStreams()[0];
     };
     this.expectToBeConnected = function () {
         var actualState = connection.iceConnectionState;
@@ -401,11 +410,11 @@ function JsTester_RTCPeerConnections (options) {
 function JsTester_RTCPeerConnectionMocker (options) {
     var connections = options.connections,
         rtcConnectionStateChecker = options.rtcConnectionStateChecker,
-        rtcMediaStreams = options.rtcMediaStreams,
+        mediaStreams = options.mediaStreams,
         RealRCTPreerConnection = RTCPeerConnection,
         RTCPeerConnectionMock = new JsTester_RTCPeerConnection({
             connections: connections,
-            rtcMediaStreams: rtcMediaStreams
+            mediaStreams: mediaStreams
         }),
         checkConnectionState = new JsTester_RTCConnectionStateChecker(connections);
 
@@ -516,52 +525,142 @@ function JsTester_RTCConnectionStateChecker (connections) {
 }
 
 function JsTester_Audio (options) {
-    var audioTracks = options.audioTracks,
-        debug = options.debug;
-
-    var audioTrackOptions = {
-        stream: options.stream,
-        audio: this,
-        playing: false
-    };
-
-    audioTracks.push(audioTrackOptions);
+    var mediaStreams = options.mediaStreams,
+        debug = options.debug,
+        audioEndListeners = new Map(),
+        maybeAddAudioEndListener,
+        maybeRemoveAudioEndListener,
+        maybeUnsetSource,
+        maybePlay,
+        maybeStop,
+        maybeSetCyclical,
+        maybeSetNoncyclical,
+        loop,
+        applyLoop = function () {},
+        mediaStream;
 
     Object.defineProperty(this, 'srcObject', {
         get : function () {
-            return audioTrackOptions.stream;
+            return mediaStream;
         },
         set: function (value) {
-            audioTrackOptions.stream = value;
+            maybeUnsetSource();
+            setSource(value);
         }
-    });     
+    });
+    Object.defineProperty(this, 'loop', {
+        get : function () {
+            return loop;
+        },
+        set: function (value) {
+            loop = value;
 
-    this.addEventListener = function () {
+            if (loop) {
+                applyLoop = setCyclical;
+                maybeSetCyclical();
+            } else {
+                applyLoop = setNoncyclical;
+                maybeSetNoncyclical();
+            }
+        }
+    });
+    this.addEventListener = function (eventName, listener) {
+        if (eventName != 'ended') {
+            return;
+        }
+
+        audioEndListeners.set(listener, listener);
+        maybeAddAudioEndListener(listener);
     };
-    this.removeEventListener = function () {
+    this.removeEventListener = function (eventName, listener) {
+        if (eventName != 'ended') {
+            return;
+        }
+
+        audioEndListeners.delete(listener);
+        maybeRemoveAudioEndListener(listener);
     };
     this.play = function () {
-        audioTrackOptions.playing = true;
-        audioTrackOptions.callStack = debug.getCallStack();
+        maybePlay();
         return Promise.resolve();
     };
     this.pause = function () {
-        audioTrackOptions.playing = false;
+        maybeStop();
         return Promise.resolve();
     };
+    function setCyclical () {
+        mediaStreams.setCyclical(mediaStream);
+    }
+    function setNoncyclical () {
+        mediaStreams.setNoncyclical(mediaStream);
+    }
+    function play () {
+        mediaStreams.play(mediaStream);
+    }
+    function stop () {
+        mediaStreams.stop(mediaStream);
+    }
+    function addAudioEndListener (listener) {
+        mediaStreams.addAudioEndListener(mediaStream, listener);
+    }
+    function removeAudioEndListener (listener) {
+        mediaStreams.removeAudioEndListener(mediaStream, listener);
+    }
+    function addAudioEndListeners () {
+        audioEndListeners.forEach(function (listener) {
+            mediaStreams.addAudioEndListener(mediaStream, listener);
+        });
+    }
+    function unsetSource () {
+        audioEndListeners.forEach(function (listener) {
+            mediaStreams.removeAudioEndListener(mediaStream, listener);
+        });
+
+        mediaStreams.stop(mediaStream);
+    }
+    function setSource (value) {
+        mediaStream = value;
+
+        if (mediaStream) {
+            audioEndListeners.forEach(function (listener) {
+                mediaStreams.addAudioEndListener(mediaStream, listener);
+            });
+
+            mediaStreams.register(mediaStream);
+            applyLoop();
+            maybeSetCyclical = setCyclical;
+            maybeSetNoncyclical = setNoncyclical;
+            maybePlay = play;
+            maybeStop = stop;
+            maybeAddAudioEndListener = addAudioEndListener;
+            maybeRemoveAudioEndListener = removeAudioEndListener;
+            maybeUnsetSource = unsetSource;
+        } else {
+            maybeSetCyclical =
+            maybeSetNoncyclical =
+            maybePlay =
+            maybeStop =
+            maybeAddAudioEndListener =
+            maybeRemoveAudioEndListener =
+            maybeUnsetSource = function () {};
+        }
+    }
+
+    setSource(options.mediaStream);
+    this.loop = false;
 }
 
 function JsTester_AudioReplacer (options) {
-    var audioTracks = options.audioTracks,
+    var mediaStreams = options.mediaStreams,
         debug = options.debug,
         realAudio = window.Audio;
 
     this.replaceByFake = function () {
-        window.Audio = function (stream) {
+        window.Audio = function (mediaStream) {
             return new JsTester_Audio({
-                audioTracks: audioTracks,
-                debug: debug,
-                stream: stream
+                mediaStreams: mediaStreams,
+                mediaStream: mediaStream,
+                debug: debug
             });
         };
     };
@@ -570,67 +669,40 @@ function JsTester_AudioReplacer (options) {
     };
 }
 
-function JsTester_StreamsPlayingExpectaion (options) {
-    var streams = [],
-        audioTracks = options.audioTracks,
-        rtcMediaStreams = options.rtcMediaStreams;
+function JsTester_MediaStreamsTester (options) {
+    var playingMediaStreams = options.playingMediaStreams,
+        mediaStreams = options.mediaStreams;
 
-    this.add = function (stream) {
-        streams.push(stream);
-        return this;
+    function throwStreamShouldNotPlay (callStack) {
+        throw new Error('Звук не должен звучать.' + "\n\n" + callStack);
+    }
+    this.finish = function (mediaStream) {
+        mediaStreams.finish(mediaStream);
     };
-    this.expect = function () {
-        var map = new Map();
+    this.expectNoStreamToPlay = function () {
+        if (playingMediaStreams.size) {
+            playingMediaStreams.forEach(throwStreamShouldNotPlay);
+        }
+    };
+    this.expectStreamsToPlay = function () {
+        var map = new Map(),
+            streams = Array.prototype.slice.call(arguments, 0);
 
-        audioTracks.forEach(function (track) {
-            var stream = track.stream;
-
-            if (!map.has(stream)) {
-                map.set(stream, []);
+        streams.forEach(function (stream) {
+            if (!playingMediaStreams.has(stream)) {
+                throw new Error('Звук должнен звучать.');
             }
 
-            map.get(stream).push(track);
+            map.set(stream, true);
         });
 
-        map.forEach(function (tracks, stream) {
-            var playing = false,
-                callStack;
-
-            tracks.forEach(function (track) {
-                if (track.playing && (
-                    !rtcMediaStreams.has(track.stream) ||
-                    rtcMediaStreams.get(track.stream).iceConnectionState == 'connected'
-                )) {
-                    if (playing) {
-                        throw new Error(
-                            'Два одинаковых звука звучат одновременно. Возможно здесь что-то не так.'
-                        );
-                    }
-
-                    playing = true;
-                    callStack = track.callStack;
+        if (map.size != playingMediaStreams.size) {
+            playingMediaStreams.forEach(function (callStack, mediaStream) {
+                if (!map.has(mediaStream)) {
+                    throwStreamShouldNotPlay(callStack);
                 }
             });
-
-            if (streams.includes(stream)) {
-                if (!playing) {
-                    throw new Error('Звук должен звучать.');
-                }
-            } else {
-                if (playing) {
-                    throw new Error(
-                        'Звук не должен звучать. Обрати внимание на этот стек вызовов, чтобы понять почему звук ' +
-                        'зазвучал.' + "\n\n" + callStack
-                    );
-                }
-            }
-        });
-    };
-}
-
-function JsTester_StreamsPlayingExpectaionFactory (options) {
-    return function () {
-        return new JsTester_StreamsPlayingExpectaion(options);
+        }
     };
 }
 
@@ -698,6 +770,199 @@ function JsTester_AudioContextReplacer () {
     };
 }
 
+function JsTester_MediaStream () {
+    this.getAudioTracks = function () {
+        return [{}];
+    };
+}
+
+function JsTester_MediaStreamPlayingState(options) {
+    var mediaStream = options.mediaStream,
+        playingMediaStreams = options.playingMediaStreams,
+        audioEndListeners = options.audioEndListeners,
+        debug = options.debug,
+        maybeFinish,
+        maybeStop,
+        audioNodesCount,
+        maybeThrowIsNotPlaying,
+        maybeAddPlayingMediaStream,
+        maybeRestorePlayingMediaStream;
+
+    function setNotPlaying () {
+        maybeStop =
+        maybeRestorePlayingMediaStream = function () {};
+        maybeThrowIsNotPlaying = throwIsNotPlaying;
+    }
+    function removePlayingMediaStream () {
+        playingMediaStreams.delete(mediaStream);
+    }
+    function addPlayingMediaStream () {
+        if (!playingMediaStreams.has(mediaStream)) {
+            playingMediaStreams.set(mediaStream, debug.getCallStack());
+        }
+    }
+    function stop () {
+        audioNodesCount --;
+
+        if (!audioNodesCount) {
+            removePlayingMediaStream();
+            setNotPlaying();
+        }
+    }
+    function finish () {
+        maybeThrowIsNotPlaying();
+        stop();
+        audioEndListeners.forEach(function (listener) {
+            listener();
+        });
+    }
+    function throwIsCyclical () {
+        throw new Error('Не удалось закончить воспроизведение звука, так как он проигрывается в цикле.');
+    }
+    function throwIsNotPlaying () {
+        throw new Error('Не удалось закончить воспроизведение звука, так как он и не воспроизводится в данный момент.');
+    }
+    this.play = function () {
+        if (audioNodesCount == 0) {
+            maybeAddPlayingMediaStream();
+            maybeStop = stop;
+            maybeRestorePlayingMediaStream = addPlayingMediaStream;
+            maybeThrowIsNotPlaying = throwIsNotPlayingIfDisabled;
+        } else {
+            console.log('Одинаковые звуки воспроизводятся одновременно. Может быть что-то пошло не так?' + "\n\n" +
+                debug.getCallStack());
+        }
+
+        audioNodesCount ++;
+    };
+    this.disable = function () {
+        removePlayingMediaStream();
+        throwIsNotPlayingIfDisabled = throwIsNotPlaying;
+        maybeAddPlayingMediaStream = function () {};
+    };
+    this.enable = function () {
+        maybeAddPlayingMediaStream = addPlayingMediaStream;
+        throwIsNotPlayingIfDisabled = function () {};
+        maybeRestorePlayingMediaStream();
+    };
+    this.assertPlaying = function () {
+        maybeThrowIsNotPlaying();
+    };
+    this.setCyclical = function () {
+        maybeFinish = throwIsCyclical;
+    };
+    this.setNoncyclical = function () {
+        maybeFinish = finish;
+    };
+    this.finish = function () {
+        maybeFinish();
+    };
+    this.stop = function () {
+        maybeStop();
+    };
+    this.reset = function () {
+        audioNodesCount = 0;
+        setNotPlaying();
+        this.enable();
+    };
+
+    this.setNoncyclical();
+    this.reset();
+}
+
+function JsTester_MediaStreams (options) {
+    var mediaStreams = new Map(),
+        playingMediaStreams = options.playingMediaStreams,
+        debug = options.debug,
+        RealMediaStream = options.RealMediaStream,
+        initialMediaStreams = new Map();
+
+    function getMediaStreamPlayingState (mediaStream) {
+        return mediaStreams.get(mediaStream).mediaStreamPlayingState;
+    }
+    this.considerInitial = function () {
+        initialMediaStreams = new Map();
+
+        mediaStreams.forEach(function (item, mediaStream) {
+            initialMediaStreams.set(mediaStream, true);
+        });
+    };
+    this.clear = function () {
+        mediaStreams.forEach(function (item, mediaStream) {
+            if (initialMediaStreams.has(mediaStream)) {
+                item.mediaStreamPlayingState.reset();
+            } else {
+                mediaStreams.delete(mediaStream);
+            }
+        });
+
+        playingMediaStreams.clear();
+    };
+    this.register = function (mediaStream) {
+        if (mediaStreams.has(mediaStream)) {
+            return;
+        }
+
+        var audioEndListeners = new Map();
+
+        mediaStreams.set(mediaStream, {
+            audioEndListeners: audioEndListeners,
+            mediaStreamPlayingState: new JsTester_MediaStreamPlayingState({
+                mediaStream: mediaStream,
+                playingMediaStreams: playingMediaStreams,
+                audioEndListeners: audioEndListeners,
+                debug: debug
+            })
+        });
+    };
+    this.create = function () {
+        var mediaStream = new RealMediaStream();
+        this.register(mediaStream);
+        return mediaStream;
+    };
+    this.enable = function (mediaStream) {
+        getMediaStreamPlayingState(mediaStream).enable();
+    };
+    this.disable = function (mediaStream) {
+        getMediaStreamPlayingState(mediaStream).disable();
+    };
+    this.finish = function (mediaStream) {
+        getMediaStreamPlayingState(mediaStream).finish();
+    };
+    this.stop = function (mediaStream) {
+        getMediaStreamPlayingState(mediaStream).stop();
+    };
+    this.play = function (mediaStream) {
+        getMediaStreamPlayingState(mediaStream).play();
+    };
+    this.setNoncyclical = function (mediaStream) {
+        getMediaStreamPlayingState(mediaStream).setNoncyclical();
+    };
+    this.setCyclical = function (mediaStream) {
+        getMediaStreamPlayingState(mediaStream).setCyclical();
+    };
+    this.addAudioEndListener = function (mediaStream, listener) {
+        mediaStreams.get(mediaStream).audioEndListeners.set(listener, listener);
+    };
+    this.removeAudioEndListener = function (mediaStream, listener) {
+        mediaStreams.get(mediaStream).audioEndListeners.delete(listener);
+    };
+}
+
+function JsTester_MediaStreamReplacer (mediaStreams) {
+    var RealMediaStream = window.MediaStream;
+
+    this.replaceByFake = function () {
+        mediaStreams.clear();
+        window.MediaStream = function () {
+            return mediaStreams.create();
+        };
+    };
+    this.restoreReal = function () {
+        window.MediaStream = RealMediaStream;
+    };
+}
+
 function JsTester_Tests (factory) {
     var testRunners = [],
         requiredClasses = [],
@@ -720,12 +985,16 @@ function JsTester_Tests (factory) {
         navigatorMock = new JsTester_NavigatorMock(userMediaGetter, mediaDevicesUserMediaGetter),
         rtcConnectionStateChecker = new JsTester_FunctionVariable(function () {}),
         rtcConnections = [],
-        audioTracks = [],
-        rtcMediaStreams = new Map(),
+        playingMediaStreams = new Map();
+        mediaStreams = new JsTester_MediaStreams({
+            playingMediaStreams: playingMediaStreams,
+            debug: debug,
+            RealMediaStream: window.MediaStream
+        }),
         rtcPeerConnectionMocker = new JsTester_RTCPeerConnectionMocker({
             connections: rtcConnections,
             rtcConnectionStateChecker: rtcConnectionStateChecker,
-            rtcMediaStreams: rtcMediaStreams
+            mediaStreams: mediaStreams
         }),
         rtcConnectionsMock = new JsTester_RTCPeerConnections({
             connections: rtcConnections,
@@ -733,17 +1002,19 @@ function JsTester_Tests (factory) {
         }),
         testsExecutionBeginingHandlers = [],
         checkRTCConnectionState = rtcConnectionStateChecker.createValueCaller(),
-        streamPlayingExpectaionFactory = new JsTester_StreamsPlayingExpectaionFactory({
-            audioTracks: audioTracks,
-            rtcMediaStreams: rtcMediaStreams
+        mediaStreamsTester = new JsTester_MediaStreamsTester({
+            playingMediaStreams: playingMediaStreams,
+            mediaStreams: mediaStreams
         }),
+        audioContextReplacer = new JsTester_AudioContextReplacer(),
         audioReplacer = new JsTester_AudioReplacer({
-            audioTracks: audioTracks,
+            mediaStreams: mediaStreams,
             debug: debug
         }),
-        audioContextReplacer = new JsTester_AudioContextReplacer();
+        mediaStreamReplacer = new JsTester_MediaStreamReplacer(mediaStreams);
 
     audioReplacer.replaceByFake();
+    mediaStreamReplacer.replaceByFake();
 
     window.URL.createObjectURL = function (object) {
         return 'http://127.0.0.1/#' + object.id;
@@ -806,7 +1077,7 @@ function JsTester_Tests (factory) {
             rtcConnectionsMock: rtcConnectionsMock,
             navigatorMock: navigatorMock,
             timeoutLogger: timeoutLogger,
-            createStreamPlayingExpectation: streamPlayingExpectaionFactory
+            mediaStreamsTester: mediaStreamsTester
         };
 
         (function () {
@@ -818,6 +1089,8 @@ function JsTester_Tests (factory) {
         })();
 
         this.handleBeginingOfTestsExecution(args);
+
+        mediaStreams.considerInitial();
 
         testRunners.forEach(function (runTest) {
             runTest.call(null, args);
@@ -838,9 +1111,8 @@ function JsTester_Tests (factory) {
         return requiredClasses;
     };
     this.beforeEach = function () {
-        rtcMediaStreams.clear();
+        mediaStreams.clear();
         audioContextReplacer.replaceByFake();
-        audioTracks.splice(0, audioTracks.length);
         storageMocker.replaceByFake();
         rtcPeerConnectionMocker.replaceByFake();
         webSocketReplacer.replaceByFake();

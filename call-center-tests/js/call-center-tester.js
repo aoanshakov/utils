@@ -10,7 +10,7 @@ define(function () {
             rtcConnectionsMock = options.rtcConnectionsMock,
             userMedia = options.userMedia,
             soundSources = options.soundSources,
-            createStreamPlayingExpectation = options.createStreamPlayingExpectation,
+            mediaStreamsTester = options.mediaStreamsTester,
             sip;
 
         function authenticatedUser () {
@@ -438,16 +438,15 @@ define(function () {
         };
 
         this.expectRemoteStreamToPlay = function () {
-            rtcConnectionsMock.getConnectionAtIndex(0).addRemoteStreamPlayingExpectation(
-                createStreamPlayingExpectation()).expect();
+            mediaStreamsTester.expectStreamsToPlay(rtcConnectionsMock.getConnectionAtIndex(0).getRemoteStream());
         };
 
         this.expectOutgoingCallSoundToPlay = function () {
-            createStreamPlayingExpectation().add(soundSources.outgoingCall).expect();
+            mediaStreamsTester.expectStreamsToPlay(soundSources.outgoingCall);
         };
 
         this.expectNoSoundToPlay = function () {
-            createStreamPlayingExpectation().expect();
+            mediaStreamsTester.expectNoStreamToPlay();
         };
 
         this.requestOutgoningCallFinish = function () {
