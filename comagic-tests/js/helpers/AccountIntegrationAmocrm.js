@@ -691,19 +691,19 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
 
         return {
             setOfflineActContact: function () {
-                data.offline_message_act = 'contact';
+                data.crm_record.offline_message_act = 'contact';
                 return this;
             },
             setOfflineActUnsorted: function () {
-                data.offline_message_act = 'unsorted';
+                data.crm_record.offline_message_act = 'unsorted';
                 return this;
             },
             setChatActContact: function () {
-                data.chat_act = 'contact';
+                data.crm_record.chat_act = 'contact';
                 return this;
             },
             setChatActUnsorted: function () {
-                data.chat_act = 'unsorted';
+                data.crm_record.chat_act = 'unsorted';
                 return this;
             },
             setFirstActManual: function () {

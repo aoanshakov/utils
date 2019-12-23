@@ -1815,7 +1815,6 @@ tests.addTest(function (
                         userMedia.allowMediaInput();
                         Promise.runAll();
 
-
                         var request = sip.recentRequest().
                             expectToHaveMethod('INVITE').
                             expectToHaveServerName('sip:74951234567@vo19.uiscom.ru').

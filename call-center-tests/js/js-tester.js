@@ -69,7 +69,7 @@ function JsTester_Logger () {
     };
     this.enable = function () {
         log = function () {
-            console.log.apply(console, arguments);
+            console.trace.apply(console, arguments);
         };
 
         trace = function () {
@@ -222,8 +222,29 @@ function JsTester_NavigatorMock (getUserMedia, getMediaDevicesUserMedia) {
     this.userAgent = navigator.userAgent;
 }
 
-function JsTester_RTCPeerConnection (connections) {
+function JsTester_RTCConnectionSender () {
+    this.replaceTrack = function () {
+    };
+}
+
+function JsTester_MediaStream () {
+    this.getAudioTracks = function () {
+        return [{}];
+    };
+}
+
+function JsTester_RTCPeerConnection (options) {
+    var connections = options.connections,
+        rtcMediaStreams = options.rtcMediaStreams;
+
     return function () {
+        var remoteStream = new JsTester_MediaStream(),
+            localStream = new JsTester_MediaStream(),
+            sender = new JsTester_RTCConnectionSender();
+
+        rtcMediaStreams.set(remoteStream, this);
+        rtcMediaStreams.set(localStream, this);
+
         this.iceConnectionState = 'new';
 
         var eventHandlers = {};
@@ -269,10 +290,13 @@ function JsTester_RTCPeerConnection (connections) {
             });
         };
         this.getLocalStreams = function () {
-            return [new MediaStream()];
+            return [localStream];
         };
         this.getRemoteStreams = function () {
-            return [new MediaStream()];
+            return [remoteStream];
+        };
+        this.getSenders = function () {
+            return [sender];
         };
         this.close = function () {
             this.iceConnectionState = 'closed';
@@ -300,7 +324,11 @@ function JsTester_FunctionVariable (value) {
     };
 }
 
-function JsTester_RTCPeerConnectionTester (eventHandlers, connection, index) {
+function JsTester_RTCPeerConnectionTester (options) {
+    var eventHandlers = options.eventHandlers,
+        connection = options.connection,
+        index = options.index;
+
     function handleEvent (eventName, args) {
         var handlers = eventHandlers[eventName];
         
@@ -310,6 +338,9 @@ function JsTester_RTCPeerConnectionTester (eventHandlers, connection, index) {
             });
         }
     }
+    this.addRemoteStreamPlayingExpectation = function (streamPlayingExpectations) {
+        return streamPlayingExpectations.add(connection.getRemoteStreams()[0]);
+    };
     this.expectToBeConnected = function () {
         var actualState = connection.iceConnectionState;
 
@@ -342,7 +373,10 @@ function JsTester_RTCPeerConnectionTester (eventHandlers, connection, index) {
     };
 }
 
-function JsTester_RTCPeerConnections (connections, stateChecker) {
+function JsTester_RTCPeerConnections (options) {
+    var connections = options.connections,
+        stateChecker = options.stateChecker;
+
     this.getConnectionAtIndex = function (index) {
         var connectionsCount = connections.length;
 
@@ -353,16 +387,26 @@ function JsTester_RTCPeerConnections (connections, stateChecker) {
 
         var options = connections[index];
 
-        return new JsTester_RTCPeerConnectionTester(options[0], options[1], index);
+        return new JsTester_RTCPeerConnectionTester({
+            eventHandlers: options[0],
+            connection: options[1],
+            index: index
+        });
     };
     this.dontCheckState = function () {
         stateChecker.setValue(function () {});
     };
 }
 
-function JsTester_RTCPeerConnectionMocker (connections, rtcConnectionStateChecker) {
-    var RealRCTPreerConnection = RTCPeerConnection,
-        RTCPeerConnectionMock = new JsTester_RTCPeerConnection(connections),
+function JsTester_RTCPeerConnectionMocker (options) {
+    var connections = options.connections,
+        rtcConnectionStateChecker = options.rtcConnectionStateChecker,
+        rtcMediaStreams = options.rtcMediaStreams,
+        RealRCTPreerConnection = RTCPeerConnection,
+        RTCPeerConnectionMock = new JsTester_RTCPeerConnection({
+            connections: connections,
+            rtcMediaStreams: rtcMediaStreams
+        }),
         checkConnectionState = new JsTester_RTCConnectionStateChecker(connections);
 
     this.replaceByFake = function () {
@@ -375,7 +419,7 @@ function JsTester_RTCPeerConnectionMocker (connections, rtcConnectionStateChecke
     };
 }
 
-function JsTester_LocalStorage () {
+function JsTester_Storage () {
     var keys,
         values,
         keyToIndex;
@@ -431,9 +475,11 @@ function JsTester_LocalStorage () {
     this.clear();
 }
 
-function JsTester_LocalStorageMocker () {
+function JsTester_StorageMocker () {
     var realLocalStorage = window.localStorage,
-        currentLocalStorage;
+        currentLocalStorage,
+        realSessionStorage = window.sessionStorage,
+        currentSessionStorage;
 
     Object.defineProperty(window, 'localStorage', {
         get: function () {
@@ -442,11 +488,20 @@ function JsTester_LocalStorageMocker () {
         set: function () {}
     });
 
+    Object.defineProperty(window, 'sessionStorage', {
+        get: function () {
+            return currentSessionStorage;
+        },
+        set: function () {}
+    });
+
     this.replaceByFake = function () {
-        currentLocalStorage = new JsTester_LocalStorage();
+        currentLocalStorage = new JsTester_Storage();
+        currentSessionStorage = new JsTester_Storage();
     };
     this.restoreReal = function () {
         currentLocalStorage = realLocalStorage;
+        currentSessionStorage = realSessionStorage;
     };
 }
 
@@ -460,10 +515,193 @@ function JsTester_RTCConnectionStateChecker (connections) {
     };
 }
 
+function JsTester_Audio (options) {
+    var audioTracks = options.audioTracks,
+        debug = options.debug;
+
+    var audioTrackOptions = {
+        stream: options.stream,
+        audio: this,
+        playing: false
+    };
+
+    audioTracks.push(audioTrackOptions);
+
+    Object.defineProperty(this, 'srcObject', {
+        get : function () {
+            return audioTrackOptions.stream;
+        },
+        set: function (value) {
+            audioTrackOptions.stream = value;
+        }
+    });     
+
+    this.addEventListener = function () {
+    };
+    this.removeEventListener = function () {
+    };
+    this.play = function () {
+        audioTrackOptions.playing = true;
+        audioTrackOptions.callStack = debug.getCallStack();
+        return Promise.resolve();
+    };
+    this.pause = function () {
+        audioTrackOptions.playing = false;
+        return Promise.resolve();
+    };
+}
+
+function JsTester_AudioReplacer (options) {
+    var audioTracks = options.audioTracks,
+        debug = options.debug,
+        realAudio = window.Audio;
+
+    this.replaceByFake = function () {
+        window.Audio = function (stream) {
+            return new JsTester_Audio({
+                audioTracks: audioTracks,
+                debug: debug,
+                stream: stream
+            });
+        };
+    };
+    this.restoreReal = function () {
+        window.Audio = realAudio;
+    };
+}
+
+function JsTester_StreamsPlayingExpectaion (options) {
+    var streams = [],
+        audioTracks = options.audioTracks,
+        rtcMediaStreams = options.rtcMediaStreams;
+
+    this.add = function (stream) {
+        streams.push(stream);
+        return this;
+    };
+    this.expect = function () {
+        var map = new Map();
+
+        audioTracks.forEach(function (track) {
+            var stream = track.stream;
+
+            if (!map.has(stream)) {
+                map.set(stream, []);
+            }
+
+            map.get(stream).push(track);
+        });
+
+        map.forEach(function (tracks, stream) {
+            var playing = false,
+                callStack;
+
+            tracks.forEach(function (track) {
+                if (track.playing && (
+                    !rtcMediaStreams.has(track.stream) ||
+                    rtcMediaStreams.get(track.stream).iceConnectionState == 'connected'
+                )) {
+                    if (playing) {
+                        throw new Error(
+                            'Два одинаковых звука звучат одновременно. Возможно здесь что-то не так.'
+                        );
+                    }
+
+                    playing = true;
+                    callStack = track.callStack;
+                }
+            });
+
+            if (streams.includes(stream)) {
+                if (!playing) {
+                    throw new Error('Звук должен звучать.');
+                }
+            } else {
+                if (playing) {
+                    throw new Error(
+                        'Звук не должен звучать. Обрати внимание на этот стек вызовов, чтобы понять почему звук ' +
+                        'зазвучал.' + "\n\n" + callStack
+                    );
+                }
+            }
+        });
+    };
+}
+
+function JsTester_StreamsPlayingExpectaionFactory (options) {
+    return function () {
+        return new JsTester_StreamsPlayingExpectaion(options);
+    };
+}
+
+function JsTester_MediaStreamSource (stream) {
+    this.connect = function () {
+    };
+}
+
+function JsTester_Gain () {
+    var value;
+
+    this.connect = function () {
+    };
+
+    Object.defineProperty(this, 'gain', {
+        get: function () {
+            var gain = {};
+
+            Object.defineProperty(gain, 'value', {
+                get: function () {
+                    return value;
+                },
+                set: function (newValue) {
+                    value = newValue;
+                }
+            });
+
+            return gain;
+        },
+        set: function () {}
+    });     
+}
+
+function JsTester_MediaStreamDestination () {
+    var stream = new JsTester_MediaStream();
+
+    Object.defineProperty(this, 'stream', {
+        get: function () {
+            return stream;
+        },
+        set: function () {}
+    });     
+}
+
+function JsTester_AudioContextMock () {
+    this.createMediaStreamSource = function (stream) {
+        return new JsTester_MediaStreamSource(stream);
+    };
+    this.createGain = function () {
+        return new JsTester_Gain();
+    };
+    this.createMediaStreamDestination = function () {
+        return new JsTester_MediaStreamDestination();
+    };
+}
+
+function JsTester_AudioContextReplacer () {
+    var RealAudioContext = window.AudioContext;
+
+    this.replaceByFake = function () {
+        window.AudioContext = JsTester_AudioContextMock;
+    };
+    this.restoreReal = function () {
+        window.AudioContext = RealAudioContext;
+    };
+}
+
 function JsTester_Tests (factory) {
     var testRunners = [],
         requiredClasses = [],
-        localStorageMocker = new JsTester_LocalStorageMocker(),
+        storageMocker = new JsTester_StorageMocker(),
         timeoutLogger = new JsTester_Logger(),
         timeout = new JsTester_Timeout('setTimeout', 'clearTimeout', JsTester_OneTimeDelayedTask, timeoutLogger),
         interval = new JsTester_Timeout('setInterval', 'clearInterval', JsTester_DelayedTask, timeoutLogger),
@@ -482,10 +720,30 @@ function JsTester_Tests (factory) {
         navigatorMock = new JsTester_NavigatorMock(userMediaGetter, mediaDevicesUserMediaGetter),
         rtcConnectionStateChecker = new JsTester_FunctionVariable(function () {}),
         rtcConnections = [],
-        rtcPeerConnectionMocker = new JsTester_RTCPeerConnectionMocker(rtcConnections, rtcConnectionStateChecker),
-        rtcConnectionsMock = new JsTester_RTCPeerConnections(rtcConnections, rtcConnectionStateChecker),
+        audioTracks = [],
+        rtcMediaStreams = new Map(),
+        rtcPeerConnectionMocker = new JsTester_RTCPeerConnectionMocker({
+            connections: rtcConnections,
+            rtcConnectionStateChecker: rtcConnectionStateChecker,
+            rtcMediaStreams: rtcMediaStreams
+        }),
+        rtcConnectionsMock = new JsTester_RTCPeerConnections({
+            connections: rtcConnections,
+            stateChecker: rtcConnectionStateChecker
+        }),
         testsExecutionBeginingHandlers = [],
-        checkRTCConnectionState = rtcConnectionStateChecker.createValueCaller();
+        checkRTCConnectionState = rtcConnectionStateChecker.createValueCaller(),
+        streamPlayingExpectaionFactory = new JsTester_StreamsPlayingExpectaionFactory({
+            audioTracks: audioTracks,
+            rtcMediaStreams: rtcMediaStreams
+        }),
+        audioReplacer = new JsTester_AudioReplacer({
+            audioTracks: audioTracks,
+            debug: debug
+        }),
+        audioContextReplacer = new JsTester_AudioContextReplacer();
+
+    audioReplacer.replaceByFake();
 
     window.URL.createObjectURL = function (object) {
         return 'http://127.0.0.1/#' + object.id;
@@ -525,8 +783,9 @@ function JsTester_Tests (factory) {
     this.addTest = function (testRunner) {
         testRunners.push(testRunner);
     };
-    this.runTests = function () {
+    this.runTests = function (options) {
         var testersFactory;
+        options = options || {};
         
         try {
             testersFactory = factory.createTestersFactory(wait, utils);
@@ -534,15 +793,34 @@ function JsTester_Tests (factory) {
             error = e;
         }
 
-        var args = [
-            requestsManager, testersFactory, wait, spendTime, utils, windowOpener, webSockets, webSocketLogger,
-            userMedia, rtcConnectionsMock, navigatorMock, timeoutLogger
-        ].concat(Array.prototype.slice.call(arguments, 0));
+        var args = {
+            ajax: requestsManager,
+            testersFactory: testersFactory,
+            wait: wait,
+            spendTime: spendTime,
+            utils: utils,
+            windowOpener: windowOpener,
+            webSockets: webSockets,
+            webSocketLogger: webSocketLogger,
+            userMedia: userMedia,
+            rtcConnectionsMock: rtcConnectionsMock,
+            navigatorMock: navigatorMock,
+            timeoutLogger: timeoutLogger,
+            createStreamPlayingExpectation: streamPlayingExpectaionFactory
+        };
+
+        (function () {
+            var name;
+
+            for (name in options) {
+                args[name] = options[name];
+            }
+        })();
 
         this.handleBeginingOfTestsExecution(args);
 
         testRunners.forEach(function (runTest) {
-            runTest.apply(null, args);
+            runTest.call(null, args);
         });
     };
     this.requireClass = function (className) {
@@ -553,14 +831,17 @@ function JsTester_Tests (factory) {
     };
     this.handleBeginingOfTestsExecution = function (args) {
         testsExecutionBeginingHandlers.forEach(function (handleBeginingOfTestsExecution) {
-            handleBeginingOfTestsExecution.apply(null, args);
+            handleBeginingOfTestsExecution.call(null, args);
         });
     };
     this.getRequiredClasses = function () {
         return requiredClasses;
     };
     this.beforeEach = function () {
-        localStorageMocker.replaceByFake();
+        rtcMediaStreams.clear();
+        audioContextReplacer.replaceByFake();
+        audioTracks.splice(0, audioTracks.length);
+        storageMocker.replaceByFake();
         rtcPeerConnectionMocker.replaceByFake();
         webSocketReplacer.replaceByFake();
         requestsManager.createAjaxMock();
@@ -575,8 +856,9 @@ function JsTester_Tests (factory) {
     this.afterEach = function () {
         var exceptions = [];
 
+        audioContextReplacer.restoreReal();
         checkRTCConnectionState(exceptions);
-        localStorageMocker.restoreReal();
+        storageMocker.restoreReal();
         rtcPeerConnectionMocker.restoreReal();
         userMediaEventHandlers.assertNoUserMediaRequestLeftUnhandled(exceptions);
         requestsManager.destroyAjaxMock(exceptions);
@@ -599,7 +881,7 @@ function JsTester_TestersFactory (wait, utils, factory) {
 
     this.createAnchorTester = function (domElement, text) {
         return new JsTester_Anchor(domElement, wait, utils, this, female, 'ссылка с текстом "' + text + '"',
-            'ссылку с текстом "' + text + '"', 'ссылки с текстом "' + text + '"', factory);
+            'JsTester_AudioMockerссылку с текстом "' + text + '"', 'ссылки с текстом "' + text + '"', factory);
     };
     this.createTextFieldTester = function (domElement, label) {
         var getDomElement = utils.makeFunction(domElement);

@@ -3,7 +3,9 @@ document.addEventListener('DOMContentLoaded', function () {
         baseUrl: '/tests/js'
     });
 
-    requirejs(['promise-mock', 'sip', 'call-center-tester'], function (PromiseMock, Sip, CallCenterTester) {
+    requirejs([
+        'promise-mock', 'sip', 'call-center-tester', 'sound-sources'
+    ], function (PromiseMock, Sip, CallCenterTester, soundSources) {
         describe('', function() {
             beforeEach(function() {
                 PromiseMock.install();
@@ -14,7 +16,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 tests.afterEach();
             });
 
-            tests.runTests(Sip, CallCenterTester);
+            tests.runTests({
+                Sip: Sip,
+                CallCenterTester: CallCenterTester,
+                soundSources: soundSources
+            });
         });
 
         jasmine.getEnv().execute();

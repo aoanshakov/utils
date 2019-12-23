@@ -9,6 +9,8 @@ define(function () {
             spendTime = options.spendTime,
             rtcConnectionsMock = options.rtcConnectionsMock,
             userMedia = options.userMedia,
+            soundSources = options.soundSources,
+            createStreamPlayingExpectation = options.createStreamPlayingExpectation,
             sip;
 
         function authenticatedUser () {
@@ -59,8 +61,12 @@ define(function () {
             });
         };
 
-        this.startCallButton = testersFactory.createDomElementTester(function () {
-            return document.querySelector('.clct-adress-book__dialpad-call--start');
+        this.callButton = testersFactory.createDomElementTester(function () {
+            return document.querySelector('.clct-adress-book__dialpad-callbutton');
+        });
+
+        this.dialpadHeader = testersFactory.createDomElementTester(function () {
+            return document.querySelector('.clct-adress-book__dialpad-header');
         });
 
         this.requestCalls = function () {
@@ -391,6 +397,61 @@ define(function () {
                     Promise.runAll();
                 }
             };
+        };
+
+        this.outboundCall = function () {
+            var request = sip.recentRequest().
+                expectToHaveMethod('INVITE').
+                expectToHaveServerName('sip:79161234567@vo19.uiscom.ru').
+                expectHeaderToContain('From', '<sip:077368@vo19.uiscom.ru>').
+                expectHeaderToContain('To', '<sip:79161234567@vo19.uiscom.ru>');
+
+            var response = request.response().
+                setTrying().
+                copyHeader('Contact');
+
+            response.send();
+
+            return {
+                setRinging: function () {
+                    request.response().
+                        setToTag(response.getToTag()).
+                        setRinging().
+                        copyHeader('Contact').
+                        send();
+                },
+                setAccepted: function () {
+                    request.response().
+                        setToTag(response.getToTag()).
+                        copyHeader('Contact').
+                        setBody('v=0').
+                        send();
+
+                    Promise.runAll();
+
+                    sip.recentRequest().
+                        expectToHaveMethod('ACK').
+                        expectHeaderToContain('From', '<sip:077368@vo19.uiscom.ru>').
+                        expectHeaderToContain('To', '<sip:79161234567@vo19.uiscom.ru>');
+                }
+            };
+        };
+
+        this.expectRemoteStreamToPlay = function () {
+            rtcConnectionsMock.getConnectionAtIndex(0).addRemoteStreamPlayingExpectation(
+                createStreamPlayingExpectation()).expect();
+        };
+
+        this.expectOutgoingCallSoundToPlay = function () {
+            createStreamPlayingExpectation().add(soundSources.outgoingCall).expect();
+        };
+
+        this.expectNoSoundToPlay = function () {
+            createStreamPlayingExpectation().expect();
+        };
+
+        this.requestOutgoningCallFinish = function () {
+            sip.recentRequest().expectToHaveMethod('BYE').response().send();
         };
     };
 });
