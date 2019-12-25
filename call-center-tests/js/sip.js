@@ -140,6 +140,14 @@ define(function () {
 
             return this;
         };
+        this.expectRequestTerminated = function () {
+            if (status != 487) {
+                throw new Error('Сообщение, должно иметь статус "480 Request Terminated". Отправленное ' +
+                    'сообщение:' + "\n\n" + message);
+            }
+
+            return this;
+        };
         this.expectRinging = function () {
             if (status != 180) {
                 throw new Error('Сообщение, должно иметь статус "180 Ringing". Отправленное сообщение:' +
@@ -275,7 +283,7 @@ define(function () {
     function ReceivedSipMessage (webSocket, uaOptions, lastHeaders) {
         var method,
             serverName,
-            callReceiverName,
+            callReceiverName = '',
             callReceiverLogin,
             body,
             contentType,
@@ -291,7 +299,7 @@ define(function () {
             return this;
         };
         this.setCallReceiverName = function (value) {
-            callReceiverName = value;
+            callReceiverName = ' "' + value + '"';
             return this;
         };
         this.setCallReceiverLogin = function (value) {
@@ -330,11 +338,14 @@ define(function () {
 
             var lines = [
                 method + ' sip:' + uaOptions.username + '@' + serverName  + ' SIP/2.0',
-                'Via: SIP/2.0/WSS 9jb2r27il5un.invalid;branch=z9hG4bK' + randomString(10),
+                lastHeaders && lastHeaders.Via ? lastHeaders.Via : (
+                    'Via: SIP/2.0/WSS 9jb2r27il5un.invalid;branch=z9hG4bK' + randomString(10)
+                ),
                 fromHeader,
-                lastHeaders ? lastHeaders.To :
-                    'To: "' + callReceiverName + '" <sip:' + callReceiverLogin + '@' + serverName + '>',
-                lastHeaders ? lastHeaders['Call-ID'] : 'Call-ID: ' + randomString(22),
+                lastHeaders && lastHeaders.To ? lastHeaders.To : (
+                    'To:' + callReceiverName + ' <sip:' + callReceiverLogin + '@' + serverName + '>'
+                ),
+                lastHeaders && lastHeaders['Call-ID'] ? lastHeaders['Call-ID'] : 'Call-ID: ' + randomString(22),
                 'CSeq: 1 ' + method
             ];
 

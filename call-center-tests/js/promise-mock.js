@@ -21,7 +21,7 @@ define(['promise-polyfill'], function (Promise) {
     /**
      * Execute a pending Promise
      */
-    PromiseMock.run = function run(count) {
+    PromiseMock.run = function run(count, printCallStack) {
       var runTimes = count ? count : 1;
 
       if (PromiseMock.waiting.length === 0) {
@@ -29,23 +29,27 @@ define(['promise-polyfill'], function (Promise) {
       }
 
       while (runTimes > 0 && PromiseMock.waiting.length > 0) {
-        PromiseMock.waiting.shift()();
+        var fn = PromiseMock.waiting.shift();
+
+          if (printCallStack) {
+              console.log(fn.callStack);
+          }
+
+        fn();
         runTimes--;
       }
     };
 
     /**
      * Execute all pending Promises
-     *
-     * @param strict boolean Throw error if none waiting
      */
-    PromiseMock.runAll = function runAll(strict) {
-      if (strict !== false && PromiseMock.waiting.length === 0) {
+    PromiseMock.runAll = function runAll(printCallStack) {
+      if (PromiseMock.waiting.length === 0) {
         throw new Error('No Promises waiting. Can\'t Promise.runAll()')
       }
 
       while (PromiseMock.waiting.length > 0) {
-        PromiseMock.run();
+        PromiseMock.run(1, printCallStack);
       }
     };
 
@@ -56,6 +60,14 @@ define(['promise-polyfill'], function (Promise) {
       PromiseMock._originalImmediate = Promise._immediateFn;
       // Update the immediate function to push to queue
       Promise._immediateFn = function mockImmediateFn(fn) {
+        fn.callStack = (function () {
+            try {
+                throw new Error();
+            } catch(e) {
+                return e.stack;
+            }
+        })();
+
         PromiseMock.waiting.push(fn);
       };
 

@@ -11,7 +11,8 @@ define(function () {
             userMedia = options.userMedia,
             soundSources = options.soundSources,
             mediaStreamsTester = options.mediaStreamsTester,
-            sip;
+            sip,
+            eventsWebSocket;
 
         function authenticatedUser () {
             return {
@@ -68,6 +69,63 @@ define(function () {
         this.dialpadHeader = testersFactory.createDomElementTester(function () {
             return document.querySelector('.clct-adress-book__dialpad-header');
         });
+
+        this.callNotification = testersFactory.createDomElementTester(function () {
+            return document.querySelector('.clct-notification');
+        });
+
+        this.acceptIncomingCallButton = testersFactory.createDomElementTester(function () {
+            return document.querySelector('.clct-notification__button--startcall');
+        });
+
+        this.declineIncomingCallButton = testersFactory.createDomElementTester(function () {
+            return document.querySelector('.clct-notification__button--stopcall');
+        });
+
+        this.firstLineButton = testersFactory.createDomElementTester(function () {
+            return utils.descendantOfBody().matchesSelector('.clct-radio-button-default-inner').textEquals('1 линия').
+                find().closest('.clct-c-button');
+        });
+
+        this.secondLineButton = testersFactory.createDomElementTester(function () {
+            return utils.descendantOfBody().matchesSelector('.clct-radio-button-default-inner').textEquals('2 линия').
+                find().closest('.clct-c-button');
+        });
+
+        this.requestContactCalls = function () {
+            var queryParams = {
+                numa: '79161234567'
+            };
+
+            return {
+                setAnotherNumber: function () {
+                    queryParams.numa = '79161234569';
+                    return this;
+                },
+                send: function () {
+                    ajax.recentRequest().
+                        expectPathToContain('/sup/api/v1/calls').
+                        expectQueryToContain(queryParams).
+                        respondSuccessfullyWith({
+                            data: [{
+                                call_session_id: 980925444,
+                                comment: null,
+                                contact_id: null,
+                                direction: 'in',
+                                duration: 20,
+                                full_name: 'Гяурова Марийка',
+                                is_internal: false,
+                                is_lost: false,
+                                mark_ids: [],
+                                phone: '74950230625',
+                                start_time: '2019-12-17 18:07:25.522'
+                            }]
+                        });
+
+                    Promise.runAll();
+                }
+            };
+        };
 
         this.requestCalls = function () {
             return {
@@ -349,16 +407,11 @@ define(function () {
 
         this.connectWebSockets = function () {
             sip = new Sip(webSockets.getSocket('wss://webrtc.uiscom.ru').connect());
-            webSockets.getSocket(/sup\/ws\/L1G1MyQy6uz624BkJWuy1BW1L9INRWNt5_DW8Ik836A$/).connect();
+            eventsWebSocket = webSockets.getSocket(/sup\/ws\/L1G1MyQy6uz624BkJWuy1BW1L9INRWNt5_DW8Ik836A$/).connect();
         };
 
         this.allowMediaInput = function () {
             userMedia.allowMediaInput();
-            Promise.runAll();
-        };
-
-        this.connectWebRTC = function () {
-            rtcConnectionsMock.getConnectionAtIndex(0).connect();
             Promise.runAll();
         };
 
@@ -386,12 +439,20 @@ define(function () {
         };
 
         this.requestNameByNumber = function () {
+            var phone = '79161234567',
+                name = 'Шалева Дора';
+
             return {
+                setAnotherNumber: function () {
+                    phone = '79161234569';
+                    name = 'Гигова Петранка';
+                    return this;
+                },
                 send: function () {
                     ajax.recentRequest().
-                        expectPathToContain('/sup/api/v1/numa/79161234567').
+                        expectPathToContain('/sup/api/v1/numa/' + phone).
                         respondSuccessfullyWith({
-                            data: 'Шалева Дора'
+                            data: name
                         });
 
                     Promise.runAll();
@@ -433,24 +494,207 @@ define(function () {
                         expectToHaveMethod('ACK').
                         expectHeaderToContain('From', '<sip:077368@vo19.uiscom.ru>').
                         expectHeaderToContain('To', '<sip:79161234567@vo19.uiscom.ru>');
+
+                    eventsWebSocket.receiveMessage({
+                        name: 'employee_changed',
+                        type: 'event',
+                        params: {
+                            action: 'update',
+                            data: {
+                                id: 20816,
+                                is_in_call: true
+                            }
+                        }
+                    });
                 }
             };
         };
 
-        this.expectRemoteStreamToPlay = function () {
-            mediaStreamsTester.expectStreamsToPlay(rtcConnectionsMock.getConnectionAtIndex(0).getRemoteStream());
+        this.incomingCall = function () {
+            var phone = '79161234567';
+
+            return {
+                setAnotherNumber: function () {
+                    phone = '79161234569';
+                    return this;
+                },
+                receive: function () {
+                    sip.request().
+                        setServerName('vo19.uiscom.ru').
+                        setMethod('INVITE').
+                        setCallReceiverLogin('077368').
+                        setSdpType().
+                        addHeader('From: <sip:' + phone + '@132.121.82.37:5060;user=phone>').
+                        addHeader('Contact: <sip:' + phone + '@132.121.82.37:5060;user=phone>').
+                        setBody(
+                            'v=0',
+                            'o=bell 53655765 2353687637 IN IР4 12.3.4.5',
+                            'c=IN IP4 kton.bell-tel.com',
+                            'm=audio 3456 RTP/AVP 0345'
+                        ).
+                        receive();
+                    
+                    sip.recentResponse().expectTrying();
+                    var response = sip.recentResponse().expectRinging();
+
+                    return {
+                        cancel: function () {
+                            response.request().
+                                setServerName('vo19.uiscom.ru').
+                                setMethod('CANCEL').
+                                receive();
+
+                            sip.recentResponse().expectOk();
+                            sip.recentResponse().expectRequestTerminated();
+                        }
+                    };
+                }
+            };
+        };
+
+        this.incomingCallProceeding = function () {
+            var params = {
+                calling_phone_number: '79161234567',
+                contact_phone_number: '79161234567',
+                virtual_phone_number: '79161234568',
+                call_source: 'va',
+                contact_id: null,
+                call_session_id: 980925456,
+                mark_ids: null,
+                is_transfer: false,
+                is_internal: false,
+                site_domain_name: 'somesite.com',
+                search_query: 'Какой-то поисковый запрос',
+                campaign_name: 'Некая рекламная кампания',
+                contact_full_name: 'Шалева Дора Добриновна',
+                organization_name: 'ООО "Некая Организация"',
+            };
+
+            return {
+                setAnotherNumber: function () {
+                    params.calling_phone_number = '79161234569';
+                    params.contact_phone_number = '79161234569';
+                    params.virtual_phone_number = '79161234570';
+                    params.contact_full_name = 'Гигова Петранка Атанасьевна';
+                    return this;
+                },
+                receive: function () {
+                    eventsWebSocket.receiveMessage({
+                        name: 'call_proceeding',
+                        type: 'event',
+                        params: params 
+                    });
+                }
+            };
+        };
+
+        this.requestAcceptIncomingCall = function () {
+            sip.recentResponse().
+                expectOk().
+                request().
+                setServerName('vo19.uiscom.ru').
+                setMethod('ACK').
+                setCallReceiverLogin('077368').
+                receive();
+
+            eventsWebSocket.receiveMessage({
+                name: 'employee_changed',
+                type: 'event',
+                params: {
+                    action: 'update',
+                    data: {
+                        id: 20816,
+                        is_in_call: true
+                    }
+                }
+            });
+        };
+
+        function Connection(index) {
+            function getConnection () {
+                return rtcConnectionsMock.getConnectionAtIndex(index);
+            }
+            this.connectWebRTC = function () {
+                getConnection().connect();
+                Promise.runAll();
+            };
+            this.addCandidate = function () {
+                getConnection().addCandidate();
+                Promise.runAll();
+            };
+            this.expectRemoteStreamToPlay = function () {
+                mediaStreamsTester.expectStreamsToPlay(
+                    getConnection().getRemoteStream()
+                );
+            };
+        }
+
+        this.firstConnection = new Connection(0);
+        this.secondConnection = new Connection(1);
+
+        this.expectOutgoingCallSoundAndRemoteStreamToPlay = function () {
+            mediaStreamsTester.expectStreamsToPlay(
+                soundSources.outgoingCall,
+                rtcConnectionsMock.getConnectionAtIndex(1).getRemoteStream()
+            );
+        };
+
+        this.expectOutgoingAndIncomingCallSoundsToPlay = function () {
+            mediaStreamsTester.expectStreamsToPlay(soundSources.outgoingCall, soundSources.incomingCall);
         };
 
         this.expectOutgoingCallSoundToPlay = function () {
             mediaStreamsTester.expectStreamsToPlay(soundSources.outgoingCall);
         };
 
+        this.expectIncomingCallSoundToPlay = function () {
+            mediaStreamsTester.expectStreamsToPlay(soundSources.incomingCall);
+        };
+
+        this.expectBusyCallSoundToPlay = function () {
+            mediaStreamsTester.expectStreamsToPlay(soundSources.busyCall);
+        };
+
         this.expectNoSoundToPlay = function () {
             mediaStreamsTester.expectNoStreamToPlay();
         };
 
-        this.requestOutgoningCallFinish = function () {
+        function finishCall () {
+            eventsWebSocket.receiveMessage({
+                name: 'employee_changed',
+                type: 'event',
+                params: {
+                    action: 'update',
+                    data: {
+                        id: 20816,
+                        is_in_call: false
+                    }
+                }
+            });
+
+            eventsWebSocket.receiveMessage({
+                id: 314723705,
+                name: 'call_session_finished',
+                type: 'event',
+                params: {
+                    call_session_id: 980925450
+                }
+            });
+        }
+
+        this.requestCallFinish = function () {
             sip.recentRequest().expectToHaveMethod('BYE').response().send();
+            finishCall();
+        };
+
+        this.requestCancelOutgoingCall = function () {
+            sip.recentRequest().expectToHaveMethod('CANCEL').response().send();
+            finishCall();
+        };
+
+        this.requestDeclineIncomingCall = function () {
+            sip.recentResponse().expectTemporarilyUnavailable();
+            finishCall();
         };
     };
 });

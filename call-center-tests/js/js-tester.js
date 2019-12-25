@@ -69,7 +69,7 @@ function JsTester_Logger () {
     };
     this.enable = function () {
         log = function () {
-            console.trace.apply(console, arguments);
+            console.log.apply(console, arguments);
         };
 
         trace = function () {
@@ -227,15 +227,55 @@ function JsTester_RTCConnectionSender () {
     };
 }
 
+function JsTester_AudioTrack (options) {
+    var enabled = true,
+        mediaStream = options.mediaStream,
+        mediaStreams = options.mediaStreams;
+
+    Object.defineProperty(this, 'enabled', {
+        get: function () {
+            return enabled;
+        },
+        set: function (value) {
+            enabled = value;
+
+            if (enabled) {
+                mediaStreams.enable(mediaStream);
+            } else {
+                mediaStreams.disable(mediaStream);
+            }
+        }
+    });
+}
+
+function JsTester_RemoteMediaStream (options) {
+    var audioTrack = new JsTester_AudioTrack(options),
+        mediaStream = options.mediaStream;
+
+    this.getAudioTracks = function () {
+        return [audioTrack];
+    };
+
+    Object.keys(this).forEach((function (key) {
+        mediaStream[key] = this[key];
+    }).bind(this));
+
+    return mediaStream;
+}
+
 function JsTester_RTCPeerConnection (options) {
     var connections = options.connections,
         mediaStreams = options.mediaStreams;
 
     return function () {
-        var remoteStream = mediaStreams.create(),
-            localStream = mediaStreams.create(),
+        var localStream = mediaStreams.create(),
             sender = new JsTester_RTCConnectionSender(),
             iceConnectionState;
+
+        var remoteStream = new JsTester_RemoteMediaStream({
+            mediaStream: mediaStreams.create(),
+            mediaStreams: mediaStreams
+        });
 
         Object.defineProperty(this, 'iceConnectionState', {
             get: function () {
@@ -245,11 +285,11 @@ function JsTester_RTCPeerConnection (options) {
                 iceConnectionState = value;
 
                 if (iceConnectionState == 'connected') {
-                    mediaStreams.enable(remoteStream);
-                    mediaStreams.enable(localStream);
+                    mediaStreams.setConnected(remoteStream);
+                    mediaStreams.setConnected(localStream);
                 } else {
-                    mediaStreams.disable(remoteStream);
-                    mediaStreams.disable(localStream);
+                    mediaStreams.setDisconnected(remoteStream);
+                    mediaStreams.setDisconnected(localStream);
                 }
             }
         });
@@ -528,16 +568,24 @@ function JsTester_Audio (options) {
     var mediaStreams = options.mediaStreams,
         debug = options.debug,
         audioEndListeners = new Map(),
-        maybeAddAudioEndListener,
-        maybeRemoveAudioEndListener,
         maybeUnsetSource,
-        maybePlay,
-        maybeStop,
-        maybeSetCyclical,
-        maybeSetNoncyclical,
         loop,
         applyLoop = function () {},
         mediaStream;
+
+    var mediaStreamProxy = {};
+
+    [
+        'setCyclical', 'setNoncyclical', 'play', 'stop', 'addAudioEndListener', 'removeAudioEndListener'
+    ].forEach((function (methodName) {
+        this[methodName] = function () {
+            if (!mediaStream) {
+                return;
+            }
+
+            mediaStreams[methodName].apply(mediaStreams, [mediaStream].concat(Array.prototype.slice(arguments, 0)));
+        };
+    }).bind(mediaStreamProxy));
 
     Object.defineProperty(this, 'srcObject', {
         get : function () {
@@ -556,12 +604,12 @@ function JsTester_Audio (options) {
             loop = value;
 
             if (loop) {
-                applyLoop = setCyclical;
-                maybeSetCyclical();
+                applyLoop = mediaStreamProxy.setCyclical;
             } else {
-                applyLoop = setNoncyclical;
-                maybeSetNoncyclical();
+                applyLoop = mediaStreamProxy.setNoncyclical;
             }
+
+            applyLoop();
         }
     });
     this.addEventListener = function (eventName, listener) {
@@ -570,7 +618,7 @@ function JsTester_Audio (options) {
         }
 
         audioEndListeners.set(listener, listener);
-        maybeAddAudioEndListener(listener);
+        mediaStreamProxy.addAudioEndListener(listener);
     };
     this.removeEventListener = function (eventName, listener) {
         if (eventName != 'ended') {
@@ -578,39 +626,16 @@ function JsTester_Audio (options) {
         }
 
         audioEndListeners.delete(listener);
-        maybeRemoveAudioEndListener(listener);
+        mediaStreamProxy.removeAudioEndListener(listener);
     };
     this.play = function () {
-        maybePlay();
+        mediaStreamProxy.play();
         return Promise.resolve();
     };
     this.pause = function () {
-        maybeStop();
+        mediaStreamProxy.stop();
         return Promise.resolve();
     };
-    function setCyclical () {
-        mediaStreams.setCyclical(mediaStream);
-    }
-    function setNoncyclical () {
-        mediaStreams.setNoncyclical(mediaStream);
-    }
-    function play () {
-        mediaStreams.play(mediaStream);
-    }
-    function stop () {
-        mediaStreams.stop(mediaStream);
-    }
-    function addAudioEndListener (listener) {
-        mediaStreams.addAudioEndListener(mediaStream, listener);
-    }
-    function removeAudioEndListener (listener) {
-        mediaStreams.removeAudioEndListener(mediaStream, listener);
-    }
-    function addAudioEndListeners () {
-        audioEndListeners.forEach(function (listener) {
-            mediaStreams.addAudioEndListener(mediaStream, listener);
-        });
-    }
     function unsetSource () {
         audioEndListeners.forEach(function (listener) {
             mediaStreams.removeAudioEndListener(mediaStream, listener);
@@ -628,20 +653,8 @@ function JsTester_Audio (options) {
 
             mediaStreams.register(mediaStream);
             applyLoop();
-            maybeSetCyclical = setCyclical;
-            maybeSetNoncyclical = setNoncyclical;
-            maybePlay = play;
-            maybeStop = stop;
-            maybeAddAudioEndListener = addAudioEndListener;
-            maybeRemoveAudioEndListener = removeAudioEndListener;
             maybeUnsetSource = unsetSource;
         } else {
-            maybeSetCyclical =
-            maybeSetNoncyclical =
-            maybePlay =
-            maybeStop =
-            maybeAddAudioEndListener =
-            maybeRemoveAudioEndListener =
             maybeUnsetSource = function () {};
         }
     }
@@ -747,7 +760,22 @@ function JsTester_MediaStreamDestination () {
     });     
 }
 
+function JsTester_AudioBufferSourceNode () {
+    this.connect = function () {
+    };
+    this.start = function () {
+    };
+    this.stop = function () {
+    };
+}
+
 function JsTester_AudioContextMock () {
+    this.decodeAudioData = function () {
+        return Promise.resolve();
+    };
+    this.createBufferSource = function () {
+        return new JsTester_AudioBufferSourceNode();
+    };
     this.createMediaStreamSource = function (stream) {
         return new JsTester_MediaStreamSource(stream);
     };
@@ -776,6 +804,43 @@ function JsTester_MediaStream () {
     };
 }
 
+function JsTester_State (defaults) {
+    var values = {},
+        handlers = {};
+
+    for (var key in defaults) {
+        values[key] = defaults[key];
+    }
+
+    function createGetter (listener) {
+        return function (key) {
+            if (!handlers[key]) {
+                handlers[key] = new Map();
+            }
+
+            if (!handlers[key].has(listener)) {
+                handlers[key].set(listener, listener);
+            }
+
+            return values[key];
+        };
+    }
+    this.set = function (key, value) {
+        if (value === value[key]) {
+            return;
+        }
+
+        values[key] = value;
+
+        if (handlers[key]) {
+            handlers[key].forEach(this.listen.bind(this));
+        }
+    };
+    this.listen = function (listener) {
+        listener(createGetter(listener));
+    };
+}
+
 function JsTester_MediaStreamPlayingState(options) {
     var mediaStream = options.mediaStream,
         playingMediaStreams = options.playingMediaStreams,
@@ -784,28 +849,28 @@ function JsTester_MediaStreamPlayingState(options) {
         maybeFinish,
         maybeStop,
         audioNodesCount,
-        maybeThrowIsNotPlaying,
-        maybeAddPlayingMediaStream,
-        maybeRestorePlayingMediaStream;
+        maybeThrowIsNotPlaying;
+
+    var state = new JsTester_State({
+        playing: false,
+        enabled: true,
+        disconnected: false
+    });
 
     function setNotPlaying () {
-        maybeStop =
-        maybeRestorePlayingMediaStream = function () {};
-        maybeThrowIsNotPlaying = throwIsNotPlaying;
+        maybeStop = function () {};
+        state.set('playing', false);
     }
-    function removePlayingMediaStream () {
-        playingMediaStreams.delete(mediaStream);
+    function throwIsCyclical () {
+        throw new Error('Не удалось закончить воспроизведение звука, так как он проигрывается в цикле.');
     }
-    function addPlayingMediaStream () {
-        if (!playingMediaStreams.has(mediaStream)) {
-            playingMediaStreams.set(mediaStream, debug.getCallStack());
-        }
+    function throwIsNotPlaying () {
+        throw new Error('Не удалось закончить воспроизведение звука, так как он и не воспроизводится в данный момент.');
     }
     function stop () {
         audioNodesCount --;
 
         if (!audioNodesCount) {
-            removePlayingMediaStream();
             setNotPlaying();
         }
     }
@@ -816,18 +881,10 @@ function JsTester_MediaStreamPlayingState(options) {
             listener();
         });
     }
-    function throwIsCyclical () {
-        throw new Error('Не удалось закончить воспроизведение звука, так как он проигрывается в цикле.');
-    }
-    function throwIsNotPlaying () {
-        throw new Error('Не удалось закончить воспроизведение звука, так как он и не воспроизводится в данный момент.');
-    }
     this.play = function () {
         if (audioNodesCount == 0) {
-            maybeAddPlayingMediaStream();
             maybeStop = stop;
-            maybeRestorePlayingMediaStream = addPlayingMediaStream;
-            maybeThrowIsNotPlaying = throwIsNotPlayingIfDisabled;
+            state.set('playing', true);
         } else {
             console.log('Одинаковые звуки воспроизводятся одновременно. Может быть что-то пошло не так?' + "\n\n" +
                 debug.getCallStack());
@@ -835,18 +892,17 @@ function JsTester_MediaStreamPlayingState(options) {
 
         audioNodesCount ++;
     };
-    this.disable = function () {
-        removePlayingMediaStream();
-        throwIsNotPlayingIfDisabled = throwIsNotPlaying;
-        maybeAddPlayingMediaStream = function () {};
+    this.setDisconnected = function () {
+        state.set('disconnected', true);
+    };
+    this.setConnected = function () {
+        state.set('disconnected', false);
     };
     this.enable = function () {
-        maybeAddPlayingMediaStream = addPlayingMediaStream;
-        throwIsNotPlayingIfDisabled = function () {};
-        maybeRestorePlayingMediaStream();
+        state.set('enabled', true);
     };
-    this.assertPlaying = function () {
-        maybeThrowIsNotPlaying();
+    this.disable = function () {
+        state.set('enabled', false);
     };
     this.setCyclical = function () {
         maybeFinish = throwIsCyclical;
@@ -863,8 +919,27 @@ function JsTester_MediaStreamPlayingState(options) {
     this.reset = function () {
         audioNodesCount = 0;
         setNotPlaying();
+        this.setConnected();
         this.enable();
     };
+
+    state.listen(function (get) {
+        var hasMediaStream = playingMediaStreams.has(mediaStream);
+
+        if (get('playing') && get('enabled') && !get('disconnected')) {
+            if (!hasMediaStream) {
+                playingMediaStreams.set(mediaStream, debug.getCallStack());
+            }
+
+            maybeThrowIsNotPlaying = function () {};
+        } else {
+            if (hasMediaStream) {
+                playingMediaStreams.delete(mediaStream);
+            }
+
+            maybeThrowIsNotPlaying = throwIsNotPlaying;
+        }
+    });
 
     this.setNoncyclical();
     this.reset();
@@ -877,9 +952,6 @@ function JsTester_MediaStreams (options) {
         RealMediaStream = options.RealMediaStream,
         initialMediaStreams = new Map();
 
-    function getMediaStreamPlayingState (mediaStream) {
-        return mediaStreams.get(mediaStream).mediaStreamPlayingState;
-    }
     this.considerInitial = function () {
         initialMediaStreams = new Map();
 
@@ -920,27 +992,16 @@ function JsTester_MediaStreams (options) {
         this.register(mediaStream);
         return mediaStream;
     };
-    this.enable = function (mediaStream) {
-        getMediaStreamPlayingState(mediaStream).enable();
-    };
-    this.disable = function (mediaStream) {
-        getMediaStreamPlayingState(mediaStream).disable();
-    };
-    this.finish = function (mediaStream) {
-        getMediaStreamPlayingState(mediaStream).finish();
-    };
-    this.stop = function (mediaStream) {
-        getMediaStreamPlayingState(mediaStream).stop();
-    };
-    this.play = function (mediaStream) {
-        getMediaStreamPlayingState(mediaStream).play();
-    };
-    this.setNoncyclical = function (mediaStream) {
-        getMediaStreamPlayingState(mediaStream).setNoncyclical();
-    };
-    this.setCyclical = function (mediaStream) {
-        getMediaStreamPlayingState(mediaStream).setCyclical();
-    };
+
+    [
+        'enable', 'disable', 'setConnected', 'setDisconnected', 'finish', 'play', 'stop', 'setNoncyclical',
+        'setCyclical'
+    ].forEach((function (methodName) {
+        this[methodName] = function (mediaStream) {
+            mediaStreams.get(mediaStream).mediaStreamPlayingState[methodName]();
+        };
+    }).bind(this));
+
     this.addAudioEndListener = function (mediaStream, listener) {
         mediaStreams.get(mediaStream).audioEndListeners.set(listener, listener);
     };
@@ -1128,6 +1189,7 @@ function JsTester_Tests (factory) {
     this.afterEach = function () {
         var exceptions = [];
 
+        Promise.clear();
         audioContextReplacer.restoreReal();
         checkRTCConnectionState(exceptions);
         storageMocker.restoreReal();
@@ -2312,6 +2374,8 @@ function JsTester_DomElement (
         }
     };
     this.expectToHaveStyle = function (propertyName, expectedValue) {
+        this.expectToBeVisible();
+
         var actualValue = getStylePropertyValue(propertyName);
 
         if (actualValue != expectedValue) {
@@ -2322,6 +2386,8 @@ function JsTester_DomElement (
         }
     };
     this.expectNotToHaveStyle = function (propertyName, unexpectedValue) {
+        this.expectToBeVisible();
+
         var actualValue = getStylePropertyValue(propertyName);
 
         if (actualValue == unexpectedValue) {
