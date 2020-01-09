@@ -6,7 +6,7 @@ then
     exit 1
 fi
 
-user=''
+export COMAGIC_ENV_USER=""
 action=''
 server=''
 
@@ -14,7 +14,7 @@ while [ -n "$1" ]
 do
     if [ "$1" = "-u" ]
     then
-        user=$2
+        export COMAGIC_ENV_USER=$2
         shift
     elif [ "$1" = "-s" ]
     then
@@ -35,13 +35,8 @@ then
     git clone git@git.dev.uis.st:web/call_center_frontend.git
     cd call_center_frontend
 
-    npm install
+    install-dependencies
     build
-
-    if [ -n "$user" ]
-    then
-        chown -R $user:$user /usr/local/src/call_center_frontend
-    fi
 
     if [ "$action" = "build" ]
     then

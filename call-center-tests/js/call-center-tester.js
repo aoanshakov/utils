@@ -27,12 +27,12 @@ define(function () {
         }
 
         if (root) {
-            application.exit();
+            window.application.exit();
             root.remove();
         }
 
         document.body.innerHTML = '<div id="root"></div>';
-        application.run();
+        window.application.run();
 
         this.loginField = testersFactory.createTextFieldTester(function () {
             return document.querySelector('input[placeholder="Логин"]');

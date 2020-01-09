@@ -1,5 +1,5 @@
 *.swp
-comagic-tests/node_modules
+node_modules
 comagic-tests/html/comagic/*
 !comagic-tests/html/comagic/.keep
 comagic-tests/html/easystart/*

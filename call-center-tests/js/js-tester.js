@@ -238,18 +238,13 @@ function JsTester_AudioTrack (options) {
         },
         set: function (value) {
             enabled = value;
-
-            if (enabled) {
-                mediaStreams.enable(mediaStream);
-            } else {
-                mediaStreams.disable(mediaStream);
-            }
+            mediaStreams.setEnabled(mediaStream, enabled);
         }
     });
 }
 
 function JsTester_RemoteMediaStream (options) {
-    var audioTrack = new JsTester_AudioTrack(options),
+    var audioTrack = options.audioTrack,
         mediaStream = options.mediaStream;
 
     this.getAudioTracks = function () {
@@ -272,10 +267,15 @@ function JsTester_RTCPeerConnection (options) {
             sender = new JsTester_RTCConnectionSender(),
             iceConnectionState;
 
-        var remoteStream = new JsTester_RemoteMediaStream({
-            mediaStream: mediaStreams.create(),
-            mediaStreams: mediaStreams
-        });
+        var remoteStream = (function (mediaStream) {
+            return new JsTester_RemoteMediaStream({
+                mediaStream: mediaStream,
+                audioTrack: new JsTester_AudioTrack({
+                    mediaStream: mediaStream,
+                    mediaStreams: mediaStreams
+                })
+            });
+        })(mediaStreams.create());
 
         Object.defineProperty(this, 'iceConnectionState', {
             get: function () {
@@ -285,11 +285,11 @@ function JsTester_RTCPeerConnection (options) {
                 iceConnectionState = value;
 
                 if (iceConnectionState == 'connected') {
-                    mediaStreams.setConnected(remoteStream);
-                    mediaStreams.setConnected(localStream);
+                    mediaStreams.setDisconnected(remoteStream, false);
+                    mediaStreams.setDisconnected(localStream, false);
                 } else {
-                    mediaStreams.setDisconnected(remoteStream);
-                    mediaStreams.setDisconnected(localStream);
+                    mediaStreams.setDisconnected(remoteStream, true);
+                    mediaStreams.setDisconnected(localStream, true);
                 }
             }
         });
@@ -570,23 +570,22 @@ function JsTester_Audio (options) {
         audioEndListeners = new Map(),
         maybeUnsetSource,
         loop,
-        applyLoop = function () {},
-        mediaStream;
+        mediaStream,
+        mediaStreamProxy = {};
 
-    var mediaStreamProxy = {};
-
-    [
-        'setCyclical', 'setNoncyclical', 'play', 'stop', 'addAudioEndListener', 'removeAudioEndListener'
-    ].forEach((function (methodName) {
-        this[methodName] = function () {
+    ['play', 'stop', 'setCyclical', 'addAudioEndListener', 'removeAudioEndListener'].forEach(function (methodName) {
+        mediaStreamProxy[methodName] = function () {
             if (!mediaStream) {
                 return;
             }
 
             mediaStreams[methodName].apply(mediaStreams, [mediaStream].concat(Array.prototype.slice(arguments, 0)));
         };
-    }).bind(mediaStreamProxy));
+    });
 
+    function applyLoop () {
+        mediaStreamProxy.setCyclical(loop);
+    }
     Object.defineProperty(this, 'srcObject', {
         get : function () {
             return mediaStream;
@@ -602,13 +601,6 @@ function JsTester_Audio (options) {
         },
         set: function (value) {
             loop = value;
-
-            if (loop) {
-                applyLoop = mediaStreamProxy.setCyclical;
-            } else {
-                applyLoop = mediaStreamProxy.setNoncyclical;
-            }
-
             applyLoop();
         }
     });
@@ -804,43 +796,6 @@ function JsTester_MediaStream () {
     };
 }
 
-function JsTester_State (defaults) {
-    var values = {},
-        handlers = {};
-
-    for (var key in defaults) {
-        values[key] = defaults[key];
-    }
-
-    function createGetter (listener) {
-        return function (key) {
-            if (!handlers[key]) {
-                handlers[key] = new Map();
-            }
-
-            if (!handlers[key].has(listener)) {
-                handlers[key].set(listener, listener);
-            }
-
-            return values[key];
-        };
-    }
-    this.set = function (key, value) {
-        if (value === value[key]) {
-            return;
-        }
-
-        values[key] = value;
-
-        if (handlers[key]) {
-            handlers[key].forEach(this.listen.bind(this));
-        }
-    };
-    this.listen = function (listener) {
-        listener(createGetter(listener));
-    };
-}
-
 function JsTester_MediaStreamPlayingState(options) {
     var mediaStream = options.mediaStream,
         playingMediaStreams = options.playingMediaStreams,
@@ -851,15 +806,37 @@ function JsTester_MediaStreamPlayingState(options) {
         audioNodesCount,
         maybeThrowIsNotPlaying;
 
-    var state = new JsTester_State({
+    var state = {
         playing: false,
         enabled: true,
         disconnected: false
-    });
+    };
 
+    function setState (key, value) {
+        if (state[key] === value) {
+            return;
+        }
+
+        state[key] = value;
+        var hasMediaStream = playingMediaStreams.has(mediaStream);
+
+        if (state.playing && state.enabled && !state.disconnected) {
+            if (!hasMediaStream) {
+                playingMediaStreams.set(mediaStream, debug.getCallStack());
+            }
+
+            maybeThrowIsNotPlaying = function () {};
+        } else {
+            if (hasMediaStream) {
+                playingMediaStreams.delete(mediaStream);
+            }
+
+            maybeThrowIsNotPlaying = throwIsNotPlaying;
+        }
+    }
     function setNotPlaying () {
         maybeStop = function () {};
-        state.set('playing', false);
+        setState('playing', false);
     }
     function throwIsCyclical () {
         throw new Error('Не удалось закончить воспроизведение звука, так как он проигрывается в цикле.');
@@ -884,7 +861,7 @@ function JsTester_MediaStreamPlayingState(options) {
     this.play = function () {
         if (audioNodesCount == 0) {
             maybeStop = stop;
-            state.set('playing', true);
+            setState('playing', true);
         } else {
             console.log('Одинаковые звуки воспроизводятся одновременно. Может быть что-то пошло не так?' + "\n\n" +
                 debug.getCallStack());
@@ -892,23 +869,14 @@ function JsTester_MediaStreamPlayingState(options) {
 
         audioNodesCount ++;
     };
-    this.setDisconnected = function () {
-        state.set('disconnected', true);
+    this.setDisconnected = function (value) {
+        setState('disconnected', value);
     };
-    this.setConnected = function () {
-        state.set('disconnected', false);
+    this.setEnabled = function (value) {
+        setState('enabled', value);
     };
-    this.enable = function () {
-        state.set('enabled', true);
-    };
-    this.disable = function () {
-        state.set('enabled', false);
-    };
-    this.setCyclical = function () {
-        maybeFinish = throwIsCyclical;
-    };
-    this.setNoncyclical = function () {
-        maybeFinish = finish;
+    this.setCyclical = function (value) {
+        maybeFinish = value ? throwIsCyclical : finish;
     };
     this.finish = function () {
         maybeFinish();
@@ -919,29 +887,11 @@ function JsTester_MediaStreamPlayingState(options) {
     this.reset = function () {
         audioNodesCount = 0;
         setNotPlaying();
-        this.setConnected();
-        this.enable();
+        this.setDisconnected(false);
+        this.setEnabled(true);
     };
 
-    state.listen(function (get) {
-        var hasMediaStream = playingMediaStreams.has(mediaStream);
-
-        if (get('playing') && get('enabled') && !get('disconnected')) {
-            if (!hasMediaStream) {
-                playingMediaStreams.set(mediaStream, debug.getCallStack());
-            }
-
-            maybeThrowIsNotPlaying = function () {};
-        } else {
-            if (hasMediaStream) {
-                playingMediaStreams.delete(mediaStream);
-            }
-
-            maybeThrowIsNotPlaying = throwIsNotPlaying;
-        }
-    });
-
-    this.setNoncyclical();
+    this.setCyclical(false);
     this.reset();
 }
 
@@ -993,12 +943,13 @@ function JsTester_MediaStreams (options) {
         return mediaStream;
     };
 
-    [
-        'enable', 'disable', 'setConnected', 'setDisconnected', 'finish', 'play', 'stop', 'setNoncyclical',
-        'setCyclical'
-    ].forEach((function (methodName) {
-        this[methodName] = function (mediaStream) {
-            mediaStreams.get(mediaStream).mediaStreamPlayingState[methodName]();
+    ['setEnabled', 'setDisconnected', 'finish', 'play', 'stop', 'setCyclical'].forEach((function (methodName) {
+        this[methodName] = function () {
+            var args = Array.prototype.slice.call(arguments, 0),
+                mediaStream = args.shift(),
+                mediaStreamPlayingState = mediaStreams.get(mediaStream).mediaStreamPlayingState;
+
+            mediaStreamPlayingState[methodName].apply(mediaStreamPlayingState, args);
         };
     }).bind(this));
 
@@ -1007,20 +958,6 @@ function JsTester_MediaStreams (options) {
     };
     this.removeAudioEndListener = function (mediaStream, listener) {
         mediaStreams.get(mediaStream).audioEndListeners.delete(listener);
-    };
-}
-
-function JsTester_MediaStreamReplacer (mediaStreams) {
-    var RealMediaStream = window.MediaStream;
-
-    this.replaceByFake = function () {
-        mediaStreams.clear();
-        window.MediaStream = function () {
-            return mediaStreams.create();
-        };
-    };
-    this.restoreReal = function () {
-        window.MediaStream = RealMediaStream;
     };
 }
 
@@ -1071,11 +1008,13 @@ function JsTester_Tests (factory) {
         audioReplacer = new JsTester_AudioReplacer({
             mediaStreams: mediaStreams,
             debug: debug
-        }),
-        mediaStreamReplacer = new JsTester_MediaStreamReplacer(mediaStreams);
+        });
 
     audioReplacer.replaceByFake();
-    mediaStreamReplacer.replaceByFake();
+
+    window.MediaStream = function () {
+        return mediaStreams.create();
+    };
 
     window.URL.createObjectURL = function (object) {
         return 'http://127.0.0.1/#' + object.id;
