@@ -1,26 +1,34 @@
 #!/bin/bash
 
-if [ ! -d /usr/local/src/utils ]
-then
-    cd /usr/local/src
-    git clone git@github.com:aoanshakov/utils.git
+workspaceDir=/usr/local/src/
 
-    if [ -n $COMAGIC_ENV_USER ]
+function changeOwner {
+    if [ ! -d $workspaceDir/$1 ]
     then
-        chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER /usr/local/src/utils
+        if [ -n $COMAGIC_ENV_USER ]
+        then
+            chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER $workspaceDir/$1
+        fi
     fi
+}
+
+projectName=utils
+
+if [ ! -d $workspaceDir/$projectName ]
+then
+    cd $workspaceDir/
+    git clone git@github.com:aoanshakov/$projectName.git
+    changeOwner $projectName
 fi
 
-cd /usr/local/src/utils/call-center-tests
+testsDir=utils/call-center-tests
+fullPathToTestsDir=$workspaceDir/$testsDir
 
-if [ -d /usr/local/src/utils/call-center-tests/node_modules ]
+if [ -d $fullPathToTestsDir/node_modules ]
 then
     exit 0
 fi
 
+cd $fullPathToTestsDir
 npm install
-
-if [ -n $COMAGIC_ENV_USER ]
-then
-    chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER /usr/local/src/utils/call-center-tests
-fi
+changeOwner $testsDir

@@ -6,11 +6,16 @@ then
     exit 1
 fi
 
-if [ ! -d /usr/local/src/call_center_frontend ]
-then
-    echo "call_center_frontend directory not exists"
-    exit 1
-fi
+function checkDirectoryExistence {
+    if [ ! -d /usr/local/src/$1 ]
+    then
+        echo "$1 directory not exists"
+        exit 1
+    fi
+}
+
+checkDirectoryExistence 'call_center_frontend'
+checkDirectoryExistence 'amocrm-widget'
 
 export COMAGIC_ENV_USER=""
 action="server"

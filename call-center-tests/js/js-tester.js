@@ -1792,7 +1792,11 @@ function JsTester_Body (bodyParams, utils) {
                 this.getDescription());
         }
 
-        tester(bodyParams[name]);
+        var result = tester(bodyParams[name]);
+
+        if (result === false) {
+            throw new Error('Параметр "' + name + '" имеет некорректное значение.');
+        }
     };
     this.expectToContain = function (params) {
         expectToContain(params);

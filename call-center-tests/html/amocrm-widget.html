@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>amoCRM</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/amocrm/build/style.css">
+    <link rel="stylesheet" type="text/css" href="/tests/css/style.css">
+    <script src="/tests/js/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
+    <script src="/tests/js/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
+    <script>
+        var windowLoadHandler = window.onload;
+    </script>
+    <script src="/tests/js/jasmine/lib/jasmine-3.4.0/boot.js"></script>
+    <script>
+        window.onload = windowLoadHandler;
+    </script>
+    <script src="/tests/js/jasmine/lib/jasmine-ajax/lib/mock-ajax.js"></script>
+    <script src="/tests/js/jasmine/console-reporter.js"></script>
+    <script src="/tests/js/js-tester.js"></script>
+    <script type="text/javascript">
+        var tests = new JsTester_Tests(new JsTester_Factory());
+        tests.exposeDebugUtils('jsTestDebug');
+    </script>
+    <script src="/amocrm/build/bundle.js"></script>
+    <script src="/tests/js/require.js"></script>
+    <script src="/tests/js/amocrm-widget.js"></script>
+    <script src="/tests/js/tests.js"></script>
+</head>
+<body>
+</body>
+</html>

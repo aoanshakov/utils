@@ -1,0 +1,34 @@
+#!/bin/bash
+
+build --production
+
+basepath=/usr/local/src/amocrm-widget
+tmppath=/tmp/amocrm-widget
+
+if [ -d $tmppath ]
+then
+    rm -r $tmppath
+fi
+
+mkdir $tmppath
+cp $basepath/build/bundle.js $tmppath/script.js
+cp $basepath/build/style.css $tmppath/
+#cp $basepath/script.js $tmppath/
+cp -r $basepath/images $tmppath/
+cp -r $basepath/i18n $tmppath/
+cp -r $basepath/manifest.json $tmppath/
+
+if [ -n "$COMAGIC_ENV_USER" ]
+then
+    chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER $tmppath 
+fi
+
+archivepath=/usr/local/src/widget.zip
+rm $archivepath
+cd $tmppath
+zip -r $archivepath .
+
+if [ -n "$COMAGIC_ENV_USER" ]
+then
+    chown $COMAGIC_ENV_USER:$COMAGIC_ENV_USER $archivepath 
+fi

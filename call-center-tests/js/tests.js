@@ -4,8 +4,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     requirejs([
-        'promise-mock', 'sip', 'call-center-tester', 'sound-sources'
-    ], function (PromiseMock, Sip, CallCenterTester, soundSources) {
+        'promise-mock', 'sip', 'softphone-tester', 'call-center-tester', 'amocrm-widget-tester', 'sound-sources',
+        'amocrm-global'
+    ], function (
+        PromiseMock, Sip, SoftphoneTester, CallCenterTester, AmocrmWidgetTester, soundSources, AmocrmGlobal
+    ) {
         describe('', function() {
             beforeEach(function() {
                 PromiseMock.install();
@@ -18,8 +21,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
             tests.runTests({
                 Sip: Sip,
-                CallCenterTester: CallCenterTester,
-                soundSources: soundSources
+                soundSources: soundSources,
+                AmocrmGlobal: AmocrmGlobal,
+                CallCenterTester: function (options) {
+                    options.initialize = function () {
+                        var root = document.getElementById('root');
+
+                        if (root) {
+                            window.application.exit();
+                            root.remove();
+                        }
+
+                        document.body.innerHTML = '<div id="root"></div>';
+                        window.application.run();
+                    };
+
+                    options.softphoneTester = new SoftphoneTester(options);
+                    return new CallCenterTester(options);
+                },
+                AmocrmWidgetTester: function (options) {
+                    options.initialize = function () {
+                        window.application.run();
+
+                        const style = document.querySelector('#cmg-amocrm-widget').style;
+                        style.top = style.left = '50px';
+                    };
+
+                    options.softphoneTester = new SoftphoneTester(options);
+                    return new AmocrmWidgetTester(options);
+                }
             });
         });
 

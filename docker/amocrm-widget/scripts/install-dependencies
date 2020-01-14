@@ -1,0 +1,13 @@
+#!/bin/bash
+
+path=/usr/local/src/amocrm-widget
+
+cd $path
+
+chown -R root:root $path 
+npm install
+
+if [ -n "$COMAGIC_ENV_USER" ]
+then
+    chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER $path 
+fi

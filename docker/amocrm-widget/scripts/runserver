@@ -1,0 +1,9 @@
+#!/bin/bash
+
+rm -rf /var/www/html
+ln -s /usr/local/src/amocrm-widget /var/www/html
+
+a2enmod ssl
+a2ensite default-ssl
+
+/etc/init.d/apache2 start

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+mode="--watch --test"
+server=""
+
+if [ -n "$AMOCRM_WIDGET_SERVER_DOMAIN" ]
+then
+    server="--server $AMOCRM_WIDGET_SERVER_DOMAIN"
+fi
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "--production" ]
+    then
+        mode=""
+    fi
+
+    shift
+done
+
+path=/usr/local/src/amocrm-widget
+$path/node_modules/.bin/webpack --mode development --theme uis $server $mode
+
+if [ -n "$COMAGIC_ENV_USER" ]
+then
+    chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER $path 
+fi

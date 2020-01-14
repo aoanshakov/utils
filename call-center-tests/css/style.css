@@ -1,3 +1,7 @@
-.clct-c-button {
+.clct-c-button, .cmg-button {
     transition: none !important;
+}
+
+body {
+    background: #f5f5f5;
 }
