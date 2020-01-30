@@ -2049,11 +2049,12 @@ tests.addTest(function (
                             rtcConnectionsMock.getConnectionAtIndex(0).expectToBeClosed();
                             errorNotifications.expectErrorToContain('Не удалось выполнить вызов');
                         });
-                        it('Источники потоков определены.', function() {
+                        it(
+                            'Источники потоков определены. В виджете отображается номер, на который совершается ' +
+                            'звонок.',
+                        function() {
                             localStream().expectToHaveSource();
                             remoteStream().expectToHaveSource();
-                        });
-                        it('В виджете отображается номер, на который совершается звонок.', function() {
                             outgoingCallContactInformation.expectToHaveTextContent('Исходящий звонок: 74951234567');
                         });
                         describe(
@@ -2201,7 +2202,39 @@ tests.addTest(function (
                             respondSuccessfullyWith(files['/amocrm-widget/templates/CallStatus.twig']);
                     });
 
-                    it('Отображен номер, телефона с которого производится звонок.', function() {
+                    it('Нажимаю на кнопку "Создать контакт". Открыта страница создания контакта.', function() {
+                        openContactButton.click();
+
+                        rtcConnectionsMock.getConnectionAtIndex(0).connect();
+                        Promise.runAll();
+
+                        userMedia.allowMediaInput();
+                        Promise.runAll();
+
+                        rtcConnectionsMock.getConnectionAtIndex(0).addCandidate();
+                        Promise.runAll();
+
+                        sip.recentResponse().
+                            expectOk().
+                            request().
+                            setServerName('vo19.uiscom.ru').
+                            setMethod('ACK').
+                            setCallReceiverName('Dar`ya Rahvalova (amoCRM)').
+                            setCallReceiverLogin('082481').
+                            receive();
+
+                        ajax.recentRequest().
+                            expectToHavePath('/amocrm-widget/templates/InCall.twig').
+                            expectToHaveMethod('GET').
+                            respondSuccessfullyWith(files['/amocrm-widget/templates/InCall.twig']);
+
+                        window.AMOCRM.router.expectToHaveUrl('/contacts/add/?phone=%2B79161234567');
+                    });
+                    it(
+                        'Отображен номер, телефона с которого производится звонок. Кнопка открытия контакта имеет ' +
+                        'текст "Создать контакт".',
+                    function() {
+                        openContactButton.expectToHaveTextContent('Создать контакт');
                         abonentInformationBlock.expectToHaveTextContent((
                             'Входящий звонок : 79161234567'
                         ));
@@ -2318,6 +2351,7 @@ tests.addTest(function (
                     it(
                         'Кнопки "Ответить", "Отклонить" и "Открыть контакт" видимы, а кнопка "Закрыть" скрыта.',
                     function() {
+                        openContactButton.expectToHaveTextContent('Открыть контакт');
                         openContactButton.expectToBeVisible();
                         answerButton.expectToBeVisible();
                         declineButton.expectToBeVisible();

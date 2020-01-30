@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         window.application.run();
 
                         const style = document.querySelector('#cmg-amocrm-widget').style;
+                        style.bottom = style.right = 'auto';
                         style.top = style.left = '50px';
                     };
 

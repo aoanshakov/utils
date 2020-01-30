@@ -2,8 +2,8 @@
 
 build --production
 
-basepath=/usr/local/src/amocrm-widget
-tmppath=/tmp/amocrm-widget
+basepath=/usr/local/src/amocrm_widget
+tmppath=/tmp/amocrm_widget
 
 if [ -d $tmppath ]
 then

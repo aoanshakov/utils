@@ -52,8 +52,8 @@ define(function () {
                             utils.expectObjectToContain((data && data[0] && JSON.parse(data[0])), {
                                 method: 'post',
                                 params: {
-                                    login: 'tutu',
-                                    password: 'QWErty123'
+                                    login: 'romanoff',
+                                    password: 'Romanoff1'
                                 }
                             });
                         }).
@@ -84,7 +84,9 @@ define(function () {
                         testBodyParam('target', function (target) {
                             return target && target[0] && target[0].includes('/sup/auth/check');
                         }).
-                        respondSuccessfullyWith('');
+                        respondSuccessfullyWith({
+                            data: ''
+                        });
 
                     Promise.runAll();
                 }

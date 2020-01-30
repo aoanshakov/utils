@@ -18,6 +18,11 @@ do
     elif [ "$1" = "-s" ]
     then
         export AMOCRM_WIDGET_SERVER_DOMAIN=$2
+        shift
+    elif [ "$1" = "-e" ]
+    then
+        export AMOCRM_WIDGET_EVENTS_WS_DOMAIN=$2
+        shift
     else
         action=$1
     fi
@@ -25,13 +30,13 @@ do
     shift
 done
 
-if [ ! -d "/usr/local/src/amocrm-widget" ]
+if [ ! -d "/usr/local/src/amocrm_widget" ]
 then
     cd /usr/local/src
-    git clone git@github.com:aoanshakov/amocrm-widget.git
+    git clone git@git.dev.uis.st:web/amocrm_widget.git
 fi
 
-if [ ! -d "/usr/local/src/amocrm-widget/node_modules" ]
+if [ ! -d "/usr/local/src/amocrm_widget/node_modules" ]
 then
     install-dependencies
 
@@ -48,7 +53,7 @@ then
     fi
 fi
 
-cd /usr/local/src/amocrm-widget
+cd /usr/local/src/amocrm_widget
 
 if [ -z "$action" ]
 then

@@ -8,3 +8,5 @@ comagic-tests/.venv/*
 !comagic-tests/.venv/requirements.txt
 package-lock.json
 comagic-tests/screenshots/*
+amocrm-proxy/.venv/*
+__pycache__

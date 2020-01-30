@@ -2,10 +2,16 @@
 
 mode="--watch --test"
 server=""
+eventsws=""
 
 if [ -n "$AMOCRM_WIDGET_SERVER_DOMAIN" ]
 then
     server="--server $AMOCRM_WIDGET_SERVER_DOMAIN"
+fi
+
+if [ -n "$AMOCRM_WIDGET_EVENTS_WS_DOMAIN" ]
+then
+    eventsws="--eventsws $AMOCRM_WIDGET_EVENTS_WS_DOMAIN"
 fi
 
 while [ -n "$1" ]
@@ -18,8 +24,8 @@ do
     shift
 done
 
-path=/usr/local/src/amocrm-widget
-$path/node_modules/.bin/webpack --mode development --theme uis $server $mode
+path=/usr/local/src/amocrm_widget
+$path/node_modules/.bin/webpack --mode development --theme uis $server $eventsws $mode
 
 if [ -n "$COMAGIC_ENV_USER" ]
 then

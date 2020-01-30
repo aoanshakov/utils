@@ -2,7 +2,7 @@
 
 path=/usr/local/src/call_center_frontend
 
-$path/node_modules/.bin/webpack --mode development --theme uiscom
+$path/node_modules/.bin/webpack --watch --mode development --theme uiscom
 
 if [ -n "$COMAGIC_ENV_USER" ]
 then

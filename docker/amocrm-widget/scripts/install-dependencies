@@ -1,6 +1,6 @@
 #!/bin/bash
 
-path=/usr/local/src/amocrm-widget
+path=/usr/local/src/amocrm_widget
 
 cd $path
 
