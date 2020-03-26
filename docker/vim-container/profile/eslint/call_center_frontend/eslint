@@ -1,0 +1,5 @@
+#!/bin/bash
+
+~/eslint/call_center_frontend/node_modules/.bin/eslint \
+    --resolve-plugins-relative-to ~/eslint/call_center_frontend/node_modules/ \
+    -c ~/eslint/call_center_frontend/.eslintrc.json "$@"

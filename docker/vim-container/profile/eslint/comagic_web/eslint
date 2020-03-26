@@ -1,0 +1,5 @@
+#!/bin/bash
+
+~/eslint/comagic_web/node_modules/.bin/eslint \
+    --resolve-plugins-relative-to ~/eslint/comagic_web/node_modules/ \
+    -c ~/eslint/comagic_web/.eslintrc.json "$@"
