@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export PGPASSWORD="eTo4RfR4Ml"
+psql -t -h lynx.uis -p 6900 -U postgres -d comagic_crm_r4.0.0 -c "select amocrm.del_account($1,(amocrm.get_accounts($1)).id)"

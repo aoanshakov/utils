@@ -1,0 +1,2 @@
+#!/bin/bash
+google-chrome --enable-logging=stderr --v=1 --log-level=0 --disable-web-security --user-data-dir=~/google-chrome-user-data-dir/

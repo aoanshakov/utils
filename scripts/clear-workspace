@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cp /home/anshakov/workspace/comagic-config.json /home/anshakov/
+sudo rm -rf /home/anshakov/workspace/*
+cp /home/anshakov/comagic-config.json /home/anshakov/workspace/

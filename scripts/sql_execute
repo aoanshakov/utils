@@ -1,0 +1,51 @@
+#!/bin/bash
+
+if [ -z "$CM_SQL_EXECUTE_AS_ADMIN" ]
+then
+    printf "Опередели переменную среды\n"
+    echo "export CM_SQL_EXECUTE_AS_ADMIN=0"
+    exit 1
+fi
+
+if [ -z "$CM_SQL_EXECUTE_DB" ]
+then
+    printf "Опередели переменную среды\n"
+    echo "export CM_SQL_EXECUTE_DB='comagic'"
+    exit 1
+fi
+
+if [ -z "$CM_SQL_EXECUTE_SCRIPT" ]
+then
+    printf "Опередели переменную среды\n"
+    echo "export CM_SQL_EXECUTE_SCRIPT=~/scripts/command.sql"
+    exit 1
+fi
+
+if [ -z "$CM_SQL_EXECUTE_POSTFIX" ]
+then
+    printf "Опередели переменную среды\n"
+    echo "export CM_SQL_EXECUTE_POSTFIX='_sp_r0.1.0'"
+    exit 1
+fi
+
+if [ "$CM_SQL_EXECUTE_AS_ADMIN" -eq "1" ]
+then
+    user='postgres'
+    export PGPASSWORD="eTo4RfR4Ml"
+else
+    user='webuser'
+    export PGPASSWORD="YwKgbN9y"
+fi
+
+if [ ! -f "$CM_SQL_EXECUTE_SCRIPT" ]
+then
+    echo "Файл $CM_SQL_EXECUTE_SCRIPT не существует"
+    exit 1
+fi
+
+if [ $CM_SQL_EXECUTE_DB = 'comagic' ]
+then
+    CM_SQL_EXECUTE_POSTFIX="${CM_SQL_EXECUTE_POSTFIX}_0"
+fi
+
+psql -x -t -h lynx.uis -p 6900 -U $user -d ${CM_SQL_EXECUTE_DB}${CM_SQL_EXECUTE_POSTFIX} -f $CM_SQL_EXECUTE_SCRIPT

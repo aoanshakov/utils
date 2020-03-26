@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export PGPASSWORD="YwKgbN9y"
+#export PGPASSWORD="eTo4RfR4Ml"
+psql -t -h lynx.uis -p 6900 -U webuser -d $1_crm_r3.0.0 -c "\sf $2"
+#psql -t -h lynx.uis -p 6900 -U postgres -d $1_crm_r3.0.0 -c "\sf $2"

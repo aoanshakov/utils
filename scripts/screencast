@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -z "$1" ]
+then
+    echo "Please specify file name"
+    exit 1
+fi
+
+path="/home/anshakov/screencasts/$1.mp4"
+
+ffmpeg -f x11grab -r 25 -s 1920x1080 -i :0.0 $path

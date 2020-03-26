@@ -1,0 +1,7 @@
+[diff]
+	tool = vimdiff
+[merge]
+	tool = vimdiff
+[user]
+	name = Alexander Anshakov
+	email = a.anshakov@uiscom.ru

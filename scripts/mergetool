@@ -1,0 +1,12 @@
+#!/bin/bash
+
+tmux has-session
+if [ ! $? -eq 0 ]; then
+    echo "NO SESSIONS"
+    tmux new
+else
+    echo "SESSION EXISTS"
+fi
+
+echo "CREATING NEW WINDOW"
+tmux new-window "ls -la /var/www/html;bash -i"

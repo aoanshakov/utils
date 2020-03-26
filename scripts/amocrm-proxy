@@ -1,0 +1,27 @@
+#!/bin/bash
+
+port='-p 1234:80'
+action=''
+server='proxy.dev.uis.st:15016'
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "-p" ]
+    then
+        port="-p $2:80"
+        shift
+    else
+        action=$1
+    fi
+
+    shift
+done
+
+
+docker run -it --rm \
+    -v $HOME/workspace:/usr/local/src \
+    $port \
+    --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa \
+    --mount type=bind,source=/etc/passwd,target=/etc/passwd \
+    --mount type=bind,source=/etc/group,target=/etc/group \
+    amocrm-proxy -u $USER -s $server $action

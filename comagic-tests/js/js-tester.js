@@ -185,9 +185,6 @@ function JsTester_TestersFactory (wait, utils, factory) {
 function JsTester_Utils (debug) {
     var me = this;
 
-    this.expectToContain = function (object, expectedContent) {
-        new JsTester_ParamsContainingExpectation(object)(expectedContent);
-    };
     this.addPreventDefaultHandler = function (event, preventDefaultHandler) {
         var preventDefault = event.preventDefault;
 
@@ -265,6 +262,9 @@ function JsTester_Utils (debug) {
     };
     this.pressEscape = function (target) {
         this.pressSpecialKey(target, 27);
+    };
+    this.expectToContain = function (object, expectedContent) {
+        new JsTester_ParamsContainingExpectation(object)(expectedContent);
     };
     this.makeFunction = function (value) {
         if (typeof value == 'function') {

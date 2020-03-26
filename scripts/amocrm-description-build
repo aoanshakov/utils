@@ -1,0 +1,11 @@
+#!/bin/bash
+
+docker run -it --rm \
+    -v $HOME/utils/amocrm-descriptions:/usr/local/src/amocrm-descriptions \
+    -v $HOME/amocrm_widget:/usr/local/src/amocrm_widget \
+    amocrm-description-builder -m html -s uis -t ru_uis
+
+docker run -it --rm \
+    -v $HOME/utils/amocrm-descriptions:/usr/local/src/amocrm-descriptions \
+    -v $HOME/amocrm_widget:/usr/local/src/amocrm_widget \
+    amocrm-description-builder -m scss -s uis-style -t uis-style

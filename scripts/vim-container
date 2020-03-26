@@ -1,0 +1,19 @@
+#!/bin/bash
+
+sources=''
+
+while [ -n "$1" ]
+do
+    sources="$sources -v $HOME/$1:/usr/local/src/$1"
+    shift
+done
+
+docker run -it --rm \
+    --user $(id -u) \
+    -v $HOME/docker/vim/profile:/$HOME \
+    $sources \
+    --mount type=bind,source=$HOME/.ssh/id_rsa,target=$HOME/.ssh/id_rsa \
+    --mount type=bind,source=/etc/passwd,target=/etc/passwd \
+    --mount type=bind,source=/etc/group,target=/etc/group \
+    -w /usr/local/src \
+    vim

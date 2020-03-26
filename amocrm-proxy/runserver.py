@@ -14,8 +14,9 @@ logger.addHandler(stream_handler)
 HTTPConnection.debuglevel = 1
 
 application = Flask('amocrm-proxy')
+server = 'https://proxy.dev.uis.st:12021'
 # server = 'https://proxy.dev.uis.st:15015'
-server = 'https://my2.comagic.ru'
+# server = 'https://my2.comagic.ru'
 
 
 def handle(target):
@@ -35,13 +36,17 @@ def handle(target):
         } if token else None
     )
 
+    success = response.status_code == requests.codes.ok
     content = response.content.decode('utf-8')
     logger.info('Response body: %s' % (content))
 
     try:
-        return jsonify(response.json())
+        encoded_response = response.json()
+        encoded_response['success'] = success
+        return jsonify(encoded_response)
     except BaseException:
         return jsonify({
+            'success': success,
             'data': (content)
         })
 
@@ -74,6 +79,21 @@ def me():
 @application.route('/sup/api/v1/users/me/calls', methods=['POST'])
 def calls():
     return handle('/sup/api/v1/users/me/calls')
+
+
+@application.route('/sup/api/v1/talk_options', methods=['POST'])
+def talk_options():
+    return handle('/sup/api/v1/talk_options')
+
+
+@application.route('/sup/api/v1/users', methods=['POST'])
+def users():
+    return handle('/sup/api/v1/users')
+
+
+@application.route('/sup/api/v1/widget_state', methods=['POST'])
+def widget_state():
+    return handle('/sup/api/v1/widget_state')
 
 
 application.run('0.0.0.0', '80', debug=True)

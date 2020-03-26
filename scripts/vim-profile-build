@@ -1,0 +1,8 @@
+#!/bin/bash
+
+docker run -it --rm \
+    -v $HOME/docker/vim/profile:/target \
+    --mount type=bind,source=/etc/passwd,target=/etc/passwd \
+    --mount type=bind,source=/etc/group,target=/etc/group \
+    vim-profile-builder \
+    anshakov

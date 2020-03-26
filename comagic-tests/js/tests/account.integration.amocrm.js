@@ -1,5 +1,5 @@
 tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener) {
-    describe('Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM".', function() {
+    xdescribe('Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM".', function() {
         var helper;
 
         beforeEach(function() {
@@ -345,15 +345,15 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(10);
         });
         
-        it('Открываю вкладку "Телефония".', function() {
+        xit('Открываю вкладку "Телефония".', function() {
             helper.tabPanel.tab('Телефония').click();
             wait(10);
         });
-        it('Открываю вкладку "Чаты и заявки".', function() {
+        xit('Открываю вкладку "Чаты и заявки".', function() {
             helper.tabPanel.tab('Чаты и заявки').click();
             wait(10);
         });
-        describe('Открываю вкладку "Ответственные".', function() {
+        xdescribe('Открываю вкладку "Ответственные".', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Ответственные').click();
                 wait(10);
@@ -366,7 +366,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
             });
         });
-        describe('Открываю вкладку "Мультиворонки".', function() {
+        xdescribe('Открываю вкладку "Мультиворонки".', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Мультиворонки').click();
                 wait(10);
@@ -434,6 +434,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.requestUserFields().send();
             wait(10);
         });
+        return;
         it('Открываю вкладку "Фильтр обращений".', function() {
             helper.tabPanel.tab('Фильтр обращений').click();
             wait(10);

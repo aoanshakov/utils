@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [ -d UIS-widget-3 ]
+then
+    rm -r UIS-widget-3
+
+    if [ $? -ne 0 ]
+    then
+        echo 'Failed to remove directory'
+        exit 1
+    fi
+fi
+
+mkdir -p UIS-widget-3/extracted
+
+if [ $? -ne 0 ]
+then
+    echo 'Failed to create directory'
+    exit 1
+fi
+
+wget https://amojo.amocrm.ru/attachments/6f55fb59-16c0-49aa-8b13-524a01d2261d/a9d6193c-877f-4544-9288-22325caec678/urDZc_UIS-widget-3.zip -P UIS-widget-3
+
+if [ $? -ne 0 ]
+then
+    echo 'Failed to download archive'
+fi
+
+unzip UIS-widget-3/urDZc_UIS-widget-3.zip -d UIS-widget-3/extracted
+
+if [ $? -ne 0 ]
+then
+    echo 'Failed to extract archive'
+    exit 1
+fi
+
+grep -nUr --exclude={*.png,*.gif} $'\r' UIS-widget-3/extracted
+
+if [ $? -eq 0 ]
+then
+    echo 'Carriage return is found'
+else
+    echo 'Carriage return is not found'
+fi

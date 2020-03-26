@@ -1,0 +1,15 @@
+#!/bin/bash
+
+rm -rf /home/anshakov/clear/*
+cd /home/anshakov/clear/
+git clone git@git.dev.uiscom.ru:crm/amocrm_widget.git
+cd amocrm_widget
+#git checkout release/rt_r0.0.2
+#git checkout release/crm_r4.3.0
+git checkout release/crm_r4.3.0-without-tour
+npm install
+grunt
+cp /home/anshakov/clear/amocrm_widget/build/comagic/widget.zip /home/anshakov/amocrm_release/CoMagic_widget.zip
+cp /home/anshakov/clear/amocrm_widget/build/uis/widget.zip /home/anshakov/amocrm_release/UIS_widget.zip
+cp /home/anshakov/clear/amocrm_widget/build/callgear/widget.zip /home/anshakov/amocrm_release/Callgear_widget.zip
+cp /home/anshakov/clear/amocrm_widget/build/rostelecom/widget.zip /home/anshakov/amocrm_release/Rostelecom_widget.zip

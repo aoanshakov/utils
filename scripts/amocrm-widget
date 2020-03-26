@@ -1,0 +1,38 @@
+#!/bin/bash
+
+port=''
+action=''
+server='proxy.dev.uis.st:15016'
+eventsws='proxy.dev.uis.st:12021'
+#eventsws='proxy.dev.uis.st:15015'
+#eventsws='my2.comagic.ru'
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "-p" ]
+    then
+        port="-p $2:443"
+        shift
+    elif [ "$1" = "-s" ]
+    then
+        server=$2
+        shift
+    elif [ "$1" = "-e" ]
+    then
+        eventsws=$2
+        shift
+    else
+        action=$1
+    fi
+
+    shift
+done
+
+
+docker run -it --rm \
+    -v $HOME/sip-workspace:/usr/local/src \
+    $port \
+    --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa \
+    --mount type=bind,source=/etc/passwd,target=/etc/passwd \
+    --mount type=bind,source=/etc/group,target=/etc/group \
+    amocrm-widget -u $USER -s $server -e $eventsws $action

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+export PGPASSWORD="YwKgbN9y"
+psql -t -h lynx.uis -p 6900 -U webuser -d comagic_crm_r4.1.0 -c \
+"select id from \
+    analytics.get_phone_list($1, 'virtual', '$2', 0, '1', NULL, true)\
+"

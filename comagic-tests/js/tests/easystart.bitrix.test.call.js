@@ -74,11 +74,19 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             tester.requestIntegrationConfig().send();
         });
 
-        it('Нажимаю на кнопку "Заказать тестовый звонок". Отправлен запрос тестового звонка.', function() {
+        it(
+            'Нажимаю на кнопку "Заказать тестовый звонок". Отправлен запрос тестового звонка. Кнопка достунпа.',
+        function() {
             tester.requestAnswers().send();
             tester.orderTestCallButton.click();
             tester.requestTestCall().send();
+
+            wait();
+            tester.requestCallState().setProcessed().send();
+            tester.requestAnswers().send();
+            tester.orderTestCallButton.expectNotToBeMasked();
         });
+        return;
         it(
             'Ответ сервера на запрос звонков содержит сообщение об ошибке. Отображено сообщние об ошибке. Повторный ' +
             'запрос звонков не был отправлен.',

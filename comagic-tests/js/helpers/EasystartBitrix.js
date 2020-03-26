@@ -116,7 +116,32 @@ function EasystartBitrix(requestsManager, testersFactory, utils) {
                     expectToHavePath('/easystart/bitrix/test_call/').
                     respondSuccessfullyWith({
                         success: true,
-                        result: {}
+                        result: 83921
+                    });
+            }
+        };
+    };
+    this.requestCallState = function () {
+        var result = 'new';
+
+        return {
+            setProcessed: function () {
+                result = 'processed';
+                return this;
+            },
+            setError: function () {
+                result = 'error';
+                return this;
+            },
+            send: function () {
+                requestsManager.recentRequest().
+                    expectBodyToContain({
+                        task_id: 83921
+                    }).
+                    expectToHavePath('/easystart/bitrix/test_call_task_state/').
+                    respondSuccessfullyWith({
+                        success: true,
+                        result: result
                     });
             }
         };
