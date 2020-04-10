@@ -1198,7 +1198,11 @@ function JsTester_DomElement (
     this.expectToBeVisible = function () {
         this.expectToExist();
 
-        if (!utils.isVisible(getDomElement())) {
+        var domElement = getDomElement();
+
+        domElement.scrollIntoView();
+
+        if (!utils.isVisible(domElement)) {
             throw new Error(
                 utils.capitalize(getNominativeDescription()) + ' ' + gender.should + ' быть ' + gender.visible + '.'
             );

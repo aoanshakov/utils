@@ -1,20 +1,17 @@
-#!/bin/bash 
-#cd /home/anshakov/uis-description
-#python generate-json.py /home/anshakov/amocrm_widget
-rm -rf /home/anshakov/amocrm_deploy/*
-cd /home/anshakov/amocrm_widget
-grunt
-unzip build/$1/widget.zip -d /home/anshakov/amocrm_deploy
-cp /home/anshakov/uis-description/backbone-min.js /home/anshakov/amocrm_deploy/backbone.js
-cp /home/anshakov/uis-description/underscore-min.js /home/anshakov/amocrm_deploy/underscore.js
-cp /home/anshakov/twig.js/twig.min.js /home/anshakov/amocrm_deploy/
-cp /home/anshakov/uis-description/templates.js /home/anshakov/amocrm_deploy/
-cp /home/anshakov/JsSIP/dist/jssip.js /home/anshakov/amocrm_deploy/
+#!/bin/bash
 
-cp /home/anshakov/utils/phone-widget/helpers.js /home/anshakov/amocrm_deploy/
-cp /home/anshakov/utils/phone-widget/modal-window.js /home/anshakov/amocrm_deploy/
-cp /home/anshakov/utils/phone-widget/promise-mock.js /home/anshakov/amocrm_deploy/
-cp /home/anshakov/utils/phone-widget/promise-polyfill.js /home/anshakov/amocrm_deploy/
+#code='uis_widget_9'
+#key='c6fb51e48e7786dbffae4c943695bfcdaf08543fdd6275e70e8a292f4621a942'
 
-cp -r /home/anshakov/amocrm_lib/root/* /home/anshakov/amocrm_deploy/
-cp /home/anshakov/amocrm_deploy/moment.min.js /home/anshakov/amocrm_deploy/moment.js
+code='uis_widget_10'
+key='0a4f13fa532871f0171e578fb72f560055c4c724d806704c5a489532a040048f'
+
+server='proxy.dev.uis.st:15016'
+
+#eventsws='va.uiscom.ru'
+#eventsws='amocrm2.comagic.ru'
+eventsws='proxy.dev.uis.st:12021'
+#eventsws='proxy.dev.uis.st:15015'
+#eventsws='my2.comagic.ru'
+
+sip-lib-test --action build --application amocrm-widget --code $code --key $key --server $server --eventsws $eventsws

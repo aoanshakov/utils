@@ -1,7 +1,9 @@
 tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener) {
-    xdescribe('Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM".', function() {
-        var helper;
+    var helper;
 
+    describe(
+        'Расширенная интеграция недоступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM".',
+    function() {
         beforeEach(function() {
             if (helper) {
                 helper.destroy();
@@ -14,7 +16,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
             helper.actionIndex();
             helper.requestSalesFunnelComponentAvailability().send();
-            helper.requestSalesFunnelComponentTariffInfo().send();
         });
         
         describe(
@@ -23,6 +24,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
         function() {
             beforeEach(function() {
                 helper.requestAmocrmData().send();
+                helper.requestTariffs().send();
                 helper.requestAmocrmStatus().send();
                 wait(10);
 
@@ -61,6 +63,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             '"Неразобранное"" доступна.',
         function() {
             helper.requestAmocrmData().send();
+            helper.requestTariffs().send();
             helper.requestAmocrmStatus().setUnsortedEnabled().send();
             wait(10);
 
@@ -72,6 +75,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
         describe('Открываю вкладку "Мультиворонки".', function() {
             beforeEach(function() {
                 helper.requestAmocrmData().send();
+                helper.requestTariffs().send();
                 helper.requestAmocrmStatus().send();
                 wait(10);
 
@@ -191,7 +195,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             });
             it(
                 'Первичные обращения обрабатываются вручную. При повторных обращениях создается сделка. Настройки ' +
-                'доступны.',
+                'доступны. Кнопка "Подключить Мультиворонки" скрыта. Выпадащий список воронок видим.',
             function() {
                 helper.requestMultiFunnels().setFirstActManual().send();
                 helper.requestSalesFunnel().send();
@@ -199,6 +203,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
 
                 helper.addFunnelButton.expectToBeEnabled();
+                helper.activateMultifunnelsButton.expectToBeHiddenOrNotExist();
+                helper.form.combobox().withValue('Некая воронка').expectToBeVisible();
             });
         });
         it(
@@ -207,6 +213,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             'выбрана опция "0 мин".',
         function() {
             helper.requestAmocrmData().set15MinutesContactUpdateTimout().send();
+            helper.requestTariffs().send();
             helper.requestAmocrmStatus().send();
             wait(10);
 
@@ -221,6 +228,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
         function() {
             beforeEach(function() {
                 helper.requestAmocrmData().setUpdateContact().set15MinutesContactUpdateTimout().send();
+                helper.requestTariffs().send();
                 helper.requestAmocrmStatus().send();
                 wait(10);
 
@@ -252,6 +260,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
         function() {
             beforeEach(function() {
                 helper.requestAmocrmData().send();
+                helper.requestTariffs().send();
                 helper.requestAmocrmStatus().send();
                 wait(10);
 
@@ -280,8 +289,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 });
 
                 it('Радиокнопка "Из контакта" не отмечена.', function() {
-                    helper.form.radiofield().withBoxLabel('Из контакта').expectNotToBeChecked();
                     helper.form.radiofield().withBoxLabel('Из сделки').expectToBeChecked();
+                    helper.form.radiofield().withBoxLabel('Из контакта').expectNotToBeChecked();
                 });
                 it(
                     'Сохраняю настройки телефонии. Сохранена переадресация на ответственного сотрудника из сделки.',
@@ -298,6 +307,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             'Отмечена радиокнопка "Из контакта".',
         function() {
             helper.requestAmocrmData().setForwardingToResponsibleForContact().send();
+            helper.requestTariffs().send();
             helper.requestAmocrmStatus().send();
             wait(10);
 
@@ -312,6 +322,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             'Отмечена радиокнопка "Из сделки".',
         function() {
             helper.requestAmocrmData().setForwardingToResponsibleForDeal().send();
+            helper.requestTariffs().send();
             helper.requestAmocrmStatus().send();
             wait(10);
 
@@ -323,10 +334,9 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
         });
     });
     describe(
-        'Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". Открыта вкладка "Доступ к данным".',
+        'Расширенная интеграция недоступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
+        'Открыта вкладка "Доступ к данным".',
     function() {
-        var helper;
-
         beforeEach(function() {
             if (helper) {
                 helper.destroy();
@@ -339,21 +349,21 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
             helper.actionIndex();
             helper.requestSalesFunnelComponentAvailability().send();
-            helper.requestSalesFunnelComponentTariffInfo().send();
             helper.requestAmocrmData().send();
+            helper.requestTariffs().send();
             helper.requestAmocrmStatus().send();
             wait(10);
         });
         
-        xit('Открываю вкладку "Телефония".', function() {
+        it('Открываю вкладку "Телефония".', function() {
             helper.tabPanel.tab('Телефония').click();
             wait(10);
         });
-        xit('Открываю вкладку "Чаты и заявки".', function() {
+        it('Открываю вкладку "Чаты и заявки".', function() {
             helper.tabPanel.tab('Чаты и заявки').click();
             wait(10);
         });
-        xdescribe('Открываю вкладку "Ответственные".', function() {
+        describe('Открываю вкладку "Ответственные".', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Ответственные').click();
                 wait(10);
@@ -366,7 +376,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
             });
         });
-        xdescribe('Открываю вкладку "Мультиворонки".', function() {
+        describe('Открываю вкладку "Мультиворонки".', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Мультиворонки').click();
                 wait(10);
@@ -434,7 +444,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.requestUserFields().send();
             wait(10);
         });
-        return;
         it('Открываю вкладку "Фильтр обращений".', function() {
             helper.tabPanel.tab('Фильтр обращений').click();
             wait(10);
@@ -442,12 +451,49 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.requestEventFilters().send();
             wait(10);
         });
-        it('Открываю вкладку "Воронки продаж".', function() {
-            helper.tabPanel.tab('Воронки продаж').click();
+        it('Открываю вкладку "Сквозная аналитика".', function() {
+            helper.tabPanel.tab('Сквозная аналитика').click();
             wait(10);
 
             helper.requestSalesFunnels().send();
             wait(10);
         });
+    });
+    it(
+        'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
+        'Открываю вкладку "Мультиворонки". Первичные обращения обрабатываются вручную. При повторных обращениях ' +
+        'создается сделка. Настройки доступны. Кнопка "Подключить Мультиворонки" видима. Выпадащий список воронок ' +
+        'скрыт.',
+    function() {
+            if (helper) {
+                helper.destroy();
+            }
+
+            Comagic.getApplication().setHasNotComponent('amocrm_extended_integration');
+            helper = new AccountIntegrationAmocrm(requestsManager, testersFactory, utils);
+
+            Comagic.Directory.load();
+            helper.batchReloadRequest().send();
+
+            helper.actionIndex();
+            helper.requestSalesFunnelComponentAvailability().send();
+
+            helper.requestAmocrmData().send();
+            helper.requestTariffs().send();
+            helper.requestAmocrmStatus().send();
+            wait(10);
+
+            helper.tabPanel.tab('Мультиворонки').click();
+            wait(10);
+            helper.requestSyncSalesFunnel().send();
+
+            helper.requestMultiFunnels().setFirstActManual().send();
+            helper.requestSalesFunnel().send();
+            helper.requestSalesFunnelStatus().send();
+            wait(10);
+
+            helper.addFunnelButton.expectToBeEnabled();
+            helper.activateMultifunnelsButton.expectToBeVisible();
+            helper.form.combobox().withValue('Некая воронка').expectToBeHiddenOrNotExist();
     });
 });
