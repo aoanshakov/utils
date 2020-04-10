@@ -7,6 +7,9 @@ call plug#end()
 let g:syntastic_ignore_files = ['libs/extjs512/build/ext-all-debug.js', 'node_modules/jssip']
 let g:syntastic_javascript_checkers=['eslint']
 let g:syntastic_html_checkers = ['tidy']
+let g:syntastic_check_on_open = 0
+let g:syntastic_check_on_wq = 0
+let g:syntastic_mode_map = {'mode':'passive'}
 let g:appName = ''
 let g:appPath = ''
 let g:isReactApp = 0
@@ -39,7 +42,8 @@ nnoremap - ;
 nnoremap ;bb ggO#!/bin/bash<cr><esc>:w<cr>:r!chmod +x <c-r>%<cr>
 nnoremap ;aj :!amocrm-build uis<cr> 
 nnoremap ;k{ mmvi{<esc>`<
-nnoremap ;cs ya{<esc>`]a, <esc>p
+nnoremap ;cs :SyntasticCheck<cr> 
+nnoremap ;co ya{<esc>`]a, <esc>p
 nnoremap ;w i<cr><esc>^
 nnoremap ;n %i<cr><esc><c-o>a<cr><esc>^
 nnoremap ;x f,vwhs,<cr><esc>

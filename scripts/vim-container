@@ -1,19 +1,32 @@
 #!/bin/bash
 
-sources=''
+arguments=''
 
 while [ -n "$1" ]
 do
-    sources="$sources -v $HOME/$1:/usr/local/src/$1"
+    arguments="$arguments -v $HOME/$1:/usr/local/src/$1"
     shift
 done
 
+profileDir=$HOME/workspace/utils/docker/vim-container/profile
+
+if [ $(uname | grep Darwin | wc -l) -eq 0 ]
+then
+    arguments="$arguments --user $(id -u) "
+    arguments="$arguments -v $profileDir:/$HOME"
+    arguments="$arguments --mount type=bind,source=/etc/passwd,target=/etc/passwd"
+    arguments="$arguments --mount type=bind,source=/etc/group,target=/etc/group"
+    arguments="$arguments --mount type=bind,source=$HOME/.ssh/id_rsa,target=$HOME/.ssh/id_rsa"
+else
+    arguments="$arguments -v $profileDir/.config:/root/.config"
+    arguments="$arguments -v $profileDir/.gitconfig:/root/.gitconfig"
+    arguments="$arguments -v $profileDir/.vim:/root/.vim"
+    arguments="$arguments -v $profileDir/.vimrc:/root/.vimrc"
+    arguments="$arguments -v $profileDir/eslint:/root/eslint"
+    arguments="$arguments --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa"
+fi
+
 docker run -it --rm \
-    --user $(id -u) \
-    -v $HOME/docker/vim/profile:/$HOME \
-    $sources \
-    --mount type=bind,source=$HOME/.ssh/id_rsa,target=$HOME/.ssh/id_rsa \
-    --mount type=bind,source=/etc/passwd,target=/etc/passwd \
-    --mount type=bind,source=/etc/group,target=/etc/group \
+    $arguments \
     -w /usr/local/src \
-    vim
+    vim-container

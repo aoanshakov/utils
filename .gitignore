@@ -10,3 +10,4 @@ package-lock.json
 comagic-tests/screenshots/*
 amocrm-proxy/.venv/*
 __pycache__
+docker/vim-container/profile/.config/configstore
