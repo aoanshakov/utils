@@ -759,6 +759,24 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         };
     };
 
+    this.requestTariffs = function () {
+        return {
+            send: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('account/tariffs/').
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: {
+                            available: [{
+                                op_id: 3234234
+                            }],
+                            activated: []
+                        }
+                    });
+            }
+        };
+    };
+
     this.requestSalesFunnelComponentTariffInfo = function () {
         return {
             send: function () {
@@ -1017,5 +1035,14 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
                 'Для способа обработки "Использовать функциональность Неразобранное" мультиворонки не работают'
             );
         }, '.x-component');
+    });
+
+    this.activateMultifunnelsButton = testersFactory.createDomElementTester(function () {
+        try {
+            return utils.getVisible(utils.findElementsByTextContent(
+                getVisibleTab(), 'Подключить Мультиворонки', '.x-btn-inner'));
+        } catch (e) {
+            return null;
+        }
     });
 }

@@ -13,7 +13,6 @@ fi
 mkdir $tmppath
 cp $basepath/build/bundle.js $tmppath/script.js
 cp $basepath/build/style.css $tmppath/
-#cp $basepath/script.js $tmppath/
 cp -r $basepath/images $tmppath/
 cp -r $basepath/i18n $tmppath/
 cp -r $basepath/manifest.json $tmppath/

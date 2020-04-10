@@ -14,6 +14,9 @@ logger.addHandler(stream_handler)
 HTTPConnection.debuglevel = 1
 
 application = Flask('amocrm-proxy')
+
+# server = 'https://va.uiscom.ru'
+# server = 'https://amocrm2.comagic.ru'
 server = 'https://proxy.dev.uis.st:12021'
 # server = 'https://proxy.dev.uis.st:15015'
 # server = 'https://my2.comagic.ru'
