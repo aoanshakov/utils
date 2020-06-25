@@ -14,7 +14,7 @@ let g:appName = ''
 let g:appPath = ''
 let g:isReactApp = 0
 
-au VimEnter *  NERDTree
+au VimEnter * call OpenNerdTree()
 nnoremap <c-n> :NERDTreeFind<cr>
 
 colorscheme desert
@@ -46,7 +46,11 @@ nnoremap ;cs :SyntasticCheck<cr>
 nnoremap ;co ya{<esc>`]a, <esc>p
 nnoremap ;w i<cr><esc>^
 nnoremap ;n %i<cr><esc><c-o>a<cr><esc>^
-nnoremap ;x f,vwhs,<cr><esc>
+nnoremap ;x /,<cr>v/[^ ]<cr>hos,<cr><esc>
+nnoremap ;sw i\<<esc>ea\><esc>v2F\"js
+nnoremap ;yb vb"ky
+vnoremap ;rw :s/<c-r>j/<c-r>k/gc<cr>
+nnoremap ;rw :%s/<c-r>j/<c-r>k/gc<cr>
 
 nnoremap ;jv /\<var <cr>
 nnoremap ;kv ?\<var <cr>
@@ -166,14 +170,18 @@ function! SetUpEslint()
     let path = expand('%:p')
 
     if path =~ '\.js$'
-        let isReactApp = stridx(path, '/amocrm_widget/')  != -1
-        let isReactApp = isReactApp || stridx(path, '/call_center_frontend/') != -1
-        let isReactApp = isReactApp || stridx(path, '/softphone/') != -1
+        let isReactApp = 0
 
-        if stridx(path, '/tests/js/') != -1
+        if stridx(path, '/sip_lib/tests/js/') != -1
             noremap ;aa k^f)%Ix<esc>^zz
             noremap ;zz vi{o<esc>?desc<cr>zz
             noremap ;ab vi{<esc>joreturn;<esc>zz
+        else
+            let isReactApp = stridx(path, '/amocrm_widget/')  != -1
+            let isReactApp = isReactApp || stridx(path, '/sip_lib/')  != -1
+            let isReactApp = isReactApp || stridx(path, '/react_widget/')  != -1
+            let isReactApp = isReactApp || stridx(path, '/call_center_frontend/') != -1
+            let isReactApp = isReactApp || stridx(path, '/softphone/') != -1
         endif
 
         if stridx(path, '/comagic_web/static/easystart/') != -1
@@ -185,6 +193,12 @@ function! SetUpEslint()
         endif
     elseif stridx(path, 'MiniBufExplorer') == -1 && stridx(path, 'NERD_tree_') == -1
         call SetNewLineInsideCurlyBraces()
+    endif
+endfunction
+
+function! OpenNerdTree()
+    if &diff == 0
+        execute "NERDTree"
     endif
 endfunction
 

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+export CALL_CENTER_APP_DOMAIN=myint0.dev.uis.st
+export CALL_CENTER_UPDATE_URL=https://myint0.dev.uis.st/dist/
+export CALL_CENTER_APP_LANGUAGE=ru
+export CALL_CENTER_PRODUCT_NAME="Софтфон UIS"
+export CALL_CENTER_ARTIFACT_NAME="softphone-uis"
+
+npm set registry http://npm.dev.uis.st:80
+yarn config set registry http://npm.dev.uis.st:80
