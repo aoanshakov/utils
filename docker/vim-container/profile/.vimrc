@@ -48,7 +48,8 @@ nnoremap ;w i<cr><esc>^
 nnoremap ;n %i<cr><esc><c-o>a<cr><esc>^
 nnoremap ;x /,<cr>v/[^ ]<cr>hos,<cr><esc>
 nnoremap ;sw i\<<esc>ea\><esc>v2F\"js
-nnoremap ;yb vb"ky
+nnoremap ;yw i\<<esc>ea\><esc>v2F\"jyxxf\xxb
+nnoremap ;yb b"kye
 vnoremap ;rw :s/<c-r>j/<c-r>k/gc<cr>
 nnoremap ;rw :%s/<c-r>j/<c-r>k/gc<cr>
 
@@ -179,6 +180,7 @@ function! SetUpEslint()
         else
             let isReactApp = stridx(path, '/amocrm_widget/')  != -1
             let isReactApp = isReactApp || stridx(path, '/sip_lib/')  != -1
+            let isReactApp = isReactApp || stridx(path, '/bitrix_widget/')  != -1
             let isReactApp = isReactApp || stridx(path, '/react_widget/')  != -1
             let isReactApp = isReactApp || stridx(path, '/call_center_frontend/') != -1
             let isReactApp = isReactApp || stridx(path, '/softphone/') != -1

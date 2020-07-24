@@ -1,2 +1,11 @@
 #!/bin/bash
-google-chrome --enable-logging=stderr --v=1 --log-level=0 --disable-web-security --user-data-dir=~/google-chrome-user-data-dir/
+
+arguments=" --enable-logging=stderr --v=1 --log-level=0 --disable-web-security --user-data-dir=~/google-chrome-user-data-dir/"
+
+
+if [ $(uname | grep Darwin | wc -l) -eq 0 ]
+then
+    google-chrome $arguments
+else
+    /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome $arguments
+fi

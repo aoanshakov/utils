@@ -1,2 +1,2 @@
 #!/bin/bash
-newgitlab/react_widget/docker/run-container
+newgitlab/react_widget/docker/run-container $@
