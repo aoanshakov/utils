@@ -12,6 +12,8 @@ Ext.application({
             request.timedout = false;
         };
 
+        Ext.create('Comagic.base.helper.app.ErrorProcessor', { controller: me });
+
         Ext.define('Comagic.test.main.controller.West', {
             override: 'Comagic.main.controller.West',
             collapseMenuTrees: Ext.emptyFn

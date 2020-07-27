@@ -2,7 +2,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
     var helper;
 
     describe(
-        'Расширенная интеграция недоступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM".',
+        'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM".',
     function() {
         beforeEach(function() {
             if (helper) {
@@ -18,61 +18,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.requestSalesFunnelComponentAvailability().send();
         });
         
-        describe(
-            'Обновление ответственного отключено и время заполнения карточки не установлено. Открываю вкладку ' +
-            '"Телефония". Нельзя использовать неразобранное.',
-        function() {
-            beforeEach(function() {
-                helper.requestAmocrmData().send();
-                helper.requestTariffs().send();
-                helper.requestAmocrmStatus().send();
-                wait(10);
-
-                helper.tabPanel.tab('Телефония').click();
-                wait(10);
-            });
-
-            it(
-                'В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" выбрана ' +
-                'опция "0 мин". В выпадающем списке "Назначать" выбрана опция "На звонящего". Опция "Использовать ' +
-                'функциональность "Неразобранное"" заблокирована.',
-            function() {
-                helper.form.combobox().withFieldLabel('Назначать').expectToHaveValue('На звонящего');
-                helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('0 мин');
-                helper.unsortedRadioField().expectToBeDisabled();
-            });
-            it(
-                'Выбираю время в выпдающем спике "После завершения звонка обновлять ответственного сотрудника ' +
-                'через". Выбираю опцию "На ответственного из настроек интеграции" в выпадающем списке "Назначать". ' +
-                'Нажимаю на кнопку "Сохранить". Измененные данные сохранены.',
-            function() {
-                helper.form.combobox().withFieldLabel('Назначать').clickArrow().
-                    option('На ответственного из настроек интеграции').click();
-                wait(10);
-
-                helper.updateContactOnCallFinishedTimeoutCombobox().clickArrow().option('15 мин').click();
-                wait(10);
-
-                helper.saveButton.click();
-                wait(10);
-                helper.requestAmocrmDataSave().setUpdateContact().set15MinutesContactUpdateTimout().send();
-            });
-        });
-        it(
-            'Открываю вкладку "Телефония". Можно использовать неразобранное. Опция "Использовать функциональность ' +
-            '"Неразобранное"" доступна.',
-        function() {
-            helper.requestAmocrmData().send();
-            helper.requestTariffs().send();
-            helper.requestAmocrmStatus().setUnsortedEnabled().send();
-            wait(10);
-
-            helper.tabPanel.tab('Телефония').click();
-            wait(10);
-
-            helper.unsortedRadioField().expectToBeEnabled();
-        });
-        describe('Открываю вкладку "Мультиворонки".', function() {
+        xdescribe('Открываю вкладку "Мультиворонки".', function() {
             beforeEach(function() {
                 helper.requestAmocrmData().send();
                 helper.requestTariffs().send();
@@ -95,9 +41,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     wait(10);
                 });
 
-                it('Настройки доступны.', function() {
-                    helper.addFunnelButton.expectToBeEnabled();
-                });
                 it('Открываю вкладку "Исходящие звонки". Настройки доступны.', function() {
                     helper.innerTab('Исходящие звонки').mousedown();
                     wait(10);
@@ -114,6 +57,9 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     helper.innerTab('Чаты').mousedown();
                     wait(10);
 
+                    helper.addFunnelButton.expectToBeEnabled();
+                });
+                it('Настройки доступны.', function() {
                     helper.addFunnelButton.expectToBeEnabled();
                 });
             });
@@ -207,22 +153,94 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.form.combobox().withValue('Некая воронка').expectToBeVisible();
             });
         });
-        it(
-            'Обновление ответственного отключено, время заполнения карточки установлено. Открываю вкладку ' +
-            '"Телефония". В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" ' +
-            'выбрана опция "0 мин".',
+        xdescribe(
+            'Тип переадресации на ответственного сотрудника не определен. Открываю вкладку "Телефония".',
         function() {
-            helper.requestAmocrmData().set15MinutesContactUpdateTimout().send();
-            helper.requestTariffs().send();
-            helper.requestAmocrmStatus().send();
-            wait(10);
+            beforeEach(function() {
+                helper.requestAmocrmData().send();
+                helper.requestTariffs().send();
+                helper.requestAmocrmStatus().send();
+                wait(10);
 
-            helper.tabPanel.tab('Телефония').click();
-            wait(10);
+                helper.tabPanel.tab('Телефония').click();
+                wait(10);
+            });
 
-            helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('0 мин');
+            describe('Отмечаю радиокнопку "Из сделки".', function() {
+                beforeEach(function() {
+                    helper.form.radiofield().withBoxLabel('Из сделки').click();
+                    wait(10);
+                });
+
+                it('Радиокнопка "Из контакта" не отмечена.', function() {
+                    helper.form.radiofield().withBoxLabel('Из сделки').expectToBeChecked();
+                    helper.form.radiofield().withBoxLabel('Из контакта').expectNotToBeChecked();
+                });
+                it(
+                    'Сохраняю настройки телефонии. Сохранена переадресация на ответственного сотрудника из сделки.',
+                function() {
+                    helper.saveButton.click();
+                    wait(10);
+
+                    helper.requestAmocrmDataSave().setForwardingToResponsibleForDeal().send();
+                });
+            });
+            it(
+                'Сохраняю настройки телефонии. Сохранена переадресация на ответственного сотрудника из контакта.',
+            function() {
+                helper.form.radiofield().withBoxLabel('Не обрабатывать').click();
+                wait(10);
+                helper.saveButton.click();
+                wait(10);
+
+                helper.requestAmocrmDataSave().setForwardingToResponsibleForContact().send();
+            });
+            it('Отмечена радиокнопка "Из контакта".', function() {
+                helper.form.radiofield().withBoxLabel('Из контакта').expectToBeChecked();
+                helper.form.radiofield().withBoxLabel('Из сделки').expectNotToBeChecked();
+            });
         });
-        describe(
+        xdescribe(
+            'Обновление ответственного отключено и время заполнения карточки не установлено. Открываю вкладку ' +
+            '"Телефония". Нельзя использовать неразобранное.',
+        function() {
+            beforeEach(function() {
+                helper.requestAmocrmData().send();
+                helper.requestTariffs().send();
+                helper.requestAmocrmStatus().send();
+                wait(10);
+
+                helper.tabPanel.tab('Телефония').click();
+                wait(10);
+            });
+
+            it(
+                'Выбираю время в выпдающем спике "После завершения звонка обновлять ответственного сотрудника ' +
+                'через". Выбираю опцию "На ответственного из настроек интеграции" в выпадающем списке "Назначать". ' +
+                'Нажимаю на кнопку "Сохранить". Измененные данные сохранены.',
+            function() {
+                helper.form.combobox().withFieldLabel('Назначать').clickArrow().
+                    option('На ответственного из настроек интеграции').click();
+                wait(10);
+
+                helper.updateContactOnCallFinishedTimeoutCombobox().clickArrow().option('15 мин').click();
+                wait(10);
+
+                helper.saveButton.click();
+                wait(10);
+                helper.requestAmocrmDataSave().setUpdateContact().set15MinutesContactUpdateTimout().send();
+            });
+            it(
+                'В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" выбрана ' +
+                'опция "0 мин". В выпадающем списке "Назначать" выбрана опция "На звонящего". Опция "Использовать ' +
+                'функциональность "Неразобранное"" заблокирована.',
+            function() {
+                helper.form.combobox().withFieldLabel('Назначать').expectToHaveValue('На звонящего');
+                helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('0 мин');
+                helper.unsortedRadioField().expectToBeDisabled();
+            });
+        });
+        xdescribe(
             'Обновление ответственного включено, время заполнения карточки установлено. Открываю вкладку ' +
             '"Телефония".',
         function() {
@@ -255,54 +273,36 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('15 мин');
             });
         });
-        describe(
-            'Тип переадресации на ответственного сотрудника не определен. Открываю вкладку "Телефония".',
+        xit(
+            'Открываю вкладку "Телефония". Можно использовать неразобранное. Опция "Использовать функциональность ' +
+            '"Неразобранное"" доступна.',
         function() {
-            beforeEach(function() {
-                helper.requestAmocrmData().send();
-                helper.requestTariffs().send();
-                helper.requestAmocrmStatus().send();
-                wait(10);
+            helper.requestAmocrmData().send();
+            helper.requestTariffs().send();
+            helper.requestAmocrmStatus().setUnsortedEnabled().send();
+            wait(10);
 
-                helper.tabPanel.tab('Телефония').click();
-                wait(10);
-            });
+            helper.tabPanel.tab('Телефония').click();
+            wait(10);
 
-            it('Отмечена радиокнопка "Из контакта".', function() {
-                helper.form.radiofield().withBoxLabel('Из контакта').expectToBeChecked();
-                helper.form.radiofield().withBoxLabel('Из сделки').expectNotToBeChecked();
-            });
-            it(
-                'Сохраняю настройки телефонии. Сохранена переадресация на ответственного сотрудника из контакта.',
-            function() {
-                helper.form.radiofield().withBoxLabel('Не обрабатывать').click();
-                wait(10);
-                helper.saveButton.click();
-                wait(10);
-
-                helper.requestAmocrmDataSave().setForwardingToResponsibleForContact().send();
-            });
-            describe('Отмечаю радиокнопку "Из сделки".', function() {
-                beforeEach(function() {
-                    helper.form.radiofield().withBoxLabel('Из сделки').click();
-                    wait(10);
-                });
-
-                it('Радиокнопка "Из контакта" не отмечена.', function() {
-                    helper.form.radiofield().withBoxLabel('Из сделки').expectToBeChecked();
-                    helper.form.radiofield().withBoxLabel('Из контакта').expectNotToBeChecked();
-                });
-                it(
-                    'Сохраняю настройки телефонии. Сохранена переадресация на ответственного сотрудника из сделки.',
-                function() {
-                    helper.saveButton.click();
-                    wait(10);
-
-                    helper.requestAmocrmDataSave().setForwardingToResponsibleForDeal().send();
-                });
-            });
+            helper.unsortedRadioField().expectToBeEnabled();
         });
-        it(
+        xit(
+            'Обновление ответственного отключено, время заполнения карточки установлено. Открываю вкладку ' +
+            '"Телефония". В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" ' +
+            'выбрана опция "0 мин".',
+        function() {
+            helper.requestAmocrmData().set15MinutesContactUpdateTimout().send();
+            helper.requestTariffs().send();
+            helper.requestAmocrmStatus().send();
+            wait(10);
+
+            helper.tabPanel.tab('Телефония').click();
+            wait(10);
+
+            helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('0 мин');
+        });
+        xit(
             'Установлена переадресация на ответственного сотрудника из контакта. Открываю вкладку "Телефония". ' +
             'Отмечена радиокнопка "Из контакта".',
         function() {
@@ -317,7 +317,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.form.radiofield().withBoxLabel('Из контакта').expectToBeChecked();
             helper.form.radiofield().withBoxLabel('Из сделки').expectNotToBeChecked();
         });
-        it(
+        xit(
             'Установлена переадресация на ответственного сотрудника из сделки. Открываю вкладку "Телефония". ' +
             'Отмечена радиокнопка "Из сделки".',
         function() {
@@ -332,9 +332,26 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.form.radiofield().withBoxLabel('Из контакта').expectNotToBeChecked();
             helper.form.radiofield().withBoxLabel('Из сделки').expectToBeChecked();
         });
+        it('', function() {
+            helper.requestAmocrmData().send();
+            helper.requestTariffs().send();
+            helper.requestAmocrmStatus().send();
+            wait(10);
+
+            helper.form.textfield().withFieldLabel('Адрес портала amoCRM').fill('https://petrov.amocrm.ru/');
+            wait(10);
+
+            helper.saveButton.click();
+            wait(10);
+
+            helper.requestAmocrmDataSave().send();
+            helper.requestAmocrmStatus().send();
+            wait(10);
+        });
     });
+    return;
     describe(
-        'Расширенная интеграция недоступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
+        'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
         'Открыта вкладка "Доступ к данным".',
     function() {
         beforeEach(function() {
@@ -355,27 +372,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(10);
         });
         
-        it('Открываю вкладку "Телефония".', function() {
-            helper.tabPanel.tab('Телефония').click();
-            wait(10);
-        });
-        it('Открываю вкладку "Чаты и заявки".', function() {
-            helper.tabPanel.tab('Чаты и заявки').click();
-            wait(10);
-        });
-        describe('Открываю вкладку "Ответственные".', function() {
-            beforeEach(function() {
-                helper.tabPanel.tab('Ответственные').click();
-                wait(10);
-                helper.requestResponsibles().send();
-                wait(10);
-            });
-
-            it('Открываю вкладку "Исходящие звонки".', function() {
-                helper.innerTab('Исходящие звонки').mousedown();
-                wait(10);
-            });
-        });
         describe('Открываю вкладку "Мультиворонки".', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Мультиворонки').click();
@@ -387,11 +383,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
             });
 
-            it('Выбираю другой этап.', function() {
-                helper.form.combobox().withValue('Некий статус').clickArrow().option('Иной статус').
-                    click();
-                wait(10);
-            });
             describe('Открываю вкладку "Исходящие звонки".', function() {
                 beforeEach(function() {
                     helper.innerTab('Исходящие звонки').mousedown();
@@ -435,6 +426,20 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     wait(10);
                 });
             });
+            it('Выбираю другой этап.', function() {
+                helper.form.combobox().withValue('Некий статус').clickArrow().option('Иной статус').
+                    click();
+                wait(10);
+            });
+        });
+        it('Открываю вкладку "Ответственные". Открываю вкладку "Исходящие звонки".', function() {
+            helper.tabPanel.tab('Ответственные').click();
+            wait(10);
+            helper.requestResponsibles().send();
+            wait(10);
+
+            helper.innerTab('Исходящие звонки').mousedown();
+            wait(10);
         });
         it('Открываю вкладку "Дополнительные поля".', function() {
             helper.tabPanel.tab('Дополнительные поля').click();
@@ -458,9 +463,17 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.requestSalesFunnels().send();
             wait(10);
         });
+        it('Открываю вкладку "Телефония".', function() {
+            helper.tabPanel.tab('Телефония').click();
+            wait(10);
+        });
+        it('Открываю вкладку "Чаты и заявки".', function() {
+            helper.tabPanel.tab('Чаты и заявки').click();
+            wait(10);
+        });
     });
     it(
-        'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
+        'Расширенная интеграция недоступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
         'Открываю вкладку "Мультиворонки". Первичные обращения обрабатываются вручную. При повторных обращениях ' +
         'создается сделка. Настройки доступны. Кнопка "Подключить Мультиворонки" видима. Выпадащий список воронок ' +
         'скрыт.',
@@ -485,14 +498,13 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
             helper.tabPanel.tab('Мультиворонки').click();
             wait(10);
-            helper.requestSyncSalesFunnel().send();
 
             helper.requestMultiFunnels().setFirstActManual().send();
             helper.requestSalesFunnel().send();
             helper.requestSalesFunnelStatus().send();
             wait(10);
 
-            helper.addFunnelButton.expectToBeEnabled();
+            helper.addFunnelButton.expectToBeHiddenOrNotExist();
             helper.activateMultifunnelsButton.expectToBeVisible();
             helper.form.combobox().withValue('Некая воронка').expectToBeHiddenOrNotExist();
     });

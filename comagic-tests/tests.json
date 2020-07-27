@@ -38,6 +38,14 @@
             "helpers/AccountIntegrationInfoclinica.js",
             "tests/account.integration.infoclinica.js"
         ],
+        "account.integration.integrationslist": [
+            "helpers/AccountIntegrationsList.js",
+            "tests/account.integration.integrationslist.js"
+        ],
+        "account.integration.amocrm.controller.enabling": [
+            "helpers/AccountIntegrationAmocrmEnabling.js",
+            "tests/account.integration.amocrm.controller.enabling.js"
+        ],
         "services.ats.callprocessing": [
             "helpers/ServicesAtsCallProcessing.js",
             "tests/services.ats.callprocessing.js"

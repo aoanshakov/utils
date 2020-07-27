@@ -6,7 +6,9 @@ git clone git@git.dev.uiscom.ru:crm/amocrm_widget.git
 cd amocrm_widget
 #git checkout release/rt_r0.0.2
 #git checkout release/crm_r4.3.0
-git checkout release/crm_r4.3.0-without-tour
+#git checkout release/crm_r4.3.0-without-tour
+#git checkout master
+git checkout tasks/UIS-7169
 npm install
 grunt
 cp /home/anshakov/clear/amocrm_widget/build/comagic/widget.zip /home/anshakov/amocrm_release/CoMagic_widget.zip

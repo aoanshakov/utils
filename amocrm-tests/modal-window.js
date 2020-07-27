@@ -115,32 +115,7 @@ define(function () {
                                         '<input type="password" name="password" autocomplete="new-password">' +
                                     '</div>' +
                                     '<div class="widget_settings_block__fields" id="widget_settings__fields_wrapper">' +
-                                        '<div class="widget_settings_block__item_field">' +
-                                            '<div class="widget_settings_block__title_field" title="">' +
-                                                'Контактный телефон: ' +
-                                            '</div>' +
-                                            '<div class="widget_settings_block__input_field">' +
-                                                '<input name="phone" ' +
-                                                    'class="widget_settings_block__controls__ text-input" ' +
-                                                    'type="text" ' +
-                                                    'placeholder="" ' +
-                                                    'autocomplete="off" ' +
-                                                    'value="74951234567"' +
-                                                '>' +
-                                            '</div>' +
-                                        '</div>' +
-                                        '<div class="widget_settings_block__item_field">' +
-                                            '<div class="widget_settings_block__title_field" title="">ФИО: </div>' +
-                                            '<div class="widget_settings_block__input_field">' +
-                                                '<input ' +
-                                                    'name="name" ' +
-                                                    'class="widget_settings_block__controls__ text-input" ' +
-                                                    'type="text" ' +
-                                                    'placeholder="" ' +
-                                                    'autocomplete="off"' +
-                                                '>' +
-                                            '</div>' +
-                                        '</div>' +
+                                        options.fields() +
                                         options.saveButton +
                                         '<div class="switcher_wrapper">' +
                                             '<label ' +
@@ -176,6 +151,36 @@ define(function () {
         var options = {
             i18n: i18n,
             saveButton: '',
+            fields: function () {
+                return (
+                    '<div class="widget_settings_block__item_field">' +
+                        '<div class="widget_settings_block__title_field" title="">' +
+                            'Контактный телефон: ' +
+                        '</div>' +
+                        '<div class="widget_settings_block__input_field">' +
+                            '<input name="phone" ' +
+                                'class="widget_settings_block__controls__ text-input" ' +
+                                'type="text" ' +
+                                'placeholder="" ' +
+                                'autocomplete="off" ' +
+                                'value="74951234567"' +
+                            '>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="widget_settings_block__item_field">' +
+                        '<div class="widget_settings_block__title_field" title="">ФИО: </div>' +
+                        '<div class="widget_settings_block__input_field">' +
+                            '<input ' +
+                                'name="name" ' +
+                                'class="widget_settings_block__controls__ text-input" ' +
+                                'type="text" ' +
+                                'placeholder="" ' +
+                                'autocomplete="off"' +
+                            '>' +
+                        '</div>' +
+                    '</div>'
+                );
+            },
             commandPlate: (
                 '<div class="widget-state widget-state_status_install">' +
                     '<span class="widget-state__name">install</span>' +
@@ -210,6 +215,45 @@ define(function () {
         };
 
         return {
+            setRostelecom: function () {
+                var is_agreement_confirmed = '';
+
+                options.fields = function () {
+                    return (
+                        '<div class="widget_settings_block__item_field" style="display: none;">' +
+                            '<div class="widget_settings_block__title_field" title=""></div>' +
+                            '<div ' +
+                                'class="widget_settings_block__input_field" ' +
+                                'id="pke2_rostelecom_widget_2_custom_content"' +
+                            '>' +
+                                '<input ' +
+                                    'name="is_agreement_confirmed" ' +
+                                    'class="widget_settings_block__controls__ text-input" ' +
+                                    'id="pke2_rostelecom_widget_2_custom" ' +
+                                    'type="hidden" ' +
+                                    'value="' + is_agreement_confirmed + '" ' +
+                                    'placeholder="" ' +
+                                    'autocomplete="off"' +
+                                '>' +
+                            '</div>' +
+                        '</div>'
+                    );
+                };
+
+                var me = this;
+
+                me.setInstalled();
+
+                return {
+                    setAgreementConfirmed: function () {
+                        is_agreement_confirmed = '1';
+                        return this;
+                    },
+                    show: function () {
+                        me.show();
+                    }
+                };
+            },
             setInstalled: function () {
                 options.commandPlate = (
                     '<div class="widget-state widget-state_status_installed">' +

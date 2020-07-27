@@ -6,8 +6,9 @@ tests.addTest(function (
     webSocketLogger.disable();
     timeoutLogger.disable();
 
-    describe('Авторизуюсь в UIS. Регистируюсь на SIP-сервере.', function() {
+    describe('Открываю окно настроек виджета Rostelecom.', function() {
         var sip,
+            setSettingsParam,
             clickPhoneIcon,
             notifications,
             widgetActions,
@@ -37,6 +38,16 @@ tests.addTest(function (
 
         var remoteStream = function () {
             return new Stream('cmg-local-video');
+        };
+
+        var getSaveButtonElement = function () {
+            return document.querySelector('.js-widget-save');
+        };
+
+        var saveButton = testersFactory.createDomElementTester(getSaveButtonElement);
+
+        var getIsAgreementConfirmedField = function () {
+            return document.querySelector('input[name=is_agreement_confirmed]');
         };
 
         var onlineSwitcher = testersFactory.createDomElementTester(function () {
@@ -206,12 +217,13 @@ tests.addTest(function (
             registerFiles(files);
         });
 
-        describe('Открываю окно настройки.', function() {
+        describe('Открываю окно настройки. Чекбокс соглашения не был отмечен ранее.', function() {
             var saved;
 
             beforeEach(function() {
                 var result = setup(ajax);
 
+                clickPhoneIcon = result.clickPhoneIcon;
                 clickPhoneIcon = result.clickPhoneIcon;
                 notifications = result.notifications;
                 widgetActions = result.widgetActions;
@@ -220,7 +232,7 @@ tests.addTest(function (
                 userData = result.userData;
                 errorNotifications = result.errorNotifications;
 
-                modalWindow(i18n).show();
+                modalWindow(i18n).setRostelecom().show();
                 spendTime(1000);
 
                 widget.callbacks.settings($('.widget-settings__modal .modal-body'));
@@ -234,35 +246,162 @@ tests.addTest(function (
 
                 saved = false;
 
-                document.querySelector('#uis_widget.js-widget-install').addEventListener('click',
-                    function () {
-                        var value = Promise.resolve(widget.callbacks.onSave({
-                            fields: {
-                                phone: '74951234567',
-                                name: 'Darya+Rahvalova',
-                                active: 'N'
-                            }
-                        })).then(function (value) {
-                            if (value !== true && value !== false) {
-                                throw new Error(
-                                    'Успешность сохранения должна быть выражена булевским значением.'
-                                );
-                            }
+                getSaveButtonElement().addEventListener('click', function () {
+                    if (
+                        getSaveButtonElement().classList.contains('button-input-disabled') ||
+                        getSaveButtonElement().hasAttribute('disabled')
+                    ) {
+                        return;
+                    }
 
-                            saved = saved || value;
-                        });
+                    var value = Promise.resolve(widget.callbacks.onSave({
+                        fields: {
+                            is_agreement_confirmed: getIsAgreementConfirmedField().value,
+                            active: 'N'
+                        }
+                    })).then(function (value) {
+                        if (value !== true && value !== false) {
+                            throw new Error(
+                                'Успешность сохранения должна быть выражена булевским значением.'
+                            );
+                        }
+
+                        saved = saved || value;
                     });
-
-                document.querySelector('.js-widget-settings-desc-expander').style.display = 'none';
-                document.querySelector('.widget-settings-block__desc-expander_hidden').classList.remove(
-                    'widget-settings-block__desc-expander_hidden');
+                });
             });
+
             afterEach(function() {
                 errorNotifications.expectToHaveNoError();
             });
 
-            it('', function() {
+            describe('Отмечаю чекбокс соглашения.', function() {
+                beforeEach(function() {
+                    agreementCheckbox.click();
+                });
+
+                it(
+                    'Нажимаю на кнопку сохранения. Отправлен запрос создания аккаунта. Отображено сообщение об ' +
+                    'успешном подключении интеграции.',
+                function() {
+                    saveButton.click();
+
+                    ajax.recentRequest().
+                        expectToHavePath('/private/widget/proxy.php').
+                        expectToHaveMethod('POST').
+                        expectBodyToContain({
+                            target: [
+                                'https://va.uiscom.ru:443/widget_api/be2243dddacb680da2702552fd6269ee/'
+                            ]
+                        }).
+                        testBodyParam('data', function (data) {
+                            utils.expectObjectToContain(JSON.parse(data[0]), {
+                                method: 'external_check_registration',
+                                params: {
+                                    app: 'rostelecom',
+                                    service: 'amo',
+                                    subdomain: 'comagicwidgets',
+                                    domain: 'comagicwidgets.amocrm.ru',
+                                    email: 'darya.simha@gmail.com',
+                                    phone: '79252117620',
+                                    name: 'Darya Simha',
+                                    user_id: 2851135,
+                                    widget_type: 'rostelecom'
+                                }
+                            });
+                        }).
+                        respondSuccessfullyWith({
+                            success: true,
+                            result: {
+                                registration_message: 'exist application',
+                                registration_email: 'darya.r@gmail.com',
+                                state: 'active',
+                                has_va_component: true,
+                                has_amocrm_component: true,
+                                is_integrated: false
+                            }
+                        });
+
+                    ajax.recentRequest().
+                        expectToHavePath('/private/widget/proxy.php').
+                        expectToHaveMethod('POST').
+                        expectBodyToContain({
+                            target: [
+                                'https://va.uiscom.ru:443/widget_api/be2243dddacb680da2702552fd6269ee/'
+                            ]
+                        }).
+                        testBodyParam('data', function (data) {
+                            utils.expectObjectToContain(JSON.parse(data[0]), {
+                                method: 'external_add_or_integrate',
+                                params: {
+                                    app: 'rostelecom',
+                                    service: 'amo',
+                                    subdomain: 'comagicwidgets',
+                                    domain: 'comagicwidgets.amocrm.ru',
+                                    email: 'darya.simha@gmail.com',
+                                    phone: '79252117620',
+                                    name: 'Darya Simha',
+                                    user_id: 2851135,
+                                    widget_type: 'rostelecom'
+                                }
+                            });
+                        }).
+                        respondSuccessfullyWith({
+                            success: true,
+                            result: {
+                                status: 'integrated',
+                                data: {}
+                            }
+                        });
+
+                    settingsInformationBlock.expectToHaveTextContent(
+                        'Вы успешно подключили интеграцию с amoCRM. Аккаунт в amoCRM - ' +
+                        'comagicwidgets'
+                    );
+                });
+                it('Кнопка сохранения доступна.', function() {
+                    saveButton.expectNotToHaveClass('button-input-disabled');
+                });
             });
+            it('Кнопка сохранения заблокирована. Чекбокс не отмечен.', function() {
+                if (document.querySelector('#cmg_cb_agreement').checked) {
+                    throw new Error('Чекбокс не должен быть отмечен.');
+                }
+
+                saveButton.expectToHaveClass('button-input-disabled');
+            });
+        });
+        it(
+            'Открываю окно настройки. Чекбокс соглашения был отмечен ранее. Кнопка сохранения доступна. Чекбокс ' +
+            'отмечен.',
+        function() {
+            var result = setup(ajax);
+
+            setSettingsParam = result.setSettingsParam;
+            i18n = result.i18n;
+            widget = result.widget;
+            errorNotifications = result.errorNotifications;
+
+            setSettingsParam('is_agreement_confirmed', '1');
+
+            modalWindow(i18n).setRostelecom().setAgreementConfirmed().show();
+            spendTime(1000);
+
+            widget.callbacks.settings($('.widget-settings__modal .modal-body'));
+
+            ajax.recentRequest().
+                expectToHavePath('/amocrm-widget/templates/Settings.twig').
+                expectToHaveMethod('GET').
+                respondSuccessfullyWith(files['/amocrm-widget/templates/Settings.twig']);
+            
+            spendTime(1000);
+
+            if (!document.querySelector('#cmg_cb_agreement').checked) {
+                throw new Error('Чекбокс должен быть отмечен.');
+            }
+
+            saveButton.expectNotToHaveClass('button-input-disabled');
+            errorNotifications.expectToHaveNoError();
         });
     });
 });

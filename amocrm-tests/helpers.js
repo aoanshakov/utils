@@ -43,7 +43,7 @@ define(function () {
         throw new Error('Обработчик нажатие на иконку с телефоном не был установлен.');
     };
 
-    function createAMOCRM (notifications, phoneIconClickHandler, userData, errors) {
+    function createAMOCRM (notifications, phoneIconClickHandler, userData, errors, settings) {
         function Router () {
             var url;
 
@@ -540,7 +540,7 @@ define(function () {
         };
     }
 
-    function createWidget (Widget, libsMap, Twig, i18n, widgetActions, userData) {
+    function createWidget (Widget, libsMap, Twig, i18n, widgetActions, userData, settings) {
         var widget = new Widget();
 
         widget.i18n = function (key) {
@@ -566,6 +566,19 @@ define(function () {
 
         widget.add_action = function (type, action) {
             widgetActions.addAction(type, action);
+        };
+
+        widget.get_settings = function () {
+            var clone = {};
+
+            Object.entries(settings).forEach(function (args) {
+                var key = args[0],
+                    value = args[1];
+
+                clone[key] = value;
+            });
+
+            return clone;
         };
 
         var originalRequire = window.require;
@@ -693,7 +706,8 @@ define(function () {
                 return path in files;
             });
             
-            var libsMap = {};
+            var libsMap = {},
+                settings = {};
 
             requirejs(['script', 'templates'].concat(libs), function (Widget, Twig) {
                 var length = arguments.length;
@@ -711,10 +725,13 @@ define(function () {
                 window.AMOCRM = createAMOCRM(notifications, phoneIconClickHandler, userData, errors);
 
                 handleWidgetModulesRequired.apply(null, arguments);
-                widget = createWidget(Widget, libsMap, Twig, i18n, widgetActions, userData);
+                widget = createWidget(Widget, libsMap, Twig, i18n, widgetActions, userData, settings);
             });
 
             return {
+                setSettingsParam: function (key, value) {
+                    settings[key] = value;
+                },
                 clickPhoneIcon: phoneIconClickHandler.createValueCaller(),
                 notifications: notifications,
                 errorNotifications: errorNotifications,

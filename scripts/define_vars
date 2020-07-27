@@ -1,0 +1,14 @@
+#!/bin/bash
+
+export CALL_CENTER_APP_DOMAIN=my2.comagic.ru
+export CALL_CENTER_UPDATE_URL=https://my2.comagic.ru/dist/
+#export CALL_CENTER_APP_DOMAIN=myint1.dev.uis.st
+#export CALL_CENTER_UPDATE_URL=https://myint1.dev.uis.st/dist/
+export CALL_CENTER_APP_LANGUAGE=ru
+export CALL_CENTER_PRODUCT_NAME="Софтфон UIS"
+export CALL_CENTER_ARTIFACT_NAME="softphone-uis"
+export SENTRY_DSN="https://989f1935ce204f8da2c8c2516dcbc68a@o401716.ingest.sentry.io/5261759 (https://989f1935ce204f8da2c8c2516dcbc68a@o401716.ingest.sentry.io/5261759)"
+export SENTRY_AUTH_TOKEN=e995126da4c648749f53e38849bbbb9dec51eeeba1ef4ef98f4e3392fd14b110
+
+npm set registry http://npm.dev.uis.st:80
+yarn config set registry http://npm.dev.uis.st:80

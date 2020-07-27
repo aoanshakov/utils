@@ -5,6 +5,7 @@ import json
 import requests
 import logging
 from http.client import HTTPConnection
+import sys
 
 logger = logging.getLogger('urllib3')
 logger.setLevel(logging.DEBUG)
@@ -14,10 +15,11 @@ logger.addHandler(stream_handler)
 HTTPConnection.debuglevel = 1
 
 application = Flask('amocrm-proxy')
+server = sys.argv[1]
 
 # server = 'https://va.uiscom.ru'
 # server = 'https://amocrm2.comagic.ru'
-server = 'https://proxy.dev.uis.st:12021'
+# server = 'https://proxy.dev.uis.st:12021'
 # server = 'https://proxy.dev.uis.st:15015'
 # server = 'https://my2.comagic.ru'
 
@@ -97,6 +99,16 @@ def users():
 @application.route('/sup/api/v1/widget_state', methods=['POST'])
 def widget_state():
     return handle('/sup/api/v1/widget_state')
+
+
+@application.route('/sup/ws/<token>', methods=['POST'])
+def delete_ws(token):
+    return handle('/sup/ws/' + token)
+
+
+@application.route('/sup/api/v1/crm_account', methods=['POST'])
+def delete_account():
+    return handle('/sup/api/v1/crm_account')
 
 
 application.run('0.0.0.0', '80', debug=True)

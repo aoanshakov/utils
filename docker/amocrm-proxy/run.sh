@@ -8,10 +8,15 @@ fi
 
 export COMAGIC_ENV_USER=""
 action=''
+server='https://va.uiscom.ru'
 
 while [ -n "$1" ]
 do
-    if [ "$1" = "-u" ]
+    if [ "$1" = "--server" ]
+    then
+        server=$2
+        shift
+    elif [ "$1" = "-u" ]
     then
         export COMAGIC_ENV_USER=$2
         shift
@@ -28,11 +33,11 @@ cd /usr/local/src/utils/amocrm-proxy
 
 if [ -z "$action" ]
 then
-    server
+    server $server
 else
     if [ "$action" = "server" ]
     then
-        server
+        server $server
     elif [ "$action" = "initialize" ]
     then
         exit 0

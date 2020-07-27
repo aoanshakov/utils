@@ -1,6 +1,13 @@
 #!/bin/bash
 
 docker run -it --rm \
+    -v $HOME/workspace/utils/amocrm-descriptions:/usr/local/src/amocrm-descriptions \
+    -v $HOME/workspace/amocrm_widget:/usr/local/src/amocrm_widget \
+    amocrm-description-builder -m html -s rostelecom -t ru_rostelecom
+
+exit 0
+
+docker run -it --rm \
     -v $HOME/utils/amocrm-descriptions:/usr/local/src/amocrm-descriptions \
     -v $HOME/amocrm_widget:/usr/local/src/amocrm_widget \
     amocrm-description-builder -m html -s uis -t ru_uis

@@ -20,9 +20,9 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
 
     var controller = Comagic.getApplication().getController('Comagic.account.integration.amocrm.controller.Page');
 
-    this.actionIndex = function () {
+    this.actionIndex = function (args) {
         controller.init();
-        controller.actionIndex();
+        controller.actionIndex(args);
     };
 
     this.destroy = function() {
@@ -30,9 +30,15 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
     };
 
     this.requestAmocrmDataSave = function () {
-        var bodyParams = {};
+        var bodyParams = {
+            id: 2987943
+        };
 
         return {
+            changeUrl: function () {
+                bodyParams.url = 'https://petrov.amocrm.ru/';
+                return this;
+            },
             setFirstActManual: function () {
                 bodyParams.first_call_act = 'manual';
                 return this;
@@ -794,6 +800,7 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
 
     function getAmocrmData () {
         return {
+            id: 2987943,
             sale_amount_field_source: 'some_source',
             sale_amount_field_code: 'some_code',
             is_retrieve_success_lead: true,
@@ -841,7 +848,6 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
             is_active: true,
             login: 'ivanov',
             integration_status: true,
-            hash: '2gf98FWf92ffwffOIJSp8108OLdfs89332FdfsflSDHP81',
             organization_schedule_id: 9238,
             telephony_provider: 'uis_comagic',
             has_update_contact_on_call_finished_timeout: null,

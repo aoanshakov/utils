@@ -1,4 +1,4 @@
 #!/bin/bash
 
 proxyDir=/usr/local/src/utils/amocrm-proxy
-$proxyDir/.venv/bin/python3 $proxyDir/runserver.py
+$proxyDir/.venv/bin/python3 $proxyDir/runserver.py $1
