@@ -222,7 +222,7 @@ tests.addTest(function (
         });
 
         it(
-            'Вкладка не является мастером. В мастер-вкладке закрывается сокет crm_websocket. Ошибке не происходит.',
+            'Вкладка не является мастером. В мастер-вкладке закрывается сокет crm_websocket. Ошибка не происходит.',
         function() {
             localStorage.setItem('uis_amo_tab_v2_qwe123', 'true:' + ((new Date()).getTime() - 50));
 

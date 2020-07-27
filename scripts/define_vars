@@ -1,9 +1,13 @@
 #!/bin/bash
 
-export CALL_CENTER_APP_DOMAIN=my2.comagic.ru
-export CALL_CENTER_UPDATE_URL=https://my2.comagic.ru/dist/
+#export CALL_CENTER_APP_DOMAIN=myint0.dev.uis.st
+#export CALL_CENTER_UPDATE_URL=https://myint0.dev.uis.st/dist/
+
 #export CALL_CENTER_APP_DOMAIN=myint1.dev.uis.st
 #export CALL_CENTER_UPDATE_URL=https://myint1.dev.uis.st/dist/
+
+export CALL_CENTER_APP_DOMAIN=my2.comagic.ru
+export CALL_CENTER_UPDATE_URL=https://my2.comagic.ru/dist/
 export CALL_CENTER_APP_LANGUAGE=ru
 export CALL_CENTER_PRODUCT_NAME="Софтфон UIS"
 export CALL_CENTER_ARTIFACT_NAME="softphone-uis"

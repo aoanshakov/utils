@@ -46,6 +46,7 @@ exec "Snippet @p @param {".st.et."} [".st.et."] ".st.et
 exec "Snippet @r @return {".st.et."} ".st.et
 
 if g:isReactApp
+    exec "Snippet ef () => null".st.et
     exec "Snippet m ".st.et."(".st.et.") {<cr>".st.et."<cr>}"
     exec "Snippet f ".st."arguments:ArrowFunctionArguments(@z)".et." => {<cr>".st.et."<cr>}"
     exec "Snippet fo ".st."arguments:ArrowFunctionArguments(@z)".et." => ".st.et
@@ -57,8 +58,13 @@ if g:isReactApp
     exec "Snippet h2 <h2>".st.et."</h2>"
     exec "Snippet cn className=".st.et
     exec "Snippet fr <React.Fragment>".st.et."</React.Fragment>"
-    exec "Snippet i1 i18n['".st.et."']"
+    exec "Snippet i1 i18n('".st.et."')"
+    exec "Snippet im import ".st.et." from '".st.et."';"
+    exec "Snippet sw switch (" .st.et. ") {<cr>".st.et."<cr>}"
+    exec "Snippet ca case ".st.et.":<cr>".st.et
+    exec "Snippet br break;".st.et
 else
+    exec "Snippet ef function () {}".st.et
     exec "Snippet m this.".st.et." = function (".st.et.") {<cr>".st.et."<cr>};"
     exec "Snippet f function (".st.et.") {<cr>".st.et."<cr>}"
     exec "Snippet i1 i18n('".st.et."')"

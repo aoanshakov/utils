@@ -2,7 +2,7 @@
 
 port=""
 action="runclient"
-workspace="workspace"
+workspace="git.dev.uis.st/web"
 
 while [ -n "$1" ]
 do

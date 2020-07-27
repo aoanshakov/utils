@@ -1,17 +1,66 @@
 #!/bin/bash
 
-#code='uis_widget_9'
-#key='c6fb51e48e7786dbffae4c943695bfcdaf08543fdd6275e70e8a292f4621a942'
+#code='uis_widget_10'
+#key='0a4f13fa532871f0171e578fb72f560055c4c724d806704c5a489532a040048f'
 
-code='uis_widget_10'
-key='0a4f13fa532871f0171e578fb72f560055c4c724d806704c5a489532a040048f'
+theme='comagic'
+#theme='uis'
 
-server='proxy.dev.uis.st:15016'
+code='uis_widget_12'
+key='9213563c78496b323b45f3ab5f9be469f343f06b29b4529ecab4da5e74de7e59'
+
+#code='uis_widget_17'
+#key='fa98a75dbb3438435356255eec03d032d87e52b26afcf30ca840ab0a2a724cc2'
+
+#code='uis_widget_16'
+#key='67e1de0402625380229af24137bc6d299b16de4cabc10e7df1c89cf2f53e22fe'
+
+#code='uis_widget_15'
+#key='7a6c090c08e59408ac2c49bb8b5aa2385d25a873a97d130847ff3c507648a2f5'
+
+#code='uis_widget_14'
+#key='e2a651abad702e5ce19eee3a7c244811655671665040346525f2a0e58e3f9488'
+
+#code='uis_widget_13'
+#key='aaaba01ac6b30c368f9757ca0faac7c5355d95a96fb53c556e4113c197271ab1'
+
+#code='uis_widget_12'
+#key='b6379bf8b15aaa4a339f9c4757aba4f46227fa6e4dcfadeae92c3a5c4ab99448'
+
+#code='uis_widget_11'
+#key='1a598d36114905269fb6179372c256eb331c35823320b73d4ee2603696c93cb4'
+#key='80b20c00f023d1bd46f174351caa0e5a9c24c1144abc6e8d56d3bcc7ca449d75'
+
+#code='test20_uis_widget'
+#key='fb9fa839415f0f41ffa87c5d21cbdb177e45294fb134ed7f167f3c6f38f41d7e'
+
+#server='proxy.dev.uis.st:15016'
+#server='proxy.dev.uis.st:15017'
+server='proxy.dev.uis.st:12021'
+#server='amocrm2.comagic.ru'
 
 #eventsws='va.uiscom.ru'
 #eventsws='amocrm2.comagic.ru'
-eventsws='proxy.dev.uis.st:12021'
+#eventsws='proxy.dev.uis.st:12021'
 #eventsws='proxy.dev.uis.st:15015'
 #eventsws='my2.comagic.ru'
 
-sip-lib-test --action build --application amocrm-widget --code $code --key $key --server $server --eventsws $eventsws
+clientInterface='https://proxy.dev.uis.st:19193'
+#clientInterface='https://app.uiscom.ru'
+#clientInterface='https://app2.comagic.ru'
+
+sip-lib-test \
+    --action build \
+    --application amocrm-widget \
+    --code $code \
+    --key $key \
+    --server $server \
+    --client-interface $clientInterface \
+    --theme $theme
+
+exit 0
+
+sip-lib-test \
+    --action build \
+    --application amocrm-widget \
+    --build-config /Users/aleksandransakov/configs/build-config.json
