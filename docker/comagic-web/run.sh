@@ -29,17 +29,25 @@ then
     exit 1
 fi
 
+initialized=0
+
 if [ ! -d "/usr/local/src/comagic_web" ]
 then
     initialize
     build
     config
+    initialized=1
 fi
 
 if [ "$action" = "
     initialize" ]
 then
-    exit 0
+    if [ $initialized -eq 1 ]
+    then
+        exit 0
+    fi
+
+    initialize
 elif [ "$action" = "runclient" ]
 then
     runclient

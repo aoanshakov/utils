@@ -509,7 +509,7 @@ function JsTester_Utils (debug) {
         return results;
     };
     this.getVisible = function (domElements) {
-        var results = domElements.filter((function (domElement) {
+        var results = Array.prototype.slice.call(domElements, 0).filter((function (domElement) {
             return this.isVisible(domElement);
         }).bind(this));
 

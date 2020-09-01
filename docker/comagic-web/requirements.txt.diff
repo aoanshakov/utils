@@ -1,5 +1,5 @@
 diff --git a/.venv/requirements.txt b/.venv/requirements.txt
-index e4321c4aa..4ed4aebf0 100644
+index 797fe9a92..cbe8aa400 100644
 --- a/.venv/requirements.txt
 +++ b/.venv/requirements.txt
 @@ -17,7 +17,7 @@ imgkit==1.0.1
@@ -11,14 +11,13 @@ index e4321c4aa..4ed4aebf0 100644
  pytils==0.3
  pytz==2015.6
  redis==2.9.0
-@@ -34,7 +34,5 @@ xmltodict==0.8.3
+@@ -33,8 +33,6 @@ xmltodict==0.8.3
  pycrypto==2.6.1
  smtpapi==0.2.0
  pydub==0.15.0
 -numpy==1.10.4
  # unnecessary requirement used by ulib
--tornado==4.3
+ tornado==4.3
 -Wand==0.4.2
-\ No newline at end of file
-+tornado==4.3
+ xlrd==1.2.0
 \ No newline at end of file

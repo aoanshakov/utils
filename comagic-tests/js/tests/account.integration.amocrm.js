@@ -18,7 +18,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.requestSalesFunnelComponentAvailability().send();
         });
         
-        xdescribe('Открываю вкладку "Мультиворонки".', function() {
+        describe('Открываю вкладку "Мультиворонки".', function() {
             beforeEach(function() {
                 helper.requestAmocrmData().send();
                 helper.requestTariffs().send();
@@ -153,7 +153,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.form.combobox().withValue('Некая воронка').expectToBeVisible();
             });
         });
-        xdescribe(
+        describe(
             'Тип переадресации на ответственного сотрудника не определен. Открываю вкладку "Телефония".',
         function() {
             beforeEach(function() {
@@ -200,7 +200,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.form.radiofield().withBoxLabel('Из сделки').expectNotToBeChecked();
             });
         });
-        xdescribe(
+        describe(
             'Обновление ответственного отключено и время заполнения карточки не установлено. Открываю вкладку ' +
             '"Телефония". Нельзя использовать неразобранное.',
         function() {
@@ -240,7 +240,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.unsortedRadioField().expectToBeDisabled();
             });
         });
-        xdescribe(
+        describe(
             'Обновление ответственного включено, время заполнения карточки установлено. Открываю вкладку ' +
             '"Телефония".',
         function() {
@@ -273,7 +273,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('15 мин');
             });
         });
-        xit(
+        it(
             'Открываю вкладку "Телефония". Можно использовать неразобранное. Опция "Использовать функциональность ' +
             '"Неразобранное"" доступна.',
         function() {
@@ -287,7 +287,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
             helper.unsortedRadioField().expectToBeEnabled();
         });
-        xit(
+        it(
             'Обновление ответственного отключено, время заполнения карточки установлено. Открываю вкладку ' +
             '"Телефония". В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" ' +
             'выбрана опция "0 мин".',
@@ -302,7 +302,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
             helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('0 мин');
         });
-        xit(
+        it(
             'Установлена переадресация на ответственного сотрудника из контакта. Открываю вкладку "Телефония". ' +
             'Отмечена радиокнопка "Из контакта".',
         function() {
@@ -317,7 +317,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.form.radiofield().withBoxLabel('Из контакта').expectToBeChecked();
             helper.form.radiofield().withBoxLabel('Из сделки').expectNotToBeChecked();
         });
-        xit(
+        it(
             'Установлена переадресация на ответственного сотрудника из сделки. Открываю вкладку "Телефония". ' +
             'Отмечена радиокнопка "Из сделки".',
         function() {
@@ -349,7 +349,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(10);
         });
     });
-    return;
     describe(
         'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
         'Открыта вкладка "Доступ к данным".',
@@ -456,12 +455,75 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.requestEventFilters().send();
             wait(10);
         });
-        it('Открываю вкладку "Сквозная аналитика".', function() {
-            helper.tabPanel.tab('Сквозная аналитика').click();
-            wait(10);
+        describe('Открываю вкладку "Сквозная аналитика". Изменяю поля формы.', function() {
+            beforeEach(function() {
+                helper.tabPanel.tab('Сквозная аналитика').click();
+                wait(10);
 
-            helper.requestSalesFunnels().send();
-            wait(10);
+                helper.requestSalesFunnels().send();
+                wait(10);
+
+                helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').clickArrow().
+                    option('Второе поле для категорий и причин').click();
+                helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').
+                    option('Четвертое поле для категорий и причин').click();
+                helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').
+                    option('Первое поле для категорий и причин').click();
+                helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').
+                    option('Пятое поле для категорий и причин').click();
+            });
+
+            describe('Выбираю максимальное количество опций.', function() {
+                beforeEach(function() {
+                    helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').
+                        option('Третье поле для категорий и причин').click();
+                });
+
+                describe('Пытаюсь выбрать еще одну опцию. Снимаю отметку с другой опции.', function() {
+                    beforeEach(function() {
+                        helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').
+                            option('Седьмое поле для категорий и причин').click();
+
+                        helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').
+                            option('Пятое поле для категорий и причин').click();
+                    });
+
+                    it('Нажимаю на кнпоку "Сохранить". Отправляется запрос сохранения.', function() {
+                        helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').
+                            option('Шестое поле для категорий и причин').click();
+                        wait(10);
+
+                        helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').
+                            clickArrow();
+                        wait(10);
+
+                        helper.form.combobox().withFieldLabel('Из какого поля передавать причину отказа').clickArrow().
+                            option('Первое поле для категорий и причин').click();
+                        helper.form.combobox().withFieldLabel('Из какого поля передавать причину отказа').
+                            option('Пятое поле для категорий и причин').click();
+                        wait(10);
+
+                        helper.form.combobox().withFieldLabel('Из какого поля передавать причину отказа').clickArrow();
+                        wait(10);
+
+                        helper.saveButton.click();
+                        wait(10);
+
+                        helper.requestAmocrmDataSave().setSaleCategoryUserFieldValueIds().
+                            setLossReasonUserFieldValueId().send();
+                        helper.requestTariffs().send();
+                    });
+                    it('Опции доступны.', function() {
+                        helper.boundList.expectNotToHaveClass('cm-multi-select-field-options-disabled');
+                    });
+                });
+                it('Опции заблокированы.', function() {
+                    helper.boundList.expectToHaveClass('cm-multi-select-field-options-disabled');
+                });
+            });
+            it('Опции доступны.', function() {
+                helper.boundList.expectNotToHaveClass('cm-multi-select-field-options-disabled');
+            });
         });
         it('Открываю вкладку "Телефония".', function() {
             helper.tabPanel.tab('Телефония').click();

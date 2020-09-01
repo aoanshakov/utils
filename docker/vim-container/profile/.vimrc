@@ -1,4 +1,6 @@
 call plug#begin()
+Plug 'leafgarland/typescript-vim'
+Plug 'peitalin/vim-jsx-typescript'
 Plug 'scrooloose/nerdtree'
 Plug 'michaeljsmith/vim-indent-object'
 Plug 'vim-syntastic/syntastic'
@@ -146,13 +148,13 @@ endfunction
 
 function! SetUpEasyStart()
     let g:appName = 'EasyStart'
-    let g:appPath = '/usr/local/src/workspace/comagic_web/static/easystart/app'
+    let g:appPath = '/usr/local/src/gitlab.uis.dev/comagic_web/static/easystart/app'
     call SetUpDefault()
 endfunction
 
 function! SetUpComagic()
     let g:appName = 'Comagic'
-    let g:appPath = '/usr/local/src/workspace/comagic_web/static/comagic/app'
+    let g:appPath = '/usr/local/src/gitlab.uis.dev/comagic_web/static/comagic/app'
     call SetUpDefault()
 endfunction
 
@@ -170,10 +172,10 @@ endfunction
 function! SetUpEslint()
     let path = expand('%:p')
 
-    if path =~ '\.js$'
+    if path =~ '\.js$' || path =~ '\.tsx$'
         let isReactApp = 0
 
-        if stridx(path, '/sip_lib/tests/js/') != -1
+        if stridx(path, '/sip_lib/tests/js/') != -1 || stridx(path, '/comagic-tests/js/tests/')
             noremap ;aa k^f)%Ix<esc>^zz
             noremap ;zz vi{o<esc>?desc<cr>zz
             noremap ;ab vi{<esc>joreturn;<esc>zz

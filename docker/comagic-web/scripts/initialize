@@ -1,32 +1,46 @@
 #!/bin/bash
 
-cd /usr/local/src
+srcDir=/usr/local/src
+comagicWebDir=$srcDir/comagic_web
 
-git clone git@git.dev.uis.st:web/comagic_web.git
-cd comagic_web
+cd $srcDir
+
+if [ ! -d $comagicWebDir ]
+then
+    git clone git@git.dev.uis.st:web/comagic_web.git
+    cd comagic_web
+fi
 
 if [ ! -d $HOME/.pip ]
 then
     mkdir $HOME/.pip
 fi
 
-chmod +x venv.sh
-cp /home/pip.conf $HOME/.pip/pip.conf
+if [ ! -d $comagicWebDir/.venv/bin ]
+then
+    cd $comagicWebDir
 
-patch -p1 < /home/requirements.txt.diff
+    chmod +x venv.sh
+    cp /home/pip.conf $HOME/.pip/pip.conf
 
-./venv.sh <<< "y"
+    patch -p1 < /home/requirements.txt.diff
 
-chmod -x venv.sh
-rm $HOME/.pip/pip.conf
-.venv/bin/pip install --upgrade Wand numpy
+    ./venv.sh <<< "y"
 
-npm install
-rm package-lock.json
+    chmod -x venv.sh
+    rm $HOME/.pip/pip.conf
+    .venv/bin/pip install --upgrade Wand numpy
+
+    patch -p1 -R < /home/requirements.txt.diff
+fi
+
+if [ ! -d $comagicWebDir/node_modules ]
+then
+    npm install
+    rm package-lock.json
+fi
 
 if [ -n $COMAGIC_ENV_USER ]
 then
     chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER /usr/local/src/comagic_web/
 fi
-
-patch -p1 -R < /home/requirements.txt.diff

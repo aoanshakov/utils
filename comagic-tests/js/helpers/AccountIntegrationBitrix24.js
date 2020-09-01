@@ -75,6 +75,8 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
             is_process_offline_message: true,
             is_import_deal: true,
             link_deal_to_communication: 'something',
+            sale_category_user_field_value_id: [],
+            loss_reason_user_field_value_id: [],
             last_import_deal_date: '2018-02-12',
             last_import_deal_result: 'ok',
             admin_user_name: 'Ivanov Ivan Ivanovich',
@@ -89,6 +91,24 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
             chat_responsible_user_id: 18544
         };
     }
+
+    this.requestTariffs = function () {
+        return {
+            send: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('account/tariffs/').
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: {
+                            available: [{
+                                op_id: 3234234
+                            }],
+                            activated: []
+                        }
+                    });
+            }
+        };
+    };
 
     this.requestSalesFunnels = function () {
         return {
@@ -327,6 +347,28 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
                 name: 'Это поле',
                 description: 'Это замечательное поле',
                 mnemonic: 'this_field'
+            }],
+            'comagic:bitrix:select_multiselect_user_fields': [{
+                id: 495299,
+                name: 'Первое поле для категорий и причин'
+            }, {
+                id: 495300,
+                name: 'Второе поле для категорий и причин'
+            }, {
+                id: 495301,
+                name: 'Третье поле для категорий и причин'
+            }, {
+                id: 495302,
+                name: 'Четвертое поле для категорий и причин'
+            }, {
+                id: 495303,
+                name: 'Пятое поле для категорий и причин'
+            }, {
+                id: 495304,
+                name: 'Шестое поле для категорий и причин'
+            }, {
+                id: 495305,
+                name: 'Седьмое поле для категорий и причин'
             }]
         };
     }
@@ -411,6 +453,32 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
         };
     };
 
+    this.requestBitrix24DataSave = function () {
+        var bodyParams = {
+            id: 83782
+        };
+
+        return {
+            setSaleCategoryUserFieldValueIds: function () {
+                bodyParams.sale_category_user_field_value_id = [495300, 495302];
+                return this;
+            },
+            setLossReasonUserFieldValueId: function () {
+                bodyParams.loss_reason_user_field_value_id = [495299, 495303];
+                return this;
+            },
+            send: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/account/integration/bitrix24/save/').
+                    expectBodyToContain(bodyParams).
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: true
+                    });
+            }
+        };
+    };
+
     this.requestBitrix24Data = function () {
         return {
             send: function () {
@@ -474,6 +542,7 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
                 requestsManager.recentRequest().
                     expectToHavePath('/directory/comagic:_tree:regions/').
                     respondSuccessfullyWith({
+                        success: true,
                         root: {
                             id: 1784,
                             name: 'Some region',

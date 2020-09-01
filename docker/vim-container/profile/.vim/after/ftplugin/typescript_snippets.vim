@@ -33,7 +33,7 @@ function! ArrowFunctionArguments(arguments)
     return arguments
 endfunction
 
-nnoremap ;sn :e ~/.vim/after/ftplugin/javascript_snippets.vim<cr>
+nnoremap ;sn :e ~/.vim/after/ftplugin/typescript_snippets.vim<cr>
 nnoremap ;sa f'vi'o<esc>hi<cr><esc>^vi'<esc>/function<cr>vF,ohs,<cr><esc><<k^
 nnoremap ;sc i' +<cr>'<esc>
 nnoremap ;js $F'v/'<cr>x
@@ -45,26 +45,19 @@ exec "Snippet @o @option {".st.et."} [".st.et."] ".st.et
 exec "Snippet @p @param {".st.et."} [".st.et."] ".st.et
 exec "Snippet @r @return {".st.et."} ".st.et
 
-if g:isReactApp
-    exec "Snippet ef () => null".st.et
-    exec "Snippet m ".st.et."(".st.et.") {<cr>".st.et."<cr>}"
-    exec "Snippet f ".st."arguments:ArrowFunctionArguments(@z)".et." => {<cr>".st.et."<cr>}"
-    exec "Snippet fo ".st."arguments:ArrowFunctionArguments(@z)".et." => ".st.et
-    exec "Snippet c const ".st.et." = ".st.et
-    exec "Snippet e export ".st.et
-    exec "Snippet ec export const ".st.et." = ".st.et
-    exec "Snippet ed export default ".st.et
-    exec "Snippet div <div>".st.et."</div>"
-    exec "Snippet h2 <h2>".st.et."</h2>"
-    exec "Snippet cn className=".st.et
-    exec "Snippet fr <React.Fragment>".st.et."</React.Fragment>"
-    exec "Snippet im import ".st.et." from '".st.et."';"
-else
-    exec "Snippet ef function () {}".st.et
-    exec "Snippet m this.".st.et." = function (".st.et.") {<cr>".st.et."<cr>};"
-    exec "Snippet f function (".st.et.") {<cr>".st.et."<cr>}"
-    inoremap { {<cr>}<esc>O
-endif
+exec "Snippet ef () => null".st.et
+exec "Snippet m ".st.et."(".st.et.") {<cr>".st.et."<cr>}"
+exec "Snippet f ".st."arguments:ArrowFunctionArguments(@z)".et." => {<cr>".st.et."<cr>}"
+exec "Snippet fo ".st."arguments:ArrowFunctionArguments(@z)".et." => ".st.et
+exec "Snippet c const ".st.et." = ".st.et
+exec "Snippet e export ".st.et
+exec "Snippet ec export const ".st.et." = ".st.et
+exec "Snippet ed export default ".st.et
+exec "Snippet div <div>".st.et."</div>"
+exec "Snippet h2 <h2>".st.et."</h2>"
+exec "Snippet cn className=".st.et
+exec "Snippet fr <React.Fragment>".st.et."</React.Fragment>"
+exec "Snippet im import ".st.et." from '".st.et."';"
 
 exec "Snippet mc ".st.et.": function (".st.et.") {<cr>".st.et."<cr>}"
 exec "Snippet fn function ".st.et." (".st.et.") {<cr>".st.et."<cr>}"

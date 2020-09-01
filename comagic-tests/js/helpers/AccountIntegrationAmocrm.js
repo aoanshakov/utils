@@ -39,6 +39,14 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
                 bodyParams.url = 'https://petrov.amocrm.ru/';
                 return this;
             },
+            setSaleCategoryUserFieldValueIds: function () {
+                bodyParams.sale_category_user_field_value_id = [495300, 495302, 495299, 495301, 495304];
+                return this;
+            },
+            setLossReasonUserFieldValueId: function () {
+                bodyParams.loss_reason_user_field_value_id = [495299, 495303];
+                return this;
+            },
             setFirstActManual: function () {
                 bodyParams.first_call_act = 'manual';
                 return this;
@@ -426,6 +434,28 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
                                 id: '74959759581',
                                 is_service: false,
                                 name: '74959759581'
+                            }],
+                            'comagic:amocrm:select_multiselect_user_fields': [{
+                                id: 495299,
+                                name: 'Первое поле для категорий и причин'
+                            }, {
+                                id: 495300,
+                                name: 'Второе поле для категорий и причин'
+                            }, {
+                                id: 495301,
+                                name: 'Третье поле для категорий и причин'
+                            }, {
+                                id: 495302,
+                                name: 'Четвертое поле для категорий и причин'
+                            }, {
+                                id: 495303,
+                                name: 'Пятое поле для категорий и причин'
+                            }, {
+                                id: 495304,
+                                name: 'Шестое поле для категорий и причин'
+                            }, {
+                                id: 495305,
+                                name: 'Седьмое поле для категорий и причин'
                             }]
                         }
                     });
@@ -854,7 +884,10 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
             update_contact_on_call_finished_timeout: null,
             which_talked_user_responsible: 'last',
             check_manager_online: true,
-            responsible_manager_source: null
+            responsible_manager_source: null,
+            deal_source_user_field_ext_id: null,
+            sale_category_user_field_value_id: [],
+            loss_reason_user_field_value_id: []
         };
     }
 
@@ -1050,5 +1083,9 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         } catch (e) {
             return null;
         }
+    });
+
+    this.boundList = testersFactory.createDomElementTester(function () {
+        return utils.getVisible(document.querySelectorAll('.x-boundlist'));
     });
 }

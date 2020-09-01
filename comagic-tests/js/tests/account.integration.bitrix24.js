@@ -19,11 +19,38 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.requestRegionsTreeDirectory().send();
                 helper.requestBitrix24Data().send();
                 helper.requestSalesFunnelComponentAvailability().send();
-                helper.requestSalesFunnelComponentTariffInfo().send();
+                helper.requestTariffs().send();
                 helper.requestBitrix24Status().send();
                 wait(10);
             });
 
+            it('Открываю вкладку "Сквозная аналитика".', function() {
+                helper.tabPanel.tab('Сквозная аналитика').click();
+                wait(10);
+                helper.requestSalesFunnels().send();
+
+                helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').clickArrow().
+                    option('Второе поле для категорий и причин').click();
+                helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').
+                    option('Четвертое поле для категорий и причин').click();
+                helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').clickArrow();
+                wait(10);
+
+                helper.form.combobox().withFieldLabel('Из какого поля передавать причину отказа').clickArrow().
+                    option('Первое поле для категорий и причин').click();
+                helper.form.combobox().withFieldLabel('Из какого поля передавать причину отказа').
+                    option('Пятое поле для категорий и причин').click();
+                helper.form.combobox().withFieldLabel('Из какого поля передавать причину отказа').clickArrow();
+                wait(10);
+
+                helper.saveButton.click();
+                wait(10);
+
+                helper.requestBitrix24DataSave().setSaleCategoryUserFieldValueIds().setLossReasonUserFieldValueId().
+                    send();
+                helper.requestTariffs().send();
+            });
+            return;
             it('Открываю вкладку "Чаты и заявки".', function() {
                 helper.tabPanel.tab('Чаты и заявки').click();
                 wait(10);
@@ -61,6 +88,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
             });
         });
+        return;
         it(
             'В аккаунте Битрикс24 мало сотрудников. Открываю вкладку "Ответственные". Нажимаю на кнопку "Добавить ' +
             'сотрудника". В выпадающем списке сотрудников нет скроллера.',
