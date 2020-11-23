@@ -3,134 +3,355 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
         'Открываю разел "Отчеты/Обзор". Нажимаю на ссылку в колонке "Сайт" строки таблицы. Открылся раздел "Отчеты/' +
         'Список обращений/Звонки".'
     ), function() {
-        var helper;
+        var tester;
 
         beforeEach(function() {
-            if (helper) {
-                helper.destroy();
+            if (tester) {
+                tester.destroy();
             }
 
-            helper = new AnalyticsCall(requestsManager, testersFactory, utils);
+            tester = new AnalyticsCall(requestsManager, testersFactory, utils);
 
-            helper.requestGoals().send();
+            tester.requestGoals().send();
 
             Comagic.Directory.load();
-            helper.batchReloadRequest().send();
+            tester.batchReloadRequest().send();
 
-            helper.setCameFromReview().actionIndex();
+            tester.setCameFromReview().actionIndex();
 
-            helper.requestCallColumns().send();
-            helper.requestCallSettings().send();
-            helper.requestCallReferenceData().send();
-            helper.requestSecondDimention().send();
-            helper.requestCallSettings().setNotDefault().send();
-            helper.requestGridData().checkFilterAtServer().setCameFromReview().send();
-            helper.requestCallFilters().send();
-            helper.requestCallChartData().setCameFromReview().send();
+            tester.requestCallColumns().send();
+            tester.requestCallSettings().send();
+            tester.requestCallReferenceData().send();
+            tester.requestSecondDimention().send();
+            tester.requestCallSettings().setNotDefault().send();
+            tester.eventTrackingRequest().receiveResponse();
+            tester.requestGridData().checkFilterAtServer().setCameFromReview().send();
+            tester.requestCallFilters().send();
+            tester.requestCallChartData().setCameFromReview().send();
+            tester.eventTrackingRequest().setLoad().receiveResponse();
             wait();
+            tester.eventTrackingRequest().setGridRendered().receiveResponse();
+            tester.tagsRequest().receiveResponse();
         });
 
-        it('Отображен фильтр перехода из раздела обзора.', function() {
-            helper.reviewItemFilterDescription.expectToBeVisible();
-        });
-        describe((
-            'Нажимаю на кнопку "Добавить фильтр". Заполняю поля формы всплывающего окна, чтобы добавить фильтр по ' +
-            'рекламной кампании. Нажимаю на кнопку "Выбрать". Нажимаю на кнопку "Применить". Нажимаю на кнопку ' +
-            '"Настроить столбцы".'
-        ), function() {
+        xdescribe('Нажимаю на кнопку "Добавить фильтр".', function() {
             beforeEach(function() {
-                helper.addFilterButton.click();
-                wait();
-
-                helper.floatingForm.combobox().withPlaceholder('Параметр').clickArrow().option('Рекламная кампания').
-                    click();
-                wait();
-
-                helper.requestParameterHints().send();
-                wait();
-
-                helper.floatingForm.combobox().withPlaceholder('Условие').clickArrow().option('не равно').click();
-                wait();
-
-                helper.floatingForm.combobox().withPlaceholder('Значение').clickArrow().
-                    option('Посетители без рекламной кампании').click();
-                wait();
-
-                helper.chooseButton.click();
-                wait();
-
-                helper.applyFilterButton.click();
-                helper.requestGridData().checkFilterAtServer().setCameFromReview().setNotWithoutAdvertisingCampaign().
-                    send();
-                helper.requestCallChartData().setCameFromReview().setNotWithoutAdvertisingCampaign().send();
-                wait();
-
-                helper.setupColumnsButton.click();
-                helper.requestCallSettings().setCallsColumns().send();
+                tester.addFilterButton.click();
                 wait();
             });
 
-            it((
-                'Нажимаю на кнопку скрывающую колонку "Рекламная кампания". Нажимаю на кнопку "Сохранить". Фильтр по ' +
-                'рекламной кампании скрыт.'
-            ), function() {
-                helper.advertisingCampaignExcludeButton.click();
-                wait();
+            describe(
+                'Заполняю поля формы всплывающего окна, чтобы добавить фильтр по рекламной кампании. Нажимаю на ' +
+                'кнопку "Выбрать". Нажимаю на кнопку "Применить". Нажимаю на кнопку "Настроить столбцы".',
+            function() {
+                beforeEach(function() {
+                    tester.floatingForm.combobox().withPlaceholder('Параметр').clickArrow().
+                        option('Рекламная кампания').click();
+                    wait();
 
-                helper.saveButton.click();
-                wait();
+                    tester.requestParameterHints().send();
+                    wait();
 
-                helper.requestSettingsUpdate().setOnlyEmployeeName().send();
-                helper.requestCallReferenceData().send();
-                helper.requestCallSettings().setNotDefault().send();
-                helper.requestGridData().setCameFromReview().setNotWithoutAdvertisingCampaign().setOnlyEmployeeName().
-                    send();
-                helper.requestCallFilters().send();
-                helper.requestCallChartData().setCameFromReview().setNotWithoutAdvertisingCampaign().send();
-                wait();
+                    tester.floatingForm.combobox().withPlaceholder('Условие').clickArrow().option('не равно').click();
+                    wait();
 
-                helper.advertisingCampaignFilterDescription.expectToBeHiddenOrNotExist();
+                    tester.floatingForm.combobox().withPlaceholder('Значение').clickArrow().
+                        option('Посетители без рекламной кампании').click();
+                    wait();
+
+                    tester.chooseButton.click();
+                    wait();
+
+                    tester.applyFilterButton.click();
+                    tester.eventTrackingRequest().receiveResponse();
+                    tester.requestGridData().checkFilterAtServer().setCameFromReview().
+                        setNotWithoutAdvertisingCampaign().send();
+                    tester.requestCallChartData().setCameFromReview().setNotWithoutAdvertisingCampaign().send();
+                    wait();
+                    tester.eventTrackingRequest().setLoad().receiveResponse();
+                    tester.eventTrackingRequest().setGridRendered().receiveResponse();
+                    tester.tagsRequest().receiveResponse();
+
+                    tester.setupColumnsButton.click();
+                    tester.requestCallSettings().setCallsColumns().send();
+                    wait();
+                });
+
+                it((
+                    'Нажимаю на кнопку скрывающую колонку "Рекламная кампания". Нажимаю на кнопку "Сохранить". ' +
+                    'Фильтр по рекламной кампании скрыт.'
+                ), function() {
+                    tester.advertisingCampaignExcludeButton.click();
+                    wait();
+
+                    tester.saveButton.click();
+                    wait();
+
+                    tester.requestSettingsUpdate().setOnlyEmployeeName().send();
+                    tester.requestCallReferenceData().send();
+                    tester.requestCallSettings().setNotDefault().send();
+                    tester.eventTrackingRequest().receiveResponse();
+                    tester.requestGridData().setCameFromReview().setNotWithoutAdvertisingCampaign().
+                        setOnlyEmployeeName().send();
+                    tester.requestCallFilters().send();
+                    tester.requestCallChartData().setCameFromReview().setNotWithoutAdvertisingCampaign().send();
+                    wait();
+                    tester.eventTrackingRequest().setLoad().receiveResponse();
+                    tester.eventTrackingRequest().setGridRendered().receiveResponse();
+                    tester.tagsRequest().receiveResponse();
+
+                    tester.advertisingCampaignFilterDescription.expectToBeHiddenOrNotExist();
+                });
+                it((
+                    'Нажимаю на кнопку скрывающую колонку "Сотрудник". Нажимаю на кнопку "Сохранить". Фильтр по ' +
+                    'рекламной кампании видим.'
+                ), function() {
+                    tester.employeeNameExcludeButton.click();
+                    wait();
+
+                    tester.saveButton.click();
+                    wait();
+
+                    tester.requestSettingsUpdate().setOnlyAdvertisingCampaign().send();
+                    tester.requestCallReferenceData().send();
+                    tester.requestCallSettings().setNotDefault().send();
+                    tester.eventTrackingRequest().receiveResponse();
+                    tester.requestGridData().setCameFromReview().setNotWithoutAdvertisingCampaign().
+                        setOnlyAdvertisingCampaign().send();
+                    tester.requestCallFilters().send();
+                    tester.requestCallChartData().setCameFromReview().setNotWithoutAdvertisingCampaign().send();
+                    wait();
+                    tester.eventTrackingRequest().setLoad().receiveResponse();
+                    tester.eventTrackingRequest().setGridRendered().receiveResponse();
+                    tester.tagsRequest().receiveResponse();
+
+                    tester.advertisingCampaignFilterDescription.expectToBeVisible();
+                });
             });
-            it((
-                'Нажимаю на кнопку скрывающую колонку "Сотрудник". Нажимаю на кнопку "Сохранить". Фильтр по ' +
-                'рекламной кампании видим.'
-            ), function() {
-                helper.employeeNameExcludeButton.click();
-                wait();
+            describe(
+                'Заполняю поля формы всплывающего окна, чтобы добавить фильтр по тегам. Нажимаю на кнопку "Выбрать".',
+            function() {
+                beforeEach(function() {
+                    tester.floatingForm.combobox().withPlaceholder('Параметр').clickArrow().
+                        option('Теги').click();
+                    wait();
+                    tester.floatingForm.combobox().withPlaceholder('Условие').clickArrow().option('равно').click();
+                    wait();
+                    tester.floatingForm.combobox().withPlaceholder('Значение').clickArrow().
+                        option('В обработке').click();
+                    wait();
+                        
+                    tester.button('Значение').click();
+                    wait();
+                    tester.floatingForm.combobox().withValue('').clickArrow().option('Нецелевой контакт').click();
+                    wait();
 
-                helper.saveButton.click();
-                wait();
+                    tester.chooseButton.click();
+                    wait();
 
-                helper.requestSettingsUpdate().setOnlyAdvertisingCampaign().send();
-                helper.requestCallReferenceData().send();
-                helper.requestCallSettings().setNotDefault().send();
-                helper.requestGridData().setCameFromReview().setNotWithoutAdvertisingCampaign().
-                    setOnlyAdvertisingCampaign().send();
-                helper.requestCallFilters().send();
-                helper.requestCallChartData().setCameFromReview().setNotWithoutAdvertisingCampaign().send();
-                wait();
+                    tester.addFilterButton.click();
+                    wait();
+                    tester.floatingForm.combobox().withPlaceholder('Параметр').clickArrow().
+                        option('Теги').click();
+                    wait();
+                    tester.floatingForm.combobox().withPlaceholder('Условие').clickArrow().option('равно').click();
+                    wait();
+                    tester.floatingForm.combobox().withPlaceholder('Значение').clickArrow().
+                        option('Не обработано').click();
+                    wait();
 
-                helper.advertisingCampaignFilterDescription.expectToBeVisible();
+                    tester.chooseButton.click();
+                    wait();
+                });
+
+                describe('Открываю меню условия.', function() {
+                    beforeEach(function() {
+                        tester.conditionMenu('Теги равно В обработке или Нецелевой контакт').click();
+                        wait();
+                    });
+
+                    describe(
+                        'Нажимаю на пункт меню "Добавить похожий". Нажимаю на кнпоку удаления тега. Нажимаю на ' +
+                        'кнопку "Изменить".',
+                    function() {
+                        beforeEach(function() {
+                            tester.menuItem('Добавить похожий').click();
+                            wait();
+                            tester.button('Изменить').click();
+                            wait();
+                        });
+
+                        it('Нажимаю на кнопку "Сохранить". Отправлен запрос обновления настроек.', function() {
+                            tester.applyFilterButton.click();
+                            tester.eventTrackingRequest().receiveResponse();
+                            
+                            tester.requestGridData().
+                                checkFilterAtServer().
+                                setCameFromReview().
+                                setSecondSetOfTags().
+                                send();
+
+                            tester.requestCallChartData().setCameFromReview().send();
+                            wait();
+                            tester.eventTrackingRequest().setLoad().receiveResponse();
+                            tester.eventTrackingRequest().setGridRendered().receiveResponse();
+                            tester.tagsRequest().receiveResponse();
+                        });
+                        it('Отображены выбранные теги.', function() {
+                            tester.filterContainer.expectToHaveTextContent(
+                                'Переход из отчёта Обзорный отчет ' +
+                                'и ' +
+                                'Теги равно В обработке или Нецелевой контакт ' +
+                                'и ' +
+                                'Теги равно Не обработано ' +
+                                'и ' +
+                                'Теги равно В обработке или Нецелевой контакт ' +
+
+                                'Применить'
+                            );
+                        });
+                    });
+                    describe(
+                        'Нажимаю на пункт меню "Редактировать". Нажимаю на кнпоку удаления тега. Нажимаю на кнопку ' +
+                        '"Изменить".',
+                    function() {
+                        beforeEach(function() {
+                            tester.menuItem('Редактировать').click();
+                            wait();
+                            tester.clearButton().first().click();
+                            wait();
+                            tester.button('Изменить').click();
+                            wait();
+                       });
+
+                        it('Нажимаю на кнопку "Сохранить". Отправлен запрос обновления настроек.', function() {
+                            tester.applyFilterButton.click();
+                            tester.eventTrackingRequest().receiveResponse();
+                            
+                            tester.requestGridData().
+                                checkFilterAtServer().
+                                setCameFromReview().
+                                setThirdSetOfTags().
+                                send();
+
+                            tester.requestCallChartData().setCameFromReview().send();
+                            wait();
+                            tester.eventTrackingRequest().setLoad().receiveResponse();
+                            tester.eventTrackingRequest().setGridRendered().receiveResponse();
+                            tester.tagsRequest().receiveResponse();
+                        });
+                        it('Отображены выбранные теги.', function() {
+                            tester.filterContainer.expectToHaveTextContent(
+                                'Переход из отчёта Обзорный отчет ' +
+                                'и ' +
+                                'Теги равно Нецелевой контакт ' +
+                                'и ' +
+                                'Теги равно Не обработано ' +
+
+                                'Применить'
+                            );
+                        });
+                    });
+                    describe('Нажимаю на пункт меню "Удалить".', function() {
+                        beforeEach(function() {
+                            tester.menuItem('Удалить').click();
+                            wait();
+                        });
+
+                        it('Нажимаю на кнопку "Сохранить". Отправлен запрос обновления настроек.', function() {
+                            tester.applyFilterButton.click();
+                            tester.eventTrackingRequest().receiveResponse();
+                            
+                            tester.requestGridData().
+                                checkFilterAtServer().
+                                setCameFromReview().
+                                setFourthSetOfTags().
+                                send();
+
+                            tester.requestCallChartData().setCameFromReview().send();
+                            wait();
+                            tester.eventTrackingRequest().setLoad().receiveResponse();
+                            tester.eventTrackingRequest().setGridRendered().receiveResponse();
+                            tester.tagsRequest().receiveResponse();
+                        });
+                        it('Отображены выбранные теги.', function() {
+                            tester.filterContainer.expectToHaveTextContent(
+                                'Переход из отчёта Обзорный отчет ' +
+                                'и ' +
+                                'Теги равно Не обработано ' +
+                                'Применить'
+                            );
+                        });
+                    });
+                });
+                it('Нажимаю на кнопку "Применить". Отправлен запрос данных для таблицы с фильтрацией.', function() {
+                    tester.applyFilterButton.click();
+                    tester.eventTrackingRequest().receiveResponse();
+                    tester.requestGridData().checkFilterAtServer().setCameFromReview().setTags().send();
+                    tester.requestCallChartData().setCameFromReview().send();
+                    wait();
+                    tester.eventTrackingRequest().setLoad().receiveResponse();
+                    tester.eventTrackingRequest().setGridRendered().receiveResponse();
+                    tester.tagsRequest().receiveResponse();
+                });
+                it('Отображены выбранные теги.', function() {
+                    tester.filterContainer.expectToHaveTextContent(
+                        'Переход из отчёта Обзорный отчет ' +
+                        'и ' +
+                        'Теги равно В обработке или Нецелевой контакт ' +
+                        'и ' +
+                        'Теги равно Не обработано ' +
+
+                        'Применить'
+                    );
+                });
             });
         });
-        it((
-            'Нажимаю на иконку с календарем. Изменяю период. Нажмаю на кнопку "Применить". Фильтр перехода из ' +
-            'раздела обзора видим.'
-        ), function() {
-            helper.calendarButton.click();
+        xit(
+            'Нажимаю на кнопку сохранения фильтра. Ввожу название фильтра. Нажимаю на кнпоку "Сохранить". Отправлен ' +
+            'запрос сохранения фильтра.',
+        function() {
+            tester.saveFilterButton.click();
             wait();
 
-            helper.augustThirteenthButton.click();
+            tester.floatingForm.textfield().withPlaceholder('Название фильтра').fill('Некий фильтр');
             wait();
 
-            helper.applyButton.click();
+            tester.saveButton.click();
             wait();
-
-            helper.requestGridData().changeStartDate().send();
-            helper.requestCallChartData().changeStartDate().send();
+            tester.filtersUpdatingRequest().receiveResponse();
+            tester.eventTrackingRequest().receiveResponse();
+            tester.requestGridData().checkFilterAtServer().setCameFromReview().send();
+            tester.requestCallChartData().setCameFromReview().send();
             wait();
+            tester.eventTrackingRequest().setLoad().receiveResponse();
+            tester.eventTrackingRequest().setGridRendered().receiveResponse();
+            tester.tagsRequest().receiveResponse();
+        });
+        xit(
+            'Нажимаю на кнопку удаления условий. Условия не отображены. Отправлен запрос данных для таблицы без ' +
+            'фильтрации.',
+        function() {
+            tester.cancelButton.click();
+            tester.eventTrackingRequest().receiveResponse();
+            tester.requestGridData().checkFilterAtServer().setNoFilter().send();
+            tester.requestCallChartData().setNoFilter().send();
+            wait();
+            tester.eventTrackingRequest().setLoad().receiveResponse();
+            tester.eventTrackingRequest().setGridRendered().receiveResponse();
+            tester.tagsRequest().receiveResponse();
 
-            helper.reviewItemFilterDescription.expectToBeVisible();
+            tester.filterContainer.expectToBeHiddenOrNotExist();
+        });
+        it('Отображен фильтр перехода из раздела обзора. Кнопка "Применить" заблокирована.', function() {
+            tester.reviewItemFilterDescription.expectToBeVisible();
+
+            tester.button('Применить').expectToBeDisabled();
+
+            tester.filterContainer.expectToHaveTextContent(
+                'Переход из отчёта Обзорный отчет ' +
+                'Применить'
+            );
         });
     });
 });

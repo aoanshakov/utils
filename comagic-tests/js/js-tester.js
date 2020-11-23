@@ -167,7 +167,7 @@ function JsTester_TestersFactory (wait, utils, factory) {
             utils.fieldDescription('текстовое поле', label), utils.fieldDescription('текстового поля', label), factory);
     };
     this.createDomElementTester = function () {
-        var getDomElement = utils.makeFunction(arguments[0]);
+        var getDomElement = utils.makeDomElementGetter(arguments[0]);
 
         return factory.createDomElementTester(getDomElement, wait, utils, this, male, function () {
             return 'элемент ' + utils.getTypeDescription(getDomElement());
@@ -179,6 +179,95 @@ function JsTester_TestersFactory (wait, utils, factory) {
     };
     this.createDescendantsTesterFactory = function (getDomElement) {
         return new JsTester_DescendantsTesterFactory(getDomElement, utils, this);
+    };
+}
+
+function JsTester_NoElement () {
+    this.classList = {
+        add: function () {
+            throw new Error('Элемент должен существовать');
+        }
+    };
+    this.closest = function () {
+        return new JsTester_NoElement();
+    };
+    this.querySelector = function () {
+        return new JsTester_NoElement();
+    };
+    this.querySelectorAll = function () {
+        return [];
+    };
+    this.getBoundingClientRect = function () {
+        return {
+            left: 0,
+            top: 0,
+            width: 0,
+            height: 0
+        };
+    };
+}
+
+function JsTester_DescendantFinder (ascendantElement, utils) {
+    var selector = '*';
+    ascendantElement = ascendantElement || new JsTester_NoElement();
+
+    var isDesiredText = function () {
+        throw new Error('Не указаны критерии поиска');
+    };
+
+    this.matchesSelector = function (value) {
+        selector = value;
+        return this;
+    };
+
+    this.textEquals = function (desiredTextContent) {
+        isDesiredText = function (actualTextContent) {
+            return actualTextContent == desiredTextContent;
+        };
+
+        return this;
+    };
+
+    this.textContains = function (desiredTextContent) {
+        isDesiredText = function (actualTextContent) {
+            return actualTextContent.indexOf(desiredTextContent) != -1;
+        };
+
+        return this;
+    };
+
+    this.findAll = function () {
+        var i,
+            descendants = ascendantElement.querySelectorAll(selector),
+            length = descendants.length,
+            descendant,
+            desiredDescendants = [];
+        
+        for (i = 0; i < length; i ++) {
+            descendant = descendants[i];
+
+            if (isDesiredText(utils.getTextContent(descendant))) {
+                desiredDescendants.push(descendant);
+            }
+        }
+
+        return desiredDescendants;
+    };
+
+    this.findAllVisible = function () {
+        return this.findAll().filter(function (domElement) {
+            return utils.isVisible(domElement);
+        });
+    };
+
+    this.find = function () {
+        var desiredDescendants = this.findAll();
+
+        if (desiredDescendants.length) {
+            return utils.getVisibleSilently(desiredDescendants) || new JsTester_NoElement();
+        }
+
+        return new JsTester_NoElement();
     };
 }
 
@@ -275,6 +364,19 @@ function JsTester_Utils (debug) {
                 return domElement;
             };
         }
+    };
+    this.makeDomElementGetter = function (value) {
+        var getDomElement = this.makeFunction(value);
+
+        return function () {
+            var element = getDomElement();
+
+            if (element instanceof JsTester_NoElement) {
+                return null;
+            }
+
+            return element;
+        };
     };
     this.fieldDescription = function (description, label) {
         return description + (label ? (' "' + label + '"') : '');
@@ -466,6 +568,12 @@ function JsTester_Utils (debug) {
 
         return string.charAt(0).toUpperCase() + string.substr(1);
     };
+    this.descendantOf = function (ascendantElement) {
+        return new JsTester_DescendantFinder(ascendantElement, this);
+    };
+    this.descendantOfBody = function () {
+        return this.descendantOf(document.body);
+    };
     this.findElementByTextContent = function (ascendantElement, desiredTextContent, selector) {
         var results = this.findElementsByTextContent(ascendantElement, desiredTextContent, selector);
 
@@ -508,17 +616,25 @@ function JsTester_Utils (debug) {
 
         return results;
     };
-    this.getVisible = function (domElements) {
-        var results = Array.prototype.slice.call(domElements, 0).filter((function (domElement) {
+    function getVisible (domElements, handleError) {
+        var results = Array.prototype.filter.call(domElements, (function (domElement) {
             return this.isVisible(domElement);
         }).bind(this));
 
         if (results.length != 1) {
-            throw new Error('Найдено ' + results.length + ' видимых элементов, тогда как видимым должен быть только ' +
-                'один.');
+            handleError(results.length);
+            return;
         }
 
         return results[0];
+    }
+    this.getVisibleSilently = function (domElements) {
+        return getVisible.call(this, domElements, function () {});
+    };
+    this.getVisible = function (domElements) {
+        return getVisible.call(this, domElements, function (count) {
+            throw new Error('Найдено ' + count + ' видимых элементов, тогда как видимым должен быть только один.');
+        });
     };
 }
 
@@ -1044,7 +1160,7 @@ function JsTester_InputElement (
 }
 
 function JsTester_DescendantsTesterFactory (getDomElement, utils, testersFactory) {
-    getDomElement = utils.makeFunction(getDomElement);
+    getDomElement = utils.makeDomElementGetter(getDomElement);
 
     this.forDescendant = function (selector) {
         return testersFactory.createDomElementTester(function () {
@@ -1065,7 +1181,7 @@ function JsTester_DomElement (
     domElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
     genetiveDescription, factory
 ) {
-    var getDomElement = utils.makeFunction(domElement),
+    var getDomElement = utils.makeDomElementGetter(domElement),
         getNominativeDescription = utils.makeFunction(nominativeDescription),
         getAccusativeDescription = utils.makeFunction(accusativeDescription),
         getGenetiveDescription = utils.makeFunction(genetiveDescription);

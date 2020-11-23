@@ -81,6 +81,14 @@
         "sitemanagement.appuser": [
             "helpers/SitemanagementAppuser.js",
             "tests/sitemanagement.appuser.js"
+        ],
+        "sitemanagement.sitesettings": [
+            "helpers/SitemanagementSitesettings.js",
+            "tests/sitemanagement.sitesettings.js"
+        ],
+        "services.ats.callblocking": [
+            "helpers/ServicesAtsCallblocking.js",
+            "tests/services.ats.callblocking.js"
         ]
     },
     "easystart": {

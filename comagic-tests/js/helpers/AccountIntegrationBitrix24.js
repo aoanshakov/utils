@@ -75,8 +75,8 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
             is_process_offline_message: true,
             is_import_deal: true,
             link_deal_to_communication: 'something',
-            sale_category_user_field_value_id: [],
-            loss_reason_user_field_value_id: [],
+            sale_category_user_field_value_ids: [],
+            loss_reason_user_field_value_ids: [],
             last_import_deal_date: '2018-02-12',
             last_import_deal_result: 'ok',
             admin_user_name: 'Ivanov Ivan Ivanovich',
@@ -269,6 +269,39 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
         };
     };
 
+    this.requestSelectMultiselectUserFields = function () {
+        return {
+            send: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/directory/comagic:bitrix:select_multiselect_user_fields/').
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: [{
+                            loss_reason: {
+                                '495299': 'Первое поле для категорий и причин',
+                                '495300': 'Второе поле для категорий и причин',
+                                '495301': 'Третье поле для категорий и причин',
+                                '495302': 'Четвертое поле для категорий и причин',
+                                '495303': 'Пятое поле для категорий и причин',
+                                '495304': 'Шестое поле для категорий и причин',
+                                '495305': 'Седьмое поле для категорий и причин',
+                                'unsuccessful_funnel_stages': 'Неуспешные стадии воронки'
+                            },
+                            sale_category: {
+                                '495299': 'Первое поле для категорий и причин',
+                                '495300': 'Второе поле для категорий и причин',
+                                '495301': 'Третье поле для категорий и причин',
+                                '495302': 'Четвертое поле для категорий и причин',
+                                '495303': 'Пятое поле для категорий и причин',
+                                '495304': 'Шестое поле для категорий и причин',
+                                '495305': 'Седьмое поле для категорий и причин'
+                            }
+                        }]
+                    });
+            }
+        };
+    };
+
     function getDirectories () {
         return {
             'comagic:bitrix:user': [{
@@ -347,28 +380,6 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
                 name: 'Это поле',
                 description: 'Это замечательное поле',
                 mnemonic: 'this_field'
-            }],
-            'comagic:bitrix:select_multiselect_user_fields': [{
-                id: 495299,
-                name: 'Первое поле для категорий и причин'
-            }, {
-                id: 495300,
-                name: 'Второе поле для категорий и причин'
-            }, {
-                id: 495301,
-                name: 'Третье поле для категорий и причин'
-            }, {
-                id: 495302,
-                name: 'Четвертое поле для категорий и причин'
-            }, {
-                id: 495303,
-                name: 'Пятое поле для категорий и причин'
-            }, {
-                id: 495304,
-                name: 'Шестое поле для категорий и причин'
-            }, {
-                id: 495305,
-                name: 'Седьмое поле для категорий и причин'
             }]
         };
     }
@@ -460,11 +471,11 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
 
         return {
             setSaleCategoryUserFieldValueIds: function () {
-                bodyParams.sale_category_user_field_value_id = [495300, 495302];
+                bodyParams.sale_category_user_field_value_ids = ['495300', '495302'];
                 return this;
             },
             setLossReasonUserFieldValueId: function () {
-                bodyParams.loss_reason_user_field_value_id = [495299, 495303];
+                bodyParams.loss_reason_user_field_value_ids = ['495299', '495303'];
                 return this;
             },
             send: function () {

@@ -40,11 +40,11 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
                 return this;
             },
             setSaleCategoryUserFieldValueIds: function () {
-                bodyParams.sale_category_user_field_value_id = [495300, 495302, 495299, 495301, 495304];
+                bodyParams.sale_category_user_field_value_ids = ['495300', '495302', '495299', '495301', '495304'];
                 return this;
             },
             setLossReasonUserFieldValueId: function () {
-                bodyParams.loss_reason_user_field_value_id = [495299, 495303];
+                bodyParams.loss_reason_user_field_value_ids = ['495299', '495303'];
                 return this;
             },
             setFirstActManual: function () {
@@ -292,6 +292,39 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         };
     };
 
+    this.requestSelectMultiselectUserFields = function () {
+        return {
+            send: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/directory/comagic:amocrm:select_multiselect_user_fields/').
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: [{
+                            loss_reason: {
+                                '495299': 'Первое поле для категорий и причин',
+                                '495300': 'Второе поле для категорий и причин',
+                                '495301': 'Третье поле для категорий и причин',
+                                '495302': 'Четвертое поле для категорий и причин',
+                                '495303': 'Пятое поле для категорий и причин',
+                                '495304': 'Шестое поле для категорий и причин',
+                                '495305': 'Седьмое поле для категорий и причин',
+                                'unsuccessful_funnel_stages': 'Неуспешные стадии воронки'
+                            },
+                            sale_category: {
+                                '495299': 'Первое поле для категорий и причин',
+                                '495300': 'Второе поле для категорий и причин',
+                                '495301': 'Третье поле для категорий и причин',
+                                '495302': 'Четвертое поле для категорий и причин',
+                                '495303': 'Пятое поле для категорий и причин',
+                                '495304': 'Шестое поле для категорий и причин',
+                                '495305': 'Седьмое поле для категорий и причин'
+                            }
+                        }] 
+                    });
+            }
+        };
+    };
+
     this.batchReloadRequest = function () {
         return {
             send: function () {
@@ -434,28 +467,6 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
                                 id: '74959759581',
                                 is_service: false,
                                 name: '74959759581'
-                            }],
-                            'comagic:amocrm:select_multiselect_user_fields': [{
-                                id: 495299,
-                                name: 'Первое поле для категорий и причин'
-                            }, {
-                                id: 495300,
-                                name: 'Второе поле для категорий и причин'
-                            }, {
-                                id: 495301,
-                                name: 'Третье поле для категорий и причин'
-                            }, {
-                                id: 495302,
-                                name: 'Четвертое поле для категорий и причин'
-                            }, {
-                                id: 495303,
-                                name: 'Пятое поле для категорий и причин'
-                            }, {
-                                id: 495304,
-                                name: 'Шестое поле для категорий и причин'
-                            }, {
-                                id: 495305,
-                                name: 'Седьмое поле для категорий и причин'
                             }]
                         }
                     });
@@ -886,8 +897,8 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
             check_manager_online: true,
             responsible_manager_source: null,
             deal_source_user_field_ext_id: null,
-            sale_category_user_field_value_id: [],
-            loss_reason_user_field_value_id: []
+            sale_category_user_field_value_ids: [],
+            loss_reason_user_field_value_ids: []
         };
     }
 
@@ -895,6 +906,14 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         var data = getAmocrmData();
 
         return {
+            setSaleCategories: function () {
+                data.sale_category_user_field_value_ids = ['666', '495300', '495301'];
+                return this;
+            },
+            setLossReasons: function () {
+                data.loss_reason_user_field_value_ids = ['495299', '495302'];
+                return this;
+            },
             setOfflineActContact: function () {
                 data.offline_message_act = 'contact';
                 return this;

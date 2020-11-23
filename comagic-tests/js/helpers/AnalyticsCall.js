@@ -36,6 +36,53 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
                 endDate: new Date(1566819513815)
             }
         }, params);
+
+        document.querySelector('.cm-basepage').style.overflow = 'auto';
+    };
+
+    this.tagsRequest = function () {
+        return {
+            receiveResponse: function () {
+                requestsManager.recentRequest().expectToHavePath('/analytics/call/tag/read/').respondSuccessfullyWith({
+                    success: true,
+                    total: 3,
+                    data: [{
+                        cnt: 21,
+                        name: 'Не обработано',
+                        auto_set_site_ids: null,
+                        is_system: false,
+                        is_in_use: true,
+                        auto_set_communication_types: null,
+                        is_auto_set: false,
+                        base_in_analyze_models: null,
+                        user_mark_cnt: 0,
+                        id: 311
+                    }, {
+                        cnt: 21,
+                        name: 'Нецелевой контакт',
+                        auto_set_site_ids: null,
+                        is_system: false,
+                        is_in_use: true,
+                        auto_set_communication_types: null,
+                        is_auto_set: false,
+                        base_in_analyze_models: null,
+                        user_mark_cnt: 0,
+                        id: 377
+                    }, {
+                        cnt: 21,
+                        name: 'В обработке',
+                        auto_set_site_ids: null,
+                        is_system: false,
+                        is_in_use: true,
+                        auto_set_communication_types: null,
+                        is_auto_set: false,
+                        base_in_analyze_models: null,
+                        user_mark_cnt: 0,
+                        id: 378
+                    }]
+                });
+            }
+        };
     };
 
     this.requestSettingsUpdate = function () {
@@ -98,6 +145,22 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
                             'comagic:report:is_lost': [{
                                 id: 'lost',
                                 name: 'Потерянный'
+                            }],
+                            'comagic:talk_option:marks': [{
+                                aux_id: 'in_process',
+                                aux_id2: 0,
+                                id: 378,
+                                name: 'В обработке'
+                            }, {
+                                aux_id: 'not_processed',
+                                aux_id2: 0,
+                                id: 311,
+                                name: 'Не обработано'
+                            }, {
+                                aux_id: 'not_goal_contact',
+                                aux_id2: 0,
+                                id: 377,
+                                name: 'Нецелевой контакт'
                             }]
                         }
                     });
@@ -191,6 +254,34 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
         };
     };
 
+    this.filtersUpdatingRequest = function () {
+        return {
+            receiveResponse: function () {
+                return requestsManager.recentRequest().
+                    expectToHavePath('/analytics/call/filters/update/').
+                    expectQueryToContain({
+                        mode: 'site'
+                    }).
+                    expectBodyToContain({
+                        name: 'Некий фильтр',
+                        contains_sale:  false,
+                        filters: [{
+                            comparison: 'eq',
+                            field: 'id',
+                            type: 'system',
+                            value: [938201, 83820],
+                            isDimension: null,
+                            displayAs: 'Переход из отчёта <span style="color: #000;">Обзорный отчет</span>'        
+                        }]
+                    }).
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: true
+                    });
+            }
+        };
+    };
+
     this.requestGridData = function () {
         var bodyParams = {
             start_date: ['2019-08-21 14:38:33'],
@@ -212,11 +303,12 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
                 id: 938201,
                 employee_name: 'Иванов Иван Иванович',
                 ac_name: 'Посетители без рекламной кампании',
+                marks: ['Не обработано', 'Нецелевой контакт'],
                 numa: '79451234567',
                 is_auto_sale: true
             }],
             metaData: {
-                fields: ['id', 'employee_name', 'ac_name', 'numa', 'is_auto_sale'],
+                fields: ['id', 'employee_name', 'ac_name', 'numa', 'is_auto_sale', 'marks'],
                 grid: [{
                     description: 'Номер абонента',
                     filterType: 'text',
@@ -259,6 +351,19 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
                         site_new: 'is_insert'
                     },
                     valueElData: 'function'
+                }, {
+                    description: 'Теги',
+                    filterType: 'array_list',
+                    listFilterParams: {
+                        directory_name: 'comagic:talk_option:marks',
+                        site_id: '3825'
+                    },
+                    name: 'marks',
+                    text: 'Теги',
+                    user_permission_units: {
+                        tag_management: 'is_select'
+                    },
+                    valueElData: 'directory'
                 }, {
                     name: 'is_auto_sale',
                     _grid_only: true
@@ -305,6 +410,74 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
                     value: [938201, 83820],
                     comparison: 'eq'
                 });
+
+                return this;
+            },
+            setTags: function () {
+                filter.push({
+                    comparison: 'overlap',
+                    field: 'marks',
+                    value: ['В обработке', 'Нецелевой контакт', undefined]
+                });
+
+                filter.push({
+                    comparison: 'overlap',
+                    field: 'marks',
+                    value: ['Не обработано', undefined]
+                });
+
+                filter.push(undefined);
+
+                return this;
+            },
+            setSecondSetOfTags: function () {
+                filter.push({
+                    comparison: 'overlap',
+                    field: 'marks',
+                    value: ['В обработке', 'Нецелевой контакт', undefined]
+                });
+
+                filter.push({
+                    comparison: 'overlap',
+                    field: 'marks',
+                    value: ['Не обработано', undefined]
+                });
+
+                filter.push({
+                    comparison: 'overlap',
+                    field: 'marks',
+                    value: ['В обработке', 'Нецелевой контакт', undefined]
+                });
+
+                filter.push(undefined);
+
+                return this;
+            },
+            setThirdSetOfTags: function () {
+                filter.push({
+                    comparison: 'overlap',
+                    field: 'marks',
+                    value: ['Нецелевой контакт', undefined]
+                });
+
+                filter.push({
+                    comparison: 'overlap',
+                    field: 'marks',
+                    value: ['Не обработано', undefined]
+                });
+
+                filter.push(undefined);
+
+                return this;
+            },
+            setFourthSetOfTags: function () {
+                filter.push({
+                    comparison: 'overlap',
+                    field: 'marks',
+                    value: ['Не обработано', undefined]
+                });
+
+                filter.push(undefined);
 
                 return this;
             },
@@ -471,6 +644,32 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
         };
     };
 
+    this.eventTrackingRequest = function () {
+        var data = {
+            category: 'report',
+            action: 'before_load'    
+        };
+
+        return {
+            setLoad: function () {
+                data.action = 'load';
+                return this;
+            },
+            setGridRendered: function () {
+                data.action = 'grid_rendered';
+                return this;
+            },
+            receiveResponse: function () {
+                requestsManager.recentRequest().expectToHavePath(
+                    '/system/event_tracker/track/'
+                ).expectBodyToContain([data]).respondSuccessfullyWith({
+                    success: true,
+                    data: true
+                });
+            }
+        };
+    };
+
     this.destroy = function() {
         controller.destroy();
     };
@@ -534,5 +733,49 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
     this.advertisingCampaignFilterDescription = testersFactory.createDomElementTester(function () {
         return utils.findElementByTextContent(Comagic.application.getViewport().el.dom,
             'Рекламная кампания не равно Посетители без рекламной кампании', '.ul-property-container-inner');
+    });
+
+    this.button = function (text) {
+        return testersFactory.createButtonTester(utils.getComponentFromDomElement(
+            utils.descendantOfBody().matchesSelector('.x-btn').textEquals(text).find()
+        ));
+    };
+
+    this.filterContainer = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.cm-filter2panel-filters-container');
+    });
+
+    this.clearButton = function () {
+        function getTester (index) {
+            return testersFactory.createDomElementTester(document.
+                querySelectorAll('.ul-btn-usual-icon-cls-clear')[index]);
+        }
+
+        return {
+            first: function () {
+                return getTester(0);
+            },
+            second: function () {
+                return getTester(1);
+            }
+        }
+    };
+
+    this.menuItem = function (text) {
+        return testersFactory.createDomElementTester(utils.descendantOfBody().matchesSelector('.x-menu-item-text').
+            textEquals(text).find());
+    };
+
+    this.conditionMenu = function (text) {
+        return testersFactory.createDomElementTester(utils.descendantOfBody().
+            matchesSelector('.ul-property-container').textEquals(text).find().querySelector('.ul-property-menu'));
+    };
+
+    this.cancelButton = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.cm-filter2panel-controlpanel-btn-cancel');
+    });
+
+    this.saveFilterButton = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.cm-filter2panel-controlpanel-btn-save');
     });
 }

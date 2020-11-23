@@ -29,25 +29,22 @@ then
     exit 1
 fi
 
-initialized=0
+initialize
 
-if [ ! -d "/usr/local/src/comagic_web" ]
+if [ ! -d /usr/local/src/comagic_web/static/comagic/gen ]
 then
-    initialize
     build
+fi 
+
+if [ ! -f usr/local/src/comagic_web/comagic/local_config.py ]
+then
     config
-    initialized=1
 fi
 
 if [ "$action" = "
     initialize" ]
 then
-    if [ $initialized -eq 1 ]
-    then
-        exit 0
-    fi
-
-    initialize
+    exit 0
 elif [ "$action" = "runclient" ]
 then
     runclient

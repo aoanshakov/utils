@@ -2,7 +2,6 @@
 
 port=""
 action="runclient"
-workspace="git.dev.uis.st/web"
 
 while [ -n "$1" ]
 do
@@ -14,10 +13,6 @@ do
     then
         action=$2
         shift
-    elif [ "$1" = "-w" ]
-    then
-        workspace=$2
-        shift
     fi
 
     shift
@@ -25,6 +20,7 @@ done
 
 docker run -it --rm \
     -v $HOME/gitlab.uis.dev/comagic_web:/usr/local/src/comagic_web \
+    --mount type=bind,source=$HOME/gitlab.uis.dev/comagic-config.json,target=/usr/local/src/comagic-config.json \
     --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa \
     --mount type=bind,source=/etc/passwd,target=/etc/passwd \
     --mount type=bind,source=/etc/group,target=/etc/group \

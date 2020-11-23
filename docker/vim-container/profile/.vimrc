@@ -175,7 +175,7 @@ function! SetUpEslint()
     if path =~ '\.js$' || path =~ '\.tsx$'
         let isReactApp = 0
 
-        if stridx(path, '/sip_lib/tests/js/') != -1 || stridx(path, '/comagic-tests/js/tests/')
+        if stridx(path, '/bitrix_widget/tests/tests.js') != -1 || stridx(path, '/sip_lib/tests/js/') != -1 || stridx(path, '/comagic-tests/js/tests/') != -1
             noremap ;aa k^f)%Ix<esc>^zz
             noremap ;zz vi{o<esc>?desc<cr>zz
             noremap ;ab vi{<esc>joreturn;<esc>zz

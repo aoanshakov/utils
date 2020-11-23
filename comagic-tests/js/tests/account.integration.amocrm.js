@@ -431,36 +431,13 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
             });
         });
-        it('Открываю вкладку "Ответственные". Открываю вкладку "Исходящие звонки".', function() {
-            helper.tabPanel.tab('Ответственные').click();
-            wait(10);
-            helper.requestResponsibles().send();
-            wait(10);
-
-            helper.innerTab('Исходящие звонки').mousedown();
-            wait(10);
-        });
-        it('Открываю вкладку "Дополнительные поля".', function() {
-            helper.tabPanel.tab('Дополнительные поля').click();
-            wait(10);
-            helper.requestAdditionalFields().send();
-            wait(10);
-            helper.requestUserFields().send();
-            wait(10);
-        });
-        it('Открываю вкладку "Фильтр обращений".', function() {
-            helper.tabPanel.tab('Фильтр обращений').click();
-            wait(10);
-
-            helper.requestEventFilters().send();
-            wait(10);
-        });
         describe('Открываю вкладку "Сквозная аналитика". Изменяю поля формы.', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Сквозная аналитика').click();
                 wait(10);
 
                 helper.requestSalesFunnels().send();
+                helper.requestSelectMultiselectUserFields().send();
                 wait(10);
 
                 helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').clickArrow().
@@ -525,6 +502,30 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.boundList.expectNotToHaveClass('cm-multi-select-field-options-disabled');
             });
         });
+        it('Открываю вкладку "Ответственные". Открываю вкладку "Исходящие звонки".', function() {
+            helper.tabPanel.tab('Ответственные').click();
+            wait(10);
+            helper.requestResponsibles().send();
+            wait(10);
+
+            helper.innerTab('Исходящие звонки').mousedown();
+            wait(10);
+        });
+        it('Открываю вкладку "Дополнительные поля".', function() {
+            helper.tabPanel.tab('Дополнительные поля').click();
+            wait(10);
+            helper.requestAdditionalFields().send();
+            wait(10);
+            helper.requestUserFields().send();
+            wait(10);
+        });
+        it('Открываю вкладку "Фильтр обращений".', function() {
+            helper.tabPanel.tab('Фильтр обращений').click();
+            wait(10);
+
+            helper.requestEventFilters().send();
+            wait(10);
+        });
         it('Открываю вкладку "Телефония".', function() {
             helper.tabPanel.tab('Телефония').click();
             wait(10);
@@ -569,5 +570,37 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.addFunnelButton.expectToBeHiddenOrNotExist();
             helper.activateMultifunnelsButton.expectToBeVisible();
             helper.form.combobox().withValue('Некая воронка').expectToBeHiddenOrNotExist();
+    });
+    it(
+        'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
+        'Открыта вкладка "Доступ к данным". Открываю вкладку "Сквозная аналитика". Изменяю поля формы. Опции доступны.',
+    function() {
+        if (helper) {
+            helper.destroy();
+        }
+
+        helper = new AccountIntegrationAmocrm(requestsManager, testersFactory, utils);
+
+        Comagic.Directory.load();
+        helper.batchReloadRequest().send();
+
+        helper.actionIndex();
+        helper.requestSalesFunnelComponentAvailability().send();
+        helper.requestAmocrmData().setSaleCategories().setLossReasons().send();
+        helper.requestTariffs().send();
+        helper.requestAmocrmStatus().send();
+        wait(10);
+
+        helper.tabPanel.tab('Сквозная аналитика').click();
+        wait(10);
+
+        helper.requestSalesFunnels().send();
+        helper.requestSelectMultiselectUserFields().send();
+        wait(10);
+
+        helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').
+            expectToHaveValue('Второе поле для категорий и причин, Третье поле для категорий и причин');
+        helper.form.combobox().withFieldLabel('Из какого поля передавать причину отказа').
+            expectToHaveValue('Первое поле для категорий и причин, Четвертое поле для категорий и причин');
     });
 });

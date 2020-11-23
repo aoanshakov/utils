@@ -24,10 +24,14 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
             });
 
-            it('Открываю вкладку "Сквозная аналитика".', function() {
+            it(
+                'Открываю вкладку "Сквозная аналитика". Изменяю значение полей. Нажимаю на кнопку "Сохранить". ' +
+                'Отправлен запрос сохранения.',
+            function() {
                 helper.tabPanel.tab('Сквозная аналитика').click();
                 wait(10);
                 helper.requestSalesFunnels().send();
+                helper.requestSelectMultiselectUserFields().send();
 
                 helper.form.combobox().withFieldLabel('Из какого поля передавать категорию продаж').clickArrow().
                     option('Второе поле для категорий и причин').click();

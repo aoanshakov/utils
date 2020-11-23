@@ -101,6 +101,15 @@ Ext.application({
         var absentComponents = {};
 
         Comagic.Permission = this.Permission = {
+            useSiteCategory: function () {
+                return true;
+            },
+            hasSiteSimpleDtModel: function () {
+                return true;
+            },
+            hasSiteOnDemandDtModel: function () {
+                return true;
+            },
             isAdmin: function () {
                 return true;
             },
@@ -191,8 +200,19 @@ Ext.application({
         this.setSiteId = function() {
         };
 
-        this.runAction = function() {
+        this.enableActionRunning = function () {
+            this.runAction = function(controllerName, actionName, params, stateDiff) {
+                var controller = this.getController(controllerName);
+                controller.init();
+                return controller['action' + actionName]({}, params, {});
+            };
         };
+
+        this.disableActionRunning = function () {
+            this.runAction = function() {};
+        };
+
+        this.disableActionRunning();
 
         this.stateManager.setState({
             dateRange: {
@@ -202,9 +222,6 @@ Ext.application({
                 compareEndDate: null
             }
         });
-
-        this.stateManager.getStateParam = function() {
-        };
 
         this.setHeadTitle = function () {
         };
@@ -308,6 +325,9 @@ Ext.application({
                 };
 
                 viewport = Ext.create('Comagic.test.Viewport');
+                viewport.up = function () {
+                    return viewport;
+                };
             });
 
             afterEach(function() {
