@@ -1,3 +1,27 @@
+diff --git a/config-overrides.js b/config-overrides.js
+index f6100f5..7c89893 100644
+--- a/config-overrides.js
++++ b/config-overrides.js
+@@ -1,3 +1,4 @@
++const webpack = require('webpack');
+ const { override, fixBabelImports, addLessLoader, useEslintRc } = require('customize-cra');
+ 
+ const fs = require('fs');
+@@ -44,6 +45,14 @@ const overrideFn = override(
+ 
+ 
+ module.exports = function override(config, env) {
++    if (!config.plugins) {
++        config.plugins = [];
++    }
++
++    config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({
++        maxChunks: 1
++    }));
++
+     const nConfig = overrideFn(config, env)
+     nConfig.plugins.push(new FilterWarningsPlugin({
+         exclude: /mini-css-extract-plugin[^]*Conflicting order between:/
 diff --git a/public/index.html b/public/index.html
 index 2623908..29e331f 100644
 --- a/public/index.html
