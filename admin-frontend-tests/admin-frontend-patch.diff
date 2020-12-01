@@ -70,36 +70,38 @@ index 9937105..d590c48 100644
 -export default createBrowserHistory();
 +export default createMemoryHistory();
 diff --git a/src/index.js b/src/index.js
-index be2c27f..9cd5c95 100644
+index be2c27f..e4d64c7 100644
 --- a/src/index.js
 +++ b/src/index.js
-@@ -28,16 +28,35 @@ if (process.env.NODE_ENV === 'development') {
+@@ -28,16 +28,41 @@ if (process.env.NODE_ENV === 'development') {
  
  window.isGodMode = window.location.search.indexOf('godmode') !== -1;
  
--
++window.application = {
++    run(callback = () => null) {
++        callback(history);
++        this.exit();
+ 
 -ReactDOM.render(
 -    <Provider {...stores}>
--
++        let container = document.getElementById('root');
+ 
 -        <Router history={history}>
 -            <LocaleProvider locale={ruRU}>
 -                <App />
 -            </LocaleProvider>
 -        </Router>
--
++        if (!container) {
++            container = document.createElement('div');
++            container.id = 'root';
++            document.body.appendChild(container);
++        }
+ 
 -    </Provider>,
 -    document.getElementById('root'));
--
-+window.application = {
-+    run(callback = () => null) {
-+        const container = document.getElementById('root');
-+
-+        callback(history);
-+        container.firstChild && this.exit();
-+
 +        ReactDOM.render(
 +            <Provider {...stores}>
-+
+ 
 +                <Router history={history}>
 +                    <LocaleProvider locale={ruRU}>
 +                        <App />
@@ -114,7 +116,7 @@ index be2c27f..9cd5c95 100644
 +    exit() {
 +        const container = document.getElementById('root');
 +
-+        if (!container.firstChild) {
++        if (!container || !container.firstChild) {
 +            return;
 +        }
 +

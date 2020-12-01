@@ -30,21 +30,45 @@ tests.addTest(function (options) {
             tester.userLoginRequest().receiveResponse();
         });
 
-        describe('Доступны разделы "Пользователи" и "Переотправка событий".', function() {
-            beforeEach(function() {
-                tester.userRequest().allowReadEventResending().allowReadUsers().receiveResponse();
-            });
+        xit(
+            'Доступны разделы "Пользователи" и "Переотправка событий". Отображены пункты меню "Пользователи" и ' +
+            '"Переотправка событий".',
+        function() {
+            tester.userRequest().allowReadEventResending().allowReadUsers().receiveResponse();
 
-            it('Отображены пункты меню "Пользователи" и "Переотправка событий".', function() {
-                tester.root.expectToHaveTextContent('Новосистем Admin Panel Пользователи Переотправка событий');
-                tester.menuitem('Переотправка событий').expectHrefToHavePath('/event-resending');
-                tester.menuitem('Переотправка событий').expectAttributeToHaveValue('target', '_blank');
-                tester.menuitem('Пользователи').expectNotToHaveAttribute('target');
-            });
+            tester.menuitem('Переотправка событий').expectHrefToHavePath('/event-resending');
+            tester.menuitem('Переотправка событий').expectAttributeToHaveValue('target', '_blank');
+            tester.menuitem('Пользователи').expectNotToHaveAttribute('target');
         });
         it('Доступен только раздел "Пользовтатели". Отображен только пункт меню "Пользователи".', function() {
             tester.userRequest().allowReadUsers().receiveResponse();
-            tester.root.expectToHaveTextContent('Новосистем Admin Panel Пользователи');
+
+            tester.menuitem('Переотправка событий').expectNotToExist();
+            tester.menuitem('Пользователи').expectToBeVisible();
+
+            tester.root.expectToHaveTextContent(
+                'Новосистем ' +
+                'Admin Panel ' +
+                'Пользователи ' +
+
+                'Пользователи ' +
+
+                'Фильтры: Пользователь софтфона Применить ' +
+
+                'App ID ' +
+                'Customer ID ' +
+                'Имя клиента ' +
+                'Пользователь ' +
+                'Сотрудник ' +
+                'Логин в софтфоне ' +
+                'Номер ' +
+
+                'Нет данных ' +
+
+                '1 ' +
+                'Строк на странице 50 ' +
+                'Всего записей 0'
+            );
         });
     });
     describe('Открываю раздел "Переотправка событий".', function() {
@@ -65,7 +89,8 @@ tests.addTest(function (options) {
             Promise.runAll();
         });
 
-        it('', function() {
+        it('Стандартный лэйаут не используется.', function() {
+            tester.root.expectTextContentNotToHaveSubstring('Новосистем Admin Panel');
         });
     });
 });
