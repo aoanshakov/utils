@@ -9,6 +9,10 @@ tests.requireClass('Comagic.sitemanagement.sitesettings.controller.Page');
 function SitemanagementSitesettings(requestsManager, testersFactory, utils) {
     var controller = Comagic.getApplication().getController('Comagic.sitemanagement.sitesettings.controller.Page');
 
+    this.addButton = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.ul-btn-usual-icon-cls-plus');
+    });
+
     this.clearButton = function () {
         function getTester (index) {
             return testersFactory.createDomElementTester(document.
@@ -97,6 +101,11 @@ function SitemanagementSitesettings(requestsManager, testersFactory, utils) {
                                 aux_id2: 0,
                                 id: 377,
                                 name: 'Нецелевой контакт'
+                            }, {
+                                aux_id: 'long_tag',
+                                aux_id2: 0,
+                                id: 379,
+                                name: 'Кобыла и трупоглазые жабы искали цезию нашли поздно утром свистящего хна'
                             }]
                         },
                         success: true
@@ -126,9 +135,20 @@ function SitemanagementSitesettings(requestsManager, testersFactory, utils) {
         };
 
         return {
+            setInvalidMarkGroupsFilter: function () {
+                data.mark_groups_filter = [[378, 377], [311]];
+                return this;
+            },
             setFilters: function () {
                 data.communication_kind_filter = 'include_only_first_good_contacts';
-                data.mark_groups_filter = [[378, 377], [311]];
+
+                data.mark_groups_filter = [{
+                    comparison: 'eq',
+                    value: [378, 377]
+                }, {
+                    comparison: 'ne',
+                    value: [311]
+                }];
 
                 return this;
             },
@@ -148,26 +168,47 @@ function SitemanagementSitesettings(requestsManager, testersFactory, utils) {
     this.yandexMetrikaCallsUpdatingRequest = function () {
         var bodyParams = {
             id: undefined,
-            mark_groups_filter: [[378, 377, undefined], [311, undefined], undefined],
-            communication_kind_filter: 'include_only_first_good_contacts'    
+            communication_kind_filter: 'include_only_first_good_contacts',
+            mark_groups_filter: [{
+                comparison: 'eq',
+                value: [378, 377, undefined]
+            }, {
+                comparison: 'ne',
+                value: [311, undefined]
+            }, undefined],
         };
 
         return {
             removeFirstTag: function () {
-                bodyParams.mark_groups_filter = [[377, undefined], [311, undefined], undefined];
+                bodyParams.mark_groups_filter = [{
+                    comparison: 'eq',
+                    value: [377, undefined]
+                }, {
+                    comparison: 'ne',
+                    value: [311, undefined]
+                }, undefined];
+
                 return this;
             },
             removeFirstMarkGroup: function () {
-                bodyParams.mark_groups_filter = [[311, undefined], undefined];
+                bodyParams.mark_groups_filter = [{
+                    comparison: 'ne',
+                    value: [311, undefined]
+                }, undefined];
+
                 return this;
             },
             duplicateFirstGroup: function () {
-                bodyParams.mark_groups_filter = [
-                    [378, 377, undefined],
-                    [311, undefined],
-                    [378, 377, undefined],
-                    undefined
-                ];
+                bodyParams.mark_groups_filter = [{
+                    comparison: 'eq',
+                    value: [378, 377, undefined]
+                }, {
+                    comparison: 'ne',
+                    value: [311, undefined]
+                }, {
+                    comparison: 'eq',
+                    value: [378, 377, undefined]
+                }, undefined];
 
                 return this;
             },

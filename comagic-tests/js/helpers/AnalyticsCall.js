@@ -305,11 +305,36 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
                 ac_name: 'Посетители без рекламной кампании',
                 marks: ['Не обработано', 'Нецелевой контакт'],
                 numa: '79451234567',
-                is_auto_sale: true
+                is_auto_sale: true,
+                component: 'Звонок из внешней системы',
+                component_id: 'upload_calls',
+                direction: 'in'
+            }, {
+                id: 938202,
+                employee_name: 'Петров Петр Петрович',
+                ac_name: 'Посетители без рекламной кампании',
+                marks: [],
+                numa: '79451234568',
+                is_auto_sale: true,
+                component: 'Автоперезвон из CRM',
+                component_id: 'amocrm_extended_integration',
+                direction: 'in'
             }],
             metaData: {
                 fields: ['id', 'employee_name', 'ac_name', 'numa', 'is_auto_sale', 'marks'],
                 grid: [{
+                    description: 'Тип звонка',
+                    filterName: 'Тип звонка',
+                    filterType: 'list',
+                    name: 'component',
+                    text: 'Тип',
+                    valueElData: 'directory',
+                    _grid_only: true,
+                    listFilterParams: {
+                        directory_name: 'comagic:public:call_session_component',
+                        site_id: '3825'
+                    }
+                }, {
                     description: 'Номер абонента',
                     filterType: 'text',
                     name: 'numa',

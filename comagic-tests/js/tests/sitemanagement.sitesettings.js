@@ -26,7 +26,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
 
             describe(
                 'Фильтр Яндекс.Метрики не получен. Нажимаю на кнпоку "Настроить передачу обращений" в строке Яндекс.' +
-                'Метрики. Заполняю форму.',
+                'Метрики.',
             function() {
                 beforeEach(function() {
                     tester.yandexMetrikaCallsRequest().receiveResponse();
@@ -38,132 +38,183 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                         option('Первые качественные').click();
                     wait();
 
-                    tester.button('Добавить фильтр').click();
-                    wait();
-                    tester.floatingForm.combobox().withPlaceholder('Параметр').clickArrow().option('Теги').click();
-                    wait();
-                    tester.floatingForm.combobox().withPlaceholder('Условие').clickArrow().option('равно').click();
-                    wait();
-                    tester.floatingForm.combobox().withPlaceholder('Значение').clickArrow().
-                        option('В обработке').click();
-                    wait();
-
-                    tester.button('Значение').click();
-                    wait();
-                    tester.floatingForm.combobox().withValue('').clickArrow().option('Нецелевой контакт').click();
-                    wait();
-
-                    tester.button('Выбрать').click();
-                    wait();
-
-                    tester.button('Добавить фильтр').click();
-                    wait();
-                    tester.floatingForm.combobox().withPlaceholder('Параметр').clickArrow().
-                        option('Теги').click();
-                    wait();
-                    tester.floatingForm.combobox().withPlaceholder('Условие').clickArrow().option('равно').click();
-                    wait();
-                    tester.floatingForm.combobox().withPlaceholder('Значение').clickArrow().
-                        option('Не обработано').click();
-                    wait();
-
-                    tester.button('Выбрать').click();
+                    tester.addButton.click();
                     wait();
                 });
 
-                xdescribe('Открываю меню условия.', function() {
+                describe('Выбираю условию "равно".', function() {
                     beforeEach(function() {
-                        tester.conditionMenu('Теги равно В обработке или Нецелевой контакт').click();
+                        tester.floatingForm.combobox().withPlaceholder('Условие').clickArrow().option('равно').click();
                         wait();
                     });
 
-                    describe(
-                        'Нажимаю на пункт меню "Добавить похожий". Нажимаю на кнпоку удаления тега. Нажимаю на ' +
-                        'кнопку "Изменить".',
-                    function() {
+                    describe('Заполняю форму.', function() {
                         beforeEach(function() {
-                            tester.menuItem('Добавить похожий').click();
+                            tester.floatingForm.combobox().withPlaceholder('Значение').clickArrow().
+                                option('В обработке').click();
+                            wait();
+
+                            tester.button('Значение').click();
+                            wait();
+                            tester.floatingForm.combobox().withValue('').clickArrow().option('Нецелевой контакт').
+                                click();
+                            wait();
+
+                            tester.button('Выбрать').click();
+                            wait();
+
+                            tester.addButton.click();
+                            wait();
+
+                            tester.floatingForm.combobox().withPlaceholder('Условие').clickArrow().option('не равно').
+                                click();
+                            wait();
+                            tester.floatingForm.combobox().withPlaceholder('Значение').clickArrow().
+                                option('Не обработано').click();
+                            wait();
+                            tester.button('Выбрать').click();
                             wait();
                         });
 
+                        describe('Открываю меню условия.', function() {
+                            beforeEach(function() {
+                                tester.conditionMenu('Теги равно В обработке или Нецелевой контакт').click();
+                                wait();
+                            });
+
+                            describe(
+                                'Нажимаю на пункт меню "Добавить похожий". Нажимаю на кнпоку удаления тега. Нажимаю ' +
+                                'на кнопку "Изменить".',
+                            function() {
+                                beforeEach(function() {
+                                    tester.menuItem('Добавить похожий').click();
+                                    wait();
+                                });
+
+                                it('Нажимаю на кнопку "Сохранить". Отправлен запрос обновления настроек.', function() {
+                                    tester.button('Сохранить').click();
+                                    wait();
+                                    tester.yandexMetrikaCallsUpdatingRequest().duplicateFirstGroup().receiveResponse();
+                                });
+                                return;
+                                it('Отображены выбранные теги.', function() {
+                                    tester.filterContainer.expectToHaveTextContent(
+                                        'Теги равно В обработке или Нецелевой контакт ' +
+                                        'и ' +
+                                        'Теги не равно Не обработано ' +
+                                        'и ' +
+                                        'Теги равно В обработке или Нецелевой контакт ' +
+
+                                        'Применить'
+                                    );
+                                });
+                            });
+                            return;
+                            describe(
+                                'Нажимаю на пункт меню "Редактировать". Нажимаю на кнпоку удаления тега. Нажимаю на ' +
+                                'кнопку "Изменить".',
+                            function() {
+                                beforeEach(function() {
+                                    tester.menuItem('Редактировать').click();
+                                    wait();
+                                    tester.clearButton().first().click();
+                                    wait();
+                                    tester.button('Изменить').click();
+                                    wait();
+                               });
+
+                                it('Нажимаю на кнопку "Сохранить". Отправлен запрос обновления настроек.', function() {
+                                    tester.button('Сохранить').click();
+                                    wait();
+                                    tester.yandexMetrikaCallsUpdatingRequest().removeFirstTag().receiveResponse();
+                                });
+                                it('Отображены выбранные теги.', function() {
+                                    tester.filterContainer.expectToHaveTextContent(
+                                        'Теги равно Нецелевой контакт ' +
+                                        'и ' +
+                                        'Теги не равно Не обработано ' +
+
+                                        'Применить'
+                                    );
+                                });
+                            });
+                            describe('Нажимаю на пункт меню "Удалить".', function() {
+                                beforeEach(function() {
+                                    tester.menuItem('Удалить').click();
+                                    wait();
+                                });
+
+                                it('Нажимаю на кнопку "Сохранить". Отправлен запрос обновления настроек.', function() {
+                                    tester.button('Сохранить').click();
+                                    wait();
+                                    tester.yandexMetrikaCallsUpdatingRequest().removeFirstMarkGroup().receiveResponse();
+                                });
+                                it('Отображены выбранные теги.', function() {
+                                    tester.filterContainer.expectToHaveTextContent(
+                                        'Теги не равно Не обработано ' +
+                                        'Применить'
+                                    );
+                                });
+                            });
+                        });
+                        return;
+                        it('Снимаю отметку с чекбокса "Включить передачу звонков в Яндекс.Метрику".', function() {
+                            tester.floatingForm.checkbox().withBoxLabel('Включить передачу звонков в Яндекс.Метрику').
+                                click();
+                            wait();
+
+                            tester.floatingForm.combobox().withFieldLabel('Вид обращения').expectToBeDisabled();
+
+                            tester.addButton.click();
+                            wait();
+
+                            tester.floatingForm.combobox().withPlaceholder('Значение').expectToBeHiddenOrNotExist();
+
+                            tester.conditionMenu('Теги равно В обработке или Нецелевой контакт').click();
+                            wait();
+
+                            tester.menuItem('Добавить похожий').expectToBeHiddenOrNotExist();
+                        });
                         it('Нажимаю на кнопку "Сохранить". Отправлен запрос обновления настроек.', function() {
                             tester.button('Сохранить').click();
                             wait();
-                            tester.yandexMetrikaCallsUpdatingRequest().duplicateFirstGroup().receiveResponse();
+                            tester.yandexMetrikaCallsUpdatingRequest().receiveResponse();
                         });
                         it('Отображены выбранные теги.', function() {
                             tester.filterContainer.expectToHaveTextContent(
                                 'Теги равно В обработке или Нецелевой контакт ' +
                                 'и ' +
-                                'Теги равно Не обработано ' +
-                                'и ' +
-                                'Теги равно В обработке или Нецелевой контакт ' +
+                                'Теги не равно Не обработано ' +
 
                                 'Применить'
                             );
+                    
                         });
                     });
-                    describe(
-                        'Нажимаю на пункт меню "Редактировать". Нажимаю на кнпоку удаления тега. Нажимаю на кнопку ' +
-                        '"Изменить".',
-                    function() {
-                        beforeEach(function() {
-                            tester.menuItem('Редактировать').click();
-                            wait();
-                            tester.clearButton().first().click();
-                            wait();
-                            tester.button('Изменить').click();
-                            wait();
-                       });
+                    return;
+                    it('Выбираю длинный тег.', function() {
+                        tester.floatingForm.combobox().withPlaceholder('Значение').clickArrow().
+                            option('Кобыла и трупоглазые жабы искали цезию нашли поздно утром свистящего хна').click();
+                        wait();
+                        tester.button('Выбрать').click();
+                        wait();
 
-                        it('Нажимаю на кнопку "Сохранить". Отправлен запрос обновления настроек.', function() {
-                            tester.button('Сохранить').click();
-                            wait();
-                            tester.yandexMetrikaCallsUpdatingRequest().removeFirstTag().receiveResponse();
-                        });
-                        it('Отображены выбранные теги.', function() {
-                            tester.filterContainer.expectToHaveTextContent(
-                                'Теги равно Нецелевой контакт ' +
-                                'и ' +
-                                'Теги равно Не обработано ' +
+                        tester.addButton.click();
+                        wait();
 
-                                'Применить'
-                            );
-                        });
+                        tester.floatingForm.combobox().withPlaceholder('Условие').clickArrow().option('равно').click();
+                        wait();
+                        tester.floatingForm.combobox().withPlaceholder('Значение').clickArrow().option('В обработке').
+                            click();
+                        wait();
+                        tester.button('Выбрать').click();
+                        wait();
                     });
-                    describe('Нажимаю на пункт меню "Удалить".', function() {
-                        beforeEach(function() {
-                            tester.menuItem('Удалить').click();
-                            wait();
-                        });
-
-                        it('Нажимаю на кнопку "Сохранить". Отправлен запрос обновления настроек.', function() {
-                            tester.button('Сохранить').click();
-                            wait();
-                            tester.yandexMetrikaCallsUpdatingRequest().removeFirstMarkGroup().receiveResponse();
-                        });
-                        it('Отображены выбранные теги.', function() {
-                            tester.filterContainer.expectToHaveTextContent(
-                                'Теги равно Не обработано ' +
-                                'Применить'
-                            );
-                        });
-                    });
-                });
-                it('Нажимаю на кнопку "Сохранить". Отправлен запрос обновления настроек.', function() {
-                    tester.button('Сохранить').click();
-                    wait();
-                    tester.yandexMetrikaCallsUpdatingRequest().receiveResponse();
                 });
                 return;
-                it('Отображены выбранные теги.', function() {
-                    tester.filterContainer.expectToHaveTextContent(
-                        'Теги равно В обработке или Нецелевой контакт ' +
-                        'и ' +
-                        'Теги равно Не обработано ' +
-
-                        'Применить'
-                    );
+                it('В выпадающем списке условия только две опции.', function() {
+                    tester.floatingForm.combobox().withPlaceholder('Условие').clickArrow().option('включает').
+                        expectToBeHiddenOrNotExist();
                 });
             });
             return;
@@ -178,10 +229,18 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 tester.filterContainer.expectToHaveTextContent(
                     'Теги равно В обработке или Нецелевой контакт ' +
                     'и ' +
-                    'Теги равно Не обработано ' +
+                    'Теги не равно Не обработано ' +
 
                     'Применить'
                 );
+            });
+            it('Фильтр тегов некорректен. Отображены выбранные теги.', function() {
+                tester.yandexMetrikaCallsRequest().setInvalidMarkGroupsFilter().receiveResponse();
+
+                tester.setupYandexCallSendingButton.click();
+                wait();
+
+                tester.filterContainer.expectToHaveTextContent('Применить');
             });
         });
     });

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+path=/usr/local/src/tests
+cd $path
+
+node utils.js $@
+fix-permissions  $path
