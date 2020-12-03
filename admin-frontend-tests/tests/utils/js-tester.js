@@ -2742,6 +2742,57 @@ function JsTester_Utils (debug) {
             query: query
         };
     };
+    this.encodeQuery = function (query) {
+        function getComponents (prefixes, query) {
+            var result = [],
+                i,
+                length;
+
+            function processItem (name) {
+                var value,
+                    fullName,
+                    i,
+                    length;
+
+                if (!/^[\-_0-9a-zA-Z]+$/.test(name)) {
+                    throw new Error('Некорректное имя параметра запроса - "' + name + '"');
+                }
+
+                value = query[name];
+
+                if (typeof value == 'object') {
+                    result = result.concat(getComponents(prefixes.concat(name), value));
+                } else {
+                    fullName = [name];
+                    length = prefixes.length;
+
+                    if (length) {
+                        for (i = length - 1; i < length; i ++) {
+                            fullName[0] = '[' + fullName[0] + ']'
+                            fullName.unshift(prefixes[i]);
+                        }
+                    }
+
+                    result.push(fullName.join('') + '=' + encodeURIComponent(value));
+                }
+            }
+
+            if (Array.isArray(query)) {
+                for (i = 0; i < length; i ++) {
+                    processItem(i + '');
+                }
+            } else {
+            }
+
+            for (name in query) {
+                processItem(name);
+            }
+
+            return result;
+        }
+
+        return '?' + getComponents([], query).join('&');
+    };
     this.isDate = function(value) {
         return toString.call(value) === '[object Date]';
     };

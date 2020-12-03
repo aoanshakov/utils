@@ -59,6 +59,21 @@ index 2623908..29e331f 100644
  </body>
  
  </html>
+diff --git a/src/App.js b/src/App.js
+index 9d03e91..3bc597c 100644
+--- a/src/App.js
++++ b/src/App.js
+@@ -6,6 +6,10 @@ import { Switch, Route } from 'react-router-dom';
+ import './App.less';
+ 
+ class App extends Component {
++    constructor(props) {
++        super(props);
++        props.setApp(this);
++    }
+ 
+     render() {
+         return (
 diff --git a/src/history.js b/src/history.js
 index 9937105..d590c48 100644
 --- a/src/history.js
@@ -70,7 +85,7 @@ index 9937105..d590c48 100644
 -export default createBrowserHistory();
 +export default createMemoryHistory();
 diff --git a/src/index.js b/src/index.js
-index be2c27f..e4d64c7 100644
+index be2c27f..e56b172 100644
 --- a/src/index.js
 +++ b/src/index.js
 @@ -28,16 +28,41 @@ if (process.env.NODE_ENV === 'development') {
@@ -78,8 +93,8 @@ index be2c27f..e4d64c7 100644
  window.isGodMode = window.location.search.indexOf('godmode') !== -1;
  
 +window.application = {
-+    run(callback = () => null) {
-+        callback(history);
++    run(setHistory = () => null, setApp = () => null) {
++        setHistory(history);
 +        this.exit();
  
 -ReactDOM.render(
@@ -104,7 +119,7 @@ index be2c27f..e4d64c7 100644
  
 +                <Router history={history}>
 +                    <LocaleProvider locale={ruRU}>
-+                        <App />
++                        <App setApp={setApp} />
 +                    </LocaleProvider>
 +                </Router>
 +

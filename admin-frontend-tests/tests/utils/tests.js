@@ -3,16 +3,9 @@ document.addEventListener('DOMContentLoaded', function () {
         baseUrl: '/tests/utils'
     });
 
-    requirejs(['promise-mock', 'admin-frontend-tester'], function (PromiseMock, AdminFrontendTester) {
+    requirejs(['promise-mock', 'admin-frontend-tester', 'path'], function (PromiseMock, AdminFrontendTester, Path) {
         describe('', function() {
-            let tasks = [],
-                history,
-                openPath;
-
             beforeEach(function() {
-                history = null;
-                openPath = path => tasks.push(() => openPath(path));
-
                 PromiseMock.install();
                 tests.beforeEach();
             });
@@ -22,13 +15,16 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             tests.runTests({
-                openPath: path => openPath(path),
                 AdminFrontendTester: AdminFrontendTester,
-                runApplication: () => window.application.run(value => {
-                    history = value;
-                    openPath = path => history.push(path);
-                    tasks.forEach(task => task());
-                })
+                runApplication: ({utils}) => {
+                    var result = {};
+
+                    window.application.run(history => {
+                        result.path = new Path({history, utils});
+                    }, value => (result.app = value))
+
+                    return result;
+                } 
             });
         });
 
