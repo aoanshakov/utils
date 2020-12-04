@@ -23,12 +23,22 @@ index f6100f5..7c89893 100644
      nConfig.plugins.push(new FilterWarningsPlugin({
          exclude: /mini-css-extract-plugin[^]*Conflicting order between:/
 diff --git a/public/index.html b/public/index.html
-index 2623908..29e331f 100644
+index 2623908..1927766 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -22,6 +22,22 @@
+@@ -21,7 +21,32 @@
+       Learn how to configure a non-root public URL by running `npm run build`.
      -->
      <title>UIS Admin</title>
++    <style>
++        .ant-spin-dot-spin {
++            animation-duration:1.2s !important;
++        }
++
++        .ant-spin-dot-item {
++            opacity: 1 !important;
++        }
++    </style>
      <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" />
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
@@ -49,7 +59,7 @@ index 2623908..29e331f 100644
  </head>
  
  <body>
-@@ -37,6 +53,9 @@
+@@ -37,6 +62,9 @@
        To begin the development, run `npm start` or `yarn start`.
        To create a production bundle, use `npm run build` or `yarn build`.
      -->
@@ -85,38 +95,44 @@ index 9937105..d590c48 100644
 -export default createBrowserHistory();
 +export default createMemoryHistory();
 diff --git a/src/index.js b/src/index.js
-index be2c27f..e56b172 100644
+index be2c27f..91218ad 100644
 --- a/src/index.js
 +++ b/src/index.js
-@@ -28,16 +28,41 @@ if (process.env.NODE_ENV === 'development') {
+@@ -28,16 +28,47 @@ if (process.env.NODE_ENV === 'development') {
  
  window.isGodMode = window.location.search.indexOf('godmode') !== -1;
  
 +window.application = {
-+    run(setHistory = () => null, setApp = () => null) {
++    run({
++        setHistory = () => null,
++        setApp = () => null,
++        setStores = () => null
++    }) {
 +        setHistory(history);
-+        this.exit();
++        setStores(stores);
  
 -ReactDOM.render(
 -    <Provider {...stores}>
-+        let container = document.getElementById('root');
++        this.exit();
  
 -        <Router history={history}>
 -            <LocaleProvider locale={ruRU}>
 -                <App />
 -            </LocaleProvider>
 -        </Router>
++        let container = document.getElementById('root');
+ 
+-    </Provider>,
+-    document.getElementById('root'));
 +        if (!container) {
 +            container = document.createElement('div');
 +            container.id = 'root';
 +            document.body.appendChild(container);
 +        }
  
--    </Provider>,
--    document.getElementById('root'));
 +        ReactDOM.render(
 +            <Provider {...stores}>
- 
++
 +                <Router history={history}>
 +                    <LocaleProvider locale={ruRU}>
 +                        <App setApp={setApp} />

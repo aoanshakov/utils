@@ -53,59 +53,226 @@ tests.addTest(function (options) {
                 });
 
                 describe('Нажимаю на кнопку "Применить".', function() {
+                    var amocrmEventsRequest;
+
                     beforeEach(function() {
                         tester.button('Применить').click();
                         Promise.runAll();
-                        tester.amocrmEventsRequest().receiveResponse();
+                        amocrmEventsRequest = tester.amocrmEventsRequest().expectToBeSent();
                     });
 
-                    describe(
-                        'Отмечаю строки. Нажимаю на кнопку "Повторить отправку". Отправлен запрос переотправки ' +
-                        'событий.',
-                    function() {
-                        var amocrmEventsResendingRequest;
-                        
+                    describe('Ни одно событие не отправляется в данный момент.', function() {
                         beforeEach(function() {
-                            tester.table().cell().withContent('79157389283').row().checkbox().click();
-                            tester.table().cell().withContent('79157389285').row().checkbox().click();
-
-                            tester.button('Повторить отправку').click();
-                            Promise.runAll();
-                            amocrmEventsResendingRequest = tester.amocrmEventsResendingRequest().expectToBeSent();
+                            amocrmEventsRequest.receiveResponse();
                         });
+                        
+                        describe('Проходит время.', function() {
+                            beforeEach(function() {
+                                spendTime(2000);
+                                Promise.runAll(false, true);
+                            });
 
-                        it('Таблица заблокирована.', function() {
-                            tester.spinner.expectToBeVisible();
-                            tester.button('Применить').expectToHaveAttribute('disabled');
-                            tester.button('Повторить отправку').expectToHaveAttribute('disabled');
+                            escribe(
+                                'Нажимаю на кнопку "Применить". Отправлен запрос событий.',
+                            function() {
+                                var amocrmEventsRequest;
+
+                                beforeEach(function() {
+                                    tester.button('Применить').click();
+                                    Promise.runAll(false, true);
+                                    amocrmEventsRequest = tester.amocrmEventsRequest().expectToBeSent();
+                                });
+
+                                describe('Приходит ответ сервера. Проходит время.', function() {
+                                    beforeEach(function() {
+                                        amocrmEventsRequest.receiveResponse();
+
+                                        spendTime(1000);
+                                        Promise.runAll(false, true);
+                                    });
+
+                                    it('Проходит время. Отправлен запрос событий.', function() {
+                                        spendTime(2000);
+                                        Promise.runAll(false, true);
+                                        tester.amocrmEventsRequest().receiveResponse();
+                                    });
+                                    it('Запрос событий не отправлен.', function() {
+                                        ajax.expectNoRequestsToBeSent();
+                                    });
+                                });
+                                it('Проходит время. Запрос событий не отправлен.', function() {
+                                    spendTime(1000);
+                                    spendTime(1000);
+                                    spendTime(1000);
+                                    spendTime(1000);
+
+                                    ajax.expectNoRequestsToBeSent();
+                                });
+                            });
+                            describe('Нажимаю на пункт меню "Пользователи". Прошло время.', function() {
+                                beforeEach(function() {
+                                    tester.menuitem('Пользователи').click();
+                                    Promise.runAll();
+
+                                    spendTime(1000);
+                                    Promise.runAll(false, true);
+                                });
+
+                                it(
+                                    'Нажимаю на пункт меню "Переотправка событий". Заполняю поля фильтра. Нажимаю на ' +
+                                    'кнопку "Применить". Отправлен запрос событий. Проходит время. Отправлен запрос ' +
+                                    'событий.',
+                                function() {
+                                    tester.menuitem('Переотправка событий').click();
+                                    Promise.runAll();
+
+                                    tester.textfield().withPlaceholder('ID сессия').fill('28394');
+                                    tester.textfield().withPlaceholder('Номер абонента').fill('79162937183');
+                                    tester.textfield().withPlaceholder('Начальная дата').click();
+                                    tester.forceUpdate();
+
+                                    tester.calendar().left().cell('26').click();
+                                    tester.forceUpdate();
+                                    tester.calendar().right().cell('17').click();
+                                    tester.forceUpdate();
+
+                                    tester.button('Применить').click();
+                                    Promise.runAll(false, true);
+                                    tester.amocrmEventsRequest().receiveResponse();
+
+                                    spendTime(3000);
+                                    Promise.runAll(false, true);
+                                    tester.amocrmEventsRequest().receiveResponse();
+                                });
+                                it('Запрос событий не отправлен.', function() {
+                                    ajax.expectNoRequestsToBeSent();
+                                });
+                            });
+                            it('Проходит время. Отправлен запрос событий.', function() {
+                                spendTime(1000);
+                                Promise.runAll(false, true);
+                                tester.amocrmEventsRequest().receiveResponse();
+                            });
+                            it('Запрос событий не отправлен.', function() {
+                                ajax.expectNoRequestsToBeSent();
+                            });
                         });
-                        it('Получен ответ сервера. Таблица доступна. Ни одна строка не выбрана.', function() {
-                            amocrmEventsResendingRequest.receiveResponse();
+                        describe(
+                            'Отмечаю строки. Нажимаю на кнопку "Повторить отправку". Отправлен запрос переотправки ' +
+                            'событий.',
+                        function() {
+                            var amocrmEventsResendingRequest;
+                            
+                            beforeEach(function() {
+                                tester.table().cell().withContent('79157389283').row().checkbox().click();
+                                tester.table().cell().withContent('79157389285').row().checkbox().click();
 
-                            tester.spinner.expectToBeHiddenOrNotExist();
-                            tester.button('Применить').expectNotToHaveAttribute('disabled');
-                            tester.button('Повторить отправку').expectToHaveAttribute('disabled');
+                                tester.button('Повторить отправку').click();
+                                Promise.runAll();
+                                amocrmEventsResendingRequest = tester.amocrmEventsResendingRequest().expectToBeSent();
+                            });
 
-                            tester.table().cell().withContent('79157389283').row().checkbox().expectNotToBeChecked();
+                            it('Таблица заблокирована.', function() {
+                                tester.spinner.expectToBeVisible();
+                                tester.button('Применить').expectToHaveAttribute('disabled');
+                                tester.button('Повторить отправку').expectToHaveAttribute('disabled');
+                            });
+                            
+                            it('Получен ответ сервера. Таблица доступна. Ни одна строка не выбрана.', function() {
+                                amocrmEventsResendingRequest.receiveResponse();
+                                tester.amocrmEventsRequest().receiveResponse();
+
+                                tester.spinner.expectToBeHiddenOrNotExist();
+                                tester.button('Применить').expectNotToHaveAttribute('disabled');
+                                tester.button('Повторить отправку').expectToHaveAttribute('disabled');
+
+                                tester.table().cell().withContent('79157389283').row().checkbox().expectNotToBeChecked();
+                                tester.table().cell().withContent('79157389284').row().checkbox().expectNotToBeChecked();
+                                tester.table().cell().withContent('79157389285').row().checkbox().expectNotToBeChecked();
+                            });
+                        });
+                        it(
+                            'Нажимаю на кнопку "Выбрать все недоставленные". Все недоставленные события выбраны.',
+                        function() {
+                            tester.button('Выбрать все недоставленные').click();
+
+                            tester.table().cell().withContent('79157389283').row().checkbox().expectToBeChecked();
                             tester.table().cell().withContent('79157389284').row().checkbox().expectNotToBeChecked();
                             tester.table().cell().withContent('79157389285').row().checkbox().expectNotToBeChecked();
                         });
+                        it(
+                            'Отображена таблица событий. Кнопка "Повторить отправку" заблокирована. Таблица доступна.',
+                        function() {
+                            tester.spinner.expectNotToExist();
+
+                            tester.button('Повторить отправку').expectToHaveAttribute('disabled');
+
+                            tester.root.expectToHaveTextContent(
+                                'Новосистем ' +
+                                'Admin Panel ' +
+
+                                'Пользователи ' +
+                                'Переотправка событий ' +
+
+                                'Переотправка событий ' +
+
+                                'Фильтры: ' +
+
+                                '~ ' +
+                                'Доставленные ' +
+                                'Недоставленные ' +
+
+                                'Применить ' +
+                                'Повторить отправку ' +
+                                'Выбрать все недоставленные ' +
+
+                                'Номер абонента ' +
+                                'Дата и время события ' +
+                                'Дата и время доставки в CRM ' +
+                                'ID сессия ' +
+
+                                '79157389283 ' +
+                                '03.02.2021 в 09:58 ' +
+                                'Сервер не отвечает 10.04.2021 в 16:59 ' +
+                                '39285 ' +
+
+                                '79157389284 ' +
+                                '04.02.2021 в 09:59 ' +
+                                '10.04.2021 в 17:59 ' +
+                                '39286 ' +
+
+                                '79157389285 ' +
+                                '05.02.2021 в 09:56 ' +
+                                '10.06.2021 в 18:59 ' +
+                                '39287 ' +
+
+                                '1 ' +
+                                'Строк на странице 50 ' +
+                                'Всего записей 2'
+                            );
+
+
+                            tester.checkbox().withLabel('Недоставленные').expectToBeChecked();
+                            tester.checkbox().withLabel('Доставленные').expectToBeChecked();
+
+                            tester.path.expectQueryToContain({
+                                from_event_date: '2020-08-26 00:00:00',
+                                id: '28394',
+                                numa: '79162937183',
+                                to_event_date: '2020-09-17 23:59:59',
+                                undelivered: 'true',
+                                delivered: 'true',
+                                limit: '50',
+                                offset: '0',
+                                sort: ['{"field":"delivery_date","order":"desc"}']
+                            });
+                        });
                     });
                     it(
-                        'Нажимаю на кнопку "Выбрать все недоставленные". Все недоставленные события выбраны.',
+                        'Некоторые события не отправляется в данный момент. Вместо даты отображен текст ' +
+                        '"Отправляется".',
                     function() {
-                        tester.button('Выбрать все недоставленные').click();
-
-                        tester.table().cell().withContent('79157389283').row().checkbox().expectToBeChecked();
-                        tester.table().cell().withContent('79157389284').row().checkbox().expectNotToBeChecked();
-                        tester.table().cell().withContent('79157389285').row().checkbox().expectNotToBeChecked();
-                    });
-                    it(
-                        'Отображена таблица событий. Кнопка "Повторить отправку" заблокирована. Таблица доступна.',
-                    function() {
-                        tester.spinner.expectNotToExist();
-
-                        tester.button('Повторить отправку').expectToHaveAttribute('disabled');
+                        amocrmEventsRequest.setSending().receiveResponse();
 
                         tester.root.expectToHaveTextContent(
                             'Новосистем ' +
@@ -138,7 +305,7 @@ tests.addTest(function (options) {
 
                             '79157389284 ' +
                             '04.02.2021 в 09:59 ' +
-                            '10.04.2021 в 17:59 ' +
+                            'Отправляется ' +
                             '39286 ' +
 
                             '79157389285 ' +
@@ -150,22 +317,6 @@ tests.addTest(function (options) {
                             'Строк на странице 50 ' +
                             'Всего записей 2'
                         );
-
-
-                        tester.checkbox().withLabel('Недоставленные').expectToBeChecked();
-                        tester.checkbox().withLabel('Доставленные').expectToBeChecked();
-
-                        tester.path.expectQueryToContain({
-                            from_event_date: '2020-08-26 00:00:00',
-                            id: '28394',
-                            numa: '79162937183',
-                            to_event_date: '2020-09-17 23:59:59',
-                            undelivered: 'true',
-                            delivered: 'true',
-                            limit: '50',
-                            offset: '0',
-                            sort: ['{"field":"delivery_date","order":"desc"}']
-                        });
                     });
                 });
                 it(
@@ -197,6 +348,10 @@ tests.addTest(function (options) {
                         undelivered: 'true',
                         delivered: 'false'
                     });
+                });
+                it('Проходит время. Ничего не происходит.', function() {
+                    spendTime(3000);
+                    Promise.runAll(false, true);
                 });
             });
             it(

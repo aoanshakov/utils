@@ -5,7 +5,9 @@ define(() => {
             ajax = options.ajax,
             userMedia = options.userMedia,
             spendTime = options.spendTime,
-            {app, path} = options.runApplication(options);
+            {app, path, stores} = options.runApplication(options);
+
+        stores.eventsStore.initParams();
 
         function Checkbox (element) {
             var checkbox = testersFactory.createDomElementTester(element);
@@ -254,9 +256,9 @@ define(() => {
                         params.undelivered = 'true';
                         return this;
                     },
-                    
-                    receiveResponse() {
-                        ajax.recentRequest().
+
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
@@ -264,38 +266,54 @@ define(() => {
                                 id: 'number',
                                 method: 'get.amocrm_events',
                                 params
-                            }).
-                            respondSuccessfullyWith({
-                                result: {
-                                    data: [{
-                                        id: 39285,
-                                        numa: '79157389283',
-                                        event_date: '2021-02-03 09:58:13',
-                                        delivery_date: '2021-04-10 16:59:15',
-                                        error_message: 'Сервер не отвечает',
-                                        state: 'failed',
-                                    }, {
-                                        id: 39286,
-                                        numa: '79157389284',
-                                        event_date: '2021-02-04 09:59:13',
-                                        delivery_date: '2021-04-10 17:59:15',
-                                        error_message: null,
-                                        state: 'delivered'
-                                    }, {
-                                        id: 39287,
-                                        numa: '79157389285',
-                                        event_date: '2021-02-05 09:56:13',
-                                        delivery_date: '2021-06-10 18:59:15',
-                                        error_message: null,
-                                        state: 'delivered'
-                                    }],
-                                    metadata: {
-                                        total_items: 2
-                                    }
-                                }
                             });
 
-                        Promise.runAll();
+                        const data = [{
+                            id: 39285,
+                            numa: '79157389283',
+                            event_date: '2021-02-03 09:58:13',
+                            delivery_date: '2021-04-10 16:59:15',
+                            error_message: 'Сервер не отвечает',
+                            state: 'failed',
+                        }, {
+                            id: 39286,
+                            numa: '79157389284',
+                            event_date: '2021-02-04 09:59:13',
+                            delivery_date: '2021-04-10 17:59:15',
+                            error_message: null,
+                            state: 'delivered'
+                        }, {
+                            id: 39287,
+                            numa: '79157389285',
+                            event_date: '2021-02-05 09:56:13',
+                            delivery_date: '2021-06-10 18:59:15',
+                            error_message: null,
+                            state: 'delivered'
+                        }];
+
+                        return {
+                            setSending() {
+                                data[1].state = 'sending';
+                                return this;
+                            },
+
+                            receiveResponse() {
+                                request.respondSuccessfullyWith({
+                                    result: {
+                                        data,
+                                        metadata: {
+                                            total_items: 2
+                                        }
+                                    }
+                                });
+
+                                Promise.runAll();
+                            }
+                        };
+                    },
+                    
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
                     }
                 };
             },

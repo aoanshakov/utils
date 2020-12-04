@@ -19,9 +19,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 runApplication: ({utils}) => {
                     var result = {};
 
-                    window.application.run(history => {
-                        result.path = new Path({history, utils});
-                    }, value => (result.app = value))
+                    window.application.run({
+                        setHistory: history => (result.path = new Path({history, utils})),
+                        setApp: app => (result.app = app),
+                        setStores: stores => (result.stores = stores)
+                    });
 
                     return result;
                 } 
