@@ -1,0 +1,27 @@
+#!/bin/bash
+
+path=/usr/local/src
+
+if [ ! -d $path ]
+then
+    echo "директория приложения смонтирована некорректно"
+    exit 1
+fi
+
+export SIP_LIB_TEST_USER=""
+action="server"
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "--owner" ]
+    then
+        export SIP_LIB_TEST_USER=$2
+        shift
+    fi
+
+    shift
+done
+
+cd $path
+service nginx start
+bash

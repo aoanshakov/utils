@@ -1,0 +1,42 @@
+body {
+    font-family: sans-serif;
+    font-size: 13px;
+    padding: 30px;
+}
+
+.record-info-row, #message-display {
+    margin-bottom: 10px;
+}
+
+#message-display {
+    margin-bottom: 10px;
+    display: none;
+}
+
+#record-request-button, #record-url-input {
+    background: transparent;
+    border: solid 1px #000;
+    height: 25px;
+    line-height: 25px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    display: block;
+}
+
+#record-url-input {
+    float: left;
+    margin-right: 5px;
+    width: 500px;
+}
+
+#record-request-button {
+    cursor: pointer;
+}
+
+#form {
+    margin-top: 20px;
+}
+
+.record-info-row-label {
+    font-weight: bold;
+}
