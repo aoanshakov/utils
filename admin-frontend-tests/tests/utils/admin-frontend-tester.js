@@ -52,6 +52,12 @@ define(() => {
                 };
 
                 return {
+                    clearIcon() {
+                        return testersFactory.createDomElementTester(() => {
+                            return document.querySelector('.ant-calendar-picker-clear');
+                        });
+                    },
+
                     left() {
                         return getCalendar(0);
                     },
@@ -155,7 +161,7 @@ define(() => {
                     },
 
                     allowReadEventResending() {
-                        permissions.event_resending = ['r'];
+                        permissions.apps_management_resend_crm_events = ['r'];
                         return this;
                     },
 
@@ -230,30 +236,41 @@ define(() => {
             amocrmEventsRequest() {
                 const params = {
                     id: '28394',
+                    app_id: '4735',
                     numa: '79162937183',
-                    from_event_date: '2020-08-26 00:00:00',
-                    to_event_date: '2020-09-17 23:59:59',
+                    date_from: '2020-08-26 00:00:00',
+                    date_till: '2020-09-17 23:59:59',
                     access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
-                    undelivered: 'true',
-                    delivered: 'true',
+                    is_show_undelivered: 'true',
+                    is_show_delivered: 'true',
                     limit: '50',
                     offset: '0',
                     sort: [{
-                        field: 'delivery_date',
+                        field: 'send_time',
                         order: 'desc'
                     }]
                 };
 
                 return {
+                    setDefaultParams() {
+                        delete(params.app_id);
+                        delete(params.numa);
+                        delete(params.id);
+                        params.date_from = '2020-08-23 00:00:00';
+                        params.date_till = '2020-08-24 23:59:59';
+
+                        return this;
+                    },
+
                     setDeliveredOnly() {
-                        params.delivered = 'true';
-                        params.undelivered = 'false';
+                        params.is_show_delivered = 'true';
+                        params.is_show_undelivered = 'false';
                         return this;
                     },
 
                     setUndeliveredOnly() {
-                        params.delivered = 'false';
-                        params.undelivered = 'true';
+                        params.is_show_delivered = 'false';
+                        params.is_show_undelivered = 'true';
                         return this;
                     },
 
@@ -271,29 +288,29 @@ define(() => {
                         const data = [{
                             id: 39285,
                             numa: '79157389283',
-                            event_date: '2021-02-03 09:58:13',
-                            delivery_date: '2021-04-10 16:59:15',
+                            event_time: '2021-02-03 09:58:13',
+                            send_time: '2021-04-10 16:59:15',
                             error_message: 'Сервер не отвечает',
                             state: 'failed',
                         }, {
                             id: 39286,
                             numa: '79157389284',
-                            event_date: '2021-02-04 09:59:13',
-                            delivery_date: '2021-04-10 17:59:15',
+                            event_time: '2021-02-04 09:59:13',
+                            send_time: '2021-04-10 17:59:15',
                             error_message: null,
-                            state: 'delivered'
+                            state: 'success'
                         }, {
                             id: 39287,
                             numa: '79157389285',
-                            event_date: '2021-02-05 09:56:13',
-                            delivery_date: '2021-06-10 18:59:15',
+                            event_time: '2021-02-05 09:56:13',
+                            send_time: '2021-06-10 18:59:15',
                             error_message: null,
-                            state: 'delivered'
+                            state: 'success'
                         }];
 
                         return {
                             setSending() {
-                                data[1].state = 'sending';
+                                data[1].state = 'in_process';
                                 return this;
                             },
 
