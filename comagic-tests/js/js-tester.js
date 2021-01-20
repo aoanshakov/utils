@@ -65,6 +65,134 @@ function JsTester_Factory () {
     };
 }
 
+function JsTester_ParentWindowReplacer (fakeWindow) {
+    var realParent = window.parent,
+        win = realParent;
+
+    Object.defineProperty(window, 'parent', {
+        get : function () {
+            return win;
+        }
+    });     
+
+    this.replaceByFake = function () {
+        win = fakeWindow;
+    };
+    this.restoreReal = function () {
+        win = realParent;
+    };
+}
+
+function JsTester_EmptyQueueItem (emptyValue) {
+    this.getPrevious = function () {
+        return this;
+    };
+    this.getValue = function () {
+        return emptyValue;
+    };
+}
+
+function JsTester_QueueItem (previous, value) {
+    this.getPrevious = function () {
+        return previous;
+    };
+    this.getValue = function () {
+        return value;
+    };
+}
+
+function JsTester_Queue (emptyValue) {
+    var emptyItem = new JsTester_EmptyQueueItem(emptyValue),
+        lastItem;
+
+    this.forEach = function (callback) {
+        var currentItem = lastItem;
+
+        while (currentItem != emptyItem) {
+            callback(currentItem.getValue());
+            currentItem = currentItem.getPrevious();
+        }
+    };
+    this.add = function (value) {
+        lastItem = new JsTester_QueueItem(lastItem, value);
+    };
+    this.pop = function () {
+        var value = lastItem.getValue();
+        lastItem = lastItem.getPrevious();
+        return value;
+    };
+    this.isEmpty = function () {
+        return lastItem === emptyItem;
+    };
+    this.removeAll = function () {
+        lastItem = emptyItem;
+    };
+
+    this.removeAll();
+}
+
+function JsTester_NoWindowMessage () {
+    this.expectToEqual = function (expectedMessage) {
+        throw new Error(
+            'Ни одно сообщение не было отправлено в родительское окно, однако должно было быть отправлено ' +
+            'сообщение "' + expectedMessage + '".'
+        );
+    };
+
+    this.expectNotToExist = function () {
+    };
+}
+
+function JsTester_WindowMessage (args) {
+    var actualMessage = args.actualMessage,
+        debug = args.debug,
+        callStack = debug.getCallStack();
+
+    this.expectToEqual = function (expectedMessage) {
+        if (actualMessage != expectedMessage) {
+            throw new Error(
+                'В родительское окно должно быть отправлено сообщение "' + expectedMessage + '", однако было ' +
+                'отправлено сообщение "' + actualMessage + '".' + "\n\n" + callStack
+            );
+        }
+    };
+
+    this.expectNotToExist = function (errors) {
+        var error = new Error(
+            'Ни одно сообщение не должно быть отправлено в родительское окно, однако было отправлено сообщение "' +
+            actualMessage + '".' + "\n\n" + callStack + "\n\n"
+        );
+
+        if (errors) {
+            errors.push(error);
+        } else {
+            throw error;
+        }
+    };
+}
+
+function JsTester_FakeWindow (args) {
+    var postMessages = args.postMessages,
+        debug = args.debug;
+
+    this.postMessage = function (actualMessage) {
+        postMessages.add(new JsTester_WindowMessage({
+            actualMessage: actualMessage,
+            debug: debug
+        }));
+    };
+}
+
+function JsTester_PostMessageTester (postMessages) {
+    this.expectMessageToBeSent = function (expectedMessage) {
+        postMessages.pop().expectToEqual(expectedMessage);
+    };
+
+    this.expectNoMessageToBeSent = function (errors) {
+        postMessages.pop().expectNotToExist(errors);
+    };
+}
+
 function JsTester_Tests (factory) {
     var testRunners = [],
         requiredClasses = [],
@@ -74,7 +202,14 @@ function JsTester_Tests (factory) {
         utils = factory.createUtils(debug),
         requestsManager = new JsTester_RequestsManager(utils),
         windowOpener = new JsTester_WindowOpener(utils),
-        testsExecutionBeginingHandlers = [];
+        testsExecutionBeginingHandlers = [],
+        postMessages = new JsTester_Queue(new JsTester_NoWindowMessage()),
+        postMessagesTester = new JsTester_PostMessageTester(postMessages),
+        fakeWindow = new JsTester_FakeWindow({
+            postMessages: postMessages,
+            debug: debug
+        }),
+        parentWindowReplacer = new JsTester_ParentWindowReplacer(fakeWindow);
 
     var wait = function () {
         if (arguments[0]) {
@@ -114,7 +249,15 @@ function JsTester_Tests (factory) {
         }
 
         testRunners.forEach(function (runTest) {
-            runTest.apply(null, [requestsManager, testersFactory, wait, utils, windowOpener, debug].concat(
+            runTest.apply(null, [
+                requestsManager,
+                testersFactory,
+                wait,
+                utils,
+                windowOpener,
+                postMessagesTester,
+                debug
+            ].concat(
                 factory.createTestArguments()
             ));
         });
@@ -134,18 +277,28 @@ function JsTester_Tests (factory) {
         return requiredClasses;
     };
     this.beforeEach = function () {
+        postMessages.removeAll();
         requestsManager.createAjaxMock();
+        parentWindowReplacer.replaceByFake();
         timeout.replaceByFake();
         interval.replaceByFake();
         windowOpener.replaceByFake();
         factory.beforeEach();
     };
     this.afterEach = function () {
+        var errors = [];
+
+        postMessagesTester.expectNoMessageToBeSent(errors);
+        parentWindowReplacer.restoreReal();
         requestsManager.destroyAjaxMock();
         timeout.restoreReal();
         interval.restoreReal();
         windowOpener.restoreReal();
         factory.afterEach();
+
+        errors.forEach(function (error) {
+            throw error;
+        });
     };
 }
 

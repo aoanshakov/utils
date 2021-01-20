@@ -19,6 +19,9 @@ tests.addTest(function (options) {
         let tester;
 
         beforeEach(function() {
+            const notificationsContainer = document.querySelector('.ant-notification span');
+            notificationsContainer && (notificationsContainer.innerHTML = '');
+
             setNow('2020-08-24 13:21:55');
             tester = new AdminFrontendTester(options);
             tester.path.open('/');
@@ -60,8 +63,9 @@ tests.addTest(function (options) {
                             tester.forceUpdate();
                         });
 
-                        xdescribe('Дата начала меньше даты окончания.', function() {
+                        describe('Дата окончания меньше текущей.', function() {
                             beforeEach(function() {
+                                tester.calendar().left().prevMonth().click();
                                 tester.calendar().left().cell('26').click();
                                 tester.forceUpdate();
                                 tester.calendar().right().cell('17').click();
@@ -77,14 +81,183 @@ tests.addTest(function (options) {
                                     amocrmEventsRequest = tester.amocrmEventsRequest().expectToBeSent();
                                 });
 
-                                describe('Ни одно событие не отправляется в данный момент.', function() {
+                                describe('Событий много.', function() {
+                                    beforeEach(function() {
+                                        amocrmEventsRequest.addEvents(0, 24).receiveResponse();
+                                    });
+
+                                    describe(
+                                        'Нажимаю на кнпоку "Далее". Отправлен запрос второй страницы.',
+                                    function() {
+                                        beforeEach(function() {
+                                            tester.button('Далее').click();
+                                            Promise.runAll();
+                                            amocrmEventsRequest = tester.amocrmEventsRequest().setOffset(25).
+                                                expectToBeSent();
+                                        });
+
+                                        describe('На второй странице есть события.', function() {
+                                            beforeEach(function() {
+                                                amocrmEventsRequest.addEvents(25, 49).receiveResponse()
+                                            });
+
+                                            describe('Перехожу на пятую страницу.', function() {
+                                                beforeEach(function() {
+                                                    tester.button('Далее').click();
+                                                    Promise.runAll();
+                                                    tester.amocrmEventsRequest().setOffset(50).expectToBeSent().
+                                                        addEvents(50, 74).receiveResponse();
+
+                                                    tester.button('Далее').click();
+                                                    Promise.runAll();
+                                                    tester.amocrmEventsRequest().setOffset(75).expectToBeSent().
+                                                        addEvents(75, 99).receiveResponse();
+
+                                                    tester.button('Далее').click();
+                                                    Promise.runAll();
+                                                    tester.amocrmEventsRequest().setOffset(100).expectToBeSent().
+                                                        addEvents(100, 124).receiveResponse();
+                                                });
+
+                                                describe(
+                                                    'Нажимаю на кнопку четвертой страницы. Отправлен запрос ' +
+                                                    'четвертой страницы.',
+                                                function() {
+                                                    beforeEach(function() {
+                                                        tester.table().paging().page(4).click();
+                                                        Promise.runAll();
+                                                        amocrmEventsRequest = tester.amocrmEventsRequest().
+                                                            setOffset(75).expectToBeSent();
+                                                    });
+
+                                                    it(
+                                                        'На четвертой странице есть события. Отображена четвертая ' +
+                                                        'страница.',
+                                                    function() {
+                                                        amocrmEventsRequest.addEvents(75, 99).receiveResponse();
+
+                                                        tester.root.expectToHaveTextContent(
+                                                            'В начало ' +
+                                                            '1 ' +
+                                                            '2 ' +
+                                                            '3 ' +
+                                                            '4 ' +
+                                                            'Далее ' +
+                                                            'Строк на странице 25'
+                                                        );
+                                                    });
+                                                    it(
+                                                        'На четвертой странице нет событий. Запрошена первая страница.',
+                                                    function() {
+                                                        amocrmEventsRequest.setNoEvents().receiveResponse();
+                                                        tester.amocrmEventsRequest().receiveResponse();
+                                                    });
+                                                });
+                                                describe('Перехожу на шестую страницу.', function() {
+                                                    beforeEach(function() {
+                                                        tester.button('Далее').click();
+                                                        Promise.runAll();
+                                                        tester.amocrmEventsRequest().setOffset(125).expectToBeSent().
+                                                            addEvents(125, 149).receiveResponse();
+                                                    });
+
+                                                    it('Отображены пять кнопок страниц.', function() {
+                                                        tester.root.expectToHaveTextContent(
+                                                            'В начало ' +
+                                                            '2 ' +
+                                                            '3 ' +
+                                                            '4 ' +
+                                                            '5 ' +
+                                                            '6 ' +
+                                                            'Далее ' +
+                                                            'Строк на странице 25'
+                                                        );
+                                                    });
+                                                });
+                                                it(
+                                                    'Нажимаю на кнопку "В начало". Запрошена первая страница.',
+                                                function() {
+                                                    tester.button('В начало').click();
+                                                    Promise.runAll();
+                                                    tester.amocrmEventsRequest().expectToBeSent();
+                                                });
+                                                it('Отображены пять кнопок страниц.', function() {
+                                                    tester.root.expectToHaveTextContent(
+                                                        'В начало ' +
+                                                        '1 ' +
+                                                        '2 ' +
+                                                        '3 ' +
+                                                        '4 ' +
+                                                        '5 ' +
+                                                        'Далее ' +
+                                                        'Строк на странице 25'
+                                                    );
+                                                });
+                                            });
+                                            it('Отображена вторая страница.', function() {
+                                                tester.table().paging().page(1).
+                                                    expectNotToHaveClass('pagination-item-active');
+                                                tester.table().paging().page(2).expectToHaveClass(
+                                                    'pagination-item-active'
+                                                );
+
+                                                tester.root.expectToHaveTextContent(
+                                                    '79157389337 ' +
+                                                    '05.02.2021 в 09:56 ' +
+                                                    '10.06.2021 в 18:59 ' +
+                                                    '39339 ' +
+
+                                                    'В начало ' +
+                                                    '1 ' +
+                                                    '2 ' +
+                                                    'Далее ' +
+                                                    'Строк на странице 25'
+                                                );
+                                            });
+                                        });
+                                        it('На второй странице нет событий. Отображена первая страница.', function() {
+                                            amocrmEventsRequest.setNoEvents().receiveResponse()
+
+                                            tester.table().paging().page(1).expectToHaveClass('pagination-item-active');
+                                            tester.table().paging().page(2).
+                                                expectNotToHaveClass('pagination-item-active');
+
+                                            tester.root.expectToHaveTextContent(
+                                                '79157389312 ' +
+                                                '05.02.2021 в 09:56 ' +
+                                                '10.06.2021 в 18:59 ' +
+                                                '39314 ' +
+
+                                                '1 ' +
+                                                'Далее ' +
+                                                'Строк на странице 25'
+                                            );
+                                        });
+                                    });
+                                    it('Отображена первая страница.', function() {
+                                        tester.table().paging().page(1).expectToHaveClass('pagination-item-active');
+                                        tester.table().paging().page(2).expectNotToHaveClass('pagination-item-active');
+
+                                        tester.root.expectToHaveTextContent(
+                                            '79157389312 ' +
+                                            '05.02.2021 в 09:56 ' +
+                                            '10.06.2021 в 18:59 ' +
+                                            '39314 ' +
+
+                                            '1 ' +
+                                            'Далее ' +
+                                            'Строк на странице 25'
+                                        );
+                                    });
+                                });
+                                describe('Событий мало. Ни одно событие не отправляется в данный момент.', function() {
                                     beforeEach(function() {
                                         amocrmEventsRequest.receiveResponse();
                                     });
                                     
-                                    describe(
-                                        'Отмечаю строки. Нажимаю на кнопку "Повторить отправку". Отправлен запрос ' +
-                                        'переотправки событий.',
+                                    xdescribe(
+                                        'Отмечаю две строки. Нажимаю на кнопку "Повторить отправку". Отправлен ' +
+                                        'запрос переотправки событий.',
                                     function() {
                                         var amocrmEventsResendingRequest;
                                         
@@ -95,33 +268,79 @@ tests.addTest(function (options) {
                                             tester.button('Повторить отправку').click();
                                             Promise.runAll();
                                             amocrmEventsResendingRequest = tester.amocrmEventsResendingRequest().
-                                                expectToBeSent();
+                                                setTwoEvents().expectToBeSent();
                                         });
 
+                                        describe('Получен ответ сервера. Отправлен запрос событий.', function() {
+                                            beforeEach(function() {
+                                                amocrmEventsResendingRequest.receiveResponse();
+                                                amocrmEventsRequest = tester.amocrmEventsRequest().expectToBeSent();
+                                            });
+
+                                            it(
+                                                'Таблица заблокирована. Отображено оповещение о добавлении событий в ' +
+                                                'очередь.',
+                                            function() {
+                                                tester.spinner.expectToBeVisible();
+                                                tester.notification.
+                                                    expectToHaveTextContent('В очередь добавлено 2 события');
+                                            });
+                                            it(
+                                                'Получен ответ сервера. Таблица доступна. Ни одна строка не выбрана.',
+                                            function() {
+                                                amocrmEventsRequest.receiveResponse();
+
+                                                tester.spinner.expectToBeHiddenOrNotExist();
+                                                tester.button('Применить').expectNotToHaveAttribute('disabled');
+                                                tester.button('Повторить отправку').expectToHaveAttribute('disabled');
+
+                                                tester.table().cell().withContent('79157389283').row().checkbox().
+                                                    expectNotToBeChecked();
+                                                tester.table().cell().withContent('79157389284').row().checkbox().
+                                                    expectNotToBeChecked();
+                                                tester.table().cell().withContent('79157389285').row().checkbox().
+                                                    expectNotToBeChecked();
+                                            });
+                                        });
                                         it('Таблица заблокирована.', function() {
                                             tester.spinner.expectToBeVisible();
                                             tester.button('Применить').expectToHaveAttribute('disabled');
                                             tester.button('Повторить отправку').expectToHaveAttribute('disabled');
                                         });
-                                        it(
-                                            'Получен ответ сервера. Таблица доступна. Ни одна строка не выбрана.',
-                                        function() {
-                                            amocrmEventsResendingRequest.receiveResponse();
-                                            tester.amocrmEventsRequest().receiveResponse();
-
-                                            tester.spinner.expectToBeHiddenOrNotExist();
-                                            tester.button('Применить').expectNotToHaveAttribute('disabled');
-                                            tester.button('Повторить отправку').expectToHaveAttribute('disabled');
-
-                                            tester.table().cell().withContent('79157389283').row().checkbox().
-                                                expectNotToBeChecked();
-                                            tester.table().cell().withContent('79157389284').row().checkbox().
-                                                expectNotToBeChecked();
-                                            tester.table().cell().withContent('79157389285').row().checkbox().
-                                                expectNotToBeChecked();
-                                        });
                                     });
-                                    it(
+                                    xit(
+                                        'Отмечаю одну строку. Нажимаю на кнопку "Повторить отправку". Отображено ' +
+                                        'оповещение о добавлении события в очередь.',
+                                    function() {
+                                        tester.table().cell().withContent('79157389283').row().checkbox().click();
+
+                                        tester.button('Повторить отправку').click();
+                                        Promise.runAll();
+
+                                        tester.amocrmEventsResendingRequest().receiveResponse();
+                                        tester.amocrmEventsRequest().expectToBeSent();
+
+                                        tester.notification.expectToHaveTextContent('В очередь добавлено 1 событие');
+                                    });
+                                    xit(
+                                        'Отмечаю пять строк. Нажимаю на кнопку "Повторить отправку". Отображено ' +
+                                        'оповещение о добавлении события в очередь.',
+                                    function() {
+                                        tester.table().cell().withContent('79157389283').row().checkbox().click();
+                                        tester.table().cell().withContent('79157389284').row().checkbox().click();
+                                        tester.table().cell().withContent('79157389285').row().checkbox().click();
+                                        tester.table().cell().withContent('79157389286').row().checkbox().click();
+                                        tester.table().cell().withContent('79157389287').row().checkbox().click();
+
+                                        tester.button('Повторить отправку').click();
+                                        Promise.runAll();
+
+                                        tester.amocrmEventsResendingRequest().receiveResponse();
+                                        tester.amocrmEventsRequest().expectToBeSent();
+
+                                        tester.notification.expectToHaveTextContent('В очередь добавлено 5 событий');
+                                    });
+                                    xit(
                                         'Нажимаю на кнопку "Выбрать все недоставленные". Все недоставленные события ' +
                                         'выбраны.',
                                     function() {
@@ -135,6 +354,36 @@ tests.addTest(function (options) {
                                         tester.table().cell().withContent('79157389285').row().checkbox().
                                             expectNotToBeChecked();
                                     });
+                                    xit(
+                                        'Навожу курсор на иконку условия. Отображается подсказка с описанием условия.',
+                                    function() {
+                                        tester.table().cell().withContent('79157389283').row().
+                                            querySelector(
+                                                '.event-resending-condition-icon-is_common_conditions_passed'
+                                            ).
+                                            putMouseOver();
+
+                                        tester.tooltip.
+                                            expectToHaveTextContent('Общие для всех клиентов условия отправки в CRM');
+                                    });
+                                    it('Нажимаю на кнопку "Далее". Запрошены данные первой страницы.', function() {
+                                        tester.button('Далее').click();
+                                        Promise.runAll();
+                                        tester.amocrmEventsRequest().receiveResponse();
+
+                                        tester.root.expectTextContentToHaveSubstring(
+                                            'Номер абонента ' +
+                                            'Дата и время события ' +
+                                            'Дата и время доставки в CRM ' +
+                                            'ID сессии ' +
+
+                                            '79157389283 ' +
+                                            '03.02.2021 в 09:58 ' +
+                                            'Сервер не отвечает 10.04.2021 в 16:59 ' +
+                                            '39285'
+                                        );
+                                    });
+                                    return;
                                     it(
                                         'Отображена таблица событий. Кнопка "Повторить отправку" заблокирована. ' +
                                         'Таблица доступна.',
@@ -158,6 +407,8 @@ tests.addTest(function (options) {
                                             '~ ' +
                                             'Доставленные ' +
                                             'Недоставленные ' +
+                                            'Отправляются ' +
+                                            'Не отправлялись ' +
 
                                             'Применить ' +
                                             'Повторить отправку ' +
@@ -167,49 +418,107 @@ tests.addTest(function (options) {
                                             'Дата и время события ' +
                                             'Дата и время доставки в CRM ' +
                                             'ID сессии ' +
-                                            'Тип CRM ' +
 
                                             '79157389283 ' +
                                             '03.02.2021 в 09:58 ' +
                                             'Сервер не отвечает 10.04.2021 в 16:59 ' +
                                             '39285 ' +
-                                            'amoCRM ' +
 
                                             '79157389284 ' +
                                             '04.02.2021 в 09:59 ' +
                                             '10.04.2021 в 17:59 ' +
                                             '39286 ' +
-                                            'amoCRM ' +
 
                                             '79157389285 ' +
                                             '05.02.2021 в 09:56 ' +
                                             '10.06.2021 в 18:59 ' +
                                             '39287 ' +
-                                            'amoCRM ' +
+
+                                            '79157389286 ' +
+                                            '05.02.2021 в 09:56 ' +
+                                            '10.06.2021 в 18:59 ' +
+                                            '39288 ' +
+
+                                            '79157389287 ' +
+                                            '05.02.2021 в 09:56 ' +
+                                            '10.06.2021 в 18:59 ' +
+                                            '39289 ' +
 
                                             '1 ' +
-                                            'Строк на странице 50 ' +
-                                            'Всего записей 3'
+                                            'Далее ' +
+                                            'Строк на странице 25'
                                         );
-
 
                                         tester.checkbox().withLabel('Недоставленные').expectToBeChecked();
                                         tester.checkbox().withLabel('Доставленные').expectToBeChecked();
+                                        tester.checkbox().withLabel('Отправляются').expectToBeChecked();
+                                        tester.checkbox().withLabel('Не отправлялись').expectToBeChecked();
 
                                         tester.path.expectQueryToContain({
-                                            date_from: '2020-08-26 00:00:00',
+                                            date_from: '2020-07-26 00:00:00',
                                             id: '28394',
                                             app_id: '4735',
                                             numa: '79162937183',
-                                            date_till: '2020-09-17 23:59:59',
+                                            date_till: '2020-08-17 23:59:59',
+                                            is_show_not_sent: 'true',
+                                            is_show_in_process: 'true',
                                             is_show_undelivered: 'true',
                                             is_show_delivered: 'true',
                                             limit: '50',
                                             offset: '0',
-                                            sort: ['{"field":"send_time","order":"desc"}']
+                                            sort: ['{"field":"event_time","order":"desc"}']
                                         });
+
+                                        tester.table().cell().withContent('79157389283').row().
+                                            querySelector(
+                                                '.event-resending-condition-icon-is_common_conditions_passed'
+                                            ).
+                                            expectNotToHaveClass('event-resending-condition-icon-complied');
+                                        tester.table().cell().withContent('79157389283').row().
+                                            querySelector(
+                                                '.event-resending-condition-icon-is_setting_conditions_passed'
+                                            ).
+                                            expectToHaveClass('event-resending-condition-icon-complied');
+                                        tester.table().cell().withContent('79157389283').row().
+                                            querySelector(
+                                                '.event-resending-condition-icon-is_filter_conditions_passed'
+                                            ).
+                                            expectToHaveClass('event-resending-condition-icon-complied');
+
+                                        tester.table().cell().withContent('79157389284').row().
+                                            querySelector(
+                                                '.event-resending-condition-icon-is_common_conditions_passed'
+                                            ).
+                                            expectToHaveClass('event-resending-condition-icon-complied');
+                                        tester.table().cell().withContent('79157389284').row().
+                                            querySelector(
+                                                '.event-resending-condition-icon-is_setting_conditions_passed'
+                                            ).
+                                            expectNotToHaveClass('event-resending-condition-icon-complied');
+                                        tester.table().cell().withContent('79157389284').row().
+                                            querySelector(
+                                                '.event-resending-condition-icon-is_filter_conditions_passed'
+                                            ).
+                                            expectToHaveClass('event-resending-condition-icon-complied');
+
+                                        tester.table().cell().withContent('79157389285').row().
+                                            querySelector(
+                                                '.event-resending-condition-icon-is_common_conditions_passed'
+                                            ).
+                                            expectToHaveClass('event-resending-condition-icon-complied');
+                                        tester.table().cell().withContent('79157389285').row().
+                                            querySelector(
+                                                '.event-resending-condition-icon-is_setting_conditions_passed'
+                                            ).
+                                            expectToHaveClass('event-resending-condition-icon-complied');
+                                        tester.table().cell().withContent('79157389285').row().
+                                            querySelector(
+                                                '.event-resending-condition-icon-is_filter_conditions_passed'
+                                            ).
+                                            expectNotToHaveClass('event-resending-condition-icon-complied');
                                     });
                                 });
+                                return;
                                 it(
                                     'Некоторые события отправляются в данный момент. Вместо даты отображен текст ' +
                                     '"Отправляется".',
@@ -232,6 +541,8 @@ tests.addTest(function (options) {
                                         '~ ' +
                                         'Доставленные ' +
                                         'Недоставленные ' +
+                                        'Отправляются ' +
+                                        'Не отправлялись ' +
 
                                         'Применить ' +
                                         'Повторить отправку ' +
@@ -241,29 +552,35 @@ tests.addTest(function (options) {
                                         'Дата и время события ' +
                                         'Дата и время доставки в CRM ' +
                                         'ID сессии ' +
-                                        'Тип CRM ' +
 
                                         '79157389283 ' +
                                         '03.02.2021 в 09:58 ' +
                                         'Сервер не отвечает 10.04.2021 в 16:59 ' +
                                         '39285 ' +
-                                        'amoCRM ' +
 
                                         '79157389284 ' +
                                         '04.02.2021 в 09:59 ' +
                                         'Отправляется ' +
                                         '39286 ' +
-                                        'amoCRM ' +
 
                                         '79157389285 ' +
                                         '05.02.2021 в 09:56 ' +
                                         '10.06.2021 в 18:59 ' +
                                         '39287 ' +
-                                        'amoCRM ' +
+
+                                        '79157389286 ' +
+                                        '05.02.2021 в 09:56 ' +
+                                        '10.06.2021 в 18:59 ' +
+                                        '39288 ' +
+
+                                        '79157389287 ' +
+                                        '05.02.2021 в 09:56 ' +
+                                        '10.06.2021 в 18:59 ' +
+                                        '39289 ' +
 
                                         '1 ' +
-                                        'Строк на странице 50 ' +
-                                        'Всего записей 3'
+                                        'Далее ' +
+                                        'Строк на странице 25'
                                     );
                                 });
                                 it('Некоторые события никогда не отправлялись.', function() {
@@ -273,11 +590,11 @@ tests.addTest(function (options) {
                                         '79157389284 ' +
                                         '04.02.2021 в 09:59 ' +
                                         'Не отправлялось ' +
-                                        '39286 ' +
-                                        'amoCRM'
+                                        '39286'
                                     );
                                 });
                             });
+                            return;
                             it(
                                 'Снимаю отметку с чекбокса "Недоставленные". Нажимаю на кнопку "Применить". ' +
                                 'Отправлен запрос событий.',
@@ -286,9 +603,11 @@ tests.addTest(function (options) {
 
                                 tester.button('Применить').click();
                                 Promise.runAll();
-                                tester.amocrmEventsRequest().setDeliveredOnly().receiveResponse();
+                                tester.amocrmEventsRequest().setAllExceptUndelivered().receiveResponse();
 
                                 tester.path.expectQueryToContain({
+                                    is_show_not_sent: 'true',
+                                    is_show_in_process: 'true',
                                     is_show_undelivered: 'false',
                                     is_show_delivered: 'true'
                                 });
@@ -301,15 +620,55 @@ tests.addTest(function (options) {
 
                                 tester.button('Применить').click();
                                 Promise.runAll();
-                                tester.amocrmEventsRequest().setUndeliveredOnly().receiveResponse();
+                                tester.amocrmEventsRequest().setAllExceptDelivered().receiveResponse();
 
                                 tester.path.expectQueryToContain({
+                                    is_show_not_sent: 'true',
+                                    is_show_in_process: 'true',
                                     is_show_undelivered: 'true',
                                     is_show_delivered: 'false'
                                 });
                             });
                         });
-                        it('', function() {
+                        return;
+                        describe('Дата начала и дата окончания больше текущей.', function() {
+                            beforeEach(function() {
+                                tester.calendar().left().cell('26').click();
+                                tester.forceUpdate();
+                                tester.calendar().right().cell('17').click();
+                                tester.forceUpdate();
+                            });
+
+                            it('Выбрана сегодняшняя дата.', function() {
+                                tester.textfield().withPlaceholder('Начальная дата').expectToHaveValue('24.08.2020');
+                                tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('24.08.2020');
+                            });
+                            it('Нажимаю на кнопку "Применить". Отправляется запрос сегодняшних событий.', function() {
+                                tester.button('Применить').click();
+                                Promise.runAll();
+                                tester.amocrmEventsRequest().setDefaultDateRange().expectToBeSent();
+                            });
+                        });
+                        describe('Дата начала меньше текущей, а дата окончания больше текущей.', function() {
+                            beforeEach(function() {
+                                tester.calendar().left().cell('10').click();
+                                tester.forceUpdate();
+                                tester.calendar().right().cell('17').click();
+                                tester.forceUpdate();
+                            });
+
+                            it('Выбрана сегодняшняя дата в качестве конечной.', function() {
+                                tester.textfield().withPlaceholder('Начальная дата').expectToHaveValue('10.08.2020');
+                                tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('24.08.2020');
+                            });
+                            it(
+                                'Нажимаю на кнопку "Применить". Отправляется запрос событий отфильтрованый по ' +
+                                'периоду, окончанием которого является сегодняшний день.',
+                            function() {
+                                tester.button('Применить').click();
+                                Promise.runAll();
+                                tester.amocrmEventsRequest().setAnotherDateRange().expectToBeSent();
+                            });
                         });
                     });
                     return;
@@ -335,9 +694,7 @@ tests.addTest(function (options) {
                 });
             });
             return;
-            describe(
-                'Открываю раздел "CRM-интеграции". Нажимаю на кнопку "Применить".',
-            function() {
+            describe('Открываю раздел "CRM-интеграции". Нажимаю на кнопку "Применить".', function() {
                 beforeEach(function() {
                     tester.path.open('/crm-integrations');
                     Promise.runAll();
@@ -368,21 +725,75 @@ tests.addTest(function (options) {
                 });
             });
             it(
-                'Открываю раздел "Переотправка событий" с фильтром. Отправлен запрос событий с фильтрацией. Поля ' +
-                'фильтра заполнены.',
+                'Открываю раздел "Переотправка событий" с фильтром. Дата начала и дата окончания больше текущей. ' +
+                'Выбрана сегодняшняя дата.',
             function() {
                 tester.path.open('/event-resending', {
                     date_from: '2020-08-26 00:00:00',
+                    date_till: '2020-09-17 23:59:59',
+                    id: '28394',
+                    app_id: '4735',
+                    partner: 'amocrm',
+                    numa: '79162937183',
+                    is_show_not_sent: 'true',
+                    is_show_in_process: 'true',
+                    is_show_undelivered: 'true',
+                    is_show_delivered: 'true',
+                    limit: '50',
+                    offset: '0',
+                    sort: ['{"field":"event_time","order":"desc"}']
+                });
+
+                Promise.runAll();
+                tester.amocrmEventsRequest().setDefaultDateRange().receiveResponse();
+
+                tester.textfield().withPlaceholder('Начальная дата').expectToHaveValue('24.08.2020');
+                tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('24.08.2020');
+            });
+            it(
+                'Открываю раздел "Переотправка событий" с фильтром. Дата начала меньше текущей, а дата окончания ' +
+                'больше текущей. Выбрана сегодняшняя дата в качестве конечной.',
+            function() {
+                tester.path.open('/event-resending', {
+                    date_from: '2020-08-10 00:00:00',
+                    date_till: '2020-09-17 23:59:59',
+                    id: '28394',
+                    app_id: '4735',
+                    partner: 'amocrm',
+                    numa: '79162937183',
+                    is_show_not_sent: 'true',
+                    is_show_in_process: 'true',
+                    is_show_undelivered: 'true',
+                    is_show_delivered: 'true',
+                    limit: '50',
+                    offset: '0',
+                    sort: ['{"field":"event_time","order":"desc"}']
+                });
+
+                Promise.runAll();
+                tester.amocrmEventsRequest().setAnotherDateRange().receiveResponse();
+
+                tester.textfield().withPlaceholder('Начальная дата').expectToHaveValue('10.08.2020');
+                tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('24.08.2020');
+            });
+            it(
+                'Открываю раздел "Переотправка событий" с фильтром. Дата окончания меншье текущей. Отправлен запрос ' +
+                'событий с фильтрацией. Поля фильтра заполнены.',
+            function() {
+                tester.path.open('/event-resending', {
+                    date_from: '2020-07-26 00:00:00',
+                    date_till: '2020-08-17 23:59:59',
                     id: '28394',
                     app_id: '4735',
                     partner: 'customCRM',
                     numa: '79162937183',
-                    date_till: '2020-09-17 23:59:59',
+                    is_show_not_sent: 'false',
+                    is_show_in_process: 'false',
                     is_show_undelivered: 'true',
                     is_show_delivered: 'false',
                     limit: '50',
                     offset: '0',
-                    sort: ['{"field":"send_time","order":"desc"}']
+                    sort: ['{"field":"event_time","order":"desc"}']
                 });
 
                 Promise.runAll();
@@ -392,10 +803,12 @@ tests.addTest(function (options) {
                 tester.textfield().withPlaceholder('App ID').expectToHaveValue('4735');
                 tester.textfield().withPlaceholder('ID сессии').expectToHaveValue('28394');
                 tester.textfield().withPlaceholder('Номер абонента').expectToHaveValue('79162937183');
-                tester.textfield().withPlaceholder('Начальная дата').expectToHaveValue('26.08.2020');
-                tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('17.09.2020');
+                tester.textfield().withPlaceholder('Начальная дата').expectToHaveValue('26.07.2020');
+                tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('17.08.2020');
                 tester.checkbox().withLabel('Недоставленные').expectToBeChecked();
                 tester.checkbox().withLabel('Доставленные').expectNotToBeChecked();
+                tester.checkbox().withLabel('Отправляются').expectNotToBeChecked();
+                tester.checkbox().withLabel('Не отправлялись').expectNotToBeChecked();
             });
             it('Пункт меню "Переотправка событий" отображен.', function() {
                 tester.menuitem('Переотправка событий').expectHrefToHavePath('/event-resending');
@@ -479,21 +892,45 @@ tests.addTest(function (options) {
                 tester.directionRequest().addAppStates().addTpTpvAll().receiveResponse();
             });
 
-            it('Нажимаю на кнпоку "Применить".', function() {
-                tester.button('Применить').click();
-                Promise.runAll();
-                tester.appsRequest().receiveResponse();
+            describe('Нажимаю на кнпоку "Применить".', function() {
+                beforeEach(function() {
+                    tester.button('Применить').click();
+                    Promise.runAll();
+                    tester.appsRequest().receiveResponse();
+                });
 
-                tester.table().cell().withContent('ООО "Трупоглазые жабы"').row().actionsMenu().click();
-                Promise.runAll();
-                tester.appUsersRequest().receiveResponse();
+                it('Нажимаю на кнпоку меню в строке таблицы. Открывается меню.', function() {
+                    tester.table().cell().withContent('ООО "Трупоглазые жабы"').row().actionsMenu().click();
+                    Promise.runAll();
+                    tester.appUsersRequest().receiveResponse();
 
-                tester.dropdown.expectToHaveTextContent(
-                    'История изменений ' +
-                    'Редактирование клиента ' +
-                    'Перейти в ЛК ' +
-                    'Ок'
-                );
+                    tester.dropdown.expectToHaveTextContent(
+                        'История изменений ' +
+                        'Редактирование клиента ' +
+                        'Перейти в ЛК ' +
+                        'Ок'
+                    );
+                });
+                it(
+                    'Нажимаю на кнопку второй страницы. Получены данные второй страницы. Отображена вторая страница.',
+                function() {
+                    tester.table().paging().page(2).click();
+                    Promise.runAll();
+                    tester.appsRequest().setSecondPage().receiveResponse();
+
+                    tester.table().paging().page(1).expectNotToHaveClass('pagination-item-active');
+                    tester.table().paging().page(2).expectToHaveClass('pagination-item-active');
+                });
+                it('Отображена первая страница.', function() {
+                    tester.table().paging().page(1).expectToHaveClass('pagination-item-active');
+                    tester.table().paging().page(2).expectNotToHaveClass('pagination-item-active');
+
+                    tester.root.expectTextContentToHaveSubstring(
+                        '1 2 ' +
+                        'Строк на странице 50 ' +
+                        'Всего записей 75'
+                    );
+                });
             });
             it('В поле статусов отображены названия статусов.', function() {
                 tester.root.expectToHaveTextContent(
@@ -563,6 +1000,7 @@ tests.addTest(function (options) {
             tester.textfield().withPlaceholder('Начальная дата').click();
             tester.forceUpdate();
 
+            tester.calendar().left().prevMonth().click();
             tester.calendar().left().cell('26').click();
             tester.forceUpdate();
             tester.calendar().right().cell('17').click();

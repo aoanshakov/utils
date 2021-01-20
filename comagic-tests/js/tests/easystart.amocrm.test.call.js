@@ -1,4 +1,4 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils) {
+tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener, postMessages) {
     var tester;
     
     beforeEach(function() {
@@ -74,6 +74,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
 
             tester.requestIntegrationConfig().send();
             tester.requestAnswers().send();
+            postMessages.expectMessageToBeSent('UISamoCRMWidgetRequestSettings');
 
             tester.orderTestCallButton.click();
             tester.requestTestCall().send();
@@ -220,6 +221,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             wait();
 
             tester.requestIntegrationConfig().send();
+            postMessages.expectMessageToBeSent('UISamoCRMWidgetRequestSettings');
         });
 
         it(

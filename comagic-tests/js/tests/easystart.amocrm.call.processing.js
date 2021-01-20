@@ -1,4 +1,4 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils) {
+tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener, postMessages) {
     var tester;
     
     beforeEach(function() {
@@ -34,12 +34,14 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             tester.settingsStep('Настройка интеграции').nextButton().click();
             tester.requestIntegrationConfig().send();
             tester.requestAnswers().send();
+            postMessages.expectMessageToBeSent('UISamoCRMWidgetRequestSettings');
 
             tester.testCallPanelDescendantWithText('Убедитесь, что виджет UIS установлен в amoCRM.').expectToBeHidden();
         });
         it(
             'Один из сотрудников получает звонки на виджет. Перехожу к шагу "Тестовый звонок". Отображено сообщение ' +
-            '"Убедитесь, что виджет UIS установлен в amoCRM.".',
+            '"Убедитесь, что виджет UIS установлен в amoCRM.". В родительское окно отправлен запрос обновления ' +
+            'настроек.',
         function() {
             tester.requestChooseEmployees().setDontChangeEmployees().setToWidget().send();
             wait(100);
@@ -52,6 +54,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             tester.settingsStep('Настройка интеграции').nextButton().click();
             tester.requestIntegrationConfig().send();
             tester.requestAnswers().send();
+
+            postMessages.expectMessageToBeSent('UISamoCRMWidgetRequestSettings');
 
             tester.testCallPanelDescendantWithText('Убедитесь, что виджет UIS установлен в amoCRM.').
                 expectToBeVisible();

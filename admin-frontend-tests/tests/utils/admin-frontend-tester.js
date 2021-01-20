@@ -38,15 +38,23 @@ define(() => {
             },
 
             calendar() {
-                const getCalendar = index => {
+                const getCalendar = side => {
+                    const getElement = () =>
+                        document.querySelector(`.ant-calendar-range-${side}`) || (new JsTester_NoElement());
+
                     return {
                         cell(content) {
                             return testersFactory.createDomElementTester(
-                                utils.
-                                    descendantOf(document.querySelectorAll('.ant-calendar-body')[index]).
+                                utils.descendantOf(getElement()).
                                     matchesSelector('.ant-calendar-date').
                                     textEquals(content).
                                     find()
+                            );
+                        },
+
+                        prevMonth() {
+                            return testersFactory.createDomElementTester(
+                                getElement().querySelector('.ant-calendar-prev-month-btn')
                             );
                         }
                     };
@@ -60,17 +68,20 @@ define(() => {
                     },
 
                     left() {
-                        return getCalendar(0);
+                        return getCalendar('left');
                     },
 
                     right() {
-                        return getCalendar(1);
+                        return getCalendar('right');
                     }
                 };
             },
 
             spinner: testersFactory.createDomElementTester(() => document.querySelector('.ant-spin-dot')),
             dropdown: testersFactory.createDomElementTester(() => document.querySelector('.ant-dropdown')),
+            tooltip: testersFactory.createDomElementTester(() =>
+                utils.getVisibleSilently(document.querySelectorAll('.ant-tooltip-inner'))),
+            notification: testersFactory.createDomElementTester(() => document.querySelector('.ant-notification')),
 
             table() {
                 return {
@@ -109,7 +120,22 @@ define(() => {
                                 };
                             }
                         };
-                    }
+                    },
+                    paging: () => ({
+                        page: page => {
+                            const liTester = testersFactory.createDomElementTester(
+                                utils.descendantOfBody().matchesSelector('.pagination-item').textEquals(page).find()
+                            );
+
+                            const aTester = testersFactory.createDomElementTester(
+                                utils.descendantOfBody().matchesSelector('.pagination-item a').textEquals(page).find()
+                            );
+
+                            liTester.click = () => aTester.click();
+
+                            return liTester;
+                        }
+                    })
                 };
             },
 
@@ -284,33 +310,40 @@ define(() => {
                     app_id: '4735',
                     partner: 'amocrm',
                     numa: '79162937183',
-                    date_from: '2020-08-26 00:00:00',
-                    date_till: '2020-09-17 23:59:59',
+                    date_from: '2020-07-26 00:00:00',
+                    date_till: '2020-08-17 23:59:59',
                     access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                    is_show_not_sent: 'true',
+                    is_show_in_process: 'true',
                     is_show_undelivered: 'true',
                     is_show_delivered: 'true',
-                    limit: '50',
+                    limit: '25',
                     offset: '0',
                     sort: [{
-                        field: 'send_time',
+                        field: 'event_time',
                         order: 'desc'
                     }]
                 };
 
                 return {
+                    setAnotherDateRange() {
+                        params.date_from = '2020-08-10 00:00:00';
+                        params.date_till = '2020-08-24 23:59:59';
+                        return this;
+                    },
+
+                    setDefaultDateRange() {
+                        params.date_from = '2020-08-24 00:00:00';
+                        params.date_till = '2020-08-24 23:59:59';
+                        return this;
+                    },
+
                     setDefaultParams() {
                         delete(params.app_id);
                         delete(params.numa);
                         delete(params.id);
-                        params.date_from = '2020-08-24 00:00:00';
-                        params.date_till = '2020-08-24 23:59:59';
+                        this.setDefaultDateRange();
 
-                        return this;
-                    },
-
-                    setDeliveredOnly() {
-                        params.is_show_delivered = 'true';
-                        params.is_show_undelivered = 'false';
                         return this;
                     },
 
@@ -319,9 +352,56 @@ define(() => {
                         return this;
                     },
 
-                    setUndeliveredOnly() {
+                    setAllExceptUndelivered() {
+                        params.is_show_not_sent = 'true';
+                        params.is_show_in_process = 'true';
+                        params.is_show_delivered = 'true';
+                        params.is_show_undelivered = 'false';
+                        return this;
+                    },
+
+                    setAllExceptDelivered() {
+                        params.is_show_not_sent = 'true';
+                        params.is_show_in_process = 'true';
                         params.is_show_delivered = 'false';
                         params.is_show_undelivered = 'true';
+                        return this;
+                    },
+
+                    setDeliveredOnly() {
+                        params.is_show_not_sent = 'false';
+                        params.is_show_in_process = 'false';
+                        params.is_show_delivered = 'true';
+                        params.is_show_undelivered = 'false';
+                        return this;
+                    },
+
+                    setUndeliveredOnly() {
+                        params.is_show_not_sent = 'false';
+                        params.is_show_in_process = 'false';
+                        params.is_show_delivered = 'false';
+                        params.is_show_undelivered = 'true';
+                        return this;
+                    },
+
+                    setInProcessOnly() {
+                        params.is_show_not_sent = 'false';
+                        params.is_show_in_process = 'true';
+                        params.is_show_delivered = 'false';
+                        params.is_show_undelivered = 'false';
+                        return this;
+                    },
+
+                    setNotSentOnly() {
+                        params.is_show_not_sent = 'true';
+                        params.is_show_in_process = 'false';
+                        params.is_show_delivered = 'false';
+                        params.is_show_undelivered = 'false';
+                        return this;
+                    },
+
+                    setOffset(value) {
+                        params.offset = value + '';
                         return this;
                     },
 
@@ -336,14 +416,16 @@ define(() => {
                                 params
                             });
 
-                        const data = [{
+                        let data = [{
                             id: 39285,
                             numa: '79157389283',
                             event_time: '2021-02-03 09:58:13',
                             send_time: '2021-04-10 16:59:15',
                             error_message: 'Сервер не отвечает',
                             state: 'failed',
-                            partner: 'amocrm'
+                            is_common_conditions_passed: false,
+                            is_setting_conditions_passed: true,
+                            is_filter_conditions_passed: true
                         }, {
                             id: 39286,
                             numa: '79157389284',
@@ -351,7 +433,9 @@ define(() => {
                             send_time: '2021-04-10 17:59:15',
                             error_message: null,
                             state: 'success',
-                            partner: 'amocrm'
+                            is_common_conditions_passed: true,
+                            is_setting_conditions_passed: false,
+                            is_filter_conditions_passed: true
                         }, {
                             id: 39287,
                             numa: '79157389285',
@@ -359,7 +443,29 @@ define(() => {
                             send_time: '2021-06-10 18:59:15',
                             error_message: null,
                             state: 'success',
-                            partner: 'amocrm'
+                            is_common_conditions_passed: true,
+                            is_setting_conditions_passed: true,
+                            is_filter_conditions_passed: false
+                        }, {
+                            id: 39288,
+                            numa: '79157389286',
+                            event_time: '2021-02-05 09:56:13',
+                            send_time: '2021-06-10 18:59:15',
+                            error_message: null,
+                            state: 'success',
+                            is_common_conditions_passed: true,
+                            is_setting_conditions_passed: true,
+                            is_filter_conditions_passed: true
+                        }, {
+                            id: 39289,
+                            numa: '79157389287',
+                            event_time: '2021-02-05 09:56:13',
+                            send_time: '2021-06-10 18:59:15',
+                            error_message: null,
+                            state: 'success',
+                            is_common_conditions_passed: true,
+                            is_setting_conditions_passed: true,
+                            is_filter_conditions_passed: true
                         }];
 
                         return {
@@ -373,14 +479,36 @@ define(() => {
                                 return this;
                             },
 
+                            addEvents(start, end) {
+                                var i;
+
+                                data = [];
+
+                                for (i = start; i <= end; i ++) {
+                                    data.push({
+                                        id: 39290 + i,
+                                        numa: ((79157389288 + i) + '').substr(0, 11),
+                                        event_time: '2021-02-05 09:56:13',
+                                        send_time: '2021-06-10 18:59:15',
+                                        error_message: null,
+                                        state: 'success',
+                                        is_common_conditions_passed: true,
+                                        is_setting_conditions_passed: true,
+                                        is_filter_conditions_passed: true
+                                    });
+                                }
+
+                                return this;
+                            },
+
+                            setNoEvents() {
+                                data = [];
+                                return this;
+                            },
+
                             receiveResponse() {
                                 request.respondSuccessfullyWith({
-                                    result: {
-                                        data,
-                                        metadata: {
-                                            total_items: 3
-                                        }
-                                    }
+                                    result: {data}
                                 });
 
                                 Promise.runAll();
@@ -395,7 +523,15 @@ define(() => {
             },
 
             amocrmEventsResendingRequest() {
+                const params = {
+                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
+                };
+
                 return {
+                    setTwoEvents() {
+                        params.ids = [39285, 39287, undefined];
+                        return this;
+                    },
                     expectToBeSent() {
                         const request = ajax.recentRequest().
                             expectPathToContain('/dataapi/').
@@ -404,10 +540,7 @@ define(() => {
                                 jsonrpc: '2.0',
                                 id: 'number',
                                 method: 'send.amocrm_events',
-                                params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
-                                    ids: [39285, 39287, undefined]
-                                }
+                                params
                             });
 
                         return {
@@ -536,8 +669,51 @@ define(() => {
             },
 
             appsRequest() {
+                let startIndex = 0,
+                    itemsCount = 50;
+
+                const params = {
+                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                    limit: '50',
+                    offset: '0',
+                    sort: [{
+                        field: 'app_id',
+                        order: 'desc'
+                    }],
+                    states: 'waiting,active,manual_lock,limit_lock,debt_lock'
+                };
+
                 return {
+                    setSecondPage() {
+                        startIndex = 50;
+                        itemsCount = 25;
+                        params.offset = '50';
+
+                        return this;
+                    },
+
                     receiveResponse() {
+                        const data = [];
+
+                        for (i = startIndex; i < (itemsCount + startIndex); i ++) {
+                            data.push({
+                                app_id: 386524 + i,
+                                customer_id: 8592892 + i,
+                                app_name: 'ООО "Трупоглазые жабы" # ' + (i + 1),
+                                state_name: 'Активен',
+                                tariff_plan: 'Премиум',
+                                numbers: '84951234567,84951234568',
+                                account_number: 795821 + i,
+                                balance: 52948,
+                                domain: 'somedomain.com',
+                                login: 'toads',
+                                is_agent: false,
+                                node_id: 829672 + i,
+                                agent_id: null,
+                                watching_app_ids: null 
+                            });
+                        }
+
                         ajax.recentRequest().
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
@@ -545,36 +721,12 @@ define(() => {
                                 jsonrpc: '2.0',
                                 id: 'number',
                                 method: 'get.apps',
-                                params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
-                                    limit: '50',
-                                    offset: '0',
-                                    sort: [{
-                                        field: 'app_id',
-                                        order: 'desc'
-                                    }],
-                                    states: 'waiting,active,manual_lock,limit_lock,debt_lock'
-                                }
+                                params
                             }).respondSuccessfullyWith({
                                 result: {
-                                    data: [{
-                                        app_id: 386524,
-                                        customer_id: 8592892,
-                                        app_name: 'ООО "Трупоглазые жабы"',
-                                        state_name: 'Активен',
-                                        tariff_plan: 'Премиум',
-                                        numbers: '84951234567,84951234568',
-                                        account_number: 795821,
-                                        balance: 52948,
-                                        domain: 'somedomain.com',
-                                        login: 'toads',
-                                        is_agent: false,
-                                        node_id: 829672,
-                                        agent_id: null,
-                                        watching_app_ids: null 
-                                    }],
+                                    data,
                                     metadata: {
-                                        total_items: 1
+                                        total_items: 75
                                     }
                                 }
                             });
@@ -607,12 +759,12 @@ define(() => {
                                         app_user_login: 'admin@corpseeydtoads.com',
                                         employee_full_name: 'Барова Елена',
                                         app_user_name: 'Администратор',
-                                        phone: '79162938296',
+                                        phone: ((79162938296 + i) + '').substr(0, 11),
                                         app_id: 4735,
-                                        customer_id: 94285
+                                        customer_id: 94286 + i
                                     }],
                                     metadata: {
-                                        total_items: 0
+                                        total_items: 1
                                     }
                                 }
                             });

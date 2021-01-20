@@ -66,6 +66,10 @@
             "helpers/ServicesAtsScenario.js",
             "tests/services.ats.scenario.js"
         ],
+        "services.ats.hook": [
+            "helpers/ServicesAtsHook.js",
+            "tests/services.ats.hook.js"
+        ],
         "analytics.call": [
             "helpers/AnalyticsCall.js",
             "tests/analytics.call.js"

@@ -23,10 +23,10 @@ index f6100f5..7c89893 100644
      nConfig.plugins.push(new FilterWarningsPlugin({
          exclude: /mini-css-extract-plugin[^]*Conflicting order between:/
 diff --git a/public/index.html b/public/index.html
-index 2623908..41b2ba0 100644
+index 2623908..861b1cf 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -21,7 +21,40 @@
+@@ -21,7 +21,59 @@
        Learn how to configure a non-root public URL by running `npm run build`.
      -->
      <title>UIS Admin</title>
@@ -44,6 +44,25 @@ index 2623908..41b2ba0 100644
 +        }
 +
 +        .slide-up-leave {
++            display: none !important;
++        }
++
++        .zoom-big-fast-appear {
++            opacity: 1 !important;
++            -webkit-transform: none !important;
++            -ms-transform: none !important;
++            transform: none !important;
++        }
++
++        .zoom-big-fast-leave {
++            display: none !important;
++        }
++
++        .ant-notification-fade-enter {
++            opacity: 1 !important;
++        }
++
++        .ant-notification-fade-leave {
 +            display: none !important;
 +        }
 +    </style>
@@ -67,7 +86,7 @@ index 2623908..41b2ba0 100644
  </head>
  
  <body>
-@@ -37,6 +70,9 @@
+@@ -37,6 +89,9 @@
        To begin the development, run `npm start` or `yarn start`.
        To create a production bundle, use `npm run build` or `yarn build`.
      -->

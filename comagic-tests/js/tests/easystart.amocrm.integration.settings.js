@@ -1,4 +1,4 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils) {
+tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener, postMessages) {
     var tester;
     
     beforeEach(function() {
@@ -280,6 +280,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
 
                 tester.requestIntegrationConfig().send();
                 tester.requestAnswers().send();
+                postMessages.expectMessageToBeSent('UISamoCRMWidgetRequestSettings');
             });
         });
         it(
@@ -441,6 +442,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 wait(10);
                 tester.requestIntegrationConfig().changeTags().send();
                 tester.requestAnswers().send();
+                postMessages.expectMessageToBeSent('UISamoCRMWidgetRequestSettings');
             });
             it('Поля настроек интеграции заполнены значениями, полученными от сервера.', function() {
                 tester.integrationConfigForm.combobox().
