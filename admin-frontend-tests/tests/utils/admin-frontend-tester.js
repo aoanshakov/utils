@@ -61,6 +61,40 @@ define(() => {
                 };
 
                 return {
+                    timePicker() {
+                        const getPart = part => {
+                            const getPicker = index => value => testersFactory.createDomElementTester(
+                                utils.descendantOf(document.querySelectorAll(
+                                    `.ant-calendar-range-${part} .ant-calendar-time-picker-select`
+                                )[index]).
+                                    matchesSelector('li').
+                                    textEquals(value).
+                                    find()
+                            );
+
+                            return {
+                                hour: getPicker(0),
+                                minute: getPicker(1),
+                                second: getPicker(2)
+                            };
+                        };
+
+                        return {
+                            left: () => getPart('left'),
+                            right: () => getPart('right')
+                        };
+                    },
+
+                    timePickerButton() {
+                        return testersFactory.createDomElementTester(
+                            document.querySelector('.ant-calendar-time-picker-btn')
+                        );
+                    },
+
+                    okButton() {
+                        return testersFactory.createDomElementTester(document.querySelector('.ant-calendar-ok-btn'));
+                    },
+
                     clearIcon() {
                         return testersFactory.createDomElementTester(() => {
                             return document.querySelector('.ant-calendar-picker-clear');
@@ -85,6 +119,56 @@ define(() => {
 
             table() {
                 return {
+                    header() {
+                        return {
+                            withContent(content) {
+                                const header = utils.descendantOfBody().matchesSelector('.ant-table-header-column').
+                                    textEquals(content).find();
+
+                                const headerTester = testersFactory.createDomElementTester(header),
+                                    sortIconTester = testersFactory.
+                                        createDomElementTester(header.querySelector('.table-header-column-sort img'));
+
+                                sortIconTester.expectToBeArrowUp = () => sortIconTester.expectAttributeToHaveValue(
+                                    'src',
+
+                                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAKCAMAAABR24SMAAAAAXNSR0IArs' +
+                                    '4c6QAAAARnQU1BAACxjwv8YQUAAAMAUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                    'AAAAAAAAAAAAAAAAAAALMw9IgAAAEAdFJOU/////////////////////////////////////////////' +
+                                    '////////////////////////////////////////////////////////////////////////////////' +
+                                    '////////////////////////////////////////////////////////////////////////////////' +
+                                    '////////////////////////////////////////////////////////////////////////////////' +
+                                    '///////////////////////////////////////////////////////wBT9wclAAAACXBIWXMAAA7DAA' +
+                                    'AOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQBwYWludC5uZXQgNC4wLjEzNANbegAAACJJREFUGFdj+A8EcI' +
+                                    'KBAUyCGSAmA4QBZEJpEEBWRwTr/38AiVkxz9dAKNcAAAAASUVORK5CYII='
+                                );
+
+                                sortIconTester.expectToBeArrowDown = () => sortIconTester.expectAttributeToHaveValue(
+                                    'src',
+
+                                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAKCAYAAABmBXS+AAAACX' +
+                                    'BIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAA4SURBVH' +
+                                    'gBvZAxCgAgDANz/v/PEQehasVO3pSWI5SiFYfMDE0FPkvjOFckPUQIg28lbMv0TxlHYwddtQ' +
+                                    'YM1RfzWgAAAABJRU5ErkJggg=='
+                                );
+
+                                headerTester.sortIcon = () => sortIconTester;
+                                return headerTester;
+                            }
+                        };
+                    },
                     cell() {
                         return {
                             withContent(content) {
@@ -151,8 +235,8 @@ define(() => {
             root: testersFactory.createDomElementTester(() => document.querySelector('#root')),
 
             button(text) {
-                return testersFactory.createDomElementTester(utils.descendantOfBody().matchesSelector('.ant-btn').
-                    textEquals(text).find());
+                return testersFactory.createDomElementTester(utils.descendantOfBody().
+                    matchesSelector('.ant-btn, .pagination-item-link').textEquals(text).find());
             },
 
             textfield() {
@@ -311,30 +395,44 @@ define(() => {
                     partner: 'amocrm',
                     numa: '79162937183',
                     date_from: '2020-07-26 00:00:00',
-                    date_till: '2020-08-17 23:59:59',
+                    date_till: '2020-08-17 13:21:55',
                     access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
-                    is_show_not_sent: 'true',
+                    is_show_not_sent: 'false',
                     is_show_in_process: 'true',
                     is_show_undelivered: 'true',
                     is_show_delivered: 'true',
                     limit: '25',
                     offset: '0',
-                    sort: [{
-                        field: 'event_time',
-                        order: 'desc'
-                    }]
+                    sort_order: 'desc',
+                    sort: undefined
                 };
 
                 return {
+                    setNoSort() {
+                        params.sort_order = undefined;
+                        return this;
+                    },
+
+                    setAscDirection() {
+                        params.sort_order = 'asc';
+                        return this;
+                    },
+                    
                     setAnotherDateRange() {
                         params.date_from = '2020-08-10 00:00:00';
-                        params.date_till = '2020-08-24 23:59:59';
+                        params.date_till = '2020-08-24 13:21:55';
                         return this;
                     },
 
                     setDefaultDateRange() {
                         params.date_from = '2020-08-24 00:00:00';
-                        params.date_till = '2020-08-24 23:59:59';
+                        params.date_till = '2020-08-24 13:21:55';
+                        return this;
+                    },
+
+                    changeRangeTime() {
+                        params.date_from = '2020-07-26 06:07:08';
+                        params.date_till = '2020-08-17 07:09:10';
                         return this;
                     },
 
@@ -421,7 +519,13 @@ define(() => {
                             numa: '79157389283',
                             event_time: '2021-02-03 09:58:13',
                             send_time: '2021-04-10 16:59:15',
-                            error_message: 'Сервер не отвечает',
+                            error_message:
+                                'Exception in thread "main" java.lang.NullPointerException: Oops! ' + "\n" +
+                                'at com.ericgoebelbecker.stacktraces.StackTrace.d(StackTrace.java:29) ' + "\n" +
+                                'at com.ericgoebelbecker.stacktraces.StackTrace.c(StackTrace.java:24) ' + "\n" +
+                                'at com.ericgoebelbecker.stacktraces.StackTrace.b(StackTrace.java:20) ' + "\n" +
+                                'at com.ericgoebelbecker.stacktraces.StackTrace.a(StackTrace.java:16) ' + "\n" +
+                                'at com.ericgoebelbecker.stacktraces.StackTrace.main(StackTrace.java:9)',
                             state: 'failed',
                             is_common_conditions_passed: false,
                             is_setting_conditions_passed: true,
@@ -469,6 +573,16 @@ define(() => {
                         }];
 
                         return {
+                            setNoErrorMessage() {
+                                data[0].error_message = '';
+                                return this;
+                            },
+
+                            setShortErrorMessage() {
+                                data[0].error_message = 'Сервер не отвечает';
+                                return this;
+                            },
+
                             setNoSendTime() {
                                 data[1].send_time = null;
                                 return this;
@@ -684,6 +798,16 @@ define(() => {
                 };
 
                 return {
+                    setAscDirection() {
+                        params.sort[0].order = 'asc';
+                        return this;
+                    },
+
+                    setNoSort() {
+                        params.sort = [];
+                        return this;
+                    },
+
                     setSecondPage() {
                         startIndex = 50;
                         itemsCount = 25;
