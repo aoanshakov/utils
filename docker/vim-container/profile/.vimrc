@@ -172,15 +172,16 @@ endfunction
 function! SetUpEslint()
     let path = expand('%:p')
 
-    if path =~ '\.js$' || path =~ '\.tsx$'
+    if path =~ '\.js$' || path =~ '\.tsx$' || path =~ '\.ts$'
         let isReactApp = 0
 
-        if stridx(path, '/bitrix_widget/tests/tests.js') != -1 || stridx(path, '/sip_lib/tests/js/') != -1 || stridx(path, '/comagic-tests/js/tests/') != -1 || stridx(path, '/admin-frontend-tests/') != -1
+        if stridx(path, '/bitrix_widget/tests/tests.js') != -1 || stridx(path, '/sip_lib/tests/js/') != -1 || stridx(path, '/comagic-tests/js/tests/') != -1 || stridx(path, '/admin-frontend-tests/') != -1 || stridx(path, '/proposal_generator_frontend_tests/') != -1
             noremap ;aa k^f)%Ix<esc>^zz
             noremap ;zz vi{o<esc>?desc<cr>zz
             noremap ;ab vi{<esc>joreturn;<esc>zz
         else
             let isReactApp = stridx(path, '/amocrm_widget/')  != -1
+            let isReactApp = isReactApp || stridx(path, '/proposal_generator_frontend/')  != -1
             let isReactApp = isReactApp || stridx(path, '/admin_frontend/')  != -1
             let isReactApp = isReactApp || stridx(path, '/sip_lib/')  != -1
             let isReactApp = isReactApp || stridx(path, '/bitrix_widget/')  != -1
@@ -189,7 +190,7 @@ function! SetUpEslint()
             let isReactApp = isReactApp || stridx(path, '/softphone/') != -1
         endif
 
-        let isReactApp = isReactApp || stridx(path, '/admin-frontend-tests/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/admin-frontend-tests/')  != -1 || stridx(path, '/proposal_generator_frontend_tests/')  != -1
 
         if stridx(path, '/comagic_web/static/easystart/') != -1
             call SetUpEasyStart()

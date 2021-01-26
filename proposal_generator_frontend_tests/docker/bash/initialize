@@ -1,0 +1,28 @@
+#!/bin/bash
+
+path=/usr/local/src/proposal_generator_frontend
+
+cd $path
+
+if [ ! -d $path/node_modules ]
+then
+    cd $path
+    npm install
+    fix-permissions $path
+fi
+
+if [ ! -d $path/build ]
+then
+    build
+fi
+
+path=/usr/local/src/tests
+
+cd $path
+
+if [ ! -d $path/node_modules ]
+then
+    cd $path
+    npm install
+    fix-permissions $path
+fi

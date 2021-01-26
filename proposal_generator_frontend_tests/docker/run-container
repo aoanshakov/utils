@@ -1,7 +1,7 @@
 #!/bin/bash
 
-action="server"
-workspace=""
+action="initialize"
+applicationDirectory=""
 port=""
 farg=""
 isOsX=0
@@ -35,12 +35,25 @@ function usageError {
 
 while [ -n "$1" ]
 do
-    if [ "$1" = "--build-image" ]
+    if [ "$1" = "--exit" ]
+    then
+        entrypointArguments="$entrypointArguments --exit"
+    elif [ "$1" = "--build-image" ]
     then
         buildImage=1
     elif [ "$1" = "--no-cache" ]
     then
         noCache="--no-cache"
+    elif [ "$1" = "--application-directory" ]
+    then
+        if [ -z "$2" ]
+        then
+            echo "Укажите путь к директории с приложением."
+            exit 1
+        fi
+
+        applicationDirectory="$2"
+        shift
     elif [ "$1" = "--port" ]
     then
         if [ -z "$2" ]
@@ -50,34 +63,23 @@ do
         fi
 
         dockerArguments="$dockerArguments -p $2:80"
+        action='run-server'
         shift
     elif [ "$1" = "--action" ]
     then
         action=$2
-
-        if [ -z $action ]
-        then
-            usageError "Укажи действие \"initialize\", \"server\", или \"bash\". "
-            exit 1
-        fi
-
-        if [ "$action" != "initialize" ] && [ "$action" != "server" ] && [ "$action" != "bash" ]
-        then
-            usageError "Действие $action не поддерживается. Можно использовать только действия \"initialize\", " \
-                "\"server\", или \"bash\". "
-            exit 1
-        fi
-
         shift
     elif [ "$1" = "--help" ] || [ "$1" = "-h" ]
     then
-        echo "Для того чтобы запустить bash в контейнере выполни команду \"$0 --action bash\""
+        echo "Для того чтобы указать путь к приложению определи переменную PROPOSAL_GENERATOR_FRONTEND_APP_DIRECTORY " \
+            "или вызови скрипт с опцией --application-directory /path/to/application"
+        echo "Для того чтобы собрать приложение в контейнере выполни команду \"$0 --action initialize\""
         echo "Для того чтобы запустить веб-приложение, выполни команду \"$0 --port 1234\" и открой URL " \
             "http://127.0.0.1:1234/index.html в Google Chrome."
         exit 0
     else
-        usageError "Аргумент $1 не поддерживается. Скрипту могут быть переданы только опции --port, --action, " \
-            "--no-cache, --build-image, или --server."
+        usageError "Аргумент $1 не поддерживается. Скрипту могут быть переданы только опции --application-directory, " \
+            "--port, --action, --no-cache, --build-image, --exit, или --server."
         exit 1
     fi
 
@@ -110,7 +112,7 @@ then
     exit 1
 fi
 
-imageTag='admin-frontend-tests'
+imageTag='proposal_generator_frontend_tests'
 
 if [ $buildImage -eq 1 ]
 then
@@ -124,28 +126,30 @@ then
     exit 0
 fi
 
-if [ -z "$workspace" ]
+if [ -z "$applicationDirectory" ]
 then
-    if [ -n "$ADMIN_FRONTEND_TEST_WORKSPACE" ]
+    if [ -n "$PROPOSAL_GENERATOR_FRONTEND_APP_DIRECTORY" ]
     then
-        workspace=$ADMIN_FRONTEND_TEST_WORKSPACE
+        applicationDirectory=$PROPOSAL_GENERATOR_FRONTEND_APP_DIRECTORY
     fi
 fi
 
-if [ -n "$workspace" ]
+if [ -n "$applicationDirectory" ]
 then
-    if [ ! -d $workspace ]
+    if [ ! -d $applicationDirectory ]
     then
-        echo "Директория $workspace не существует"
+        echo "Директория $applicationDirectory не существует"
         exit 1
     fi
 
-    workspace="-v $workspace:/usr/local/src/admin_frontend"
+    applicationDirectory="-v $applicationDirectory:/usr/local/src/proposal_generator_frontend"
 fi
 
-if [ -z "$workspace" ]
+if [ -z "$applicationDirectory" ]
 then
     echo "Путь к приложению не указан"
+    echo "Для того чтобы указать путь к приложению определи переменную PROPOSAL_GENERATOR_FRONTEND_APP_DIRECTORY " \
+        "или вызови скрипт с опцией --application-directory /path/to/application"
     exit 1
 fi
 
@@ -182,7 +186,7 @@ else
 fi
 
 docker run -it --rm \
-    $workspace \
+    $applicationDirectory \
     -v $testsDir:/usr/local/src/tests \
     --mount type=bind,source=$HOME/.ssh/known_hosts,target=/root/.ssh/known_hosts \
     --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa \

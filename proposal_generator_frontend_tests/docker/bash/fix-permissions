@@ -1,0 +1,3 @@
+#!/bin/bash
+
+if [ -n "$SIP_LIB_TEST_USER" ]; then chown -R $SIP_LIB_TEST_USER:$SIP_LIB_TEST_USER $1; fi
