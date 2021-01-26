@@ -8,12 +8,5 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "html-formatter": "^0.1.9",
-    "html-prettify": "^1.0.3",
-    "indent.js": "^0.3.5",
-    "js-beautify": "^1.13.0",
-    "node-html-parser": "^2.0.0",
-    "xmldom": "^0.4.0"
-  }
+  "dependencies": {}
 }

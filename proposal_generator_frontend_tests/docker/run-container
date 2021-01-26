@@ -9,6 +9,8 @@ dockerArguments=""
 entrypointArguments=""
 buildImage=0
 noCache=""
+isTest=0
+shouldRunServer=0
 
 if [ $(uname | grep Darwin | wc -l) -eq 0 ]
 then
@@ -62,8 +64,12 @@ do
             exit 1
         fi
 
-        dockerArguments="$dockerArguments -p $2:80"
-        action='run-server'
+        port=$2
+        shouldRunServer=1
+        shift
+    elif [ "$1" = "--test" ]
+    then
+        isTest=1
         shift
     elif [ "$1" = "--action" ]
     then
@@ -73,18 +79,30 @@ do
     then
         echo "Для того чтобы указать путь к приложению определи переменную PROPOSAL_GENERATOR_FRONTEND_APP_DIRECTORY " \
             "или вызови скрипт с опцией --application-directory /path/to/application"
-        echo "Для того чтобы собрать приложение в контейнере выполни команду \"$0 --action initialize\""
         echo "Для того чтобы запустить веб-приложение, выполни команду \"$0 --port 1234\" и открой URL " \
             "http://127.0.0.1:1234/index.html в Google Chrome."
         exit 0
     else
         usageError "Аргумент $1 не поддерживается. Скрипту могут быть переданы только опции --application-directory, " \
-            "--port, --action, --no-cache, --build-image, --exit, или --server."
+            "--port, --action, --no-cache, --build-image, --exit, --test или --server."
         exit 1
     fi
 
     shift
 done
+
+if [ $shouldRunServer -eq 1 ]
+then
+
+    if [ $isTest -eq 1 ]
+    then
+        dockerArguments="$dockerArguments -p $port:80"
+        action='run-test-server'
+    else
+        dockerArguments="$dockerArguments -p $port:3000"
+        action='run-dev-server'
+    fi
+fi
 
 docker --version
 if [ $? -ne 0 ]

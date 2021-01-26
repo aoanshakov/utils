@@ -20,7 +20,7 @@ RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
 RUN apt-get install -y nodejs
 RUN curl -L https://npmjs.org/install.sh | sh
 
-ADD bash/utils /usr/local/bin/utils
+ADD utils /usr/local/bin/utils
 ADD nginx.conf /etc/nginx/nginx.conf
 
 ENTRYPOINT [ "/usr/local/bin/utils" ]

@@ -22,18 +22,22 @@ actions['fix-permissions'] = [
     `if [ -n "$APPLICATION_OWNER" ]; then chown -R $APPLICATION_OWNER:$APPLICATION_OWNER $1 ${application}; fi`
 ];
 
-actions['initialize'] = (!fs.existsSync(uiKit) ? [
+const initialize = isForTest => (isForTest ? (!fs.existsSync(uiKit) ? [
     `${openApplicationDir} git clone git@gitlab.uis.dev:web/ui_kit.git`
-] : []).concat(!fs.existsSync(nodeModules) ? [() => {
+] : []) : [
+    `${openApplicationDir} npm set registry http://npm.dev.uis.st:80`
+]).concat(!fs.existsSync(nodeModules) ? (isForTest ? [() => {
     fs.copyFileSync(packageJson, packageJsonCopy);
     overridenPackageJson.dependencies['uis-ui-kit'] = './ui_kit';
     fs.writeFileSync(packageJson, JSON.stringify(overridenPackageJson));
-},  `${openApplicationDir} npm install`, () => {
+}] : []).concat([`${openApplicationDir} npm install`]).concat(isForTest ? [() => {
     fs.copyFileSync(packageJsonCopy, packageJson);
     fs.unlinkSync(packageJsonCopy);
-}] :  []).concat(
+}] : []) :  []).concat(
     actions['fix-permissions']
 );
+
+actions['initialize'] = initialize(true);
 
 actions['remove-all'] = [() => {
     fs.existsSync(build) && fs.rmdirSync(build, {recursive: true});
@@ -42,10 +46,12 @@ actions['remove-all'] = [() => {
     fs.existsSync(packageLockJson) && fs.unlinkSync(packageLockJson);
 }];
 
-const watch = `${openApplicationDir} npm run watch -- --test`;
+const watchTest = `${openApplicationDir} npm run watch -- --test`;
 
-actions['watch'] = actions['initialize'].concat([watch]);
-actions['run-server'] = actions['initialize'].concat(['service nginx start']).concat([watch]);
+actions['watch-test'] = initialize(true).concat([watchTest]);
+actions['run-test-server'] = initialize(true).concat(['service nginx start']).concat([watchTest]);
+actions['run-dev-server'] = initialize().concat([`${openApplicationDir} npm run start`]);
+actions['lint'] = initialize(true).concat([`${openApplicationDir} npm run lint`]);
 
 const args = (new Args({
     action: {

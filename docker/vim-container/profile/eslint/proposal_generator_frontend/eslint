@@ -1,0 +1,10 @@
+#!/bin/bash
+
+currentdir=$(pwd)
+
+cd ~/eslint/proposal_generator_frontend/application/
+
+arguments="node_modules/.bin/eslint $1 $2 "$currentdir/$3""
+echo $arguments > ~/checkerlog
+
+node $arguments

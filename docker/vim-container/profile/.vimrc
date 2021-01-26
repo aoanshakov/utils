@@ -8,6 +8,7 @@ call plug#end()
 
 let g:syntastic_ignore_files = ['libs/extjs512/build/ext-all-debug.js', 'node_modules/jssip']
 let g:syntastic_javascript_checkers=['eslint']
+let g:syntastic_typescript_checkers=['eslint']
 let g:syntastic_html_checkers = ['tidy']
 let g:syntastic_check_on_open = 0
 let g:syntastic_check_on_wq = 0
@@ -158,14 +159,13 @@ function! SetUpComagic()
     call SetUpDefault()
 endfunction
 
-function! SetUpCallCenterFrontEnd()
+function! SetUpReact()
     nnoremap ;fc /\<[A-Z_]\+\><cr>
     nnoremap ;ec "jdeVsexport const <c-r>j = '<c-r>j';<esc>j^
     nnoremap ;fd /type:[ ]*[A-Z_]\+<cr>
     inoremap { {}<esc>i
 
     let g:isReactApp = 1
-    call SetEslintExec('call_center_frontend')
     execute "so ~/.vim/after/ftplugin/javascript_snippets.vim"
 endfunction
 
@@ -195,7 +195,27 @@ function! SetUpEslint()
         if stridx(path, '/comagic_web/static/easystart/') != -1
             call SetUpEasyStart()
         elseif isReactApp
-            call SetUpCallCenterFrontEnd()
+            call SetUpReact()
+            call SetEslintExec('call_center_frontend')
+
+            let segment = '/proposal_generator_frontend'
+
+            if stridx(path, segment . "/") != -1
+                let lnpath = "~/eslint/proposal_generator_frontend/application"
+                let rmcmd = "if [ -L " . lnpath .  " ]; then rm " . lnpath . "; fi"
+                let lncmd =  "ln -s " . split(path, segment)[0] . segment . " " . lnpath
+
+                let silentprefix = "normal!:silent !"
+                let verboseprefix = "normal!:!"
+
+                let prefix = silentprefix
+                let enter = "\<cr>"
+
+                execute prefix . rmcmd . enter
+                execute prefix . lncmd . enter
+
+                let g:syntastic_typescript_eslint_exec = "~/eslint/proposal_generator_frontend/eslint"
+            endif
         else
             call SetUpComagic()
         endif
