@@ -2235,7 +2235,7 @@ function JsTester_TextArea (
         this.expectToBeVisible();
 
         getDomElement().focus();
-        getDomElement().innerHTML = 'Привет.';
+        getDomElement().innerHTML = value;
         getDomElement().blur();
         getDomElement().dispatchEvent(new Event('change', {
             bubbles: true
@@ -2538,18 +2538,18 @@ function JsTester_Utils (debug) {
         handleKeyUp();
     };
     this.pressEscape = function (target) {
-        this.pressSpecialKey(target, 27);
+        me.pressSpecialKey(target, 27);
     };
     this.pressEnter = function (target) {
-        this.pressSpecialKey(target, 13);
+        me.pressSpecialKey(target, 13);
     };
     this.pressRight = function (target, repetitions) {
-        this.repeat(repetitions, function () {
+        me.repeat(repetitions, function () {
             me.pressSpecialKey(target, 39);
         });
     };
     this.pressLeft = function (target, repetitions) {
-        this.repeat(repetitions, function () {
+        me.repeat(repetitions, function () {
             me.pressSpecialKey(target, 37);
         });
     };
@@ -2576,7 +2576,7 @@ function JsTester_Utils (debug) {
         }
     };
     this.makeDomElementGetter = function (value) {
-        var getDomElement = this.makeFunction(value);
+        var getDomElement = me.makeFunction(value);
 
         return function () {
             var element = getDomElement();
@@ -2630,7 +2630,11 @@ function JsTester_Utils (debug) {
             value = value.innerHTML;
         }
 
-        return value.replace(/<[^<>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/[\s]+/g, ' ').trim();
+        return value.
+            replace(/<[^<>]*>/g, ' ').
+            replace(/&nbsp;/g, ' ').
+            replace(/[\s]+/g, ' ').
+            trim();
     };
     function parseName (name) {
         var result = name.match(/^([^\[\]]+)(?:\[([^\[\]]+)\])+$/);
@@ -2719,8 +2723,8 @@ function JsTester_Utils (debug) {
 
         if (url[1]) {
             query = new JsTester_RequestParams({
-                params: this.parseQueryString(url[1]),
-                utils: this,
+                params: me.parseQueryString(url[1]),
+                utils: me,
                 name: 'URL',
                 parameterNotFoundMessage:
                     'Не удалось найти параметр "{name}" в URL запроса. Запрос отправлен {description}' ,
@@ -2728,7 +2732,7 @@ function JsTester_Utils (debug) {
             });
         } else {
             query = new JsTester_NoRequestParams({
-                utils: this,
+                utils: me,
                 description: 'без параметров.',
                 parameterNotFoundMessage: 'Не удалось найти параметр "{name}" в URL запроса, так как запрос был ' +
                     'отправлен без параметров.',
@@ -2820,13 +2824,13 @@ function JsTester_Utils (debug) {
         return string.charAt(0).toUpperCase() + string.substr(1);
     };
     this.descendantOf = function (ascendantElement) {
-        return new JsTester_DescendantFinder(ascendantElement, this);
+        return new JsTester_DescendantFinder(ascendantElement, me);
     };
     this.descendantOfBody = function () {
-        return this.descendantOf(document.body);
+        return me.descendantOf(document.body);
     };
     this.findElementByTextContent = function (ascendantElement, desiredTextContent, selector) {
-        return (new JsTester_DescendantFinder(ascendantElement, this)).matchesSelector(selector || '*').
+        return (new JsTester_DescendantFinder(ascendantElement, me)).matchesSelector(selector || '*').
             textEquals(desiredTextContent).find();
     };
     this.expectObjectToContain = function (object, expectedContent) {
@@ -2834,8 +2838,8 @@ function JsTester_Utils (debug) {
     };
     function getVisible (domElements, handleError) {
         var results = Array.prototype.filter.call(domElements, (function (domElement) {
-            return this.isVisible(domElement);
-        }).bind(this));
+            return me.isVisible(domElement);
+        }).bind(me));
 
         if (results.length != 1) {
             handleError(results.length);
@@ -2845,10 +2849,10 @@ function JsTester_Utils (debug) {
         return results[0];
     }
     this.getVisibleSilently = function (domElements) {
-        return getVisible.call(this, domElements, function () {});
+        return getVisible.call(me, domElements, function () {});
     };
     this.getVisible = function (domElements) {
-        return getVisible.call(this, domElements, function (count) {
+        return getVisible.call(me, domElements, function (count) {
             throw new Error('Найдено ' + count + ' видимых элементов, тогда как видимым должен быть только один.');
         });
     };
