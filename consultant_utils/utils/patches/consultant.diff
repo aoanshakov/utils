@@ -1,0 +1,147 @@
+diff --git a/config-overrides.js b/config-overrides.js
+index 3287db2..59e6036 100644
+--- a/config-overrides.js
++++ b/config-overrides.js
+@@ -1,3 +1,4 @@
++const webpack = require('webpack');
+ const { override, fixBabelImports, addLessLoader, useEslintRc } = require('customize-cra');
+ // @import '~antd/es/style/themes/default.less';
+ 
+@@ -44,6 +45,14 @@ const overrideFn = override(
+ 
+ 
+ module.exports = function override(config, env) {
++    if (!config.plugins) {
++        config.plugins = [];
++    }
++
++    config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({
++        maxChunks: 1
++    }));
++
+     const nConfig = overrideFn(config, env);
+     nConfig.plugins.push(new FilterWarningsPlugin({
+         exclude: /mini-css-extract-plugin[^]*Conflicting order between:/
+diff --git a/package.json b/package.json
+index d80cbbd..16aa76d 100644
+--- a/package.json
++++ b/package.json
+@@ -20,6 +20,7 @@
+     "react-router-dom": "^5.1.2",
+     "react-scripts": "3.2.0",
+     "sockjs-client": "^1.4.0",
++    "webpack": "4.41.0",
+     "yup": "^0.28.0"
+   },
+   "scripts": {
+@@ -38,6 +39,7 @@
+       "not op_mini all"
+     ],
+     "development": [
++      "ie 11",
+       "last 1 chrome version",
+       "last 1 firefox version",
+       "last 1 safari version"
+diff --git a/public/index.html b/public/index.html
+index 54634cc..2a8f468 100644
+--- a/public/index.html
++++ b/public/index.html
+@@ -25,6 +25,24 @@
+       Learn how to configure a non-root public URL by running `npm run build`.
+     -->
+     <title>РМО</title>
++    <style>
++    </style>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
++    <script>
++        var windowLoadHandler = window.onload;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/boot.js"></script>
++    <script>
++        window.onload = windowLoadHandler;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-ajax/lib/mock-ajax.js"></script>
++    <script src="/tests/utils/jasmine/console-reporter.js"></script>
++    <script src="/tests/utils/js-tester.js"></script>
++    <script type="text/javascript">
++        var tests = new JsTester_Tests(new JsTester_Factory());
++        tests.exposeDebugUtils('jsTestDebug');
++    </script>
+   </head>
+   <body>
+     <noscript>You need to enable JavaScript to run this app.</noscript>
+@@ -39,5 +57,8 @@
+       To begin the development, run `npm start` or `yarn start`.
+       To create a production bundle, use `npm run build` or `yarn build`.
+     -->
++    <script src="/tests/utils/require.js"></script>
++    <script src="/tests/tests.js"></script>
++    <script src="/tests/utils/tests.js"></script>
+   </body>
+ </html>
+diff --git a/src/history.js b/src/history.js
+index 9937105..d590c48 100644
+--- a/src/history.js
++++ b/src/history.js
+@@ -1,3 +1,3 @@
+-import { createBrowserHistory } from 'history';
++import { createMemoryHistory } from 'history';
+ 
+-export default createBrowserHistory();
++export default createMemoryHistory();
+diff --git a/src/index.js b/src/index.js
+index 032019a..82569c4 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -21,12 +21,42 @@ moment.updateLocale('ru', {
+     },
+ });
+ 
++window.application = {
++    run({
++        setHistory = () => null,
++        setStores = () => null
++    }) {
++        setHistory(history);
++        setStores(stores);
++ 
++        this.exit();
++ 
++        let container = document.getElementById('root');
++ 
++        if (!container) {
++            container = document.createElement('div');
++            container.id = 'root';
++            document.body.appendChild(container);
++        }
++ 
++        ReactDOM.render(
++            <Provider {...stores}>
++                <Router history={history}>
++                    <App />
++                </Router>
++            </Provider>,
++            container
++        );
++    },
++
++    exit() {
++        const container = document.getElementById('root');
++
++        if (!container || !container.firstChild) {
++            return;
++        }
+ 
+-ReactDOM.render(
+-    <Provider {...stores}>
+-        <Router history={history}>
+-            <App />
+-        </Router>
+-    </Provider>,
+-    document.getElementById('root')
+-);
++        ReactDOM.unmountComponentAtNode(container);
++        container.remove();
++    }
++};

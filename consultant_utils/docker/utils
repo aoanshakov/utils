@@ -1,0 +1,30 @@
+#!/bin/bash
+
+arguments=""
+shouldExit=0
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "--exit" ]
+    then
+        shouldExit=1
+    elif [ "$1" = "--owner" ]
+    then
+        export APPLICATION_OWNER=$2
+        shift
+    else
+        arguments="$arguments $1"
+    fi
+
+    shift
+done
+
+path=/usr/local/src/tests
+cd $path
+
+node utils.js $arguments
+
+if [ $shouldExit -eq 0 ]
+then
+    bash
+fi
