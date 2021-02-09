@@ -204,7 +204,7 @@ define(() => {
             ...getTesters(document.body),
 
             connectWebSocket: index => {
-                webSocketTester = webSockets.getSocket(/^wss:\/\/server-rt.dev.uis.st\/oc/, index || 0).connect();
+                webSocketTester = webSockets.getSocket(/^ws:\/\/10.81.21.122:8001\/oc/, index || 0).connect();
                 webSocketTester.receiveMessage('o');
             },
 
@@ -810,7 +810,7 @@ define(() => {
             infoRequest: () => ({
                 receiveResponse() {
                     ajax.recentRequest().
-                        expectToHavePath('https://server-rt.dev.uis.st/oc/info').
+                        expectToHavePath('/oc/info').
                         expectToHaveMethod('GET').
                         respondSuccessfullyWith({
                             result: {
