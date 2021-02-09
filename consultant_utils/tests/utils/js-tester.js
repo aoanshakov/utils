@@ -2243,6 +2243,7 @@ function JsTester_Tests (factory) {
         webSockets.expectWasConnected(exceptions);
         webSockets.expectNotDisconnecting(exceptions);
         webSockets.expectNoMessageToBeSent(exceptions);
+        webSocketReplacer.replaceByFake();
 
         exceptions.forEach(function (exception) {
             throw exception;

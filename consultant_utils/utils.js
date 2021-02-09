@@ -12,8 +12,10 @@ const {
     
 const openApplicationDir = `cd ${application} &&`;
 
-const actions = {},
-    overridenFiles = 'package.json public/index.html src/index.js src/history.js config-overrides.js';
+const actions = {};
+
+const overridenFiles = 'package.json public/index.html src/index.js src/stores/index.js src/history.js ' +
+    'config-overrides.js';
 
 actions['fix-permissions'] = [
     `if [ -n "$APPLICATION_OWNER" ]; then chown -R $APPLICATION_OWNER:$APPLICATION_OWNER $1 ${application}; fi`

@@ -43,14 +43,21 @@ index d80cbbd..16aa76d 100644
        "last 1 firefox version",
        "last 1 safari version"
 diff --git a/public/index.html b/public/index.html
-index 54634cc..2a8f468 100644
+index 54634cc..86cf6a3 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -25,6 +25,24 @@
+@@ -25,6 +25,31 @@
        Learn how to configure a non-root public URL by running `npm run build`.
      -->
      <title>РМО</title>
 +    <style>
++        .ant-notification-fade-enter {
++            opacity: 1 !important;
++        }
++
++        .ant-notification-fade-leave {
++            display: none !important;
++        }
 +    </style>
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
@@ -71,7 +78,7 @@ index 54634cc..2a8f468 100644
    </head>
    <body>
      <noscript>You need to enable JavaScript to run this app.</noscript>
-@@ -39,5 +57,8 @@
+@@ -39,5 +64,8 @@
        To begin the development, run `npm start` or `yarn start`.
        To create a production bundle, use `npm run build` or `yarn build`.
      -->
@@ -91,20 +98,27 @@ index 9937105..d590c48 100644
 -export default createBrowserHistory();
 +export default createMemoryHistory();
 diff --git a/src/index.js b/src/index.js
-index 032019a..82569c4 100644
+index 032019a..bba1b02 100644
 --- a/src/index.js
 +++ b/src/index.js
-@@ -21,12 +21,42 @@ moment.updateLocale('ru', {
+@@ -2,7 +2,7 @@ import React from 'react';
+ import ReactDOM from 'react-dom';
+ import { Router } from 'react-router-dom';
+ import App from './App';
+-import stores from './stores'
++import createStores from './stores'
+ import { Provider } from 'mobx-react';
+ import history from './history';
+ import moment from 'moment';
+@@ -21,12 +21,40 @@ moment.updateLocale('ru', {
      },
  });
  
 +window.application = {
 +    run({
-+        setHistory = () => null,
-+        setStores = () => null
++        setHistory = () => null
 +    }) {
 +        setHistory(history);
-+        setStores(stores);
 + 
 +        this.exit();
 + 
@@ -117,7 +131,7 @@ index 032019a..82569c4 100644
 +        }
 + 
 +        ReactDOM.render(
-+            <Provider {...stores}>
++            <Provider {...createStores()}>
 +                <Router history={history}>
 +                    <App />
 +                </Router>
@@ -145,3 +159,17 @@ index 032019a..82569c4 100644
 +        container.remove();
 +    }
 +};
+diff --git a/src/stores/index.js b/src/stores/index.js
+index b82271d..41105f0 100644
+--- a/src/stores/index.js
++++ b/src/stores/index.js
+@@ -8,6 +8,4 @@ class Stores {
+     }
+ }
+ 
+-const stores = new Stores();
+-
+-export default stores;
+\ No newline at end of file
++export default () => new Stores();
+\ No newline at end of file

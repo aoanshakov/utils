@@ -180,6 +180,7 @@ function! SetUpEslint()
         let isTest = isTest || stridx(path, '/comagic-tests/js/tests/') != -1
         let isTest = isTest || stridx(path, '/admin-frontend-tests/') != -1
         let isTest = isTest || stridx(path, '/proposal_generator_frontend_tests/') != -1
+        let isTest = isTest || stridx(path, '/consultant_utils/tests/') != -1
 
         if isTest == 1
             noremap ;aa k^f)%Ix<esc>^zz
@@ -189,6 +190,7 @@ function! SetUpEslint()
             let isReactApp = stridx(path, '/amocrm_widget/')  != -1
             let isReactApp = isReactApp || stridx(path, '/proposal_generator_frontend/')  != -1
             let isReactApp = isReactApp || stridx(path, '/admin_frontend/')  != -1
+            let isReactApp = isReactApp || stridx(path, '/consultant/')  != -1
             let isReactApp = isReactApp || stridx(path, '/sip_lib/')  != -1
             let isReactApp = isReactApp || stridx(path, '/bitrix_widget/')  != -1
             let isReactApp = isReactApp || stridx(path, '/react_widget/')  != -1
