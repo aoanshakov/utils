@@ -4868,6 +4868,16 @@ function JsTester_WebSocketMockCore (args) {
                 'первого сообщения:' + "\n" + callStacks[messageIndex] + "\n\n");
         }
     };
+    this.expectSomeMessagesToBeSent = function () {
+        var messagesCount = messages.length;
+
+        if (messageIndex < (messagesCount - 1)) {
+            throw new Error('Через веб-сокет по URL "' + url + '" должно быть отправлено как минимум ' +
+                (messagesCount + 1) + ' сообщений, тогда, как было отправлено только ' + messagesCount + ' сообщений.');
+        }
+
+        messageIndex = messagesCount;
+    };
     this.expectWasConnected = function () {
         assertIsNotConnecting();
     };
@@ -5114,6 +5124,10 @@ function JsTester_WebSocketTester (mockCore, callStack) {
     };
     this.expectNoMessageToBeSent = function () {
         mockCore.expectNoMessageToBeSent();
+        return this;
+    };
+    this.expectSomeMessagesToBeSent = () => {
+        mockCore.expectSomeMessagesToBeSent();
         return this;
     };
     this.expectWasConnected = function (exceptions) {

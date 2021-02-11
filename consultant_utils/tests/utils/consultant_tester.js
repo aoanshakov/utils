@@ -9,16 +9,57 @@ define(() => {
             webSockets
         } = options;
 
+        const removeElementContent = selector => {
+            const element = document.querySelector(selector);
+            element && (element.innerHTML = '');
+        };
+
+        removeElementContent('.ant-notification span');
+        removeElementContent('.ant-message span');
+
         const {path} = runApplication(options);
 
         const setOnlineIndicator = ({tester, element}) => tester.onlineIndicator = () => testersFactory.
             createDomElementTester(utils.getVisibleSilently(element.
                 querySelectorAll('.chat-card__online-indicator, .rmo-avatar__status')));
 
+        const admixTesters = (target, element) =>
+            (Object.entries(getTesters(element)).forEach(([key, value]) => (target[key] = value)), target);
+
         const getTesters = (ascendant) => {
             ascendant = ascendant || new JsTester_NoElement();
 
             return {
+                a: text => testersFactory.createAnchorTester(utils.descendantOf(ascendant).matchesSelector('a').
+                    textEquals(text).find()),
+
+                logoOperator: testersFactory.createDomElementTester(() =>
+                    ascendant.querySelector('.logo__operator-title')),
+
+                message: () => testersFactory.createDomElementTester(ascendant.querySelector('.ant-message')),
+
+                tabpanel: () => {
+                    const getTabPanelElement = () => utils.getVisibleSilently(ascendant.querySelectorAll('.ant-tabs')),
+                        tester = testersFactory.createDomElementTester(getTabPanelElement);
+
+                    tester.tab = title => {
+                        const getTabElement = () => utils.descendantOf(getTabPanelElement()).
+                            matchesSelector('.ant-tabs-tab').textEquals(title).find();
+                        const tester = testersFactory.createDomElementTester(getTabElement);
+
+                        tester.active = () => {
+                            const element = utils.getVisibleSilently(getTabPanelElement().
+                                querySelectorAll('.ant-tabs-tabpane-active'));
+
+                            return admixTesters(testersFactory.createDomElementTester(element), element);
+                        };
+
+                        return tester;
+                    };
+
+                    return tester;
+                },
+
                 notification: () => {
                     const element = ascendant.querySelector('.ant-notification') || new JsTester_NoElement();
                     const iconWrapperElement =
@@ -62,6 +103,7 @@ define(() => {
                     tester.typeIcon = () => testersFactory.createDomElementTester(element.
                         querySelector('.visitors-card__visitor-type-icon svg'));
 
+                    admixTesters(tester, element);
                     return tester;
                 },
 
@@ -124,19 +166,22 @@ define(() => {
             };
         };
 
-        let webSocketTester = {
-            receiveMessage: () => {
-                throw new Error('Вебсокет должен быть открыт');
-            },
+        const throwError = () => {
+            throw new Error('Вебсокет должен быть открыт');
+        };
 
-            expectToBeSent: () => {
-                throw new Error('Вебсокет должен быть открыт');
-            }
+        let webSocketTester = {
+            receiveMessage: throwError,
+            expectToBeSent: throwError,
+            expectSomeMessagesToBeSent: throwError,
+            finishDisconnecting: throwError
         };
 
         let consultantWebSocketTester = (() => {
+            let success = true;
+
             const receiveMessage = message => webSocketTester.receiveMessage('a' + JSON.stringify([JSON.stringify({
-                success: true,
+                success,
                 ...message
             })]));
 
@@ -172,7 +217,11 @@ define(() => {
                         ))(expectedContent[i]);
                     }
 
-                    return {
+                    const request = {
+                        setUnsuccessfull: () => {
+                            success = false;
+                            return request;
+                        },
                         receiveResponse: message => {
                             if (!Array.isArray(message)) {
                                 message = [message];
@@ -195,6 +244,8 @@ define(() => {
                             }
                         }
                     };
+
+                    return request;
                 },
                 receiveMessage: message => receiveMessage({id: '', ...message})
             };
@@ -203,16 +254,135 @@ define(() => {
         return {
             ...getTesters(document.body),
 
+            expectLoginToEqual: expectedLogin => {
+                let actualLogin = `${window.localStorage.getItem('login')}`;
+                actualLogin == 'null' && (actualLogin = '');
+
+                if (expectedLogin != actualLogin) {
+                    throw new Error(
+                        `В локальном хранилище должен быть сохранен логин "${
+                            expectedLogin
+                        }", а не "${
+                            actualLogin
+                        }".`
+                    );
+                }
+            },
+
+            expectPassordToEqual: expectedPassword => {
+                let actualPassword = `${window.localStorage.getItem('password')}`;
+                actualPassword == 'null' && (actualPassword = '');
+
+                if (expectedPassword != actualPassword) {
+                    throw new Error(
+                        `В локальном хранилище должен быть сохранен пароль "${
+                            expectedPassword
+                        }", а не "${
+                            actualPassword
+                        }".`
+                    );
+                }
+            },
+
+            expectSomeMessagesToBeSent() {
+                webSocketTester.expectSomeMessagesToBeSent();
+            },
+
             connectWebSocket: index => {
                 webSocketTester = webSockets.getSocket(/^ws:\/\/10.81.21.122:8001\/oc/, index || 0).connect();
                 webSocketTester.receiveMessage('o');
             },
+
+            finishWebSocketDisconnecting: () => webSocketTester.finishDisconnecting(),
 
             flushUpdates: () => pressKey('j'),
             
             body: testersFactory.createDomElementTester(document.body),
 
             path,
+
+            logoutMessage: () => ({
+                expectToBeSent: () => consultantWebSocketTester.expectSentMessageToContain({
+                    name: 'core.logout',
+                    params: {
+                        operator_sid: 69572
+                    }
+                })
+            }),
+
+            chatStartingRequest: () => {
+                return {
+                    expectToBeSent() {
+                        const request = consultantWebSocketTester.expectSentMessageToContain({
+                            name: 'consultant.chat_start',
+                            params: {
+                                visitor_id: 2419872837
+                            }
+                        });
+
+                        return {
+                            receiveResponse: () => {
+                                request.receiveResponse({
+                                    visitor_id: 2419872837,
+                                    chat_id: 92741841,
+                                    messages: [{
+                                        date: 1573737004,
+                                        from: '',
+                                        message: 'Подождите первого освободившегося оператора',
+                                        source: 'Система'
+                                    }, {
+                                        date: 1573737049,
+                                        from: '',
+                                        message: 'Оператор Костадинка Гьошева на связи',
+                                        source: 'Система'
+                                    }, {
+                                        date: 1573737104,
+                                        from: 'Посетитель',
+                                        message: 'Здравствуйте. Мне снова нужна помощь.',
+                                        source: 'Посетитель'
+                                    }]
+                                });
+                            }
+                        };
+                    },
+
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                };
+            },
+
+            chatClosingRequest: () => {
+                return {
+                    expectToBeSent() {
+                        const request = consultantWebSocketTester.expectSentMessageToContain({
+                            name: 'consultant.chat_close',
+                            params: {
+                                visitor_id: 2419872837
+                            }
+                        });
+
+                        return {
+                            receiveResponse: () => {
+                                request.receiveResponse(null);
+                            }
+                        };
+                    },
+
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                };
+            },
+
+            chatClosingMessage: () => ({
+                receive: () => consultantWebSocketTester.receiveMessage({
+                    name: 'consultant.chat_close',
+                    params: {
+                        visitor_id: 2419872837
+                    }
+                })
+            }),
 
             visitorRemovingMessage: () => ({
                 receive: () => consultantWebSocketTester.receiveMessage({
@@ -251,9 +421,18 @@ define(() => {
                     visitor_id: 2419872835
                 };
 
+                const setSystemMessage = message => (params.message = {
+                    ...params.message,
+                    from: '',
+                    source: 'Система',
+                    message
+                });
+
                 const message = {
                     setSecondVisitor: () => ((params.visitor_id = 2419872836), message),
                     setThirdVisitor: () => ((params.visitor_id = 2419872837), message),
+                    setChatClosingMessage: () => (setSystemMessage('Посетитель вышел из чата'), message),
+                    setChatStarting: () => (setSystemMessage('Оператор Костадинка Гьошева на связи'), message),
                     receive: () => consultantWebSocketTester.receiveMessage({
                         name: 'consultant.chat_message',
                         params
@@ -278,6 +457,17 @@ define(() => {
 
                 const message = {
                     setSecondVisitor: () => ((visitor.id = 2419872836), message),
+                    setThirdVisitor: () => ((visitor.id = 2419872837), message),
+                    setChatStarting: () => {
+                        delete(visitor.hit_count);
+                        delete(visitor.page);
+
+                        visitor.operator_id = 210289;
+                        visitor.state = 'Беседа';
+                        visitor.status = 'Принято';
+
+                        return message;
+                    },
                     receive: () => consultantWebSocketTester.receiveMessage({
                         name: 'consultant.update_visitor',
                         params: {visitor}
@@ -285,6 +475,30 @@ define(() => {
                 };
 
                 return message;
+            },
+
+            chatWatchRequest: () => {
+                return {
+                    expectToBeSent() {
+                        const request = consultantWebSocketTester.expectSentMessageToContain({
+                            name: 'consultant.chat_watch',
+                            params: {
+                                subscribe: [2419872837],
+                                unsubscribe: []
+                            }
+                        });
+
+                        return {
+                            receiveResponse: () => {
+                                request.receiveResponse(null);
+                            }
+                        };
+                    },
+
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                };
             },
 
             objectMarksRequest: () => {
@@ -757,7 +971,7 @@ define(() => {
 
             loginUserRequest: () => ({
                 expectToBeSent() {
-                    const request = consultantWebSocketTester.expectSentMessageToContain({
+                    const consultantRequest = consultantWebSocketTester.expectSentMessageToContain({
                         name: 'core.login',
                         params: {
                             login: 't.daskalova',
@@ -765,14 +979,19 @@ define(() => {
                         }
                     });
 
-                    return {
-                        receiveResponse: () => {
-                            request.receiveResponse({
-                                operator_id: 210289,
-                                operator_sid: 69572
-                            });
-                        }
+                    let response = {
+                        operator_id: 210289,
+                        operator_sid: 69572
                     };
+
+                    const request = {
+                        setUnsuccessfull: () => (consultantRequest.setUnsuccessfull(), (response = {
+                            message: 'Неправильный логин или пароль'
+                        }), request),
+                        receiveResponse: () => consultantRequest.receiveResponse(response)
+                    };
+
+                    return request;
                 },
 
                 receiveResponse() {

@@ -1,5 +1,5 @@
 diff --git a/config-overrides.js b/config-overrides.js
-index 3287db2..59e6036 100644
+index 70d45b9..16433ad 100644
 --- a/config-overrides.js
 +++ b/config-overrides.js
 @@ -1,3 +1,4 @@
@@ -7,7 +7,7 @@ index 3287db2..59e6036 100644
  const { override, fixBabelImports, addLessLoader, useEslintRc } = require('customize-cra');
  // @import '~antd/es/style/themes/default.less';
  
-@@ -44,6 +45,14 @@ const overrideFn = override(
+@@ -45,6 +46,14 @@ const overrideFn = override(
  
  
  module.exports = function override(config, env) {
@@ -23,7 +23,7 @@ index 3287db2..59e6036 100644
      nConfig.plugins.push(new FilterWarningsPlugin({
          exclude: /mini-css-extract-plugin[^]*Conflicting order between:/
 diff --git a/package.json b/package.json
-index d80cbbd..16aa76d 100644
+index 81741b8..95dd95b 100644
 --- a/package.json
 +++ b/package.json
 @@ -20,6 +20,7 @@
@@ -34,7 +34,7 @@ index d80cbbd..16aa76d 100644
      "yup": "^0.28.0"
    },
    "scripts": {
-@@ -38,6 +39,7 @@
+@@ -39,6 +40,7 @@
        "not op_mini all"
      ],
      "development": [
@@ -43,19 +43,23 @@ index d80cbbd..16aa76d 100644
        "last 1 firefox version",
        "last 1 safari version"
 diff --git a/public/index.html b/public/index.html
-index 54634cc..86cf6a3 100644
+index 54634cc..0febb7d 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -25,6 +25,31 @@
+@@ -25,6 +25,35 @@
        Learn how to configure a non-root public URL by running `npm run build`.
      -->
      <title>РМО</title>
 +    <style>
-+        .ant-notification-fade-enter {
++        .ant-notification-fade-enter, .move-up-enter, .zoom-big-appear {
 +            opacity: 1 !important;
 +        }
 +
-+        .ant-notification-fade-leave {
++        .zoom-big-appear {
++            transform: none !important;
++        }
++
++        .ant-notification-fade-leave, .move-up-leave, .zoom-big-leave {
 +            display: none !important;
 +        }
 +    </style>
@@ -78,7 +82,7 @@ index 54634cc..86cf6a3 100644
    </head>
    <body>
      <noscript>You need to enable JavaScript to run this app.</noscript>
-@@ -39,5 +64,8 @@
+@@ -39,5 +68,8 @@
        To begin the development, run `npm start` or `yarn start`.
        To create a production bundle, use `npm run build` or `yarn build`.
      -->
@@ -98,7 +102,7 @@ index 9937105..d590c48 100644
 -export default createBrowserHistory();
 +export default createMemoryHistory();
 diff --git a/src/index.js b/src/index.js
-index 032019a..bba1b02 100644
+index 032019a..0cae355 100644
 --- a/src/index.js
 +++ b/src/index.js
 @@ -2,7 +2,7 @@ import React from 'react';
@@ -129,7 +133,15 @@ index 032019a..bba1b02 100644
 +            container.id = 'root';
 +            document.body.appendChild(container);
 +        }
-+ 
+ 
+-ReactDOM.render(
+-    <Provider {...stores}>
+-        <Router history={history}>
+-            <App />
+-        </Router>
+-    </Provider>,
+-    document.getElementById('root')
+-);
 +        ReactDOM.render(
 +            <Provider {...createStores()}>
 +                <Router history={history}>
@@ -146,24 +158,22 @@ index 032019a..bba1b02 100644
 +        if (!container || !container.firstChild) {
 +            return;
 +        }
- 
--ReactDOM.render(
--    <Provider {...stores}>
--        <Router history={history}>
--            <App />
--        </Router>
--    </Provider>,
--    document.getElementById('root')
--);
++
 +        ReactDOM.unmountComponentAtNode(container);
 +        container.remove();
 +    }
 +};
 diff --git a/src/stores/index.js b/src/stores/index.js
-index b82271d..41105f0 100644
+index b82271d..499e45d 100644
 --- a/src/stores/index.js
 +++ b/src/stores/index.js
-@@ -8,6 +8,4 @@ class Stores {
+@@ -3,11 +3,9 @@ import SettingsStore from '../components/settings/SettingsStore';
+ 
+ class Stores {
+     constructor() {
+-        this.appStore = new AppStore(this);
++        this.appStore = new AppStore(this, false);
+         this.settingsStore = new SettingsStore(this);
      }
  }
  
