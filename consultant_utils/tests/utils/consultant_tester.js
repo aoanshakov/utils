@@ -30,6 +30,15 @@ define(() => {
             ascendant = ascendant || new JsTester_NoElement();
 
             return {
+                chatTagIcon: testersFactory.createDomElementTester(() => {
+                    const elements = ascendant.querySelectorAll('svg');
+
+                    return utils.getVisibleSilently(Array.prototype.filter.call(
+                        elements,
+                        element => element.getAttribute('data-type') == 'chat-tag-icon'
+                    ));
+                }),
+
                 a: text => testersFactory.createAnchorTester(utils.descendantOf(ascendant).matchesSelector('a').
                     textEquals(text).find()),
 
@@ -108,13 +117,7 @@ define(() => {
                 },
 
                 chatCard: () => {
-                    const getTester = ({text, selector}) => {
-                        const element = utils.descendantOf(ascendant).
-                                matchesSelector(selector).
-                                textEquals(text).
-                                find().
-                                closest('.chat-card');
-
+                    const getTester = element => {
                         const tester = testersFactory.createDomElementTester(element);
 
                         tester.typeIcon = () => testersFactory.createDomElementTester(element.
@@ -124,12 +127,23 @@ define(() => {
                         return tester;
                     };
 
+                    const getTesterByText = ({text, selector}) => getTester(utils.descendantOf(ascendant).
+                        matchesSelector(selector).
+                        textEquals(text).
+                        find().
+                        closest('.chat-card'));
+
                     return {
-                        withHeader: text => getTester({
+                        atIndex: index => getTester(ascendant.querySelectorAll('.chat-card')[index]),
+                        withLastMessage: text => getTesterByText({
+                            selector: '.chat-card__last-msg',
+                            text
+                        }),
+                        withHeader: text => getTesterByText({
                             selector: '.chat-card__header',
                             text
                         }),
-                        withSite: text => getTester({
+                        withSite: text => getTesterByText({
                             selector: '.chat-card__extra-domain',
                             text
                         })
@@ -289,7 +303,7 @@ define(() => {
             },
 
             connectWebSocket: index => {
-                webSocketTester = webSockets.getSocket(/^ws:\/\/10.81.21.122:8001\/oc/, index || 0).connect();
+                webSocketTester = webSockets.getSocket(/^ws:\/\/[0-9.:]+\/oc/, index || 0).connect();
                 webSocketTester.receiveMessage('o');
             },
 
@@ -444,30 +458,35 @@ define(() => {
 
             visitorUpdateMessage: () => {
                 const visitor = {
-                    group_id: null,
-                    hit_count: 4,
-                    id: 2419872835,
-                    page: [
-                        'http://third-site.com/',
-                        null
-                    ],
-                    state: 'Ожидание',
-                    status: 'Отправлено'
+                    start_time: 1573553954,
+                    id: 2419872835
                 };
+
+                const changeVisitor =
+                    newVisitor => Object.entries(newVisitor).forEach(([key, value]) => (visitor[key] = value));
 
                 const message = {
                     setSecondVisitor: () => ((visitor.id = 2419872836), message),
                     setThirdVisitor: () => ((visitor.id = 2419872837), message),
-                    setChatStarting: () => {
-                        delete(visitor.hit_count);
-                        delete(visitor.page);
-
-                        visitor.operator_id = 210289;
-                        visitor.state = 'Беседа';
-                        visitor.status = 'Принято';
-
-                        return message;
-                    },
+                    setFifthVisitor: () => ((visitor.id = 2419872839), message),
+                    setSeventhVisitor: () => ((visitor.id = 2419872841), message),
+                    setThirdSite: () => (changeVisitor({
+                        site_id: 10634,
+                        page: [
+                            'http://third-site.com/',
+                            null
+                        ],
+                    }), message),
+                    setWaiting: () => ((visitor.state = 'Ожидание'), message),
+                    setNoStartTime: () => (delete(visitor.start_time), message),
+                    setChatStarting: () => (changeVisitor({
+                        operator_id: 210289,
+                        state: 'Беседа',
+                        status: 'Принято'
+                    }), message),
+                    setOnline: () => (changeVisitor({
+                        is_online: true
+                    }), message),
                     receive: () => consultantWebSocketTester.receiveMessage({
                         name: 'consultant.update_visitor',
                         params: {visitor}
@@ -475,6 +494,67 @@ define(() => {
                 };
 
                 return message;
+            },
+
+            visitorRequest: () => {
+                return {
+                    expectToBeSent() {
+                        const request = consultantWebSocketTester.expectSentMessageToContain({
+                            name: 'consultant.get_visitor',
+                            params: {
+                                visitor_id: 2419872841
+                            }
+                        });
+
+                        return {
+                            receiveResponse: () => {
+                                request.receiveResponse({
+                                    visitor: {
+                                        ac_name: 'Посетители без рекламной кампании',
+                                        ad_engine: null,
+                                        browser: 'Chrome 77.0',
+                                        city: null,
+                                        country: null,
+                                        country_code: null,
+                                        group_id: null,
+                                        hit_count: 20,
+                                        id: 2419872841,
+                                        ip: '10.81.21.90',
+                                        operator_id: null,
+                                        os: 'Windows 10',
+                                        page: [
+                                            'http://eighth-site.com/',
+                                            null
+                                        ],
+                                        provider: null,
+                                        search_engine: null,
+                                        search_query: null,
+                                        site_id: 10635,
+                                        source_referrer: null,
+                                        start_page: 'http://eighth-site.com/',
+                                        start_time: 1573553717,
+                                        state: 'На сайте',
+                                        status: 'Отправлено',
+                                        traffic_source: 'direct',
+                                        type: 'comagic',
+                                        visit_count: 37,
+                                        visitor_card: {
+                                            comment: null,
+                                            company: null,
+                                            emails: [],
+                                            name: 'Божанка Гяурова',
+                                            phones: []
+                                        }
+                                    }
+                                });
+                            }
+                        };
+                    },
+
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                };
             },
 
             chatWatchRequest: () => {
@@ -502,33 +582,52 @@ define(() => {
             },
 
             objectMarksRequest: () => {
-                const params = {
-                    obj: 'chat',
-                    obj_id: 92741839
+                let startChatId = 92741839,
+                    endChatId = 92741839;
+
+                const responses = {
+                    '0': [1555, 21618],
+                    '92741841': [148, 22738]
                 };
 
                 return {
                     setSecondChat() {
-                        params.obj_id = 92741840;
+                        startChatId = endChatId = 92741840;
                         return this;
                     },
 
                     setThirdChat() {
-                        params.obj_id = 92741841;
+                        startChatId = endChatId = 92741841;
+                        return this;
+                    },
+
+                    setAnotherChats(startIndex, endIndex) {
+                        startChatId = 92741842 + startIndex;
+                        endChatId = 92741842 + endIndex;
                         return this;
                     },
 
                     expectToBeSent() {
-                        const request = consultantWebSocketTester.expectSentMessageToContain({
-                            name: 'core.get_object_marks',
-                            params
-                        });
+                        let obj_id,
+                            requests = {};
+
+                        for (obj_id = startChatId; obj_id <= endChatId; obj_id ++) {
+                            requests[obj_id] = consultantWebSocketTester.expectSentMessageToContain({
+                                name: 'core.get_object_marks',
+                                params: {
+                                    obj: 'chat',
+                                    obj_id
+                                }
+                            });
+                        }
 
                         return {
                             receiveResponse: () => {
-                                request.receiveResponse({
-                                    object_marks: []
-                                });
+                                for (obj_id in requests) {
+                                    requests[obj_id].receiveResponse({
+                                        object_marks: responses[obj_id] || responses['0']
+                                    });
+                                }
                             }
                         };
                     },
@@ -551,121 +650,158 @@ define(() => {
                         name: 'consultant.get_visitors'
                     });
 
-                    return {
-                        receiveResponse: () => {
-                            request.receiveResponse({
-                                visitors: [{
-                                    ac_name: 'Посетители без рекламной кампании',
-                                    ad_engine: null,
-                                    browser: 'Chrome 77.0',
-                                    city: null,
-                                    country: null,
-                                    country_code: null,
-                                    group_id: null,
-                                    hit_count: 2,
-                                    id: 2419872835,
-                                    ip: '10.81.21.84',
-                                    operator_id: null,
-                                    os: 'Windows 10',
-                                    page: [
-                                        'http://first-site.com/',
-                                        null
-                                    ],
-                                    provider: null,
-                                    search_engine: null,
-                                    search_query: null,
-                                    site_id: 10628,
-                                    source_referrer: null,
-                                    start_page: 'http://first-site.com/',
-                                    start_time: 1573553545,
-                                    state: 'На сайте',
-                                    status: 'Отправлено',
-                                    traffic_source: 'direct',
-                                    type: 'comagic',
-                                    visit_count: 15,
-                                    visitor_card: {
-                                        comment: null,
-                                        company: null,
-                                        emails: [],
-                                        name: 'Ана Аначкова',
-                                        phones: []
-                                    }
-                                }, {
-                                    ac_name: 'Посетители без рекламной кампании',
-                                    ad_engine: null,
-                                    browser: 'Chrome 77.0',
-                                    city: null,
-                                    country: null,
-                                    country_code: null,
-                                    group_id: null,
-                                    hit_count: 3,
-                                    id: 2419872836,
-                                    ip: '10.81.21.85',
-                                    operator_id: null,
-                                    os: 'Windows 10',
-                                    page: [
-                                        'http://second-site.com/',
-                                        null
-                                    ],
-                                    provider: null,
-                                    search_engine: null,
-                                    search_query: null,
-                                    site_id: 10629,
-                                    source_referrer: null,
-                                    start_page: 'http://second-site.com/',
-                                    start_time: 1573553605,
-                                    state: 'На сайте',
-                                    status: 'Отправлено',
-                                    traffic_source: 'direct',
-                                    type: 'yandex',
-                                    visit_count: 16,
-                                    visitor_card: {
-                                        comment: null,
-                                        company: null,
-                                        emails: [],
-                                        name: 'Галя Балабанова',
-                                        phones: []
-                                    }
-                                }, {
-                                    ac_name: 'Посетители без рекламной кампании',
-                                    ad_engine: null,
-                                    browser: 'Chrome 77.0',
-                                    city: null,
-                                    country: null,
-                                    country_code: null,
-                                    group_id: null,
-                                    hit_count: 3,
-                                    id: 2419872837,
-                                    ip: '10.81.21.86',
-                                    operator_id: null,
-                                    os: 'Windows 10',
-                                    page: [
-                                        'http://fourth-site.com/',
-                                        null
-                                    ],
-                                    provider: null,
-                                    search_engine: null,
-                                    search_query: null,
-                                    site_id: 10630,
-                                    source_referrer: null,
-                                    start_page: 'http://fourth-site.com/',
-                                    start_time: 1573553671,
-                                    state: 'На сайте',
-                                    status: 'Отправлено',
-                                    traffic_source: 'direct',
-                                    type: 'whatsapp',
-                                    visit_count: 23,
-                                    visitor_card: {
-                                        comment: null,
-                                        company: null,
-                                        emails: [],
-                                        name: 'Милка Стоенчева',
-                                        phones: []
-                                    }
-                                }]
-                            });
+                    const visitors = [{
+                        ac_name: 'Посетители без рекламной кампании',
+                        ad_engine: null,
+                        browser: 'Chrome 77.0',
+                        city: null,
+                        country: null,
+                        country_code: null,
+                        group_id: null,
+                        hit_count: 2,
+                        id: 2419872835,
+                        ip: '10.81.21.84',
+                        operator_id: null,
+                        os: 'Windows 10',
+                        page: [
+                            'http://first-site.com/',
+                            null
+                        ],
+                        provider: null,
+                        search_engine: null,
+                        search_query: null,
+                        site_id: 10628,
+                        source_referrer: null,
+                        start_page: 'http://first-site.com/',
+                        start_time: 1573553545,
+                        state: 'На сайте',
+                        status: 'Отправлено',
+                        traffic_source: 'direct',
+                        type: 'comagic',
+                        visit_count: 15,
+                        visitor_card: {
+                            comment: null,
+                            company: null,
+                            emails: [],
+                            name: 'Ана Аначкова',
+                            phones: []
                         }
+                    }, {
+                        ac_name: 'Посетители без рекламной кампании',
+                        ad_engine: null,
+                        browser: 'Chrome 77.0',
+                        city: null,
+                        country: null,
+                        country_code: null,
+                        group_id: null,
+                        hit_count: 3,
+                        id: 2419872836,
+                        ip: '10.81.21.85',
+                        operator_id: null,
+                        os: 'Windows 10',
+                        page: [
+                            'http://second-site.com/',
+                            null
+                        ],
+                        provider: null,
+                        search_engine: null,
+                        search_query: null,
+                        site_id: 10629,
+                        source_referrer: null,
+                        start_page: 'http://second-site.com/',
+                        start_time: 1573553605,
+                        state: 'На сайте',
+                        status: 'Отправлено',
+                        traffic_source: 'direct',
+                        type: 'yandex',
+                        visit_count: 16,
+                        visitor_card: {
+                            comment: null,
+                            company: null,
+                            emails: [],
+                            name: 'Галя Балабанова',
+                            phones: []
+                        }
+                    }, {
+                        ac_name: 'Посетители без рекламной кампании',
+                        ad_engine: null,
+                        browser: 'Chrome 77.0',
+                        city: null,
+                        country: null,
+                        country_code: null,
+                        group_id: null,
+                        hit_count: 3,
+                        id: 2419872837,
+                        ip: '10.81.21.86',
+                        operator_id: null,
+                        os: 'Windows 10',
+                        page: [
+                            'http://fourth-site.com/',
+                            null
+                        ],
+                        provider: null,
+                        search_engine: null,
+                        search_query: null,
+                        site_id: 10630,
+                        source_referrer: null,
+                        start_page: 'http://fourth-site.com/',
+                        start_time: 1573553671,
+                        state: 'На сайте',
+                        status: 'Отправлено',
+                        traffic_source: 'direct',
+                        type: 'whatsapp',
+                        visit_count: 23,
+                        visitor_card: {
+                            comment: null,
+                            company: null,
+                            emails: [],
+                            name: 'Милка Стоенчева',
+                            phones: []
+                        }
+                    }, {
+                        ac_name: 'Посетители без рекламной кампании',
+                        ad_engine: null,
+                        browser: 'Chrome 77.0',
+                        city: null,
+                        country: null,
+                        country_code: null,
+                        group_id: null,
+                        hit_count: 3,
+                        id: 2419872838,
+                        ip: '10.81.21.87',
+                        operator_id: null,
+                        os: 'Windows 10',
+                        page: [
+                            'http://fifth-site.com/',
+                            null
+                        ],
+                        provider: null,
+                        search_engine: null,
+                        search_query: null,
+                        site_id: 10631,
+                        source_referrer: null,
+                        start_page: 'http://fifth-site.com/',
+                        start_time: 1573553834,
+                        state: 'На сайте',
+                        status: 'Отправлено',
+                        traffic_source: 'direct',
+                        type: 'whatsapp',
+                        visit_count: 35,
+                        visitor_card: {
+                            comment: null,
+                            company: null,
+                            emails: [],
+                            name: 'Денка Налбантова',
+                            phones: []
+                        }
+                    }];
+
+                    const me = {
+                        ommitVisitor: () => (visitors.splice(2, 1), me),
+                        receiveResponse: () => request.receiveResponse({ visitors })
                     };
+
+                    return me;
                 },
 
                 receiveResponse() {
@@ -697,7 +833,28 @@ define(() => {
                                     is_in_transfer: false,
                                     messages: [],
                                     visitor_id: 2419872837
-                                }]
+                                }],
+                                recent_chats: (() => {
+                                    let i;
+                                    const count = 100,
+                                        result = [];
+
+                                    for (i = 0; i < count; i ++) {
+                                        result.push({
+                                            chat_id: 92741842 + i,
+                                            is_in_transfer: false,
+                                            visitor_id: 2419872838,
+                                            messages: [{
+                                                date: 1573737106 + i + 60 * 60,
+                                                from: 'Посетитель',
+                                                message: `Приветствую вас в ${i + 1}-й раз!`,
+                                                source: 'Посетитель'
+                                            }]
+                                        });
+                                    }
+
+                                    return result;
+                                })()
                             });
                         }
                     };
@@ -821,6 +978,26 @@ define(() => {
                                         is_system: true,
                                         mnemonic: 'not_processed',
                                         name: 'Не обработано'
+                                    },
+                                    '1555': {
+                                        is_system: true,
+                                        mnemonic: 'sale',
+                                        name: 'Продажа'
+                                    },
+                                    '1556': {
+                                        is_system: true,
+                                        mnemonic: 'goal_contact',
+                                        name: 'Лид'
+                                    },
+                                    '21618': {
+                                        is_system: true,
+                                        mnemonic: 'delayed_call',
+                                        name: 'Отложенный звонок'
+                                    },
+                                    '22738': {
+                                        is_system: false,
+                                        mnemonic: null,
+                                        name: 'Подозрительный звонок'
                                     }
                                 }
                             });
@@ -880,6 +1057,31 @@ define(() => {
                                     },
                                     '10630': {
                                         domain: 'fourth-site.com',
+                                        is_file_transfer_available: true,
+                                        min_duration_for_invite: 0
+                                    },
+                                    '10631': {
+                                        domain: 'fifth-site.com',
+                                        is_file_transfer_available: true,
+                                        min_duration_for_invite: 0
+                                    },
+                                    '10632': {
+                                        domain: 'sixth-site.com',
+                                        is_file_transfer_available: true,
+                                        min_duration_for_invite: 0
+                                    },
+                                    '10633': {
+                                        domain: 'seventh-site.com',
+                                        is_file_transfer_available: true,
+                                        min_duration_for_invite: 0
+                                    },
+                                    '10634': {
+                                        domain: 'third-site.com',
+                                        is_file_transfer_available: true,
+                                        min_duration_for_invite: 0
+                                    },
+                                    '10635': {
+                                        domain: 'eighth-site.com',
                                         is_file_transfer_available: true,
                                         min_duration_for_invite: 0
                                     }
