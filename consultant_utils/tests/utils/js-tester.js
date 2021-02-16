@@ -4359,6 +4359,16 @@ function JsTester_DomElement (
     this.getElement = function () {
         return getDomElement();
     };
+    this.scrollToTheEnd = function () {
+        this.expectToBeVisible();
+
+        var element = getDomElement(),
+            event = new Event('scroll');
+
+        event.target = element;
+        element.scrollTop = element.scrollHeight - element.clientHeight;
+        element.dispatchEvent(event);
+    }
 }
 
 function JsTests_ParamExpectation () {

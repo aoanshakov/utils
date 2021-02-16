@@ -14,7 +14,13 @@ define(() => {
             element && (element.innerHTML = '');
         };
 
-        removeElementContent('.ant-notification span');
+        const elements = document.querySelectorAll('.ant-notification > span > div');
+
+        Array.prototype.forEach.call(elements, element => {
+            element.style.display = 'none';
+            element.innerHTML = '';
+        });
+
         removeElementContent('.ant-message span');
 
         const {path} = runApplication(options);
@@ -29,15 +35,18 @@ define(() => {
         const getTesters = (ascendant) => {
             ascendant = ascendant || new JsTester_NoElement();
 
-            return {
-                chatTagIcon: testersFactory.createDomElementTester(() => {
-                    const elements = ascendant.querySelectorAll('svg');
+            const getIcon = type => testersFactory.createDomElementTester(() => {
+                const elements = ascendant.querySelectorAll('svg');
 
-                    return utils.getVisibleSilently(Array.prototype.filter.call(
-                        elements,
-                        element => element.getAttribute('data-type') == 'chat-tag-icon'
-                    ));
-                }),
+                return utils.getVisibleSilently(Array.prototype.filter.call(
+                    elements,
+                    element => element.getAttribute('data-type') == type
+                ));
+            });
+
+            me = {
+                chatTagIcon: getIcon('chat-tag-icon'),
+                chatHistoryIcon: getIcon('chat-history-icon'),
 
                 a: text => testersFactory.createAnchorTester(utils.descendantOf(ascendant).matchesSelector('a').
                     textEquals(text).find()),
@@ -46,6 +55,9 @@ define(() => {
                     ascendant.querySelector('.logo__operator-title')),
 
                 message: () => testersFactory.createDomElementTester(ascendant.querySelector('.ant-message')),
+
+                chatListWrapper: () => testersFactory.createDomElementTester(utils.getVisibleSilently(ascendant.
+                    querySelectorAll('.chat-list-wrapper'))),
 
                 tabpanel: () => {
                     const getTabPanelElement = () => utils.getVisibleSilently(ascendant.querySelectorAll('.ant-tabs')),
@@ -86,7 +98,7 @@ define(() => {
                         return tester;
                     };
 
-                    return tester;
+                    return admixTesters(tester, element);
                 },
                 
                 chatHeader: () => {
@@ -178,6 +190,8 @@ define(() => {
                     utils.descendantOf(ascendant).matchesSelector('.ant-btn').textEquals(text).find()
                 )
             };
+
+            return me;
         };
 
         const throwError = () => {
@@ -324,11 +338,11 @@ define(() => {
                 })
             }),
 
-            chatStartingRequest: () => {
+            visitorChatHistoryRequest: () => {
                 return {
                     expectToBeSent() {
                         const request = consultantWebSocketTester.expectSentMessageToContain({
-                            name: 'consultant.chat_start',
+                            name: 'consultant.get_visitor_chat_history',
                             params: {
                                 visitor_id: 2419872837
                             }
@@ -337,23 +351,12 @@ define(() => {
                         return {
                             receiveResponse: () => {
                                 request.receiveResponse({
-                                    visitor_id: 2419872837,
-                                    chat_id: 92741841,
-                                    messages: [{
-                                        date: 1573737004,
-                                        from: '',
-                                        message: 'Подождите первого освободившегося оператора',
-                                        source: 'Система'
-                                    }, {
-                                        date: 1573737049,
-                                        from: '',
-                                        message: 'Оператор Костадинка Гьошева на связи',
-                                        source: 'Система'
-                                    }, {
-                                        date: 1573737104,
-                                        from: 'Посетитель',
-                                        message: 'Здравствуйте. Мне снова нужна помощь.',
-                                        source: 'Посетитель'
+                                    "chat_history": [{
+                                        "chat_id": 92741813,
+                                        "message_count": 8,
+                                        "operator_name": "Снежанка Колчева",
+                                        "site_id": 10631,
+                                        "start_time": 1573205420
                                     }]
                                 });
                             }
@@ -364,6 +367,61 @@ define(() => {
                         this.expectToBeSent().receiveResponse();
                     }
                 };
+            },
+
+            chatStartingRequest: () => {
+                const params = {
+                    visitor_id: 2419872837,
+                    chat_channel_id: 627662034
+                };
+
+                const response = {
+                    visitor_id: 2419872837,
+                    chat_id: 92741841,
+                    chat_channel_id: 627662034,
+                    messages: [{
+                        date: 1573737004,
+                        from: '',
+                        message: 'Подождите первого освободившегося оператора',
+                        source: 'Система'
+                    }, {
+                        date: 1573737049,
+                        from: '',
+                        message: 'Оператор Костадинка Гьошева на связи',
+                        source: 'Система'
+                    }, {
+                        date: 1573737104,
+                        from: 'Посетитель',
+                        message: 'Здравствуйте. Мне снова нужна помощь.',
+                        source: 'Посетитель'
+                    }]
+                };
+
+                me = {
+                    setSeventhVisitor: () => {
+                        params.visitor_id = 2419872841;
+                        response.visitor_id = 2419872841;
+                        response.chat_id = 42952895;
+                        response.chat_channel_id = 86273923;
+
+                        return me;
+                    },
+                    setNoChatChannelId: () => ((params.chat_channel_id = undefined), me),
+                    expectToBeSent: () => {
+                        const request = consultantWebSocketTester.expectSentMessageToContain({
+                            name: 'consultant.chat_start',
+                            params
+                        });
+
+                        return {
+                            receiveResponse: () => request.receiveResponse(response)
+                        };
+                    },
+
+                    receiveResponse: () => me.expectToBeSent().receiveResponse()
+                };
+
+                return me;
             },
 
             chatClosingRequest: () => {
@@ -558,27 +616,28 @@ define(() => {
             },
 
             chatWatchRequest: () => {
-                return {
+                let visitor_id = 2419872837;
+
+                const me = {
+                    setSeventhVisitor: () => ((visitor_id = 2419872841), me),
                     expectToBeSent() {
                         const request = consultantWebSocketTester.expectSentMessageToContain({
                             name: 'consultant.chat_watch',
                             params: {
-                                subscribe: [2419872837],
+                                subscribe: [visitor_id],
                                 unsubscribe: []
                             }
                         });
 
                         return {
-                            receiveResponse: () => {
-                                request.receiveResponse(null);
-                            }
+                            receiveResponse: () => request.receiveResponse(null)
                         };
                     },
 
-                    receiveResponse() {
-                        this.expectToBeSent().receiveResponse();
-                    }
+                    receiveResponse: () => me.expectToBeSent().receiveResponse()
                 };
+
+                return me;
             },
 
             objectMarksRequest: () => {
@@ -598,6 +657,11 @@ define(() => {
 
                     setThirdChat() {
                         startChatId = endChatId = 92741841;
+                        return this;
+                    },
+
+                    setNewVisitorChat() {
+                        startChatId = endChatId = 42952895;
                         return this;
                     },
 
@@ -623,6 +687,8 @@ define(() => {
 
                         return {
                             receiveResponse: () => {
+                                let obj_id;
+
                                 for (obj_id in requests) {
                                     requests[obj_id].receiveResponse({
                                         object_marks: responses[obj_id] || responses['0']
@@ -772,7 +838,7 @@ define(() => {
                         operator_id: null,
                         os: 'Windows 10',
                         page: [
-                            'http://fifth-site.com/',
+                            'http://fifth-site-that-has-quite-long-url.com/',
                             null
                         ],
                         provider: null,
@@ -780,7 +846,7 @@ define(() => {
                         search_query: null,
                         site_id: 10631,
                         source_referrer: null,
-                        start_page: 'http://fifth-site.com/',
+                        start_page: 'http://fifth-site-that-has-quite-long-url.com/',
                         start_time: 1573553834,
                         state: 'На сайте',
                         status: 'Отправлено',
@@ -809,61 +875,81 @@ define(() => {
                 }
             }),
 
-            chatsRequest: () => ({
-                expectToBeSent() {
-                    const request = consultantWebSocketTester.expectSentMessageToContain({
-                        name: 'consultant.get_chats'
-                    });
+            chatsRequest: () => {
+                const params = {
+                    recent_offset: 0,
+                    recent_limit: 100
+                };
 
-                    return {
-                        receiveResponse: () => {
-                            request.receiveResponse({
-                                chats: [{
-                                    chat_id: 92741839,
-                                    is_in_transfer: false,
-                                    messages: [],
-                                    visitor_id: 2419872835
-                                }, {
-                                    chat_id: 92741840,
-                                    is_in_transfer: false,
-                                    messages: [],
-                                    visitor_id: 2419872836
-                                }, {
-                                    chat_id: 92741841,
-                                    is_in_transfer: false,
-                                    messages: [],
-                                    visitor_id: 2419872837
-                                }],
-                                recent_chats: (() => {
-                                    let i;
-                                    const count = 100,
-                                        result = [];
+                me = {
+                    setOffset: value => ((params.recent_offset = 100), me),
 
-                                    for (i = 0; i < count; i ++) {
-                                        result.push({
-                                            chat_id: 92741842 + i,
-                                            is_in_transfer: false,
-                                            visitor_id: 2419872838,
-                                            messages: [{
-                                                date: 1573737106 + i + 60 * 60,
-                                                from: 'Посетитель',
-                                                message: `Приветствую вас в ${i + 1}-й раз!`,
-                                                source: 'Посетитель'
-                                            }]
-                                        });
-                                    }
+                    expectToBeSent: () => {
+                        const request = consultantWebSocketTester.expectSentMessageToContain({
+                            name: 'consultant.get_chats',
+                            params
+                        });
 
-                                    return result;
-                                })()
-                            });
-                        }
-                    };
-                },
+                        let startIndex = 0,
+                            endIndex = 99;
 
-                receiveResponse() {
-                    this.expectToBeSent().receiveResponse();
-                }
-            }),
+                        const me = {
+                            setRange: (index1, index2) => ((startIndex = index1), (endIndex = index2), me),
+
+                            receiveResponse: () => {
+                                request.receiveResponse({
+                                    chats: [{
+                                        chat_id: 92741839,
+                                        chat_channel_id: 627662032,
+                                        is_in_transfer: false,
+                                        messages: [],
+                                        visitor_id: 2419872835
+                                    }, {
+                                        chat_id: 92741840,
+                                        chat_channel_id: 627662033,
+                                        is_in_transfer: false,
+                                        messages: [],
+                                        visitor_id: 2419872836
+                                    }, {
+                                        chat_id: 92741841,
+                                        chat_channel_id: 627662034,
+                                        is_in_transfer: false,
+                                        messages: [],
+                                        visitor_id: 2419872837
+                                    }],
+                                    recent_chats: (() => {
+                                        let i;
+                                        const result = [];
+
+                                        for (i = startIndex; i <= endIndex; i ++) {
+                                            result.push({
+                                                chat_id: 92741842 + i,
+                                                chat_channel_id: 627662035 + i,
+                                                is_in_transfer: false,
+                                                visitor_id: 2419872838,
+                                                messages: [{
+                                                    date: 1573737106 + i * 13 * 60 * 60 + 14 * 60 * i,
+                                                    from: 'Посетитель',
+                                                    message: `Приветствую вас в ${i + 1}-й раз!`,
+                                                    source: 'Посетитель'
+                                                }]
+                                            });
+                                        }
+
+                                        return result;
+                                    })()
+                                });
+                            }
+                        };
+
+                        return me;
+                    },
+
+                    receiveResponse: () => me.expectToBeSent().receiveResponse()
+                };
+
+                return me;
+            },
 
             operatorReadyRequest: () => ({
                 expectToBeSent() {
@@ -1061,7 +1147,7 @@ define(() => {
                                         min_duration_for_invite: 0
                                     },
                                     '10631': {
-                                        domain: 'fifth-site.com',
+                                        domain: 'fifth-site-that-has-quite-long-url.com',
                                         is_file_transfer_available: true,
                                         min_duration_for_invite: 0
                                     },
