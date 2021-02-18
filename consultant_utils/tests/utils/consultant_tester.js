@@ -45,8 +45,29 @@ define(() => {
             });
 
             me = {
+                chatInfoIcon: getIcon('chat-info-icon'),
                 chatTagIcon: getIcon('chat-tag-icon'),
                 chatHistoryIcon: getIcon('chat-history-icon'),
+
+                chatHistoryItem: text => {
+                    const getIcon = type => {
+                        const icons = utils.descendantOf(ascendant).
+                            matchesSelector('.chat-history-item__operator-name').
+                            textEquals(text).
+                            find().
+                            closest('.chat-history-item').
+                            querySelectorAll('svg');
+
+                        return testersFactory.createDomElementTester(
+                            Array.prototype.find.call(icons, icon => icon.getAttribute('data-icon') == type)
+                        );
+                    };
+
+                    return {
+                        leftIcon: () => getIcon('left'),
+                        rightIcon: () => getIcon('right') 
+                    };
+                },
 
                 a: text => testersFactory.createAnchorTester(utils.descendantOf(ascendant).matchesSelector('a').
                     textEquals(text).find()),
@@ -338,25 +359,111 @@ define(() => {
                 })
             }),
 
-            visitorChatHistoryRequest: () => {
+            visitorChatHistoryDataRequest: () => {
+                const params = {
+                    visitor_id: 2419872837,
+                    chat_id: 92741813
+                };
+
+                const messages = [{
+                    date: 1573737011,
+                    from: '',
+                    message: 'Подождите первого освободившегося оператора',
+                    source: 'Система'
+                }, {
+                    date: 1573737087,
+                    from: '',
+                    message: 'Оператор Костадинка Гьошева на связи',
+                    source: 'Система'
+                }, {
+                    date: 1573737227,
+                    from: 'Посетитель',
+                    message: 'Доброе утро. Спасите меня.',
+                    source: 'Посетитель'
+                }];
+
+                const me = {
+                    setSecondChat: () => {
+                        params.chat_id = 92741814;
+                        messages[2].message = 'Добрый вечер. Я в отчаянии.';
+
+                        return me;
+                    },
+                    expectToBeSent: () => {
+                        const request = consultantWebSocketTester.expectSentMessageToContain({
+                            name: 'consultant.get_visitor_chat_history_data',
+                            params
+                        });
+
+                        return {
+                            receiveResponse: () => {
+                                request.receiveResponse({messages});
+                            }
+                        };
+                    },
+
+                    receiveResponse: () => me.expectToBeSent().receiveResponse()
+                };
+
+                return me;
+            },
+
+            visitorChatInfoRequest: () => {
                 return {
                     expectToBeSent() {
                         const request = consultantWebSocketTester.expectSentMessageToContain({
-                            name: 'consultant.get_visitor_chat_history',
+                            name: 'consultant.get_visitor_chat_info',
                             params: {
-                                visitor_id: 2419872837
+                                visitor_id: 162918540
                             }
                         });
 
                         return {
                             receiveResponse: () => {
                                 request.receiveResponse({
-                                    "chat_history": [{
-                                        "chat_id": 92741813,
-                                        "message_count": 8,
-                                        "operator_name": "Снежанка Колчева",
-                                        "site_id": 10631,
-                                        "start_time": 1573205420
+                                    chat_info: {
+                                        duration: 35,
+                                        last_message_time: 1573737039,
+                                        start_time: 1573737004
+                                    }
+                                });
+                            }
+                        };
+                    },
+
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                };
+            },
+
+            visitorActivityRequest: () => {
+                return {
+                    expectToBeSent() {
+                        const request = consultantWebSocketTester.expectSentMessageToContain({
+                            name: 'consultant.get_visitor_activity',
+                            params: {
+                                visitor_id: 162918540
+                            }
+                        });
+
+                        return {
+                            receiveResponse: () => {
+                                request.receiveResponse({
+                                    hits: [{
+                                        actions: [{
+                                            event: 'segment',
+                                            params: {
+                                                name: 'Посетитель провел на сайте 5 и более минут'
+                                            },
+                                            time: 1573736354,
+                                            type: 'custom'
+                                        }],
+                                        hit_id: 10687874920,
+                                        out_time: 1573736932,
+                                        start_time: 1573736053,
+                                        title: null,
+                                        url: 'http://thirtinth-site.com'
                                     }]
                                 });
                             }
@@ -369,6 +476,85 @@ define(() => {
                 };
             },
 
+            visitorHistoryRequest: () => {
+                return {
+                    expectToBeSent() {
+                        const request = consultantWebSocketTester.expectSentMessageToContain({
+                            name: 'consultant.get_visitor_history',
+                            params: {
+                                visitor_id: 162918540
+                            }
+                        });
+
+                        return {
+                            receiveResponse: () => {
+                                request.receiveResponse({
+                                    visitor_history: [{
+                                        ac_name: 'Посетители без рекламной кампании',
+                                        ad_engine: null,
+                                        browser: 'Chrome 78.0',
+                                        city: null,
+                                        country: null,
+                                        country_code: null,
+                                        duration: 4044,
+                                        os: 'Windows 10',
+                                        search_engine: null,
+                                        search_query: null,
+                                        session_id: 3771918862,
+                                        source_referrer: null,
+                                        start_page: 'http://thirtinth-site.com',
+                                        start_time: 1573638389,
+                                        traffic_source: 'direct',
+                                        visitor_id: 162918540
+                                    }]
+                                });
+                            }
+                        };
+                    },
+
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                };
+            },
+
+            visitorChatHistoryRequest: () => {
+                let visitor_id = 2419872837;
+
+                const me = {
+                    setSecondVisitor: () => ((visitor_id = 2419872836), me),
+                    
+                    expectToBeSent: () => {
+                        const request = consultantWebSocketTester.expectSentMessageToContain({
+                            name: 'consultant.get_visitor_chat_history',
+                            params: {visitor_id}
+                        });
+
+                        return {
+                            receiveResponse: () => request.receiveResponse({
+                                chat_history: [{
+                                    chat_id: 92741813,
+                                    message_count: 8,
+                                    operator_name: 'Снежанка Колчева',
+                                    site_id: 10631,
+                                    start_time: 1573205420
+                                }, {
+                                    chat_id: 92741814,
+                                    message_count: 9,
+                                    operator_name: 'Илиана Цветанова',
+                                    site_id: 10631,
+                                    start_time: 1573205421
+                                }]
+                            })
+                        };
+                    },
+
+                    receiveResponse: () => me.expectToBeSent().receiveResponse()
+                };
+
+                return me;
+            },
+
             chatStartingRequest: () => {
                 const params = {
                     visitor_id: 2419872837,
@@ -378,7 +564,6 @@ define(() => {
                 const response = {
                     visitor_id: 2419872837,
                     chat_id: 92741841,
-                    chat_channel_id: 627662034,
                     messages: [{
                         date: 1573737004,
                         from: '',
@@ -398,11 +583,18 @@ define(() => {
                 };
 
                 me = {
+                    setFifthVisitor: () => {
+                        params.visitor_id = 720067218;
+                        params.chat_channel_id = 296829352;
+                        response.visitor_id = 720067218;
+                        response.chat_id = 92950271;
+
+                        return me;
+                    },
                     setSeventhVisitor: () => {
                         params.visitor_id = 2419872841;
                         response.visitor_id = 2419872841;
                         response.chat_id = 42952895;
-                        response.chat_channel_id = 86273923;
 
                         return me;
                     },
@@ -413,9 +605,12 @@ define(() => {
                             params
                         });
 
-                        return {
+                        const me = {
+                            setNewChatId: () => ((response.chat_id = 52927204), me),
                             receiveResponse: () => request.receiveResponse(response)
                         };
+
+                        return me;
                     },
 
                     receiveResponse: () => me.expectToBeSent().receiveResponse()
@@ -447,14 +642,19 @@ define(() => {
                 };
             },
 
-            chatClosingMessage: () => ({
-                receive: () => consultantWebSocketTester.receiveMessage({
-                    name: 'consultant.chat_close',
-                    params: {
-                        visitor_id: 2419872837
-                    }
-                })
-            }),
+            chatClosingMessage: () => {
+                let visitor_id = 2419872837;
+
+                const me = {
+                    setFifthVisitor: () => ((visitor_id = 720067218), me),
+                    receive: () => consultantWebSocketTester.receiveMessage({
+                        name: 'consultant.chat_close',
+                        params: {visitor_id}
+                    })
+                };
+
+                return me;
+            },
 
             visitorRemovingMessage: () => ({
                 receive: () => consultantWebSocketTester.receiveMessage({
@@ -503,6 +703,7 @@ define(() => {
                 const message = {
                     setSecondVisitor: () => ((params.visitor_id = 2419872836), message),
                     setThirdVisitor: () => ((params.visitor_id = 2419872837), message),
+                    setFifthVisitor: () => ((params.visitor_id = 720067218), message),
                     setChatClosingMessage: () => (setSystemMessage('Посетитель вышел из чата'), message),
                     setChatStarting: () => (setSystemMessage('Оператор Костадинка Гьошева на связи'), message),
                     receive: () => consultantWebSocketTester.receiveMessage({
@@ -526,7 +727,7 @@ define(() => {
                 const message = {
                     setSecondVisitor: () => ((visitor.id = 2419872836), message),
                     setThirdVisitor: () => ((visitor.id = 2419872837), message),
-                    setFifthVisitor: () => ((visitor.id = 2419872839), message),
+                    setFifthVisitor: () => ((visitor.id = 720067218), message),
                     setSeventhVisitor: () => ((visitor.id = 2419872841), message),
                     setThirdSite: () => (changeVisitor({
                         site_id: 10634,
@@ -555,56 +756,67 @@ define(() => {
             },
 
             visitorRequest: () => {
+                let visitor_id = 2419872841;
+
+                const visitor = {
+                    ac_name: 'Посетители без рекламной кампании',
+                    ad_engine: null,
+                    browser: 'Chrome 77.0',
+                    city: null,
+                    country: null,
+                    country_code: null,
+                    group_id: null,
+                    hit_count: 20,
+                    id: 2419872841,
+                    ip: '10.81.21.90',
+                    operator_id: null,
+                    os: 'Windows 10',
+                    page: [
+                        'http://eighth-site.com/',
+                        null
+                    ],
+                    provider: null,
+                    search_engine: null,
+                    search_query: null,
+                    site_id: 10635,
+                    source_referrer: null,
+                    start_page: 'http://eighth-site.com/',
+                    start_time: 1573553717,
+                    state: 'На сайте',
+                    status: 'Отправлено',
+                    traffic_source: 'direct',
+                    type: 'comagic',
+                    visit_count: 37,
+                    visitor_card: {
+                        comment: null,
+                        company: null,
+                        emails: [],
+                        name: 'Божанка Гяурова',
+                        phones: []
+                    }
+                };
+
                 return {
+                    setEightVisitor() {
+                        visitor_id = 162918540;
+                        visitor.id = 162918540;
+                        visitor.type = 'whatsapp';
+                        visitor.page[0] = 'http://ninth-site.com';
+                        visitor.start_page = 'http://ninth-site.com';
+                        visitor.visitor_card.name = 'Добринка Цончева';
+
+                        return this;
+                    },
+
                     expectToBeSent() {
                         const request = consultantWebSocketTester.expectSentMessageToContain({
                             name: 'consultant.get_visitor',
-                            params: {
-                                visitor_id: 2419872841
-                            }
+                            params: {visitor_id}
                         });
 
                         return {
                             receiveResponse: () => {
-                                request.receiveResponse({
-                                    visitor: {
-                                        ac_name: 'Посетители без рекламной кампании',
-                                        ad_engine: null,
-                                        browser: 'Chrome 77.0',
-                                        city: null,
-                                        country: null,
-                                        country_code: null,
-                                        group_id: null,
-                                        hit_count: 20,
-                                        id: 2419872841,
-                                        ip: '10.81.21.90',
-                                        operator_id: null,
-                                        os: 'Windows 10',
-                                        page: [
-                                            'http://eighth-site.com/',
-                                            null
-                                        ],
-                                        provider: null,
-                                        search_engine: null,
-                                        search_query: null,
-                                        site_id: 10635,
-                                        source_referrer: null,
-                                        start_page: 'http://eighth-site.com/',
-                                        start_time: 1573553717,
-                                        state: 'На сайте',
-                                        status: 'Отправлено',
-                                        traffic_source: 'direct',
-                                        type: 'comagic',
-                                        visit_count: 37,
-                                        visitor_card: {
-                                            comment: null,
-                                            company: null,
-                                            emails: [],
-                                            name: 'Божанка Гяурова',
-                                            phones: []
-                                        }
-                                    }
-                                });
+                                request.receiveResponse({visitor});
                             }
                         };
                     },
@@ -619,6 +831,7 @@ define(() => {
                 let visitor_id = 2419872837;
 
                 const me = {
+                    setFifthVisitor: () => ((visitor_id = 720067218), me),
                     setSeventhVisitor: () => ((visitor_id = 2419872841), me),
                     expectToBeSent() {
                         const request = consultantWebSocketTester.expectSentMessageToContain({
@@ -657,6 +870,11 @@ define(() => {
 
                     setThirdChat() {
                         startChatId = endChatId = 92741841;
+                        return this;
+                    },
+
+                    setFourthChat() {
+                        startChatId = endChatId = 92950271;
                         return this;
                     },
 
@@ -779,7 +997,7 @@ define(() => {
                         state: 'На сайте',
                         status: 'Отправлено',
                         traffic_source: 'direct',
-                        type: 'yandex',
+                        type: 'yandex.dialogs',
                         visit_count: 16,
                         visitor_card: {
                             comment: null,
@@ -860,6 +1078,43 @@ define(() => {
                             name: 'Денка Налбантова',
                             phones: []
                         }
+                    }, {
+                        ac_name: 'Посетители без рекламной кампании',
+                        ad_engine: null,
+                        browser: 'Chrome 77.0',
+                        city: null,
+                        country: null,
+                        country_code: null,
+                        group_id: null,
+                        hit_count: 3,
+                        chat_channel_id: 296829352,
+                        id: 720067218,
+                        ip: '10.81.21.91',
+                        operator_id: null,
+                        os: 'Windows 10',
+                        page: [
+                            'http://fourteenth-site.com/',
+                            null
+                        ],
+                        provider: null,
+                        search_engine: null,
+                        search_query: null,
+                        site_id: 10636,
+                        source_referrer: null,
+                        start_page: 'http://fourteenth-site.com/',
+                        start_time: 1573553957,
+                        state: 'На сайте',
+                        status: 'Отправлено',
+                        traffic_source: 'direct',
+                        type: 'whatsapp',
+                        visit_count: 45,
+                        visitor_card: {
+                            comment: null,
+                            company: null,
+                            emails: [],
+                            name: 'Зоя Жечева',
+                            phones: []
+                        }
                     }];
 
                     const me = {
@@ -893,6 +1148,37 @@ define(() => {
                         let startIndex = 0,
                             endIndex = 99;
 
+                        const firstClosedChats = [{
+                            chat_id: 829672,
+                            chat_channel_id: 68013892,
+                            is_in_transfer: false,
+                            visitor_id: 93820863,
+                            messages: [],
+                            mark_ids: [],
+                            visitor_name: 'Йовка Трифонова',
+                            visitor_ext_id: 79161234570,
+                            visitor_type: 'comagic',
+                            page_url: 'http://fifteenth-site.com',
+                        }, {
+                            chat_id: 829674,
+                            chat_channel_id: 68013894,
+                            is_in_transfer: false,
+                            visitor_id: 93820864,
+                            messages: [],
+                            mark_ids: [],
+                            visitor_name: 'Виолета Бояджиева',
+                            visitor_ext_id: 79161234571,
+                            visitor_type: 'whatsapp',
+                            page_url: 'http://seventeenth-site.com',
+                        }, {
+                            chat_id: 829673,
+                            chat_channel_id: 68013893,
+                            is_in_transfer: false,
+                            visitor_id: 2419872836,
+                            messages: [],
+                            mark_ids: []
+                        }];
+
                         const me = {
                             setRange: (index1, index2) => ((startIndex = index1), (endIndex = index2), me),
 
@@ -903,36 +1189,104 @@ define(() => {
                                         chat_channel_id: 627662032,
                                         is_in_transfer: false,
                                         messages: [],
-                                        visitor_id: 2419872835
+                                        visitor_id: 2419872835,
+                                        mark_ids: [1555, 21618]
                                     }, {
                                         chat_id: 92741840,
                                         chat_channel_id: 627662033,
                                         is_in_transfer: false,
                                         messages: [],
-                                        visitor_id: 2419872836
+                                        visitor_id: 2419872836,
+                                        mark_ids: [1555, 21618]
                                     }, {
                                         chat_id: 92741841,
                                         chat_channel_id: 627662034,
                                         is_in_transfer: false,
                                         messages: [],
-                                        visitor_id: 2419872837
+                                        visitor_id: 2419872837,
+                                        mark_ids: [148, 22738]
+                                    }, {
+                                        chat_id: 7284052,
+                                        chat_channel_id: null,
+                                        is_in_transfer: false,
+                                        messages: [],
+                                        visitor_id: 720067218,
+                                        mark_ids: []
+                                    }, {
+                                        chat_id: 29681092,
+                                        chat_channel_id: 15869283,
+                                        is_in_transfer: false,
+                                        messages: [],
+                                        visitor_id: 162918540,
+                                        chat_channel_type: 'whatsapp',
+                                        visitor_name: 'Добринка Цончева',
+                                        visitor_ext_id: 79161234567,
+                                        visitor_type: 'yandex.dialogs',
+                                        page_url: 'http://ninth-site.com',
+                                        mark_ids: []
+                                    }, {
+                                        chat_id: 29681093,
+                                        chat_channel_id: null,
+                                        is_in_transfer: false,
+                                        messages: [],
+                                        visitor_id: 162918541,
+                                        chat_channel_type: null,
+                                        visitor_name: 'Росица Нинкова',
+                                        visitor_ext_id: 79161234568,
+                                        visitor_type: 'yandex.dialogs',
+                                        page_url: 'http://tenth-site.com',
+                                        mark_ids: []
+                                    }, {
+                                        chat_id: 29681094,
+                                        chat_channel_id: null,
+                                        is_in_transfer: false,
+                                        messages: [],
+                                        visitor_id: 162918542,
+                                        chat_channel_type: null,
+                                        visitor_name: '',
+                                        visitor_ext_id: 79161234569,
+                                        visitor_type: 'whatsapp',
+                                        page_url: 'http://eleventh-site.com',
+                                        mark_ids: []
+                                    }, {
+                                        chat_id: 29681095,
+                                        chat_channel_id: null,
+                                        is_in_transfer: false,
+                                        messages: [],
+                                        visitor_id: 162918543,
+                                        chat_channel_type: null,
+                                        visitor_name: '',
+                                        visitor_ext_id: null,
+                                        visitor_type: 'whatsapp',
+                                        page_url: 'http://twelfth-site.com',
+                                        mark_ids: []
+                                    }, {
+                                        chat_id: 29681096,
+                                        chat_channel_id: null,
+                                        is_in_transfer: false,
+                                        messages: [],
+                                        visitor_id: 162918544,
+                                        mark_ids: []
                                     }],
                                     recent_chats: (() => {
                                         let i;
                                         const result = [];
 
                                         for (i = startIndex; i <= endIndex; i ++) {
-                                            result.push({
-                                                chat_id: 92741842 + i,
-                                                chat_channel_id: 627662035 + i,
+                                            result.push(i < firstClosedChats.length ? firstClosedChats[i] : {
+                                                chat_id: 92741842 + (i - firstClosedChats.length),
+                                                chat_channel_id: 627662035 + (i - firstClosedChats.length),
                                                 is_in_transfer: false,
                                                 visitor_id: 2419872838,
                                                 messages: [{
-                                                    date: 1573737106 + i * 13 * 60 * 60 + 14 * 60 * i,
+                                                    date: 1573737106 + (i - firstClosedChats.length) * 13 * 60 * 60 +
+                                                        14 * 60 * (i - firstClosedChats.length),
                                                     from: 'Посетитель',
-                                                    message: `Приветствую вас в ${i + 1}-й раз!`,
+                                                    message:
+                                                        `Приветствую вас в ${i - firstClosedChats.length + 1}-й раз!`,
                                                     source: 'Посетитель'
-                                                }]
+                                                }],
+                                                mark_ids: []
                                             });
                                         }
 
@@ -1168,6 +1522,11 @@ define(() => {
                                     },
                                     '10635': {
                                         domain: 'eighth-site.com',
+                                        is_file_transfer_available: true,
+                                        min_duration_for_invite: 0
+                                    },
+                                    '10636': {
+                                        domain: 'http://fourteenth-site.com/',
                                         is_file_transfer_available: true,
                                         min_duration_for_invite: 0
                                     }

@@ -52,10 +52,6 @@ tests.addTest(function (options) {
                     beforeEach(function() {
                         visitorsRequest.receiveResponse();
                         chatsRequest.receiveResponse();
-                        tester.objectMarksRequest().receiveResponse();
-                        tester.objectMarksRequest().setSecondChat().receiveResponse();
-                        tester.objectMarksRequest().setThirdChat().receiveResponse();
-                        tester.objectMarksRequest().setAnotherChats(0, 99).receiveResponse();
                     });
 
                     describe('Открываю раздел "Чаты".', function() {
@@ -68,6 +64,56 @@ tests.addTest(function (options) {
                                 tester.chatCard().withHeader('Милка Стоенчева').click();
                             });
 
+                            describe('Нажимаю на кнопку истории чатов.', function() {
+                                beforeEach(function() {
+                                    tester.chatHistoryIcon.click();
+                                    tester.visitorChatHistoryRequest().receiveResponse();
+                                });
+
+                                describe('Раскрываю чат.', function() {
+                                    beforeEach(function() {
+                                        tester.chatHistoryItem('Снежанка Колчева').rightIcon().click();
+                                        tester.visitorChatHistoryDataRequest().receiveResponse();
+                                    });
+
+                                    it('Скрываю чат. Раскрываю другой чат. Отображены сообщения чата.', function() {
+                                        tester.chatHistoryItem('Снежанка Колчева').leftIcon().click();
+
+                                        tester.chatHistoryItem('Илиана Цветанова').rightIcon().click();
+                                        tester.visitorChatHistoryDataRequest().setSecondChat().receiveResponse();
+
+                                        tester.body.expectTextContentToHaveSubstring(
+                                            'Илиана Цветанова ' +
+                                            '08.11.2019 ' +
+
+                                            'Подождите первого освободившегося оператора ' +
+                                            '16:10 ' +
+                                            
+                                            'Оператор Костадинка Гьошева на связи ' +
+                                            '16:11 ' +
+
+                                            'Добрый вечер. Я в отчаянии.'
+                                        );
+                                    });
+                                    it('Отображены сообщения чата.', function() {
+                                        tester.body.expectTextContentToHaveSubstring(
+                                            'Снежанка Колчева ' +
+                                            '08.11.2019 ' +
+
+                                            'Подождите первого освободившегося оператора ' +
+                                            '16:10 ' +
+                                            
+                                            'Оператор Костадинка Гьошева на связи ' +
+                                            '16:11 ' +
+
+                                            'Доброе утро. Спасите меня.'
+                                        );
+                                    });
+                                });
+                                it('Отображается список чатов.', function() {
+                                    tester.body.expectTextContentToHaveSubstring('Снежанка Колчева 08 Нояб 2019 12:30');
+                                });
+                            });
                             it(
                                 'Нажимаю на кнопку "Завершить чат". Во вкладке "Завершенные" отображен завершенный ' +
                                 'чат.',
@@ -77,9 +123,7 @@ tests.addTest(function (options) {
 
                                 tester.tabpanel().tab().active().expectTextContentToHaveSubstring(
                                     'Милка Стоенчева fourth-site.com ' +
-
-                                    'Денка Налбантова Приветствую вас в 1-й раз! ' +
-                                    '14 Нояб 2019 16:11 fifth-site-that-has-quite-long-url.com'
+                                    'Йовка Трифонова fifteenth-site.com'
                                 );
                             });
                             it('Нажимаю на кнопку тегов. Отображены выбранные теги.', function() {
@@ -92,18 +136,49 @@ tests.addTest(function (options) {
                                     'Все теги:'
                                 );
                             });
-                            it('Нажимаю на кнопку истории чатов.', function() {
-                                tester.chatHistoryIcon.click();
-                                tester.visitorChatHistoryRequest().receiveResponse();
-
-                                tester.body.expectTextContentToHaveSubstring('Снежанка Колчева 08 Нояб 2019 12:30');
-                            });
                             it(
                                 'Отображен заголовок, рядом с которым отображена иконка, состояние и тип посетителя.',
                             function() {
                                 tester.chatHeader().expectToHaveTextContent('Милка Стоенчева online (WhatsApp)');
                                 tester.chatHeader().typeIcon().expectAttributeToHaveValue('data-type', 'whatsapp');
                                 tester.chatHeader().onlineIndicator().expectToBeVisible();
+                            });
+                        });
+                        describe('Открываю вкладку "Завершенные".', function() {
+                            beforeEach(function() {
+                                tester.tabpanel().tab('Завершенные').click();
+                            });
+
+                            describe('Открываю чат Яндекс.', function() {
+                                beforeEach(function() {
+                                    tester.tabpanel().tab().active().chatCard().withHeader('Галя Балабанова').click();
+                                });
+
+                                it('Нажимаю на кнопку истории. Отображены чаты.', function() {
+                                    tester.chatHistoryIcon.click();
+                                    tester.visitorChatHistoryRequest().setSecondVisitor().receiveResponse();
+
+                                    tester.body.expectTextContentToHaveSubstring(
+                                        'История чатов ' +
+
+                                        'Снежанка Колчева ' +
+                                        '08 Нояб 2019 12:30 ' +
+
+                                        'Илиана Цветанова ' +
+                                        '08 Нояб 2019 12:30'
+                                    );
+                                });
+                                it('Кнопка "Открыть чат" заблокирована.', function() {
+                                    tester.button('Открыть чат').expectToHaveAttribute('disabled');
+                                });
+                            });
+                            it('Открываю offline чат WhatsApp. Кнопка "Открыть чат" доступна.', function() {
+                                tester.tabpanel().tab().active().chatCard().withHeader('Виолета Бояджиева').click();
+                                tester.button('Открыть чат').expectNotToHaveAttribute('disabled');
+                            });
+                            it('Открываю offline чат. Кнопка "Открыть чат" заблокирована.', function() {
+                                tester.tabpanel().tab().active().chatCard().withHeader('Йовка Трифонова').click();
+                                tester.button('Открыть чат').expectToHaveAttribute('disabled');
                             });
                         });
                         describe('Посетитель Яндекса ушел.', function() {
@@ -147,6 +222,23 @@ tests.addTest(function (options) {
                             });
                         });
                         it(
+                            'Нажмаю на чат, посетитель которого отстутствует в списке посетителей. Нажимаю на кнопку ' +
+                            'информации. Отображена информация о посетителе.',
+                        function() {
+                            tester.chatCard().withHeader('Добринка Цончева').click();
+
+                            tester.chatInfoIcon.click();
+                            tester.visitorRequest().setEightVisitor().receiveResponse();
+                            tester.visitorHistoryRequest().receiveResponse();
+                            tester.visitorActivityRequest().receiveResponse();
+                            tester.visitorChatInfoRequest().receiveResponse();
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Браузер / ОС Chrome 77.0 / Windows 10 ' +
+                                'IP-адрес 10.81.21.90'
+                            );
+                        });
+                        it(
                             'Нажимаю на чат Яндекса. Отображен заголовок, рядом с которым отображена иконка, ' +
                             'состояние и тип посетителя.',
                         function() {
@@ -178,77 +270,121 @@ tests.addTest(function (options) {
                         });
                     });
                     describe('Клиент завершил чат.', function() {
+                        let chatClosingMessage;
+
                         beforeEach(function() {
-                            tester.chatClosingMessage().receive();
-                            tester.chatMessageMessage().setThirdVisitor().setChatClosingMessage().receive();
+                            chatClosingMessage = tester.chatClosingMessage();
                         });
 
-                        describe(
-                            'Перехожу в раздел "Посетители". Нажимаю на кнопку "Пригласить в чат" в карте ' +
-                            'посетителя, завершившего чат.',
-                        function() {
+                        describe('Чат имеет непустой идентификатор канала.', function() {
                             beforeEach(function() {
-                                tester.menuitem('Посетители').click();
-
-                                tester.visitorCard('Милка Стоенчева').button('Пригласить в чат').click();
-                                tester.chatStartingRequest().setNoChatChannelId().receiveResponse();
-                                tester.visitorUpdateMessage().setThirdVisitor().setChatStarting().receive();
-                                tester.objectMarksRequest().setThirdChat().receiveResponse();
-                                tester.chatWatchRequest().receiveResponse();
+                                chatClosingMessage.receive();
+                                tester.chatMessageMessage().setThirdVisitor().setChatClosingMessage().receive();
                             });
 
-                            it(
-                                'Открываю вкладку "Завершенные". Открытый снова чат не отображен во вкладке.',
+                            describe(
+                                'Перехожу в раздел "Посетители". Нажимаю на кнопку "Пригласить в чат" в карте ' +
+                                'посетителя, завершившего чат.',
                             function() {
-                                tester.tabpanel().tab('Завершенные').click();
-                                tester.tabpanel().tab().active().expectTextContentNotToHaveSubstring('Милка Стоенчева');
+                                beforeEach(function() {
+                                    tester.menuitem('Посетители').click();
+
+                                    tester.visitorCard('Милка Стоенчева').button('Пригласить в чат').click();
+                                    tester.chatStartingRequest().setNoChatChannelId().receiveResponse();
+                                    tester.visitorUpdateMessage().setThirdVisitor().setChatStarting().receive();
+                                    tester.objectMarksRequest().setThirdChat().receiveResponse();
+                                    tester.chatWatchRequest().receiveResponse();
+                                });
+
+                                it(
+                                    'Открываю вкладку "Завершенные". Открытый снова чат не отображен во вкладке.',
+                                function() {
+                                    tester.tabpanel().tab('Завершенные').click();
+                                    tester.tabpanel().tab().active().
+                                        expectTextContentNotToHaveSubstring('Милка Стоенчева');
+                                });
+                                it('Открытый снова чат отображается во вкладке "Чаты".', function() {
+                                    tester.tabpanel().tab().active().expectToHaveTextContent(
+                                        'Ана Аначкова first-site.com ' +
+                                        'Галя Балабанова second-site.com ' +
+                                        'Зоя Жечева fourteenth-site.com ' +
+                                        'Добринка Цончева ninth-site.com ' +
+                                        'Росица Нинкова tenth-site.com ' +
+                                        '# 79161234569 Гость eleventh-site.com ' +
+                                        '# 162918543 Гость twelfth-site.com ' +
+                                        '# 162918544 Гость ' +
+
+                                        'Милка Стоенчева ' +
+                                        'Здравствуйте. Мне снова нужна помощь. ' +
+                                        '14 Нояб 2019 16:11 fourth-site.com'
+                                    );
+                                });
                             });
-                            it('Открытый снова чат отображается во вкладке "Чаты".', function() {
+                            describe('Нажимаю на кнпоку "Открыть чат".', function() {
+                                beforeEach(function() {
+                                    tester.button('Открыть чат').click();
+                                    tester.chatStartingRequest().receiveResponse();
+                                    tester.visitorUpdateMessage().setThirdVisitor().setChatStarting().receive();
+                                    tester.objectMarksRequest().setThirdChat().receiveResponse();
+                                    tester.chatWatchRequest().receiveResponse();
+                                });
+
+                                it('Открытый снова чат не отображается во вкладке "Завершенные".', function() {
+                                    tester.tabpanel().tab('Завершенные').click();
+
+                                    tester.tabpanel().tab().active().chatCard().
+                                        withHeader('Милка Стоенчева').expectNotToExist();
+                                });
+                                it('Открытый снова чат отображается во вкладке "Чаты".', function() {
+                                    tester.tabpanel().tab().active().expectToHaveTextContent(
+                                        'Ана Аначкова first-site.com ' +
+                                        'Галя Балабанова second-site.com ' +
+                                        'Зоя Жечева fourteenth-site.com ' +
+                                        'Добринка Цончева ninth-site.com ' +
+                                        'Росица Нинкова tenth-site.com ' +
+                                        '# 79161234569 Гость eleventh-site.com ' +
+                                        '# 162918543 Гость twelfth-site.com ' +
+                                        '# 162918544 Гость ' +
+
+                                        'Милка Стоенчева ' +
+                                        'Здравствуйте. Мне снова нужна помощь. ' +
+                                        '14 Нояб 2019 16:11 fourth-site.com'
+                                    );
+                                });
+                            });
+                            it('Завершенный чат не отображается во вкладке "Чаты".', function() {
+                                tester.tabpanel().tab('Чаты').click();
+
                                 tester.tabpanel().tab().active().expectToHaveTextContent(
                                     'Ана Аначкова first-site.com ' +
                                     'Галя Балабанова second-site.com ' +
-
-                                    'Милка Стоенчева ' +
-                                    'Здравствуйте. Мне снова нужна помощь. ' +
-                                    '14 Нояб 2019 16:11 fourth-site.com'
+                                    'Зоя Жечева fourteenth-site.com ' +
+                                    'Добринка Цончева ninth-site.com ' +
+                                    'Росица Нинкова tenth-site.com ' +
+                                    '# 79161234569 Гость eleventh-site.com ' +
+                                    '# 162918543 Гость twelfth-site.com ' +
+                                    '# 162918544 Гость'
+                                );
+                            });
+                            it('Чат отображен во вкладке "Завершенные".', function() {
+                                tester.tabpanel().tab().active().expectTextContentToHaveSubstring(
+                                    'Милка Стоенчева fourth-site.com ' +
+                                    'Йовка Трифонова fifteenth-site.com'
                                 );
                             });
                         });
                         it(
-                            'Нажимаю на кнпоку "Открыть чат". Открытый снова чат отображается во вкладке "Чаты".',
+                            'Чат имеет пустой идентификатор канала, но посетитель имеет непустой идентификатор ' +
+                            'канала. Нажимаю на кнпоку "Открыть чат". Отправлен идентификатор канала.',
                         function() {
+                            chatClosingMessage.setFifthVisitor().receive();
+                            tester.chatMessageMessage().setFifthVisitor().setChatClosingMessage().receive();
+
                             tester.button('Открыть чат').click();
-                            tester.chatStartingRequest().receiveResponse();
-                            tester.visitorUpdateMessage().setThirdVisitor().setChatStarting().receive();
-                            tester.objectMarksRequest().setThirdChat().receiveResponse();
-                            tester.chatWatchRequest().receiveResponse();
-
-                            tester.tabpanel().tab('Чаты').click();
-
-                            tester.tabpanel().tab().active().expectToHaveTextContent(
-                                'Ана Аначкова first-site.com ' +
-                                'Галя Балабанова second-site.com ' +
-                                
-                                'Милка Стоенчева ' +
-                                'Здравствуйте. Мне снова нужна помощь. ' +
-                                '14 Нояб 2019 16:11 fourth-site.com'
-                            );
-                        });
-                        it('Завершенный чат не отображается во вкладке "Чаты".', function() {
-                            tester.tabpanel().tab('Чаты').click();
-
-                            tester.tabpanel().tab().active().expectToHaveTextContent(
-                                'Ана Аначкова first-site.com ' +
-                                'Галя Балабанова second-site.com'
-                            );
-                        });
-                        it('Чат отображен во вкладке "Завершенные".', function() {
-                            tester.tabpanel().tab().active().expectTextContentToHaveSubstring(
-                                'Милка Стоенчева fourth-site.com ' +
-
-                                'Денка Налбантова Приветствую вас в 1-й раз! ' +
-                                '14 Нояб 2019 16:11 fifth-site-that-has-quite-long-url.com'
-                            );
+                            tester.chatStartingRequest().setFifthVisitor().receiveResponse();
+                            tester.visitorUpdateMessage().setFifthVisitor().setChatStarting().receive();
+                            tester.objectMarksRequest().setFourthChat().receiveResponse();
+                            tester.chatWatchRequest().setFifthVisitor().receiveResponse();
                         });
                     });
                     describe('Открываю раздел "Чаты". Открываю вкладку "Завершенные".', function() {
@@ -267,21 +403,17 @@ tests.addTest(function (options) {
 
                             it('Получен ответ сервера. К списку добавлена еще одна страница чатов.', function() {
                                 chatsRequest.setRange(100, 124).receiveResponse();
-                                tester.objectMarksRequest().receiveResponse();
-                                tester.objectMarksRequest().setSecondChat().receiveResponse();
-                                tester.objectMarksRequest().setThirdChat().receiveResponse();
-                                tester.objectMarksRequest().setAnotherChats(100, 124).receiveResponse();
 
                                 tester.tabpanel().tab().active().chatCard().
-                                    withLastMessage('Приветствую вас в 100-й раз!').expectToBeVisible();
+                                    withLastMessage('Приветствую вас в 97-й раз!').expectToBeVisible();
                                 tester.tabpanel().tab().active().chatCard().
-                                    withLastMessage('Приветствую вас в 101-й раз!').expectToBeVisible();
+                                    withLastMessage('Приветствую вас в 98-й раз!').expectToBeVisible();
                             });
                             it('Последний чат отрендерен.', function() {
                                 tester.tabpanel().tab().active().chatCard().
-                                    withLastMessage('Приветствую вас в 100-й раз!').expectToBeVisible();
+                                    withLastMessage('Приветствую вас в 97-й раз!').expectToBeVisible();
                                 tester.tabpanel().tab().active().chatCard().
-                                    withLastMessage('Приветствую вас в 101-й раз!').expectNotToExist();
+                                    withLastMessage('Приветствую вас в 98-й раз!').expectNotToExist();
                             });
                         });
                         it(
@@ -318,10 +450,6 @@ tests.addTest(function (options) {
                             tester.visitorsRequest().expectToBeSent();
                             tester.pingRequest().expectToBeSent();
                             tester.componentsRequest().receiveResponse();
-                            tester.objectMarksRequest().receiveResponse();
-                            tester.objectMarksRequest().setSecondChat().receiveResponse();
-                            tester.objectMarksRequest().setThirdChat().receiveResponse();
-                            tester.objectMarksRequest().setAnotherChats(0, 99).receiveResponse();
                             tester.operatorStatusUpdatingRequest().expectToBeSent();
                         });
                         it('Отображены завершенные чаты. Последний чат не отрендерен.', function() {
@@ -349,6 +477,7 @@ tests.addTest(function (options) {
                         tester.chatWatchRequest().setSeventhVisitor().receiveResponse();
 
                         tester.flushUpdates();
+                        tester.chatHeader().expectToHaveTextContent('Божанка Гяурова online');
                     });
                     it(
                         'Поступило обращение от посетителя CoMagic. В оповещении отображена иконка почты. Посетители ' +
@@ -466,24 +595,12 @@ tests.addTest(function (options) {
                         tester.expectLoginToEqual('t.daskalova');
                         tester.expectPassordToEqual('2G892H4gsGjk12ef');
                     });
-                });
-                describe('Поеститель, связанный с чатом отсутствует.', function() {
-                    beforeEach(function() {
-                        visitorsRequest.ommitVisitor().receiveResponse();
-                        chatsRequest.receiveResponse();
-                        tester.objectMarksRequest().receiveResponse();
-                        tester.objectMarksRequest().setSecondChat().receiveResponse();
-                        tester.objectMarksRequest().setThirdChat().receiveResponse();
-                        tester.objectMarksRequest().setAnotherChats(0, 99).receiveResponse();
-                    });
+                    it('Поеститель, связанный с чатом отсутствует. Окрываю чат. Отобржаен чат.', function() {
+                        tester.path.open('/chats/active/29681092');
 
-                    it('Окрываю несуществующий чат. Отобржаена главная страница.', function() {
-                        tester.path.open('/chats/active/92741841');
-                        tester.visitorCard('Ана Аначкова').expectToBeVisible();
-                    });
-                    it('Чат не отображен в списке чатов.', function() {
-                        tester.menuitem('Чаты').click();
-                        tester.chatCard().atIndex(2).expectNotToExist();
+                        tester.chatHeader().expectToHaveTextContent('Добринка Цончева offline (WhatsApp)');
+                        tester.chatHeader().typeIcon().expectAttributeToHaveValue('data-type', 'whatsapp');
+                        tester.chatHeader().onlineIndicator().expectNotToExist();
                     });
                 });
                 it(
@@ -492,17 +609,19 @@ tests.addTest(function (options) {
                 function() {
                     chatsRequest.receiveResponse();
                     visitorsRequest.receiveResponse();
-                    tester.objectMarksRequest().receiveResponse();
-                    tester.objectMarksRequest().setSecondChat().receiveResponse();
-                    tester.objectMarksRequest().setThirdChat().receiveResponse();
-                    tester.objectMarksRequest().setAnotherChats(0, 99).receiveResponse();
 
                     tester.menuitem('Чаты').click();
 
                     tester.tabpanel().tab().active().expectToHaveTextContent(
                         'Ана Аначкова first-site.com ' +
                         'Галя Балабанова second-site.com ' +
-                        'Милка Стоенчева fourth-site.com'
+                        'Милка Стоенчева fourth-site.com ' +
+                        'Зоя Жечева fourteenth-site.com ' +
+                        'Добринка Цончева ninth-site.com ' +
+                        'Росица Нинкова tenth-site.com ' +
+                        '# 79161234569 Гость eleventh-site.com ' +
+                        '# 162918543 Гость twelfth-site.com ' +
+                        '# 162918544 Гость'
                     );
                 });
             });
@@ -558,10 +677,6 @@ tests.addTest(function (options) {
                         chatsRequest.receiveResponse();
                         tester.pingRequest().expectToBeSent();
                         tester.componentsRequest().receiveResponse();
-                        tester.objectMarksRequest().receiveResponse();
-                        tester.objectMarksRequest().setSecondChat().receiveResponse();
-                        tester.objectMarksRequest().setThirdChat().receiveResponse();
-                        tester.objectMarksRequest().setAnotherChats(0, 99).receiveResponse();
                         tester.operatorStatusUpdatingRequest().expectToBeSent();
                     });
 
