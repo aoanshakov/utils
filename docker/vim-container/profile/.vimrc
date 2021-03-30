@@ -45,7 +45,7 @@ nnoremap - ;
 nnoremap ;bb ggO#!/bin/bash<cr><esc>:w<cr>:r!chmod +x <c-r>%<cr>
 nnoremap ;aj :!amocrm-build uis<cr> 
 nnoremap ;k{ mmvi{<esc>`<
-nnoremap ;cs :SyntasticCheck<cr> 
+nnoremap ;cs :SyntasticCheck<cr>:Errors<cr>
 nnoremap ;co ya{<esc>`]a, <esc>p
 nnoremap ;w i<cr><esc>^
 nnoremap ;n %i<cr><esc><c-o>a<cr><esc>^
