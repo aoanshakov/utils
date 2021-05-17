@@ -5,19 +5,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
         tester = new EasystartAmocrm(requestsManager, testersFactory, utils);
     });
 
-    it(
-        'Открываю страницу легкого входа amoCRM. От сервера получен выделенный номер телефона. Отображен номер ' +
-        'телефона. Открываю страницу легкого входа amoCRM. От сервера получен выделенный номер телефона. Отображен ' +
-        'номер телефона.',
-    function() {
-        EasyStart.getApplication().checkIfPartnerReady();
-        wait(10);
-
-        tester.phoneNumber.expectToHaveTextContent('+7 (903) 123-45-67');
-
-        tester.tooltipTrigger.putMouseOver();
-        tester.titleOfPhoneNumberTooltip.expectToBeVisible();
-    });
     describe('Открываю страницу легкого входа amoCRM. Нажимаю на кнопку "Продолжить".', function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
@@ -27,32 +14,17 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait();
         });
 
-        it(
-            'Сервер оповестил об истечении времени действия сессии. Отображено окно с сообщением о том, что время ' +
-            'действия сессии истекло.',
-        function() {
-            tester.requestSyncEmployees().setError().send();
-            wait();
-
-            tester.sessionErrorMessage.expectToBeVisible();
-        });
         describe('Отправлен запрос синхронизации с amoCRM. Синхронизация еще не завершена.', function() {
             beforeEach(function() {
                 tester.requestSyncEmployees().send();
             });
 
-            it('Спиннер загрузки видим.', function() {
-                tester.expectSpinnerToBeVisible();
-            });
             describe('Отправлен запрос проверки синхронизации. Синхронизация еще не завершена.', function() {
                 beforeEach(function() {
                     wait();
                     tester.requestUserSyncState().send();
                 });
 
-                it('Спиннер загрузки видим.', function() {
-                    tester.expectSpinnerToBeVisible();
-                });
                 it(
                     'Отправлен запрос проверки синхронизации. Синхронизация завершена. Отправлен запрос списка ' +
                     'сотрудников. Список сотрудников получен от сервера. Спиннер загрузки скрыт.',
@@ -65,7 +37,22 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                     tester.expectSpinnerToBeHidden();
                 });
+                it('Спиннер загрузки видим.', function() {
+                    tester.expectSpinnerToBeVisible();
+                });
             });
+            it('Спиннер загрузки видим.', function() {
+                tester.expectSpinnerToBeVisible();
+            });
+        });
+        it(
+            'Сервер оповестил об истечении времени действия сессии. Отображено окно с сообщением о том, что время ' +
+            'действия сессии истекло.',
+        function() {
+            tester.requestSyncEmployees().setError().send();
+            wait();
+
+            tester.sessionErrorMessage.expectToBeVisible();
         });
     });
     describe(
@@ -94,5 +81,18 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             tester.employeesGrid.row().atIndex(8).expectToBeSelected();
             tester.employeesGrid.row().atIndex(9).expectNotToBeSelected();
         });
+    });
+    it(
+        'Открываю страницу легкого входа amoCRM. От сервера получен выделенный номер телефона. Отображен номер ' +
+        'телефона. Открываю страницу легкого входа amoCRM. От сервера получен выделенный номер телефона. Отображен ' +
+        'номер телефона.',
+    function() {
+        EasyStart.getApplication().checkIfPartnerReady();
+        wait(10);
+
+        tester.phoneNumber.expectToHaveTextContent('+7 (903) 123-45-67');
+
+        tester.tooltipTrigger.putMouseOver();
+        tester.titleOfPhoneNumberTooltip.expectToBeVisible();
     });
 });

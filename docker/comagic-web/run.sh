@@ -41,8 +41,7 @@ then
     config
 fi
 
-if [ "$action" = "
-    initialize" ]
+if [ "$action" = "initialize" ]
 then
     exit 0
 elif [ "$action" = "runclient" ]

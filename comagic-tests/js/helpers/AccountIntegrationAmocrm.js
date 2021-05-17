@@ -39,6 +39,10 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
                 bodyParams.url = 'https://petrov.amocrm.ru/';
                 return this;
             },
+            setIsAnywaySendTalkRecords: function () {
+                bodyParams.is_anyway_send_talk_records = true;
+                return this;
+            },
             setSaleCategoryUserFieldValueIds: function () {
                 bodyParams.sale_category_user_field_value_ids = ['495300', '495302', '495299', '495301', '495304'];
                 return this;
@@ -894,8 +898,9 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
             has_update_contact_on_call_finished_timeout: null,
             update_contact_on_call_finished_timeout: null,
             which_talked_user_responsible: 'last',
+            is_anyway_send_talk_records: false,
             check_manager_online: true,
-            responsible_manager_source: null,
+            responsible_manager_source: 'contact',
             deal_source_user_field_ext_id: null,
             sale_category_user_field_value_ids: [],
             loss_reason_user_field_value_ids: []
@@ -906,6 +911,10 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         var data = getAmocrmData();
 
         return {
+            setIsAnywaySendTalkRecords: function () {
+                data.is_anyway_send_talk_records = true;
+                return this;
+            },
             setSaleCategories: function () {
                 data.sale_category_user_field_value_ids = ['666', '495300', '495301'];
                 return this;
@@ -1107,4 +1116,19 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
     this.boundList = testersFactory.createDomElementTester(function () {
         return utils.getVisible(document.querySelectorAll('.x-boundlist'));
     });
+
+    this.switchButton = function (text) {
+        return testersFactory.createDomElementTester(
+            utils.descendantOfBody().
+                textContains(text).
+                matchesSelector('.x-form-type-switchbox').
+                find().
+                querySelector('.x-form-field')
+        );
+    };
+
+    this.button = function (text) {
+        return testersFactory.
+            createDomElementTester(utils.descendantOfBody().textEquals(text).matchesSelector('.x-btn').find());
+    };
 }

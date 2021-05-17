@@ -1,8 +1,17 @@
  tests.requireClass('Comagic.account.integration.amocrm.controller.Enabling');
      
-function AccountIntegrationAmocrmEnabling(requestsManager, testersFactory, utils) {
-    var controller = Comagic.getApplication().
-        getController('Comagic.account.integration.amocrm.controller.Enabling');
+function AccountIntegrationAmocrmEnabling(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        utils = args.utils,
+        error = args.error,
+        controller = Comagic.getApplication().getController('Comagic.account.integration.amocrm.controller.Enabling');
+
+    if (error) {
+        Comagic.getApplication().stateManager.setState({
+            error: error
+        });
+    }
             
     controller.init();
     controller.actionIndex();

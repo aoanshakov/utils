@@ -226,9 +226,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait();
         });
 
-        it('Кнопка "Продолжить" заблокирована.', function() {
-            tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
-        });
         describe('Выбираю одного сотрудника.', function() {
             beforeEach(function() {
                 tester.employeesGrid.row().atIndex(1).column().first().checkbox().click();
@@ -297,6 +294,9 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
             });
         });
+        it('Кнопка "Продолжить" заблокирована.', function() {
+            tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
+        });
     });
     describe(
         'Открываю страницу легкого входа amoCRM. Нажимаю на кнопку "Тестировать бесплатно". Нажимаю на кнпоку ' +
@@ -322,16 +322,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(100);
         });
 
-        it(
-            'В соответствии с данными, полученными от сервера один из выбранных сотрудников принимает звонки на ' +
-            'виджет. Отмечена радиокнопка "В виджет".',
-        function() {
-            tester.requestChooseEmployees().setQueue().setToWidget().send();
-            wait(100);
-
-            tester.toMobilePhoneButton().expectNotToBeChecked();
-            tester.toWidgetRadioButton().expectToBeChecked();
-        });
         describe(
             'В соответствии с данными, полученными от сервера ранее был выбран тип переадресации "По очереди", ' +
             'все выбранные сотрудники принимают звонки на мобильный телефон и у одного из сотрудников номер был ' +
@@ -394,6 +384,16 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 tester.callProcessingGrid.row().first().column().first().createTester().
                     forDescendant('.ul-drag-handle').expectToBeVisible();
             });
+        });
+        it(
+            'В соответствии с данными, полученными от сервера один из выбранных сотрудников принимает звонки на ' +
+            'виджет. Отмечена радиокнопка "В виджет".',
+        function() {
+            tester.requestChooseEmployees().setQueue().setToWidget().send();
+            wait(100);
+
+            tester.toMobilePhoneButton().expectNotToBeChecked();
+            tester.toWidgetRadioButton().expectToBeChecked();
         });
     });
 });

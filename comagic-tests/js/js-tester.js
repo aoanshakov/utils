@@ -1465,17 +1465,17 @@ function JsTester_DomElement (
         }
     };
     this.expectToBeVisible = function () {
-        this.expectToExist();
+        this.scrollIntoView();
 
-        var domElement = getDomElement();
-
-        domElement.scrollIntoView();
-
-        if (!utils.isVisible(domElement)) {
+        if (!utils.isVisible(getDomElement())) {
             throw new Error(
                 utils.capitalize(getNominativeDescription()) + ' ' + gender.should + ' быть ' + gender.visible + '.'
             );
         }
+    };
+    this.scrollIntoView = function () {
+        this.expectToExist();
+        getDomElement().scrollIntoView();
     };
     this.expectToBeHidden = function () {
         this.expectToExist();

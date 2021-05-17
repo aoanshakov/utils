@@ -190,14 +190,33 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             function() {
                 helper.form.radiofield().withBoxLabel('Не обрабатывать').click();
                 wait(10);
+
                 helper.saveButton.click();
                 wait(10);
 
                 helper.requestAmocrmDataSave().setForwardingToResponsibleForContact().send();
             });
+            it(
+                'Сохраняю настройки телефонии. Сохранено значение переключателя "Передавать записи звонков в ' +
+                'карточку контакта, если включен фильтр на операцию сценария ВАТС".',
+            function() {
+                helper.switchButton(
+                    'Передавать записи звонков в карточку контакта, если включен фильтр на операцию сценария ВАТС'
+                ).click();
+                wait(10);
+
+                helper.saveButton.click();
+                wait(10);
+
+                helper.requestAmocrmDataSave().setIsAnywaySendTalkRecords().send();
+            });
             it('Отмечена радиокнопка "Из контакта".', function() {
-                helper.form.radiofield().withBoxLabel('Из контакта').expectToBeChecked();
-                helper.form.radiofield().withBoxLabel('Из сделки').expectNotToBeChecked();
+                helper.button('Из контакта').expectToHaveClass('x-btn-pressed');
+                helper.button('Из сделки').expectNotToHaveClass('x-btn-pressed');
+
+                helper.switchButton(
+                    'Передавать записи звонков в карточку контакта, если включен фильтр на операцию сценария ВАТС'
+                ).expectNotToHaveClass('x-form-cb-checked');
             });
         });
         describe(

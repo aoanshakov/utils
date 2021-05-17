@@ -93,6 +93,10 @@
         "services.ats.callblocking": [
             "helpers/ServicesAtsCallblocking.js",
             "tests/services.ats.callblocking.js"
+        ],
+        "services.ats.staff": [
+            "helpers/ServicesAtsStaff.js",
+            "tests/services.ats.staff.js"
         ]
     },
     "easystart": {
