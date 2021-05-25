@@ -196,7 +196,8 @@ function ServicesAtsStaff(requestsManager, testersFactory, utils) {
                         employee: {
                             create: [],
                             update: [{
-                                first_name: 'Веселина'
+                                first_name: 'Веселина',
+                                is_need_hide_numbers: true
                             }],
                             destroy: []
                         },
@@ -230,6 +231,7 @@ function ServicesAtsStaff(requestsManager, testersFactory, utils) {
                         success: true,
                         data: getEmployeeData(function (data) {
                             data.employee[0].first_name = 'Веселина';
+                            data.employee[0].is_need_hide_numbers = true;
                         })
                     });
             }
@@ -270,6 +272,7 @@ function ServicesAtsStaff(requestsManager, testersFactory, utils) {
                                 'avatar_link',
                                 'call_center_role',
                                 'out_internal_allowed_call_directions',
+                                'is_need_hide_numbers',
                                 'is_need_out_call_rating',
                                 'avatar_source_link',
                                 'is_consultant_invite',

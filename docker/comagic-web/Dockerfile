@@ -2,6 +2,9 @@ FROM debian:buster
 
 RUN apt-get update -y
 RUN apt-get install -y \
+    openssl \
+    gnupg2 \
+    ca-certificates \
     python3 \
     python3-dev \
     python-pip \
@@ -13,6 +16,10 @@ RUN apt-get install -y \
     sudo \
     libmagickwand-dev \
     python3-venv
+
+RUN curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
+RUN apt-get update -y
+RUN apt-get install nginx -y
 
 RUN pip install virtualenv
 
@@ -29,4 +36,5 @@ ADD configure /home/configure
 ADD scripts/* /usr/local/bin/
 
 ADD run.sh /run.sh
+ADD nginx.conf /etc/nginx/nginx.conf
 ENTRYPOINT [ "/run.sh" ]
