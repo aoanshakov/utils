@@ -22,6 +22,10 @@ function ServicesAtsStaff(requestsManager, testersFactory, utils) {
         }, data);
     };
 
+    this.setFeatureUnavailable = function () {
+        Comagic.getApplication().setFeatureUnavailable('hidden_numbers');
+    };
+
     this.employeeUserAddingRequest = function () {
         return {
             receiveResponse: function () {
@@ -187,51 +191,77 @@ function ServicesAtsStaff(requestsManager, testersFactory, utils) {
     }
 
     this.employeeChangeRequest = function () {
+        var modifyEmployee = function () {};
+
         return {
+            isOtherOutgoingCallsAutoAnswerEnabled: function () {
+                modifyEmployee = function (employee) {
+                    employee.is_out_calls_auto_answer_enabled = true;
+                };
+
+                return this;
+            },
+            isClickToCallAutoAnswerEnabled: function () {
+                modifyEmployee = function (employee) {
+                    employee.is_click_to_call_auto_answer_enabled = true;
+                };
+
+                return this;
+            },
+            isNeedHideNumbers: function () {
+                modifyEmployee = function (employee) {
+                    employee.is_need_hide_numbers = true;
+                };
+
+                return this;
+            },
             receiveResponse: function () {
+                var body = {
+                    employee: {
+                        create: [],
+                        update: [{
+                            first_name: 'Веселина'
+                        }],
+                        destroy: []
+                    },
+                    sites_in_employee: {
+                        create: [],
+                        update: [],
+                        destroy: []
+                    },
+                    coach: {
+                        create: [],
+                        update: [],
+                        destroy: []
+                    },
+                    phone_in_employee: {
+                        create: [],
+                        update: [],
+                        destroy: []
+                    },
+                    phone: {
+                        create: [],
+                        update: [],
+                        destroy: []
+                    },
+                    short_phone: {
+                        create: [],
+                        update: [],
+                        destroy: []
+                    }
+                };
+
+                modifyEmployee(body.employee.update[0]);
+
                 requestsManager.recentRequest().
                     expectToHavePath('/services/ats__staff/employee/change/').
                     expectToHaveMethod('POST').
-                    expectBodyToContain({
-                        employee: {
-                            create: [],
-                            update: [{
-                                first_name: 'Веселина',
-                                is_need_hide_numbers: true
-                            }],
-                            destroy: []
-                        },
-                        sites_in_employee: {
-                            create: [],
-                            update: [],
-                            destroy: []
-                        },
-                        coach: {
-                            create: [],
-                            update: [],
-                            destroy: []
-                        },
-                        phone_in_employee: {
-                            create: [],
-                            update: [],
-                            destroy: []
-                        },
-                        phone: {
-                            create: [],
-                            update: [],
-                            destroy: []
-                        },
-                        short_phone: {
-                            create: [],
-                            update: [],
-                            destroy: []
-                        }
-                    }).
+                    expectBodyToContain(body).
                     respondSuccessfullyWith({
                         success: true,
                         data: getEmployeeData(function (data) {
                             data.employee[0].first_name = 'Веселина';
-                            data.employee[0].is_need_hide_numbers = true;
+                            modifyEmployee(data.employee[0]);
                         })
                     });
             }
@@ -272,6 +302,8 @@ function ServicesAtsStaff(requestsManager, testersFactory, utils) {
                                 'avatar_link',
                                 'call_center_role',
                                 'out_internal_allowed_call_directions',
+                                'is_out_calls_auto_answer_enabled',
+                                'is_click_to_call_auto_answer_enabled',
                                 'is_need_hide_numbers',
                                 'is_need_out_call_rating',
                                 'avatar_source_link',
