@@ -338,6 +338,25 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
                     respondSuccessfullyWith({
                         success: true,
                         data: {
+                            'comagic:amocrm:entity_name_template': [{
+                                id: 'in_call_contact_name_template',
+                                name: 'Некий шаблон'
+                            }, {
+                                id: 'out_call_contact_name_template',
+                                name: 'Другой шаблон'
+                            }, {
+                                id: 'in_call_lead_name_template',
+                                name: 'Еще один шаблон'
+                            }, {
+                                id: 'out_call_lead_name_template',
+                                name: 'Совсем иной шаблон'
+                            }, {
+                                id: 'in_call_task_name_template',
+                                name: 'Удивительный шаблон'
+                            }, {
+                                id: 'out_call_task_name_template',
+                                name: 'Пугающий шаблон'
+                            }],
                             'comagic:amocrm:user_field_event_params': [{
                                 id: 8193,
                                 name: 'Это поле',

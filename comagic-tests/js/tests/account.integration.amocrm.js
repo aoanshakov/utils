@@ -1,7 +1,7 @@
 tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener) {
     var helper;
 
-    describe(
+    xdescribe(
         'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM".',
     function() {
         beforeEach(function() {
@@ -390,7 +390,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(10);
         });
         
-        describe('Открываю вкладку "Мультиворонки".', function() {
+        xdescribe('Открываю вкладку "Мультиворонки".', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Мультиворонки').click();
                 wait(10);
@@ -450,7 +450,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
             });
         });
-        describe('Открываю вкладку "Сквозная аналитика". Изменяю поля формы.', function() {
+        xdescribe('Открываю вкладку "Сквозная аналитика". Изменяю поля формы.', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Сквозная аналитика').click();
                 wait(10);
@@ -521,7 +521,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.boundList.expectNotToHaveClass('cm-multi-select-field-options-disabled');
             });
         });
-        it('Открываю вкладку "Ответственные". Открываю вкладку "Исходящие звонки".', function() {
+        xit('Открываю вкладку "Ответственные". Открываю вкладку "Исходящие звонки".', function() {
             helper.tabPanel.tab('Ответственные').click();
             wait(10);
             helper.requestResponsibles().send();
@@ -538,6 +538,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.requestUserFields().send();
             wait(10);
         });
+        return;
         it('Открываю вкладку "Фильтр обращений".', function() {
             helper.tabPanel.tab('Фильтр обращений').click();
             wait(10);
@@ -554,6 +555,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(10);
         });
     });
+    return;
     it(
         'Расширенная интеграция недоступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
         'Открываю вкладку "Мультиворонки". Первичные обращения обрабатываются вручную. При повторных обращениях ' +

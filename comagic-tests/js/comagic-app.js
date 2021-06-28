@@ -98,7 +98,18 @@ Ext.application({
             return viewport;
         };
 
-        var absentComponents = {};
+        var absentComponents = {},
+            unavailableFeatures = {};
+
+        function createKeyChecker (collection) {
+            return function(name) {
+                if (name in collection) {
+                    return false;
+                }
+
+                return true;
+            };
+        }
 
         Comagic.Permission = this.Permission = {
             useSiteCategory: function () {
@@ -126,13 +137,8 @@ Ext.application({
                     return x || me.hasComponent(y);
                 }, false);
             },
-            hasComponent: function(name) {
-                if (name in absentComponents) {
-                    return false;
-                }
-
-                return true;
-            },
+            hasComponent: createKeyChecker(absentComponents),
+            hasFeature: createKeyChecker(unavailableFeatures),
             hasVaComponent: function() {
                 return this.hasComponent('va');
             },
@@ -225,6 +231,9 @@ Ext.application({
 
         this.setHeadTitle = function () {
         };
+        this.setFeatureUnavailable = function (name) {
+            unavailableFeatures[name] = true;
+        };
         this.setHasNoVaComponent = function() {
             absentComponents.va = true;
         };
@@ -261,7 +270,15 @@ Ext.application({
                 }
 
                 Comagic.application.stateManager.state.controller = {};
-                absentComponents = {};
+
+                function clearObject (object) {
+                    Object.keys(object).forEach(function (key) {
+                        delete(object[key]);
+                    });
+                }
+
+                clearObject(absentComponents);
+                clearObject(unavailableFeatures);
 
                 if (ULib && ULib.ux && ULib.ux.data && ULib.ux.data.UStore) {
                     ULib.ux.data.UStore._instances = {};
