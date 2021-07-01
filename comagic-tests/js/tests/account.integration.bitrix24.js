@@ -24,7 +24,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
             });
 
-            it(
+            xit(
                 'Открываю вкладку "Сквозная аналитика". Изменяю значение полей. Нажимаю на кнопку "Сохранить". ' +
                 'Отправлен запрос сохранения.',
             function() {
@@ -54,12 +54,11 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     send();
                 helper.requestTariffs().send();
             });
-            return;
-            it('Открываю вкладку "Чаты и заявки".', function() {
+            xit('Открываю вкладку "Чаты и заявки".', function() {
                 helper.tabPanel.tab('Чаты и заявки').click();
                 wait(10);
             });
-            it('Открываю вкладку "Дополнительные поля".', function() {
+            xit('Открываю вкладку "Дополнительные поля".', function() {
                 helper.tabPanel.tab('Дополнительные поля').click();
                 wait(10);
                 helper.requestAdditionalFields().send();
@@ -67,13 +66,13 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.requestUserFieldDirectory().send();
                 wait(10);
             });
-            it('Открываю вкладку "Воронки продаж".', function() {
+            xit('Открываю вкладку "Воронки продаж".', function() {
                 helper.tabPanel.tab('Воронки продаж').click();
                 wait(10);
                 helper.requestSalesFunnels().send();
                 wait(10);
             });
-            it(
+            xit(
                 'Открываю вкладку "Ответственные". Выбираю другого ответственного. Нажимаю на кнопку "Сохранить".',
             function() {
                 helper.tabPanel.tab('Ответственные').click();
@@ -90,6 +89,17 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
                 helper.requestResponsibleUsers().send();
                 wait(10);
+            });
+            it(
+                'Выключаю свичбокс "Импорт статуса рабочего дня". Нажимаю на кнопку "Сохранить". Настройки сохранены.',
+            function() {
+                helper.switchButton('Импорт статуса рабочего дня').click();
+                wait(10);
+
+                helper.saveButton.click();
+                wait(10);
+                helper.requestBitrix24DataSave().setStatusesImport().send();
+                helper.requestBitrix24Status().send();
             });
         });
         return;

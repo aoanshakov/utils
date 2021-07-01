@@ -478,6 +478,10 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
                 bodyParams.loss_reason_user_field_value_ids = ['495299', '495303'];
                 return this;
             },
+            setStatusesImport: function () {
+                bodyParams.statuses_import = true;
+                return this;
+            },
             send: function () {
                 requestsManager.recentRequest().
                     expectToHavePath('/account/integration/bitrix24/save/').
@@ -599,5 +603,15 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
         return testersFactory.createButtonTester(function () {
             return getVisibleTab().down('button[text="' + title + '"]');
         });
+    };
+
+    this.switchButton = function (text) {
+        return testersFactory.createDomElementTester(
+            utils.descendantOfBody().
+                textContains(text).
+                matchesSelector('.x-form-type-switchbox').
+                find().
+                querySelector('.x-form-field')
+        );
     };
 }
