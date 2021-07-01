@@ -17,7 +17,7 @@ imgkit==1.0.1
 itsdangerous==0.23
 mandrill==1.0.56
 pdfkit==0.5.0
-psycopg2==2.6
+psycopg2==2.7.4
 pytils==0.3
 pytz==2015.6
 redis==2.9.0
@@ -25,16 +25,14 @@ requests==2.5.3
 simplejson==3.6.5
 suds-jurko==0.6
 tzlocal==1.1.1
--e hg+ssh://hg@hg.dev.uiscom.ru/ulib@3bceb7a807a0#egg=ulib-stable
 webassets==0.7
 wsgiref==0.1.2
 xmltodict==0.8.3
--e hg+ssh://hg@hg.dev.uiscom.ru/rtu_moa@e079a5e#egg=rtu_moa_17
--e git+ssh://git@git.dev.uiscom.ru/lib/rtu_api.git#egg=rtu_moa
+-e git+ssh://git@gitlab.uis.dev/lib/rtu_api.git#egg=rtu_moa
 pycrypto==2.6.1
 smtpapi==0.2.0
 pydub==0.15.0
-numpy==1.10.4
+# unnecessary requirement used by ulib
 tornado==4.3
-Wand==0.5.4
+xlrd==1.2.0
 mock==3.0.5
