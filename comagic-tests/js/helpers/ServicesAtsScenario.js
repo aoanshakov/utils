@@ -1227,6 +1227,21 @@ function ServicesAtsScenario(args) {
         };
 
         return {
+            updateCRMField: function () {
+                bodyParams.action_jump_crm_field.update = [{
+                    action_jump_id: 572858,
+                    priority: 0,
+                    operator: '=',
+                    value: '1162712',
+                    id: 271508,
+                    category: 'user_field',
+                    partner: 'amocrm',
+                    user_field_id: 295656,
+                    entity: null
+                }, undefined];
+
+                return this;
+            },
             addingDistributionByCRMData: function () {
                 bodyParams.action.create = [{
                     action_type_id: 74,

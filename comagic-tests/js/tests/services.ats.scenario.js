@@ -24,7 +24,7 @@ tests.addTest(function(args) {
             batchReloadRequest = helper.batchReloadRequest().expectToBeSent();
         });
 
-        xdescribe('Не использую данные реального клиента.', function() {
+        describe('Не использую данные реального клиента.', function() {
             beforeEach(function() {
                 batchReloadRequest.receiveResponse();
 
@@ -403,9 +403,21 @@ tests.addTest(function(args) {
                     wait();
                 });
 
-                it('', function() {
+                it('Выбираю другое поле. Нажимаю на кнпоку "Сохранить сценарий". Сценарий сохранен.', function() {
+                    helper.actionReturnCodesList.row.first().distributionItemNames.click();
+
+                    helper.actionReturnCodesList.row.first().combobox().withValue('Воронка продаж').click();
+                    wait();
+                    helper.treeNode('1/2 оплаты').click();
+                    wait();
+
+                    helper.headerCollapseArrow.click();
+
+                    helper.button('Создать').click();
+                    wait();
+
+                    helper.scenarioChangingRequest().updateCRMField().expectToBeSent();
                 });
-                return;
                 it('Добавляю еще одно поле. Выбранное поле отображено.', function() {
                     helper.actionReturnCodesList.row.atIndex(1).combobox().withPlaceholder('Поле в CRM').click();
                     wait();
@@ -438,8 +450,12 @@ tests.addTest(function(args) {
                     helper.actionReturnCodesList.row.atIndex(1).
                         expectTextContentToHaveSubstring('Поле "Сделка/1/2 оплаты" точно соответствует "Допродажи"');
                 });
+                it('Выбранное поле отображено.', function() {
+                    helper.actionReturnCodesList.row.first().
+                        expectTextContentToHaveSubstring('Поле "Сделка/Воронка продаж" точно соответствует "Воронка"');
+                });
             });
-            xit(
+            it(
                 'В сценарии отсутствует распределение по данным из CRM. Добавляю распределение с воронкой. Нажимаю ' +
                 'на кнопку "Сохранить сценарий". Сценарий сохраняется.',
             function() {
@@ -503,7 +519,6 @@ tests.addTest(function(args) {
                 helper.scenarioChangingRequest().addingDistributionByCRMData().salesFunnelWithEntity().expectToBeSent();
             });
         });
-        return;
         it(
             'Не использую данные реального клиента. Одна из сущностей содержит только одно поле. Открываю настройки ' +
             'распределения. Выбранное поле отмечено.',
