@@ -122,7 +122,7 @@
       currentWindowOnload();
     }
     //htmlReporter.initialize();
-    env.execute();
+    //env.execute();
   };
 
   /**

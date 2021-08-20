@@ -22,7 +22,9 @@ function ExtJsTester_Factory () {
         return new ExtJsTester_TestersFactory(wait, utils, this);
     };
     this.createTestArguments = function () {
-        return [fakeNow];
+        return {
+            fakeNow: fakeNow
+        };
     };
     this.beforeEach = function () {
         nowFaker.replaceByFake();
@@ -1055,6 +1057,27 @@ function ExtJsTester_Utils (debug) {
     this.findElementsByTextContent = function (ascendantElement, desiredTextContent, selector) {
         return findElementsByTextContent.apply(this, [getAscendantElementForFindingElementByText(ascendantElement,
             desiredTextContent), desiredTextContent, selector]);
+    };
+    this.expectExtErrorToOccur = function (expectedMessage, callback) {
+        var handle = Ext.Error.handle,
+            errorMessage;
+
+        Ext.Error.handle = function (e) {
+            errorMessage = e.msg;
+            return true;
+        };
+
+        callback();
+        Ext.Error.handle = handle;
+
+        if (!errorMessage) {
+            console.log('Ошибка должна была произойти.');
+        }
+
+        if (errorMessage != expectedMessage) {
+            throw new Error('Должна была произойти ошибка "' + expectedMessage + '", однако произошла ошибка "' +
+                errorMessage + '".');
+        }
     };
 }
 

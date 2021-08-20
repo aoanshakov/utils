@@ -4,8 +4,18 @@ tests.requireClass('Comagic.services.ats.scenario.store.ActionTypes');
 tests.requireClass('Comagic.services.ats.scenario.store.Record');
 tests.requireClass('Comagic.services.ats.scenario.controller.EditPage');
 
-function ServicesAtsScenario(requestsManager, testersFactory, utils) {
-    var controller = Comagic.getApplication().getController('Comagic.services.ats.scenario.controller.EditPage');
+tests.requireResponse('action_types_59274');
+tests.requireResponse('batch_reload_59274');
+tests.requireResponse('read_scenario_59274');
+tests.requireResponse('return_codes_59274');
+tests.requireResponse('batch_reload_24913');
+
+function ServicesAtsScenario(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        utils = args.utils,
+        responses = args.responses;
+        controller = Comagic.getApplication().getController('Comagic.services.ats.scenario.controller.EditPage');
 
     this.actionIndex = function (data) {
         controller.init();
@@ -13,6 +23,130 @@ function ServicesAtsScenario(requestsManager, testersFactory, utils) {
             siteId: 1234
         }, data);
     };
+
+    this.menuItem = function (text) {
+        return testersFactory.createDomElementTester(
+            utils.descendantOfBody().
+                matchesSelector('.x-menu-item-text').
+                textEquals(text).
+                find()
+        );
+    };
+
+    this.scenarioTreeTypeButton = testersFactory.createDomElementTester(function () {
+        return document.querySelector(
+            '.select-scenario-tree-type-checkbox.x-form-cb-checked .x-form-field.x-form-checkbox'
+        );
+    });
+
+    this.actionReturnCodesList = (function () {
+        function getList () {
+            return utils.getVisibleSilently(document.querySelectorAll('.scenario-actionreturncodeslist')) ||
+                new JsTester_NoElement();
+        }
+
+        var tester = testersFactory.createDomElementTester(getList);
+
+        tester.row = {
+            atIndex: function (index) {
+                function getElement () {
+                    return getList().querySelectorAll('.return-code-item-container')[index] || new JsTester_NoElement();
+                }
+
+                var tester = addTesters(testersFactory.createFormTester(function () {
+                    return utils.getComponentFromDomElement(getElement());
+                }), getElement);
+
+                tester.distributionItemNames = testersFactory.createDomElementTester(function () {
+                    return document.querySelector('.distribution-item-names');
+                });
+
+                return tester;
+            },
+            first: function () {
+                return this.atIndex(0);
+            }
+        };
+
+        return tester;
+    })();
+
+    this.treeNode = function (text) {
+        var domElement = utils.descendantOfBody().matchesSelector('.x-tree-node-text').textEquals(text).find(),
+            tester = testersFactory.createDomElementTester(domElement);
+
+        tester.expander = testersFactory.createDomElementTester(function () {
+            return domElement.closest('.x-grid-cell-inner').querySelector('.x-tree-expander');
+        });
+
+        tester.expectToBeExpanded = function () {
+            testersFactory.createDomElementTester(domElement.closest('.x-grid-row')).
+                expectToHaveClass('x-grid-tree-node-expanded');
+        };
+
+        tester.expectToBeCollapsed = function () {
+            testersFactory.createDomElementTester(domElement.closest('.x-grid-row')).
+                expectNotToHaveClass('x-grid-tree-node-expanded');
+        };
+
+        tester.expectToBeSelected = function () {
+            testersFactory.createDomElementTester(domElement.closest('.x-grid-item')).
+                expectToHaveClass('x-grid-item-selected');
+        };
+
+        tester.expectNotToBeSelected = function () {
+            testersFactory.createDomElementTester(domElement.closest('.x-grid-item')).
+                expectNotToHaveClass('x-grid-item-selected');
+        };
+
+        return tester;
+    };
+
+    this.headerCollapseArrow = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.header-collapse-arrow');
+    });
+
+    this.tabTitle = function (text) {
+        return testersFactory.createDomElementTester(function () {
+            return utils.descendantOfBody().matchesSelector('.x-tab-inner-ul').textEquals(text).find();
+        });
+    };
+
+    function addTesters (me, getAscendant) {
+        me.component = function (text) {
+            return testersFactory.createDomElementTester(function () {
+                return utils.descendantOf(getAscendant()).matchesSelector('.x-component-ul').textEquals(text).find();
+            });
+        };
+
+        return me;
+    }
+
+    addTesters(this, function () {
+        return document.body;
+    });
+
+    this.button = function (text) {
+        return testersFactory.createDomElementTester(function () {
+            return utils.descendantOfBody().
+                matchesSelector('.x-btn-inner').
+                textEquals(text).
+                find()
+        });
+    };
+
+    this.actionButton = function (text) {
+        return testersFactory.createDomElementTester(function () {
+            return utils.descendantOfBody().
+                matchesSelector('.x-dataview-item').
+                textEquals(text).
+                find()
+        });
+    };
+
+    this.addActionButton = testersFactory.createDomElementTester(function () {
+        return utils.getVisibleSilently(document.querySelectorAll('.add-action-icon'));
+    });
 
     this.collapseVideoButton = testersFactory.createDomElementTester(function () {
         return document.querySelector('.cmg-video-tutorial-thumbnail-collapse-tool');
@@ -52,8 +186,11 @@ function ServicesAtsScenario(requestsManager, testersFactory, utils) {
                 return this;
             },
             find: function () {
-                var elements = document.querySelectorAll('.scenario-tree-container .action-name'),
-                    length = elements.length,
+                var elements = document.querySelectorAll(
+                    '.scenario-tree-container .action-name, .cm-componenttreepanel-node-action-name'
+                );
+
+                var length = elements.length,
                     expectedActionsDescription,
                     validElements,
                     i;
@@ -100,342 +237,778 @@ function ServicesAtsScenario(requestsManager, testersFactory, utils) {
                 } else {
                     expectedIndex = 0;
                 }
+
+                var tester = testersFactory.createDomElementTester(validElements[expectedIndex]);
+
+                tester.putMouseOver = function () {
+                    var nodeContainer = tester.getElement().closest('.node-container');
+
+                    testersFactory.createDomElementTester(nodeContainer).expectToBeVisible();
+                    nodeContainer.classList.add('hover');
+                };
                 
-                return testersFactory.createDomElementTester(validElements[expectedIndex]);
+                return tester;
             }
         };
     };
 
     this.batchReloadRequest = function () {
-        return {
-            send: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('/directory/batch_reload/').
-                    expectToHaveMethod('POST').
-                    respondSuccessfullyWith({
-                        success: true,
-                        data: {
-                            'comagic:staff:phones_in_employee': [{
-                                id: 3829,
-                                name: '79451234567',
-                                aux_id: 2384
-                            }],
-                            'comagic:staff:employee': [{
-                                id: 23483,
-                                name: 'Ivanov Ivan Ivanovich'
-                            }]
-                        }
-                    });
-            }
+        var response = {
+            success: true,
+            data: {
+                'comagic:ns:condition_operator': [{
+                    description: null,
+                    id: '>',
+                    is_value_required: true,
+                    name: 'Больше'
+                }, {
+                    description: null,
+                    id: '<',
+                    is_value_required: true,
+                    name: 'Меньше'
+                }, {
+                    description: null,
+                    id: 'starts_with',
+                    is_value_required: true,
+                    name: 'Начинается с'
+                }, {
+                    description: null,
+                    id: 'ends_with',
+                    is_value_required: true,
+                    name: 'Заканчивается на'
+                }, {
+                    description: null,
+                    id: 'is_null',
+                    is_value_required: false,
+                    name: 'Пустое'
+                }, {
+                    description: null,
+                    id: 'is_not_null',
+                    is_value_required: false,
+                    name: 'Не пустое'
+                }, {
+                    description: 'Множество значений в событии точно соответствует множеству выбранных ' +
+                        'значений / Значение в событии точно соответствует заданному значению',
+                    id: '=',
+                    is_value_required: true,
+                    name: 'Точно соответствует'
+                }, {
+                    description: 'Множество значений в событии содержит все выбранные значения / ' +
+                        'Значение в событии содержит заданную строку',
+                    id: 'in',
+                    is_value_required: true,
+                    name: 'Содержит'
+                }, {
+                    description: 'Множество значений в событии включает хотя бы одно выбранное значение',
+                    id: 'intersect',
+                    is_value_required: true,
+                    name: 'Включает'
+                }, {
+                    description: 'Множество значений в событии целиком содержится во множестве выбранных ' +
+                        'значений',
+                    id: 'sub',
+                    is_value_required: true,
+                    name: 'Содержится в'
+                }],
+                'comagic:_tree:va_crm_fields': [{
+                    data: [{
+                        available_operators: [
+                            '=',
+                            'is_null',
+                            'is_not_null'
+                        ],
+                        available_values: {
+                            4530994: 'Воронка'
+                        },
+                        category: 'sales_funnel',
+                        id: 'sales_funnel',
+                        leaf: true,
+                        name: 'Воронка продаж',
+                        type: 'select'
+                    }, {
+                        available_operators: [
+                            '=',
+                            'is_null',
+                            'is_not_null'
+                        ],
+                        available_values: {
+                            1162710: '2 линия (Основная)',
+                            1162712: '2 линия (Вебинары)',
+                            1162714: '2 линия (Профи.ру)',
+                            1162716: 'Retention/Awake',
+                            1162718: 'Допродажи',
+                            1162720: 'Оплачено полностью'
+                        },
+                        category: 'user_field',
+                        id: 'user_field:295656',
+                        leaf: true,
+                        name: '1/2 оплаты',
+                        type: 'select',
+                        user_field_id: 295656
+                    }, {
+                        available_operators: [
+                            '=',
+                            'in',
+                            'starts_with',
+                            'ends_with',
+                            'is_null',
+                            'is_not_null'
+                        ],
+                        available_values: null,
+                        category: 'user_field',
+                        id: 'user_field:2632367:leads',
+                        leaf: true,
+                        name: 'UTM_CONTENT',
+                        type: 'text',
+                        user_field_id: 2632367,
+                        entity: 'leads'
+                    }, {
+                        available_operators: [
+                            '=',
+                            'in',
+                            'starts_with',
+                            'ends_with',
+                            'is_null',
+                            'is_not_null'
+                        ],
+                        available_values: null,
+                        category: 'user_field',
+                        id: 'user_field:2632364:leads',
+                        leaf: true,
+                        name: 'UTM_CAMPAIGN',
+                        type: 'text',
+                        user_field_id: 2632364,
+                        entity: 'leads'
+                    }],
+                    id: 2,
+                    mnemonic: 'leads',
+                    name: 'Сделка'
+                }, {
+                    data: [{
+                        available_operators: [
+                            '=',
+                            'in',
+                            'starts_with',
+                            'ends_with',
+                            'is_null',
+                            'is_not_null'
+                        ],
+                        available_values: null,
+                        category: 'user_field',
+                        id: 'user_field:2632367:contacts',
+                        leaf: true,
+                        name: 'UTM_CONTENT',
+                        type: 'text',
+                        user_field_id: 2632367,
+                        entity: 'contacts'
+                    }, {
+                        available_operators: [
+                            '=',
+                            'in',
+                            'starts_with',
+                            'ends_with',
+                            'is_null',
+                            'is_not_null'
+                        ],
+                        available_values: null,
+                        category: 'user_field',
+                        id: 'user_field:2632364:contacts',
+                        leaf: true,
+                        name: 'UTM_CAMPAIGN',
+                        type: 'text',
+                        user_field_id: 2632364,
+                        entity: 'contacts'
+                    }],
+                    id: 4272,
+                    mnemonic: 'contacts',
+                    name: 'Контакт'
+                }],
+                'comagic:public:tts_voice': [{
+                    id: 2859285,
+                    name: 'Римма',
+                    aux_id: true
+                }],
+                'comagic:staff:phones_in_employee': [{
+                    id: 3829,
+                    name: '79451234567',
+                    aux_id: 2384
+                }],
+                'comagic:staff:employee': [{
+                    id: 23483,
+                    name: 'Ivanov Ivan Ivanovich'
+                }],
+                'comagic:file:media': [{
+                    aux_id: 'leave_message',
+                    aux_id2: 4,
+                    id: 2035,
+                    name: 'Оставьте голосовое сообщение после звукового сигнала'
+                }]
+            } 
         };
+
+        function addMethods (me) {
+            me.salesFunnelWithEntity = function () {
+                response.data['comagic:_tree:va_crm_fields'][0].data[0] = {
+                    available_operators: [
+                        '=',
+                        'is_null',
+                        'is_not_null'
+                    ],
+                    available_values: {
+                        4530994: 'Воронка'
+                    },
+                    category: 'sales_funnel',
+                    id: 'sales_funnel::leads',
+                    leaf: true,
+                    name: 'Воронка продаж',
+                    type: 'select',
+                    user_field_id: null
+                };
+
+                return me;
+            };
+
+            me.noAvailableValue = function () {
+                response.data['comagic:_tree:va_crm_fields'][1].data[1].available_values = {};
+                return me;
+            };
+
+            me.onlyOneContactField = function () {
+                response.data['comagic:_tree:va_crm_fields'][1].data = [{
+                    available_operators: [
+                        '=',
+                        'in',
+                        'starts_with',
+                        'ends_with',
+                        'is_null',
+                        'is_not_null'
+                    ],
+                    available_values: null,
+                    category: 'user_field',
+                    id: 'user_field:2632364:contacts',
+                    leaf: true,
+                    name: 'UTM_CAMPAIGN',
+                    type: 'text',
+                    user_field_id: 2632364,
+                    entity: 'contacts'
+                }];
+
+                return me;
+            };
+            
+            me.app24913Request = function () {
+                response.data['comagic:_tree:va_crm_fields'] =
+                    responses['batch_reload_24913'].data['comagic:_tree:va_crm_fields'];
+
+                return me;
+            };
+
+            me.app59274Request = function () {
+                response = responses['batch_reload_59274'];
+                return me;
+            };
+
+            return me;
+        }
+
+        return addMethods({
+            expectToBeSent: function () {
+                return addMethods({
+                    receiveResponse: function () {
+                        requestsManager.recentRequest().
+                            expectToHavePath('/directory/batch_reload/').
+                            expectToHaveMethod('POST').
+                            respondSuccessfullyWith(response);
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
     };
 
     this.requestScenario = function () {
-        return {
-            send: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('/services/ats__scenario/scenario/read/scenario/104561/').
-                    respondSuccessfullyWith({
-                        success: true,
-                        metadata: [{
-                            fields: [{
-                                name: 'id',
-                                primary_key: true
-                            }, 'first_action_id', 'name', 'app_id'],
-                            belongs_to: [],
-                            name: 'scenario',
-                            has_many: [{
-                                table: 'action',
-                                foreign_key: 'scenario_id'
-                            }]
-                        }, {
-                            fields: [
-                                'is_failed_calls_include', 'communication_number_interval', 'forward_call_rule',
-                                'http_method', 'is_check_employee_busy', 'use_all_communication_types', {
-                                    'name': 'id',
-                                    'primary_key': true
-                                }, 'scenario_id', 'after_call_employee_busy_duration', 'playlist_id',
-                                'allowed_last_call_interval', 'attempts_count', 'email', 'operator_playlist_id',
-                                'max_access_code_len', 'is_queue', 'action_type_id', 'is_ask_rating', 'name',
-                                'is_tag_call', 'url', 'is_auto_connect', 'queue_playlist_id', 'is_use_numb_as_numa',
-                                'timeout', 'forward_call_base', 'access_code', 'calls_stat_interval',
-                                'is_within_scenario', 'calls_stat_levels'
-                            ],
-                            belongs_to: [{
-                                'table': 'scenario',
-                                'foreign_key': 'scenario_id'
-                            }],
-                            name: 'action',
-                            has_many: [{
-                                table: 'action_staff_group',
-                                foreign_key: 'action_id'
-                            }, {
-                                table: 'action_http_param',
-                                foreign_key: 'action_id'
-                            }, {
-                                table: 'action_mark',
-                                foreign_key: 'action_id'
-                            }, {
-                                table: 'action_jump',
-                                foreign_key: 'from_action_id'
-                            }, {
-                                table: 'action_jump',
-                                foreign_key: 'to_action_id'
-                            }]
-                        }, {
-                            fields: [
-                                'is_failed_calls_include', 'action_id', 'forward_call_rule', 'lines_start', 'percent',
-                                'group_phones', 'priority', 'staff_group_id', {
-                                    name: 'id',
-                                    primary_key: true
-                                }, 'increment', 'forward_call_base', 'is_incremental_dialing', 'calls_stat_interval',
-                                'increment_timeout', 'lines_limit', 'calls_stat_levels'
-                            ],
-                            belongs_to: [{
-                                table: 'action',
-                                foreign_key: 'action_id'
-                            }],
-                            name: 'action_staff_group',
-                            has_many: []
-                        }, {
-                            fields: [
-                                'mnemonic', 'action_id', 'http_param_type_id', {
-                                    name: 'id',
-                                    primary_key: true
-                                }
-                            ],
-                            belongs_to: [{
-                                table: 'action',
-                                foreign_key: 'action_id'
-                            }],
-                            name: 'action_http_param',
-                            has_many: []
-                        }, {
-                            fields: [
-                                'return_code_id', 'mark_id', {
-                                    name: 'id',
-                                    primary_key: true
-                                }, 'action_id'
-                            ],
-                            belongs_to: [{
-                                table: 'action',
-                                foreign_key: 'action_id'
-                            }],
-                            name: 'action_mark',
-                            has_many: []
-                        }, {
-                            fields: [
-                                'return_code_id', 'from_action_id', 'is_link', 'to_action_id', {
-                                    name: 'id',
-                                    primary_key: true
-                                }
-                            ],
-                            belongs_to: [{
-                                table: 'action',
-                                foreign_key: 'from_action_id'
-                            }, {
-                                table: 'action',
-                                foreign_key: 'to_action_id'
-                            }],
-                            name: 'action_jump',
-                            'has_many': [{
-                                table: 'action_jump_segment',
-                                foreign_key: 'action_jump_id'
-                            }, {
-                                table: 'action_jump_region',
-                                foreign_key: 'action_jump_id'
-                            }]
-                        }, {
-                            fields: [
-                                'priority', {
-                                    name: 'id',
-                                    primary_key: true
-                                }, 'action_jump_id', 'segment_id'
-                            ],
-                            belongs_to: [{
-                                table: 'action_jump',
-                                foreign_key: 'action_jump_id'
-                            }],
-                            name: 'action_jump_segment',
-                            has_many: []
-                        }, {
-                            fields: [
-                                'priority', {
-                                    name: 'id',
-                                    primary_key: true
-                                },
-                                'region_id', 'action_jump_id'
-                            ],
-                            belongs_to: [{
-                                table: 'action_jump',
-                                foreign_key: 'action_jump_id'
-                            }],
-                            name: 'action_jump_region',
-                            has_many: []
-                        }, {
-                            fields: [{
-                                name: 'id',
-                                primary_key: true
-                            }, 'app_id'],
-                            belongs_to: [],
-                            name: 'playlist',
-                            has_many: [{
-                                table: 'playlist_item',
-                                foreign_key: 'playlist_id'
-                            }]
-                        }, {
-                            fields: ['tts_tag_id', 'priority', 'playlist_id', 'media_file_id', 'tts_string', {
-                                name: 'id',
-                                primary_key: true
-                            }],
-                            belongs_to: [{
-                                table: 'playlist',
-                                foreign_key: 'playlist_id'
-                            }],
-                            name: 'playlist_item',
-                            has_many: []
-                        }],
-                        data: {
-                            action_jump_region: [],
-                            scenario: [{
-                                first_action_id: 218318,
-                                app_id: 4735,
-                                id: 104561,
-                                name: '0_0'
-                            }],
-                            action_staff_group: [{
-                                is_failed_calls_include: false,
-                                calls_stat_levels: ['scenario', 'action', 'group', 'employee', 'phone'],
-                                forward_call_rule: 'priority',
-                                lines_start: 1,
-                                percent: 0,
-                                increment_timeout: 5,
-                                group_phones: [{
-                                    release_desc: 'employee_phone_inactive',
-                                    channels_count: 1,
-                                    employee_id: 15555,
-                                    protocol: 'PSTN',
-                                    timeout: 30,
-                                    phone_id: 11039,
-                                    not_tracked_release_desc: 'employee_phone_inactive',
-                                    percent: 0,
-                                    id: 257905,
-                                    priority: 1,
-                                    is_available: true,
-                                    numb: '79100032583',
-                                    timestamp: 1566213890.635766,
-                                    phone_in_employee_id: 9507,
-                                    group_id: 94351
-                                }],
-                                priority: 1,
-                                is_incremental_dialing: false,
-                                increment: 1,
-                                forward_call_base: 'count',
-                                staff_group_id: 94351,
-                                calls_stat_interval: null,
-                                id: 92539,
-                                lines_limit: 1,
-                                action_id: 218319
-                            }],
-                            playlist: [{
-                                id: 201831,
-                                app_id: 4735
-                            }],
-                            playlist_item: [{
-                                tts_tag_id: null,
-                                priority: 1,
-                                playlist_id: 201831,
-                                media_file_id: 2035,
-                                tts_string: null,
-                                id: 240027
-                            }],
-                            action_jump: [{
-                                return_code_id: 4,
-                                from_action_id: 218318,
-                                to_action_id: 218319,
-                                is_link: false,
-                                id: 125790
-                            }],
-                            action_jump_segment: [{
-                                priority: 0,
-                                segment_id: 33767,
-                                id: 163,
-                                action_jump_id: 125790
-                            }],
-                            action: [{
-                                is_failed_calls_include: false,
-                                communication_number_interval: null,
-                                forward_call_rule: null,
-                                http_method: 'GET',
-                                is_check_employee_busy: false,
-                                use_all_communication_types: false,
-                                id: 218318,
-                                scenario_id: 104561,
-                                after_call_employee_busy_duration: 0,
-                                playlist_id: null,
-                                allowed_last_call_interval: null,
-                                attempts_count: null,
-                                email: null,
-                                forward_call_base: 'count',
-                                max_access_code_len: null,
-                                is_queue: false,
-                                action_type_id: 4,
-                                is_ask_rating: false,
-                                name: 'Меню 1',
-                                is_tag_call: false,
-                                url: null,
-                                is_auto_connect: false,
-                                queue_playlist_id: null,
-                                is_use_numb_as_numa: true,
-                                timeout: 5,
-                                operator_playlist_id: null,
-                                access_code: null,
-                                calls_stat_interval: null,
-                                is_within_scenario: false,
-                                calls_stat_levels: null
-                            }, {
-                                is_failed_calls_include: false,
-                                communication_number_interval: null,
-                                forward_call_rule: null,
-                                http_method: null,
-                                is_check_employee_busy: false,
-                                use_all_communication_types: false,
-                                id: 218319,
-                                scenario_id: 104561,
-                                after_call_employee_busy_duration: 0,
-                                playlist_id: 201831,
-                                allowed_last_call_interval: null,
-                                attempts_count: null,
-                                email: null,
-                                forward_call_base: 'count',
-                                max_access_code_len: null,
-                                is_queue: false,
-                                action_type_id: 7,
-                                is_ask_rating: false,
-                                name: 'Голосовая почта 1',
-                                is_tag_call: false,
-                                url: null,
-                                is_auto_connect: false,
-                                queue_playlist_id: null,
-                                is_use_numb_as_numa: true,
-                                timeout: null,
-                                operator_playlist_id: null,
-                                access_code: null,
-                                calls_stat_interval: null,
-                                is_within_scenario: false,
-                                calls_stat_levels: null
-                            }],
-                            action_http_param: [],
-                            action_mark: []
-                        }
-                    });
-            }
+        var response = {
+            success: true,
+            metadata: [{
+                fields: [{
+                    name: 'id',
+                    primary_key: true
+                }, 'first_action_id', 'name', 'app_id'],
+                belongs_to: [],
+                name: 'scenario',
+                has_many: [{
+                    table: 'action',
+                    foreign_key: 'scenario_id'
+                }]
+            }, {
+                fields: [
+                    'is_failed_calls_include', 'communication_number_interval', 'forward_call_rule',
+                    'http_method', 'is_check_employee_busy', 'use_all_communication_types', {
+                        'name': 'id',
+                        'primary_key': true
+                    }, 'scenario_id', 'after_call_employee_busy_duration', 'playlist_id',
+                    'allowed_last_call_interval', 'attempts_count', 'email', 'operator_playlist_id',
+                    'max_access_code_len', 'is_queue', 'action_type_id', 'is_ask_rating', 'name',
+                    'is_tag_call', 'url', 'is_auto_connect', 'queue_playlist_id',
+                    'is_use_numb_as_numa', 'timeout', 'forward_call_base', 'access_code',
+                    'calls_stat_interval', 'is_within_scenario', 'calls_stat_levels'
+                ],
+                belongs_to: [{
+                    'table': 'scenario',
+                    'foreign_key': 'scenario_id'
+                }],
+                name: 'action',
+                has_many: [{
+                    table: 'action_staff_group',
+                    foreign_key: 'action_id'
+                }, {
+                    table: 'action_http_param',
+                    foreign_key: 'action_id'
+                }, {
+                    table: 'action_mark',
+                    foreign_key: 'action_id'
+                }, {
+                    table: 'action_jump',
+                    foreign_key: 'from_action_id'
+                }, {
+                    table: 'action_jump',
+                    foreign_key: 'to_action_id'
+                }]
+            }, {
+                fields: [
+                    'is_failed_calls_include', 'action_id', 'forward_call_rule', 'lines_start',
+                    'percent', 'group_phones', 'priority', 'staff_group_id', {
+                        name: 'id',
+                        primary_key: true
+                    }, 'increment', 'forward_call_base', 'is_incremental_dialing',
+                    'calls_stat_interval', 'increment_timeout', 'lines_limit', 'calls_stat_levels'
+                ],
+                belongs_to: [{
+                    table: 'action',
+                    foreign_key: 'action_id'
+                }],
+                name: 'action_staff_group',
+                has_many: []
+            }, {
+                fields: [
+                    'mnemonic', 'action_id', 'http_param_type_id', {
+                        name: 'id',
+                        primary_key: true
+                    }
+                ],
+                belongs_to: [{
+                    table: 'action',
+                    foreign_key: 'action_id'
+                }],
+                name: 'action_http_param',
+                has_many: []
+            }, {
+                fields: [
+                    'return_code_id', 'mark_id', {
+                        name: 'id',
+                        primary_key: true
+                    }, 'action_id'
+                ],
+                belongs_to: [{
+                    table: 'action',
+                    foreign_key: 'action_id'
+                }],
+                name: 'action_mark',
+                has_many: []
+            }, {
+                fields: [
+                    'return_code_id', 'from_action_id', 'is_link', 'to_action_id', {
+                        name: 'id',
+                        primary_key: true
+                    }
+                ],
+                belongs_to: [{
+                    table: 'action',
+                    foreign_key: 'from_action_id'
+                }, {
+                    table: 'action',
+                    foreign_key: 'to_action_id'
+                }],
+                name: 'action_jump',
+                'has_many': [{
+                    table: 'action_jump_segment',
+                    foreign_key: 'action_jump_id'
+                }, {
+                    table: 'action_jump_region',
+                    foreign_key: 'action_jump_id'
+                }]
+            }, {
+                fields: [
+                    'priority', {
+                        name: 'id',
+                        primary_key: true
+                    }, 'action_jump_id', 'segment_id'
+                ],
+                belongs_to: [{
+                    table: 'action_jump',
+                    foreign_key: 'action_jump_id'
+                }],
+                name: 'action_jump_segment',
+                has_many: []
+            }, {
+                fields: [
+                    'priority', {
+                        name: 'id',
+                        primary_key: true
+                    },
+                    'region_id', 'action_jump_id'
+                ],
+                belongs_to: [{
+                    table: 'action_jump',
+                    foreign_key: 'action_jump_id'
+                }],
+                name: 'action_jump_region',
+                has_many: []
+            }, {
+                belongs_to: [{
+                    table: 'action_jump',
+                    foreign_key: 'action_jump_id'
+                }],
+                fields: [
+                    'category',
+                    'user_field_id',
+                    'value',
+                    'priority',
+                    'action_jump_id',
+                    'operator',
+                    'partner',
+                    'entity',
+                    {
+                        name: 'id',
+                        primary_key: true
+                    }
+                ],
+                has_many: [],
+                name: 'action_jump_crm_field'
+            }, {
+                fields: [{
+                    name: 'id',
+                    primary_key: true
+                }, 'app_id'],
+                belongs_to: [],
+                name: 'playlist',
+                has_many: [{
+                    table: 'playlist_item',
+                    foreign_key: 'playlist_id'
+                }]
+            }, {
+                fields: ['tts_tag_id', 'priority', 'playlist_id', 'media_file_id', 'tts_string', {
+                    name: 'id',
+                    primary_key: true
+                }],
+                belongs_to: [{
+                    table: 'playlist',
+                    foreign_key: 'playlist_id'
+                }],
+                name: 'playlist_item',
+                has_many: []
+            }],
+            data: {
+                action_jump_crm_field: [],
+                action_jump_region: [],
+                scenario: [{
+                    first_action_id: 218318,
+                    app_id: 4735,
+                    id: 210948,
+                    name: '0_0'
+                }],
+                action_staff_group: [{
+                    is_failed_calls_include: false,
+                    calls_stat_levels: ['scenario', 'action', 'group', 'employee', 'phone'],
+                    forward_call_rule: 'priority',
+                    lines_start: 1,
+                    percent: 0,
+                    increment_timeout: 5,
+                    group_phones: [{
+                        release_desc: 'employee_phone_inactive',
+                        channels_count: 1,
+                        employee_id: 15555,
+                        protocol: 'PSTN',
+                        timeout: 30,
+                        phone_id: 11039,
+                        not_tracked_release_desc: 'employee_phone_inactive',
+                        percent: 0,
+                        id: 257905,
+                        priority: 1,
+                        is_available: true,
+                        numb: '79100032583',
+                        timestamp: 1566213890.635766,
+                        phone_in_employee_id: 9507,
+                        group_id: 94351
+                    }],
+                    priority: 1,
+                    is_incremental_dialing: false,
+                    increment: 1,
+                    forward_call_base: 'count',
+                    staff_group_id: 94351,
+                    calls_stat_interval: null,
+                    id: 92539,
+                    lines_limit: 1,
+                    action_id: 218319
+                }],
+                playlist: [{
+                    id: 201831,
+                    app_id: 4735
+                }],
+                playlist_item: [{
+                    tts_tag_id: null,
+                    priority: 1,
+                    playlist_id: 201831,
+                    media_file_id: 2035,
+                    tts_string: null,
+                    id: 240027
+                }],
+                action_jump: [{
+                    return_code_id: 4,
+                    from_action_id: 218318,
+                    to_action_id: 218319,
+                    is_link: false,
+                    id: 125790
+                }],
+                action_jump_segment: [{
+                    priority: 0,
+                    segment_id: 33767,
+                    id: 163,
+                    action_jump_id: 125790
+                }],
+                action: [{
+                    is_failed_calls_include: false,
+                    communication_number_interval: null,
+                    forward_call_rule: null,
+                    http_method: 'GET',
+                    is_check_employee_busy: false,
+                    use_all_communication_types: false,
+                    id: 218318,
+                    scenario_id: 210948,
+                    after_call_employee_busy_duration: 0,
+                    playlist_id: null,
+                    allowed_last_call_interval: null,
+                    attempts_count: null,
+                    email: null,
+                    forward_call_base: 'count',
+                    max_access_code_len: null,
+                    is_queue: false,
+                    action_type_id: 4,
+                    is_ask_rating: false,
+                    name: 'Меню 1',
+                    is_tag_call: false,
+                    url: null,
+                    is_auto_connect: false,
+                    queue_playlist_id: null,
+                    is_use_numb_as_numa: true,
+                    timeout: 5,
+                    operator_playlist_id: null,
+                    access_code: null,
+                    calls_stat_interval: null,
+                    is_within_scenario: false,
+                    calls_stat_levels: null
+                }, {
+                    is_failed_calls_include: false,
+                    communication_number_interval: null,
+                    forward_call_rule: null,
+                    http_method: null,
+                    is_check_employee_busy: false,
+                    use_all_communication_types: false,
+                    id: 218319,
+                    scenario_id: 210948,
+                    after_call_employee_busy_duration: 0,
+                    playlist_id: 201831,
+                    allowed_last_call_interval: null,
+                    attempts_count: null,
+                    email: null,
+                    forward_call_base: 'count',
+                    max_access_code_len: null,
+                    is_queue: false,
+                    action_type_id: 7,
+                    is_ask_rating: false,
+                    name: 'Голосовая почта 1',
+                    is_tag_call: false,
+                    url: null,
+                    is_auto_connect: false,
+                    queue_playlist_id: null,
+                    is_use_numb_as_numa: true,
+                    timeout: null,
+                    operator_playlist_id: null,
+                    access_code: null,
+                    calls_stat_interval: null,
+                    is_within_scenario: false,
+                    calls_stat_levels: null
+                }],
+                action_http_param: [],
+                action_mark: []
+            } 
         };
+
+        function addMethods (me) {
+            me.app59274 = function () {
+                response = responses['read_scenario_59274'];
+                return me;
+            };
+
+            me.includesDistributionByCrmDataAction = function () {
+                response.data.action_jump_crm_field.push({
+                    action_jump_id: 572858,
+                    priority: 0,
+                    operator: '=',
+                    value: ['4530994'],
+                    id: 271508,
+                    category: 'sales_funnel',
+                    partner: 'amocrm'
+                });
+
+                response.data.action.push({
+                    action_type_id: 74,
+                    name: 'По данным из CRM 1',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: 86392            
+                }, {
+                    action_type_id: 4,
+                    name: 'Меню 2',
+                    scenario_id: 210948,
+                    timeout: 5,
+                    http_method: 'GET',
+                    id: 53729
+                });
+
+                response.data.action_jump.push({
+                    from_action_id: 218318,
+                    to_action_id: 86392,
+                    return_code_id: 7,
+                    id: 427002            
+                }, {
+                    from_action_id: 86392,
+                    to_action_id: 53729,
+                    return_code_id: 124,
+                    id: 572858
+                });
+                
+                me.salesFunnelWithEntity = function () {
+                    response.data.action_jump_crm_field[0].user_field_id = 'sales_funnel:0';
+                    response.data.action_jump_crm_field[0].entity = 'leads';
+                    return me;
+                };
+
+                me.includesTwoCrmFields = function () {
+                    response.data.action.push({
+                        action_type_id: 7,
+                        name: 'Голосовая почта 2',
+                        scenario_id: 210948,
+                        is_within_scenario: false,
+                        id: 29594,
+                        playlist_id: 73874
+                    });
+
+                    response.data.action_jump.push({
+                        from_action_id: 86392,
+                        to_action_id: 29594,
+                        return_code_id: 125,
+                        id: 647295
+                    });
+
+                    response.data.action_jump_crm_field.push({
+                        action_jump_id: 647295,
+                        priority: 0,
+                        user_field_id: 'user_field:295656',
+                        operator: '=',
+                        value: ['1162718'],
+                        partner: 'amocrm',
+                        id: 37838,
+                        category: 'user_field'
+                    });
+
+                    response.data.playlist.push({
+                        id: 647295
+                    });
+
+                    response.data.playlist_item.push({
+                        media_file_id: 2035,
+                        priority: 0,
+                        playlist_id: 647295,
+                        id: 537938
+                    });
+
+                    return me;
+                };
+
+                return me;
+            };
+
+            me.includesCrmFieldWithEntity = function () {
+                response.data.action_jump_crm_field.push({
+                    action_jump_id: 572858,
+                    priority: 0,
+                    user_field_id: 'user_field:2632364',
+                    operator: '=',
+                    value: 'UIS',
+                    partner: 'amocrm',
+                    id: 271508,
+                    category: 'user_field',
+                    entity: 'contacts'
+                });
+
+                response.data.action.push({
+                    action_type_id: 74,
+                    name: 'По данным из CRM 1',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: 86392            
+                }, {
+                    action_type_id: 4,
+                    name: 'Меню 2',
+                    scenario_id: 210948,
+                    timeout: 5,
+                    http_method: 'GET',
+                    id: 53729
+                });
+
+                response.data.action_jump.push({
+                    from_action_id: 218318,
+                    to_action_id: 86392,
+                    return_code_id: 7,
+                    id: 427002            
+                }, {
+                    from_action_id: 86392,
+                    to_action_id: 53729,
+                    return_code_id: 124,
+                    id: 572858
+                });
+
+                return me;
+            };
+
+            return me;
+        }
+
+        return addMethods({
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
+                    expectToHavePath('/services/ats__scenario/scenario/read/scenario/210948/');
+
+                return addMethods({
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith(response);
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
     };
 
-    this.requestMarkersTypes = function () {
+    this.scenarioRequest = this.requestScenario;
+
+    this.markersTypesRequest = function () {
         return {
-            send: function () {
+            receiveResponse: function () {
                 requestsManager.recentRequest().
                     expectToHavePath('/services/ats__scenario/markers_types/read/').
                     respondSuccessfullyWith({
@@ -449,63 +1022,473 @@ function ServicesAtsScenario(requestsManager, testersFactory, utils) {
         };
     };
 
-    this.requestReturnCodes = function () {
+    this.returnCodesRequest = function () {
+        var response = {
+            success: true,
+            data: [{
+                action_type_id: 4,
+                code: '4',
+                description: null,
+                id: 7,
+                is_postprocess: false,
+                name: 'Клавиша 4',
+                priority: 4
+            }, {
+                action_type_id: 4,
+                code: '5',
+                description: null,
+                id: 7393,
+                is_postprocess: false,
+                name: 'Клавиша 5',
+                priority: 4
+            }, {
+                action_type_id: 74,
+                code: '0',
+                description: null,
+                id: 124,
+                is_postprocess: false,
+                name: '0',
+                priority: 4
+            }, {
+                action_type_id: 74,
+                code: '1',
+                description: null,
+                id: 125,
+                is_postprocess: false,
+                name: '1',
+                priority: 4
+            }] 
+        };
+
         return {
-            send: function () {
+            app59274: function () {
+                response = responses['return_codes_59274'];
+                return this;
+            },
+            receiveResponse: function () {
                 requestsManager.recentRequest().
                     expectToHavePath('/services/ats__scenario/return_codes/read/').
-                    respondSuccessfullyWith({
-                        success: true,
-                        data: [{
-                            action_type_id: 4,
-                            code: '4',
-                            description: null,
-                            id: 7,
-                            is_postprocess: false,
-                            name: 'Клавиша 4',
-                            priority: 4
-                        }]
-                    });
+                    respondSuccessfullyWith(response);
             }
         };
     };
 
-    this.requestActionTypes = function () {
+    this.actionTypesRequest = function () {
+        var response = {
+            success: true,
+            data: [{
+                available_by_components: true,
+                components: ['voice_mail'],
+                description: 'Звонящему предлагается оставить голосовое сообщение, которое можно ' +
+                    'отправить на указанный Вами e-mail. Даже если звонящий не оставит сообщение, на ' +
+                    'e-mail придет письмо, в теме которого будет содержаться номер звонящего и время ' +
+                    'поступления звонка. Опцию удобно использовать в качестве завершающей в случае, если ' +
+                    'никто из сотрудников не ответил на звонок, или как сценарий нерабочего времени. ' +
+                    'Таким образом можно быть уверенным, что все обращения будут обработаны.',
+                id: 7,
+                is_postprocess: false,
+                mnemonic: 'voice_mail',
+                name: 'Голосовая почта'
+            }, {
+                available_by_components: true,
+                components: ['menu'],
+                description: 'Звонящему предлагается нажать одну из клавиш на телефоне, чтобы ' +
+                    'соединиться с нужным отделом или прослушать какую-либо информацию. Чтобы не ' +
+                    'потерять звонок в случаях, когда звонящий не нажал ни на одну из предложенных ' +
+                    'клавиш, или нажал на одну из ненастроенных, настройте операции “время ожидания ' +
+                    'истекло” и “некорректный ввод”. Если вы хотите разрешить одновременно с выбором ' +
+                    'пункта меню вводить и внутренний номер, то обратитесь в службу консалтинга: они ' +
+                    'помогут настроить работу в таком режиме.',
+                id: 4,
+                is_postprocess: false,
+                mnemonic: 'menu',
+                name: 'Меню'
+            }, {
+                available_by_components: true,
+                components: ['distribution_by_crm_data'],
+                description: 'Обработка звонка в зависимости от полей и их значений в CRM, в которые ' +
+                    'попал звонящий. Поля и значения должны быть заранее заданы в CRM. Настройте ' +
+                    '"Остальные", чтобы не потерять звонок в случаях, когда звонящий не попадет в ' +
+                    'заданные поля.',
+                id: 74,
+                is_postprocess: false,
+                mnemonic: 'distribution_by_crm_data',
+                name: 'По данным из CRM',
+                partner: 'amocrm'
+            }] 
+        };
+
+        function addMethods (me) {
+            me.app59274 = function () {
+                response = responses['action_types_59274'];
+                return me;
+            };
+
+            return me;
+        }
+
+        return addMethods({
+            expectToBeSent: function () {
+                return addMethods({
+                    receiveResponse: function () {
+                        requestsManager.recentRequest().
+                            expectToHavePath('/services/ats__scenario/action_types/read/').
+                            respondSuccessfullyWith(response);
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    this.scenarioChangingRequest = function () {
+        var createUniqueValueExpectation = new JsTests_UniqueValueExpectationFactory(),
+            comagicVaAction1 = createUniqueValueExpectation(),
+            comagicVaAction2 = createUniqueValueExpectation(),
+            comagicVaActionJump1 = createUniqueValueExpectation(),
+            comagicVaActionJump2 = createUniqueValueExpectation()
+            comagicVaActionJumpCrmField1 = createUniqueValueExpectation(),
+            comagicVaPlaylist1 = createUniqueValueExpectation(),
+            comagicVaPlaylistItem1 = createUniqueValueExpectation();
+
+        var bodyParams = {
+            action_types: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]    
+            },
+            return_codes: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]
+            },
+            call_marker_types: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]
+            },
+            scenario: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]
+            },
+            action: {
+                create: [undefined],    
+                update: [undefined],
+                destroy: [undefined]
+            },
+            action_staff_group: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]
+            },
+            action_http_param: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]
+            },
+            action_mark: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]
+            },
+            action_jump: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]    
+            },
+            action_jump_segment: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]
+            },
+            action_jump_region: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]
+            },
+            action_jump_crm_field: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]    
+            },
+            playlist: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]
+            },
+            playlist_item: {
+                create: [undefined],
+                update: [undefined],
+                destroy: [undefined]
+            }
+        };
+
         return {
-            send: function () {
+            addingDistributionByCRMData: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 74,
+                    name: 'По данным из CRM 1',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1            
+                }, {
+                    action_type_id: 4,
+                    name: 'Меню 2',
+                    scenario_id: 210948,
+                    timeout: 5,
+                    http_method: 'GET',
+                    id: comagicVaAction2
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 218318,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 7,
+                    id: comagicVaActionJump1            
+                }, {
+                    from_action_id: comagicVaAction1,
+                    to_action_id: comagicVaAction2,
+                    return_code_id: 124,
+                    id: comagicVaActionJump2
+                }, undefined];
+
+                bodyParams.action_jump_crm_field.create = [{
+                    action_jump_id: comagicVaActionJump2,
+                    priority: 0,
+                    operator: '=',
+                    value: ['4530994'],
+                    id: comagicVaActionJumpCrmField1,
+                    category: 'sales_funnel',
+                    partner: 'amocrm',
+                    entity: undefined,
+                    user_field_id: undefined
+                }, undefined];
+
+                this.salesFunnelWithEntity = function () {
+                    bodyParams.action_jump_crm_field.create[0].entity = 'leads';
+                    return this;
+                };
+
+                return this;
+            },
+            addingSecondCrmField: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 7,
+                    name: 'Голосовая почта 2',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1,
+                    playlist_id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 86392,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 125,
+                    id: comagicVaActionJump1
+                }, undefined];
+
+                bodyParams.action_jump_crm_field.create = [{
+                    action_jump_id: comagicVaActionJump1,
+                    priority: 0,
+                    user_field_id: 295656,
+                    operator: '=',
+                    value: ['1162718'],
+                    partner: 'amocrm',
+                    id: comagicVaActionJumpCrmField1,
+                    category: 'user_field',
+                    entity: undefined
+                }, undefined];
+
+                bodyParams.action_jump_crm_field.update = [{
+                    action_jump_id: 572858,
+                    priority: 0,
+                    operator: '=',
+                    value: ['4530994'],
+                    id: 271508,
+                    category: 'sales_funnel',
+                    partner: 'amocrm',
+                    user_field_id: null,
+                    entity: null
+                }, undefined];
+
+                bodyParams.playlist.create = [{
+                    id: comagicVaPlaylist1
+                }, undefined]
+
+                bodyParams.playlist_item.create = [{
+                    media_file_id: 2035,
+                    priority: 0,
+                    playlist_id: comagicVaPlaylist1,
+                    id: comagicVaPlaylistItem1
+                }, undefined];
+
+                return this;
+            },
+            addingSecondCrmFieldWhileOtherFieldHasEntity: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 7,
+                    name: 'Голосовая почта 2',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1,
+                    playlist_id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 86392,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 125,
+                    id: comagicVaActionJump1
+                }, undefined];
+
+                bodyParams.action_jump_crm_field.create = [{
+                    action_jump_id: comagicVaActionJump1,
+                    priority: 0,
+                    user_field_id: 295656,
+                    operator: '=',
+                    value: ['1162718'],
+                    partner: 'amocrm',
+                    id: comagicVaActionJumpCrmField1,
+                    category: 'user_field',
+                    entity: undefined
+                }, undefined];
+
+                bodyParams.playlist.create = [{
+                    id: comagicVaPlaylist1
+                }, undefined]
+
+                bodyParams.playlist_item.create = [{
+                    media_file_id: 2035,
+                    priority: 0,
+                    playlist_id: comagicVaPlaylist1,
+                    id: comagicVaPlaylistItem1
+                }, undefined];
+
+                return this;
+            },
+            addingSecondCrmFieldWithEntity: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 7,
+                    name: 'Голосовая почта 2',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1,
+                    playlist_id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 86392,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 125,
+                    id: comagicVaActionJump1
+                }, undefined];
+
+                bodyParams.action_jump_crm_field.create = [{
+                    action_jump_id: comagicVaActionJump1,
+                    priority: 0,
+                    user_field_id: 2632364,
+                    operator: '=',
+                    value: 'UIS',
+                    partner: 'amocrm',
+                    id: comagicVaActionJumpCrmField1,
+                    category: 'user_field',
+                    entity: 'contacts'
+                }, undefined];
+
+                bodyParams.action_jump_crm_field.update = [{
+                    action_jump_id: 572858,
+                    priority: 0,
+                    operator: '=',
+                    value: ['4530994'],
+                    id: 271508,
+                    category: 'sales_funnel',
+                    partner: 'amocrm',
+                    user_field_id: null,
+                    entity: null
+                }, undefined];
+
+                bodyParams.playlist.create = [{
+                    id: comagicVaPlaylist1
+                }, undefined]
+
+                bodyParams.playlist_item.create = [{
+                    media_file_id: 2035,
+                    priority: 0,
+                    playlist_id: comagicVaPlaylist1,
+                    id: comagicVaPlaylistItem1
+                }, undefined];
+
+                return this;
+            },
+            addingSecondVoiceMail: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 7,
+                    name: 'Голосовая почта 3',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1,
+                    playlist_id: comagicVaPlaylist1
+                }, undefined];
+                
+                bodyParams.action_jump_crm_field.update = [{
+                    action_jump_id: 647295,
+                    priority: 0,
+                    user_field_id: 295656,
+                    operator: '=',
+                    value: ['1162718'],
+                    partner: 'amocrm',
+                    id: 37838,
+                    category: 'user_field',
+                    entity: null
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 53729,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 7393,
+                    id: comagicVaActionJump1
+                }, undefined];
+
+                bodyParams.playlist.create = [{
+                    id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.playlist_item.create = [{
+                    media_file_id: 2035,
+                    priority: 0,
+                    playlist_id: comagicVaPlaylist1,
+                    id: comagicVaPlaylistItem1
+                }, undefined];
+
+                return this;
+            },
+            addProstprocessForApp59274: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 13,
+                    name: 'Метка звонка (постобработка) 1',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 569447,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 62,
+                    id: comagicVaActionJump1
+                }, undefined];
+
+                return this;
+            },
+            expectToBeSent: function () {
                 requestsManager.recentRequest().
-                    expectToHavePath('/services/ats__scenario/action_types/read/').
-                    respondSuccessfullyWith({
-                        success: true,
-                        data: [{
-                            available_by_components: true,
-                            components: ['voice_mail'],
-                            description: 'Звонящему предлагается оставить голосовое сообщение, которое можно ' +
-                                'отправить на указанный Вами e-mail. Даже если звонящий не оставит сообщение, на ' +
-                                'e-mail придет письмо, в теме которого будет содержаться номер звонящего и время ' +
-                                'поступления звонка. Опцию удобно использовать в качестве завершающей в случае, если ' +
-                                'никто из сотрудников не ответил на звонок, или как сценарий нерабочего времени. ' +
-                                'Таким образом можно быть уверенным, что все обращения будут обработаны.',
-                            id: 7,
-                            is_postprocess: false,
-                            mnemonic: 'voice_mail',
-                            name: 'Голосовая почта'
-                        }, {
-                            available_by_components: true,
-                            components: ['menu'],
-                            description: 'Звонящему предлагается нажать одну из клавиш на телефоне, чтобы ' +
-                                'соединиться с нужным отделом или прослушать какую-либо информацию. Чтобы не ' +
-                                'потерять звонок в случаях, когда звонящий не нажал ни на одну из предложенных ' +
-                                'клавиш, или нажал на одну из ненастроенных, настройте операции “время ожидания ' +
-                                'истекло” и “некорректный ввод”. Если вы хотите разрешить одновременно с выбором ' +
-                                'пункта меню вводить и внутренний номер, то обратитесь в службу консалтинга: они ' +
-                                'помогут настроить работу в таком режиме.',
-                            id: 4,
-                            is_postprocess: false,
-                            mnemonic: 'menu',
-                            name: 'Меню'
-                        }]
-                    });
+                    expectToHavePath('/services/ats__scenario/scenario/change/').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain(bodyParams);
             }
         };
     };

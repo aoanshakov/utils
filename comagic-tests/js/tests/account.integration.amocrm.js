@@ -1,7 +1,7 @@
 tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener) {
     var helper;
 
-    xdescribe(
+    describe(
         'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM".',
     function() {
         beforeEach(function() {
@@ -30,7 +30,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.requestSyncSalesFunnel().send();
             });
 
-            describe(
+            xdescribe(
                 'При первичном обращении создается сделка. Для офлайн сообщений создаются сделки. Для чатов ' +
                 'создаются сделки. При повторных обращениях создается сделка. Открыта вкладка "Входящие звонки".',
             function() {
@@ -63,7 +63,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     helper.addFunnelButton.expectToBeEnabled();
                 });
             });
-            describe(
+            xdescribe(
                 'Первичные обращения обрабатываются вручную. Повторные обращения не обрабатываются. Открыта вкладка ' +
                 '"Входящие звонки".',
             function() {
@@ -90,7 +90,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     helper.addFunnelButton.expectToBeDisabled();
                 });
             });
-            it(
+            xit(
                 'Для чатов создаются сделки. Повторные обращения не обрабатываются. Открыта вкладка "Входящие ' +
                 'звонки". Открываю вкладку "Чаты". Настройки заблокированы.',
             function() {
@@ -104,7 +104,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                 helper.addFunnelButton.expectToBeDisabled();
             });
-            it(
+            xit(
                 'Для офлайн заявок создаются сделки. Повторные обращения не обрабатываются. Открыта вкладка ' +
                 '"Входящие звонки". Открываю вкладку "Офлайн Заявки". Настройки заблокированы.',
             function() {
@@ -118,7 +118,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                 helper.addFunnelButton.expectToBeDisabled();
             });
-            describe(
+            xdescribe(
                 'При первичном обращении создается сделка. Повторные обращения не обрабатываются. Открыта вкладка ' +
                 '"Входящие звонки".',
             function() {
@@ -153,7 +153,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.form.combobox().withValue('Некая воронка').expectToBeVisible();
             });
         });
-        describe(
+        return;
+        xdescribe(
             'Тип переадресации на ответственного сотрудника не определен. Открываю вкладку "Телефония".',
         function() {
             beforeEach(function() {
@@ -231,14 +232,16 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                 helper.tabPanel.tab('Телефония').click();
                 wait(10);
+
+                helper.entityNameTemplateNsParamsRequest().receiveResponse();
             });
 
-            it(
+            xit(
                 'Выбираю время в выпдающем спике "После завершения звонка обновлять ответственного сотрудника ' +
-                'через". Выбираю опцию "На ответственного из настроек интеграции" в выпадающем списке "Назначать". ' +
-                'Нажимаю на кнопку "Сохранить". Измененные данные сохранены.',
+                'через". Выбираю опцию "На ответственного из настроек интеграции" в выпадающем списке "Назначать при ' +
+                'потерянном звонке". Нажимаю на кнопку "Сохранить". Измененные данные сохранены.',
             function() {
-                helper.form.combobox().withFieldLabel('Назначать').clickArrow().
+                helper.row('Назначать при потерянном звонке').column(1).combobox().clickArrow().
                     option('На ответственного из настроек интеграции').click();
                 wait(10);
 
@@ -251,14 +254,23 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             });
             it(
                 'В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" выбрана ' +
-                'опция "0 мин". В выпадающем списке "Назначать" выбрана опция "На звонящего". Опция "Использовать ' +
-                'функциональность "Неразобранное"" заблокирована.',
+                'опция "0 мин". В выпадающем списке "Назначать при потерянном звонке" выбрана опция "На звонящего". ' +
+                'Опция "Использовать функциональность "Неразобранное"" заблокирована.',
             function() {
-                helper.form.combobox().withFieldLabel('Назначать').expectToHaveValue('На звонящего');
+                helper.row('Для первичных обращений').column(1).combobox().clickArrow().
+                    option('Использовать функциональность "Неразобранное"').createTester().
+                    forDescendant('.x-form-error-msg').
+                    expectTooltipWithText('Необходимо активировать “Неразобранное” в amoCRM').
+                    toBeShownOnMouseOver();
+
+                wait()
+                return;
+
+                helper.row('Назначать при потерянном звонке').column(1).combobox().expectToHaveValue('На звонящего');
                 helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('0 мин');
-                helper.unsortedRadioField().expectToBeDisabled();
             });
         });
+        return;
         describe(
             'Обновление ответственного включено, время заполнения карточки установлено. Открываю вкладку ' +
             '"Телефония".',
@@ -303,8 +315,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
             helper.tabPanel.tab('Телефония').click();
             wait(10);
-
-            helper.unsortedRadioField().expectToBeEnabled();
         });
         it(
             'Обновление ответственного отключено, время заполнения карточки установлено. Открываю вкладку ' +
@@ -368,6 +378,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(10);
         });
     });
+    return;
     describe(
         'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
         'Открыта вкладка "Доступ к данным".',
@@ -390,7 +401,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(10);
         });
         
-        xdescribe('Открываю вкладку "Мультиворонки".', function() {
+        describe('Открываю вкладку "Мультиворонки".', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Мультиворонки').click();
                 wait(10);
@@ -450,7 +461,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
             });
         });
-        xdescribe('Открываю вкладку "Сквозная аналитика". Изменяю поля формы.', function() {
+        describe('Открываю вкладку "Сквозная аналитика". Изменяю поля формы.', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Сквозная аналитика').click();
                 wait(10);
@@ -521,7 +532,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.boundList.expectNotToHaveClass('cm-multi-select-field-options-disabled');
             });
         });
-        xit('Открываю вкладку "Ответственные". Открываю вкладку "Исходящие звонки".', function() {
+        it('Открываю вкладку "Ответственные". Открываю вкладку "Исходящие звонки".', function() {
             helper.tabPanel.tab('Ответственные').click();
             wait(10);
             helper.requestResponsibles().send();
@@ -538,7 +549,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.requestUserFields().send();
             wait(10);
         });
-        return;
         it('Открываю вкладку "Фильтр обращений".', function() {
             helper.tabPanel.tab('Фильтр обращений').click();
             wait(10);
@@ -555,7 +565,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(10);
         });
     });
-    return;
     it(
         'Расширенная интеграция недоступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
         'Открываю вкладку "Мультиворонки". Первичные обращения обрабатываются вручную. При повторных обращениях ' +

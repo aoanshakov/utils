@@ -296,6 +296,19 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         };
     };
 
+    this.entityNameTemplateNsParamsRequest = function () {
+        return {
+            receiveResponse: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/directory/comagic:amocrm:entity_name_template_ns_params/').
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: [] 
+                    });
+            }
+        };
+    };
+
     this.requestSelectMultiselectUserFields = function () {
         return {
             send: function () {
@@ -681,6 +694,7 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         var data = {
             id: 3208,
             crm_record: getAmocrmData(),
+            first_in_call_act: 'contact',
             in_call_filters: [{
                 user_id: 8274,
                 user_name: 'Ivanov Ivan Ivanovich',
@@ -1149,5 +1163,23 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
     this.button = function (text) {
         return testersFactory.
             createDomElementTester(utils.descendantOfBody().textEquals(text).matchesSelector('.x-btn').find());
+    };
+
+    this.row = function (label) {
+        var tr = utils.descendantOfBody().textEquals(label).matchesSelector('.x-component').find().closest('tr');
+
+        return {
+            column: function (index) {
+                var td = tr.querySelectorAll('td')[index] || new JsTester_NoElement();
+
+                return {
+                    combobox: function () {
+                        return testersFactory.createComboBoxTester(utils.getComponentFromDomElement(
+                            td.querySelector('.x-field')
+                        ));
+                    }
+                };
+            }
+        };
     };
 }

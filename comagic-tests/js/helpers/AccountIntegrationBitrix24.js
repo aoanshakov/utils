@@ -54,7 +54,7 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
             is_transfer_talks: false,
             is_source_numb_transmission: true,
             is_process_call: false,
-            telephony_provider: true,
+            telephony_provider: 'uis_comagic',
             has_update_contact_on_call_finished_timeout: false,
             update_contact_on_call_finished_timeout: 3630,
             is_enable_callback: true,
@@ -88,7 +88,8 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
             in_call_responsible_user_id: 29185,
             out_call_responsible_user_id: 68293,
             offline_message_responsible_user_id: 73062,
-            chat_responsible_user_id: 18544
+            chat_responsible_user_id: 18544,
+            is_need_use_remote_user_statuses: false
         };
     }
 
@@ -218,26 +219,53 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
     };
 
     this.requestBitrix24Status = function () {
-        return {
-            send: function () {
-                requestsManager.recentRequest().
+        var data = {
+            result: true,
+            data: {
+                user_status_sync_available: true
+            }
+        };
+
+        function addMethods (request) {
+            request.userStatusSyncUnavailable = function () {
+                data.data.user_status_sync_available = false;
+                return request;
+            };
+
+            return request;
+        }
+
+        return addMethods({
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
                     expectToHavePath('/account/integration/bitrix24/status/').
                     expectQueryToContain({
                         access_token: '24937851083',
                         domain: 'otherdomain.com'
-                    }).
-                    respondSuccessfullyWith({
-                        success: true,
-                        data: {
+                    });
+
+                return addMethods({
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith({
                             success: true,
                             data: {
-                                result: true
+                                success: true,
+                                data: data 
                             }
-                        }
-                    });
+                        });
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            },
+            send: function () {
+                this.receiveResponse();
             }
-        };
+        });
     };
+
+    this.bitrix24StatusRequest = this.requestBitrix24Status;
 
     this.requestSalesFunnelComponentTariffInfo = function () {
         return {
@@ -326,8 +354,11 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
                 mnemonic: 'somelink'
             }],
             'comagic:bitrix:telephony_provider': [{
+                description_short: 'UIS / CoMagic',
+                mnemonic: 'uis_comagic',
+            }, {
                 description_short: 'Мобильные ТелеСистемы',
-                valueField: 'mts',
+                mnemonic: 'mts',
             }],
             'comagic:public:click_to_call_vnumber': [{
                 vnumber: 79161234567,
@@ -466,10 +497,28 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
 
     this.requestBitrix24DataSave = function () {
         var bodyParams = {
-            id: 83782
+            id: 83782,
+            is_anyway_send_talk_records: undefined,
+            is_transfer_talks: undefined
         };
 
         return {
+            isNotTransferTalks: function () {
+                bodyParams.is_transfer_talks = false;
+                return this;
+            },
+            isNotAnywaySendTalkRecords: function () {
+                bodyParams.is_anyway_send_talk_records = false;
+                return this;
+            },
+            isAnywaySendTalkRecords: function () {
+                bodyParams.is_anyway_send_talk_records = true;
+                return this;
+            },
+            isTransferTalks: function () {
+                bodyParams.is_transfer_talks = true;
+                return this;
+            },
             setSaleCategoryUserFieldValueIds: function () {
                 bodyParams.sale_category_user_field_value_ids = ['495300', '495302'];
                 return this;
@@ -478,8 +527,12 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
                 bodyParams.loss_reason_user_field_value_ids = ['495299', '495303'];
                 return this;
             },
-            setStatusesImport: function () {
-                bodyParams.statuses_import = true;
+            setIsNeedUseRemoteUserStatuses: function () {
+                bodyParams.is_need_use_remote_user_statuses = true;
+                return this;
+            },
+            setIsNotNeedUseRemoteUserStatuses: function () {
+                bodyParams.is_need_use_remote_user_statuses = false;
                 return this;
             },
             send: function () {
@@ -496,16 +549,47 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
 
     this.requestBitrix24Data = function () {
         return {
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
+                    expectToHavePath('/account/integration/bitrix24/read/');
+
+                var data = getBitrixData();
+
+                return {
+                    isAnywaySendTalkRecords: function () {
+                        data.is_anyway_send_talk_records = true;
+                        return this;
+                    },
+                    isTransferTalks: function () {
+                        data.is_transfer_talks = true;
+                        return this;
+                    },
+                    isProcessCall: function () {
+                        data.is_process_call = true;
+                        return this;
+                    },
+                    isNeedUseRemoteUserStatuses: function () {
+                        data.is_need_use_remote_user_statuses = true;
+                        return this;
+                    },
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith({
+                            success: true,
+                            data: [data]
+                        });
+                    }
+                };
+            },
             send: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('/account/integration/bitrix24/read/').
-                    respondSuccessfullyWith({
-                        success: true,
-                        data: [getBitrixData()]
-                    });
+                this.receiveResponse();
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
             }
         };
     };
+
+    this.bitrix24DataRequest = this.requestBitrix24Data
 
     this.requestResponsibleUsersSaving = function () {
         var bodyParams = {
@@ -607,11 +691,24 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
 
     this.switchButton = function (text) {
         return testersFactory.createDomElementTester(
-            utils.descendantOfBody().
-                textContains(text).
-                matchesSelector('.x-form-type-switchbox').
-                find().
-                querySelector('.x-form-field')
+            text ?
+
+                utils.descendantOfBody().
+                    textContains(text).
+                    matchesSelector('.x-form-type-switchbox').
+                    find().
+                    querySelector('.x-form-field') : 
+
+                utils.getVisible(document.querySelectorAll('.x-form-type-switchbox .x-form-field'))
         );
     };
+
+    this.fieldLabel = function (text) {
+        return testersFactory.createDomElementTester(
+            utils.descendantOfBody().
+                textContains(text).
+                matchesSelector('.x-form-item-label-inner').
+                find()
+        );
+    }
 }
