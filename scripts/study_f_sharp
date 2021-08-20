@@ -1,0 +1,7 @@
+#!/bin/bash
+
+docker run -it --rm \
+    -v $HOME/workspace/utils/study_f_sharp:/usr/local/src/study_f_sharp \
+    -w /usr/local/src/study_f_sharp \
+    -p 8080:5000 \
+    study_f_sharp
