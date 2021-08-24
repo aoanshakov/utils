@@ -182,6 +182,8 @@ function! SetUpEslint()
         let isTest = isTest || stridx(path, '/proposal_generator_frontend_tests/') != -1
         let isTest = isTest || stridx(path, '/consultant_utils/tests/') != -1
         let isTest = isTest || stridx(path, '/uis_webrtc/tests/') != -1
+        let isTest = isTest || stridx(path, '/comagic_app_tests/tests/') != -1
+        let isTest = isTest || stridx(path, '/bitrix-digital-pipeline/tests/') != -1
 
         if isTest == 1
             noremap ;aa k^f)%Ix<esc>^zz
@@ -196,13 +198,20 @@ function! SetUpEslint()
             let isReactApp = isReactApp || stridx(path, '/bitrix_widget/')  != -1
             let isReactApp = isReactApp || stridx(path, '/react_widget/')  != -1
             let isReactApp = isReactApp || stridx(path, '/call_center_frontend/') != -1
+            let isReactApp = isReactApp || stridx(path, '/comagic_app/') != -1
             let isReactApp = isReactApp || stridx(path, '/softphone/') != -1
         endif
 
+        let isReactApp = isReactApp || stridx(path, '/bitrix-digital-pipeline/')  != -1
         let isReactApp = isReactApp || stridx(path, '/admin-frontend-tests/')  != -1
         let isReactApp = isReactApp || stridx(path, '/proposal_generator_frontend_tests/')  != -1
         let isReactApp = isReactApp || stridx(path, '/consultant_utils/') != -1
         let isReactApp = isReactApp || stridx(path, '/uis_webrtc/') != -1
+        let isReactApp = isReactApp || stridx(path, '/comagic_app_tests/') != -1
+
+        if stridx(path, '/bitrix-digital-pipeline/script.js') != -1
+            let isReactApp = 0
+        endif
 
         if stridx(path, '/comagic_web/static/easystart/') != -1
             call SetUpEasyStart()

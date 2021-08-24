@@ -1,0 +1,98 @@
+diff --git a/config/webpack.config.js b/config/webpack.config.js
+index 69d3cf1e..f93e5025 100644
+--- a/config/webpack.config.js
++++ b/config/webpack.config.js
+@@ -153,6 +153,9 @@ const plugins = () => {
+             filename: 'static/css/[name].[fullhash:8].css',
+             ignoreOrder: true,
+         }),
++        new webpack.optimize.LimitChunkCountPlugin({
++            maxChunks: 1
++        })
+     ];
+ 
+     if (isBundleAnalyzerPlugin) {
+diff --git a/public/index.html b/public/index.html
+index 98e0c107..0fe0c90f 100644
+--- a/public/index.html
++++ b/public/index.html
+@@ -22,6 +22,22 @@
+     })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
+     <!-- End Google Tag Manager -->
+     <% } %>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
++    <script>
++        var windowLoadHandler = window.onload;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/boot.js"></script>
++    <script>
++        window.onload = windowLoadHandler;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-ajax/lib/mock-ajax.js"></script>
++    <script src="/tests/utils/jasmine/console-reporter.js"></script>
++    <script src="/tests/utils/js-tester.js"></script>
++    <script type="text/javascript">
++        var tests = new JsTester_Tests(new JsTester_Factory());
++        tests.exposeDebugUtils('jsTestDebug');
++    </script>
+ </head>
+ <body>
+     <% if (htmlWebpackPlugin.options.env.production) { %>
+@@ -33,5 +49,8 @@
+     <% } %>
+     <noscript>You need to enable JavaScript to run this app.</noscript>
+     <div id="root"></div>
++    <script src="/tests/utils/require.js"></script>
++    <script src="/tests/tests.js"></script>
++    <script src="/tests/utils/tests.js"></script>
+ </body>
+ </html>
+\ No newline at end of file
+diff --git a/src/history.ts b/src/history.ts
+index 33bf6a02..dceaff1c 100644
+--- a/src/history.ts
++++ b/src/history.ts
+@@ -1,6 +1,6 @@
+-import { createBrowserHistory } from 'history';
++import { createMemoryHistory } from 'history';
+ 
+-const history = createBrowserHistory();
++const history = createMemoryHistory();
+ 
+ //TODO: может заменить на location.reload()?
+ export const reloadPage = (): void => {
+diff --git a/src/index.tsx b/src/index.tsx
+index e2360abd..a07843d5 100644
+--- a/src/index.tsx
++++ b/src/index.tsx
+@@ -48,4 +48,28 @@ const Root: React.FC = observer(() => {
+     );
+ });
+ 
+-ReactDOM.render(<Root />, document.getElementById('root'));
++window.application = {
++    run({
++        setHistory = () => null
++    }) {
++        setHistory(history);
++        this.exit();
++
++        const container = document.createElement('div');
++        container.id = 'root';
++        document.body.appendChild(container);
++
++        ReactDOM.render(<Root />, container);
++    },
++
++    exit() {
++        const container = document.getElementById('root');
++
++        if (!container || !container.firstChild) {
++            return;
++        }
++
++        ReactDOM.unmountComponentAtNode(container);
++        container.remove();
++    }
++};
