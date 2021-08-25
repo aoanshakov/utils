@@ -29,7 +29,7 @@ function runApplication (currentValues) {
             var name = args[0],
                 visibility = args[1];
 
-            document.querySelector('[name=' + name + ']').style.display = visibility ? 'block' : 'none';
+            document.querySelector('[name=' + name + ']').closest('div').style.display = visibility ? 'block' : 'none';
         });
     }
 
@@ -75,9 +75,6 @@ function runApplication (currentValues) {
     }, {
         names: ['virtual_number_numb', 'virtual_number'],
         dataUrl: 'number_capacity?with_scenario=1',
-        params: {
-            with_scenario: 1
-        },
         displayField: 'numb'
     }, {
         names: ['scenario_id'],

@@ -4,7 +4,6 @@ template = """<!DOCTYPE html>
 <html>
 <head>
 
-
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 
 <script>var token = "{{ token }}";</script>
@@ -15,7 +14,6 @@ template = """<!DOCTYPE html>
 
 function runApplication (currentValues) {
     currentValues = currentValues || {}
-    BX24.init(function() {});
 
     function getFormValues () {
         return Array.prototype.map.call(document.querySelector('form').elements, function (element) {
@@ -45,7 +43,7 @@ function runApplication (currentValues) {
             var name = args[0],
                 visibility = args[1];
 
-            document.querySelector('[name=' + name + ']').style.display = visibility ? 'block' : 'none';
+            document.querySelector('[name=' + name + ']').closest('div').style.display = visibility ? 'block' : 'none';
         });
     }
 
@@ -91,9 +89,6 @@ function runApplication (currentValues) {
     }, {
         names: ['virtual_number_numb', 'virtual_number'],
         dataUrl: 'number_capacity?with_scenario=1',
-        params: {
-            with_scenario: 1
-        },
         displayField: 'numb'
     }, {
         names: ['scenario_id'],
@@ -110,35 +105,53 @@ function runApplication (currentValues) {
             selectField.disabled = true
         });
 
+        function createOptions (data) {
+            var isEmpty = !data || !data.length;
+
+            selectFields.forEach(function (selectField) {
+                var options = isEmpty ? [createOption({
+                    value: '',
+                    text: '...'
+                })] : [];
+
+                (data || []).forEach(function (record) {
+                    var value = record.id;
+
+                    options.push(createOption({
+                        value: value,
+                        text: record[params.displayField],
+                        selected: currentValues[selectField.name] == value
+                    }))
+                });
+
+                selectField.innerHTML = options.join('');
+                !isEmpty && (selectField.disabled = false);
+            });
+        }
+
+        createOptions();
+
         request({
             url: params.dataUrl,
-            callback: function (data) {
-                selectFields.forEach(function (selectField) {
-                    var options = [createOption({
-                        value: '',
-                        text: '...'
-                    })];
-
-                    (data || []).forEach(function (record) {
-                        var value = record.id;
-
-                        options.push(createOption({
-                            value: value,
-                            text: record[params.displayField],
-                            selected: currentValues[selectField.name] == value
-                        }))
-                    });
-
-                    selectField.innerHTML = options.join('');
-                    selectField.disabled = false
-                });
-            }
+            callback: createOptions
         });
     });
 
     currentValues.employee_message && (document.querySelector('textarea').innerHTML = currentValues.employee_message);
 
-    document.querySelector('button').addEventListener('click', function (event) {
+    const autoCallOnSelect = document.querySelector('select[name="autocall_on"]');
+    
+    autoCallOnSelect.addEventListener('change', updateVisibility);
+    autoCallOnSelect.value = currentValues.autocall_on || 'personal_manager';
+
+    const button = document.querySelector('button');
+    button.disabled = true;
+
+    BX24.init(function() {
+        button.disabled = false;
+    });
+
+    button.addEventListener('click', function (event) {
         event.preventDefault();
         var values = getFormValues();
         
@@ -152,11 +165,6 @@ function runApplication (currentValues) {
         BX24.placement.call('setPropertyValue', values);
     });
 
-    const autoCallOnSelect = document.querySelector('select[name="autocall_on"]');
-    
-    autoCallOnSelect.addEventListener('change', updateVisibility);
-    autoCallOnSelect.value = currentValues.autocall_on || 'personal_manager';
-
     updateVisibility();
 }
 
@@ -168,6 +176,11 @@ select, button {
     height: 30px;
     background: #fff;
     border: 1px solid #000;
+}
+
+select[disabled], button[disabled] {
+    cursor: not-allowed;
+    color: #ccc;
 }
 
 select, textarea {

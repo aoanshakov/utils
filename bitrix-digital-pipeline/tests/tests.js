@@ -98,7 +98,9 @@ tests.addTest(options => {
                                 tester.select('Звонить').option('На виртуальный номер').click();
                             });
 
-                            it('Выбираю номер. Нажимаю на кнопку сохранения. Введенные значения сохранены.' , function() {
+                            it(
+                                'Выбираю номер. Нажимаю на кнопку сохранения. Введенные значения сохранены.' ,
+                            function() {
                                 tester.select().option('79151234568').click();
 
                                 tester.button.click();
@@ -114,7 +116,7 @@ tests.addTest(options => {
                             });
                             it('Поле "Звонить абоненту с номера" скрыто.', function() {
                                 tester.select().option('79151234567').expectToBeSelected();
-                                tester.select('Звонить абоненту с номера').expectToBeHidden();
+                                tester.select('Звонить абоненту с номера').expectToBeHiddenOrNotExist();
                                 tester.textarea.expectToBeVisible();
                             });
                         });
@@ -205,7 +207,7 @@ tests.addTest(options => {
 
             tester.select('Звонить').option('На виртуальный номер').expectToBeSelected();
             tester.select().option('79151234568').expectToBeSelected();
-            tester.select('Звонить абоненту с номера').expectToBeHidden();
+            tester.select('Звонить абоненту с номера').expectToBeHiddenOrNotExist();
             tester.textarea.expectToHaveTextContent('Привет!');
         });
     });
