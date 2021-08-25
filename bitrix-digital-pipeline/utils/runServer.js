@@ -42,10 +42,12 @@ module.exports = () => {
                 ])].join(''),
 
                 ...(Object.entries({
-                    employee_id: 'Сотрудник',
-                    virtual_number: 'Звонить абоненту с номера',
-                    scenario_id: 'Сценарий',
-                    employee_message: 'Голосовое сообщение для сотрудника'
+                    employee_id: 'Сотруднику',
+                    virtual_number: 'На виртуальный номер',
+                    virtual_number_numb: 'Звонить абоненту с номера',
+                    scenario_id: 'По сценарию ВАТС',
+                    employee_message: 'Голосовое сообщение для сотрудника',
+                    autocall_on: 'Звонить'
                 }).reduce((result, [key, value]) => ((result[`properties.${key}.NAME`] = value), result), {})),
 
                 'token': 'Fl298gw0e2Foiweoa4Ua-0923gLwe84we3LErwiI230',

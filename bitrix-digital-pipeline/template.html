@@ -14,18 +14,31 @@
 <body>
     <form>
         <div>
-            <label>{{ properties.employee_id.NAME }}:</label>
+            <label>{{ properties.autocall_on.NAME }}:</label>
+
+            <select name="autocall_on">
+                <option value="personal_manager">{{ to_personal_manager }}</option>
+                <option value="employee_id">{{ properties.employee_id.NAME }}</option>
+                <option value="virtual_number">{{ properties.virtual_number.NAME }}</option>
+                <option value="scenario_id">{{ properties.scenario_id.NAME }}</option>
+            </select>
+        </div>
+
+        <div>
             <select name="employee_id"></select>
+        </div>
+
+        <div>
+            <select name="virtual_number"></select>
+        </div>
+
+        <div>
+            <select name="scenario_id"></select>
         </div>
 
         <div>
             <label>{{ properties.virtual_number_numb.NAME }}:</label>
             <select name="virtual_number_numb"></select>
-        </div>
-
-        <div>
-            <label>{{ properties.scenario_id.NAME }}:</label>
-            <select name="scenario_id"></select>
         </div>
 
         <div>

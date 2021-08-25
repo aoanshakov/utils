@@ -4,6 +4,11 @@ select, button {
     border: 1px solid #000;
 }
 
+select[disabled], button[disabled] {
+    cursor: not-allowed;
+    color: #ccc;
+}
+
 select, textarea {
     width: 300px;
     box-sizing: border-box;

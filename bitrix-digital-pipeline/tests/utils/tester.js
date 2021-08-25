@@ -5,9 +5,10 @@ define(() => {
         ajax
     }) {
         const currentValues = {};
+        let callback = () => null;
 
         window.BX24 = {
-            init: () => null,
+            init: value => (callback = value),
             placement: {
                 call: (methodName, ...args) => {
                     if (methodName != 'setPropertyValue') {
@@ -22,21 +23,42 @@ define(() => {
         };
 
         return {
+            initializeB24: () => callback(),
             expectPropertiesToHaveValues: expectedValues => utils.expectObjectToContain(currentValues, expectedValues),
 
             textarea: testersFactory.createTextAreaTester(() => document.querySelector('textarea')),
             button: testersFactory.createDomElementTester(() => document.querySelector('button')),
 
-            select: label => ({
-                option: text => {
-                    const getElements = () => {
-                        const select = utils.descendantOfBody().
-                            matchesSelector('label').
-                            textEquals(label + ':').
-                            find().
-                            closest('div').
-                            querySelector('select');
+            select: label => {
+                const getSelectsWithoutLabel = () => Array.prototype.filter.call(
+                    document.querySelectorAll('select'),
+                    select => !select.closest('div').querySelector('label')
+                );
 
+                const getSelect = () => label ?
+
+                    utils.descendantOfBody().
+                        matchesSelector('label').
+                        textEquals(label + ':').
+                        find().
+                        closest('div').
+                        querySelector('select') :
+
+                    utils.getVisibleSilently(getSelectsWithoutLabel());
+
+                const tester = testersFactory.createDomElementTester(getSelect);
+
+                !label && (tester.expectToBeHidden = () => {
+                    if (getSelectsWithoutLabel().some(select => utils.isVisible(select))) {
+                        throw new Error('Выпадающие списки без лейбла должны быть скрыты.');
+                    }
+                });
+
+                const selectDescription = label ? ' "' + label + '"' : '';
+
+                tester.option = text => {
+                    const getElements = () => {
+                        const select = getSelect();
                         testersFactory.createDomElementTester(select).expectToBeVisible();
 
                         const option = Array.prototype.find.call(select.querySelectorAll('option'), option => {
@@ -45,7 +67,8 @@ define(() => {
 
                         if (!option) {
                             throw new Error(
-                                'Опция с текстом "' + text + '" должна существовать в выпдающем списке "' + label + '".'
+                                'Опция с текстом "' + text + '" должна существовать в выпдающем списке' +
+                                selectDescription + '.'
                             );
                         }
 
@@ -58,7 +81,8 @@ define(() => {
 
                             if (select.value != option.value) {
                                 throw new Error(
-                                    'В выпадающем списке "' + label + '" должна быть выбрана опция "' + text + '".'
+                                    'В выпадающем списке' + selectDescription + ' должна быть выбрана опция "' + text +
+                                    '".'
                                 );
                             }
                         },
@@ -72,8 +96,10 @@ define(() => {
                             }));
                         }
                     };
-                } 
-            }),
+                };
+
+                return tester;
+            },
 
             scenariosRequest: () => ({
                 expectToBeSent() {
@@ -243,11 +269,45 @@ define(() => {
             }),
 
             application: () => {
-                const currentValues = {};
+                let currentValues = {};
 
                 const me = {
-                    employeeChosen: () => ((currentValues.employee_id = 82756), me),
-                    messageDefined: () => ((currentValues.employee_message = 'Добрый вечер!'), me),
+                    employeeChosen: () => ((currentValues = {
+                        autocall_on: 'employee_id',
+                        employee_id: '583783',
+                        virtual_number_numb: '29387',
+                        virtual_number: '',
+                        scenario_id: '',
+                        employee_message: 'Привет!'
+                    }), me),
+
+                    scenarioChosen: () => ((currentValues = {
+                        autocall_on: 'scenario_id',
+                        employee_id: '',
+                        virtual_number_numb: '29387',
+                        virtual_number: '',
+                        scenario_id: '95173',
+                        employee_message: ''
+                    }), me),
+
+                    callToPersonalManager: () => ((currentValues = {
+                        autocall_on: 'personal_manager',
+                        employee_id: '',
+                        virtual_number_numb: '29387',
+                        virtual_number: '',
+                        scenario_id: '',
+                        employee_message: 'Привет!'
+                    }), me),
+
+                    callToVirtualNumber: () => ((currentValues = {
+                        autocall_on: 'virtual_number',
+                        employee_id: '',
+                        virtual_number_numb: '',
+                        virtual_number: '29386',
+                        scenario_id: '',
+                        employee_message: 'Привет!'
+                    }), me),
+
                     run: () => runApplication(currentValues)
                 };
 

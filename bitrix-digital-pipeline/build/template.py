@@ -1,5 +1,21 @@
+# -*- coding:utf-8 -*-
+
+template = """<!DOCTYPE html>
+<html>
+<head>
+
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+<script>var token = "{{ token }}";</script>
+
+<script src="//api.bitrix24.com/api/v1/"></script>
+
+<script>
+
 function runApplication (currentValues) {
     currentValues = currentValues || {}
+    BX24.init(function() {});
 
     function getFormValues () {
         return Array.prototype.map.call(document.querySelector('form').elements, function (element) {
@@ -122,19 +138,7 @@ function runApplication (currentValues) {
 
     currentValues.employee_message && (document.querySelector('textarea').innerHTML = currentValues.employee_message);
 
-    const autoCallOnSelect = document.querySelector('select[name="autocall_on"]');
-    
-    autoCallOnSelect.addEventListener('change', updateVisibility);
-    autoCallOnSelect.value = currentValues.autocall_on || 'personal_manager';
-
-    const button = document.querySelector('button');
-    button.disabled = true;
-
-    BX24.init(function() {
-        button.disabled = false;
-    });
-
-    button.addEventListener('click', function (event) {
+    document.querySelector('button').addEventListener('click', function (event) {
         event.preventDefault();
         var values = getFormValues();
         
@@ -148,5 +152,95 @@ function runApplication (currentValues) {
         BX24.placement.call('setPropertyValue', values);
     });
 
+    const autoCallOnSelect = document.querySelector('select[name="autocall_on"]');
+    
+    autoCallOnSelect.addEventListener('change', updateVisibility);
+    autoCallOnSelect.value = currentValues.autocall_on || 'personal_manager';
+
     updateVisibility();
 }
+
+</script>
+
+<style>
+
+select, button {
+    height: 30px;
+    background: #fff;
+    border: 1px solid #000;
+}
+
+select, textarea {
+    width: 300px;
+    box-sizing: border-box;
+}
+
+textarea {
+    height: 100px;
+    padding: 10px;
+}
+
+label {
+    margin-bottom: 15px;
+    display: block;
+}
+
+body {
+    padding: 20px;
+}
+
+body, textarea {
+    font-family: sans-serif;
+    font-size: 14px;
+}
+
+div {
+    margin-bottom: 25px;
+}
+
+</style>
+
+<script>document.addEventListener("DOMContentLoaded", function () {runApplication({{ current_values|safe }});})</script>
+
+</head>
+
+<body>
+    <form>
+        <div>
+            <label>{{ properties.autocall_on.NAME }}:</label>
+
+            <select name="autocall_on">
+                <option value="personal_manager">{{ to_personal_manager }}</option>
+                <option value="employee_id">{{ properties.employee_id.NAME }}</option>
+                <option value="virtual_number">{{ properties.virtual_number.NAME }}</option>
+                <option value="scenario_id">{{ properties.scenario_id.NAME }}</option>
+            </select>
+        </div>
+
+        <div>
+            <select name="employee_id"></select>
+        </div>
+
+        <div>
+            <select name="virtual_number"></select>
+        </div>
+
+        <div>
+            <select name="scenario_id"></select>
+        </div>
+
+        <div>
+            <label>{{ properties.virtual_number_numb.NAME }}:</label>
+            <select name="virtual_number_numb"></select>
+        </div>
+
+        <div>
+            <label>{{ properties.employee_message.NAME }}:</label>
+            <textarea name="employee_message"></textarea>
+        </div>
+
+        <button>{{ submit_button_text }}</button>
+    </form>
+</body>
+</html>
+"""

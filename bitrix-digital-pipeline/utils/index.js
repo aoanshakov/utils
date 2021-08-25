@@ -1,6 +1,6 @@
 const {Args, isOneOf} = require('./arguments'),
     execute = require('./execute'),
-    {nginxConfig, template, build, script, style} = require('./paths'),
+    {nginxConfig, template, build, script, style, pyBuilder} = require('./paths'),
     runServer = require('./runServer'),
     replaceVariables = require('./replaceVariables'),
     fs = require('fs');
@@ -22,7 +22,7 @@ actions['build'] = [() => fs.writeFileSync(build, replaceVariables({
                 '})' +
             '</script>'
     }
-}))];
+})), `/root/venv/bin/python3 ${pyBuilder}`];
 
 
 actions['run-server'] = [
