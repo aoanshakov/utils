@@ -2,7 +2,7 @@
   "code": "ROBOT_AUTO_CALL",
   "activity_name": "A96387_35500_62892_94557",
   "properties": {
-    "autocall_on": {
+    "auto_call_on": {
       "NAME": "Call",
       "TYPE": "string",
       "REQUIRED": "Y"
@@ -29,7 +29,7 @@
     }
   },
   "current_values": {
-    "autocall_on": "employee",
+    "auto_call_on": "employee",
     "employee_id": "",
     "virtual_number": "",
     "virtual_number_numb": "",

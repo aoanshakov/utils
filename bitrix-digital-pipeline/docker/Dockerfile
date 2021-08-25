@@ -27,7 +27,7 @@ RUN curl -L https://npmjs.org/install.sh | sh
 
 RUN pip install virtualenv
 RUN python3 -m venv /root/venv
-RUN /root/venv/bin/pip3 install astor
+RUN /root/venv/bin/pip3 install astor jinja2
 
 ADD utils /usr/local/bin/utils
 ENTRYPOINT [ "/usr/local/bin/utils" ]

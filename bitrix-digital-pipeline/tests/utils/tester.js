@@ -7,10 +7,14 @@ define(() => {
         const currentValues = {};
         let callback = () => null;
 
+        let call = () => {
+            throw new Error('SDK Битрикс24 еще не инициализирован.');
+        };
+
         window.BX24 = {
-            init: value => (callback = value),
-            placement: {
-                call: (methodName, ...args) => {
+            init: value => {
+                callback = value;
+                call = (methodName, ...args) => {
                     if (methodName != 'setPropertyValue') {
                         return;
                     }
@@ -18,7 +22,10 @@ define(() => {
                     Object.entries(args[0]).forEach(([key, value]) => {
                         currentValues[key] = value;
                     });
-                }
+                };
+            },
+            placement: {
+                call: (...args) => call(...args) 
             }
         };
 
@@ -27,7 +34,6 @@ define(() => {
             expectPropertiesToHaveValues: expectedValues => utils.expectObjectToContain(currentValues, expectedValues),
 
             textarea: testersFactory.createTextAreaTester(() => document.querySelector('textarea')),
-            button: testersFactory.createDomElementTester(() => document.querySelector('button')),
 
             select: label => {
                 const getSelectsWithoutLabel = () => Array.prototype.filter.call(
@@ -103,7 +109,7 @@ define(() => {
 
             scenariosRequest: () => ({
                 expectToBeSent() {
-                    const request = ajax.recentRequest().expectPathToContain('/sup/api/v1/scenario');
+                    const request = ajax.recentRequest().expectPathToContain('/api/v1/scenario');
 
                     return {
                         receiveResponse: function () {
@@ -132,7 +138,7 @@ define(() => {
                 expectToBeSent() {
                     const request = ajax.recentRequest().
                         expectToHaveMethod('GET').
-                        expectPathToContain('/sup/api/v1/number_capacity').
+                        expectPathToContain('/api/v1/number_capacity').
                         expectQueryToContain({
                             with_scenario: '1'
                         });
@@ -182,13 +188,12 @@ define(() => {
 
             usersRequest: () => ({
                 receiveResponse: () => ajax.recentRequest().
-                    expectPathToContain('/sup/api/v1/users').
+                    expectPathToContain('/api/v1/users').
                     expectToHaveHeaders({
                         Authorization: 'Bearer Fl298gw0e2Foiweoa4Ua-0923gLwe84we3LErwiI230'
                     }).
                     respondSuccessfullyWith({
                         data: [{
-                            full_name: 'Ганева Стефка',
                             first_name: 'Стефка',
                             id: 20816,
                             is_in_call: false,
@@ -198,7 +203,6 @@ define(() => {
                             status_id: 3,
                             is_sip_online: true
                         }, {
-                            full_name: 'Шалева Дора',
                             first_name: 'Дора',
                             id: 82756,
                             is_in_call: true,
@@ -212,13 +216,11 @@ define(() => {
                             id: 583783,
                             is_in_call: false,
                             last_name: 'Господинова',
-                            full_name: 'Господинова Николина',
                             position_id: null,
                             short_phone: '295',
                             status_id: 1,
                             is_sip_online: true
                         }, {
-                            full_name: 'Божилова Йовка',
                             first_name: 'Йовка',
                             id: 79582,
                             is_in_call: false,
@@ -233,7 +235,7 @@ define(() => {
 
             authorizationRequest: () => ({
                 receiveResponse: () => ajax.recentRequest().
-                    expectPathToContain('/sup/auth/login').
+                    expectPathToContain('/auth/login').
                     expectToHaveMethod('POST').
                     expectBodyToContain({
                         auth_id: '6cd38e5f004e48ba004b7cc000000001000003acee2b073187698d3ea46c4082dc9991',
@@ -257,7 +259,7 @@ define(() => {
             authCheckRequest: () => ({
                 receiveResponse: function () {
                     ajax.recentRequest().
-                        expectPathToContain('/sup/auth/check').
+                        expectPathToContain('/auth/check').
                         expectToHaveMethod('GET').
                         expectToHaveHeaders({
                             Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0'
@@ -273,7 +275,7 @@ define(() => {
 
                 const me = {
                     employeeChosen: () => ((currentValues = {
-                        autocall_on: 'employee_id',
+                        auto_call_on: 'employee_id',
                         employee_id: '583783',
                         virtual_number_numb: '29387',
                         virtual_number: '',
@@ -282,7 +284,7 @@ define(() => {
                     }), me),
 
                     scenarioChosen: () => ((currentValues = {
-                        autocall_on: 'scenario_id',
+                        auto_call_on: 'scenario_id',
                         employee_id: '',
                         virtual_number_numb: '29387',
                         virtual_number: '',
@@ -291,7 +293,7 @@ define(() => {
                     }), me),
 
                     callToPersonalManager: () => ((currentValues = {
-                        autocall_on: 'personal_manager',
+                        auto_call_on: 'personal_manager',
                         employee_id: '',
                         virtual_number_numb: '29387',
                         virtual_number: '',
@@ -300,7 +302,7 @@ define(() => {
                     }), me),
 
                     callToVirtualNumber: () => ((currentValues = {
-                        autocall_on: 'virtual_number',
+                        auto_call_on: 'virtual_number',
                         employee_id: '',
                         virtual_number_numb: '',
                         virtual_number: '29386',

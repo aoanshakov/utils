@@ -14,12 +14,11 @@ template = """<!DOCTYPE html>
 
 function runApplication (currentValues) {
     currentValues = currentValues || {}
+    var elements = document.querySelector('form').elements;
 
     function getFormValues () {
-        return Array.prototype.map.call(document.querySelector('form').elements, function (element) {
+        return Array.prototype.map.call(elements, function (element) {
             return [element.name, element.value];
-        }).filter(function (item) {
-            return item[0];
         }).reduce(function (result, item) {
             result[item[0]] = item[1];
             return result;
@@ -27,7 +26,7 @@ function runApplication (currentValues) {
     }
 
     function getVisibility () {
-        var autoCallOn = getFormValues().autocall_on;
+        var autoCallOn = getFormValues().auto_call_on;
 
         return {
             employee_id: autoCallOn == 'employee_id',
@@ -36,6 +35,19 @@ function runApplication (currentValues) {
             virtual_number_numb: autoCallOn != 'virtual_number',
             virtual_number: autoCallOn == 'virtual_number'
         };
+    }
+
+    function saveSettings () {
+        var values = getFormValues();
+        
+        Object.entries(getVisibility()).forEach(function (args) {
+            var name = args[0],
+                visibility = args[1];
+
+            !visibility && (values[name] = '');
+        });
+
+        BX24.placement.call('setPropertyValue', values);
     }
 
     function updateVisibility () {
@@ -48,7 +60,7 @@ function runApplication (currentValues) {
     }
 
     function request (args) {
-        var url = '/sup/api/v1/' + args.url,
+        var url = '/api/v1/' + args.url,
             callback = args.callback || function () {},
             request = new XMLHttpRequest();
 
@@ -85,7 +97,13 @@ function runApplication (currentValues) {
     [{
         names: ['employee_id'],
         dataUrl: 'users',
-        displayField: 'full_name'
+        getText: function (record) {
+            return ['last_name', 'first_name'].map(function (name) {
+                return record[name];
+            }).filter(function (value) {
+                return value;
+            }).join(' ');
+        }
     }, {
         names: ['virtual_number_numb', 'virtual_number'],
         dataUrl: 'number_capacity?with_scenario=1',
@@ -119,7 +137,7 @@ function runApplication (currentValues) {
 
                     options.push(createOption({
                         value: value,
-                        text: record[params.displayField],
+                        text: params.getText ? params.getText(record) : record[params.displayField],
                         selected: currentValues[selectField.name] == value
                     }))
                 });
@@ -139,32 +157,18 @@ function runApplication (currentValues) {
 
     currentValues.employee_message && (document.querySelector('textarea').innerHTML = currentValues.employee_message);
 
-    const autoCallOnSelect = document.querySelector('select[name="autocall_on"]');
+    const autoCallOnSelect = document.querySelector('select[name="auto_call_on"]');
     
     autoCallOnSelect.addEventListener('change', updateVisibility);
-    autoCallOnSelect.value = currentValues.autocall_on || 'personal_manager';
+    autoCallOnSelect.value = currentValues.auto_call_on || 'personal_manager';
 
-    const button = document.querySelector('button');
-    button.disabled = true;
-
-    BX24.init(function() {
-        button.disabled = false;
-    });
-
-    button.addEventListener('click', function (event) {
-        event.preventDefault();
-        var values = getFormValues();
-        
-        Object.entries(getVisibility()).forEach(function (args) {
-            var name = args[0],
-                visibility = args[1];
-
-            !visibility && (values[name] = '');
+    Array.prototype.forEach.call(elements, function (element) {
+        (element.nodeName.toLowerCase() == 'textarea' ? ['keyup', 'change'] : ['change']).forEach(function (eventName) {
+            element.addEventListener(eventName, saveSettings);
         });
-
-        BX24.placement.call('setPropertyValue', values);
     });
 
+    BX24.init(saveSettings);
     updateVisibility();
 }
 
@@ -184,7 +188,7 @@ select[disabled], button[disabled] {
 }
 
 select, textarea {
-    width: 300px;
+    width: 100%;
     box-sizing: border-box;
 }
 
@@ -220,13 +224,12 @@ div {
 <body>
     <form>
         <div>
-            <label>{{ properties.autocall_on.NAME }}:</label>
+            <label>{{ properties.auto_call_on.NAME }}:</label>
 
-            <select name="autocall_on">
-                <option value="personal_manager">{{ to_personal_manager }}</option>
-                <option value="employee_id">{{ properties.employee_id.NAME }}</option>
-                <option value="virtual_number">{{ properties.virtual_number.NAME }}</option>
-                <option value="scenario_id">{{ properties.scenario_id.NAME }}</option>
+            <select name="auto_call_on">
+                {% for key, value in properties.auto_call_on.OPTIONS.items() %}
+                <option value="{{ key }}">{{ value }}</option>
+                {% endfor %}
             </select>
         </div>
 
@@ -251,8 +254,6 @@ div {
             <label>{{ properties.employee_message.NAME }}:</label>
             <textarea name="employee_message"></textarea>
         </div>
-
-        <button>{{ submit_button_text }}</button>
     </form>
 </body>
 </html>

@@ -1,8 +1,7 @@
 const http = require('http'),
     fs = require('fs'),
-    replaceVariables = require('./replaceVariables');
-
-const {template} = require('./paths');
+    {renderAdvanced} = require('./renderTemplate'),
+    {getRandomFileName} = require('./paths');
 
 const scriptFile = path => `<script src="${path}"></script>`,
     styleFile = path => `<link rel="stylesheet" href="${path}" />`,
@@ -10,11 +9,18 @@ const scriptFile = path => `<script src="${path}"></script>`,
     scriptFiles = paths => paths.reduce((result, path) => ((result += scriptFile(path)), result), '');
 
 module.exports = () => {
-    const server = http.createServer((request, response) => {
+    const server = http.createServer(({url}, response) => {
         response.setHeader('Content-Type', 'text/html; charset=utf-8;');
 
-        response.write(replaceVariables({
-            html: fs.readFileSync(template),
+        const temporaryHtmlFile = getRandomFileName();
+
+        if (url != '/') {
+            response.end();
+            return;
+        }
+
+        renderAdvanced({
+            target: temporaryHtmlFile,
             variables: {
                 head: [styleFile(
                     '/style.css'
@@ -41,22 +47,32 @@ module.exports = () => {
                     '/script.js'
                 ])].join(''),
 
-                ...(Object.entries({
-                    employee_id: 'Сотруднику',
-                    virtual_number: 'На виртуальный номер',
-                    virtual_number_numb: 'Звонить абоненту с номера',
-                    scenario_id: 'По сценарию ВАТС',
-                    employee_message: 'Голосовое сообщение для сотрудника',
-                    autocall_on: 'Звонить'
-                }).reduce((result, [key, value]) => ((result[`properties.${key}.NAME`] = value), result), {})),
+                properties: Object.entries({
+                    virtual_number_numb: ['Звонить абоненту с номера'],
+                    scenario_id: ['По сценарию ВАТС'],
+                    employee_message: ['Голосовое сообщение для сотрудника'],
+                    auto_call_on: ['Звонить', {
+                        OPTIONS: {
+                            personal_manager: 'Персональному менеджеру',
+                            employee_id: 'Сотруднику',
+                            virtual_number: 'На виртуальный номер',
+                            scenario_id: 'По сценарию ВАТС'
+                        }
+                    }]
+                }).reduce((result, [key, [value, params = {}]]) => ((result[key] = {
+                    NAME: value,
+                    ...params
+                }), result), {}),
 
-                'token': 'Fl298gw0e2Foiweoa4Ua-0923gLwe84we3LErwiI230',
-                'submit_button_text': 'Сохранить',
-                'to_personal_manager': 'Персональному менеджеру'
+                token: 'Fl298gw0e2Foiweoa4Ua-0923gLwe84we3LErwiI230'
+            },
+            callback: () => {
+                response.write(fs.readFileSync(temporaryHtmlFile));
+                fs.unlinkSync(temporaryHtmlFile);
+
+                response.end();
             }
-        }));
-
-        response.end();
+        });
     });
 
     server.on('listening', () => console.log('Сервер запущен.'));

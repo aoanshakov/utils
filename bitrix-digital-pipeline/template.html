@@ -13,13 +13,12 @@
 <body>
     <form>
         <div>
-            <label>{{ properties.autocall_on.NAME }}:</label>
+            <label>{{ properties.auto_call_on.NAME }}:</label>
 
-            <select name="autocall_on">
-                <option value="personal_manager">{{ to_personal_manager }}</option>
-                <option value="employee_id">{{ properties.employee_id.NAME }}</option>
-                <option value="virtual_number">{{ properties.virtual_number.NAME }}</option>
-                <option value="scenario_id">{{ properties.scenario_id.NAME }}</option>
+            <select name="auto_call_on">
+                {% for key, value in properties.auto_call_on.OPTIONS.items() %}
+                <option value="{{ key }}">{{ value }}</option>
+                {% endfor %}
             </select>
         </div>
 
@@ -44,8 +43,6 @@
             <label>{{ properties.employee_message.NAME }}:</label>
             <textarea name="employee_message"></textarea>
         </div>
-
-        <button>{{ submit_button_text }}</button>
     </form>
 </body>
 </html>

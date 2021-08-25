@@ -44,15 +44,11 @@ tests.addTest(options => {
                                 tester.select('Звонить').option('Сотруднику').click();
                             });
 
-                            it(
-                                'Выбираю сотрудника. Нажимаю на кнопку сохранения. Введенные значения сохранены.' ,
-                            function() {
+                            it('Выбираю сотрудника. Введенные значения сохранены.' , function() {
                                 tester.select().option('Господинова Николина').click();
 
-                                tester.button.click();
-
                                 tester.expectPropertiesToHaveValues({
-                                    autocall_on: 'employee_id',
+                                    auto_call_on: 'employee_id',
                                     employee_id: '583783',
                                     virtual_number_numb: '29387',
                                     virtual_number: '',
@@ -72,15 +68,11 @@ tests.addTest(options => {
                                 tester.select('Звонить').option('По сценарию ВАТС').click();
                             });
 
-                            it(
-                                'Выбираю сценарий. Нажимаю на кнопку сохранения. Введенные значения сохранены.' ,
-                            function() {
+                            it('Выбираю сценарий. Введенные значения сохранены.' , function() {
                                 tester.select().option('Второй сценарий').click();
 
-                                tester.button.click();
-
                                 tester.expectPropertiesToHaveValues({
-                                    autocall_on: 'scenario_id',
+                                    auto_call_on: 'scenario_id',
                                     employee_id: '',
                                     virtual_number_numb: '29387',
                                     virtual_number: '',
@@ -98,15 +90,11 @@ tests.addTest(options => {
                                 tester.select('Звонить').option('На виртуальный номер').click();
                             });
 
-                            it(
-                                'Выбираю номер. Нажимаю на кнопку сохранения. Введенные значения сохранены.' ,
-                            function() {
+                            it('Выбираю номер. Введенные значения сохранены.' , function() {
                                 tester.select().option('79151234568').click();
 
-                                tester.button.click();
-
                                 tester.expectPropertiesToHaveValues({
-                                    autocall_on: 'virtual_number',
+                                    auto_call_on: 'virtual_number',
                                     employee_id: '',
                                     virtual_number_numb: '',
                                     virtual_number: '29386',
@@ -120,11 +108,9 @@ tests.addTest(options => {
                                 tester.textarea.expectToBeVisible();
                             });
                         });
-                        it('Нажимаю на кнопку сохранения. Введенные значения сохранены.', function() {
-                            tester.button.click();
-
+                        it('Введенные значения сохранены.', function() {
                             tester.expectPropertiesToHaveValues({
-                                autocall_on: 'personal_manager',
+                                auto_call_on: 'personal_manager',
                                 employee_id: '',
                                 virtual_number_numb: '29387',
                                 virtual_number: '',
@@ -139,13 +125,20 @@ tests.addTest(options => {
                         tester.select('Звонить абоненту с номера').expectNotToHaveAttribute('disabled');
                         tester.select().expectToBeHidden();
                         tester.textarea.expectToBeVisible();
+
+                        tester.expectPropertiesToHaveValues({
+                            auto_call_on: 'personal_manager',
+                            employee_id: '',
+                            virtual_number_numb: '29385',
+                            virtual_number: '',
+                            scenario_id: '',
+                            employee_message: ''
+                        });
                     });
                 });
-                it('Кнопка заблокирована.', function() {
-                    tester.button.click();
-
+                it('Настройки не сохранены.', function() {
                     tester.expectPropertiesToHaveValues({
-                        autocall_on: undefined,
+                        auto_call_on: undefined,
                     });
                 });
             });
@@ -167,6 +160,15 @@ tests.addTest(options => {
             tester.select().option('Господинова Николина').expectToBeSelected();
             tester.select('Звонить абоненту с номера').option('79151234569').expectToBeSelected();
             tester.textarea.expectToHaveTextContent('Привет!');
+
+            tester.expectPropertiesToHaveValues({
+                auto_call_on: 'employee_id',
+                employee_id: '583783',
+                virtual_number_numb: '29387',
+                virtual_number: '',
+                scenario_id: '',
+                employee_message: 'Привет!'
+            });
         });
         it('Сценарий должнен быть выбран. Сценарий выбран.', function() {
             application.scenarioChosen().run();
@@ -181,6 +183,15 @@ tests.addTest(options => {
             tester.select().option('Второй сценарий').expectToBeSelected();
             tester.select('Звонить абоненту с номера').option('79151234569').expectToBeSelected();
             tester.textarea.expectToBeHidden();
+
+            tester.expectPropertiesToHaveValues({
+                auto_call_on: 'scenario_id',
+                employee_id: '',
+                virtual_number_numb: '29387',
+                virtual_number: '',
+                scenario_id: '95173',
+                employee_message: ''
+            });
         });
         it('Выбран звонок на персонального менеджера. Выпадающие списки сценариев и сотрудников скрыты.', function() {
             application.callToPersonalManager().run();
@@ -195,6 +206,15 @@ tests.addTest(options => {
             tester.select().expectToBeHidden();
             tester.select('Звонить абоненту с номера').option('79151234569').expectToBeSelected();
             tester.textarea.expectToHaveTextContent('Привет!');
+            
+            tester.expectPropertiesToHaveValues({
+                auto_call_on: 'personal_manager',
+                employee_id: '',
+                virtual_number_numb: '29387',
+                virtual_number: '',
+                scenario_id: '',
+                employee_message: 'Привет!'
+            });
         });
         it('Выбран звонок на виртуальный номер. Выпадающий список "Звонить абоненту с номера" скрыт.', function() {
             application.callToVirtualNumber().run();
@@ -209,6 +229,15 @@ tests.addTest(options => {
             tester.select().option('79151234568').expectToBeSelected();
             tester.select('Звонить абоненту с номера').expectToBeHiddenOrNotExist();
             tester.textarea.expectToHaveTextContent('Привет!');
+
+            tester.expectPropertiesToHaveValues({
+                auto_call_on: 'virtual_number',
+                employee_id: '',
+                virtual_number_numb: '',
+                virtual_number: '29386',
+                scenario_id: '',
+                employee_message: 'Привет!'
+            });
         });
     });
 });

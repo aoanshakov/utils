@@ -2,15 +2,15 @@ const {Args, isOneOf} = require('./arguments'),
     execute = require('./execute'),
     {nginxConfig, template, build, script, style, pyBuilder} = require('./paths'),
     runServer = require('./runServer'),
-    replaceVariables = require('./replaceVariables'),
+    {renderSimple} = require('./renderTemplate'),
     fs = require('fs');
 
 const actions = {};
 
 actions['bash'] = [];
 
-actions['build'] = [() => fs.writeFileSync(build, replaceVariables({
-    html: fs.readFileSync(template),
+actions['build'] = [() => renderSimple({
+    target: build,
     variables: {
         head:
             `<script src="//api.bitrix24.com/api/v1/"></script>\n\n` +
@@ -22,7 +22,7 @@ actions['build'] = [() => fs.writeFileSync(build, replaceVariables({
                 '})' +
             '</script>'
     }
-})), `/root/venv/bin/python3 ${pyBuilder}`];
+}), `/root/venv/bin/python3 ${pyBuilder}`];
 
 
 actions['run-server'] = [
