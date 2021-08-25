@@ -94,29 +94,35 @@ function runApplication (currentValues) {
             selectField.disabled = true
         });
 
+        function createOptions (data) {
+            var isEmpty = !data || !data.length;
+
+            selectFields.forEach(function (selectField) {
+                var options = isEmpty ? [createOption({
+                    value: '',
+                    text: '...'
+                })] : [];
+
+                (data || []).forEach(function (record) {
+                    var value = record.id;
+
+                    options.push(createOption({
+                        value: value,
+                        text: record[params.displayField],
+                        selected: currentValues[selectField.name] == value
+                    }))
+                });
+
+                selectField.innerHTML = options.join('');
+                !isEmpty && (selectField.disabled = false);
+            });
+        }
+
+        createOptions();
+
         request({
             url: params.dataUrl,
-            callback: function (data) {
-                selectFields.forEach(function (selectField) {
-                    var options = [createOption({
-                        value: '',
-                        text: '...'
-                    })];
-
-                    (data || []).forEach(function (record) {
-                        var value = record.id;
-
-                        options.push(createOption({
-                            value: value,
-                            text: record[params.displayField],
-                            selected: currentValues[selectField.name] == value
-                        }))
-                    });
-
-                    selectField.innerHTML = options.join('');
-                    selectField.disabled = false
-                });
-            }
+            callback: createOptions
         });
     });
 
