@@ -49,6 +49,359 @@ tests.addTest(function(args) {
                     wait();
                 });
 
+                describe('Открываю окно выбора действия.', function() {
+                    beforeEach(function() {
+                        helper.scenarioTreeTypeButton.click();
+
+                        helper.actionIcon().withName('Меню 1').find().click();
+                        wait();
+                        wait();
+                        helper.component('Клавиша 4').click();
+                        wait();
+
+                        helper.actionTypesRequest().receiveResponse();
+                    });
+
+                    xdescribe('Выбираю сегмент. Выбираю связь с операцией.', function() {
+                        beforeEach(function() {
+                            helper.menuItem('Распределение по сегментам').click();
+                            wait();
+                            wait();
+                            wait();
+
+                            helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Сегменты').click();
+                            wait();
+                            helper.treeNode('somesite.com').expander.click();
+                            wait();
+                            helper.treeNode('Второй сегмент').checkbox.click();
+                            wait();
+
+                            helper.actionReturnCodesList.row.first().component('Добавить операцию').click();
+                            wait();
+                            helper.actionTypesRequest().receiveResponse();
+                            helper.menuItem('Голосовая почта').click();
+                            wait();
+                            wait();
+
+                            helper.headerCollapseArrow.click();
+
+                            helper.actionIcon().withName('Распределение по сегментам 1').find().click();
+                            wait();
+                            wait();
+
+                            helper.actionReturnCodesList.row.atIndex(1).combobox().withPlaceholder('Сегменты').click();
+                            wait();
+                            helper.treeNode('somesite.com').expander.click();
+                            wait();
+                            helper.treeNode('othersite.com').expander.click();
+                            wait();
+                            helper.treeNode('Первый сегмент').checkbox.click();
+                            wait();
+                            helper.treeNode('Третий сегмент').checkbox.click();
+                            wait();
+
+                            helper.actionReturnCodesList.row.atIndex(1).component('Добавить операцию').click();
+                            wait();
+                            helper.actionTypesRequest().receiveResponse();
+                            helper.menuItem('Связать с операцией...').click();
+                            wait();
+                        });
+
+                        describe('Выбираю операцию.', function() {
+                            beforeEach(function() {
+                                helper.actionIcon().withName('Меню 1').find().linkAddingButton.click();
+                                wait();
+                            });
+
+                            it('Нажимаю на кнопку "Создать". Отправлен запрос сохранения.', function() {
+                                helper.headerCollapseArrow.click();
+
+                                helper.button('Создать').click();
+                                wait();
+
+                                helper.scenarioChangingRequest().addingLinkToSegment().expectToBeSent();
+                            });
+                            it('Отображен выбранный регион.', function() {
+                                helper.actionReturnCodesList.expectToHaveTextContent(
+                                    'Связанные операции ' +
+
+                                    'Сегменты Второй сегмент Голосовая почта 2 ' +
+                                    'Сегменты Первый сегмент , Третий сегмент Меню 1'
+                                );
+                            });
+                        });
+                        it('Отображен выбранный регион.', function() {
+                            helper.actionReturnCodesList.row.atIndex(1).combobox().
+                                withValue('Первый сегмент; Третий сегмент').expectToBeVisible();
+                        });
+                    });
+                    xdescribe('Выбираю регион. Выбираю связь с операцией.', function() {
+                        beforeEach(function() {
+                            helper.menuItem('Распределение по регионам').click();
+                            wait();
+                            wait();
+                            wait();
+
+                            helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Регионы').click();
+                            wait();
+                            helper.treeNode('Австралия').expander.click();
+                            wait();
+                            helper.treeNode('toll free').checkbox.click();
+                            wait();
+
+                            helper.actionReturnCodesList.row.first().component('Добавить операцию').click();
+                            wait();
+                            helper.actionTypesRequest().receiveResponse();
+                            helper.menuItem('Голосовая почта').click();
+                            wait();
+                            wait();
+
+                            helper.headerCollapseArrow.click();
+
+                            helper.actionIcon().withName('Распределение по регионам 1').find().click();
+                            wait();
+                            wait();
+
+                            helper.actionReturnCodesList.row.atIndex(1).combobox().withPlaceholder('Регионы').click();
+                            wait();
+                            helper.treeNode('Азербайджан').expander.click();
+                            wait();
+                            helper.treeNode('Австралия (все регионы)').checkbox.click();
+                            wait();
+                            helper.treeNode('Агдаш').checkbox.click();
+                            wait();
+
+                            helper.actionReturnCodesList.row.atIndex(1).component('Добавить операцию').click();
+                            wait();
+                            helper.actionTypesRequest().receiveResponse();
+                            helper.menuItem('Связать с операцией...').click();
+                            wait();
+                            helper.actionIcon().withName('Меню 1').find().linkAddingButton.click();
+                            wait();
+                        });
+
+                        it('Произошла ошибка из-за которой Регион не выбран.', function() {
+                            helper.actionReturnCodesList.row.first().distributionItemNames.click();
+
+                            helper.actionReturnCodesList.row.first().combobox().withValue('toll free').
+                                expectNotToExist();
+                        });
+                        it('Нажимаю на кнопку "Создать". Отправлен запрос сохранения.', function() {
+                            helper.headerCollapseArrow.click();
+
+                            helper.button('Создать').click();
+                            wait();
+
+                            helper.scenarioChangingRequest().addingLinkToRegion().expectToBeSent();
+                        });
+                        it('Произошла ошибка из-за которой существует скрытое сообщение об ошибке.', function() {
+                            helper.actionReturnCodesList.expectTextContentNotToHaveSubstring(
+                                'Связанные операции ' +
+
+                                'Регионы toll free Голосовая почта 2 ' +
+                                'Регионы Австралия (все регионы), Агдаш Меню 1'
+                            );
+                        });
+                    });
+                    it('', function() {
+                        helper.menuItem('По данным из CRM').click();
+                        wait();
+                        wait();
+                        wait();
+
+                        helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Поле в CRM').click();
+                        helper.treeNode('Сделка').expander.click();
+                        helper.treeNode('UTM_CONTENT').click();
+
+                        helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Оператор').click();
+                        helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Оператор').
+                            option('Точно соответствует').click();
+
+                        helper.actionReturnCodesList.row.first().textfield().withPlaceholder('Введите значение').
+                            fill('qwe123');
+
+                        helper.actionReturnCodesList.row.first().component('Добавить операцию').click();
+                        wait();
+                        helper.actionTypesRequest().receiveResponse();
+                        helper.menuItem('Голосовая почта').click();
+                        wait();
+                        wait();
+
+                        helper.actionIcon().withName('По данным из CRM 1').find().click();
+                        wait();
+                        wait();
+
+                        helper.actionReturnCodesList.row.first().distributionItemNames.click();
+                        helper.actionReturnCodesList.row.first().textfield().withValue('qwe123').clear();
+                        helper.button('Создать').click();
+                        wait();
+
+                        helper.button('OK').click();
+
+                        helper.actionReturnCodesList.row.first().textfield().withPlaceholder('Введите значение').
+                            fill('wer234');
+                        helper.button('Создать').click();
+                        wait();
+
+                        helper.scenarioChangingRequest().addingDistributionByCRMData().voiceMail().expectToBeSent();
+                    });
+                });
+                return;
+                describe('Добавляю действие "Распределение вызовов".', function() {
+                    beforeEach(function() {
+                        helper.actionIcon().withName('Меню 1').find().putMouseOver();
+
+                        helper.addActionButton.click();
+                        wait();
+                        helper.component('Клавиша 4').click();
+                        wait();
+
+                        helper.tabTitle('Распределение вызовов').click();
+                        wait();
+
+                        helper.actionButton('По данным из CRM').click();
+                        wait();
+                        helper.button('Выбрать').click();
+                        wait();
+                        wait();
+                        wait();
+
+                        helper.headerCollapseArrow.click();
+
+                        helper.actionIcon().withName('По данным из CRM 1').find().putMouseOver();
+                        helper.addActionButton.click();
+                        wait();
+                    });
+
+                    describe('Открываю сущность.', function() {
+                        beforeEach(function() {
+                            helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Поле в CRM').click();
+                            wait();
+                            helper.treeNode('Сделка').expander.click();
+                            wait();
+                        });
+                        
+                        describe('Выбираю поле.', function() {
+                            beforeEach(function() {
+                                helper.treeNode('Воронка продаж').click();
+                                wait();
+
+                                helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Оператор').click();
+                                wait();
+                            });
+
+                            it(
+                                'Выбираю оператор со значением. Нажимаю на кнопку сохранения. Отправлен запрос ' +
+                                'сохранения.',
+                            function() {
+                                helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Оператор').
+                                    option('Точно соответствует').click();
+                                wait();
+
+                                helper.actionReturnCodesList.row.first().combobox().
+                                    withPlaceholder('Выберите значение').click();
+                                wait();
+                                helper.actionReturnCodesList.row.first().combobox().
+                                    withPlaceholder('Выберите значение').option('Воронка').click();
+                                wait();
+
+                                helper.actionReturnCodesList.row.first().component('Добавить операцию').click();
+                                wait();
+                                helper.actionButton('Меню').click();
+                                wait();
+                                helper.button('Выбрать').click();
+                                wait();
+                                wait();
+                                wait();
+
+                                helper.headerCollapseArrow.click();
+
+                                helper.button('Сохранить сценарий').click();
+                                wait();
+                                helper.scenarioChangingRequest().addingDistributionByCRMData().expectToBeSent();
+                            });
+                            it(
+                                'Выбираю оператор без значения. Нажимаю на кнопку сохранения. Отправлен запрос ' +
+                                'сохранения.',
+                            function() {
+                                helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Оператор').
+                                    option('Не пустое').click();
+                                wait();
+
+                                helper.actionReturnCodesList.row.first().component('Добавить операцию').click();
+                                wait();
+
+                                helper.tabTitle('Инструменты').click();
+
+                                helper.actionButton('Голосовая почта').click();
+                                wait();
+                                helper.button('Выбрать').click();
+                                wait();
+                                wait();
+                                wait();
+
+                                helper.headerCollapseArrow.click();
+
+                                helper.button('Сохранить сценарий').click();
+                                wait();
+                                helper.scenarioChangingRequest().addingCRMFieldWithoutValue().expectToBeSent();
+                            });
+                        });
+                        it(
+                            'Выбираю сущность. Выбираю оператор "Не существует". Добавляю операцию. Нажимаю на ' +
+                            'кнопку "Сохранить сценарий". Сценарий сохраняется.',
+                        function() {
+                            helper.treeNode('Сделка').click();
+
+                            helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Оператор').click();
+                            wait();
+
+                            helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Оператор').
+                                option('Не существует').click();
+                            wait();
+
+                            helper.actionReturnCodesList.row.first().component('Добавить операцию').click();
+                            wait();
+
+                            helper.tabTitle('Инструменты').click();
+
+                            helper.actionButton('Голосовая почта').click();
+                            wait();
+                            helper.button('Выбрать').click();
+                            wait();
+                            wait();
+                            wait();
+
+                            helper.headerCollapseArrow.click();
+
+                            helper.button('Сохранить сценарий').click();
+                            wait();
+                            helper.scenarioChangingRequest().addingEntityField().expectToBeSent();
+                        });
+                    });
+                    it(
+                        'Нажимаю на кнопку "Добавить операцию" в строке "Ошибка при запросе к CRM". Открыто окно ' +
+                        'выбора операции.',
+                    function() {
+                        helper.actionReturnCodesList.row.atIndex(3).component('Добавить операцию').click();
+                        wait();
+
+                        helper.tabTitle('Инструменты').click();
+
+                        helper.actionButton('Голосовая почта').click();
+                        wait();
+                        helper.button('Выбрать').click();
+                        wait();
+                        wait();
+                        wait();
+
+                        helper.headerCollapseArrow.click();
+
+                        helper.button('Сохранить сценарий').click();
+                        wait();
+                        helper.scenarioChangingRequest().addingFailProcessing().expectToBeSent();
+                    });
+                });
                 describe('Выбираю действие для редактирования.', function() {
                     beforeEach(function() {
                         helper.actionIcon().withName('Меню 1').find().click();
@@ -90,66 +443,8 @@ tests.addTest(function(args) {
                         helper.videoWindow.expectToBeHiddenOrNotExist();
                     });
                 });
-                describe(
-                    'Добавляю действие "Распределение вызовов". Добавляю к нему еще одно действие. Нажимаю на кнопку ' +
-                    'сохранения. Отправлен запрос сохранения.',
-                function() {
-                    helper.actionIcon().withName('Меню 1').find().putMouseOver();
-
-                    helper.addActionButton.click();
-                    wait();
-                    helper.component('Клавиша 4').click();
-                    wait();
-
-                    helper.tabTitle('Распределение вызовов').click();
-                    wait();
-                    helper.actionButton('По данным из CRM').click();
-                    wait();
-                    helper.button('Выбрать').click();
-                    wait();
-                    wait();
-                    wait();
-
-                    helper.headerCollapseArrow.click();
-                    helper.actionIcon().withName('По данным из CRM 1').find().putMouseOver();
-                    helper.addActionButton.click();
-                    wait();
-
-                    helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Поле в CRM').click();
-                    wait();
-                    helper.treeNode('Сделка').expander.click();
-                    wait();
-                    helper.treeNode('Воронка продаж').click();
-                    wait();
-
-                    helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Оператор').click();
-                    wait();
-                    helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Оператор').
-                        option('Точно соответствует').click();
-                    wait();
-
-                    helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Выберите значение').click();
-                    wait();
-                    helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Выберите значение').
-                        option('Воронка').click();
-                    wait();
-
-                    helper.actionReturnCodesList.row.first().component('Добавить операцию').click();
-                    wait();
-                    helper.actionButton('Меню').click();
-                    wait();
-                    helper.button('Выбрать').click();
-                    wait();
-                    wait();
-                    wait();
-
-                    helper.headerCollapseArrow.click();
-
-                    helper.button('Сохранить сценарий').click();
-                    wait();
-                    helper.scenarioChangingRequest().addingDistributionByCRMData().expectToBeSent();
-                });
             });
+            return;
             describe('Сценарий содержит опцию распределения по данным из CRM.', function() {
                 beforeEach(function() {
                     scenarioRequest.includesDistributionByCrmDataAction().receiveResponse();
@@ -269,7 +564,43 @@ tests.addTest(function(args) {
                         'Выбираю поле и оператор, ввожу значение. Добавляю связь с операцией.',
                     function() {
                         beforeEach(function() {
-                            helper.actionReturnCodesList.row.atIndex(1).combobox().withPlaceholder('Поле в CRM').click();
+                            helper.actionReturnCodesList.row.atIndex(2).combobox().withPlaceholder('Поле в CRM').
+                                click();
+                            wait();
+
+                            helper.treeNode('Контакт').expander.click();
+                            wait();
+                            helper.treeNode('UTM_CONTENT').click();
+                            wait();
+
+                            helper.actionReturnCodesList.row.atIndex(2).combobox().withPlaceholder('Оператор').click();
+                            wait();
+                            helper.actionReturnCodesList.row.atIndex(2).combobox().withPlaceholder('Оператор').
+                                option('Точно соответствует').click();
+                            wait();
+
+                            helper.actionReturnCodesList.row.atIndex(2).textfield().withPlaceholder('Введите значение').
+                                fill('wer123');
+                            wait();
+
+                            helper.actionReturnCodesList.row.atIndex(2).component('Добавить операцию').click();
+                            wait();
+                            helper.actionTypesRequest().receiveResponse();
+
+                            helper.menuItem('Голосовая почта').click();
+                            wait();
+                            wait();
+
+                            helper.headerCollapseArrow.click();
+
+                            helper.actionIcon().withName('По данным из CRM 1').find().click();
+                            wait();
+                            wait();
+
+                            helper.actionReturnCodesList.row.atIndex(1).combobox().withPlaceholder('Поле в CRM').
+                                click();
+                            wait();
+                            helper.treeNode('Контакт').expander.click();
                             wait();
                             helper.treeNode('Сделка').expander.click();
                             wait();
@@ -294,13 +625,54 @@ tests.addTest(function(args) {
                             wait();
                         });
 
-                        it('Поле и оператор выбраны.', function() {
-                            /*helper.actionReturnCodesList.row.atIndex(1).combobox().withValue('Точно соответствует').
-                                expectToBeVisible();
+                        describe('Выбираю операцию для связи.', function() {
+                            beforeEach(function() {
+                                helper.actionIcon().withName('Меню 1').find().linkAddingButton.click();
+                            });
 
+                            it('Нажимаю на кнопку "Создать". Отправлен запрос сохранения сценария.', function() {
+                                helper.headerCollapseArrow.click();
+
+                                helper.button('Создать').click();
+                                wait();
+
+                                helper.scenarioChangingRequest().addingLinkToCRMField().expectToBeSent();
+                            });
+                            it('Поле и оператор выбраны.', function() {
+                                helper.actionReturnCodesList.row.atIndex(1).distributionItemNames.click();
+
+                                helper.actionReturnCodesList.row.atIndex(1).combobox().withValue('Точно соответствует').
+                                    expectToBeVisible();
+
+                                helper.actionReturnCodesList.row.atIndex(1).combobox().withValue('UTM_CONTENT').
+                                    expectToBeVisible();
+                            });
+                            it('Отображены выбранные поля.', function() {
+                                helper.actionReturnCodesList.expectToHaveTextContent(
+                                    'Связанные операции ' +
+
+                                    'Поле "Контакт/UTM_CAMPAIGN" точно соответствует "UIS" Меню 2 ' +
+                                    'Поле "Сделка/UTM_CONTENT" точно соответствует "qwe123" Меню 1 ' +
+                                    'Поле "Контакт/UTM_CONTENT" точно соответствует "wer123" Голосовая почта 2 ' +
+                                    'Ошибка при запросе к CRM Добавить операцию'
+                                );
+                            });
+                        });
+                        it('Поле и оператор выбраны.', function() {
                             helper.actionReturnCodesList.row.atIndex(1).combobox().withValue('UTM_CONTENT').
                                 expectToBeVisible();
-                            */
+
+                            helper.actionReturnCodesList.row.atIndex(1).combobox().withValue('Точно соответствует').
+                                expectToBeVisible();
+
+                            helper.actionReturnCodesList.expectToHaveTextContent(
+                                'Связанные операции ' +
+
+                                'Поле "Контакт/UTM_CAMPAIGN" точно соответствует "UIS" Меню 2 ' +
+                                'Добавить операцию ' +
+                                'Поле "Контакт/UTM_CONTENT" точно соответствует "wer123" Голосовая почта 2 ' +
+                                'Ошибка при запросе к CRM Добавить операцию'
+                            );
                         });
                     });
                     it('Отображается значение введенное в поле.', function() {
@@ -308,23 +680,112 @@ tests.addTest(function(args) {
                             expectTextContentToHaveSubstring('Поле "Контакт/UTM_CAMPAIGN" точно соответствует "UIS"');
                     });
                 });
-                it('Открываю настройки распределения. Выбранное поле отмечено.', function() {
-                    helper.actionIcon().withName('По данным из CRM 1').find().putMouseOver();
-                    helper.addActionButton.click();
-                    wait();
+                describe('Открываю настройки распределения.', function() {
+                    beforeEach(function() {
+                        helper.actionIcon().withName('По данным из CRM 1').find().putMouseOver();
+                        helper.addActionButton.click();
+                        wait();
+                    });
 
-                    helper.actionReturnCodesList.row.first().combobox().withValue('UTM_CAMPAIGN').click();
-                    wait();
+                    it(
+                        'Добавляю условие по полю, выбираю связь с операцию. Поля настроек распределения заполнены.',
+                    function() {
+                        helper.actionReturnCodesList.row.atIndex(2).combobox().withPlaceholder('Поле в CRM').
+                            click();
+                        wait();
 
-                    helper.treeNode('Сделка').expectToBeCollapsed();
-                    helper.treeNode('Контакт').expectToBeExpanded();
-                    helper.treeNode('UTM_CONTENT').expectNotToBeSelected();
-                    helper.treeNode('UTM_CAMPAIGN').expectToBeSelected();
+                        helper.treeNode('Контакт').expander.click();
+                        wait();
+                        helper.treeNode('UTM_CONTENT').click();
+                        wait();
+
+                        helper.actionReturnCodesList.row.atIndex(2).combobox().withPlaceholder('Оператор').click();
+                        wait();
+                        helper.actionReturnCodesList.row.atIndex(2).combobox().withPlaceholder('Оператор').
+                            option('Точно соответствует').click();
+                        wait();
+
+                        helper.actionReturnCodesList.row.atIndex(2).textfield().withPlaceholder('Введите значение').
+                            fill('wer123');
+                        wait();
+
+                        helper.actionReturnCodesList.row.atIndex(2).component('Добавить операцию').click();
+                        wait();
+                        helper.actionButton('Голосовая почта').click();
+                        wait();
+                        helper.button('Выбрать').click();
+                        wait();
+                        wait();
+                        wait();
+
+                        helper.headerCollapseArrow.click();
+                        
+                        helper.actionIcon().withName('По данным из CRM 1').find().putMouseOver();
+                        helper.addActionButton.click();
+                        wait();
+
+                        helper.actionReturnCodesList.row.atIndex(1).combobox().withPlaceholder('Поле в CRM').
+                            click();
+                        wait();
+                        helper.treeNode('Контакт').expander.click();
+                        wait();
+                        helper.treeNode('Сделка').expander.click();
+                        wait();
+                        helper.treeNode('UTM_CONTENT').click();
+                        wait();
+
+                        helper.actionReturnCodesList.row.atIndex(1).combobox().withPlaceholder('Оператор').click();
+                        wait();
+                        helper.actionReturnCodesList.row.atIndex(1).combobox().withPlaceholder('Оператор').
+                            option('Точно соответствует').click();
+                        wait();
+
+                        helper.actionReturnCodesList.row.atIndex(1).textfield().withPlaceholder('Введите значение').
+                            fill('qwe123');
+                        wait();
+
+                        helper.actionReturnCodesList.row.atIndex(1).component('Добавить операцию').click();
+                        wait();
+                        helper.tabTitle('Инструменты').click();
+                        wait();
+                        helper.actionButton('Связать с операцией').click();
+                        wait();
+                        helper.button('Выбрать').click();
+                        wait();
+
+                        helper.actionReturnCodesList.row.atIndex(0).combobox().withValue('UTM_CAMPAIGN').
+                            expectToBeVisible();
+                        helper.actionReturnCodesList.row.atIndex(0).combobox().withValue('Точно соответствует').
+                            expectToBeVisible();
+                        helper.actionReturnCodesList.row.atIndex(0).textfield().withValue('UIS').
+                            expectToBeVisible();
+
+                        helper.actionReturnCodesList.row.atIndex(1).combobox().withValue('UTM_CONTENT').
+                            expectToBeVisible();
+                        helper.actionReturnCodesList.row.atIndex(1).combobox().withValue('Точно соответствует').
+                            expectToBeVisible();
+                        helper.actionReturnCodesList.row.atIndex(1).textfield().withValue('qwe123').
+                            expectToBeVisible();
+
+                        helper.actionReturnCodesList.row.atIndex(2).combobox().withValue('UTM_CONTENT').
+                            expectToBeVisible();
+                        helper.actionReturnCodesList.row.atIndex(2).combobox().withValue('Точно соответствует').
+                            expectToBeVisible();
+                        helper.actionReturnCodesList.row.atIndex(2).textfield().withValue('wer123').
+                            expectToBeVisible();
+                    });
+                    it('Выбранное поле отмечено.', function() {
+                        helper.actionReturnCodesList.row.first().combobox().withValue('UTM_CAMPAIGN').click();
+                        wait();
+
+                        helper.treeNode('Сделка').expectToBeCollapsed();
+                        helper.treeNode('Контакт').expectToBeExpanded();
+                        helper.treeNode('UTM_CONTENT').expectNotToBeSelected();
+                        helper.treeNode('UTM_CAMPAIGN').expectToBeSelected();
+                    });
                 });
             });
-            describe(
-                'Сценарий содержит опцию распределения по данным из CRM с двумя кодами.',
-            function() {
+            describe('Сценарий содержит опцию распределения по данным из CRM с двумя кодами.', function() {
                 beforeEach(function() {
                     scenarioRequest.includesDistributionByCrmDataAction().includesTwoCrmFields().receiveResponse();
                     wait();
@@ -369,7 +830,73 @@ tests.addTest(function(args) {
                     helper.scenarioChangingRequest().addingSecondVoiceMail().expectToBeSent();
                 });
             });
+            describe(
+                'В сценарии присутствует распределение по данным из CRM с условием по отсутствию сущности. Открываю ' +
+                'настройки распределения.',
+            function() {
+                beforeEach(function() {
+                    scenarioRequest.includesDistributionByCrmDataAction().includesEntityCrmField().receiveResponse();
+                    wait();
+                    wait();
+
+                    helper.scenarioTreeTypeButton.click();
+
+                    helper.actionIcon().withName('По данным из CRM 1').find().click();
+                    wait();
+                    wait();
+                });
+
+                it('Сущность выбрана в выпадающем списке полей.', function() {
+                    helper.actionReturnCodesList.row.first().distributionItemNames.click();
+                    helper.actionReturnCodesList.row.first().combobox().withValue('Сделка').click();
+
+                    helper.treeNode('Сделка').expectToBeCollapsed();
+                    helper.treeNode('Контакт').expectToBeCollapsed();
+                    helper.treeNode('Сделка').expectToBeSelected();
+                    helper.treeNode('Контакт').expectNotToBeSelected();
+                });
+                it('Отображено условие.', function() {
+                    helper.actionReturnCodesList.row.first().expectTextContentToHaveSubstring('Сделка не существует');
+                });
+            });
+            it(
+                'В сценарии присутствует распределение по данным из CRM. Распределение является корневым действием. ' +
+                'Меняю тип интерфейса. Действие распределения доступно.',
+            function() {
+                scenarioRequest.includesOnlyDistributionByCrmDataAction().receiveResponse();
+                wait();
+                wait();
+
+                helper.scenarioTreeTypeButton.click();
+
+                helper.actionIcon().withName('По данным из CRM 1').find().click();
+                wait();
+                wait();
+
+                helper.actionReturnCodesList.expectToBeVisible();
+            });
+            it(
+                'В сценарии присутствует распределение по данным из CRM с условием по значению текстового поля. ' +
+                'Открываю настройки распределения. Стираю значение введенное в поле значения. Нажимаю на кноку ' +
+                '"Сохранить сценарий". Отображено сообщение об ошибке.',
+            function() {
+                scenarioRequest.includesDistributionByCrmDataAction().includesTextCrmField().receiveResponse();
+                wait();
+                wait();
+
+                helper.actionIcon().withName('По данным из CRM 1').find().putMouseOver();
+                helper.addActionButton.click();
+                wait();
+
+                helper.actionReturnCodesList.row.atIndex(0).textfield().withValue('qwe123').clear();
+
+                helper.button('Сохранить сценарий').click();
+                wait();
+
+                helper.windowText.expectToHaveTextContent('Проверьте заполненность полей');
+            });
         });
+        return;
         describe('Не использую данные реального клиента. Для воронки указана сущность.', function() {
             beforeEach(function() {
                 batchReloadRequest.salesFunnelWithEntity().receiveResponse();
@@ -519,6 +1046,94 @@ tests.addTest(function(args) {
                 helper.scenarioChangingRequest().addingDistributionByCRMData().salesFunnelWithEntity().expectToBeSent();
             });
         });
+        describe('Не использую данные реального клиента. Ни одно поле не получено.', function() {
+            var actionTypesRequest;
+
+            beforeEach(function() {
+                batchReloadRequest.noCrmFields().receiveResponse();
+
+                helper.actionIndex({
+                    recordId: 210948
+                });
+
+                wait();
+
+                actionTypesRequest = helper.actionTypesRequest().expectToBeSent();
+            });
+
+            describe('Интеграция не подключена.', function() {
+                var scenarioRequest;
+
+                beforeEach(function() {
+                    actionTypesRequest.distributionByCrmDataUnavailable().receiveResponse();
+                    helper.returnCodesRequest().receiveResponse();
+                    helper.markersTypesRequest().receiveResponse();
+
+                    scenarioRequest = helper.scenarioRequest().expectToBeSent();
+                });
+
+                describe('Распределение вложенно в другое действие.', function() {
+                    beforeEach(function() {
+                        scenarioRequest.includesDistributionByCrmDataAction().receiveResponse();
+                        wait();
+                        wait();
+                    });
+
+                    it('Меняю тип интерфейса. Действие распределения заблокировано.', function() {
+                        helper.scenarioTreeTypeButton.click();
+
+                        helper.actionIcon().withName('По данным из CRM 1').find().click();
+                        wait();
+                        wait();
+
+                        helper.actionReturnCodesList.expectNotToExist();
+                    });
+                    it('Действие распределения заблокировано.', function() {
+                        helper.actionIcon().withName('По данным из CRM 1').find().putMouseOver();
+                        helper.addActionButton.expectNotToExist();
+                    });
+                });
+                describe('Распределение является корневым действием.', function() {
+                    beforeEach(function() {
+                        scenarioRequest.includesOnlyDistributionByCrmDataAction().receiveResponse();
+                        wait();
+                        wait();
+                    });
+
+                    it('Меняю тип интерфейса. Действие распределения заблокировано.', function() {
+                        helper.scenarioTreeTypeButton.click();
+
+                        helper.actionIcon().withName('По данным из CRM 1').find().click();
+                        wait();
+                        wait();
+
+                        helper.actionReturnCodesList.expectNotToExist();
+                    });
+                    it('Действие распределения заблокировано.', function() {
+                        helper.actionIcon().withName('По данным из CRM 1').find().putMouseOver();
+                        helper.addActionButton.expectNotToExist();
+                    });
+                });
+            });
+            it(
+                'Интеграция подключена. Открываю окно редактирования настроек распределения. В выпадающем списке ' +
+                'полей ничего не выбрано.',
+            function() {
+                actionTypesRequest.receiveResponse();
+                helper.returnCodesRequest().receiveResponse();
+                helper.markersTypesRequest().receiveResponse();
+
+                helper.scenarioRequest().includesDistributionByCrmDataAction().receiveResponse();
+                wait();
+                wait();
+
+                helper.actionIcon().withName('По данным из CRM 1').find().putMouseOver();
+                helper.addActionButton.click();
+                wait();
+
+                helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Поле в CRM').expectToHaveValue('');
+            });
+        });
         it(
             'Не использую данные реального клиента. Одна из сущностей содержит только одно поле. Открываю настройки ' +
             'распределения. Выбранное поле отмечено.',
@@ -532,7 +1147,6 @@ tests.addTest(function(args) {
             wait();
 
             helper.actionTypesRequest().receiveResponse();
-
             helper.returnCodesRequest().receiveResponse();
             helper.markersTypesRequest().receiveResponse();
 
@@ -564,7 +1178,6 @@ tests.addTest(function(args) {
             wait();
 
             helper.actionTypesRequest().receiveResponse();
-
             helper.returnCodesRequest().receiveResponse();
             helper.markersTypesRequest().receiveResponse();
 
@@ -593,9 +1206,7 @@ tests.addTest(function(args) {
 
             wait();
 
-            actionTypesRequest = helper.actionTypesRequest().expectToBeSent();
-
-            actionTypesRequest.app59274().receiveResponse();
+            helper.actionTypesRequest().app59274().receiveResponse();
             helper.returnCodesRequest().app59274().receiveResponse();
             helper.markersTypesRequest().receiveResponse();
 
@@ -617,59 +1228,6 @@ tests.addTest(function(args) {
             helper.button('Сохранить сценарий').click();
             wait();
             helper.scenarioChangingRequest().addProstprocessForApp59274().expectToBeSent();
-        });
-        it(
-            'Использую данные реального клиента, у которого возникли проблемы с открытием выпадающего списка полей ' +
-            'CRM. Ошибка воспроизводится.',
-        function() {
-            batchReloadRequest.app24913Request().receiveResponse();
-
-            helper.actionIndex({
-                recordId: 210948
-            });
-
-            wait();
-
-            helper.actionTypesRequest().receiveResponse();
-
-            helper.returnCodesRequest().receiveResponse();
-            helper.markersTypesRequest().receiveResponse();
-
-            helper.scenarioRequest().receiveResponse();
-
-            wait();
-            wait();
-
-            helper.actionIcon().withName('Меню 1').find().putMouseOver();
-
-            helper.addActionButton.click();
-            wait();
-            helper.component('Клавиша 4').click();
-            wait();
-
-            helper.tabTitle('Распределение вызовов').click();
-            wait();
-            helper.actionButton('По данным из CRM').click();
-            wait();
-            helper.button('Выбрать').click();
-            wait();
-            wait();
-            wait();
-
-            helper.headerCollapseArrow.click();
-            helper.actionIcon().withName('По данным из CRM 1').find().putMouseOver();
-            helper.addActionButton.click();
-            wait();
-
-            helper.actionReturnCodesList.row.first().combobox().withPlaceholder('Поле в CRM').click();
-            wait();
-
-            helper.treeNode('Лид').expander.click();
-            wait();
-
-            utils.expectExtErrorToOccur('Discontiguous range would result from inserting 10 nodes at 10', function () {
-                helper.treeNode('Сделка').expander.click();
-            });
         });
     });
 });

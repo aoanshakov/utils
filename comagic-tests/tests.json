@@ -97,6 +97,10 @@
         "services.ats.staff": [
             "helpers/ServicesAtsStaff.js",
             "tests/services.ats.staff.js"
+        ],
+        "services.autocalls.autobackcall": [
+            "helpers/ServicesAutocallsAutobackcall.js",
+            "tests/services.autocalls.autobackcall.js"
         ]
     },
     "easystart": {

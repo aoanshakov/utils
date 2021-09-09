@@ -770,7 +770,7 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
     });
 
     this.button = function (text) {
-        return testersFactory.createButtonTester(utils.getComponentFromDomElement(
+        return testersFactory.createButtonTester(utils.getComponentByDomElement(
             utils.descendantOfBody().matchesSelector('.x-btn').textEquals(text).find()
         ));
     };

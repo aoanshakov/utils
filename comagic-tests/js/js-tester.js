@@ -528,7 +528,9 @@ function JsTester_Utils (debug) {
         }
     };
     this.makeDomElementGetter = function (value) {
-        var getDomElement = this.makeFunction(value);
+        var getDomElement = typeof value == 'string' ? function () {
+            return me.getVisibleSilently(document.querySelectorAll(value));
+        } : this.makeFunction(value);
 
         return function () {
             var element = getDomElement();
@@ -544,9 +546,15 @@ function JsTester_Utils (debug) {
         return description + (label ? (' "' + label + '"') : '');
     };
     this.isVisible = function(domElement) {
+        if (!domElement) {
+            return false;
+        }
+
         if (getComputedStyle(domElement).visibility == 'hidden') {
             return false;
         }
+
+        domElement.scrollIntoView();
 
         var rects = domElement.getClientRects(),
             rectsCount = rects.length,
@@ -1564,7 +1572,7 @@ function JsTester_DomElement (
         }
     };
     this.expectToBeVisible = function () {
-        this.scrollIntoView();
+        this.expectToExist();
 
         if (!utils.isVisible(getDomElement())) {
             throw new Error(

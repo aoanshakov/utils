@@ -3,6 +3,7 @@ tests.requireClass('Comagic.services.ats.scenario.store.ReturnCodes');
 tests.requireClass('Comagic.services.ats.scenario.store.ActionTypes');
 tests.requireClass('Comagic.services.ats.scenario.store.Record');
 tests.requireClass('Comagic.services.ats.scenario.controller.EditPage');
+tests.requireClass('ULib.ux.data.TreeComboStore');
 
 tests.requireResponse('action_types_59274');
 tests.requireResponse('batch_reload_59274');
@@ -39,6 +40,10 @@ function ServicesAtsScenario(args) {
         );
     });
 
+    this.windowText = testersFactory.createDomElementTester(function () {
+        return utils.getVisibleSilently(document.querySelectorAll('.x-window-text')) || new JsTester_NoElement();
+    });
+
     this.actionReturnCodesList = (function () {
         function getList () {
             return utils.getVisibleSilently(document.querySelectorAll('.scenario-actionreturncodeslist')) ||
@@ -54,11 +59,11 @@ function ServicesAtsScenario(args) {
                 }
 
                 var tester = addTesters(testersFactory.createFormTester(function () {
-                    return utils.getComponentFromDomElement(getElement());
+                    return utils.getComponentByDomElement(getElement());
                 }), getElement);
 
                 tester.distributionItemNames = testersFactory.createDomElementTester(function () {
-                    return document.querySelector('.distribution-item-names');
+                    return getElement().querySelector('.distribution-item-names');
                 });
 
                 return tester;
@@ -99,6 +104,10 @@ function ServicesAtsScenario(args) {
                 expectNotToHaveClass('x-grid-item-selected');
         };
 
+        tester.checkbox = testersFactory.createDomElementTester(function () {
+            return domElement.closest('.x-grid-item').querySelector('.x-tree-checkbox');
+        });
+
         return tester;
     };
 
@@ -131,7 +140,7 @@ function ServicesAtsScenario(args) {
             return utils.descendantOfBody().
                 matchesSelector('.x-btn-inner').
                 textEquals(text).
-                find()
+                find();
         });
     };
 
@@ -140,7 +149,7 @@ function ServicesAtsScenario(args) {
             return utils.descendantOfBody().
                 matchesSelector('.x-dataview-item').
                 textEquals(text).
-                find()
+                find();
         });
     };
 
@@ -246,6 +255,11 @@ function ServicesAtsScenario(args) {
                     testersFactory.createDomElementTester(nodeContainer).expectToBeVisible();
                     nodeContainer.classList.add('hover');
                 };
+
+                tester.linkAddingButton = testersFactory.createDomElementTester(function () {
+                    return tester.getElement().closest('.cm-componenttreepanel-node-action-name-and-controls-wrapper').
+                        querySelector('.cm-componenttreepanel-node-control-addlink');
+                });
                 
                 return tester;
             }
@@ -321,7 +335,6 @@ function ServicesAtsScenario(args) {
                             4530994: 'Воронка'
                         },
                         category: 'sales_funnel',
-                        id: 'sales_funnel',
                         leaf: true,
                         name: 'Воронка продаж',
                         type: 'select'
@@ -340,7 +353,6 @@ function ServicesAtsScenario(args) {
                             1162720: 'Оплачено полностью'
                         },
                         category: 'user_field',
-                        id: 'user_field:295656',
                         leaf: true,
                         name: '1/2 оплаты',
                         type: 'select',
@@ -356,12 +368,10 @@ function ServicesAtsScenario(args) {
                         ],
                         available_values: null,
                         category: 'user_field',
-                        id: 'user_field:2632367:leads',
                         leaf: true,
                         name: 'UTM_CONTENT',
                         type: 'text',
-                        user_field_id: 2632367,
-                        entity: 'leads'
+                        user_field_id: 2632367
                     }, {
                         available_operators: [
                             '=',
@@ -373,12 +383,10 @@ function ServicesAtsScenario(args) {
                         ],
                         available_values: null,
                         category: 'user_field',
-                        id: 'user_field:2632364:leads',
                         leaf: true,
                         name: 'UTM_CAMPAIGN',
                         type: 'text',
-                        user_field_id: 2632364,
-                        entity: 'leads'
+                        user_field_id: 2632364
                     }],
                     id: 2,
                     mnemonic: 'leads',
@@ -395,12 +403,10 @@ function ServicesAtsScenario(args) {
                         ],
                         available_values: null,
                         category: 'user_field',
-                        id: 'user_field:2632367:contacts',
                         leaf: true,
                         name: 'UTM_CONTENT',
                         type: 'text',
-                        user_field_id: 2632367,
-                        entity: 'contacts'
+                        user_field_id: 2632367
                     }, {
                         available_operators: [
                             '=',
@@ -412,16 +418,75 @@ function ServicesAtsScenario(args) {
                         ],
                         available_values: null,
                         category: 'user_field',
-                        id: 'user_field:2632364:contacts',
                         leaf: true,
                         name: 'UTM_CAMPAIGN',
                         type: 'text',
-                        user_field_id: 2632364,
-                        entity: 'contacts'
+                        user_field_id: 2632364
                     }],
                     id: 4272,
                     mnemonic: 'contacts',
                     name: 'Контакт'
+                }],
+                'comagic:_tree:regions': [{
+                    id: 'group5422',
+                    leaf: false,
+                    name: 'Австралия',
+                    data: [{
+                        id: 5422,
+                        leaf: true,
+                        name: 'Австралия (все регионы)'
+                    }, {
+                        data: [],
+                        id: 5423,
+                        leaf: true,
+                        name: 'toll free'
+                    }]
+                }, {
+                    id: 'group109',
+                    leaf: false,
+                    name: 'Азербайджан',
+                    data: [{
+                        data: [],
+                        id: 367,
+                        leaf: true,
+                        name: 'Агдам'
+                    }, {
+                        data: [],
+                        id: 368,
+                        leaf: true,
+                        name: 'Агдаш'
+                    }]
+                }],
+                'comagic:_tree:segments_by_sites': [{
+                    id: 51425,
+                    leaf: false,
+                    name: 'somesite.com',
+                    data: [{
+                        data: [],
+                        id: 86928,
+                        leaf: true,
+                        name: 'Первый сегмент'
+                    }, {
+                        data: [],
+                        id: 96817,
+                        leaf: true,
+                        name: 'Второй сегмент'
+                    }]
+                }, {
+                    id: 2757,
+                    leaf: false,
+                    name: 'othersite.com',
+                    data: [{
+                        data: [],
+                        id: 72857,
+                        leaf: true,
+                        name: 'Третий сегмент'
+                    }, {
+                        data: [],
+                        id: 6738,
+                        leaf: true,
+                        name: 'Четвертый сегмент'
+                    }]
                 }],
                 'comagic:public:tts_voice': [{
                     id: 2859285,
@@ -447,6 +512,11 @@ function ServicesAtsScenario(args) {
         };
 
         function addMethods (me) {
+            me.noCrmFields = function () {
+                response.data['comagic:_tree:va_crm_fields'] = [];
+                return me;
+            };
+
             me.salesFunnelWithEntity = function () {
                 response.data['comagic:_tree:va_crm_fields'][0].data[0] = {
                     available_operators: [
@@ -458,7 +528,6 @@ function ServicesAtsScenario(args) {
                         4530994: 'Воронка'
                     },
                     category: 'sales_funnel',
-                    id: 'sales_funnel::leads',
                     leaf: true,
                     name: 'Воронка продаж',
                     type: 'select',
@@ -485,12 +554,10 @@ function ServicesAtsScenario(args) {
                     ],
                     available_values: null,
                     category: 'user_field',
-                    id: 'user_field:2632364:contacts',
                     leaf: true,
                     name: 'UTM_CAMPAIGN',
                     type: 'text',
-                    user_field_id: 2632364,
-                    entity: 'contacts'
+                    user_field_id: 2632364
                 }];
 
                 return me;
@@ -852,6 +919,60 @@ function ServicesAtsScenario(args) {
                 return me;
             };
 
+            me.includesOnlyDistributionByCrmDataAction = function () {
+                response.data = {
+                    action_jump_crm_field: [],
+                    action_jump_region: [],
+                    action_staff_group: [],
+                    action_jump_segment: [],
+                    action_http_param: [],
+                    action_mark: [],
+
+                    scenario: [{
+                        first_action_id: 218318,
+                        app_id: 4735,
+                        id: 210948,
+                        name: 'Некий сценарий'
+                    }],
+
+                    playlist: [{
+                        id: 647295
+                    }],
+
+                    playlist_item: [{
+                        media_file_id: 2035,
+                        priority: 0,
+                        playlist_id: 647295,
+                        id: 537938
+                    }],
+
+                    action_jump: [{
+                        return_code_id: 4,
+                        from_action_id: 218318,
+                        to_action_id: 218319,
+                        is_link: false,
+                        id: 125790
+                    }],
+
+                    action: [{
+                        action_type_id: 74,
+                        name: 'По данным из CRM 1',
+                        scenario_id: 210948,
+                        is_within_scenario: false,
+                        id: 218318
+                    }, {
+                        action_type_id: 7,
+                        name: 'Голосовая почта 2',
+                        scenario_id: 210948,
+                        is_within_scenario: false,
+                        id: 218319,
+                        playlist_id: 647295
+                    }]
+                };
+
+                return me;
+            };
+
             me.includesDistributionByCrmDataAction = function () {
                 response.data.action_jump_crm_field.push({
                     action_jump_id: 572858,
@@ -860,7 +981,8 @@ function ServicesAtsScenario(args) {
                     value: ['4530994'],
                     id: 271508,
                     category: 'sales_funnel',
-                    partner: 'amocrm'
+                    partner: 'amocrm',
+                    entity: 'leads'
                 });
 
                 response.data.action.push({
@@ -889,10 +1011,25 @@ function ServicesAtsScenario(args) {
                     return_code_id: 124,
                     id: 572858
                 });
+
+                me.includesTextCrmField = function () {
+                    response.data.action_jump_crm_field[0].user_field_id = 2632367;
+                    response.data.action_jump_crm_field[0].category = 'user_field';
+                    response.data.action_jump_crm_field[0].value = 'qwe123';
+
+                    return me;
+                };
+
+                me.includesEntityCrmField = function () {
+                    response.data.action_jump_crm_field[0].operator = 'is_null';
+                    response.data.action_jump_crm_field[0].user_field_id = null;
+                    response.data.action_jump_crm_field[0].category = 'entity';
+                    response.data.action_jump_crm_field[0].value = null;
+
+                    return me;
+                };
                 
                 me.salesFunnelWithEntity = function () {
-                    response.data.action_jump_crm_field[0].user_field_id = 'sales_funnel:0';
-                    response.data.action_jump_crm_field[0].entity = 'leads';
                     return me;
                 };
 
@@ -916,12 +1053,13 @@ function ServicesAtsScenario(args) {
                     response.data.action_jump_crm_field.push({
                         action_jump_id: 647295,
                         priority: 0,
-                        user_field_id: 'user_field:295656',
+                        user_field_id: 295656,
                         operator: '=',
                         value: ['1162718'],
                         partner: 'amocrm',
                         id: 37838,
-                        category: 'user_field'
+                        category: 'user_field',
+                        entity: 'leads'
                     });
 
                     response.data.playlist.push({
@@ -945,7 +1083,7 @@ function ServicesAtsScenario(args) {
                 response.data.action_jump_crm_field.push({
                     action_jump_id: 572858,
                     priority: 0,
-                    user_field_id: 'user_field:2632364',
+                    user_field_id: 2632364,
                     operator: '=',
                     value: 'UIS',
                     partner: 'amocrm',
@@ -1057,6 +1195,54 @@ function ServicesAtsScenario(args) {
                 is_postprocess: false,
                 name: '1',
                 priority: 4
+            }, {
+                action_type_id: 74,
+                code: '2',
+                description: null,
+                id: 126,
+                is_postprocess: false,
+                name: '2',
+                priority: 4
+            }, {
+                action_type_id: 74,
+                code: 'failed',
+                description: null,
+                id: 132,
+                is_postprocess: false,
+                name: 'Ошибка при запросе к CRM',
+                priority: 12
+            }, {
+                action_type_id: 16,
+                code: '0',
+                description: null,
+                id: 104,
+                is_postprocess: false,
+                name: '0',
+                priority: 1
+            }, {
+                action_type_id: 16,
+                code: '1',
+                description: null,
+                id: 105,
+                is_postprocess: false,
+                name: '1',
+                priority: 2
+            }, {
+                action_type_id: 12,
+                code: '0',
+                description: null,
+                id: 106,
+                is_postprocess: false,
+                name: '0',
+                priority: 1
+            }, {
+                action_type_id: 12,
+                code: '1',
+                description: null,
+                id: 107,
+                is_postprocess: false,
+                name: '1',
+                priority: 2
             }] 
         };
 
@@ -1115,10 +1301,41 @@ function ServicesAtsScenario(args) {
                 mnemonic: 'distribution_by_crm_data',
                 name: 'По данным из CRM',
                 partner: 'amocrm'
+            }, {
+                available_by_components: true,
+                components: ['distribution_by_segment'],
+                description: 'Обработка звонка в зависимости от сегмента, в который попал звонящий. Сегменты должны ' +
+                    'быть заранее заданы в разделе Аналитика - Сегменты. Настройте операции “Сегмент не задан” и ' +
+                    '“Другой сегмент”, чтобы не потерять звонок в случаях, когда звонящий не попадает в заданные ' +
+                    'сегменты.',
+                id: 12,
+                is_postprocess: false,
+                mnemonic: 'distribution_by_segment',
+                name: 'Распределение по сегментам'
+            }, {
+                available_by_components: true,
+                components: ['distribution_by_region'],
+                description: 'Вы можете настроить распределение входящих вызовов по интересующим вас регионам. ' +
+                    'Вызовы, не попавшие в выбранные регионы, будут перенаправляться на выход \'Остальные\'.',
+                id: 16,
+                is_postprocess: false,
+                mnemonic: 'distribution_by_region',
+                name: 'Распределение по регионам'
             }] 
         };
 
         function addMethods (me) {
+            me.distributionByCrmDataUnavailable = function () {
+                var record = response.data.find(function (record) {
+                    return record.mnemonic == 'distribution_by_crm_data';
+                });
+
+                record.available_by_components = null;
+                record.partner = null;
+                
+                return me;
+            };
+
             me.app59274 = function () {
                 response = responses['action_types_59274'];
                 return me;
@@ -1148,10 +1365,18 @@ function ServicesAtsScenario(args) {
             comagicVaAction1 = createUniqueValueExpectation(),
             comagicVaAction2 = createUniqueValueExpectation(),
             comagicVaActionJump1 = createUniqueValueExpectation(),
-            comagicVaActionJump2 = createUniqueValueExpectation()
+            comagicVaActionJump2 = createUniqueValueExpectation(),
+            comagicVaActionJump3 = createUniqueValueExpectation(),
             comagicVaActionJumpCrmField1 = createUniqueValueExpectation(),
+            comagicVaActionJumpCrmField2 = createUniqueValueExpectation(),
             comagicVaPlaylist1 = createUniqueValueExpectation(),
-            comagicVaPlaylistItem1 = createUniqueValueExpectation();
+            comagicVaPlaylistItem1 = createUniqueValueExpectation(),
+            comagicVaActionJumpRegion1 = createUniqueValueExpectation(),
+            comagicVaActionJumpRegion2 = createUniqueValueExpectation(),
+            comagicVaActionJumpRegion3 = createUniqueValueExpectation(),
+            comagicVaActionJumpSegment1 = createUniqueValueExpectation(),
+            comagicVaActionJumpSegment2 = createUniqueValueExpectation(),
+            comagicVaActionJumpSegment3 = createUniqueValueExpectation();
 
         var bodyParams = {
             action_types: {
@@ -1227,6 +1452,335 @@ function ServicesAtsScenario(args) {
         };
 
         return {
+            addingEntityField: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 74,
+                    name: 'По данным из CRM 1',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1
+                }, {
+                    action_type_id: 7,
+                    name: 'Голосовая почта 2',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction2,
+                    playlist_id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 218318,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 7,
+                    id: comagicVaActionJump1
+                }, {
+                    from_action_id: comagicVaAction1,
+                    to_action_id: comagicVaAction2,
+                    return_code_id: 124,
+                    id: comagicVaActionJump2
+                }, undefined];
+
+                bodyParams.action_jump_crm_field.create = [{
+                    action_jump_id: comagicVaActionJump2,
+                    priority: 0,
+                    operator: 'is_null',
+                    partner: 'amocrm',
+                    id: comagicVaActionJumpCrmField1,
+                    category: 'entity',
+                    entity: 'leads'
+                }, undefined];
+
+                bodyParams.playlist.create = [{
+                    id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.playlist_item.create = [{
+                    media_file_id: 2035,
+                    priority: 0,
+                    playlist_id: comagicVaPlaylist1,
+                    id: comagicVaPlaylistItem1
+                }, undefined];
+
+                return this;
+            },
+            addingCRMFieldWithoutValue: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 74,
+                    name: 'По данным из CRM 1',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1
+                }, {
+                    action_type_id: 7,
+                    name: 'Голосовая почта 2',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction2,
+                    playlist_id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 218318,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 7,
+                    id: comagicVaActionJump1
+                }, {
+                    from_action_id: comagicVaAction1,
+                    to_action_id: comagicVaAction2,
+                    return_code_id: 124,
+                    id: comagicVaActionJump2
+                }, undefined];
+
+                bodyParams.action_jump_crm_field.create = [{
+                    action_jump_id: comagicVaActionJump2,
+                    priority: 0,
+                    operator: 'is_not_null',
+                    partner: 'amocrm',
+                    id: comagicVaActionJumpCrmField1,
+                    category: 'sales_funnel',
+                    entity: 'leads'
+                }, undefined];
+
+                bodyParams.playlist.create = [{
+                    id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.playlist_item.create = [{
+                    media_file_id: 2035,
+                    priority: 0,
+                    playlist_id: comagicVaPlaylist1,
+                    id: comagicVaPlaylistItem1
+                }, undefined];
+
+                return this;
+            },
+            addingFailProcessing: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 74,
+                    name: 'По данным из CRM 1',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1
+                }, {
+                    action_type_id: 7,
+                    name: 'Голосовая почта 2',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction2,
+                    playlist_id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 218318,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 7,
+                    id: comagicVaActionJump1
+                }, {
+                    from_action_id: comagicVaAction1,
+                    to_action_id: comagicVaAction2,
+                    return_code_id: 132,
+                    id: comagicVaActionJump2
+                }, undefined];
+
+                bodyParams.playlist.create = [{
+                    id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.playlist_item.create = [{
+                    media_file_id: 2035,
+                    priority: 0,
+                    playlist_id: comagicVaPlaylist1,
+                    id: comagicVaPlaylistItem1
+                }, undefined];
+
+                return this;
+            },
+            addingLinkToSegment: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 12,
+                    name: 'Распределение по сегментам 1',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1
+                }, {
+                    action_type_id: 7,
+                    name: 'Голосовая почта 2',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction2,
+                    playlist_id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 218318,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 7,
+                    id: comagicVaActionJump1
+                }, {
+                    from_action_id: comagicVaAction1,
+                    to_action_id: comagicVaAction2,
+                    return_code_id: 106,
+                    id: comagicVaActionJump2
+                }, {
+                    from_action_id: comagicVaAction1,
+                    to_action_id: '218318',
+                    return_code_id: 107,
+                    is_link: true,
+                    id: comagicVaActionJump3
+                }, undefined];
+
+                bodyParams.action_jump_segment.create = [{
+                    action_jump_id: comagicVaActionJump2,
+                    priority: 0,
+                    segment_id: 96817,
+                    id: comagicVaActionJumpSegment1
+                }, {
+                    action_jump_id: comagicVaActionJump3,
+                    priority: 0,
+                    segment_id: 86928,
+                    id: comagicVaActionJumpSegment2
+                }, {
+                    action_jump_id: comagicVaActionJump3,
+                    priority: 0,
+                    segment_id: 72857,
+                    id: comagicVaActionJumpSegment3
+                }, undefined];
+
+                bodyParams.playlist.create = [{
+                    id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.playlist_item.create = [{
+                    media_file_id: 2035,
+                    priority: 0,
+                    playlist_id: comagicVaPlaylist1,
+                    id: comagicVaPlaylistItem1
+                }, undefined];
+
+                return this;
+            },
+            addingLinkToRegion: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 16,
+                    name: 'Распределение по регионам 1',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1 
+                }, {
+                    action_type_id: 7,
+                    name: 'Голосовая почта 2',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction2,
+                    playlist_id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 218318,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 7,
+                    id: comagicVaActionJump1
+                }, {
+                    from_action_id: comagicVaAction1,
+                    to_action_id: comagicVaAction2,
+                    return_code_id: 104,
+                    id: comagicVaActionJump2
+                }, {
+                    from_action_id: comagicVaAction1,
+                    to_action_id: '218318',
+                    return_code_id: 105,
+                    is_link: true,
+                    id: comagicVaActionJump3
+                }, undefined];
+
+                bodyParams.action_jump_region.create = [{
+                    action_jump_id: comagicVaActionJump2,
+                    priority: 0,
+                    region_id: 5423,
+                    id: comagicVaActionJumpRegion1 
+                }, {
+                    action_jump_id: comagicVaActionJump3,
+                    priority: 0,
+                    region_id: 5422,
+                    id: comagicVaActionJumpRegion2 
+                }, {
+                    action_jump_id: comagicVaActionJump3,
+                    priority: 0,
+                    region_id: 368,
+                    id: comagicVaActionJumpRegion3 
+                }, undefined];
+
+                bodyParams.playlist.create = [{
+                    id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.playlist_item.create = [{
+                    media_file_id: 2035,
+                    priority: 0,
+                    playlist_id: comagicVaPlaylist1,
+                    id: comagicVaPlaylistItem1
+                }, undefined];
+
+                return this;
+            },
+            addingLinkToCRMField: function () {
+                bodyParams.action.create = [{
+                    action_type_id: 7,
+                    name: 'Голосовая почта 2',
+                    scenario_id: 210948,
+                    is_within_scenario: false,
+                    id: comagicVaAction1,
+                    playlist_id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.action_jump.create = [{
+                    from_action_id: 86392,
+                    to_action_id: comagicVaAction1,
+                    return_code_id: 126,
+                    id: comagicVaActionJump1
+                }, {
+                    from_action_id: 86392,
+                    to_action_id: '218318',
+                    return_code_id: 125,
+                    is_link: true,
+                    id: comagicVaActionJump2
+                }, undefined];
+
+                bodyParams.action_jump_crm_field.create = [{
+                    action_jump_id: comagicVaActionJump1,
+                    priority: 0,
+                    user_field_id: 2632367,
+                    operator: '=',
+                    value: 'wer123',
+                    partner: 'amocrm',
+                    id: comagicVaActionJumpCrmField1,
+                    category: 'user_field',
+                    entity: 'contacts'
+                }, {
+                    action_jump_id: comagicVaActionJump2,
+                    priority: 0,
+                    user_field_id: 2632367,
+                    operator: '=',
+                    value: 'qwe123',
+                    partner: 'amocrm',
+                    id: comagicVaActionJumpCrmField2,
+                    category: 'user_field',
+                    entity: 'leads'
+                }, undefined];
+
+                bodyParams.playlist.create = [{
+                    id: comagicVaPlaylist1
+                }, undefined];
+
+                bodyParams.playlist_item.create = [{
+                    media_file_id: 2035,
+                    priority: 0,
+                    playlist_id: comagicVaPlaylist1,
+                    id: comagicVaPlaylistItem1
+                }, undefined];
+
+                return this;
+            },
             updateCRMField: function () {
                 bodyParams.action_jump_crm_field.update = [{
                     action_jump_id: 572858,
@@ -1234,10 +1788,10 @@ function ServicesAtsScenario(args) {
                     operator: '=',
                     value: '1162712',
                     id: 271508,
-                    category: 'user_field',
                     partner: 'amocrm',
+                    category: 'user_field',
                     user_field_id: 295656,
-                    entity: null
+                    entity: 'leads'
                 }, undefined];
 
                 return this;
@@ -1276,11 +1830,47 @@ function ServicesAtsScenario(args) {
                     operator: '=',
                     value: ['4530994'],
                     id: comagicVaActionJumpCrmField1,
-                    category: 'sales_funnel',
                     partner: 'amocrm',
-                    entity: undefined,
-                    user_field_id: undefined
+                    category: 'sales_funnel',
+                    user_field_id: undefined,
+                    entity: 'leads'
                 }, undefined];
+
+                this.voiceMail = function () {
+                    bodyParams.action.create[1] = {
+                        action_type_id: 7,
+                        name: 'Голосовая почта 2',
+                        scenario_id: 210948,
+                        is_within_scenario: false,
+                        id: comagicVaAction2,
+                        playlist_id: comagicVaPlaylist1
+                    };
+
+                    bodyParams.action_jump_crm_field.create = [{
+                        action_jump_id: comagicVaActionJump2,
+                        priority: 0,
+                        operator: '=',
+                        value: 'wer234',
+                        id: comagicVaActionJumpCrmField1,
+                        partner: 'amocrm',
+                        category: 'user_field',
+                        user_field_id: 2632367,
+                        entity: 'leads'
+                    }, undefined];
+
+                    bodyParams.playlist.create = [{
+                        id: comagicVaPlaylist1
+                    }, undefined];
+
+                    bodyParams.playlist_item.create = [{
+                        media_file_id: 2035,
+                        priority: 0,
+                        playlist_id: comagicVaPlaylist1,
+                        id: comagicVaPlaylistItem1
+                    }, undefined];
+
+                    return this;
+                };
 
                 this.salesFunnelWithEntity = function () {
                     bodyParams.action_jump_crm_field.create[0].entity = 'leads';
@@ -1309,13 +1899,13 @@ function ServicesAtsScenario(args) {
                 bodyParams.action_jump_crm_field.create = [{
                     action_jump_id: comagicVaActionJump1,
                     priority: 0,
-                    user_field_id: 295656,
                     operator: '=',
                     value: ['1162718'],
-                    partner: 'amocrm',
                     id: comagicVaActionJumpCrmField1,
+                    partner: 'amocrm',
                     category: 'user_field',
-                    entity: undefined
+                    user_field_id: 295656,
+                    entity: 'leads'
                 }, undefined];
 
                 bodyParams.action_jump_crm_field.update = [{
@@ -1327,12 +1917,12 @@ function ServicesAtsScenario(args) {
                     category: 'sales_funnel',
                     partner: 'amocrm',
                     user_field_id: null,
-                    entity: null
+                    entity: 'leads'
                 }, undefined];
 
                 bodyParams.playlist.create = [{
                     id: comagicVaPlaylist1
-                }, undefined]
+                }, undefined];
 
                 bodyParams.playlist_item.create = [{
                     media_file_id: 2035,
@@ -1363,18 +1953,18 @@ function ServicesAtsScenario(args) {
                 bodyParams.action_jump_crm_field.create = [{
                     action_jump_id: comagicVaActionJump1,
                     priority: 0,
-                    user_field_id: 295656,
                     operator: '=',
                     value: ['1162718'],
                     partner: 'amocrm',
                     id: comagicVaActionJumpCrmField1,
                     category: 'user_field',
+                    user_field_id: 295656,
                     entity: undefined
                 }, undefined];
 
                 bodyParams.playlist.create = [{
                     id: comagicVaPlaylist1
-                }, undefined]
+                }, undefined];
 
                 bodyParams.playlist_item.create = [{
                     media_file_id: 2035,
@@ -1405,12 +1995,12 @@ function ServicesAtsScenario(args) {
                 bodyParams.action_jump_crm_field.create = [{
                     action_jump_id: comagicVaActionJump1,
                     priority: 0,
-                    user_field_id: 2632364,
                     operator: '=',
                     value: 'UIS',
-                    partner: 'amocrm',
                     id: comagicVaActionJumpCrmField1,
+                    partner: 'amocrm',
                     category: 'user_field',
+                    user_field_id: 2632364,
                     entity: 'contacts'
                 }, undefined];
 
@@ -1423,12 +2013,12 @@ function ServicesAtsScenario(args) {
                     category: 'sales_funnel',
                     partner: 'amocrm',
                     user_field_id: null,
-                    entity: null
+                    entity: 'leads'
                 }, undefined];
 
                 bodyParams.playlist.create = [{
                     id: comagicVaPlaylist1
-                }, undefined]
+                }, undefined];
 
                 bodyParams.playlist_item.create = [{
                     media_file_id: 2035,
@@ -1449,18 +2039,6 @@ function ServicesAtsScenario(args) {
                     playlist_id: comagicVaPlaylist1
                 }, undefined];
                 
-                bodyParams.action_jump_crm_field.update = [{
-                    action_jump_id: 647295,
-                    priority: 0,
-                    user_field_id: 295656,
-                    operator: '=',
-                    value: ['1162718'],
-                    partner: 'amocrm',
-                    id: 37838,
-                    category: 'user_field',
-                    entity: null
-                }, undefined];
-
                 bodyParams.action_jump.create = [{
                     from_action_id: 53729,
                     to_action_id: comagicVaAction1,

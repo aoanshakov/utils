@@ -6,7 +6,11 @@ tests.requireClass('Comagic.account.integration.amocrm.store.ResponsibleUsers');
 tests.requireClass('Comagic.account.integration.amocrm.store.Multifunnels');
 tests.requireClass('Comagic.account.integration.amocrm.controller.Page');
 
-function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
+function AccountIntegrationAmocrm(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        utils = args.utils;
+
     AccountIntegrationAmocrm.makeOverrides = function () {
         Ext.define('Comagic.test.account.integration.amocrm.view.Page', {
             override: 'Comagic.account.integration.amocrm.view.Page',
@@ -1047,7 +1051,7 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
     });
 
     this.chatsProcessingForm = testersFactory.createFormTester(function () {
-        return utils.getComponentFromDomElement(Ext.fly(utils.findElementByTextContent(
+        return utils.getComponentByDomElement(Ext.fly(utils.findElementByTextContent(
             Comagic.application.findComponent('tabpanel').child(
                 'panel[title="Чаты и заявки"]'
             ).el.dom, 'Работа с чатами', 'label'
@@ -1081,7 +1085,7 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
     });
 
     this.updateContactOnCallFinishedTimeoutCombobox = function () {
-        return testersFactory.createComboBoxTester(utils.getComponentFromDomElement(
+        return testersFactory.createComboBoxTester(utils.getComponentByDomElement(
             utils.findElementByTextContent(
                 getVisibleTab(),
                 'После завершения звонка обновлять ответственного сотрудника через', '.x-component'
@@ -1166,7 +1170,7 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
     };
 
     this.row = function (label) {
-        var tr = utils.descendantOfBody().textEquals(label).matchesSelector('.x-component').find().closest('tr');
+        var tr = utils.descendantOfBody().textEquals(label).matchesSelector('.x-component').find(true).closest('tr');
 
         return {
             column: function (index) {
@@ -1174,7 +1178,7 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
 
                 return {
                     combobox: function () {
-                        return testersFactory.createComboBoxTester(utils.getComponentFromDomElement(
+                        return testersFactory.createComboBoxTester(utils.getComponentByDomElement(
                             td.querySelector('.x-field')
                         ));
                     }

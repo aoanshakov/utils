@@ -1,5 +1,10 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener) {
-    var helper;
+tests.addTest(function(args) {
+    var helper,
+        requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        wait = args.wait,
+        utils = args.utils,
+        windowOpener = args.windowOpener;
 
     describe(
         'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM".',
@@ -9,7 +14,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.destroy();
             }
 
-            helper = new AccountIntegrationAmocrm(requestsManager, testersFactory, utils);
+            helper = new AccountIntegrationAmocrm(args);
 
             Comagic.Directory.load();
             helper.batchReloadRequest().send();
@@ -30,7 +35,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.requestSyncSalesFunnel().send();
             });
 
-            xdescribe(
+            describe(
                 'При первичном обращении создается сделка. Для офлайн сообщений создаются сделки. Для чатов ' +
                 'создаются сделки. При повторных обращениях создается сделка. Открыта вкладка "Входящие звонки".',
             function() {
@@ -63,7 +68,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     helper.addFunnelButton.expectToBeEnabled();
                 });
             });
-            xdescribe(
+            describe(
                 'Первичные обращения обрабатываются вручную. Повторные обращения не обрабатываются. Открыта вкладка ' +
                 '"Входящие звонки".',
             function() {
@@ -90,7 +95,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     helper.addFunnelButton.expectToBeDisabled();
                 });
             });
-            xit(
+            it(
                 'Для чатов создаются сделки. Повторные обращения не обрабатываются. Открыта вкладка "Входящие ' +
                 'звонки". Открываю вкладку "Чаты". Настройки заблокированы.',
             function() {
@@ -104,7 +109,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                 helper.addFunnelButton.expectToBeDisabled();
             });
-            xit(
+            it(
                 'Для офлайн заявок создаются сделки. Повторные обращения не обрабатываются. Открыта вкладка ' +
                 '"Входящие звонки". Открываю вкладку "Офлайн Заявки". Настройки заблокированы.',
             function() {
@@ -118,7 +123,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                 helper.addFunnelButton.expectToBeDisabled();
             });
-            xdescribe(
+            describe(
                 'При первичном обращении создается сделка. Повторные обращения не обрабатываются. Открыта вкладка ' +
                 '"Входящие звонки".',
             function() {
@@ -153,8 +158,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.form.combobox().withValue('Некая воронка').expectToBeVisible();
             });
         });
-        return;
-        xdescribe(
+        describe(
             'Тип переадресации на ответственного сотрудника не определен. Открываю вкладку "Телефония".',
         function() {
             beforeEach(function() {
@@ -165,6 +169,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                 helper.tabPanel.tab('Телефония').click();
                 wait(10);
+
+                helper.entityNameTemplateNsParamsRequest().receiveResponse();
             });
 
             describe('Отмечаю радиокнопку "Из сделки".', function() {
@@ -202,7 +208,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 'карточку контакта, если включен фильтр на операцию сценария ВАТС".',
             function() {
                 helper.switchButton(
-                    'Передавать записи звонков в карточку контакта, если включен фильтр на операцию сценария ВАТС'
+                    'Передавать записи звонков в карточку контакта и создавать задачи, если настроен фильтр по ' +
+                    'операции сценария.'
                 ).click();
                 wait(10);
 
@@ -216,8 +223,47 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.button('Из сделки').expectNotToHaveClass('x-btn-pressed');
 
                 helper.switchButton(
-                    'Передавать записи звонков в карточку контакта, если включен фильтр на операцию сценария ВАТС'
+                    'Передавать записи звонков в карточку контакта и создавать задачи, если настроен фильтр по ' +
+                    'операции сценария.'
                 ).expectNotToHaveClass('x-form-cb-checked');
+
+                helper.row('Создавать новую сделку после закрытия последней сделки не ранее, чем через').
+                    column(1).
+                    combobox().
+                    expectToHaveValue('1 час');
+
+                helper.row('Создавать новую сделку после закрытия последней сделки не ранее, чем через').
+                    column(2).
+                    combobox().
+                    expectToHaveValue('1 час');
+
+                helper.row('Создавать новую сделку после закрытия последней сделки не ранее, чем через').
+                    column(1).
+                    combobox().
+                    click()
+
+                helper.row('Создавать новую сделку после закрытия последней сделки не ранее, чем через').
+                    column(1).
+                    combobox().
+                    options().
+                    expectToHaveTextContent(
+                        '5 минут ' +
+                        '10 минут ' +
+                        '15 минут ' +
+                        '20 минут ' +
+                        '30 минут ' +
+                        '45 минут ' +
+                        '1 час ' +
+                        '12 часов ' +
+                        '1 день ' +
+                        '3 дня ' +
+                        '1 неделя ' +
+                        '1 месяц ' +
+                        '2 месяца ' +
+                        '3 месяца ' +
+                        '4 месяца ' +
+                        '6 месяцев'
+                    );
             });
         });
         describe(
@@ -236,7 +282,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.entityNameTemplateNsParamsRequest().receiveResponse();
             });
 
-            xit(
+            it(
                 'Выбираю время в выпдающем спике "После завершения звонка обновлять ответственного сотрудника ' +
                 'через". Выбираю опцию "На ответственного из настроек интеграции" в выпадающем списке "Назначать при ' +
                 'потерянном звонке". Нажимаю на кнопку "Сохранить". Измененные данные сохранены.',
@@ -264,13 +310,11 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     toBeShownOnMouseOver();
 
                 wait()
-                return;
 
                 helper.row('Назначать при потерянном звонке').column(1).combobox().expectToHaveValue('На звонящего');
                 helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('0 мин');
             });
         });
-        return;
         describe(
             'Обновление ответственного включено, время заполнения карточки установлено. Открываю вкладку ' +
             '"Телефония".',
@@ -361,7 +405,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.form.radiofield().withBoxLabel('Из контакта').expectNotToBeChecked();
             helper.form.radiofield().withBoxLabel('Из сделки').expectToBeChecked();
         });
-        it('', function() {
+        it('Ввожу адрес портала. Нажимаю на кнопку "Сохранить". Настройки сохранены.', function() {
             helper.requestAmocrmData().send();
             helper.requestTariffs().send();
             helper.requestAmocrmStatus().send();
@@ -378,7 +422,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(10);
         });
     });
-    return;
     describe(
         'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
         'Открыта вкладка "Доступ к данным".',

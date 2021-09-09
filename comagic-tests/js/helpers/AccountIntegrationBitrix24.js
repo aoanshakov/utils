@@ -679,7 +679,7 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
     this.form = testersFactory.createFormTester(getVisibleTab);
 
     this.saveButton = testersFactory.createButtonTester(function () {
-        return utils.getComponentFromDomElement(utils.getVisible(utils.findElementsByTextContent(document.body,
+        return utils.getComponentByDomElement(utils.getVisible(utils.findElementsByTextContent(document.body,
             'Сохранить', '.x-btn')));
     });
 
