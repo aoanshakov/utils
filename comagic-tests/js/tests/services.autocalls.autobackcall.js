@@ -46,10 +46,6 @@ tests.addTest(function(args) {
 
                         helper.editForm.combobox().withFieldLabel('Звонить с номера').clickArrow();
                         helper.editForm.combobox().withFieldLabel('Звонить с номера').option('79161234567').click();
-
-                        helper.editForm.checkbox().
-                            withFieldLabel('Использовать для потерянных звонков из digital pipeline CRM').
-                            click();
                     });
 
                     describe(
@@ -119,10 +115,6 @@ tests.addTest(function(args) {
                         expectToHaveValue('5');
                     helper.editForm.textfield().withFieldLabel('Не перезванивать, если абонент ожидал ответа менее').
                         expectToBeEnabled();
-
-                    helper.editForm.checkbox().
-                        withFieldLabel('Использовать для потерянных звонков из digital pipeline CRM').
-                        expectToBeChecked();
                 });
             });
             it(
@@ -138,9 +130,6 @@ tests.addTest(function(args) {
 
                 helper.editForm.textfield().withFieldLabel('Не перезванивать, если абонент ожидал ответа менее').
                     expectToBeEnabled();
-
-                helper.editForm.checkbox().withFieldLabel('Использовать для потерянных звонков из digital pipeline CRM').
-                    expectNotToBeChecked();
             });
         });
         it(

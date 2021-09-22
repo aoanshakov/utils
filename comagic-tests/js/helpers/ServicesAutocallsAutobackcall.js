@@ -97,7 +97,6 @@ function ServicesAutocallsAutobackcall(args) {
             processing_method_params: [],
             min_wait_duration: 15,
             max_parallel_calls_count: 1,
-            is_include_crm_digital_pipeline_calls: false,
             operator_playlist: null,
             number_capacity_id: 528272
         };
@@ -132,7 +131,6 @@ function ServicesAutocallsAutobackcall(args) {
                 is_active: true,
                 min_wait_duration: 15,
                 max_parallel_calls_count: 3,
-                is_include_crm_digital_pipeline_calls: false,
                 event_filter_type: 'some_filter',
                 processing_method: 'some_processing_method',
                 attempts: ['0', '5', '15'],

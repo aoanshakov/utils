@@ -1,4 +1,8 @@
-function EasystartBitrix(requestsManager, testersFactory, utils) {
+function EasystartBitrix(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        utils = args.utils;
+
     var me = this;
 
     function dateFormats (date) {
@@ -17,7 +21,10 @@ function EasystartBitrix(requestsManager, testersFactory, utils) {
             ext_id: 2
         },
         success: true,
-        partner: 'bitrix'
+        partner: 'bitrix',
+        managerWorkplace: {
+            host: 'myint0.dev.uis.st'
+        }
     };
 
     this.setFatalError = function () {

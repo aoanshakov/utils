@@ -1,23 +1,15 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils) {
-    var tester;
-    
+tests.addTest(function(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        wait = args.wait,
+        utils = args.utils,
+        tester;
+
     beforeEach(function() {
-        tester = new EasystartBitrix(requestsManager, testersFactory, utils);
+        tester = new EasystartBitrix(args);
     });
 
-    it('Открываю страницу легкого входа Битрикс24. Отображена страница авторизации.', function() {
-        EasyStart.getApplication().checkIfPartnerReady();
-        tester.tryForFreeButton.expectToBeVisible();
-    });
-    it(
-        'Открываю страницу легкого входа Битрикс24. Произошла фатальная ошибка. Отображено сообщение об ошибке.',
-    function() {
-        tester.setFatalError();
-        EasyStart.getApplication().checkIfPartnerReady();
-        wait(10);
-        tester.fatalErrorMessage.expectToBeVisible();
-    });
-    describe('Открываю страницу легкого входа Битрикс24. Нажимаю на кнопку "Тестировать бесплатно".', function() {
+    xdescribe('Нажимаю на кнопку "Тестировать бесплатно".', function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
             tester.tryForFreeButton.click();
@@ -80,7 +72,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             });
         });
     });
-    describe(
+    xdescribe(
         'Открываю страницу легкого входа Битрикс24. Нажимаю на кнопку "Тестировать бесплатно". Нажимаю на кнопку ' +
         '"Продолжить". В соответствии с данными, полученными от сервера ни один сотрудник не был выбран ранее.',
     function() {
@@ -170,7 +162,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             });
         });
     });
-    describe(
+    xdescribe(
         'Открываю страницу легкого входа amoCRM. Нажимаю на кнопку "Тестировать бесплатно". Нажимаю на кнпоку ' +
         '"Продолжить". В соответствии с данными, полученными от сервера ранее были выбраны три сотрудника.',
     function() {
@@ -197,5 +189,17 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             tester.employeesGrid.row().atIndex(8).expectToBeSelected();
             tester.employeesGrid.row().atIndex(9).expectNotToBeSelected();
         });
+    });
+    xit(
+        'Открываю страницу легкого входа Битрикс24. Произошла фатальная ошибка. Отображено сообщение об ошибке.',
+    function() {
+        tester.setFatalError();
+        EasyStart.getApplication().checkIfPartnerReady();
+        wait(10);
+        tester.fatalErrorMessage.expectToBeVisible();
+    });
+    it('Открываю страницу легкого входа Битрикс24. Отображена страница авторизации.', function() {
+        EasyStart.getApplication().checkIfPartnerReady();
+        tester.tryForFreeButton.expectToBeVisible();
     });
 });

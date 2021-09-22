@@ -62,7 +62,7 @@ tests.addTest(function(args) {
                         helper.actionTypesRequest().receiveResponse();
                     });
 
-                    xdescribe('Выбираю сегмент. Выбираю связь с операцией.', function() {
+                    describe('Выбираю сегмент. Выбираю связь с операцией.', function() {
                         beforeEach(function() {
                             helper.menuItem('Распределение по сегментам').click();
                             wait();
@@ -135,7 +135,7 @@ tests.addTest(function(args) {
                                 withValue('Первый сегмент; Третий сегмент').expectToBeVisible();
                         });
                     });
-                    xdescribe('Выбираю регион. Выбираю связь с операцией.', function() {
+                    describe('Выбираю регион. Выбираю связь с операцией.', function() {
                         beforeEach(function() {
                             helper.menuItem('Распределение по регионам').click();
                             wait();
@@ -246,7 +246,6 @@ tests.addTest(function(args) {
                         helper.scenarioChangingRequest().addingDistributionByCRMData().voiceMail().expectToBeSent();
                     });
                 });
-                return;
                 describe('Добавляю действие "Распределение вызовов".', function() {
                     beforeEach(function() {
                         helper.actionIcon().withName('Меню 1').find().putMouseOver();
@@ -444,7 +443,6 @@ tests.addTest(function(args) {
                     });
                 });
             });
-            return;
             describe('Сценарий содержит опцию распределения по данным из CRM.', function() {
                 beforeEach(function() {
                     scenarioRequest.includesDistributionByCrmDataAction().receiveResponse();
@@ -896,7 +894,6 @@ tests.addTest(function(args) {
                 helper.windowText.expectToHaveTextContent('Проверьте заполненность полей');
             });
         });
-        return;
         describe('Не использую данные реального клиента. Для воронки указана сущность.', function() {
             beforeEach(function() {
                 batchReloadRequest.salesFunnelWithEntity().receiveResponse();
