@@ -22,9 +22,7 @@ function EasystartBitrix(args) {
         },
         success: true,
         partner: 'bitrix',
-        managerWorkplace: {
-            host: 'myint0.dev.uis.st'
-        }
+        callCenterHost: 'https://mynonexistent.ru'
     };
 
     this.setFatalError = function () {
@@ -32,6 +30,20 @@ function EasystartBitrix(args) {
             success: false,
             error: 'Произошла фатальная ошибка',
             partner: 'bitrix'
+        };
+    };
+    this.callCenterAuthRequest = function () {
+        return {
+            receiveResponse: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/easystart/bitrix/call_center_auth/').
+                    respondSuccessfullyWith({
+                        success: true,
+                        result: {
+                            token: 'XhaIfhS93shg'
+                        }
+                    });
+            }
         };
     };
     this.requestOrderCallback = function () {
@@ -997,6 +1009,10 @@ function EasystartBitrix(args) {
 
     this.secondEmployeeNumberFieldsContainer = testersFactory.createDomElementTester(function () {
         return secondPhoneRedirectColumn().querySelector('.easystart-number-fields');
+    });
+
+    this.callCenterOpeningButton = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.easystart-call-center-opening-button');
     });
 
     function eachSpinner (handler) {

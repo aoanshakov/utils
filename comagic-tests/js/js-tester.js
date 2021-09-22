@@ -436,6 +436,9 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
 function JsTester_Utils (debug) {
     var me = this;
 
+    this.receiveWindowMessage = function (args) {
+        window.dispatchEvent(new MessageEvent('message', args));
+    };
     this.addPreventDefaultHandler = function (event, preventDefaultHandler) {
         var preventDefault = event.preventDefault;
 
