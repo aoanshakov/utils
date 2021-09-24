@@ -1,0 +1,27 @@
+
+            findTreeNode: function (distributionDir, recId, r) {
+                var data = Object.assign({}, r.data),
+                    parts = ((data.user_field_id || '') + '').split(':');
+
+                data.user_field_id && (parseInt(data.user_field_id, 0) + '') !== data.user_field_id &&
+                    (data.user_field_id = parts[1]);
+
+                if (!data.category) {
+                    data.category = parts[0];
+                    data.user_field_id = parts[1];
+                    data.entity = parts[2];
+                }
+
+                data.user_field_id = parseInt(data.user_field_id, 0) || null
+
+                var values = ['category', 'user_field_id', 'entity'].map(function (name) {
+                    return (data[name] || '') + '';
+                });
+
+                return distributionDir.findNode('id', values.slice(0, values.reduce(
+                    function (indexOfLastNotEmptyValue, value, index) {
+                        return !value ? indexOfLastNotEmptyValue : index + 1;
+                    },
+                    0
+                )).join(':'), false, false, true);
+            },

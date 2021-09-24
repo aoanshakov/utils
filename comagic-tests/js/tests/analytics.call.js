@@ -343,7 +343,15 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
 
             tester.filterContainer.expectToBeHiddenOrNotExist();
         });
+        it('Нажимаю на кнпоку экспорта.', function() {
+            tester.exportBtn.click();
+            tester.menuItem('CSV-файл').click();
+        });
+        return;
         it('Отображен фильтр перехода из раздела обзора. Кнопка "Применить" заблокирована.', function() {
+            tester.anchor('Ивановский Иваний Иваниевич').
+                expectHrefToHavePath('https://comaigc.amocrm.ru/contacts/detail/42574735');
+
             tester.reviewItemFilterDescription.expectToBeVisible();
 
             tester.button('Применить').expectToBeDisabled();

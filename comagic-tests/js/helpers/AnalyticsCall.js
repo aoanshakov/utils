@@ -308,7 +308,9 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
                 is_auto_sale: true,
                 component: 'Звонок из внешней системы',
                 component_id: 'upload_calls',
-                direction: 'in'
+                direction: 'in',
+                crm_contact_name: 'Ивановский Иваний Иваниевич',
+                crm_contact_link: 'https://comaigc.amocrm.ru/contacts/detail/42574735'
             }, {
                 id: 938202,
                 employee_name: 'Петров Петр Петрович',
@@ -318,7 +320,9 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
                 is_auto_sale: true,
                 component: 'Автоперезвон из CRM',
                 component_id: 'amocrm_extended_integration',
-                direction: 'in'
+                direction: 'in',
+                crm_contact_name: 'Петровский Петроний Петрониевич',
+                crm_contact_link: 'https://comaigc.amocrm.ru/contacts/detail/42574736'
             }],
             metaData: {
                 fields: ['id', 'employee_name', 'ac_name', 'numa', 'is_auto_sale', 'marks'],
@@ -392,6 +396,11 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
                 }, {
                     name: 'is_auto_sale',
                     _grid_only: true
+                }, {
+                    description: 'Контакт из CRM',
+                    filterType: 'text',
+                    name: 'crm_contact_name',
+                    text: 'Контакт из CRM'
                 }]
             }
         };
@@ -761,7 +770,7 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
     });
 
     this.button = function (text) {
-        return testersFactory.createButtonTester(utils.getComponentFromDomElement(
+        return testersFactory.createButtonTester(utils.getComponentByDomElement(
             utils.descendantOfBody().matchesSelector('.x-btn').textEquals(text).find()
         ));
     };
@@ -786,6 +795,10 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
         }
     };
 
+    this.anchor = function (text) {
+        return testersFactory.createAnchorTester(utils.descendantOfBody().matchesSelector('a').textEquals(text).find());
+    };
+
     this.menuItem = function (text) {
         return testersFactory.createDomElementTester(utils.descendantOfBody().matchesSelector('.x-menu-item-text').
             textEquals(text).find());
@@ -802,5 +815,9 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
 
     this.saveFilterButton = testersFactory.createDomElementTester(function () {
         return document.querySelector('.cm-filter2panel-controlpanel-btn-save');
+    });
+
+    this.exportBtn = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.cm-btn-icon-export');
     });
 }

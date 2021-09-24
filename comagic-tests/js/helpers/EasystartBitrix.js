@@ -1,4 +1,8 @@
-function EasystartBitrix(requestsManager, testersFactory, utils) {
+function EasystartBitrix(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        utils = args.utils;
+
     var me = this;
 
     function dateFormats (date) {
@@ -17,7 +21,8 @@ function EasystartBitrix(requestsManager, testersFactory, utils) {
             ext_id: 2
         },
         success: true,
-        partner: 'bitrix'
+        partner: 'bitrix',
+        callCenterHost: 'https://mynonexistent.ru'
     };
 
     this.setFatalError = function () {
@@ -25,6 +30,20 @@ function EasystartBitrix(requestsManager, testersFactory, utils) {
             success: false,
             error: 'Произошла фатальная ошибка',
             partner: 'bitrix'
+        };
+    };
+    this.callCenterAuthRequest = function () {
+        return {
+            receiveResponse: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/easystart/bitrix/call_center_auth/').
+                    respondSuccessfullyWith({
+                        success: true,
+                        result: {
+                            token: 'XhaIfhS93shg'
+                        }
+                    });
+            }
         };
     };
     this.requestOrderCallback = function () {
@@ -990,6 +1009,10 @@ function EasystartBitrix(requestsManager, testersFactory, utils) {
 
     this.secondEmployeeNumberFieldsContainer = testersFactory.createDomElementTester(function () {
         return secondPhoneRedirectColumn().querySelector('.easystart-number-fields');
+    });
+
+    this.callCenterOpeningButton = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.easystart-call-center-opening-button');
     });
 
     function eachSpinner (handler) {

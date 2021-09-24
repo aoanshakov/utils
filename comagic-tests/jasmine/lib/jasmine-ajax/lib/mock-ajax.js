@@ -43,7 +43,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         window.MockAjax = factory(root, getJasmineRequireObj);
     // }
 }(typeof window !== 'undefined' ? window : global, function (global, getJasmineRequireObj) {
-
 // 
 getJasmineRequireObj().ajax = function(jRequire) {
   var $ajax = {};

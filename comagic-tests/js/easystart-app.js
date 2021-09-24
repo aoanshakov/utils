@@ -116,5 +116,7 @@ Ext.application({
 
             tests.runTests();
         });
+
+        jasmine.getEnv().execute();
     }
 });

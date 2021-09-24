@@ -22,7 +22,9 @@ function ExtJsTester_Factory () {
         return new ExtJsTester_TestersFactory(wait, utils, this);
     };
     this.createTestArguments = function () {
-        return [fakeNow];
+        return {
+            fakeNow: fakeNow
+        };
     };
     this.beforeEach = function () {
         nowFaker.replaceByFake();
@@ -804,6 +806,11 @@ function ExtJsTester_ComboBox (
     this.option = function (text) {
         return testersFactory.createComboBoxOptionTester(comboBoxComponent.getPicker(), text);
     };
+    this.options = function () {
+        return testersFactory.createDomElementTester(
+            utils.getVisibleSilently(document.querySelectorAll('.x-boundlist'))
+        );
+    };
 }
 
 function ExtJsTester_Checkable (
@@ -877,7 +884,10 @@ function ExtJsTester_FormTester (
     };
     this.checkbox = function () {
         return new ExtJsTester_FieldsGetter(getForm(), utils, function (field, label) {
-            return testersFactory.createCheckboxTester(field, label);
+            return testersFactory.createCheckboxTester(
+                field ? field.isXType('checkbox') ? field : field.down ? field.down('checkbox') : null : null,
+                label
+            );
         });
     };
     this.textfield = function () {
@@ -1016,7 +1026,7 @@ function ExtJsTester_Utils (debug) {
 
         return isVisible.call(this, domElement);
     };
-    this.getComponentFromDomElement = function (domElement) {
+    this.getComponentByDomElement = function (domElement) {
         return domElement ? Ext.ComponentManager.get(domElement.id) : null;
     };
     this.getTypeDescription = function (value) {
@@ -1055,6 +1065,27 @@ function ExtJsTester_Utils (debug) {
     this.findElementsByTextContent = function (ascendantElement, desiredTextContent, selector) {
         return findElementsByTextContent.apply(this, [getAscendantElementForFindingElementByText(ascendantElement,
             desiredTextContent), desiredTextContent, selector]);
+    };
+    this.expectExtErrorToOccur = function (expectedMessage, callback) {
+        var handle = Ext.Error.handle,
+            errorMessage;
+
+        Ext.Error.handle = function (e) {
+            errorMessage = e.msg;
+            return true;
+        };
+
+        callback();
+        Ext.Error.handle = handle;
+
+        if (!errorMessage) {
+            console.log('Ошибка должна была произойти.');
+        }
+
+        if (errorMessage != expectedMessage) {
+            throw new Error('Должна была произойти ошибка "' + expectedMessage + '", однако произошла ошибка "' +
+                errorMessage + '".');
+        }
     };
 }
 

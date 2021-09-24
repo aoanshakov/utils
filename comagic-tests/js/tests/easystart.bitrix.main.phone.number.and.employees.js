@@ -1,23 +1,17 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils) {
-    var tester;
-    
+tests.addTest(function(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        wait = args.wait,
+        utils = args.utils,
+        postMessagesTester = args.postMessagesTester,
+        windowOpener = args.windowOpener,
+        tester;
+
     beforeEach(function() {
-        tester = new EasystartBitrix(requestsManager, testersFactory, utils);
+        tester = new EasystartBitrix(args);
     });
 
-    it('Открываю страницу легкого входа Битрикс24. Отображена страница авторизации.', function() {
-        EasyStart.getApplication().checkIfPartnerReady();
-        tester.tryForFreeButton.expectToBeVisible();
-    });
-    it(
-        'Открываю страницу легкого входа Битрикс24. Произошла фатальная ошибка. Отображено сообщение об ошибке.',
-    function() {
-        tester.setFatalError();
-        EasyStart.getApplication().checkIfPartnerReady();
-        wait(10);
-        tester.fatalErrorMessage.expectToBeVisible();
-    });
-    describe('Открываю страницу легкого входа Битрикс24. Нажимаю на кнопку "Тестировать бесплатно".', function() {
+    describe('Нажимаю на кнопку "Тестировать бесплатно".', function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
             tester.tryForFreeButton.click();
@@ -197,5 +191,80 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             tester.employeesGrid.row().atIndex(8).expectToBeSelected();
             tester.employeesGrid.row().atIndex(9).expectNotToBeSelected();
         });
+    });
+    describe('Открываю страницу легкого входа Битрикс24. Нажимаю на вход в колл-центр.', function() {
+        var iframe;
+
+        beforeEach(function() {
+            EasyStart.getApplication().checkIfPartnerReady();
+            tester.callCenterOpeningButton.click();
+            tester.callCenterAuthRequest().receiveResponse();
+
+            iframe = document.querySelector('iframe');
+        });
+
+        afterEach(function() {
+            iframe && document.body.removeChild(iframe);
+        });
+
+        describe('Ответ на запрос аутентификации отправлен в Iframe с РМР. ', function() {
+            beforeEach(function() {
+                Object.defineProperty((iframe || {}), 'contentWindow', {
+                    get: function () {
+                        return window.parent;
+                    }
+                });
+            });
+
+            it('Получно сообщение не от Iframe c РМР. Ничего не происходит.', function() {
+                utils.receiveWindowMessage({
+                    data: 'ready',
+                    origin: 'https://otherdomain.ru'
+                });
+            });
+            it('Получно сообщение от Iframe c РМР. Открыт РМР.', function() {
+                utils.receiveWindowMessage({
+                    data: 'ready',
+                    origin: 'https://mynonexistent.ru'
+                });
+
+                postMessagesTester.expectMessageToBeSent('{"token":"XhaIfhS93shg"}');
+
+                utils.receiveWindowMessage({
+                    data: 'received',
+                    origin: 'https://mynonexistent.ru'
+                });
+
+                windowOpener.expectToHavePath('https://mynonexistent.ru/workplace/');
+            });
+        });
+        it('Открыт Iframe с РМР.', function() {
+            var expectedSrc = 'https://mynonexistent.ru/?auth';
+
+            if (!iframe) {
+                throw new Error(
+                    'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако Iframe не был открыт.'
+                );
+            }
+
+            if (iframe.src != expectedSrc) {
+                throw new Error(
+                    'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако была открыта страница "' +
+                    iframe.src + '".'
+                );
+            }
+        });
+    });
+    it(
+        'Открываю страницу легкого входа Битрикс24. Произошла фатальная ошибка. Отображено сообщение об ошибке.',
+    function() {
+        tester.setFatalError();
+        EasyStart.getApplication().checkIfPartnerReady();
+        wait(10);
+        tester.fatalErrorMessage.expectToBeVisible();
+    });
+    it('Открываю страницу легкого входа Битрикс24. Отображена страница авторизации.', function() {
+        EasyStart.getApplication().checkIfPartnerReady();
+        tester.tryForFreeButton.expectToBeVisible();
     });
 });

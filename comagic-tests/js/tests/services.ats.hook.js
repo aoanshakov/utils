@@ -1,4 +1,6 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils) {
+tests.addTest(function(args) {
+    var wait = args.wait;
+
     describe('Открываю раздел "Сервисы/Виртуальная АТС/Уведомления". Открываю форму создания уведомления.', function() {
         var helper;
 
@@ -7,7 +9,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 helper.destroy();
             }
 
-            helper = new ServicesAtsHook(requestsManager, testersFactory, utils);
+            helper = new ServicesAtsHook(args);
 
             Comagic.Directory.load();
             helper.batchReloadRequest().receiveResponse();
@@ -24,7 +26,22 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             wait();
         });
 
-        it('', function() {
+        it('Нажимаю на кнопку "Добавить группу условий". Выбираю показатель и условие.', function() {
+            helper.button('Добавить группу условий').click();
+
+            wait();
+            wait();
+            wait();
+            wait();
+
+            helper.conditionGroup().first().combobox().withPlaceholder('Выберите показатель').click();
+            helper.treeNode('Название сценария ВАТС').click();
+
+            helper.conditionGroup().first().combobox().withPlaceholder('Выберите условие').click();
+            helper.conditionGroup().first().combobox().
+                withPlaceholder('Выберите условие').
+                option('Точно соответствует').
+                click();
         });
     });
 });

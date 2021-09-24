@@ -6,7 +6,11 @@ tests.requireClass('Comagic.account.integration.amocrm.store.ResponsibleUsers');
 tests.requireClass('Comagic.account.integration.amocrm.store.Multifunnels');
 tests.requireClass('Comagic.account.integration.amocrm.controller.Page');
 
-function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
+function AccountIntegrationAmocrm(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        utils = args.utils;
+
     AccountIntegrationAmocrm.makeOverrides = function () {
         Ext.define('Comagic.test.account.integration.amocrm.view.Page', {
             override: 'Comagic.account.integration.amocrm.view.Page',
@@ -293,6 +297,19 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
                         data: getSalesFunnels()
                     });
             },
+        };
+    };
+
+    this.entityNameTemplateNsParamsRequest = function () {
+        return {
+            receiveResponse: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/directory/comagic:amocrm:entity_name_template_ns_params/').
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: [] 
+                    });
+            }
         };
     };
 
@@ -681,6 +698,7 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
         var data = {
             id: 3208,
             crm_record: getAmocrmData(),
+            first_in_call_act: 'contact',
             in_call_filters: [{
                 user_id: 8274,
                 user_name: 'Ivanov Ivan Ivanovich',
@@ -1033,7 +1051,7 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
     });
 
     this.chatsProcessingForm = testersFactory.createFormTester(function () {
-        return utils.getComponentFromDomElement(Ext.fly(utils.findElementByTextContent(
+        return utils.getComponentByDomElement(Ext.fly(utils.findElementByTextContent(
             Comagic.application.findComponent('tabpanel').child(
                 'panel[title="Чаты и заявки"]'
             ).el.dom, 'Работа с чатами', 'label'
@@ -1067,7 +1085,7 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
     });
 
     this.updateContactOnCallFinishedTimeoutCombobox = function () {
-        return testersFactory.createComboBoxTester(utils.getComponentFromDomElement(
+        return testersFactory.createComboBoxTester(utils.getComponentByDomElement(
             utils.findElementByTextContent(
                 getVisibleTab(),
                 'После завершения звонка обновлять ответственного сотрудника через', '.x-component'
@@ -1149,5 +1167,23 @@ function AccountIntegrationAmocrm(requestsManager, testersFactory, utils) {
     this.button = function (text) {
         return testersFactory.
             createDomElementTester(utils.descendantOfBody().textEquals(text).matchesSelector('.x-btn').find());
+    };
+
+    this.row = function (label) {
+        var tr = utils.descendantOfBody().textEquals(label).matchesSelector('.x-component').find(true).closest('tr');
+
+        return {
+            column: function (index) {
+                var td = tr.querySelectorAll('td')[index] || new JsTester_NoElement();
+
+                return {
+                    combobox: function () {
+                        return testersFactory.createComboBoxTester(utils.getComponentByDomElement(
+                            td.querySelector('.x-field')
+                        ));
+                    }
+                };
+            }
+        };
     };
 }

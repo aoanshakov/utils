@@ -19,7 +19,7 @@ function JsTester_Factory () {
         return new JsTester_TestersFactory(wait, utils, this);
     };
     this.createTestArguments = function () {
-        return [];
+        return {};
     };
     this.beforeEach = function () {};
     this.afterEach = function () {};
@@ -196,8 +196,10 @@ function JsTester_PostMessageTester (postMessages) {
 function JsTester_Tests (factory) {
     var testRunners = [],
         requiredClasses = [],
+        responseFileNames = [],
         timeout = new JsTester_Timeout('setTimeout', 'clearTimeout', JsTester_OneTimeDelayedTask),
         interval = new JsTester_Timeout('setInterval', 'clearInterval', JsTester_DelayedTask),
+        storageMocker = new JsTester_StorageMocker(),
         debug = factory.createDebugger(),
         utils = factory.createUtils(debug),
         requestsManager = new JsTester_RequestsManager(utils),
@@ -232,7 +234,7 @@ function JsTester_Tests (factory) {
     this.addTest = function (testRunner) {
         testRunners.push(testRunner);
     };
-    this.runTests = function () {
+    this.runTests = function (responses) {
         var error,
             testersFactory;
 
@@ -249,21 +251,26 @@ function JsTester_Tests (factory) {
         }
 
         testRunners.forEach(function (runTest) {
-            runTest.apply(null, [
-                requestsManager,
-                testersFactory,
-                wait,
-                utils,
-                windowOpener,
-                postMessagesTester,
-                debug
-            ].concat(
-                factory.createTestArguments()
-            ));
+            runTest(Object.assign({
+                requestsManager: requestsManager,
+                testersFactory: testersFactory,
+                wait: wait,
+                utils: utils,
+                windowOpener: windowOpener,
+                postMessagesTester: postMessagesTester,
+                debug: debug,
+                responses: responses
+            }, factory.createTestArguments()));
         });
     };
     this.requireClass = function (className) {
         requiredClasses.push(className);
+    };
+    this.requireResponse = function (responseFileName) {
+        responseFileNames.push(responseFileName);
+    };
+    this.getResponseFileNames = function () {
+        return responseFileNames;
     };
     this.runBeforeTestsExecution = function (handleBeginingOfTestsExecution) {
         testsExecutionBeginingHandlers.push(handleBeginingOfTestsExecution);
@@ -280,6 +287,7 @@ function JsTester_Tests (factory) {
         postMessages.removeAll();
         requestsManager.createAjaxMock();
         parentWindowReplacer.replaceByFake();
+        storageMocker.replaceByFake();
         timeout.replaceByFake();
         interval.replaceByFake();
         windowOpener.replaceByFake();
@@ -293,6 +301,7 @@ function JsTester_Tests (factory) {
         requestsManager.destroyAjaxMock();
         timeout.restoreReal();
         interval.restoreReal();
+        storageMocker.restoreReal();
         windowOpener.restoreReal();
         factory.afterEach();
 
@@ -427,6 +436,9 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
 function JsTester_Utils (debug) {
     var me = this;
 
+    this.receiveWindowMessage = function (args) {
+        window.dispatchEvent(new MessageEvent('message', args));
+    };
     this.addPreventDefaultHandler = function (event, preventDefaultHandler) {
         var preventDefault = event.preventDefault;
 
@@ -519,7 +531,9 @@ function JsTester_Utils (debug) {
         }
     };
     this.makeDomElementGetter = function (value) {
-        var getDomElement = this.makeFunction(value);
+        var getDomElement = typeof value == 'string' ? function () {
+            return me.getVisibleSilently(document.querySelectorAll(value));
+        } : this.makeFunction(value);
 
         return function () {
             var element = getDomElement();
@@ -535,6 +549,16 @@ function JsTester_Utils (debug) {
         return description + (label ? (' "' + label + '"') : '');
     };
     this.isVisible = function(domElement) {
+        if (!domElement) {
+            return false;
+        }
+
+        if (getComputedStyle(domElement).visibility == 'hidden') {
+            return false;
+        }
+
+        domElement.scrollIntoView();
+
         var rects = domElement.getClientRects(),
             rectsCount = rects.length,
             isOffsetSizePositive = domElement.offsetWidth > 0 || domElement.offsetHeight > 0;
@@ -800,6 +824,92 @@ function JsTester_OpenedWindow (path, query) {
     };
     this.expectQueryToContain = function (params) {
         query.expectToContain(params);
+    };
+}
+
+function JsTester_Storage () {
+    var keys,
+        values,
+        keyToIndex;
+    
+    this.setItemInAnotherTab = function (key, value) {
+        var oldValue = values[key];
+
+        this.setItem(key, value);
+
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: key,
+            oldValue: oldValue,
+            newValue: value
+        }));
+    };
+    this.setItem = function (key, value) {
+        if (!(key in values)) {
+            var index = keys.length;
+            keys.push(key);
+            keyToIndex[key] = index;
+        }
+
+        values[key] = value;
+    };
+    this.getItem = function (key) {
+        return values[key] || null;
+    };
+    this.removeItem = function (key) {
+        if (!(key in values)) {
+            return;
+        }
+
+        keys.splice(keyToIndex[key], 1);
+        delete(keyToIndex[key]);
+        delete(values[key]);
+    };
+    this.clear = function () {
+        keys = [];
+        values = {};
+        keyToIndex = {};
+    };
+    this.key = function (index) {
+        return keys[index];
+    };
+
+    Object.defineProperty(this, 'length', {
+        get: function () {
+            return keys.length;
+        },
+        set: function () {}
+    });
+
+    this.clear();
+}
+
+function JsTester_StorageMocker () {
+    var realLocalStorage = window.localStorage,
+        currentLocalStorage = realLocalStorage,
+        realSessionStorage = window.sessionStorage,
+        currentSessionStorage = realSessionStorage;
+
+    Object.defineProperty(window, 'localStorage', {
+        get: function () {
+            return currentLocalStorage;
+        },
+        set: function () {}
+    });
+
+    Object.defineProperty(window, 'sessionStorage', {
+        get: function () {
+            return currentSessionStorage;
+        },
+        set: function () {}
+    });
+
+    this.replaceByFake = function () {
+        currentLocalStorage = new JsTester_Storage();
+        currentSessionStorage = new JsTester_Storage();
+    };
+    this.restoreReal = function () {
+        currentLocalStorage = realLocalStorage;
+        currentSessionStorage = realSessionStorage;
     };
 }
 
@@ -1465,7 +1575,7 @@ function JsTester_DomElement (
         }
     };
     this.expectToBeVisible = function () {
-        this.scrollIntoView();
+        this.expectToExist();
 
         if (!utils.isVisible(getDomElement())) {
             throw new Error(
@@ -1586,8 +1696,129 @@ function JsTester_DomElement (
     };
 }
 
+function JsTests_ParamExpectation () {
+    this.maybeThrowError = function (actualValue, keyDescription) {};
+}
+
+JsTests_ParamExpectationPrototype = new JsTests_ParamExpectation();
+
+function JsTests_EmptyObjectExpectaion () {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (
+            !actualValue ||
+            typeof actualValue != 'object' ||
+            Array.isArray(actualValue) ||
+            Object.values(actualValue).length > 0
+        ) {
+            throw new Error('Значением параметра ' + keyDescription + ' должен быть пустой объект, тогда как ' +
+                'значение параметра таково ' + JSON.stringify(actualValue) + '.');
+        }
+    };
+}
+
+function JsTests_PrefixExpectaion (expectedPrefix) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (
+            !actualValue ||
+            typeof actualValue != 'string' ||
+            actualValue.indexOf(expectedPrefix) !== 0
+        ) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должна быть строка с префиксом "' + expectedPrefix + '", ' +
+                'однако значение параметра таково ' + JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
+function JsTests_StringExpectaion () {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (
+            !actualValue ||
+            typeof actualValue != 'string'
+        ) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должна быть строка, однако значение параметра таково ' +
+                JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
+function JsTests_SetInclusionExpectation (expectedSubset) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (!Array.isArray(actualValue)) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должен быть массив, однако значение параметра таково ' +
+                JSON.stringify(actualValue) + '.'
+            );
+        }
+
+        if (!Array.isArray(expectedSubset)) {
+            throw new Error('Ожидаемым значением параметра ' + keyDescription + ' должен быть массив.');
+        }
+
+        if (expectedSubset.some(function (item) {
+            return !actualValue.includes(item);
+        })) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должнна быть массив, включающий такие элементы - ' +
+
+                expectedSubset.map(function (item) {
+                    return JSON.stringify(item);
+                }).join(', ') +
+
+                ', однако значение параметра таково ' + JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
+function JsTests_UniqueValueExpectation (values) {
+    var value;
+
+    var checkUniqueness = function (keyDescription) {
+        checkUniqueness = function () {};
+
+        if (values.has(value)) {
+            throw new Error('Значение параметра ' + keyDescription + ' не должно быть равно значению параметр ' +
+                values.get(value));
+        }
+
+        values.set(value, keyDescription);
+    };
+
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (!actualValue) {
+            throw new Error('Значение параметра ' + keyDescription + ' не должно быть пустым.');
+        }
+
+        if (value && actualValue !== value) {
+            throw new Error('Параметр ' + keyDescription + ' должен иметь значение ' + JSON.stringify(value) +
+                ', тогда, как он имеет значение ' + JSON.stringify(actualValue) + '.');
+        }
+
+        value = actualValue;
+        checkUniqueness(keyDescription);
+    };
+}
+
+function JsTests_UniqueValueExpectationFactory () {
+    var values = new Map();
+
+    return function () {
+        return new JsTests_UniqueValueExpectation(values);
+    };
+}
+
+JsTests_EmptyObjectExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_PrefixExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_StringExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_SetInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
+JsTests_UniqueValueExpectation.prototype = JsTests_ParamExpectationPrototype;
+
 function JsTester_ParamsContainingExpectation (actualParams, paramsDescription) {
-    paramsDescription = paramsDescription ? (' ' + paramsDescription) : '';
+    paramsDescription = paramsDescription || '';
 
     var forEachArrayItem = function (expectedParams, callback) {
         expectedParams.forEach(callback);
@@ -1611,6 +1842,24 @@ function JsTester_ParamsContainingExpectation (actualParams, paramsDescription) 
 
             var actualValue = actualParams[key];
 
+            if (expectedValue instanceof JsTests_ParamExpectation) {
+                expectedValue.maybeThrowError(actualValue, keyDescription);
+                return;
+            }
+
+            if (expectedValue instanceof RegExp) {
+                if (!expectedValue.test(actualValue)) {
+                    throw new Error(
+                        'Параметр ' + keyDescription + (
+                            paramsDescription ? (' ' + paramsDescription) : ''
+                        ) + ' должен иметь значение, удовлетворяющее регулярному выражению /' + expectedValue + '/, ' +
+                        'тогда как он имеет значение ' + JSON.stringify(actualValue)
+                    );
+                }
+
+                return;
+            }
+
             if (expectedValue !== null && typeof expectedValue == 'object') {
                 if (Array.isArray(expectedValue)) {
                     checkExpectation(expectedValue, actualValue,
@@ -1627,8 +1876,10 @@ function JsTester_ParamsContainingExpectation (actualParams, paramsDescription) 
                 return;
             }
 
-            var expectationDescription = 'Параметр ' + keyDescription + paramsDescription + ' должен иметь значение ' +
-                JSON.stringify(expectedValue) + ', тогда, как он';
+            var expectationDescription = 'Параметр ' +
+                keyDescription + (paramsDescription ? (' ' + paramsDescription) : '') +
+                ' должен иметь значение ' + JSON.stringify(expectedValue) +
+                ', тогда, как он';
             
             if (actualValue === undefined && expectedValue !== undefined) {
                 throw new Error(expectationDescription + ' остутствует.');

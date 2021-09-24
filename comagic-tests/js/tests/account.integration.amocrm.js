@@ -1,7 +1,12 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener) {
-    var helper;
+tests.addTest(function(args) {
+    var helper,
+        requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        wait = args.wait,
+        utils = args.utils,
+        windowOpener = args.windowOpener;
 
-    xdescribe(
+    describe(
         'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM".',
     function() {
         beforeEach(function() {
@@ -9,7 +14,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.destroy();
             }
 
-            helper = new AccountIntegrationAmocrm(requestsManager, testersFactory, utils);
+            helper = new AccountIntegrationAmocrm(args);
 
             Comagic.Directory.load();
             helper.batchReloadRequest().send();
@@ -164,6 +169,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                 helper.tabPanel.tab('Телефония').click();
                 wait(10);
+
+                helper.entityNameTemplateNsParamsRequest().receiveResponse();
             });
 
             describe('Отмечаю радиокнопку "Из сделки".', function() {
@@ -201,7 +208,8 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 'карточку контакта, если включен фильтр на операцию сценария ВАТС".',
             function() {
                 helper.switchButton(
-                    'Передавать записи звонков в карточку контакта, если включен фильтр на операцию сценария ВАТС'
+                    'Передавать записи звонков в карточку контакта и создавать задачи, если настроен фильтр по ' +
+                    'операции сценария.'
                 ).click();
                 wait(10);
 
@@ -215,8 +223,47 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.button('Из сделки').expectNotToHaveClass('x-btn-pressed');
 
                 helper.switchButton(
-                    'Передавать записи звонков в карточку контакта, если включен фильтр на операцию сценария ВАТС'
+                    'Передавать записи звонков в карточку контакта и создавать задачи, если настроен фильтр по ' +
+                    'операции сценария.'
                 ).expectNotToHaveClass('x-form-cb-checked');
+
+                helper.row('Создавать новую сделку после закрытия последней сделки не ранее, чем через').
+                    column(1).
+                    combobox().
+                    expectToHaveValue('1 час');
+
+                helper.row('Создавать новую сделку после закрытия последней сделки не ранее, чем через').
+                    column(2).
+                    combobox().
+                    expectToHaveValue('1 час');
+
+                helper.row('Создавать новую сделку после закрытия последней сделки не ранее, чем через').
+                    column(1).
+                    combobox().
+                    click()
+
+                helper.row('Создавать новую сделку после закрытия последней сделки не ранее, чем через').
+                    column(1).
+                    combobox().
+                    options().
+                    expectToHaveTextContent(
+                        '5 минут ' +
+                        '10 минут ' +
+                        '15 минут ' +
+                        '20 минут ' +
+                        '30 минут ' +
+                        '45 минут ' +
+                        '1 час ' +
+                        '12 часов ' +
+                        '1 день ' +
+                        '3 дня ' +
+                        '1 неделя ' +
+                        '1 месяц ' +
+                        '2 месяца ' +
+                        '3 месяца ' +
+                        '4 месяца ' +
+                        '6 месяцев'
+                    );
             });
         });
         describe(
@@ -231,14 +278,16 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
                 helper.tabPanel.tab('Телефония').click();
                 wait(10);
+
+                helper.entityNameTemplateNsParamsRequest().receiveResponse();
             });
 
             it(
                 'Выбираю время в выпдающем спике "После завершения звонка обновлять ответственного сотрудника ' +
-                'через". Выбираю опцию "На ответственного из настроек интеграции" в выпадающем списке "Назначать". ' +
-                'Нажимаю на кнопку "Сохранить". Измененные данные сохранены.',
+                'через". Выбираю опцию "На ответственного из настроек интеграции" в выпадающем списке "Назначать при ' +
+                'потерянном звонке". Нажимаю на кнопку "Сохранить". Измененные данные сохранены.',
             function() {
-                helper.form.combobox().withFieldLabel('Назначать').clickArrow().
+                helper.row('Назначать при потерянном звонке').column(1).combobox().clickArrow().
                     option('На ответственного из настроек интеграции').click();
                 wait(10);
 
@@ -251,12 +300,19 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             });
             it(
                 'В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" выбрана ' +
-                'опция "0 мин". В выпадающем списке "Назначать" выбрана опция "На звонящего". Опция "Использовать ' +
-                'функциональность "Неразобранное"" заблокирована.',
+                'опция "0 мин". В выпадающем списке "Назначать при потерянном звонке" выбрана опция "На звонящего". ' +
+                'Опция "Использовать функциональность "Неразобранное"" заблокирована.',
             function() {
-                helper.form.combobox().withFieldLabel('Назначать').expectToHaveValue('На звонящего');
+                helper.row('Для первичных обращений').column(1).combobox().clickArrow().
+                    option('Использовать функциональность "Неразобранное"').createTester().
+                    forDescendant('.x-form-error-msg').
+                    expectTooltipWithText('Необходимо активировать “Неразобранное” в amoCRM').
+                    toBeShownOnMouseOver();
+
+                wait()
+
+                helper.row('Назначать при потерянном звонке').column(1).combobox().expectToHaveValue('На звонящего');
                 helper.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('0 мин');
-                helper.unsortedRadioField().expectToBeDisabled();
             });
         });
         describe(
@@ -303,8 +359,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
             helper.tabPanel.tab('Телефония').click();
             wait(10);
-
-            helper.unsortedRadioField().expectToBeEnabled();
         });
         it(
             'Обновление ответственного отключено, время заполнения карточки установлено. Открываю вкладку ' +
@@ -351,7 +405,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.form.radiofield().withBoxLabel('Из контакта').expectNotToBeChecked();
             helper.form.radiofield().withBoxLabel('Из сделки').expectToBeChecked();
         });
-        it('', function() {
+        it('Ввожу адрес портала. Нажимаю на кнопку "Сохранить". Настройки сохранены.', function() {
             helper.requestAmocrmData().send();
             helper.requestTariffs().send();
             helper.requestAmocrmStatus().send();
@@ -390,7 +444,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(10);
         });
         
-        xdescribe('Открываю вкладку "Мультиворонки".', function() {
+        describe('Открываю вкладку "Мультиворонки".', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Мультиворонки').click();
                 wait(10);
@@ -450,7 +504,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 wait(10);
             });
         });
-        xdescribe('Открываю вкладку "Сквозная аналитика". Изменяю поля формы.', function() {
+        describe('Открываю вкладку "Сквозная аналитика". Изменяю поля формы.', function() {
             beforeEach(function() {
                 helper.tabPanel.tab('Сквозная аналитика').click();
                 wait(10);
@@ -521,7 +575,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 helper.boundList.expectNotToHaveClass('cm-multi-select-field-options-disabled');
             });
         });
-        xit('Открываю вкладку "Ответственные". Открываю вкладку "Исходящие звонки".', function() {
+        it('Открываю вкладку "Ответственные". Открываю вкладку "Исходящие звонки".', function() {
             helper.tabPanel.tab('Ответственные').click();
             wait(10);
             helper.requestResponsibles().send();
@@ -538,7 +592,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.requestUserFields().send();
             wait(10);
         });
-        return;
         it('Открываю вкладку "Фильтр обращений".', function() {
             helper.tabPanel.tab('Фильтр обращений').click();
             wait(10);
@@ -555,7 +608,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             wait(10);
         });
     });
-    return;
     it(
         'Расширенная интеграция недоступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
         'Открываю вкладку "Мультиворонки". Первичные обращения обрабатываются вручную. При повторных обращениях ' +
