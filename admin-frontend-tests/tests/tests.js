@@ -50,8 +50,11 @@ tests.addTest(function (options) {
                     Promise.runAll();
                 });
 
-                describe('Заполняю поле "App ID".', function() {
+                describe('Выбираю тип CRM. Заполняю поле "App ID".', function() {
                     beforeEach(function() {
+                        tester.select().withPlaceholder('Тип CRM').arrowIcon().click();
+                        tester.select().option('amoCRM').click();
+
                         tester.textfield().withPlaceholder('App ID').fill('4735');
                     });
 
@@ -454,7 +457,7 @@ tests.addTest(function (options) {
 
                                                 'Фильтры: ' +
 
-                                                'Тип CRM: amoCRM ' +
+                                                'Тип CRM amoCRM ' +
                                                 '~ ' +
                                                 'Доставленные ' +
                                                 'Недоставленные ' +
@@ -473,7 +476,7 @@ tests.addTest(function (options) {
                                                 '79157389283 ' +
                                                 '03.02.2021 в 09:58 ' +
                                                 'Exception in thread "main" java.lang.NullPointerException: Oops! ' +
-                                                    'at com.ericgoebelbecker.stacktraces.StackTrace.d(StackTrace.' +
+                                                    'at com.ericgoebelbecker.stacktraces.StackTrace.d StackTrace.' +
                                                     'java... 10.04.2021 в 16:59 ' +
                                                 '39285 ' +
 
@@ -738,7 +741,6 @@ tests.addTest(function (options) {
                 it('Кнопка "Применить" заблокирована. Выбран период со вчерашнего дня по сегдняшний.', function() {
                     tester.button('Применить').expectToHaveAttribute('disabled');
 
-                    tester.root.expectTextContentToHaveSubstring('Тип CRM: amoCRM');
                     tester.textfield().withPlaceholder('Начальная дата').expectToHaveValue('24.08.2020 00:00:00');
                     tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('24.08.2020 13:21:55');
                 });
@@ -848,7 +850,7 @@ tests.addTest(function (options) {
                 Promise.runAll();
                 tester.amocrmEventsRequest().setAscDirection().setUndeliveredOnly().setCustomCRM().receiveResponse();
 
-                tester.root.expectTextContentToHaveSubstring('Тип CRM: customCRM');
+                tester.select().withPlaceholder('Тип CRM').expectToHaveValue('customCRM');
                 tester.textfield().withPlaceholder('App ID').expectToHaveValue('4735');
                 tester.textfield().withPlaceholder('ID сессии').expectToHaveValue('28394');
                 tester.textfield().withPlaceholder('Номер абонента').expectToHaveValue('79162937183');
@@ -1006,13 +1008,7 @@ tests.addTest(function (options) {
                 });
             });
             it('В поле статусов отображены названия статусов.', function() {
-                tester.root.expectToHaveTextContent(
-                    'Новосистем ' +
-                    'Admin Panel ' +
-                    'Клиенты ' +
-
-                    'Клиенты ' +
-                    'Тарифные планы ' +
+                tester.root.expectTextContentToHaveSubstring(
                     'Статусы ' +
 
                     'Ждет ' +
@@ -1021,29 +1017,7 @@ tests.addTest(function (options) {
                     'Заблокирован по лимиту ' +
                     'Заблокирован по долгу ' +
 
-                    'Применить ' +
-                    'Настроить столбцы ' +
-
-                    'App ID ' +
-                    'Customer ID ' +
-                    'Имя клиента ' +
-                    'Статус ' +
-                    'Тарифный план ' +
-                    'Номера ' +
-                    'Лицевой счет ' +
-                    'Баланс ' +
-                    'Сайты ' +
-                    'Логины/E-mail ' +
-                    'Тип клиента ' +
-                    'Нода ' +
-                    'ID агента ' +
-                    'Наблюдатели ' +
-
-                    'Нет данных ' +
-
-                    '1 ' +
-                    'Строк на странице 50 ' +
-                    'Всего записей 0'
+                    'Применить'
                 );
             });
         });
@@ -1066,6 +1040,9 @@ tests.addTest(function (options) {
             '"Повторить отправку" заблокирована.',
         function() {
             tester.userRequest().allowReadEventResending().receiveResponse();
+
+            tester.select().withPlaceholder('Тип CRM').arrowIcon().click();
+            tester.select().option('amoCRM').click();
 
             tester.textfield().withPlaceholder('App ID').fill('4735');
             tester.textfield().withPlaceholder('ID сессии').fill('28394');

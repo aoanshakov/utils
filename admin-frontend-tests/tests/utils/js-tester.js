@@ -2355,6 +2355,10 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
     var selector = '*';
     ascendantElement = ascendantElement || new JsTester_NoElement();
 
+    var chooseOne = function (elements) {
+        return utils.getVisibleSilently(elements);
+    };
+
     var isDesiredText = function () {
         throw new Error('Не указаны критерии поиска');
     };
@@ -2380,6 +2384,14 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
         return this;
     };
 
+    this.maybeInvisible = function () {
+        chooseOne = function (elements) {
+            return elements.length == 1 ? elements[0] : null;
+        };
+
+        return this;
+    },
+
     this.findAll = function () {
         var i,
             descendants = ascendantElement.querySelectorAll(selector),
@@ -2402,7 +2414,7 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
         var desiredDescendants = this.findAll();
 
         if (desiredDescendants.length) {
-            return utils.getVisibleSilently(desiredDescendants) || new JsTester_NoElement();
+            return chooseOne(desiredDescendants) || new JsTester_NoElement();
         }
 
         return new JsTester_NoElement();

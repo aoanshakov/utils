@@ -249,6 +249,43 @@ define(() => {
                 };
             },
 
+            select() {
+                return {
+                    option: text => testersFactory.createDomElementTester(
+                        utils.descendantOfBody().
+                            matchesSelector('.ant-select-dropdown-menu-item').
+                            textEquals(text).
+                            find()
+                    ),
+                    withPlaceholder: placeholder => {
+                        const getSelect = () => utils.descendantOfBody().
+                            matchesSelector('.ant-select-selection__placeholder').
+                            textEquals(placeholder).
+                            maybeInvisible().
+                            find().
+                            closest('.ant-select');
+
+                        return {
+                            expectToHaveValue: expectedValue => {
+                                const actualValue = getSelect().
+                                    querySelector('.ant-select-selection-selected-value').
+                                    innerHTML;
+
+                                if (actualValue != expectedValue) {
+                                    throw new Error(
+                                        `Выпадающий список с плейсхолдером "${placeholder}" должен иметь значение ` +
+                                        `"${expectedValue}", а не "${actualValue}".`
+                                    );
+                                }
+                            },
+                            arrowIcon: () => testersFactory.createDomElementTester(
+                                getSelect().querySelector('.ant-select-arrow-icon')
+                            )
+                        };
+                    }
+                };
+            },
+
             forceUpdate() {
                 app.forceUpdate();
             },
@@ -521,11 +558,11 @@ define(() => {
                             send_time: '2021-04-10 16:59:15',
                             error_message:
                                 'Exception in thread "main" java.lang.NullPointerException: Oops! ' + "\n" +
-                                'at com.ericgoebelbecker.stacktraces.StackTrace.d(StackTrace.java:29) ' + "\n" +
-                                'at com.ericgoebelbecker.stacktraces.StackTrace.c(StackTrace.java:24) ' + "\n" +
-                                'at com.ericgoebelbecker.stacktraces.StackTrace.b(StackTrace.java:20) ' + "\n" +
-                                'at com.ericgoebelbecker.stacktraces.StackTrace.a(StackTrace.java:16) ' + "\n" +
-                                'at com.ericgoebelbecker.stacktraces.StackTrace.main(StackTrace.java:9)',
+                                'at com.ericgoebelbecker.stacktraces.StackTrace.d StackTrace.java:29  ' + "\n" +
+                                'at com.ericgoebelbecker.stacktraces.StackTrace.c StackTrace.java:24  ' + "\n" +
+                                'at com.ericgoebelbecker.stacktraces.StackTrace.b StackTrace.java:20  ' + "\n" +
+                                'at com.ericgoebelbecker.stacktraces.StackTrace.a StackTrace.java:16  ' + "\n" +
+                                'at com.ericgoebelbecker.stacktraces.StackTrace.main StackTrace.java:9 ',
                             state: 'failed',
                             is_common_conditions_passed: false,
                             is_setting_conditions_passed: true,
