@@ -191,10 +191,43 @@ function ServicesAutocallsAutobackcall(args) {
         var response = {
             success: true,
             data: {
+                'comagic:_tree:scenario_actions': [{
+                    data: [{
+                        id: 623393,
+                        leaf: true,
+                        name: 'Переадресация 1'
+                    }],
+                    id: 's4863',
+                    name: 'Перенаправление на 89265564454'
+                }],
+                'comagic:va:scenario': [{
+                    aux_id: true,
+                    id: 4863,
+                    name: 'Перенаправление на 89265564454'
+                }],
                 'comagic:auto_call:event_filter_type': [{
                     id: 'some_filter',
                     name: 'Некий фильтр',
                     components: ['auto_back_call_by_lost_call']
+                }, {
+                    id: 'scenario',
+                    name: 'Сценарий',
+                    components: ['auto_back_call_by_lost_call'],
+                    aux_id2: [{
+                        event_filter_type: 'scenario',
+                        id: 'scenario_id',
+                        is_required: true,
+                        name: 'Сценарий ВАТС',
+                        priority: 1,
+                        value_list_directory: 'comagic:va:scenario'
+                    }, {
+                        event_filter_type: 'scenario',
+                        id: 'action_id',
+                        is_required: false,
+                        name: 'Операция сценария',
+                        priority: 2,
+                        value_list_directory: 'comagic:_tree:scenario_actions'
+                    }]
                 }],
                 'comagic:auto_call:processing_method': [{
                     id: 'some_processing_method',
