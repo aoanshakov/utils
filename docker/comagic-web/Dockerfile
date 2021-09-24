@@ -15,13 +15,17 @@ RUN apt-get install -y \
     curl \
     sudo \
     libmagickwand-dev \
-    python3-venv
+    python3-venv \
+    libjpeg-dev \
+    libfreetype6 \
+    libfreetype6-dev \
+    zlib1g-dev
 
 RUN curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
 RUN apt-get update -y
 RUN apt-get install nginx -y
 
-RUN pip install virtualenv
+RUN pip install virtualenv==20.4.7
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN apt-get install -y nodejs
