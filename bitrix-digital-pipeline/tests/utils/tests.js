@@ -3,7 +3,15 @@ document.addEventListener('DOMContentLoaded', function () {
         baseUrl: '/tests/utils'
     });
 
-    requirejs(['promise-mock', 'tester'], function (PromiseMock, Tester) {
+    requirejs([
+        'promise-mock',
+        'robot_settings_tester',
+        'time_field_template_tester'
+    ], function (
+        PromiseMock,
+        RobotSettingsTester,
+        TimeFieldTemplateTester
+    ) {
         describe('', function() {
             beforeEach(function() {
                 PromiseMock.install();
@@ -14,7 +22,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 tests.afterEach();
             });
 
-            tests.runTests({Tester});
+            tests.runTests({
+                RobotSettingsTester,
+                TimeFieldTemplateTester
+            });
         });
 
         jasmine.getEnv().execute();

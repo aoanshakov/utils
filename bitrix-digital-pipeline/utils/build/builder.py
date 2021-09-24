@@ -7,4 +7,4 @@ def build(variable, source, target):
             root = ast.parse(variable + ' = ""')
             root.body[0].value.s = html.read()
 
-            py.write("# -*- coding:utf-8 -*-\n\n" + astor.to_source(root))
+            py.write(astor.to_source(root))

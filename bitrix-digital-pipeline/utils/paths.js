@@ -14,12 +14,32 @@ const randomString = length => {
    return result;
 };
 
+const createApplicationPaths = ({directory, ...params}) => {
+    const root = `${src}/${directory}`,
+        buildRoot = `${buildDir}/${directory}`;
+
+    return {
+        directory,
+        htmlBuild: `${buildRoot}/template.html`,
+        pyBuild: `${buildRoot}/${directory}.py`,
+        template: `${root}/template.html`,
+        script: `${root}/script.js`,
+        style: `${root}/style.css`,
+        ...params
+    };
+};
+
 module.exports = {
+    applications: [createApplicationPaths({
+        directory: 'robot_settings',
+        args: '{{ current_values|safe }}',
+        dependencies: ['//api.bitrix24.com/api/v1/']
+    }), createApplicationPaths({
+        directory: 'time_field_template',
+        args: '{{ timezone }}',
+        dependencies: []
+    })],
     nginxConfig: `${utils}/nginx.conf`,
-    template: `${src}/template.html`,
-    build: `${buildDir}/template.html`,
-    script: `${src}/script.js`,
-    style: `${src}/style.css`,
     pyBuilder: `${utils}/build`,
     pyRenderer: `${utils}/render`,
     getRandomFileName: () => `${buildDir}/${randomString(10)}`

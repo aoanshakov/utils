@@ -1,10 +1,8 @@
 from builder import build
-import os
-
-build_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'build')
+import sys
 
 build(
     variable='template',
-    source=os.path.join(build_dir, 'template.html'),
-    target=os.path.join(build_dir, 'robot_settings.py')
+    source=sys.argv[1],
+    target=sys.argv[2]
 )

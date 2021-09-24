@@ -1,18 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-
-<script>var token = "{{ token }}";</script>
-
-<script src="//api.bitrix24.com/api/v1/"></script>
-
-<script>
-
 function runApplication (currentValues) {
     currentValues = currentValues || {}
-    var elements = document.querySelector('form').elements;
+    var form = document.querySelector('form'),
+        elements = form.elements,
+        initialized = false;
 
     function getFormValues () {
         return Array.prototype.map.call(elements, function (element) {
@@ -27,15 +17,18 @@ function runApplication (currentValues) {
         var autoCallOn = getFormValues().auto_call_on;
 
         return {
-            employee_id: autoCallOn == 'employee_id',
-            scenario_id: autoCallOn == 'scenario_id',
-            employee_message: autoCallOn != 'scenario_id',
+            employee_id: autoCallOn == 'employee',
+            scenario_id: autoCallOn == 'scenario',
             virtual_number_numb: autoCallOn != 'virtual_number',
             virtual_number: autoCallOn == 'virtual_number'
         };
     }
 
     function saveSettings () {
+        if (!initialized) {
+            return;
+        }
+
         var values = getFormValues();
         
         Object.entries(getVisibility()).forEach(function (args) {
@@ -105,6 +98,7 @@ function runApplication (currentValues) {
     }, {
         names: ['virtual_number_numb', 'virtual_number'],
         dataUrl: 'number_capacity?with_scenario=1',
+        valueField: 'numb',
         displayField: 'numb'
     }, {
         names: ['scenario_id'],
@@ -131,7 +125,7 @@ function runApplication (currentValues) {
                 })] : [];
 
                 (data || []).forEach(function (record) {
-                    var value = record.id;
+                    var value = record[params.valueField || 'id'];
 
                     options.push(createOption({
                         value: value,
@@ -143,6 +137,8 @@ function runApplication (currentValues) {
                 selectField.innerHTML = options.join('');
                 !isEmpty && (selectField.disabled = false);
             });
+
+            saveSettings();
         }
 
         createOptions();
@@ -166,92 +162,14 @@ function runApplication (currentValues) {
         });
     });
 
-    BX24.init(saveSettings);
+    form.style.display = 'none';
+
+    BX24.init(function () {
+        initialized = true;
+        saveSettings();
+
+        form.style.display = 'block';
+    });
+
     updateVisibility();
 }
-
-</script>
-
-<style>
-
-select, button {
-    height: 30px;
-    background: #fff;
-    border: 1px solid #000;
-}
-
-select[disabled], button[disabled] {
-    cursor: not-allowed;
-    color: #ccc;
-}
-
-select, textarea {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-textarea {
-    height: 100px;
-    padding: 10px;
-}
-
-label {
-    margin-bottom: 15px;
-    display: block;
-}
-
-body {
-    padding: 20px;
-}
-
-body, textarea {
-    font-family: sans-serif;
-    font-size: 14px;
-}
-
-div {
-    margin-bottom: 25px;
-}
-
-</style>
-
-<script>document.addEventListener("DOMContentLoaded", function () {runApplication({{ current_values|safe }});})</script>
-
-</head>
-
-<body>
-    <form>
-        <div>
-            <label>{{ properties.auto_call_on.NAME }}:</label>
-
-            <select name="auto_call_on">
-                {% for key, value in properties.auto_call_on.OPTIONS.items() %}
-                <option value="{{ key }}">{{ value }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div>
-            <select name="employee_id"></select>
-        </div>
-
-        <div>
-            <select name="virtual_number"></select>
-        </div>
-
-        <div>
-            <select name="scenario_id"></select>
-        </div>
-
-        <div>
-            <label>{{ properties.virtual_number_numb.NAME }}:</label>
-            <select name="virtual_number_numb"></select>
-        </div>
-
-        <div>
-            <label>{{ properties.employee_message.NAME }}:</label>
-            <textarea name="employee_message"></textarea>
-        </div>
-    </form>
-</body>
-</html>

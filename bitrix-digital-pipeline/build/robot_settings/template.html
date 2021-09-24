@@ -1,6 +1,4 @@
-# -*- coding:utf-8 -*-
-
-template = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 
@@ -14,7 +12,9 @@ template = """<!DOCTYPE html>
 
 function runApplication (currentValues) {
     currentValues = currentValues || {}
-    var elements = document.querySelector('form').elements;
+    var form = document.querySelector('form'),
+        elements = form.elements,
+        initialized = false;
 
     function getFormValues () {
         return Array.prototype.map.call(elements, function (element) {
@@ -29,15 +29,18 @@ function runApplication (currentValues) {
         var autoCallOn = getFormValues().auto_call_on;
 
         return {
-            employee_id: autoCallOn == 'employee_id',
-            scenario_id: autoCallOn == 'scenario_id',
-            employee_message: autoCallOn != 'scenario_id',
+            employee_id: autoCallOn == 'employee',
+            scenario_id: autoCallOn == 'scenario',
             virtual_number_numb: autoCallOn != 'virtual_number',
             virtual_number: autoCallOn == 'virtual_number'
         };
     }
 
     function saveSettings () {
+        if (!initialized) {
+            return;
+        }
+
         var values = getFormValues();
         
         Object.entries(getVisibility()).forEach(function (args) {
@@ -107,6 +110,7 @@ function runApplication (currentValues) {
     }, {
         names: ['virtual_number_numb', 'virtual_number'],
         dataUrl: 'number_capacity?with_scenario=1',
+        valueField: 'numb',
         displayField: 'numb'
     }, {
         names: ['scenario_id'],
@@ -133,7 +137,7 @@ function runApplication (currentValues) {
                 })] : [];
 
                 (data || []).forEach(function (record) {
-                    var value = record.id;
+                    var value = record[params.valueField || 'id'];
 
                     options.push(createOption({
                         value: value,
@@ -145,6 +149,8 @@ function runApplication (currentValues) {
                 selectField.innerHTML = options.join('');
                 !isEmpty && (selectField.disabled = false);
             });
+
+            saveSettings();
         }
 
         createOptions();
@@ -168,7 +174,15 @@ function runApplication (currentValues) {
         });
     });
 
-    BX24.init(saveSettings);
+    form.style.display = 'none';
+
+    BX24.init(function () {
+        initialized = true;
+        saveSettings();
+
+        form.style.display = 'block';
+    });
+
     updateVisibility();
 }
 
@@ -257,4 +271,3 @@ div {
     </form>
 </body>
 </html>
-"""

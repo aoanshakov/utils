@@ -1,7 +1,7 @@
 const http = require('http'),
     fs = require('fs'),
     {renderAdvanced} = require('./renderTemplate'),
-    {getRandomFileName} = require('./paths');
+    {getRandomFileName, applications} = require('./paths');
 
 const scriptFile = path => `<script src="${path}"></script>`,
     styleFile = path => `<link rel="stylesheet" href="${path}" />`,
@@ -11,19 +11,22 @@ const scriptFile = path => `<script src="${path}"></script>`,
 module.exports = () => {
     const server = http.createServer(({url}, response) => {
         response.setHeader('Content-Type', 'text/html; charset=utf-8;');
+        const application = applications.find(({directory}) => url == `/${directory}/`)
 
-        const temporaryHtmlFile = getRandomFileName();
-
-        if (url != '/') {
+        if (!application) {
             response.end();
             return;
         }
 
+        const temporaryHtmlFile = getRandomFileName(),
+            {directory, template} = application;
+
         renderAdvanced({
+            template,
             target: temporaryHtmlFile,
             variables: {
                 head: [styleFile(
-                    '/style.css'
+                    `/${directory}/style.css`
                 ), scriptFiles([
                     '/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js',
                     '/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js'
@@ -42,9 +45,9 @@ module.exports = () => {
                     'tests.exposeDebugUtils("jsTestDebug");'
                 ), scriptFiles([
                     '/tests/utils/require.js',
-                    '/tests/tests.js',
+                    `/tests/${directory}.js`,
                     '/tests/utils/tests.js',
-                    '/script.js'
+                    `/${directory}/script.js`
                 ])].join(''),
 
                 properties: Object.entries({
@@ -54,9 +57,9 @@ module.exports = () => {
                     auto_call_on: ['Звонить', {
                         OPTIONS: {
                             personal_manager: 'Персональному менеджеру',
-                            employee_id: 'Сотруднику',
+                            employee: 'Сотруднику',
                             virtual_number: 'На виртуальный номер',
-                            scenario_id: 'По сценарию ВАТС'
+                            scenario: 'По сценарию ВАТС'
                         }
                     }]
                 }).reduce((result, [key, [value, params = {}]]) => ((result[key] = {
@@ -73,6 +76,8 @@ module.exports = () => {
                 response.end();
             }
         });
+
+        isHandled = true;
     });
 
     server.on('listening', () => console.log('Сервер запущен.'));

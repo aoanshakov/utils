@@ -33,7 +33,8 @@ define(() => {
             initializeB24: () => callback(),
             expectPropertiesToHaveValues: expectedValues => utils.expectObjectToContain(currentValues, expectedValues),
 
-            textarea: testersFactory.createTextAreaTester(() => document.querySelector('textarea')),
+            form: testersFactory.createDomElementTester('form'),
+            textarea: testersFactory.createTextAreaTester('textarea'),
 
             select: label => {
                 const getSelectsWithoutLabel = () => Array.prototype.filter.call(
@@ -275,27 +276,27 @@ define(() => {
 
                 const me = {
                     employeeChosen: () => ((currentValues = {
-                        auto_call_on: 'employee_id',
+                        auto_call_on: 'employee',
                         employee_id: '583783',
-                        virtual_number_numb: '29387',
+                        virtual_number_numb: '79151234569',
                         virtual_number: '',
                         scenario_id: '',
                         employee_message: 'Привет!'
                     }), me),
 
                     scenarioChosen: () => ((currentValues = {
-                        auto_call_on: 'scenario_id',
+                        auto_call_on: 'scenario',
                         employee_id: '',
-                        virtual_number_numb: '29387',
+                        virtual_number_numb: '79151234569',
                         virtual_number: '',
                         scenario_id: '95173',
-                        employee_message: ''
+                        employee_message: 'Привет!'
                     }), me),
 
                     callToPersonalManager: () => ((currentValues = {
                         auto_call_on: 'personal_manager',
                         employee_id: '',
-                        virtual_number_numb: '29387',
+                        virtual_number_numb: '79151234569',
                         virtual_number: '',
                         scenario_id: '',
                         employee_message: 'Привет!'
@@ -305,7 +306,7 @@ define(() => {
                         auto_call_on: 'virtual_number',
                         employee_id: '',
                         virtual_number_numb: '',
-                        virtual_number: '29386',
+                        virtual_number: '79151234568',
                         scenario_id: '',
                         employee_message: 'Привет!'
                     }), me),

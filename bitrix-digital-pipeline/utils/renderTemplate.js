@@ -1,22 +1,23 @@
-const {template, getRandomFileName, pyRenderer} = require('./paths'),
+const {getRandomFileName, pyRenderer} = require('./paths'),
     fs = require('fs'),
-    execute = require('./execute');
+    execute = require('./execute'),
+    write = require('./write');
 
 module.exports = {
-    renderSimple: ({target, variables, callback = () => null}) => {
+    renderSimple: ({target, variables, template, callback = () => null}) => {
         let html = (fs.readFileSync(template) || '') + '';
 
         Object.entries(variables).forEach(([variableName, value]) => {
             html = html.split(`{{ ${variableName} }}`).join(value);
         });
         
-        fs.writeFileSync(target, html);
+        write(target, html);
         callback();
     },
 
-    renderAdvanced: ({target, variables, callback}) => {
+    renderAdvanced: ({target, variables, callback, template}) => {
         const temporaryJsonFile = getRandomFileName();
-        fs.writeFileSync(temporaryJsonFile, JSON.stringify(variables));
+        write(temporaryJsonFile, JSON.stringify(variables));
 
         execute([
             `/root/venv/bin/python3 ${pyRenderer} ${temporaryJsonFile} ${template} ${target}`,
