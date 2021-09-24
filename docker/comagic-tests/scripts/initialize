@@ -65,13 +65,13 @@ if [ $? -ne 0 ]
     exit 1
 fi
 
-easy_install -U setuptools
+#easy_install -U setuptools
 
-if [ $? -ne 0 ]
-    then
-    echo 'Не удалось выполнить команду easy_install'
-    exit 1
-fi
+#if [ $? -ne 0 ]
+#    then
+#    echo 'Не удалось выполнить команду easy_install'
+#    exit 1
+#fi
 
 pip install -r $REQUIREMENTS_PATH
 
