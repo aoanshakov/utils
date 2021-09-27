@@ -445,6 +445,11 @@ define(() => {
                 };
 
                 return {
+                    setBitrix() {
+                        params.partner = 'bitrix';
+                        return this;
+                    },
+
                     setNoSort() {
                         params.sort_order = undefined;
                         return this;
@@ -675,14 +680,22 @@ define(() => {
 
             amocrmEventsResendingRequest() {
                 const params = {
+                    app_id: '4735',
+                    partner: 'amocrm',
                     access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
                 };
 
                 return {
+                    setBitrix() {
+                        params.partner = 'bitrix';
+                        return this;
+                    },
+
                     setTwoEvents() {
                         params.ids = [39285, 39287, undefined];
                         return this;
                     },
+
                     expectToBeSent() {
                         const request = ajax.recentRequest().
                             expectPathToContain('/dataapi/').
@@ -704,6 +717,7 @@ define(() => {
                             }
                         };
                     },
+
                     receiveResponse() {
                         this.expectToBeSent().receiveResponse();
                     }
