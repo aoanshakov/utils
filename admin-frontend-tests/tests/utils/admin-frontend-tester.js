@@ -884,6 +884,14 @@ define(() => {
                 let startIndex = 0,
                     itemsCount = 50;
 
+                let setSecondPage = () => {
+                    startIndex = 50;
+                    itemsCount = 25;
+                    params.offset = '50';
+                };
+
+                let processing = [];
+
                 const params = {
                     access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                     limit: '50',
@@ -900,6 +908,13 @@ define(() => {
                     changeLimit() {
                         params.limit = '5';
                         itemsCount = 5;
+
+                        setSecondPage = () => {
+                            startIndex = 5;
+                            itemsCount = 5;
+                            params.offset = '5';
+                        };
+
                         return this;
                     },
 
@@ -919,15 +934,13 @@ define(() => {
                     },
 
                     setSecondPage() {
-                        startIndex = 50;
-                        itemsCount = 25;
-                        params.offset = '50';
-
+                        processing.push(() => setSecondPage())
                         return this;
                     },
 
                     receiveResponse() {
                         const data = [];
+                        processing.forEach(process => process());
 
                         for (i = startIndex; i < (itemsCount + startIndex); i ++) {
                             data.push({

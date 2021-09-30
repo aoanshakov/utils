@@ -127,24 +127,98 @@ tests.addTest(function (options) {
                             tester.switchField().withLabel('Состояние').click();
                         });
 
-                        it('Нажимаю на кнопку "Выбрать AppID".', function() {
-                            tester.radioButton('Выбрать AppID').click();
-                            Promise.runAll(false, true);
+                        describe(
+                            'Нажимаю на кнопку "Выбрать AppID". Ввожу строку поиска. Нажимаю на кнопку "Поиск".',
+                        function() {
+                            beforeEach(function() {
+                                tester.radioButton('Выбрать AppID').click();
+                                Promise.runAll(false, true);
 
-                            tester.textfield().withPlaceholder(
-                                'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
-                            ).fill('Шунин');
+                                tester.textfield().withPlaceholder(
+                                    'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
+                                ).fill('Шунин');
 
-                            tester.button('Поиск').click();
-                            Promise.runAll(false, true);
+                                tester.button('Поиск').click();
+                                Promise.runAll(false, true);
 
-                            tester.appsRequest().setSearch().changeLimit().receiveResponse();
+                                tester.appsRequest().setSearch().changeLimit().receiveResponse();
+                            });
 
-                            tester.page.expectTextContentToHaveSubstring(
-                                '1 2 3 4 5 в конец ' +
-                                'Строк на странице 5 ' +
-                                'Всего записей 75'
-                            );
+                            describe(
+                                'Отмечаю строки. Открываю вторую страницу. Отмечаю строки.',
+                            function() {
+                                beforeEach(function() {
+                                    tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().checkbox().
+                                        click();
+
+                                    tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().checkbox().
+                                        click();
+
+                                    tester.table().paging().page(2).click();
+                                    Promise.runAll();
+                                    tester.appsRequest().setSearch().changeLimit().setSecondPage().
+                                        receiveResponse();
+
+                                    tester.table().cell().withContent('ООО "Трупоглазые жабы" # 7').row().
+                                        checkbox().click();
+
+                                    tester.table().cell().withContent('ООО "Трупоглазые жабы" # 8').row().
+                                        checkbox().click();
+                                });
+
+                                xdescribe('Открываю первую страницу.', function() {
+                                    beforeEach(function() {
+                                        tester.table().paging().page(1).click();
+                                        Promise.runAll();
+                                        tester.appsRequest().setSearch().changeLimit().receiveResponse();
+                                    });
+
+                                    it('Открываю вторую страницу. Строки отмечены.', function() {
+                                        tester.table().paging().page(2).click();
+                                        Promise.runAll();
+                                        tester.appsRequest().setSearch().changeLimit().setSecondPage().
+                                            receiveResponse();
+
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 6').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 7').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 8').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 9').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 10').row().
+                                            checkbox().expectNotToBeChecked();
+                                    });
+                                    it('Строки отмечены.', function() {
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
+                                            checkbox().expectNotToBeChecked();
+                                    });
+                                });
+                                it('Нажимаю на кнопку "Сохранить".', function() {
+                                    tester.button('Сохранить').click();
+                                });
+                            });
+                            return;
+                            it('Отображены клиенты.', function() {
+                                tester.page.expectTextContentToHaveSubstring(
+                                    'ООО "Трупоглазые жабы" # 1'
+                                );
+
+                                tester.page.expectTextContentToHaveSubstring(
+                                    '1 2 3 4 5 в конец ' +
+                                    'Строк на странице 5 ' +
+                                    'Всего записей 75'
+                                );
+                            });
                         });
                         return;
                         it('Нажимаю на кнопку "Beta users".', function() {
@@ -152,18 +226,18 @@ tests.addTest(function (options) {
                         });
                     });
                     return;
-                    xit('Нажимаю на ссылку "Фичефлаги". Открыта страница списка фичефлагов.', function() {
+                    it('Нажимаю на ссылку "Фичефлаги". Открыта страница списка фичефлагов.', function() {
                         tester.page.anchor('Фичефлаги').click();
                         tester.button('Добавить флаг').expectToBeVisible();
                     });
-                    xit('Нажимаю на ссылку "Отмена". Открыта страница списка фичефлагов.', function() {
+                    it('Нажимаю на ссылку "Отмена". Открыта страница списка фичефлагов.', function() {
                         tester.page.anchor('Отмена').click();
                         tester.button('Добавить флаг').expectToBeVisible();
                     });
                 });
             });
             return;
-            xdescribe('Открываю раздел "Переотправка событий" без фильтра.', function() {
+            describe('Открываю раздел "Переотправка событий" без фильтра.', function() {
                 beforeEach(function() {
                     tester.path.open('/event-resending');
                     Promise.runAll();
@@ -881,7 +955,7 @@ tests.addTest(function (options) {
                         function() {
                             tester.button('Применить').click();
                             Promise.runAll();
-                            tester.amocrmEventsRequest().setDefaultParams().expectToBeSent();
+                            tester.amocrmEventsRequest().setDefaultParams().receiveResponse();
                         });
                     });
                     it('Выбираю bitrix.', function() {
@@ -907,7 +981,7 @@ tests.addTest(function (options) {
                     tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('24.08.2020 13:21:55');
                 });
             });
-            xdescribe('Открываю раздел "CRM-интеграции". Нажимаю на кнопку "Применить".', function() {
+            describe('Открываю раздел "CRM-интеграции". Нажимаю на кнопку "Применить".', function() {
                 beforeEach(function() {
                     tester.path.open('/crm-integrations');
                     Promise.runAll();
@@ -937,7 +1011,7 @@ tests.addTest(function (options) {
                     tester.menuitem('Переотправить события').expectToHaveClass('ant-dropdown-menu-item-disabled');
                 });
             });
-            xit(
+            it(
                 'Открываю раздел "Переотправка событий" с фильтром. Дата начала и дата окончания больше текущей. ' +
                 'Выбрана сегодняшняя дата.',
             function() {
@@ -963,7 +1037,7 @@ tests.addTest(function (options) {
                 tester.textfield().withPlaceholder('Начальная дата').expectToHaveValue('24.08.2020 00:00:00');
                 tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('24.08.2020 13:21:55');
             });
-            xit(
+            it(
                 'Открываю раздел "Переотправка событий" с фильтром. Дата начала меньше текущей, а дата окончания ' +
                 'больше текущей. Выбрана сегодняшняя дата в качестве конечной.',
             function() {
@@ -989,7 +1063,7 @@ tests.addTest(function (options) {
                 tester.textfield().withPlaceholder('Начальная дата').expectToHaveValue('10.08.2020 00:00:00');
                 tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('24.08.2020 13:21:55');
             });
-            xit(
+            it(
                 'Открываю раздел "Переотправка событий" с фильтром. Дата окончания меншье текущей. Отправлен запрос ' +
                 'событий с фильтрацией. Поля фильтра заполнены.',
             function() {
