@@ -3514,12 +3514,13 @@ function JsTester_Requests (requests, utils) {
         indexOfRecentRequest = newIndexOfRecentRequest;
     };
     this.expectNoRequestsToBeSent = function () {
-        var recentRequest = getRecentRequest();
+        var callStack = callStacks[indexOfRecentRequest],
+            recentRequest = getRecentRequest();
 
         if (recentRequest) {
             throw new Error(
                 'Был отправлен запрос, тогда как ни один запрос не должен был быть отправлен. ' +
-                createRequestTester(recentRequest).getDescription()
+                createRequestTester(recentRequest).getDescription() + "\n" + callStack
             );
         }
     };

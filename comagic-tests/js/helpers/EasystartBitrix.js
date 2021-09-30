@@ -830,6 +830,23 @@ function EasystartBitrix(args) {
         throw new Error('Окно должно быть перезагружено');
     };
 
+    this.anchor = function (text) {
+        return testersFactory.createAnchorTester(
+            utils.descendantOfBody().matchesSelector('a').textEquals(text).find(),
+            text
+        );
+    };
+
+    this.button = function (text) {
+        return testersFactory.createDomElementTester(
+            utils.descendantOfBody().matchesSelector('.x-btn-inner').textEquals(text).find()
+        );
+    };
+
+    this.mainPageHeader = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.easystart-panel-header-text');
+    });
+
     this.tryForFreeButton = testersFactory.createButtonTester(function () {
         return EasyStart.getApplication().findComponent('button[text="Тестировать бесплатно"]');
     });
@@ -1124,24 +1141,64 @@ function EasystartBitrix(args) {
 
     this.supportRequestSender = new SupportRequestSender();
 
+    var appInfo = {
+        INSTALLED: false
+    };
+
+    this.isInstalled = function () {
+        appInfo.INSTALLED = true;
+    };
+
+    this.afterEach = function () {
+        if (this.installFinishCallStack) {
+            throw new Error('Метод BX24.installFinish() не должен быть вызван.' + "\n" + this.installFinishCallStack);
+        }
+    };
+
+    this.expectInstallFinishToBeCalled = function () {
+        if (!this.installFinishCallStack) {
+            throw new Error('Метод BX24.installFinish() должен быть вызван.');
+        }
+
+        this.installFinishCallStack = null;
+    };
+
+    this.installFinishCallStack = null;
+
     window.BX24 = {
         init: function (callback) {
             callback();
         },
+        installFinish: function () {
+            if (this.installFinishCallStack) {
+                throw new Error('Метод BX24.installFinish() не должен быть вызван больше одного раза.');
+            }
+
+            this.installFinishCallStack = utils.getCallStack();
+        }.bind(this),
         callMethod: function (method, params, callback) {
             callback = callback || Ext.emptyFn;
 
-            if (method == 'user.current') {
-                callback({
-                    data: function () {
-                        return {
-                            NAME: 'Марк',
-                            SECOND_NAME: 'Брониславович',
-                            LAST_NAME: 'Чиграков',
-                            EMAIL: 'chigrakov@example.com'
-                        };
-                    }
-                });
+            switch (method) {
+                case 'user.current':
+                    callback({
+                        data: function () {
+                            return {
+                                NAME: 'Марк',
+                                SECOND_NAME: 'Брониславович',
+                                LAST_NAME: 'Чиграков',
+                                EMAIL: 'chigrakov@example.com'
+                            };
+                        }
+                    });
+                    break;
+
+                case 'app.info':
+                    callback({
+                        data: function () {
+                            return appInfo;
+                        }
+                    });
             }
         },
         getScrollSize: function () {

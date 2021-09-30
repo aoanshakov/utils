@@ -34,17 +34,136 @@ tests.addTest(function (options) {
             tester.userLoginRequest().receiveResponse();
         });
 
-        describe('Доступны разделы "Пользователи", "CRM-интеграции" и "Переотправка событий".', function() {
+        describe(
+            'Доступны разделы "Пользователи", "CRM-интеграции", "Переотправка событий" и "Фичефлаги".',
+        function() {
             beforeEach(function() {
                 tester.userRequest().
                     allowReadEventResending().
                     allowWriteEventResending().
                     allowReadCrmIntegration().
                     allowReadUsers().
+                    allowReadFeatureFlags().
+                    allowWriteFeatureFlags().
                     receiveResponse();
             });
 
-            describe('Открываю раздел "Переотправка событий" без фильтра.', function() {
+            describe('Открываю раздел "Фичефлаги".', function() {
+                let featureFlagsRequest;
+
+                beforeEach(function() {
+                    tester.path.open('/feature-flags');
+                    Promise.runAll();
+                });
+
+                xdescribe('Ввожу значение в поле поиска. Нажимаю на кнопку "Поиск".', function() {
+                    beforeEach(function() {
+                        tester.textfield().withPlaceholder('Название флага, Мнемоника, Пространство имен, AppID').
+                            fill('whatsapp');
+
+                        tester.button('Поиск').click();
+                        Promise.runAll();
+
+                        featureFlagsRequest = tester.featureFlagsRequest().expectToBeSent();
+                    });
+
+                    it('Фичефлаг выключен, фичефлаг глобален. Данные корретно отобржаены в таблице.', function() {
+                        featureFlagsRequest.disabled().global().receiveResponse();
+
+                        tester.root.expectTextContentToHaveSubstring(
+                            'Название флага ' +
+                            'Мнемоника ' +
+                            'Пространство имен ' +
+                            'AppID ' +
+                            'Дата создания ' +
+                            'Состояние ' +
+
+                            'Чаты в WhatsApp ' +
+                            'whatsapp_chats ' +
+                            'comagic_web, db, amocrm ' +
+                            'Global ' +
+                            '26.07.2020 в 13:01 ' +
+                            'Выкл'
+                        );
+                    });
+                    it(
+                        'Фичефлаг включен, фичефлаг связан с конкретным пользователем. Данные корретно отобржаены в ' +
+                        'таблице.',
+                    function() {
+                        featureFlagsRequest.receiveResponse();
+
+                        tester.root.expectTextContentToHaveSubstring(
+                            'Название флага ' +
+                            'Мнемоника ' +
+                            'Пространство имен ' +
+                            'AppID ' +
+                            'Дата создания ' +
+                            'Состояние ' +
+
+                            'Чаты в WhatsApp ' +
+                            'whatsapp_chats ' +
+                            'comagic_web, db, amocrm ' +
+                            '4735 ' +
+                            '26.07.2020 в 13:01 ' +
+                            'Вкл'
+                        );
+                    });
+                });
+                describe('Нажимаю на кнопку "Добавить флаг".', function() {
+                    beforeEach(function() {
+                        tester.button('Добавить флаг').click();
+                    });
+
+                    describe('Заполняю форму.', function() {
+                        beforeEach(function() {
+                            tester.textfield().withPlaceholder('Введите название флага').fill('Чаты в WhatsApp');
+                            tester.textfield().withPlaceholder('Введите название мнемоники').fill('whatsapp_chats');
+
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+                            tester.select().option('comagic_web').click();
+                            tester.select().option('amocrm').click();
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+
+                            tester.switchField().withLabel('Состояние').click();
+                        });
+
+                        it('Нажимаю на кнопку "Выбрать AppID".', function() {
+                            tester.radioButton('Выбрать AppID').click();
+                            Promise.runAll(false, true);
+
+                            tester.textfield().withPlaceholder(
+                                'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
+                            ).fill('Шунин');
+
+                            tester.button('Поиск').click();
+                            Promise.runAll(false, true);
+
+                            tester.appsRequest().setSearch().changeLimit().receiveResponse();
+
+                            tester.page.expectTextContentToHaveSubstring(
+                                '1 2 3 4 5 в конец ' +
+                                'Строк на странице 5 ' +
+                                'Всего записей 75'
+                            );
+                        });
+                        return;
+                        it('Нажимаю на кнопку "Beta users".', function() {
+                            tester.radioButton('Beta users').click();
+                        });
+                    });
+                    return;
+                    xit('Нажимаю на ссылку "Фичефлаги". Открыта страница списка фичефлагов.', function() {
+                        tester.page.anchor('Фичефлаги').click();
+                        tester.button('Добавить флаг').expectToBeVisible();
+                    });
+                    xit('Нажимаю на ссылку "Отмена". Открыта страница списка фичефлагов.', function() {
+                        tester.page.anchor('Отмена').click();
+                        tester.button('Добавить флаг').expectToBeVisible();
+                    });
+                });
+            });
+            return;
+            xdescribe('Открываю раздел "Переотправка событий" без фильтра.', function() {
                 beforeEach(function() {
                     tester.path.open('/event-resending');
                     Promise.runAll();
@@ -165,12 +284,17 @@ tests.addTest(function (options) {
                                                             beforeEach(function() {
                                                                 tester.button('дальше').click();
                                                                 Promise.runAll();
-                                                                tester.amocrmEventsRequest().setOffset(75).expectToBeSent().
-                                                                    addEvents(75, 99).receiveResponse();
+
+                                                                tester.amocrmEventsRequest().
+                                                                    setOffset(75).
+                                                                    expectToBeSent().
+                                                                    addEvents(75, 99).
+                                                                    receiveResponse();
                                                             });
 
                                                             it(
-                                                                'Нажимаю на кнопку "В начало". Запрошена первая страница.',
+                                                                'Нажимаю на кнопку "В начало". Запрошена первая ' +
+                                                                'страница.',
                                                             function() {
                                                                 tester.button('В начало').click();
                                                                 Promise.runAll();
@@ -239,7 +363,8 @@ tests.addTest(function (options) {
                                                 });
                                             });
                                             it('Отображена первая страница.', function() {
-                                                tester.table().paging().page(1).expectToHaveClass('pagination-item-active');
+                                                tester.table().paging().page(1).
+                                                    expectToHaveClass('pagination-item-active');
 
                                                 tester.root.expectTextContentToHaveSubstring(
                                                     '39314 ' +
@@ -258,8 +383,8 @@ tests.addTest(function (options) {
                                             });
                                             
                                             describe(
-                                                'Отмечаю две строки. Нажимаю на кнопку "Повторить отправку". Отправлен ' +
-                                                'запрос переотправки событий.',
+                                                'Отмечаю две строки. Нажимаю на кнопку "Повторить отправку". ' +
+                                                'Отправлен запрос переотправки событий.',
                                             function() {
                                                 var amocrmEventsResendingRequest;
                                                 
@@ -271,14 +396,19 @@ tests.addTest(function (options) {
 
                                                     tester.button('Повторить отправку').click();
                                                     Promise.runAll();
-                                                    amocrmEventsResendingRequest = tester.amocrmEventsResendingRequest().
-                                                        setTwoEvents().expectToBeSent();
+                                                    amocrmEventsResendingRequest =
+                                                        tester.amocrmEventsResendingRequest().
+                                                            setTwoEvents().
+                                                            expectToBeSent();
                                                 });
 
-                                                describe('Получен ответ сервера. Отправлен запрос событий.', function() {
+                                                describe(
+                                                    'Получен ответ сервера. Отправлен запрос событий.',
+                                                function() {
                                                     beforeEach(function() {
                                                         amocrmEventsResendingRequest.receiveResponse();
-                                                        amocrmEventsRequest = tester.amocrmEventsRequest().expectToBeSent();
+                                                        amocrmEventsRequest = tester.amocrmEventsRequest().
+                                                            expectToBeSent();
                                                     });
 
                                                     it(
@@ -300,23 +430,24 @@ tests.addTest(function (options) {
                                                         tester.button('Повторить отправку').
                                                             expectToHaveAttribute('disabled');
 
-                                                        tester.table().cell().withContent('79157389283').row().checkbox().
-                                                            expectNotToBeChecked();
-                                                        tester.table().cell().withContent('79157389284').row().checkbox().
-                                                            expectNotToBeChecked();
-                                                        tester.table().cell().withContent('79157389285').row().checkbox().
-                                                            expectNotToBeChecked();
+                                                        tester.table().cell().withContent('79157389283').row().
+                                                            checkbox().expectNotToBeChecked();
+                                                        tester.table().cell().withContent('79157389284').row().
+                                                            checkbox().expectNotToBeChecked();
+                                                        tester.table().cell().withContent('79157389285').row().
+                                                            checkbox().expectNotToBeChecked();
                                                     });
                                                 });
                                                 it('Таблица заблокирована.', function() {
                                                     tester.spinner.expectToBeVisible();
                                                     tester.button('Применить').expectToHaveAttribute('disabled');
-                                                    tester.button('Повторить отправку').expectToHaveAttribute('disabled');
+                                                    tester.button('Повторить отправку').
+                                                        expectToHaveAttribute('disabled');
                                                 });
                                             });
                                             describe(
-                                                'Нажимаю на заголовок колонки "Дата и время события". Запрошены события ' +
-                                                'без сортировки.',
+                                                'Нажимаю на заголовок колонки "Дата и время события". Запрошены ' +
+                                                'события без сортировки.',
                                             function() {
                                                 beforeEach(function() {
                                                     tester.table().header().withContent('Дата и время события').click();
@@ -329,17 +460,20 @@ tests.addTest(function (options) {
                                                     'события с сортировкой по возрастанию.',
                                                 function() {
                                                     beforeEach(function() {
-                                                        tester.table().header().withContent('Дата и время события').click();
+                                                        tester.table().header().withContent('Дата и время события').
+                                                            click();
                                                         Promise.runAll();
-                                                        tester.amocrmEventsRequest().setAscDirection().receiveResponse();
+                                                        tester.amocrmEventsRequest().setAscDirection().
+                                                            receiveResponse();
                                                     });
 
                                                     it(
                                                         'Нажимаю на заголовок колонки "Дата и время события". Под ' +
-                                                        'заголовком колонки "Дата и время события" отображена стрелочка ' +
-                                                        'вниз.',
+                                                        'заголовком колонки "Дата и время события" отображена ' +
+                                                        'стрелочка вниз.',
                                                     function() {
-                                                        tester.table().header().withContent('Дата и время события').click();
+                                                        tester.table().header().withContent('Дата и время события').
+                                                            click();
                                                         Promise.runAll();
                                                         tester.amocrmEventsRequest().receiveResponse();
 
@@ -366,8 +500,8 @@ tests.addTest(function (options) {
                                                     'Стрелочка не отображена под заголовком колонки "Дата и время ' +
                                                     'события".',
                                                 function() {
-                                                    tester.table().header().withContent('Дата и время события').sortIcon().
-                                                        expectNotToExist();
+                                                    tester.table().header().withContent('Дата и время события').
+                                                        sortIcon().expectNotToExist();
 
                                                     tester.path.expectQueryToContain({
                                                         sort: undefined
@@ -375,10 +509,11 @@ tests.addTest(function (options) {
                                                 });
                                             });
                                             it(
-                                                'Отмечаю одну строку. Нажимаю на кнопку "Повторить отправку". Отображено ' +
-                                                'оповещение о добавлении события в очередь.',
+                                                'Отмечаю одну строку. Нажимаю на кнопку "Повторить отправку". ' +
+                                                'Отображено оповещение о добавлении события в очередь.',
                                             function() {
-                                                tester.table().cell().withContent('79157389283').row().checkbox().click();
+                                                tester.table().cell().withContent('79157389283').row().checkbox().
+                                                    click();
 
                                                 tester.button('Повторить отправку').click();
                                                 Promise.runAll();
@@ -390,14 +525,19 @@ tests.addTest(function (options) {
                                                     expectToHaveTextContent('В очередь добавлено 1 событие');
                                             });
                                             it(
-                                                'Отмечаю пять строк. Нажимаю на кнопку "Повторить отправку". Отображено ' +
-                                                'оповещение о добавлении события в очередь.',
+                                                'Отмечаю пять строк. Нажимаю на кнопку "Повторить отправку". ' +
+                                                'Отображено оповещение о добавлении события в очередь.',
                                             function() {
-                                                tester.table().cell().withContent('79157389283').row().checkbox().click();
-                                                tester.table().cell().withContent('79157389284').row().checkbox().click();
-                                                tester.table().cell().withContent('79157389285').row().checkbox().click();
-                                                tester.table().cell().withContent('79157389286').row().checkbox().click();
-                                                tester.table().cell().withContent('79157389287').row().checkbox().click();
+                                                tester.table().cell().withContent('79157389283').row().checkbox().
+                                                    click();
+                                                tester.table().cell().withContent('79157389284').row().checkbox().
+                                                    click();
+                                                tester.table().cell().withContent('79157389285').row().checkbox().
+                                                    click();
+                                                tester.table().cell().withContent('79157389286').row().checkbox().
+                                                    click();
+                                                tester.table().cell().withContent('79157389287').row().checkbox().
+                                                    click();
 
                                                 tester.button('Повторить отправку').click();
                                                 Promise.runAll();
@@ -438,9 +578,9 @@ tests.addTest(function (options) {
                                                 );
                                             });
                                             it(
-                                                'Отображена таблица событий. Кнопка "Повторить отправку" заблокирована. ' +
-                                                'Таблица доступна. Под заголовком колонки "Дата и время события" ' +
-                                                'отображена стрелочка вниз.',
+                                                'Отображена таблица событий. Кнопка "Повторить отправку" ' +
+                                                'заблокирована. Таблица доступна. Под заголовком колонки "Дата и ' +
+                                                'время события" отображена стрелочка вниз.',
                                             function() {
                                                 tester.table().header().withContent('Дата и время события').sortIcon().
                                                     expectToBeArrowDown();
@@ -478,9 +618,9 @@ tests.addTest(function (options) {
 
                                                     '79157389283 ' +
                                                     '03.02.2021 в 09:58 ' +
-                                                    'Exception in thread "main" java.lang.NullPointerException: Oops! ' +
-                                                        'at com.ericgoebelbecker.stacktraces.StackTrace.d StackTrace.' +
-                                                        'java... 10.04.2021 в 16:59 ' +
+                                                    'Exception in thread "main" java.lang.NullPointerException: ' +
+                                                        'Oops! at com.ericgoebelbecker.stacktraces.StackTrace.d ' +
+                                                        'StackTrace.java... 10.04.2021 в 16:59 ' +
                                                     '39285 ' +
 
                                                     '79157389284 ' +
@@ -587,8 +727,8 @@ tests.addTest(function (options) {
                                             );
                                         });
                                         it(
-                                            'Некоторые события отправляются в данный момент. Вместо даты отображен текст ' +
-                                            '"Отправляется".',
+                                            'Некоторые события отправляются в данный момент. Вместо даты отображен ' +
+                                            'текст "Отправляется".',
                                         function() {
                                             amocrmEventsRequest.setSending().receiveResponse();
 
@@ -600,7 +740,8 @@ tests.addTest(function (options) {
                                             );
                                         });
                                         it(
-                                            'Сообщение об ошибке отсутствует. Отображается сообщение "Неизвестная ошибка".',
+                                            'Сообщение об ошибке отсутствует. Отображается сообщение "Неизвестная ' +
+                                            'ошибка".',
                                         function() {
                                             amocrmEventsRequest.setNoErrorMessage().receiveResponse();
 
@@ -666,8 +807,8 @@ tests.addTest(function (options) {
                                     });
                                 });
                                 it(
-                                    'Указываю другое время. Нажимаю на кнопку "Применить". Отправляется запрос с другим ' +
-                                    'временем.',
+                                    'Указываю другое время. Нажимаю на кнопку "Применить". Отправляется запрос с ' +
+                                    'другим временем.',
                                 function() {
                                     tester.calendar().timePickerButton().click();
                                     tester.forceUpdate();
@@ -702,7 +843,9 @@ tests.addTest(function (options) {
                                     tester.textfield().withPlaceholder('Конечная дата').
                                         expectToHaveValue('24.08.2020 13:21:55');
                                 });
-                                it('Нажимаю на кнопку "Применить". Отправляется запрос сегодняшних событий.', function() {
+                                it(
+                                    'Нажимаю на кнопку "Применить". Отправляется запрос сегодняшних событий.',
+                                function() {
                                     tester.button('Применить').click();
                                     Promise.runAll();
                                     tester.amocrmEventsRequest().setDefaultDateRange().expectToBeSent();
@@ -764,7 +907,7 @@ tests.addTest(function (options) {
                     tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('24.08.2020 13:21:55');
                 });
             });
-            describe('Открываю раздел "CRM-интеграции". Нажимаю на кнопку "Применить".', function() {
+            xdescribe('Открываю раздел "CRM-интеграции". Нажимаю на кнопку "Применить".', function() {
                 beforeEach(function() {
                     tester.path.open('/crm-integrations');
                     Promise.runAll();
@@ -794,7 +937,7 @@ tests.addTest(function (options) {
                     tester.menuitem('Переотправить события').expectToHaveClass('ant-dropdown-menu-item-disabled');
                 });
             });
-            it(
+            xit(
                 'Открываю раздел "Переотправка событий" с фильтром. Дата начала и дата окончания больше текущей. ' +
                 'Выбрана сегодняшняя дата.',
             function() {
@@ -820,7 +963,7 @@ tests.addTest(function (options) {
                 tester.textfield().withPlaceholder('Начальная дата').expectToHaveValue('24.08.2020 00:00:00');
                 tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('24.08.2020 13:21:55');
             });
-            it(
+            xit(
                 'Открываю раздел "Переотправка событий" с фильтром. Дата начала меньше текущей, а дата окончания ' +
                 'больше текущей. Выбрана сегодняшняя дата в качестве конечной.',
             function() {
@@ -846,7 +989,7 @@ tests.addTest(function (options) {
                 tester.textfield().withPlaceholder('Начальная дата').expectToHaveValue('10.08.2020 00:00:00');
                 tester.textfield().withPlaceholder('Конечная дата').expectToHaveValue('24.08.2020 13:21:55');
             });
-            it(
+            xit(
                 'Открываю раздел "Переотправка событий" с фильтром. Дата окончания меншье текущей. Отправлен запрос ' +
                 'событий с фильтрацией. Поля фильтра заполнены.',
             function() {
@@ -880,10 +1023,12 @@ tests.addTest(function (options) {
                 tester.checkbox().withLabel('Отправляются').expectNotToBeChecked();
                 tester.checkbox().withLabel('Не отправлялись').expectNotToBeChecked();
             });
-            it('Пункт меню "Переотправка событий" отображен.', function() {
+            it('Пункты меню "Переотправка событий" и "Фичефлаги" отображены.', function() {
                 tester.menuitem('Переотправка событий').expectHrefToHavePath('/event-resending');
+                tester.menuitem('Фичефлаги').expectHrefToHavePath('/feature-flags');
             });
         });
+        return;
         describe('Доступен только раздел "Пользовтатели".', function() {
             beforeEach(function() {
                 tester.userRequest().allowReadUsers().receiveResponse();

@@ -7,6 +7,7 @@ define(() => {
             spendTime = options.spendTime,
             {app, path, stores} = options.runApplication(options);
 
+        stores.featureFlagsStore.initParams();
         stores.eventsStore.initParams();
         stores.appStore.directory = {};
 
@@ -22,7 +23,43 @@ define(() => {
             return checkbox;
         }
 
+        const createTesters = (getRoot, me) => {
+            me.anchor = text => testersFactory.createAnchorTester(
+                utils.descendantOf(getRoot()).
+                    matchesSelector('a').
+                    textEquals(text).
+                    find()
+            );
+
+            return me;
+        };
+
+        const getFieldByLabel = label => utils.descendantOfBody().
+            matchesSelector('label').
+            textEquals(label).
+            find().
+            closest('div');
+
         return {
+            radioButton(text) {
+                return testersFactory.createDomElementTester(
+                    utils.descendantOfBody().
+                        matchesSelector('.ant-radio-button-wrapper span:not(.ant-radio-button)').
+                        textEquals(text).
+                        find()
+                );
+            },
+            
+            switchField() {
+                return {
+                    withLabel(label) {
+                        return testersFactory.createDomElementTester(
+                            getFieldByLabel(label).querySelector('.ant-switch')
+                        );
+                    }
+                };
+            },
+
             checkbox() {
                 return {
                     withLabel(label) {
@@ -180,7 +217,7 @@ define(() => {
                                             find().
                                             closest('.ant-table-row');
 
-                                        return {
+                                        return createTesters(getRow, {
                                             actionsMenu: () => testersFactory.createDomElementTester(
                                                 getRow().querySelector('.ant-dropdown-trigger')
                                             ),
@@ -189,17 +226,10 @@ define(() => {
                                                 getRow().querySelector(selector)
                                             ),
 
-                                            anchor: text => testersFactory.createAnchorTester(
-                                                utils.descendantOf(getRow()).
-                                                    matchesSelector('a').
-                                                    textEquals(text).
-                                                    find()
-                                            ),
-
                                             checkbox: () => new Checkbox(
                                                 getRow().querySelector('.ant-checkbox-input')
                                             )
-                                        };
+                                        });
                                     }
                                 };
                             }
@@ -233,6 +263,10 @@ define(() => {
             },
 
             root: testersFactory.createDomElementTester(() => document.querySelector('#root')),
+            page: (() => {
+                const getPage = () => document.querySelector('.page');
+                return createTesters(getPage, testersFactory.createDomElementTester(getPage));
+            })(),
 
             button(text) {
                 return testersFactory.createDomElementTester(utils.descendantOfBody().
@@ -265,23 +299,26 @@ define(() => {
                             find().
                             closest('.ant-select');
 
-                        return {
-                            expectToHaveValue: expectedValue => {
-                                const actualValue = getSelect().
-                                    querySelector('.ant-select-selection-selected-value').
-                                    innerHTML;
+                        const tester = testersFactory.createDomElementTester(getSelect);
 
-                                if (actualValue != expectedValue) {
-                                    throw new Error(
-                                        `Выпадающий список с плейсхолдером "${placeholder}" должен иметь значение ` +
-                                        `"${expectedValue}", а не "${actualValue}".`
-                                    );
-                                }
-                            },
-                            arrowIcon: () => testersFactory.createDomElementTester(
-                                getSelect().querySelector('.ant-select-arrow-icon')
-                            )
+                        tester.expectToHaveValue = expectedValue => {
+                            const actualValue = getSelect().
+                                querySelector('.ant-select-selection-selected-value').
+                                innerHTML;
+
+                            if (actualValue != expectedValue) {
+                                throw new Error(
+                                    `Выпадающий список с плейсхолдером "${placeholder}" должен иметь значение ` +
+                                    `"${expectedValue}", а не "${actualValue}".`
+                                );
+                            }
                         };
+
+                        tester.arrowIcon = () => testersFactory.createDomElementTester(
+                            getSelect().querySelector('.ant-select-arrow-icon')
+                        );
+
+                        return tester;
                     }
                 };
             },
@@ -354,6 +391,16 @@ define(() => {
 
                     allowWriteEventResending() {
                         addPermission('apps_management_resend_crm_events', 'w');
+                        return this;
+                    },
+
+                    allowReadFeatureFlags() {
+                        addPermission('apps_management_feature_flags', 'r');
+                        return this;
+                    },
+
+                    allowWriteFeatureFlags() {
+                        addPermission('apps_management_feature_flags', 'w');
                         return this;
                     },
 
@@ -845,10 +892,22 @@ define(() => {
                         field: 'app_id',
                         order: 'desc'
                     }],
-                    states: 'waiting,active,manual_lock,limit_lock,debt_lock'
+                    states: 'waiting,active,manual_lock,limit_lock,debt_lock',
+                    search: undefined
                 };
 
                 return {
+                    changeLimit() {
+                        params.limit = '5';
+                        itemsCount = 5;
+                        return this;
+                    },
+
+                    setSearch() {
+                        params.search = 'Шунин';
+                        return this;
+                    },
+
                     setAscDirection() {
                         params.sort[0].order = 'asc';
                         return this;
@@ -947,7 +1006,69 @@ define(() => {
                         Promise.runAll();
                     }
                 };
-            }
+            },
+
+            featureFlagsRequest() {
+                const params = {
+                    limit: '10',
+                    offset: '0',
+                    query: 'whatsapp'
+                };
+
+                const data = [{
+                    name: 'Чаты в WhatsApp',
+                    mnemonic: 'whatsapp_chats',
+                    namespace: ['comagic_web', 'db', 'amocrm'],
+                    app_id: '4735',
+                    traget: 'app_id',
+                    creation_date: '2020-07-26 13:01:45',
+                    enabled: true
+                }];
+
+                const addResponseModifiers = me => {
+                    me.disabled = () => {
+                        data[0].enabled = false;
+                        return me;
+                    };
+
+                    me.global = () => {
+                        data[0].app_id = null;
+                        data[0].target = 'global';
+                        return me;
+                    };
+
+                    return me;
+                };
+
+                return addResponseModifiers({
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'get.feature_flags',
+                                params
+                            });
+
+                        return addResponseModifiers({
+                            receiveResponse() {
+                                request.respondSuccessfullyWith({
+                                    result: {data}
+                                });
+
+                                Promise.runAll();
+                            }
+                        });
+                    },
+                    
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                });
+            },
+
         };
     };
 });

@@ -609,6 +609,9 @@ function JsTester_Utils (debug) {
 
         return true;
     };
+    this.getCallStack = function () {
+        return debug.getCallStack();
+    };
     this.getVariablePresentation = function (object, maxDepth) {
         if (maxDepth) {
             debug.setMaxDepth(maxDepth);
