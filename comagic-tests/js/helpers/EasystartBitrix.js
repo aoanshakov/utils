@@ -34,17 +34,35 @@ function EasystartBitrix(args) {
     };
     this.comagicWebAuthRequest = function () {
         return {
-            receiveResponse: function () {
-                requestsManager.recentRequest().
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
                     expectToHavePath('/easystart/bitrix/comagic_web_auth/').
                     expectBodyToContain({
                         login: 'podlpnmkb@supere.ml',
                         password: '24g89fs8h2g4'
-                    }).
-                    respondSuccessfullyWith({
-                        success: true,
-                        result: 'app.comagic.ru'
                     });
+
+                var response = {
+                    success: true,
+                    result: 'app.comagic.ru'
+                };
+
+                return {
+                    failed: function () {
+                        response = {
+                            success: false,
+                            error: 'Login is not found'
+                        };
+
+                        return this;
+                    },
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith(response);
+                    }
+                };
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
             }
         };
     };

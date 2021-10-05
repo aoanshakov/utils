@@ -42,12 +42,22 @@ define(() => {
 
         return {
             radioButton(text) {
-                return testersFactory.createDomElementTester(
-                    utils.descendantOfBody().
-                        matchesSelector('.ant-radio-button-wrapper span:not(.ant-radio-button)').
-                        textEquals(text).
-                        find()
-                );
+                const getRadioButton = () => utils.descendantOfBody().
+                    matchesSelector('.ant-radio-button-wrapper span:not(.ant-radio-button)').
+                    textEquals(text).
+                    find();
+
+                const tester = testersFactory.createDomElementTester(getRadioButton);
+
+                const getRadioButtonTester = () => testersFactory.createDomElementTester(() =>
+                    getRadioButton().closest('label').querySelector('.ant-radio-button'));
+
+                tester.expectToBeChecked = () => getRadioButtonTester().expectToHaveClass('ant-radio-button-checked');
+
+                tester.expectNotToBeChecked = () =>
+                    getRadioButtonTester().expectNotToHaveClass('ant-radio-button-checked');
+
+                return tester;
             },
             
             switchField() {
@@ -1025,28 +1035,29 @@ define(() => {
                 const params = {
                     limit: '10',
                     offset: '0',
-                    query: 'whatsapp'
+                    search_string: 'whatsapp'
                 };
 
                 const data = [{
+                    id: 829592,
                     name: 'Чаты в WhatsApp',
                     mnemonic: 'whatsapp_chats',
                     namespace: ['comagic_web', 'db', 'amocrm'],
-                    app_id: '4735',
-                    traget: 'app_id',
-                    creation_date: '2020-07-26 13:01:45',
-                    enabled: true
+                    app_ids: [4735, 29572],
+                    is_global: false,
+                    expire_date: '2020-07-26 13:01:45',
+                    is_enabled: true
                 }];
 
                 const addResponseModifiers = me => {
                     me.disabled = () => {
-                        data[0].enabled = false;
+                        data[0].is_enabled = false;
                         return me;
                     };
 
                     me.global = () => {
-                        data[0].app_id = null;
-                        data[0].target = 'global';
+                        data[0].app_ids = null;
+                        data[0].is_global = true;
                         return me;
                     };
 
@@ -1082,6 +1093,41 @@ define(() => {
                 });
             },
 
+            featureFlagsSavingRequest() {
+                const params = {
+                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                    name: 'Чаты в WhatsApp',
+                    mnemonic: 'whatsapp_chats',
+                    namespace: ['comagic_web', 'amocrm', undefined],
+                    is_enabled: false,
+                    is_global: false,
+                    app_ids: [386525, 386527, 386530, 386531, undefined]
+                };
+
+                return {
+                    global() {
+                        params.is_global = true;
+                        params.app_ids = null;
+                        return this;
+                    },
+                    
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'create.feature_flag',
+                                params
+                            }).respondSuccessfullyWith({
+                                result: true
+                            });
+
+                        Promise.runAll();
+                    }
+                };
+            }
         };
     };
 });

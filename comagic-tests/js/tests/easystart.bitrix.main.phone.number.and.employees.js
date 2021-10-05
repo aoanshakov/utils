@@ -301,20 +301,33 @@ tests.addTest(function(args) {
                 }
             });
         });
-        it('Заполняю форму аутентификации. Нажимаю на кнопку "Войти". ЛК открыт в новой вкладке.', function() {
-            tester.authForm.textfield().withPlaceholder('Введите e-mail или логин').fill('podlpnmkb@supere.ml');
-            tester.authForm.textfield().withPlaceholder('Введите пароль').fill('24g89fs8h2g4');
-            tester.authForm.button('Войти').click();
+        describe('Заполняю форму аутентификации. Нажимаю на кнопку "Войти".', function() {
+            beforeEach(function() {
+                tester.authForm.textfield().withPlaceholder('Введите e-mail или логин').fill('podlpnmkb@supere.ml');
+                tester.authForm.textfield().withPlaceholder('Введите пароль').fill('24g89fs8h2g4');
+                tester.authForm.button('Войти').click();
 
-            tester.comagicWebAuthRequest().receiveResponse();
+                comagicWebAuthRequest = tester.comagicWebAuthRequest().expectToBeSent();
+            });
 
-            tester.redirectionAuthForm.expectAttributeToHaveValue('action', 'https://app.comagic.ru/login/');
+            xit('Логин найден. ЛК открыт в новой вкладке.', function() {
+                comagicWebAuthRequest.receiveResponse();
 
-            tester.redirectionAuthForm.createTester().forDescendant('[name=login]').assumeHidden().
-                expectAttributeToHaveValue('value', 'podlpnmkb@supere.ml');
+                tester.redirectionAuthForm.expectAttributeToHaveValue('action', 'https://app.comagic.ru/login/');
 
-            tester.redirectionAuthForm.createTester().forDescendant('[name=password]').assumeHidden().
-                expectAttributeToHaveValue('value', '24g89fs8h2g4');
+                tester.redirectionAuthForm.createTester().forDescendant('[name=login]').assumeHidden().
+                    expectAttributeToHaveValue('value', 'podlpnmkb@supere.ml');
+
+                tester.redirectionAuthForm.createTester().forDescendant('[name=password]').assumeHidden().
+                    expectAttributeToHaveValue('value', '24g89fs8h2g4');
+            });
+            it('Логин не найден. Отображено сообщение об ошибке.', function() {
+                comagicWebAuthRequest.failed().receiveResponse();
+                wait();
+
+                tester.redirectionAuthForm.expectNotToExist();
+                tester.authForm.expectTextContentToHaveSubstring('Логин не найден');
+            });
         });
         return;
         it('Кнопка "Тестировать бесплатно" скрыта.', function() {

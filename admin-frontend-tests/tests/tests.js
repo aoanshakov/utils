@@ -56,59 +56,6 @@ tests.addTest(function (options) {
                     Promise.runAll();
                 });
 
-                xdescribe('Ввожу значение в поле поиска. Нажимаю на кнопку "Поиск".', function() {
-                    beforeEach(function() {
-                        tester.textfield().withPlaceholder('Название флага, Мнемоника, Пространство имен, AppID').
-                            fill('whatsapp');
-
-                        tester.button('Поиск').click();
-                        Promise.runAll();
-
-                        featureFlagsRequest = tester.featureFlagsRequest().expectToBeSent();
-                    });
-
-                    it('Фичефлаг выключен, фичефлаг глобален. Данные корретно отобржаены в таблице.', function() {
-                        featureFlagsRequest.disabled().global().receiveResponse();
-
-                        tester.root.expectTextContentToHaveSubstring(
-                            'Название флага ' +
-                            'Мнемоника ' +
-                            'Пространство имен ' +
-                            'AppID ' +
-                            'Дата создания ' +
-                            'Состояние ' +
-
-                            'Чаты в WhatsApp ' +
-                            'whatsapp_chats ' +
-                            'comagic_web, db, amocrm ' +
-                            'Global ' +
-                            '26.07.2020 в 13:01 ' +
-                            'Выкл'
-                        );
-                    });
-                    it(
-                        'Фичефлаг включен, фичефлаг связан с конкретным пользователем. Данные корретно отобржаены в ' +
-                        'таблице.',
-                    function() {
-                        featureFlagsRequest.receiveResponse();
-
-                        tester.root.expectTextContentToHaveSubstring(
-                            'Название флага ' +
-                            'Мнемоника ' +
-                            'Пространство имен ' +
-                            'AppID ' +
-                            'Дата создания ' +
-                            'Состояние ' +
-
-                            'Чаты в WhatsApp ' +
-                            'whatsapp_chats ' +
-                            'comagic_web, db, amocrm ' +
-                            '4735 ' +
-                            '26.07.2020 в 13:01 ' +
-                            'Вкл'
-                        );
-                    });
-                });
                 describe('Нажимаю на кнопку "Добавить флаг".', function() {
                     beforeEach(function() {
                         tester.button('Добавить флаг').click();
@@ -166,7 +113,7 @@ tests.addTest(function (options) {
                                         checkbox().click();
                                 });
 
-                                xdescribe('Открываю первую страницу.', function() {
+                                describe('Открываю первую страницу.', function() {
                                     beforeEach(function() {
                                         tester.table().paging().page(1).click();
                                         Promise.runAll();
@@ -203,11 +150,13 @@ tests.addTest(function (options) {
                                             checkbox().expectNotToBeChecked();
                                     });
                                 });
-                                it('Нажимаю на кнопку "Сохранить".', function() {
+                                it('Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения.', function() {
                                     tester.button('Сохранить').click();
+                                    Promise.runAll(false, true);
+
+                                    tester.featureFlagsSavingRequest().receiveResponse();
                                 });
                             });
-                            return;
                             it('Отображены клиенты.', function() {
                                 tester.page.expectTextContentToHaveSubstring(
                                     'ООО "Трупоглазые жабы" # 1'
@@ -220,12 +169,21 @@ tests.addTest(function (options) {
                                 );
                             });
                         });
-                        return;
-                        it('Нажимаю на кнопку "Beta users".', function() {
-                            tester.radioButton('Beta users').click();
+                        it('Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения.', function() {
+                            tester.button('Сохранить').click();
+                            Promise.runAll(false, true);
+
+                            tester.featureFlagsSavingRequest().global().receiveResponse();
+                        });
+                        it('Кнопка "Global" нажата.', function() {
+                            tester.radioButton('Global').expectToBeChecked();
+                            tester.radioButton('Выбрать AppID').expectNotToBeChecked();
+
+                            tester.textfield().withPlaceholder(
+                                'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
+                            ).expectNotToExist();
                         });
                     });
-                    return;
                     it('Нажимаю на ссылку "Фичефлаги". Открыта страница списка фичефлагов.', function() {
                         tester.page.anchor('Фичефлаги').click();
                         tester.button('Добавить флаг').expectToBeVisible();
@@ -235,8 +193,60 @@ tests.addTest(function (options) {
                         tester.button('Добавить флаг').expectToBeVisible();
                     });
                 });
+                describe('Ввожу значение в поле поиска. Нажимаю на кнопку "Поиск".', function() {
+                    beforeEach(function() {
+                        tester.textfield().withPlaceholder('Название флага, Мнемоника, Пространство имен, AppID').
+                            fill('whatsapp');
+
+                        tester.button('Поиск').click();
+                        Promise.runAll();
+
+                        featureFlagsRequest = tester.featureFlagsRequest().expectToBeSent();
+                    });
+
+                    it('Фичефлаг выключен, фичефлаг глобален. Данные корретно отобржаены в таблице.', function() {
+                        featureFlagsRequest.disabled().global().receiveResponse();
+
+                        tester.root.expectTextContentToHaveSubstring(
+                            'Название флага ' +
+                            'Мнемоника ' +
+                            'Пространство имен ' +
+                            'AppID ' +
+                            'Дата истечения ' +
+                            'Состояние ' +
+
+                            'Чаты в WhatsApp ' +
+                            'whatsapp_chats ' +
+                            'comagic_web, db, amocrm ' +
+                            'Global ' +
+                            '26.07.2020 в 13:01 ' +
+                            'Выкл'
+                        );
+                    });
+                    it(
+                        'Фичефлаг включен, фичефлаг связан с конкретным пользователем. Данные корретно отобржаены в ' +
+                        'таблице.',
+                    function() {
+                        featureFlagsRequest.receiveResponse();
+
+                        tester.root.expectTextContentToHaveSubstring(
+                            'Название флага ' +
+                            'Мнемоника ' +
+                            'Пространство имен ' +
+                            'AppID ' +
+                            'Дата истечения ' +
+                            'Состояние ' +
+
+                            'Чаты в WhatsApp ' +
+                            'whatsapp_chats ' +
+                            'comagic_web, db, amocrm ' +
+                            '4735, 29572 ' +
+                            '26.07.2020 в 13:01 ' +
+                            'Вкл'
+                        );
+                    });
+                });
             });
-            return;
             describe('Открываю раздел "Переотправка событий" без фильтра.', function() {
                 beforeEach(function() {
                     tester.path.open('/event-resending');
@@ -1102,7 +1112,6 @@ tests.addTest(function (options) {
                 tester.menuitem('Фичефлаги').expectHrefToHavePath('/feature-flags');
             });
         });
-        return;
         describe('Доступен только раздел "Пользовтатели".', function() {
             beforeEach(function() {
                 tester.userRequest().allowReadUsers().receiveResponse();
