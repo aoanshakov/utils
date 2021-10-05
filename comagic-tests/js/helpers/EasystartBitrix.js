@@ -32,6 +32,22 @@ function EasystartBitrix(args) {
             partner: 'bitrix'
         };
     };
+    this.comagicWebAuthRequest = function () {
+        return {
+            receiveResponse: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/easystart/bitrix/comagic_web_auth/').
+                    expectBodyToContain({
+                        login: 'podlpnmkb@supere.ml',
+                        password: '24g89fs8h2g4'
+                    }).
+                    respondSuccessfullyWith({
+                        success: true,
+                        result: 'app.comagic.ru'
+                    });
+            }
+        };
+    };
     this.callCenterAuthRequest = function () {
         return {
             receiveResponse: function () {
@@ -837,11 +853,19 @@ function EasystartBitrix(args) {
         );
     };
 
-    this.button = function (text) {
-        return testersFactory.createDomElementTester(
-            utils.descendantOfBody().matchesSelector('.x-btn-inner').textEquals(text).find()
-        );
-    };
+    function addTesters (me, getAscendant) {
+        me.button = function (text) {
+            return testersFactory.createDomElementTester(
+                utils.descendantOf(getAscendant()).matchesSelector('.x-btn-inner').textEquals(text).find()
+            );
+        };
+
+        return me;
+    }
+
+    addTesters(this, function () {
+        return document.body;
+    });
 
     this.mainPageHeader = testersFactory.createDomElementTester(function () {
         return document.querySelector('.easystart-panel-header-text');
@@ -982,6 +1006,24 @@ function EasystartBitrix(args) {
 
     this.orderTestCallButton = testersFactory.createButtonTester(function () {
         return me.settingsStep('Тестовый звонок').down('button[text="Заказать тестовый звонок"]');
+    });
+
+    this.authForm = (function () {
+        function getForm () {
+            return EasyStart.getApplication().findComponent('#authForm');
+        }
+
+        var tester = testersFactory.createFormTester(getForm);
+
+        addTesters(tester, function () {
+            return getForm().el.dom;
+        });
+
+        return tester;
+    })();
+
+    this.redirectionAuthForm = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.easystart-comagic-web-auth');
     });
 
     this.floatingForm = testersFactory.createFormTester(function () {
@@ -1165,50 +1207,58 @@ function EasystartBitrix(args) {
 
     this.installFinishCallStack = null;
 
-    window.BX24 = {
-        init: function (callback) {
-            callback();
-        },
-        installFinish: function () {
-            if (this.installFinishCallStack) {
-                throw new Error('Метод BX24.installFinish() не должен быть вызван больше одного раза.');
+    window.BX24 = (function () {
+        var size = {
+            scrollWidth: 635,
+            scrollHeight: 724
+        };
+
+        return {
+            init: function (callback) {
+                callback();
+            },
+            installFinish: function () {
+                if (this.installFinishCallStack) {
+                    throw new Error('Метод BX24.installFinish() не должен быть вызван больше одного раза.');
+                }
+
+                this.installFinishCallStack = utils.getCallStack();
+            }.bind(this),
+            callMethod: function (method, params, callback) {
+                callback = callback || Ext.emptyFn;
+
+                switch (method) {
+                    case 'user.current':
+                        callback({
+                            data: function () {
+                                return {
+                                    NAME: 'Марк',
+                                    SECOND_NAME: 'Брониславович',
+                                    LAST_NAME: 'Чиграков',
+                                    EMAIL: 'chigrakov@example.com'
+                                };
+                            }
+                        });
+                        break;
+
+                    case 'app.info':
+                        callback({
+                            data: function () {
+                                return appInfo;
+                            }
+                        });
+                }
+            },
+            getScrollSize: function () {
+                return size;
+            },
+            resizeWindow: function (width, height) {
+                size.scrollWidth = width;
+                size.scrollHeight = height;
+            },
+            reloadWindow: function () {
+                me.expectWindowToBeReloaded = Ext.emptyFn;
             }
-
-            this.installFinishCallStack = utils.getCallStack();
-        }.bind(this),
-        callMethod: function (method, params, callback) {
-            callback = callback || Ext.emptyFn;
-
-            switch (method) {
-                case 'user.current':
-                    callback({
-                        data: function () {
-                            return {
-                                NAME: 'Марк',
-                                SECOND_NAME: 'Брониславович',
-                                LAST_NAME: 'Чиграков',
-                                EMAIL: 'chigrakov@example.com'
-                            };
-                        }
-                    });
-                    break;
-
-                case 'app.info':
-                    callback({
-                        data: function () {
-                            return appInfo;
-                        }
-                    });
-            }
-        },
-        getScrollSize: function () {
-            return {
-                scrollWidth: 635
-            };
-        },
-        resizeWindow: function (widget, height) {},
-        reloadWindow: function () {
-            me.expectWindowToBeReloaded = Ext.emptyFn;
-        }
-    };
+        };
+    })();
 }
