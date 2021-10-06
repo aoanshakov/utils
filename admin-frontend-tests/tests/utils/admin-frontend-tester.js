@@ -1035,7 +1035,9 @@ define(() => {
                 const params = {
                     limit: '10',
                     offset: '0',
-                    search_string: 'whatsapp'
+                    search_string: 'whatsapp',
+                    sort_by: 'expire_date',
+                    sort_asc: false
                 };
 
                 const data = [{
