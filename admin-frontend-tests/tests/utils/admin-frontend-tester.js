@@ -63,9 +63,14 @@ define(() => {
             switchField() {
                 return {
                     withLabel(label) {
-                        return testersFactory.createDomElementTester(
+                        const tester = testersFactory.createDomElementTester(
                             getFieldByLabel(label).querySelector('.ant-switch')
                         );
+
+                        tester.expectToBeChecked = () => tester.expectToHaveClass('ant-switch-checked');
+                        tester.expectNotToBeChecked = () => tester.expectNotToHaveClass('ant-switch-checked');
+
+                        return tester;
                     }
                 };
             },
@@ -85,29 +90,38 @@ define(() => {
             },
 
             calendar() {
+                const applyDatePicker = (me, getElement) => {
+                    me.cell = content => {
+                        const getCells = (index) => utils.descendantOf(getElement()).
+                            matchesSelector('.ant-calendar-date').
+                            textEquals(content).
+                            findAllVisible()[index];
+
+                        const tester = testersFactory.createDomElementTester(() => getCells(0))
+                        tester.second = () => testersFactory.createDomElementTester(() => getCells(1));
+
+                        return tester;
+                    };
+
+                    me.prevMonth = () => testersFactory.createDomElementTester(
+                        getElement().querySelector('.ant-calendar-prev-month-btn')
+                    );
+                        
+                    me.nextMonth = () => testersFactory.createDomElementTester(
+                        getElement().querySelector('.ant-calendar-next-month-btn')
+                    );
+
+                    return me;
+                };
+
                 const getCalendar = side => {
                     const getElement = () =>
                         document.querySelector(`.ant-calendar-range-${side}`) || (new JsTester_NoElement());
 
-                    return {
-                        cell(content) {
-                            return testersFactory.createDomElementTester(
-                                utils.descendantOf(getElement()).
-                                    matchesSelector('.ant-calendar-date').
-                                    textEquals(content).
-                                    find()
-                            );
-                        },
-
-                        prevMonth() {
-                            return testersFactory.createDomElementTester(
-                                getElement().querySelector('.ant-calendar-prev-month-btn')
-                            );
-                        }
-                    };
+                    return applyDatePicker({}, getElement);
                 };
 
-                return {
+                return applyDatePicker({
                     timePicker() {
                         const getPart = part => {
                             const getPicker = index => value => testersFactory.createDomElementTester(
@@ -155,7 +169,7 @@ define(() => {
                     right() {
                         return getCalendar('right');
                     }
-                };
+                }, () => document.body);
             },
 
             spinner: testersFactory.createDomElementTester(() => document.querySelector('.ant-spin-dot')),
@@ -312,9 +326,10 @@ define(() => {
                         const tester = testersFactory.createDomElementTester(getSelect);
 
                         tester.expectToHaveValue = expectedValue => {
-                            const actualValue = getSelect().
-                                querySelector('.ant-select-selection-selected-value').
-                                innerHTML;
+                            const actualValue = utils.getTextContent(getSelect().querySelector(
+                                '.ant-select-selection-selected-value, ' +
+                                '.ant-select-selection__rendered ul'
+                            ));
 
                             if (actualValue != expectedValue) {
                                 throw new Error(
@@ -405,12 +420,12 @@ define(() => {
                     },
 
                     allowReadFeatureFlags() {
-                        addPermission('apps_management_feature_flags', 'r');
+                        addPermission('feature_flags', 'r');
                         return this;
                     },
 
                     allowWriteFeatureFlags() {
-                        addPermission('apps_management_feature_flags', 'w');
+                        addPermission('feature_flags', 'w');
                         return this;
                     },
 
@@ -1033,9 +1048,9 @@ define(() => {
 
             featureFlagsRequest() {
                 const params = {
-                    limit: '10',
-                    offset: '0',
-                    search_string: 'whatsapp',
+                    limit: 10,
+                    offset: 0,
+                    search_string: '',
                     sort_by: 'expire_date',
                     sort_asc: false
                 };
@@ -1044,16 +1059,26 @@ define(() => {
                     id: 829592,
                     name: 'Чаты в WhatsApp',
                     mnemonic: 'whatsapp_chats',
-                    namespace: ['comagic_web', 'db', 'amocrm'],
+                    namespaces: '{comagic_web,db,amocrm}',
                     app_ids: [4735, 29572],
                     is_global: false,
-                    expire_date: '2020-07-26 13:01:45',
+                    expire_date: '2020-07-26',
                     is_enabled: true
                 }];
 
                 const addResponseModifiers = me => {
+                    me.noExpireDate = () => {
+                        data[0].expire_date = null;
+                        return me;
+                    };
+
                     me.disabled = () => {
                         data[0].is_enabled = false;
+                        return me;
+                    };
+
+                    me.noAppIds = () => {
+                        data[0].app_ids = null;
                         return me;
                     };
 
@@ -1067,6 +1092,11 @@ define(() => {
                 };
 
                 return addResponseModifiers({
+                    searchString() {
+                        params.search_string = 'whatsapp';
+                        return this;
+                    },
+
                     expectToBeSent() {
                         const request = ajax.recentRequest().
                             expectPathToContain('/dataapi/').
@@ -1081,7 +1111,12 @@ define(() => {
                         return addResponseModifiers({
                             receiveResponse() {
                                 request.respondSuccessfullyWith({
-                                    result: {data}
+                                    result: {
+                                        data,
+                                        metadata: {
+                                            total_items: 1
+                                        }
+                                    }
                                 });
 
                                 Promise.runAll();
@@ -1095,18 +1130,87 @@ define(() => {
                 });
             },
 
-            featureFlagsSavingRequest() {
+            featureFlagRequest() {
                 const params = {
-                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                    id: 829592
+                };
+
+                const result = {
                     name: 'Чаты в WhatsApp',
                     mnemonic: 'whatsapp_chats',
-                    namespace: ['comagic_web', 'amocrm', undefined],
+                    namespaces: '{comagic_web,db,amocrm}',
+                    app_ids: [4735, 29572],
+                    is_global: false,
+                    expire_date: '2020-07-26',
+                    is_enabled: true,
+                    app_ids: [386525, 386527, 386530, 386531]
+                };
+
+                const addResponseModifiers = me => {
+                    me.noExpireDate = () => {
+                        result.expire_date = null;
+                        return me;
+                    };
+
+                    me.disabled = () => {
+                        result.is_enabled = false;
+                        return me;
+                    };
+
+                    me.global = () => {
+                        result.app_ids = null;
+                        result.is_global = true;
+                        return me;
+                    };
+
+                    return me;
+                };
+
+                return addResponseModifiers({
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'get.feature_flag',
+                                params
+                            });
+
+                        return addResponseModifiers({
+                            receiveResponse() {
+                                request.respondSuccessfullyWith({result});
+                                Promise.runAll();
+                            }
+                        });
+                    },
+                    
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                });
+            },
+
+            featureFlagCreatingRequest() {
+                const params = {
+                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                    id: undefined,
+                    name: 'Чаты в WhatsApp',
+                    mnemonic: 'whatsapp_chats',
+                    namespaces: ['comagic_web', 'amocrm', undefined],
                     is_enabled: false,
                     is_global: false,
+                    expire_date: '2020-08-29',
                     app_ids: [386525, 386527, 386530, 386531, undefined]
                 };
 
                 return {
+                    enabled() {
+                        params.is_enabled = true;
+                        return this;
+                    },
+
                     global() {
                         params.is_global = true;
                         params.app_ids = null;
@@ -1122,6 +1226,94 @@ define(() => {
                                 id: 'number',
                                 method: 'create.feature_flag',
                                 params
+                            }).respondSuccessfullyWith({
+                                result: true
+                            });
+
+                        Promise.runAll();
+                    }
+                };
+            },
+
+            featureFlagNamespacesRequest() {
+                return {
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'get.feature_flag_namespaces',
+                                params: {
+                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
+                                }
+                            }).respondSuccessfullyWith({
+                                result: '{comagic_web,db,amocrm}'
+                            });
+
+                        Promise.runAll();
+                    }
+                };
+            },
+
+            featureFlagUpdatingRequest() {
+                const params = {
+                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                    id: 829592,
+                    name: 'Чат в WhatsApp',
+                    mnemonic: 'whatsapp_chat',
+                    namespaces: ['comagic_web', 'db', undefined],
+                    expire_date: '2020-08-29',
+                    is_enabled: false,
+                    is_global: false,
+                    app_ids: [386527, 386530, 386531, 386526, undefined]
+                };
+
+                return {
+                    enabled() {
+                        params.is_enabled = true;
+                        return this;
+                    },
+
+                    global() {
+                        params.is_global = true;
+                        params.app_ids = null;
+                        return this;
+                    },
+                    
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'update.feature_flag',
+                                params
+                            }).respondSuccessfullyWith({
+                                result: true
+                            });
+
+                        Promise.runAll();
+                    }
+                };
+            },
+
+            featureFlagDeletingRequest() {
+                return {
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'delete.feature_flag',
+                                params: {
+                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                                    id: 829592
+                                }
                             }).respondSuccessfullyWith({
                                 result: true
                             });
