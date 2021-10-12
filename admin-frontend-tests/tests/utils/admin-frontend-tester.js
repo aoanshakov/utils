@@ -294,6 +294,11 @@ define(() => {
 
                             liTester.click = () => aTester.click();
 
+                            liTester.expectToBeChecked = () => liTester.expectToHaveClass('pagination-item-active');
+
+                            liTester.expectNotToBeChecked = () =>
+                                liTester.expectNotToHaveClass('pagination-item-active');
+
                             return liTester;
                         }
                     })
@@ -1069,12 +1074,17 @@ define(() => {
             },
 
             featureFlagsRequest() {
+                let startIndex = 0,
+                    itemsCount = 1,
+                    total_items = 1;
+
                 const params = {
                     limit: 10,
                     offset: 0,
                     search_string: '',
                     sort_by: 'expire_date',
-                    sort_asc: false
+                    sort_asc: false,
+                    is_global: undefined
                 };
 
                 const data = [{
@@ -1089,6 +1099,13 @@ define(() => {
                 }];
 
                 const addResponseModifiers = me => {
+                    me.addMore = () => {
+                        total_items = 25;
+                        itemsCount = 10;
+
+                        return me;
+                    };
+
                     me.onlyOneAppId = () => {
                         data[0].app_ids = [4735];
                         return me;
@@ -1109,16 +1126,16 @@ define(() => {
                         return me;
                     };
 
-                    me.global = () => {
-                        data[0].app_ids = null;
-                        data[0].is_global = true;
-                        return me;
-                    };
-
                     return me;
                 };
 
                 return addResponseModifiers({
+                    secondPage() {
+                        params.offset = 10;
+                        startIndex = 10;
+                        return this;
+                    },
+
                     ascending() {
                         params.sort_asc = true;
                         return this;
@@ -1134,6 +1151,16 @@ define(() => {
                         return this;
                     },
 
+                    global() {
+                        params.is_global = true;
+                        return this;
+                    },
+
+                    notGlobal() {
+                        params.is_global = false;
+                        return this;
+                    },
+
                     expectToBeSent() {
                         const request = ajax.recentRequest().
                             expectPathToContain('/dataapi/').
@@ -1146,12 +1173,33 @@ define(() => {
                             });
 
                         return addResponseModifiers({
+                            global() {
+                                data[0].app_ids = null;
+                                data[0].is_global = true;
+                                return this;
+                            },
+
                             receiveResponse() {
+                                const items = [];
+
+                                for (i = startIndex; i < (startIndex + itemsCount); i ++) {
+                                    items.push(data[i] ? data[i] : {
+                                        id: 829593 + i,
+                                        name: `Фичефлаг # ${i + 1}`,
+                                        mnemonic: `ff_${i + 1}`,
+                                        namespaces: '{comagic_web,db,amocrm}',
+                                        app_ids: [4735, 29572],
+                                        is_global: false,
+                                        expire_date: '2020-07-26',
+                                        is_enabled: true
+                                    });
+                                }
+
                                 request.respondSuccessfullyWith({
                                     result: {
-                                        data,
+                                        data: items,
                                         metadata: {
-                                            total_items: 1
+                                            total_items
                                         }
                                     }
                                 });
@@ -1242,7 +1290,23 @@ define(() => {
                     app_ids: [386525, 386527, 386530, 386531, undefined]
                 };
 
-                return {
+                let response = {
+                    result: true
+                };
+
+                const addResponseModifiers = me => {
+                    me.failed = () => ((response = {
+                        error: {
+                            message: "Флаг с данной мнемоникой уже существует в одном из выбранных пространств " +
+                                "имён\n",
+                            code: -32002
+                        }
+                    }), me);
+
+                    return me;
+                };
+
+                return addResponseModifiers({
                     enabled() {
                         params.is_enabled = true;
                         return this;
@@ -1253,9 +1317,9 @@ define(() => {
                         params.app_ids = null;
                         return this;
                     },
-                    
-                    receiveResponse() {
-                        ajax.recentRequest().
+
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
@@ -1263,13 +1327,21 @@ define(() => {
                                 id: 'number',
                                 method: 'create.feature_flag',
                                 params
-                            }).respondSuccessfullyWith({
-                                result: true
                             });
 
-                        Promise.runAll();
+                        return addResponseModifiers({
+                            receiveResponse() {
+                                request.respondSuccessfullyWith(response);
+
+                                Promise.runAll();
+                            }
+                        });
+                    },
+                    
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
                     }
-                };
+                });
             },
 
             featureFlagNamespacesRequest() {
@@ -1307,7 +1379,23 @@ define(() => {
                     app_ids: [386527, 386530, 386531, 386526, undefined]
                 };
 
-                return {
+                let response = {
+                    result: true
+                };
+
+                const addResponseModifiers = me => {
+                    me.failed = () => ((response = {
+                        error: {
+                            message: "Флаг с данной мнемоникой уже существует в одном из выбранных пространств " +
+                                "имён\n",
+                            code: -32002
+                        }
+                    }), me);
+
+                    return me;
+                };
+
+                return addResponseModifiers({
                     changeExpireDate() {
                         params.expire_date = '2020-08-29';
                         return this
@@ -1329,9 +1417,9 @@ define(() => {
                         params.app_ids = null;
                         return this;
                     },
-                    
-                    receiveResponse() {
-                        ajax.recentRequest().
+
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
@@ -1339,13 +1427,21 @@ define(() => {
                                 id: 'number',
                                 method: 'update.feature_flag',
                                 params
-                            }).respondSuccessfullyWith({
-                                result: true
                             });
 
-                        Promise.runAll();
+                        return addResponseModifiers({
+                            receiveResponse() {
+                                request.respondSuccessfullyWith(response);
+
+                                Promise.runAll();
+                            }
+                        });
+                    },
+                    
+                    receiveResponse() {
+                        return this.expectToBeSent().receiveResponse();
                     }
-                };
+                });
             },
 
             featureFlagDeletingRequest() {
