@@ -87,108 +87,88 @@ tests.addTest(function (options) {
                             describe('Флаг включен. Флаг связан с клиентами.', function() {
                                 beforeEach(function() {
                                     featureFlagRequest.receiveResponse();
+                                    tester.appsRequest().changeLimit().receiveResponse();
                                 });
 
-                                describe('Нажимаю на кнопку "Поиск". Получены клиенты.', function() {
+                                describe('Отмечаю других клиентов.', function() {
                                     beforeEach(function() {
-                                        tester.button('Поиск').click();
-                                        Promise.runAll(false, true);
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                            checkbox().click();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                            checkbox().click();
 
-                                        tester.appsRequest().changeLimit().receiveResponse();
+                                        Promise.runAll(false, true);
                                     });
 
-                                    describe('Отмечаю других клиентов.', function() {
+                                    describe('Изменяю значение формы.', function() {
                                         beforeEach(function() {
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
-                                                checkbox().click();
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
-                                                checkbox().click();
+                                            tester.textfield().withPlaceholder('Введите название флага').
+                                                fill('Чат в WhatsApp');
+                                            tester.textfield().withPlaceholder('Введите название мнемоники').
+                                                fill('whatsapp_chat');
+
+                                            tester.select().withPlaceholder('Выберите пространство имен').
+                                                arrowIcon().click();
+                                            tester.select().option('amocrm').click();
+                                            tester.select().withPlaceholder('Выберите пространство имен').
+                                                arrowIcon().click();
+
+                                            tester.switchField().withLabel('Состояние').click();
+                                        });
+
+                                        it(
+                                            'Нажимаю на кнопку сохранения. Отправлен запрос обновление флага.',
+                                        function() {
+                                            Promise.runAll(false, true);
+                                            tester.button('Сохранить').click();
+                                            Promise.runAll(false, true);
+
+                                            tester.featureFlagUpdatingRequest().receiveResponse();
+                                            Promise.runAll(false, true);
+                                            Promise.runAll(false, true);
+                                            tester.featureFlagsRequest().searchString().receiveResponse();
+
+                                            tester.textfield().withPlaceholder(
+                                                'Название флага, Мнемоника, Пространство имен, AppID'
+                                            ).expectToBeVisible();
+                                        });
+                                        it(
+                                            'Изменя дату истечения. Нажимаю на кнопку сохранения. Отправлен ' +
+                                            'запрос обновление флага.',
+                                        function() {
+                                            tester.textfield().withPlaceholder('Введте дату истечения').click();
+                                            tester.calendar().nextMonth().click();
+                                            tester.calendar().cell('29').second().click();
 
                                             Promise.runAll(false, true);
-                                        });
+                                            tester.button('Сохранить').click();
+                                            Promise.runAll(false, true);
 
-                                        describe('Изменяю значение формы.', function() {
-                                            beforeEach(function() {
-                                                tester.textfield().withPlaceholder('Введите название флага').
-                                                    fill('Чат в WhatsApp');
-                                                tester.textfield().withPlaceholder('Введите название мнемоники').
-                                                    fill('whatsapp_chat');
+                                            tester.featureFlagUpdatingRequest().changeExpireDate().
+                                                receiveResponse();
+                                            Promise.runAll(false, true);
+                                            Promise.runAll(false, true);
+                                            tester.featureFlagsRequest().searchString().receiveResponse();
 
-                                                tester.select().withPlaceholder('Выберите пространство имен').
-                                                    arrowIcon().click();
-                                                tester.select().option('amocrm').click();
-                                                tester.select().withPlaceholder('Выберите пространство имен').
-                                                    arrowIcon().click();
-
-                                                tester.switchField().withLabel('Состояние').click();
-                                            });
-
-                                            it(
-                                                'Нажимаю на кнопку сохранения. Отправлен запрос обновление флага.',
-                                            function() {
-                                                Promise.runAll(false, true);
-                                                tester.button('Сохранить').click();
-                                                Promise.runAll(false, true);
-
-                                                tester.featureFlagUpdatingRequest().receiveResponse();
-                                                Promise.runAll(false, true);
-                                                Promise.runAll(false, true);
-                                                tester.featureFlagsRequest().searchString().receiveResponse();
-
-                                                tester.textfield().withPlaceholder(
-                                                    'Название флага, Мнемоника, Пространство имен, AppID'
-                                                ).expectToBeVisible();
-                                            });
-                                            it(
-                                                'Изменя дату истечения. Нажимаю на кнопку сохранения. Отправлен ' +
-                                                'запрос обновление флага.',
-                                            function() {
-                                                tester.textfield().withPlaceholder('Введте дату истечения').click();
-                                                tester.calendar().nextMonth().click();
-                                                tester.calendar().cell('29').second().click();
-
-                                                Promise.runAll(false, true);
-                                                tester.button('Сохранить').click();
-                                                Promise.runAll(false, true);
-
-                                                tester.featureFlagUpdatingRequest().changeExpireDate().
-                                                    receiveResponse();
-                                                Promise.runAll(false, true);
-                                                Promise.runAll(false, true);
-                                                tester.featureFlagsRequest().searchString().receiveResponse();
-
-                                                tester.textfield().withPlaceholder(
-                                                    'Название флага, Мнемоника, Пространство имен, AppID'
-                                                ).expectToBeVisible();
-                                            });
-                                        });
-                                        it('Другие клиенты отмечены.', function() {
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
-                                                checkbox().expectNotToBeChecked();
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
-                                                checkbox().expectNotToBeChecked();
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
-                                                checkbox().expectToBeChecked();
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
-                                                checkbox().expectToBeChecked();
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
-                                                checkbox().expectNotToBeChecked();
-                                        });
-                                        it('Кнопка "Сохранить" доступна.', function() {
-                                            tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                                            tester.textfield().withPlaceholder(
+                                                'Название флага, Мнемоника, Пространство имен, AppID'
+                                            ).expectToBeVisible();
                                         });
                                     });
-                                    it('Клиенты, связанные с флагом отмечены.', function() {
+                                    it('Другие клиенты отмечены.', function() {
                                         tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
                                             checkbox().expectNotToBeChecked();
                                         tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
-                                            checkbox().expectToBeChecked();
-                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
                                             checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                            checkbox().expectToBeChecked();
                                         tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
                                             checkbox().expectToBeChecked();
                                         tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
                                             checkbox().expectNotToBeChecked();
+                                    });
+                                    it('Кнопка "Сохранить" доступна.', function() {
+                                        tester.button('Сохранить').expectNotToHaveAttribute('disabled');
                                     });
                                 });
                                 describe('Нажимаю на ссылку "Фичефлаги".', function() {
@@ -237,7 +217,20 @@ tests.addTest(function (options) {
                                         );
                                     });
                                 });
-                                it('Форма заполнена получеными данными.', function() {
+                                it(
+                                    'Клиенты, связанные с флагом отмечены. Форма заполнена получеными данными.',
+                                function() {
+                                    tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
+                                        checkbox().expectNotToBeChecked();
+                                    tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                        checkbox().expectToBeChecked();
+                                    tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                        checkbox().expectNotToBeChecked();
+                                    tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
+                                        checkbox().expectToBeChecked();
+                                    tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
+                                        checkbox().expectNotToBeChecked();
+
                                     tester.textfield().withPlaceholder('Введите название флага').
                                         expectToHaveValue('Чаты в WhatsApp');
                                     tester.textfield().withPlaceholder('Введите название мнемоники').
@@ -555,21 +548,12 @@ tests.addTest(function (options) {
                                 tester.calendar().cell('29').second().click();
                             });
 
-                            describe(
-                                'Нажимаю на кнопку "Выбрать AppID". Ввожу строку поиска. Нажимаю на кнопку "Поиск".',
-                            function() {
+                            describe('Нажимаю на кнопку "Выбрать AppID".', function() {
                                 beforeEach(function() {
                                     tester.radioButton('Выбрать AppID').click();
                                     Promise.runAll(false, true);
 
-                                    tester.textfield().withPlaceholder(
-                                        'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
-                                    ).fill('Шунин');
-
-                                    tester.button('Поиск').click();
-                                    Promise.runAll(false, true);
-
-                                    tester.appsRequest().setSearch().changeLimit().receiveResponse();
+                                    tester.appsRequest().changeLimit().receiveResponse();
                                 });
 
                                 describe('Отмечаю строки. Открываю вторую страницу. Отмечаю строки.', function() {
@@ -582,8 +566,7 @@ tests.addTest(function (options) {
 
                                         tester.table().paging().page(2).click();
                                         Promise.runAll();
-                                        tester.appsRequest().setSearch().changeLimit().setSecondPage().
-                                            receiveResponse();
+                                        tester.appsRequest().changeLimit().setSecondPage().receiveResponse();
 
                                         tester.table().cell().withContent('ООО "Трупоглазые жабы" # 7').row().
                                             checkbox().click();
@@ -596,14 +579,13 @@ tests.addTest(function (options) {
                                         beforeEach(function() {
                                             tester.table().paging().page(1).click();
                                             Promise.runAll();
-                                            tester.appsRequest().setSearch().changeLimit().receiveResponse();
+                                            tester.appsRequest().changeLimit().receiveResponse();
                                         });
 
                                         it('Открываю вторую страницу. Строки отмечены.', function() {
                                             tester.table().paging().page(2).click();
                                             Promise.runAll();
-                                            tester.appsRequest().setSearch().changeLimit().setSecondPage().
-                                                receiveResponse();
+                                            tester.appsRequest().changeLimit().setSecondPage().receiveResponse();
 
                                             tester.table().cell().withContent('ООО "Трупоглазые жабы" # 6').row().
                                                 checkbox().expectNotToBeChecked();
@@ -669,6 +651,18 @@ tests.addTest(function (options) {
                                         tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
                                             checkbox().expectToBeChecked();
                                     });
+                                });
+                                it(
+                                    'Ввожу строку поиска. Нажимаю на кнопку "Поиск". Отправлен запрос клиентов.',
+                                function() {
+                                    tester.textfield().withPlaceholder(
+                                        'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
+                                    ).fill('Шунин');
+
+                                    tester.button('Поиск').click();
+                                    Promise.runAll(false, true);
+
+                                    tester.appsRequest().setSearch().changeLimit().receiveResponse();
                                 });
                                 it('Отображены клиенты.', function() {
                                     tester.page.expectTextContentToHaveSubstring(

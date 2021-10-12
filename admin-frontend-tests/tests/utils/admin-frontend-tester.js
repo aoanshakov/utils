@@ -934,15 +934,15 @@ define(() => {
                 let setSecondPage = () => {
                     startIndex = 50;
                     itemsCount = 25;
-                    params.offset = '50';
+                    params.offset = 50;
                 };
 
                 let processing = [];
 
                 const params = {
                     access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
-                    limit: '50',
-                    offset: '0',
+                    limit: 50,
+                    offset: 0,
                     sort: [{
                         field: 'app_id',
                         order: 'desc'
@@ -953,13 +953,13 @@ define(() => {
 
                 return {
                     changeLimit() {
-                        params.limit = '5';
+                        params.limit = 5;
                         itemsCount = 5;
 
                         setSecondPage = () => {
                             startIndex = 5;
                             itemsCount = 5;
-                            params.offset = '5';
+                            params.offset = 5;
                         };
 
                         return this;
