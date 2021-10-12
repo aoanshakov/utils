@@ -24,6 +24,12 @@ define(() => {
         }
 
         const createTesters = (getRoot, me) => {
+            const getFieldByLabel = label => utils.descendantOf(getRoot()).
+                matchesSelector('label').
+                textEquals(label).
+                find().
+                closest('div');
+
             me.anchor = text => testersFactory.createAnchorTester(
                 utils.descendantOf(getRoot()).
                     matchesSelector('a').
@@ -31,16 +37,45 @@ define(() => {
                     find()
             );
 
+            me.button = text => testersFactory.createDomElementTester(
+                utils.descendantOf(getRoot()).matchesSelector('.ant-btn, .pagination-item-link').textEquals(text).find()
+            );
+
+            {
+                const getTester = getRoot => {
+                    const tester = testersFactory.createDomElementTester(() => getRoot().querySelector('.ant-switch'));
+
+                    tester.expectToBeChecked = () => tester.expectToHaveClass('ant-switch-checked');
+                    tester.expectNotToBeChecked = () => tester.expectNotToHaveClass('ant-switch-checked');
+
+                    return tester;
+                };
+
+                const tester = getTester(getRoot);
+                tester.withLabel = label => getTester(() => getFieldByLabel(label));
+
+                me.switchField = () => tester;
+            }
+
             return me;
         };
 
-        const getFieldByLabel = label => utils.descendantOfBody().
-            matchesSelector('label').
-            textEquals(label).
-            find().
-            closest('div');
+        const addErrorIcon = (tester, getDomElement) =>
+            (tester.errorIcon = () => testersFactory.createDomElementTester(((
+                getDomElement().parentNode || new JsTester_NoElement()
+            ).parentNode || new JsTester_NoElement()).querySelector('.comagic-icon-exclamation')));
 
-        return {
+        return createTesters(() => document.body, {
+            modal() {
+                const getRoot = () => utils.getVisibleSilently(document.querySelectorAll('.ant-modal')),
+                    tester = createTesters(getRoot, testersFactory.createDomElementTester(getRoot));
+
+                tester.closeIcon = () =>
+                    testersFactory.createDomElementTester(() => getRoot().querySelector('.anticon-close'));
+
+                return tester;
+            },
+            
             radioButton(text) {
                 const getRadioButton = () => utils.descendantOfBody().
                     matchesSelector('.ant-radio-button-wrapper span:not(.ant-radio-button)').
@@ -60,21 +95,6 @@ define(() => {
                 return tester;
             },
             
-            switchField() {
-                return {
-                    withLabel(label) {
-                        const tester = testersFactory.createDomElementTester(
-                            getFieldByLabel(label).querySelector('.ant-switch')
-                        );
-
-                        tester.expectToBeChecked = () => tester.expectToHaveClass('ant-switch-checked');
-                        tester.expectNotToBeChecked = () => tester.expectNotToHaveClass('ant-switch-checked');
-
-                        return tester;
-                    }
-                };
-            },
-
             checkbox() {
                 return {
                     withLabel(label) {
@@ -182,6 +202,9 @@ define(() => {
                 return {
                     header() {
                         return {
+                            checkbox: () =>
+                                new Checkbox(document.querySelector('.ant-table-header-column .ant-checkbox-input')),
+
                             withContent(content) {
                                 const header = utils.descendantOfBody().matchesSelector('.ant-table-header-column').
                                     textEquals(content).find();
@@ -292,17 +315,14 @@ define(() => {
                 return createTesters(getPage, testersFactory.createDomElementTester(getPage));
             })(),
 
-            button(text) {
-                return testersFactory.createDomElementTester(utils.descendantOfBody().
-                    matchesSelector('.ant-btn, .pagination-item-link').textEquals(text).find());
-            },
-
             textfield() {
                 return {
                     withPlaceholder: placeholder => {
-                        return testersFactory.createTextFieldTester(document.querySelector(
-                            'input[placeholder="' + placeholder + '"]'
-                        ));
+                        const getDomElement = () => document.querySelector('input[placeholder="' + placeholder + '"]'),
+                            tester = testersFactory.createTextFieldTester(getDomElement());
+
+                        addErrorIcon(tester, getDomElement);
+                        return tester;
                     }
                 };
             },
@@ -321,7 +341,7 @@ define(() => {
                             textEquals(placeholder).
                             maybeInvisible().
                             find().
-                            closest('.ant-select');
+                            closest('.ant-select') || new JsTester_NoElement();
 
                         const tester = testersFactory.createDomElementTester(getSelect);
 
@@ -342,6 +362,8 @@ define(() => {
                         tester.arrowIcon = () => testersFactory.createDomElementTester(
                             getSelect().querySelector('.ant-select-arrow-icon')
                         );
+                        
+                        addErrorIcon(tester, getSelect);
 
                         return tester;
                     }
@@ -1067,6 +1089,11 @@ define(() => {
                 }];
 
                 const addResponseModifiers = me => {
+                    me.onlyOneAppId = () => {
+                        data[0].app_ids = [4735];
+                        return me;
+                    };
+
                     me.noExpireDate = () => {
                         data[0].expire_date = null;
                         return me;
@@ -1092,6 +1119,16 @@ define(() => {
                 };
 
                 return addResponseModifiers({
+                    ascending() {
+                        params.sort_asc = true;
+                        return this;
+                    },
+
+                    sortedByName() {
+                        params.sort_by = 'name';
+                        return this;
+                    },
+
                     searchString() {
                         params.search_string = 'whatsapp';
                         return this;
@@ -1264,13 +1301,24 @@ define(() => {
                     name: 'Чат в WhatsApp',
                     mnemonic: 'whatsapp_chat',
                     namespaces: ['comagic_web', 'db', undefined],
-                    expire_date: '2020-08-29',
+                    expire_date: '2020-07-26',
                     is_enabled: false,
                     is_global: false,
                     app_ids: [386527, 386530, 386531, 386526, undefined]
                 };
 
                 return {
+                    changeExpireDate() {
+                        params.expire_date = '2020-08-29';
+                        return this
+                    },
+
+                    switching() {
+                        Object.keys(params).filter(name => !['id', 'is_enabled', 'access_token'].includes(name)).
+                            forEach(name => (params[name] = undefined));
+                        return this;
+                    },
+
                     enabled() {
                         params.is_enabled = true;
                         return this;
@@ -1322,6 +1370,6 @@ define(() => {
                     }
                 };
             }
-        };
+        });
     };
 });
