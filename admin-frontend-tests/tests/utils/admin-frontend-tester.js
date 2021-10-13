@@ -1084,7 +1084,8 @@ define(() => {
                     search_string: '',
                     sort_by: 'expire_date',
                     sort_asc: false,
-                    is_global: undefined
+                    is_global: undefined,
+                    namespaces: undefined
                 };
 
                 const data = [{
@@ -1148,6 +1149,11 @@ define(() => {
 
                     searchString() {
                         params.search_string = 'whatsapp';
+                        return this;
+                    },
+
+                    namespaces() {
+                        params.namespaces = ['comagic_web', 'amocrm'];
                         return this;
                     },
 

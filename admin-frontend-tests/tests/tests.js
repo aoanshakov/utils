@@ -53,7 +53,9 @@ tests.addTest(function (options) {
 
                 beforeEach(function() {
                     tester.path.open('/feature-flags');
-                    Promise.runAll();
+                    Promise.runAll(false, true);
+
+                    tester.featureFlagNamespacesRequest().receiveResponse();
                 });
 
                 describe('Ввожу значение в поле поиска.', function() {
@@ -80,10 +82,9 @@ tests.addTest(function (options) {
 
                                 beforeEach(function() {
                                     tester.table().cell().withContent('Чаты в WhatsApp').row().
-                                        querySelector('.anticon-edit').click();
-                                    Promise.runAll();
+                                        querySelector('.comagic-edit-icon').click();
+                                    Promise.runAll(false, true);
 
-                                    tester.featureFlagNamespacesRequest().receiveResponse();
                                     featureFlagRequest = tester.featureFlagRequest().expectToBeSent();
                                 });
 
@@ -208,7 +209,6 @@ tests.addTest(function (options) {
                                         it('Нажимаю на кнопку "Добавить флаг". Форма незаполнена.', function() {
                                             tester.button('Добавить флаг').click();
                                             Promise.runAll(false, true);
-                                            tester.featureFlagNamespacesRequest().receiveResponse();
 
                                             tester.textfield().withPlaceholder('Введите название флага').
                                                 expectToHaveValue('');
@@ -240,10 +240,9 @@ tests.addTest(function (options) {
                                             spendTime(100);
 
                                             tester.table().cell().withContent('Чаты в WhatsApp').row().
-                                                querySelector('.anticon-edit').click();
-                                            Promise.runAll();
+                                                querySelector('.comagic-edit-icon').click();
+                                            Promise.runAll(false, true);
 
-                                            tester.featureFlagNamespacesRequest().receiveResponse();
                                             tester.featureFlagRequest().disabled().receiveResponse();
                                             tester.appsRequest().changeLimit().receiveResponse();
 
@@ -340,7 +339,7 @@ tests.addTest(function (options) {
                             describe('Нажимаю на иконку удаления.', function() {
                                 beforeEach(function() {
                                     tester.table().cell().withContent('Чаты в WhatsApp').row().
-                                        querySelector('.anticon-delete').click();
+                                        querySelector('.comagic-delete-icon').click();
 
                                     spendTime(100);
                                 });
@@ -495,7 +494,7 @@ tests.addTest(function (options) {
 
                             it('Нажимаю на иконку удаления. Отображено окно подтверждения.', function() {
                                 tester.table().cell().withContent('Чаты в WhatsApp').row().
-                                    querySelector('.anticon-delete').click();
+                                    querySelector('.comagic-delete-icon').click();
 
                                 spendTime(100);
 
@@ -614,6 +613,48 @@ tests.addTest(function (options) {
                             );
                         });
                     });
+                    describe(
+                        'Выбираю пространства имен. Нажмаю на кнопку "Поиск". Отправлен запрос флагов.',
+                    function() {
+                        beforeEach(function() {
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+                            tester.select().option('comagic_web').click();
+                            tester.select().option('amocrm').click();
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+
+                            tester.button('Поиск').click();
+                            Promise.runAll();
+
+                            tester.featureFlagsRequest().searchString().namespaces().receiveResponse();
+                        });
+
+                        it('Нажимаю на иконку редактирования. Флаг включен. Флаг связан с клиентами.', function() {
+                            tester.table().cell().withContent('Чаты в WhatsApp').row().
+                                querySelector('.comagic-edit-icon').click();
+                            Promise.runAll(false, true);
+
+                            tester.featureFlagRequest().receiveResponse();
+                            tester.appsRequest().changeLimit().receiveResponse();
+
+                            tester.page.anchor('Отмена').click();
+                            Promise.runAll(false, true);
+                        });
+                        it(
+                            'Снимаю отметки с пространств имен. Нажмаю на кнопку "Поиск". Отправлен запрос флагов.',
+                        function() {
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+                            tester.select().option('comagic_web').click();
+                            spendTime(100);
+                            tester.select().option('amocrm').click();
+                            spendTime(100);
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+
+                            tester.button('Поиск').click();
+                            Promise.runAll();
+
+                            tester.featureFlagsRequest().searchString().receiveResponse();
+                        });
+                    });
                     it('Отмечаю радиокнопку "Global". Нажмаю на кнопку "Поиск". Отправлен запрос флагов.', function() {
                         tester.radioButton('Global').click();
 
@@ -637,7 +678,6 @@ tests.addTest(function (options) {
                     beforeEach(function() {
                         tester.button('Добавить флаг').click();
                         Promise.runAll(false, true);
-                        tester.featureFlagNamespacesRequest().receiveResponse();
                     });
 
                     describe('Заполняю форму.', function() {
@@ -722,6 +762,10 @@ tests.addTest(function (options) {
                                                 checkbox().expectToBeChecked();
                                             tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
                                                 checkbox().expectNotToBeChecked();
+
+                                            tester.page.expectTextContentToHaveSubstring(
+                                                'Выбрано 4 из 75'
+                                            );
                                         });
                                     });
                                     describe('Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения.', function() {
@@ -813,7 +857,7 @@ tests.addTest(function (options) {
                                     tester.page.expectTextContentToHaveSubstring(
                                         '1 2 3 4 5 в конец ' +
                                         'Строк на странице 5 ' +
-                                        'Всего записей 75'
+                                        'Выбрано 0 из 75'
                                     );
                                 });
                             });
