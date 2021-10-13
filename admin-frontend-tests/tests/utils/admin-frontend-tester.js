@@ -7,6 +7,7 @@ define(() => {
             spendTime = options.spendTime,
             {app, path, stores} = options.runApplication(options);
 
+        stores.featureFlagsStore.initParams();
         stores.eventsStore.initParams();
         stores.appStore.directory = {};
 
@@ -22,7 +23,78 @@ define(() => {
             return checkbox;
         }
 
-        return {
+        const createTesters = (getRoot, me) => {
+            const getFieldByLabel = label => utils.descendantOf(getRoot()).
+                matchesSelector('label').
+                textEquals(label).
+                find().
+                closest('div');
+
+            me.anchor = text => testersFactory.createAnchorTester(
+                utils.descendantOf(getRoot()).
+                    matchesSelector('a').
+                    textEquals(text).
+                    find()
+            );
+
+            me.button = text => testersFactory.createDomElementTester(
+                utils.descendantOf(getRoot()).matchesSelector('.ant-btn, .pagination-item-link').textEquals(text).find()
+            );
+
+            {
+                const getTester = getRoot => {
+                    const tester = testersFactory.createDomElementTester(() => getRoot().querySelector('.ant-switch'));
+
+                    tester.expectToBeChecked = () => tester.expectToHaveClass('ant-switch-checked');
+                    tester.expectNotToBeChecked = () => tester.expectNotToHaveClass('ant-switch-checked');
+
+                    return tester;
+                };
+
+                const tester = getTester(getRoot);
+                tester.withLabel = label => getTester(() => getFieldByLabel(label));
+
+                me.switchField = () => tester;
+            }
+
+            return me;
+        };
+
+        const addErrorIcon = (tester, getDomElement) =>
+            (tester.errorIcon = () => testersFactory.createDomElementTester(((
+                getDomElement().parentNode || new JsTester_NoElement()
+            ).parentNode || new JsTester_NoElement()).querySelector('.comagic-icon-exclamation')));
+
+        return createTesters(() => document.body, {
+            modal() {
+                const getRoot = () => utils.getVisibleSilently(document.querySelectorAll('.ant-modal')),
+                    tester = createTesters(getRoot, testersFactory.createDomElementTester(getRoot));
+
+                tester.closeIcon = () =>
+                    testersFactory.createDomElementTester(() => getRoot().querySelector('.anticon-close'));
+
+                return tester;
+            },
+            
+            radioButton(text) {
+                const getRadioButton = () => utils.descendantOfBody().
+                    matchesSelector('.ant-radio-button-wrapper span:not(.ant-radio-button)').
+                    textEquals(text).
+                    find();
+
+                const tester = testersFactory.createDomElementTester(getRadioButton);
+
+                const getRadioButtonTester = () => testersFactory.createDomElementTester(() =>
+                    getRadioButton().closest('label').querySelector('.ant-radio-button'));
+
+                tester.expectToBeChecked = () => getRadioButtonTester().expectToHaveClass('ant-radio-button-checked');
+
+                tester.expectNotToBeChecked = () =>
+                    getRadioButtonTester().expectNotToHaveClass('ant-radio-button-checked');
+
+                return tester;
+            },
+            
             checkbox() {
                 return {
                     withLabel(label) {
@@ -38,29 +110,38 @@ define(() => {
             },
 
             calendar() {
+                const applyDatePicker = (me, getElement) => {
+                    me.cell = content => {
+                        const getCells = (index) => utils.descendantOf(getElement()).
+                            matchesSelector('.ant-calendar-date').
+                            textEquals(content).
+                            findAllVisible()[index];
+
+                        const tester = testersFactory.createDomElementTester(() => getCells(0))
+                        tester.second = () => testersFactory.createDomElementTester(() => getCells(1));
+
+                        return tester;
+                    };
+
+                    me.prevMonth = () => testersFactory.createDomElementTester(
+                        getElement().querySelector('.ant-calendar-prev-month-btn')
+                    );
+                        
+                    me.nextMonth = () => testersFactory.createDomElementTester(
+                        getElement().querySelector('.ant-calendar-next-month-btn')
+                    );
+
+                    return me;
+                };
+
                 const getCalendar = side => {
                     const getElement = () =>
                         document.querySelector(`.ant-calendar-range-${side}`) || (new JsTester_NoElement());
 
-                    return {
-                        cell(content) {
-                            return testersFactory.createDomElementTester(
-                                utils.descendantOf(getElement()).
-                                    matchesSelector('.ant-calendar-date').
-                                    textEquals(content).
-                                    find()
-                            );
-                        },
-
-                        prevMonth() {
-                            return testersFactory.createDomElementTester(
-                                getElement().querySelector('.ant-calendar-prev-month-btn')
-                            );
-                        }
-                    };
+                    return applyDatePicker({}, getElement);
                 };
 
-                return {
+                return applyDatePicker({
                     timePicker() {
                         const getPart = part => {
                             const getPicker = index => value => testersFactory.createDomElementTester(
@@ -108,7 +189,7 @@ define(() => {
                     right() {
                         return getCalendar('right');
                     }
-                };
+                }, () => document.body);
             },
 
             spinner: testersFactory.createDomElementTester(() => document.querySelector('.ant-spin-dot')),
@@ -121,6 +202,9 @@ define(() => {
                 return {
                     header() {
                         return {
+                            checkbox: () =>
+                                new Checkbox(document.querySelector('.ant-table-header-column .ant-checkbox-input')),
+
                             withContent(content) {
                                 const header = utils.descendantOfBody().matchesSelector('.ant-table-header-column').
                                     textEquals(content).find();
@@ -180,7 +264,7 @@ define(() => {
                                             find().
                                             closest('.ant-table-row');
 
-                                        return {
+                                        return createTesters(getRow, {
                                             actionsMenu: () => testersFactory.createDomElementTester(
                                                 getRow().querySelector('.ant-dropdown-trigger')
                                             ),
@@ -189,17 +273,10 @@ define(() => {
                                                 getRow().querySelector(selector)
                                             ),
 
-                                            anchor: text => testersFactory.createAnchorTester(
-                                                utils.descendantOf(getRow()).
-                                                    matchesSelector('a').
-                                                    textEquals(text).
-                                                    find()
-                                            ),
-
                                             checkbox: () => new Checkbox(
                                                 getRow().querySelector('.ant-checkbox-input')
                                             )
-                                        };
+                                        });
                                     }
                                 };
                             }
@@ -217,6 +294,11 @@ define(() => {
 
                             liTester.click = () => aTester.click();
 
+                            liTester.expectToBeChecked = () => liTester.expectToHaveClass('pagination-item-active');
+
+                            liTester.expectNotToBeChecked = () =>
+                                liTester.expectNotToHaveClass('pagination-item-active');
+
                             return liTester;
                         }
                     })
@@ -233,18 +315,19 @@ define(() => {
             },
 
             root: testersFactory.createDomElementTester(() => document.querySelector('#root')),
-
-            button(text) {
-                return testersFactory.createDomElementTester(utils.descendantOfBody().
-                    matchesSelector('.ant-btn, .pagination-item-link').textEquals(text).find());
-            },
+            page: (() => {
+                const getPage = () => document.querySelector('.page');
+                return createTesters(getPage, testersFactory.createDomElementTester(getPage));
+            })(),
 
             textfield() {
                 return {
                     withPlaceholder: placeholder => {
-                        return testersFactory.createTextFieldTester(document.querySelector(
-                            'input[placeholder="' + placeholder + '"]'
-                        ));
+                        const getDomElement = () => document.querySelector('input[placeholder="' + placeholder + '"]'),
+                            tester = testersFactory.createTextFieldTester(getDomElement());
+
+                        addErrorIcon(tester, getDomElement);
+                        return tester;
                     }
                 };
             },
@@ -263,25 +346,31 @@ define(() => {
                             textEquals(placeholder).
                             maybeInvisible().
                             find().
-                            closest('.ant-select');
+                            closest('.ant-select') || new JsTester_NoElement();
 
-                        return {
-                            expectToHaveValue: expectedValue => {
-                                const actualValue = getSelect().
-                                    querySelector('.ant-select-selection-selected-value').
-                                    innerHTML;
+                        const tester = testersFactory.createDomElementTester(getSelect);
 
-                                if (actualValue != expectedValue) {
-                                    throw new Error(
-                                        `Выпадающий список с плейсхолдером "${placeholder}" должен иметь значение ` +
-                                        `"${expectedValue}", а не "${actualValue}".`
-                                    );
-                                }
-                            },
-                            arrowIcon: () => testersFactory.createDomElementTester(
-                                getSelect().querySelector('.ant-select-arrow-icon')
-                            )
+                        tester.expectToHaveValue = expectedValue => {
+                            const actualValue = utils.getTextContent(getSelect().querySelector(
+                                '.ant-select-selection-selected-value, ' +
+                                '.ant-select-selection__rendered ul'
+                            ));
+
+                            if (actualValue != expectedValue) {
+                                throw new Error(
+                                    `Выпадающий список с плейсхолдером "${placeholder}" должен иметь значение ` +
+                                    `"${expectedValue}", а не "${actualValue}".`
+                                );
+                            }
                         };
+
+                        tester.arrowIcon = () => testersFactory.createDomElementTester(
+                            getSelect().querySelector('.ant-select-arrow-icon')
+                        );
+                        
+                        addErrorIcon(tester, getSelect);
+
+                        return tester;
                     }
                 };
             },
@@ -354,6 +443,16 @@ define(() => {
 
                     allowWriteEventResending() {
                         addPermission('apps_management_resend_crm_events', 'w');
+                        return this;
+                    },
+
+                    allowReadFeatureFlags() {
+                        addPermission('feature_flags', 'r');
+                        return this;
+                    },
+
+                    allowWriteFeatureFlags() {
+                        addPermission('feature_flags', 'w');
                         return this;
                     },
 
@@ -837,18 +936,45 @@ define(() => {
                 let startIndex = 0,
                     itemsCount = 50;
 
+                let setSecondPage = () => {
+                    startIndex = 50;
+                    itemsCount = 25;
+                    params.offset = 50;
+                };
+
+                let processing = [];
+
                 const params = {
                     access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
-                    limit: '50',
-                    offset: '0',
+                    limit: 50,
+                    offset: 0,
                     sort: [{
                         field: 'app_id',
                         order: 'desc'
                     }],
-                    states: 'waiting,active,manual_lock,limit_lock,debt_lock'
+                    states: 'waiting,active,manual_lock,limit_lock,debt_lock',
+                    search: undefined
                 };
 
                 return {
+                    changeLimit() {
+                        params.limit = 5;
+                        itemsCount = 5;
+
+                        setSecondPage = () => {
+                            startIndex = 5;
+                            itemsCount = 5;
+                            params.offset = 5;
+                        };
+
+                        return this;
+                    },
+
+                    setSearch() {
+                        params.search = 'Шунин';
+                        return this;
+                    },
+
                     setAscDirection() {
                         params.sort[0].order = 'asc';
                         return this;
@@ -860,15 +986,13 @@ define(() => {
                     },
 
                     setSecondPage() {
-                        startIndex = 50;
-                        itemsCount = 25;
-                        params.offset = '50';
-
+                        processing.push(() => setSecondPage())
                         return this;
                     },
 
                     receiveResponse() {
                         const data = [];
+                        processing.forEach(process => process());
 
                         for (i = startIndex; i < (itemsCount + startIndex); i ++) {
                             data.push({
@@ -947,7 +1071,407 @@ define(() => {
                         Promise.runAll();
                     }
                 };
+            },
+
+            featureFlagsRequest() {
+                let startIndex = 0,
+                    itemsCount = 1,
+                    total_items = 1;
+
+                const params = {
+                    limit: 10,
+                    offset: 0,
+                    search_string: '',
+                    sort_by: 'expire_date',
+                    sort_asc: false,
+                    is_global: undefined,
+                    namespaces: undefined
+                };
+
+                const data = [{
+                    id: 829592,
+                    name: 'Чаты в WhatsApp',
+                    mnemonic: 'whatsapp_chats',
+                    namespaces: '{comagic_web,db,amocrm}',
+                    app_ids: [4735, 29572],
+                    is_global: false,
+                    expire_date: '2020-07-26',
+                    is_enabled: true
+                }];
+
+                const addResponseModifiers = me => {
+                    me.addMore = () => {
+                        total_items = 25;
+                        itemsCount = 10;
+
+                        return me;
+                    };
+
+                    me.onlyOneAppId = () => {
+                        data[0].app_ids = [4735];
+                        return me;
+                    };
+
+                    me.noExpireDate = () => {
+                        data[0].expire_date = null;
+                        return me;
+                    };
+
+                    me.disabled = () => {
+                        data[0].is_enabled = false;
+                        return me;
+                    };
+
+                    me.noAppIds = () => {
+                        data[0].app_ids = null;
+                        return me;
+                    };
+
+                    return me;
+                };
+
+                return addResponseModifiers({
+                    secondPage() {
+                        params.offset = 10;
+                        startIndex = 10;
+                        return this;
+                    },
+
+                    ascending() {
+                        params.sort_asc = true;
+                        return this;
+                    },
+
+                    sortedByName() {
+                        params.sort_by = 'name';
+                        return this;
+                    },
+
+                    searchString() {
+                        params.search_string = 'whatsapp';
+                        return this;
+                    },
+
+                    namespaces() {
+                        params.namespaces = ['comagic_web', 'amocrm'];
+                        return this;
+                    },
+
+                    global() {
+                        params.is_global = true;
+                        return this;
+                    },
+
+                    notGlobal() {
+                        params.is_global = false;
+                        return this;
+                    },
+
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'get.feature_flags',
+                                params
+                            });
+
+                        return addResponseModifiers({
+                            global() {
+                                data[0].app_ids = null;
+                                data[0].is_global = true;
+                                return this;
+                            },
+
+                            receiveResponse() {
+                                const items = [];
+
+                                for (i = startIndex; i < (startIndex + itemsCount); i ++) {
+                                    items.push(data[i] ? data[i] : {
+                                        id: 829593 + i,
+                                        name: `Фичефлаг # ${i + 1}`,
+                                        mnemonic: `ff_${i + 1}`,
+                                        namespaces: '{comagic_web,db,amocrm}',
+                                        app_ids: [4735, 29572],
+                                        is_global: false,
+                                        expire_date: '2020-07-26',
+                                        is_enabled: true
+                                    });
+                                }
+
+                                request.respondSuccessfullyWith({
+                                    result: {
+                                        data: items,
+                                        metadata: {
+                                            total_items
+                                        }
+                                    }
+                                });
+
+                                Promise.runAll();
+                            }
+                        });
+                    },
+                    
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                });
+            },
+
+            featureFlagRequest() {
+                const params = {
+                    id: 829592
+                };
+
+                const result = {
+                    name: 'Чаты в WhatsApp',
+                    mnemonic: 'whatsapp_chats',
+                    namespaces: '{comagic_web,db,amocrm}',
+                    app_ids: [4735, 29572],
+                    is_global: false,
+                    expire_date: '2020-07-26',
+                    is_enabled: true,
+                    app_ids: [386525, 386527, 386530, 386531]
+                };
+
+                const addResponseModifiers = me => {
+                    me.noExpireDate = () => {
+                        result.expire_date = null;
+                        return me;
+                    };
+
+                    me.disabled = () => {
+                        result.is_enabled = false;
+                        return me;
+                    };
+
+                    me.global = () => {
+                        result.app_ids = null;
+                        result.is_global = true;
+                        return me;
+                    };
+
+                    return me;
+                };
+
+                return addResponseModifiers({
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'get.feature_flag',
+                                params
+                            });
+
+                        return addResponseModifiers({
+                            receiveResponse() {
+                                request.respondSuccessfullyWith({result});
+                                Promise.runAll();
+                            }
+                        });
+                    },
+                    
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                });
+            },
+
+            featureFlagCreatingRequest() {
+                const params = {
+                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                    id: undefined,
+                    name: 'Чаты в WhatsApp',
+                    mnemonic: 'whatsapp_chats',
+                    namespaces: ['comagic_web', 'amocrm', undefined],
+                    is_enabled: false,
+                    is_global: false,
+                    expire_date: '2020-08-29',
+                    app_ids: [386525, 386527, 386530, 386531, undefined]
+                };
+
+                let response = {
+                    result: true
+                };
+
+                const addResponseModifiers = me => {
+                    me.failed = () => ((response = {
+                        error: {
+                            message: "Флаг с данной мнемоникой уже существует в одном из выбранных пространств " +
+                                "имён\n",
+                            code: -32002
+                        }
+                    }), me);
+
+                    return me;
+                };
+
+                return addResponseModifiers({
+                    enabled() {
+                        params.is_enabled = true;
+                        return this;
+                    },
+
+                    global() {
+                        params.is_global = true;
+                        params.app_ids = null;
+                        return this;
+                    },
+
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'create.feature_flag',
+                                params
+                            });
+
+                        return addResponseModifiers({
+                            receiveResponse() {
+                                request.respondSuccessfullyWith(response);
+
+                                Promise.runAll();
+                            }
+                        });
+                    },
+                    
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                });
+            },
+
+            featureFlagNamespacesRequest() {
+                return {
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'get.feature_flag_namespaces',
+                                params: {
+                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
+                                }
+                            }).respondSuccessfullyWith({
+                                result: '{comagic_web,db,amocrm}'
+                            });
+
+                        Promise.runAll();
+                    }
+                };
+            },
+
+            featureFlagUpdatingRequest() {
+                const params = {
+                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                    id: 829592,
+                    name: 'Чат в WhatsApp',
+                    mnemonic: 'whatsapp_chat',
+                    namespaces: ['comagic_web', 'db', undefined],
+                    expire_date: '2020-07-26',
+                    is_enabled: false,
+                    is_global: false,
+                    app_ids: [386527, 386530, 386531, 386526, undefined]
+                };
+
+                let response = {
+                    result: true
+                };
+
+                const addResponseModifiers = me => {
+                    me.failed = () => ((response = {
+                        error: {
+                            message: "Флаг с данной мнемоникой уже существует в одном из выбранных пространств " +
+                                "имён\n",
+                            code: -32002
+                        }
+                    }), me);
+
+                    return me;
+                };
+
+                return addResponseModifiers({
+                    changeExpireDate() {
+                        params.expire_date = '2020-08-29';
+                        return this
+                    },
+
+                    switching() {
+                        Object.keys(params).filter(name => !['id', 'is_enabled', 'access_token'].includes(name)).
+                            forEach(name => (params[name] = undefined));
+                        return this;
+                    },
+
+                    enabled() {
+                        params.is_enabled = true;
+                        return this;
+                    },
+
+                    global() {
+                        params.is_global = true;
+                        params.app_ids = null;
+                        return this;
+                    },
+
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'update.feature_flag',
+                                params
+                            });
+
+                        return addResponseModifiers({
+                            receiveResponse() {
+                                request.respondSuccessfullyWith(response);
+
+                                Promise.runAll();
+                            }
+                        });
+                    },
+                    
+                    receiveResponse() {
+                        return this.expectToBeSent().receiveResponse();
+                    }
+                });
+            },
+
+            featureFlagDeletingRequest() {
+                return {
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                jsonrpc: '2.0',
+                                id: 'number',
+                                method: 'delete.feature_flag',
+                                params: {
+                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                                    id: 829592
+                                }
+                            }).respondSuccessfullyWith({
+                                result: true
+                            });
+
+                        Promise.runAll();
+                    }
+                };
             }
-        };
+        });
     };
 });

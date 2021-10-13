@@ -609,6 +609,9 @@ function JsTester_Utils (debug) {
 
         return true;
     };
+    this.getCallStack = function () {
+        return debug.getCallStack();
+    };
     this.getVariablePresentation = function (object, maxDepth) {
         if (maxDepth) {
             debug.setMaxDepth(maxDepth);
@@ -1447,7 +1450,8 @@ function JsTester_DomElement (
     var getDomElement = utils.makeDomElementGetter(domElement),
         getNominativeDescription = utils.makeFunction(nominativeDescription),
         getAccusativeDescription = utils.makeFunction(accusativeDescription),
-        getGenetiveDescription = utils.makeFunction(genetiveDescription);
+        getGenetiveDescription = utils.makeFunction(genetiveDescription),
+        isAssumedHidden = false;
 
     function convertDecimalToHex (c) {
         var hex = c.toString(16);
@@ -1576,6 +1580,10 @@ function JsTester_DomElement (
     };
     this.expectToBeVisible = function () {
         this.expectToExist();
+        
+        if (isAssumedHidden) {
+            return;
+        }
 
         if (!utils.isVisible(getDomElement())) {
             throw new Error(
@@ -1652,6 +1660,38 @@ function JsTester_DomElement (
                 'Свойство "' + propertyName + '" стиля ' + getGenetiveDescription() + ' не должно иметь значение "' +
                     unexpectedValue + '".'
             );
+        }
+    };
+    this.assumeHidden = function () {
+        isAssumedHidden = true;
+        return this;
+    };
+    this.expectAttributeToHaveValue = function (attributeName, expectedValue) {
+        this.expectToBeVisible();
+
+        var actualValue = getDomElement().getAttribute(attributeName);
+
+        if (actualValue != expectedValue) {
+            throw new Error(
+                'Атрибут "' + attributeName + '" ' + getGenetiveDescription() + ' ' + gender.should +
+                ' иметь значение "' + expectedValue + '"'
+            );
+        }
+    };
+    this.expectToHaveAttribute = function (attributeName) {
+        this.expectToBeVisible();
+
+        if (getDomElement().getAttribute(attributeName) === null) {
+            throw new Error(utils.capitalize(getNominativeDescription()) + ' ' + gender.should + ' иметь атрибут "' +
+                attributeName + '"');
+        }
+    };
+    this.expectNotToHaveAttribute = function (attributeName) {
+        this.expectToBeVisible();
+
+        if (getDomElement().getAttribute(attributeName) !== null) {
+            throw new Error(utils.capitalize(getNominativeDescription()) + ' не ' + gender.should + ' иметь атрибут "' +
+                attributeName + '"');
         }
     };
     this.putMouseOver = function () {

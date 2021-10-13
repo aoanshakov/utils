@@ -34,16 +34,934 @@ tests.addTest(function (options) {
             tester.userLoginRequest().receiveResponse();
         });
 
-        describe('Доступны разделы "Пользователи", "CRM-интеграции" и "Переотправка событий".', function() {
+        describe(
+            'Доступны разделы "Пользователи", "CRM-интеграции", "Переотправка событий" и "Фичефлаги".',
+        function() {
             beforeEach(function() {
                 tester.userRequest().
                     allowReadEventResending().
                     allowWriteEventResending().
                     allowReadCrmIntegration().
                     allowReadUsers().
+                    allowReadFeatureFlags().
+                    allowWriteFeatureFlags().
                     receiveResponse();
             });
 
+            describe('Открываю раздел "Фичефлаги".', function() {
+                let featureFlagsRequest;
+
+                beforeEach(function() {
+                    tester.path.open('/feature-flags');
+                    Promise.runAll(false, true);
+
+                    tester.featureFlagNamespacesRequest().receiveResponse();
+                });
+
+                describe('Ввожу значение в поле поиска.', function() {
+                    beforeEach(function() {
+                        tester.textfield().withPlaceholder('Название флага, Мнемоника, Пространство имен, AppID').
+                            fill('whatsapp');
+                    });
+
+                    describe('Нажимаю на кнопку "Поиск".', function() {
+                        beforeEach(function() {
+                            tester.button('Поиск').click();
+                            Promise.runAll();
+
+                            featureFlagsRequest = tester.featureFlagsRequest().searchString().expectToBeSent();
+                        });
+
+                        describe('Фичефлаг включен, фичефлаг связан с конкретными пользователями.', function() {
+                            beforeEach(function() {
+                                featureFlagsRequest.receiveResponse();
+                            });
+
+                            describe('Нажимаю на иконку редактирования.', function() {
+                                var featureFlagRequest;
+
+                                beforeEach(function() {
+                                    tester.table().cell().withContent('Чаты в WhatsApp').row().
+                                        querySelector('.comagic-edit-icon').click();
+                                    Promise.runAll(false, true);
+
+                                    featureFlagRequest = tester.featureFlagRequest().expectToBeSent();
+                                });
+
+                                describe('Флаг включен. Флаг связан с клиентами.', function() {
+                                    beforeEach(function() {
+                                        featureFlagRequest.receiveResponse();
+                                        tester.appsRequest().changeLimit().receiveResponse();
+                                    });
+
+                                    describe('Отмечаю других клиентов.', function() {
+                                        beforeEach(function() {
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                                checkbox().click();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                                checkbox().click();
+
+                                            Promise.runAll(false, true);
+                                        });
+
+                                        describe('Изменяю значение формы.', function() {
+                                            beforeEach(function() {
+                                                tester.textfield().withPlaceholder('Введите название флага').
+                                                    fill('Чат в WhatsApp');
+                                                tester.textfield().withPlaceholder('Введите название мнемоники').
+                                                    fill('whatsapp_chat');
+
+                                                tester.select().withPlaceholder('Выберите пространство имен').
+                                                    arrowIcon().click();
+                                                tester.select().option('amocrm').click();
+                                                tester.select().withPlaceholder('Выберите пространство имен').
+                                                    arrowIcon().click();
+
+                                                tester.switchField().withLabel('Состояние').click();
+                                            });
+
+                                            describe(
+                                                'Изменяю дату истечения. Нажимаю на кнопку сохранения. Отправлен ' +
+                                                'запрос обновление флага.',
+                                            function() {
+                                                let featureFlagUpdatingRequest;
+
+                                                beforeEach(function() {
+                                                    tester.textfield().withPlaceholder('Введте дату истечения').click();
+                                                    tester.calendar().nextMonth().click();
+                                                    tester.calendar().cell('29').second().click();
+
+                                                    Promise.runAll(false, true);
+                                                    tester.button('Сохранить').click();
+                                                    Promise.runAll(false, true);
+
+                                                    featureFlagUpdatingRequest = tester.featureFlagUpdatingRequest().
+                                                        changeExpireDate().expectToBeSent();
+                                                });
+
+                                                it(
+                                                    'Не удалось сохранить флаг. Отображено сообщение об ошибке.',
+                                                function() {
+                                                    featureFlagUpdatingRequest.failed().receiveResponse();
+
+                                                    tester.notification.expectToHaveTextContent(
+                                                        'Произошла ошибка! ' +
+
+                                                        'Флаг с данной мнемоникой уже существует в одном из ' +
+                                                        'выбранных пространств имён'
+                                                    );
+
+                                                    tester.button('Добавить флаг').expectNotToExist();
+
+                                                    tester.textfield().withPlaceholder('Введите название флага').
+                                                        expectToBeVisible();
+                                                });
+                                                it('Удалось сохранить флаг. Отображен список флагов.', function() {
+                                                    featureFlagUpdatingRequest.receiveResponse();
+                                                    Promise.runAll(false, true);
+                                                    Promise.runAll(false, true);
+                                                    tester.featureFlagsRequest().searchString().receiveResponse();
+
+                                                    tester.textfield().withPlaceholder(
+                                                        'Название флага, Мнемоника, Пространство имен, AppID'
+                                                    ).expectToBeVisible();
+                                                });
+                                            });
+                                            it(
+                                                'Нажимаю на кнопку сохранения. Отправлен запрос обновление флага.',
+                                            function() {
+                                                Promise.runAll(false, true);
+                                                tester.button('Сохранить').click();
+                                                Promise.runAll(false, true);
+
+                                                tester.featureFlagUpdatingRequest().receiveResponse();
+                                                Promise.runAll(false, true);
+                                                Promise.runAll(false, true);
+                                                tester.featureFlagsRequest().searchString().receiveResponse();
+
+                                                tester.textfield().withPlaceholder(
+                                                    'Название флага, Мнемоника, Пространство имен, AppID'
+                                                ).expectToBeVisible();
+                                            });
+                                        });
+                                        it('Другие клиенты отмечены.', function() {
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
+                                                checkbox().expectNotToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                                checkbox().expectNotToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                                checkbox().expectToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
+                                                checkbox().expectToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
+                                                checkbox().expectNotToBeChecked();
+                                        });
+                                        it('Кнопка "Сохранить" доступна.', function() {
+                                            tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                                        });
+                                    });
+                                    describe('Нажимаю на ссылку "Фичефлаги".', function() {
+                                        beforeEach(function() {
+                                            tester.page.anchor('Фичефлаги').click();
+                                            Promise.runAll(false, true);
+                                        });
+
+                                        it('Нажимаю на кнопку "Добавить флаг". Форма незаполнена.', function() {
+                                            tester.button('Добавить флаг').click();
+                                            Promise.runAll(false, true);
+
+                                            tester.textfield().withPlaceholder('Введите название флага').
+                                                expectToHaveValue('');
+                                            tester.textfield().withPlaceholder('Введите название мнемоники').
+                                                expectToHaveValue('');
+                                            tester.select().withPlaceholder('Выберите пространство имен').
+                                                expectToHaveValue('');
+                                            tester.textfield().withPlaceholder('Введте дату истечения').
+                                                expectToHaveValue('');
+                                            tester.switchField().withLabel('Состояние').expectNotToBeChecked();
+
+                                            tester.radioButton('Global').expectToBeChecked();
+                                            tester.radioButton('Выбрать AppID').expectNotToBeChecked();
+                                        });
+                                        it(
+                                            'Нажимаю на переключатель в строке флага. Нажимаю на кнопку выключения. ' +
+                                            'Флаг выключен.',
+                                        function() {
+                                            tester.table().cell().withContent('Чаты в WhatsApp').row().switchField().
+                                                click();
+                                            spendTime(100);
+
+                                            tester.modal().button('Выключить').click();
+
+                                            Promise.runAll(false, true);
+                                            tester.featureFlagUpdatingRequest().switching().receiveResponse();
+
+                                            spendTime(200);
+                                            spendTime(100);
+
+                                            tester.table().cell().withContent('Чаты в WhatsApp').row().
+                                                querySelector('.comagic-edit-icon').click();
+                                            Promise.runAll(false, true);
+
+                                            tester.featureFlagRequest().disabled().receiveResponse();
+                                            tester.appsRequest().changeLimit().receiveResponse();
+
+                                            tester.switchField().withLabel('Состояние').expectNotToBeChecked();
+                                        });
+                                        it('Открыта страница списка фичефлагов.', function() {
+                                            tester.textfield().withPlaceholder(
+                                                'Название флага, Мнемоника, Пространство имен, AppID'
+                                            ).expectToHaveValue('whatsapp');
+
+                                            tester.root.expectTextContentToHaveSubstring(
+                                                'Название флага ' +
+                                                'Мнемоника ' +
+                                                'Пространство имен ' +
+                                                'AppID ' +
+                                                'Дата истечения ' +
+                                                'Состояние ' +
+
+                                                'Чаты в WhatsApp ' +
+                                                'whatsapp_chats ' +
+                                                'comagic_web, db, amocrm ' +
+                                                '4735, 29572 ' +
+                                                '26.07.2020 ' +
+                                                'Вкл'
+                                            );
+                                        });
+                                    });
+                                    it(
+                                        'Клиенты, связанные с флагом отмечены. Форма заполнена получеными данными.',
+                                    function() {
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
+                                            checkbox().expectNotToBeChecked();
+
+                                        tester.textfield().withPlaceholder('Введите название флага').
+                                            expectToHaveValue('Чаты в WhatsApp');
+                                        tester.textfield().withPlaceholder('Введите название мнемоники').
+                                            expectToHaveValue('whatsapp_chats');
+                                        tester.select().withPlaceholder('Выберите пространство имен').
+                                            expectToHaveValue('comagic_web db amocrm');
+                                        tester.textfield().withPlaceholder('Введте дату истечения').
+                                            expectToHaveValue('26.07.2020');
+                                        tester.switchField().withLabel('Состояние').expectToBeChecked();
+
+                                        tester.radioButton('Global').expectNotToBeChecked();
+                                        tester.radioButton('Выбрать AppID').expectToBeChecked();
+                                    });
+                                });
+                                describe(
+                                    'Флаг выключен. Флаг глобален. Дата истечения не указана. ',
+                                function() {
+                                    beforeEach(function() {
+                                        featureFlagRequest.disabled().global().noExpireDate().receiveResponse();
+                                        Promise.runAll(false, true);
+                                    });
+
+                                    it('Изменяю одно из полей. Кнопка "Сохранить" доступна.', function() {
+                                        tester.textfield().withPlaceholder('Введите название мнемоники').
+                                            putCursorAtEnd().pressBackspace();
+                                        Promise.runAll(false, true);
+
+                                        tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                                    });
+                                    it(
+                                        'Форма заполнена получеными данными. Кнопка "Сохранить" заблокирована.',
+                                    function() {
+                                        tester.textfield().withPlaceholder('Введите название флага').
+                                            expectToHaveValue('Чаты в WhatsApp');
+                                        tester.textfield().withPlaceholder('Введите название мнемоники').
+                                            expectToHaveValue('whatsapp_chats');
+                                        tester.select().withPlaceholder('Выберите пространство имен').
+                                            expectToHaveValue('comagic_web db amocrm');
+                                        tester.textfield().withPlaceholder('Введте дату истечения').
+                                            expectToHaveValue('');
+
+                                        tester.switchField().withLabel('Состояние').expectNotToBeChecked();
+
+                                        tester.radioButton('Global').expectToBeChecked();
+                                        tester.radioButton('Выбрать AppID').expectNotToBeChecked();
+                                        
+                                        tester.button('Сохранить').expectToHaveAttribute('disabled');
+
+                                        tester.root.expectTextContentToHaveSubstring('Редактирование фичефлага');
+                                    });
+                                });
+                            });
+                            describe('Нажимаю на иконку удаления.', function() {
+                                beforeEach(function() {
+                                    tester.table().cell().withContent('Чаты в WhatsApp').row().
+                                        querySelector('.comagic-delete-icon').click();
+
+                                    spendTime(100);
+                                });
+
+                                it(
+                                    'Нажимаю на кнопку удаления. Флаг удален. Отправляен запрос списка флагов.',
+                                function() {
+                                    tester.modal().button('Удалить').click();
+
+                                    Promise.runAll(false, true);
+                                    tester.featureFlagDeletingRequest().receiveResponse();
+                                    tester.featureFlagsRequest().searchString().receiveResponse();
+
+                                    spendTime(200);
+                                    spendTime(100);
+                                    tester.modal().expectToBeHiddenOrNotExist();
+                                });
+                                it('Нажимаю на кнопку скрытия модального окна. Модальное окно скрыто.', function() {
+                                    tester.modal().closeIcon().click();
+                                    spendTime(200);
+                                    spendTime(100);
+
+                                    tester.modal().expectToBeHiddenOrNotExist();
+                                });
+                                it('Нажимаю на кнопку отмены. Модальное окно скрыто.', function() {
+                                    tester.modal().button('Отмена').click();
+                                    spendTime(200);
+                                    spendTime(100);
+
+                                    tester.modal().expectToBeHiddenOrNotExist();
+                                });
+                                it('Отображено окно подтверждения.', function() {
+                                    tester.modal().expectTextContentToHaveSubstring(
+                                        'Подтвердите удаление ' +
+
+                                        'Вы удаляете флаг "Чаты в WhatsApp". Связанная с ним функциональность станет ' +
+                                        'недоступной для всех клиентов. Подтвердить?'
+                                    );
+                                });
+                            });
+                            describe('Нажимаю на переключатель в строке флага.', function() {
+                                beforeEach(function() {
+                                    tester.table().cell().withContent('Чаты в WhatsApp').row().switchField().click();
+                                    spendTime(100);
+                                });
+
+                                it('Нажимаю на кнопку выключения. Флаг выключен.', function() {
+                                    tester.modal().button('Выключить').click();
+
+                                    Promise.runAll(false, true);
+                                    tester.featureFlagUpdatingRequest().switching().receiveResponse();
+
+                                    spendTime(200);
+                                    spendTime(100);
+                                    tester.modal().expectToBeHiddenOrNotExist();
+                                    
+                                    tester.root.expectTextContentToHaveSubstring('Выкл');
+                                });
+                                it('Отображено окно подтверждения.', function() {
+                                    tester.modal().expectTextContentToHaveSubstring(
+                                        'Подтвердите выключение ' +
+
+                                        'После отключения флага "Чаты в WhatsApp" скрытая функциональность станет ' +
+                                        'недоступной для всех клиентов. Подтвердить?'
+                                    );
+                                });
+                            });
+                            it(
+                                'Нажимаю на заголовок. Отправлен запрос флагов. Нажимаю на иконку сортировки. ' +
+                                'Отправлен запрос флагов.',
+                            function() {
+                                tester.table().header().withContent('Название флага').click();
+                                Promise.runAll(false, true);
+                                tester.featureFlagsRequest().searchString().sortedByName().ascending().
+                                    receiveResponse();
+                                
+                                tester.table().header().withContent('Название флага').sortIcon().click();
+                                Promise.runAll(false, true);
+                                tester.featureFlagsRequest().searchString().sortedByName().receiveResponse();
+                            });
+                            it('Данные корретно отобржаены в таблице.', function() {
+                                tester.root.expectTextContentToHaveSubstring(
+                                    'Название флага ' +
+                                    'Мнемоника ' +
+                                    'Пространство имен ' +
+                                    'AppID ' +
+                                    'Дата истечения ' +
+                                    'Состояние ' +
+
+                                    'Чаты в WhatsApp ' +
+                                    'whatsapp_chats ' +
+                                    'comagic_web, db, amocrm ' +
+                                    '4735, 29572 ' +
+                                    '26.07.2020 ' +
+                                    'Вкл'
+                                );
+                            });
+                        });
+                        describe('Фичефлаг выключен, фичефлаг глобален, дата истечения пуста.', function() {
+                            beforeEach(function() {
+                                featureFlagsRequest.disabled().global().noExpireDate().receiveResponse();
+                            });
+
+                            describe('Нажимаю на переключатель в строке флага.', function() {
+                                beforeEach(function() {
+                                    tester.table().cell().withContent('Чаты в WhatsApp').row().switchField().click();
+                                    spendTime(100);
+                                });
+
+                                it('Нажимаю на кнопку включения. Флаг включен.', function() {
+                                    tester.modal().button('Включить').click();
+
+                                    Promise.runAll(false, true);
+                                    tester.featureFlagUpdatingRequest().switching().enabled().receiveResponse();
+
+                                    spendTime(200);
+                                    spendTime(100);
+                                    tester.modal().expectToBeHiddenOrNotExist();
+
+                                    tester.root.expectTextContentToHaveSubstring('Вкл');
+                                });
+                                it('Отображено окно подтверждения.', function() {
+                                    tester.modal().expectTextContentToHaveSubstring(
+                                        'Подтвердите включение ' +
+
+                                        'Флаг "Чаты в WhatsApp" включит скрытую функциональность в comagic_web, db и ' +
+                                        'amocrm для всех клиентов. Подтвердить?'
+                                    );
+                                });
+                            });
+                            it('Данные корректно отобржаены в таблице.', function() {
+                                tester.root.expectTextContentToHaveSubstring(
+                                    'Название флага ' +
+                                    'Мнемоника ' +
+                                    'Пространство имен ' +
+                                    'AppID ' +
+                                    'Дата истечения ' +
+                                    'Состояние ' +
+
+                                    'Чаты в WhatsApp ' +
+                                    'whatsapp_chats ' +
+                                    'comagic_web, db, amocrm ' +
+                                    'Global ' +
+                                    'Выкл'
+                                );
+                            });
+                        });
+                        describe('AppID не указаны.', function() {
+                            beforeEach(function() {
+                                featureFlagsRequest.noAppIds().receiveResponse();
+                            });
+
+                            it('Нажимаю на иконку удаления. Отображено окно подтверждения.', function() {
+                                tester.table().cell().withContent('Чаты в WhatsApp').row().
+                                    querySelector('.comagic-delete-icon').click();
+
+                                spendTime(100);
+
+                                tester.modal().expectTextContentToHaveSubstring(
+                                    'Подтвердите удаление ' +
+                                    'Флаг "Чаты в WhatsApp" будет удален. Подтвердить?'
+                                );
+                            });
+                            it('Нажимаю на переключатель в строке флага. Отображено окно подтверждения.', function() {
+                                tester.table().cell().withContent('Чаты в WhatsApp').row().switchField().click();
+                                spendTime(100);
+
+                                tester.modal().expectTextContentToHaveSubstring(
+                                    'Подтвердите выключение ' +
+                                    'Флаг "Чаты в WhatsApp" будет выключен. Подтвердить?'
+                                );
+                            });
+                            it('Данные корректно отобржаены в таблице.', function() {
+                                tester.root.expectTextContentToHaveSubstring(
+                                    'Название флага ' +
+                                    'Мнемоника ' +
+                                    'Пространство имен ' +
+                                    'AppID ' +
+                                    'Дата истечения ' +
+                                    'Состояние ' +
+
+                                    'Чаты в WhatsApp ' +
+                                    'whatsapp_chats ' +
+                                    'comagic_web, db, amocrm ' +
+                                    '26.07.2020 ' +
+                                    'Вкл'
+                                );
+                            });
+                        });
+                        describe('Фичефлагов много.', function() {
+                            beforeEach(function() {
+                                featureFlagsRequest.addMore().receiveResponse();
+                            });
+
+                            describe('Нажимаю на вторую страницу.', function() {
+                                beforeEach(function() {
+                                    tester.table().paging().page(2).click();
+                                    Promise.runAll(false, true);
+
+                                    tester.featureFlagsRequest().searchString().addMore().secondPage().
+                                        receiveResponse();
+                                });
+
+                                it('Нажимаю на первую страницу. Выбрана первая страница.', function() {
+                                    tester.table().paging().page(1).click();
+                                    Promise.runAll(false, true);
+
+                                    tester.featureFlagsRequest().searchString().addMore().receiveResponse();
+
+                                    tester.table().paging().page(1).expectToBeChecked();
+                                    tester.table().paging().page(2).expectNotToBeChecked();
+                                    tester.table().paging().page(3).expectNotToBeChecked();
+                                });
+                                it('Выбрана вторая страница.', function() {
+                                    tester.table().paging().page(1).expectNotToBeChecked();
+                                    tester.table().paging().page(2).expectToBeChecked();
+                                    tester.table().paging().page(3).expectNotToBeChecked();
+                                });
+                            });
+                            it('Выбрана первая страница.', function() {
+                                tester.table().paging().page(1).expectToBeChecked();
+                                tester.table().paging().page(2).expectNotToBeChecked();
+                                tester.table().paging().page(3).expectNotToBeChecked();
+                                tester.table().paging().page(4).expectNotToExist();
+                            });
+                        });
+                        it(
+                            'Фичефлаг выключен, фичефлаг связан с конкретными пользователями. Нажимаю на ' +
+                            'переключатель в строке флага. Отображено окно подтверждения.',
+                        function() {
+                            featureFlagsRequest.disabled().receiveResponse();
+
+                            tester.table().cell().withContent('Чаты в WhatsApp').row().switchField().click();
+                            spendTime(100);
+
+                            tester.modal().expectTextContentToHaveSubstring(
+                                'Подтвердите включение ' +
+
+                                'Флаг "Чаты в WhatsApp" включит скрытую функциональность в comagic_web, db и ' +
+                                'amocrm для 4735 и 29572. Подтвердить?'
+                            );
+                        });
+                        it(
+                            'Фичефлаг выключен, фичефлаг связан с конкретным пользователем. Нажимаю на переключатель ' +
+                            'в строке флага. Отображено окно подтверждения.',
+                        function() {
+                            featureFlagsRequest.disabled().onlyOneAppId().receiveResponse();
+
+                            tester.table().cell().withContent('Чаты в WhatsApp').row().switchField().click();
+                            spendTime(100);
+
+                            tester.modal().expectTextContentToHaveSubstring(
+                                'Подтвердите включение ' +
+
+                                'Флаг "Чаты в WhatsApp" включит скрытую функциональность в comagic_web, db и ' +
+                                'amocrm для 4735. Подтвердить?'
+                            );
+                        });
+                        it(
+                            'Фичефлаг выключен. AppID не указаны. Нажимаю на переключатель в строке флага. ' +
+                            'Отображено окно подтверждения.',
+                        function() {
+                            featureFlagsRequest.disabled().noAppIds().receiveResponse();
+
+                            tester.table().cell().withContent('Чаты в WhatsApp').row().switchField().click();
+                            spendTime(100);
+
+                            tester.modal().expectTextContentToHaveSubstring(
+                                'Подтвердите включение ' +
+                                'Флаг "Чаты в WhatsApp" будет включен. Подтвердить?'
+                            );
+                        });
+                    });
+                    describe(
+                        'Выбираю пространства имен. Нажмаю на кнопку "Поиск". Отправлен запрос флагов.',
+                    function() {
+                        beforeEach(function() {
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+                            tester.select().option('comagic_web').click();
+                            tester.select().option('amocrm').click();
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+
+                            tester.button('Поиск').click();
+                            Promise.runAll();
+
+                            tester.featureFlagsRequest().searchString().namespaces().receiveResponse();
+                        });
+
+                        it('Нажимаю на иконку редактирования. Флаг включен. Флаг связан с клиентами.', function() {
+                            tester.table().cell().withContent('Чаты в WhatsApp').row().
+                                querySelector('.comagic-edit-icon').click();
+                            Promise.runAll(false, true);
+
+                            tester.featureFlagRequest().receiveResponse();
+                            tester.appsRequest().changeLimit().receiveResponse();
+
+                            tester.page.anchor('Отмена').click();
+                            Promise.runAll(false, true);
+                        });
+                        it(
+                            'Снимаю отметки с пространств имен. Нажмаю на кнопку "Поиск". Отправлен запрос флагов.',
+                        function() {
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+                            tester.select().option('comagic_web').click();
+                            spendTime(100);
+                            tester.select().option('amocrm').click();
+                            spendTime(100);
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+
+                            tester.button('Поиск').click();
+                            Promise.runAll();
+
+                            tester.featureFlagsRequest().searchString().receiveResponse();
+                        });
+                    });
+                    it('Отмечаю радиокнопку "Global". Нажмаю на кнопку "Поиск". Отправлен запрос флагов.', function() {
+                        tester.radioButton('Global').click();
+
+                        tester.button('Поиск').click();
+                        Promise.runAll();
+
+                        tester.featureFlagsRequest().searchString().global().expectToBeSent();
+                    });
+                    it(
+                        'Отмечаю радиокнопку "Связанные с AppID". Нажмаю на кнопку "Поиск". Отправлен запрос флагов.',
+                    function() {
+                        tester.radioButton('Связанные с AppID').click();
+
+                        tester.button('Поиск').click();
+                        Promise.runAll();
+
+                        tester.featureFlagsRequest().searchString().notGlobal().expectToBeSent();
+                    });
+                });
+                describe('Нажимаю на кнопку "Добавить флаг".', function() {
+                    beforeEach(function() {
+                        tester.button('Добавить флаг').click();
+                        Promise.runAll(false, true);
+                    });
+
+                    describe('Заполняю форму.', function() {
+                        beforeEach(function() {
+                            tester.textfield().withPlaceholder('Введите название флага').fill('Чаты в WhatsApp');
+                            tester.textfield().withPlaceholder('Введите название мнемоники').fill('whatsapp_chats');
+
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+                            tester.select().option('comagic_web').click();
+                            tester.select().option('amocrm').click();
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+                            Promise.runAll(false, true);
+
+                            tester.textfield().withPlaceholder('Введте дату истечения').click();
+                        });
+
+                        describe('Выбираю дату позднее сегдняшнего дня.', function() {
+                            beforeEach(function() {
+                                tester.calendar().cell('29').second().click();
+                            });
+
+                            describe('Нажимаю на кнопку "Выбрать AppID".', function() {
+                                beforeEach(function() {
+                                    tester.radioButton('Выбрать AppID').click();
+                                    Promise.runAll(false, true);
+
+                                    tester.appsRequest().changeLimit().receiveResponse();
+                                });
+
+                                describe('Отмечаю строки. Открываю вторую страницу. Отмечаю строки.', function() {
+                                    beforeEach(function() {
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                            checkbox().click();
+
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
+                                            checkbox().click();
+
+                                        tester.table().paging().page(2).click();
+                                        Promise.runAll();
+                                        tester.appsRequest().changeLimit().setSecondPage().receiveResponse();
+
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 7').row().
+                                            checkbox().click();
+
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 8').row().
+                                            checkbox().click();
+
+                                        Promise.runAll(false, true);
+                                    });
+
+                                    describe('Открываю первую страницу.', function() {
+                                        beforeEach(function() {
+                                            tester.table().paging().page(1).click();
+                                            Promise.runAll();
+                                            tester.appsRequest().changeLimit().receiveResponse();
+                                        });
+
+                                        it('Открываю вторую страницу. Строки отмечены.', function() {
+                                            tester.table().paging().page(2).click();
+                                            Promise.runAll();
+                                            tester.appsRequest().changeLimit().setSecondPage().receiveResponse();
+
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 6').row().
+                                                checkbox().expectNotToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 7').row().
+                                                checkbox().expectToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 8').row().
+                                                checkbox().expectToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 9').row().
+                                                checkbox().expectNotToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 10').row().
+                                                checkbox().expectNotToBeChecked();
+                                        });
+                                        it('Строки отмечены.', function() {
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
+                                                checkbox().expectNotToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                                checkbox().expectToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                                checkbox().expectNotToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
+                                                checkbox().expectToBeChecked();
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
+                                                checkbox().expectNotToBeChecked();
+
+                                            tester.page.expectTextContentToHaveSubstring(
+                                                'Выбрано 4 из 75'
+                                            );
+                                        });
+                                    });
+                                    describe('Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения.', function() {
+                                        let featureFlagCreatingRequest;
+
+                                        beforeEach(function() {
+                                            tester.button('Сохранить').click();
+                                            Promise.runAll(false, true);
+
+                                            featureFlagCreatingRequest = tester.featureFlagCreatingRequest().
+                                                expectToBeSent();
+                                        });
+
+                                        it('Не удалось сохранить флаг. Отображено сообщение об ошибке.', function() {
+                                            featureFlagCreatingRequest.failed().receiveResponse();
+
+                                            tester.notification.expectToHaveTextContent(
+                                                'Произошла ошибка! ' +
+
+                                                'Флаг с данной мнемоникой уже существует в одном из выбранных ' +
+                                                'пространств имён'
+                                            );
+
+                                            tester.button('Добавить флаг').expectNotToExist();
+
+                                            tester.textfield().withPlaceholder('Введите название флага').
+                                                expectToBeVisible();
+                                        });
+                                        it('Удалось сохранить флаг. Отображен список флагов.', function() {
+                                            window.isLogEnabled = true;
+                                            featureFlagCreatingRequest.receiveResponse();
+                                            tester.featureFlagsRequest().receiveResponse();
+
+                                            tester.button('Добавить флаг').expectToBeVisible();
+                                            tester.textfield().withPlaceholder('Введите название флага').
+                                                expectNotToExist();
+                                        });
+                                    });
+                                });
+                                describe('Нажимаю на чекбокс в заголовке.', function() {
+                                    beforeEach(function() {
+                                        tester.table().header().checkbox().click();
+                                    });
+
+                                    it('Нажимаю на чекбокс в заголовке. Ни одна строка не отмечена.', function() {
+                                        tester.table().header().checkbox().click();
+
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
+                                            checkbox().expectNotToBeChecked();
+                                    });
+                                    it('Все строки отмечены.', function() {
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
+                                            checkbox().expectToBeChecked();
+                                    });
+                                });
+                                it(
+                                    'Ввожу строку поиска. Нажимаю на кнопку "Поиск". Отправлен запрос клиентов.',
+                                function() {
+                                    tester.textfield().withPlaceholder(
+                                        'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
+                                    ).fill('Шунин');
+
+                                    tester.button('Поиск').click();
+                                    Promise.runAll(false, true);
+
+                                    tester.appsRequest().setSearch().changeLimit().receiveResponse();
+                                });
+                                it('Отображены клиенты.', function() {
+                                    tester.page.expectTextContentToHaveSubstring(
+                                        'ООО "Трупоглазые жабы" # 1'
+                                    );
+
+                                    tester.page.expectTextContentToHaveSubstring(
+                                        '1 2 3 4 5 в конец ' +
+                                        'Строк на странице 5 ' +
+                                        'Выбрано 0 из 75'
+                                    );
+                                });
+                            });
+                            it(
+                                'Отмечаю свичбокс "Состояние". Нажимаю на кнопку "Сохранить". Отправлен запрос ' +
+                                'сохранения.',
+                            function() {
+                                tester.switchField().withLabel('Состояние').click();
+
+                                Promise.runAll(false, true);
+                                tester.button('Сохранить').click();
+                                Promise.runAll(false, true);
+
+                                tester.featureFlagCreatingRequest().global().enabled().receiveResponse();
+                                tester.featureFlagsRequest().receiveResponse();
+                            });
+                            it('Кнопка "Global" нажата.', function() {
+                                tester.radioButton('Global').expectToBeChecked();
+                                tester.radioButton('Выбрать AppID').expectNotToBeChecked();
+
+                                tester.textfield().withPlaceholder(
+                                    'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
+                                ).expectNotToExist();
+
+                                tester.root.expectTextContentToHaveSubstring('Добавление фичефлага');
+
+                                tester.calendar().cell('23').expectToBeHiddenOrNotExist();
+                                tester.textfield().withPlaceholder('Введте дату истечения').
+                                    expectToHaveValue('29.08.2020');
+                            });
+                        });
+                        it('Снимаю отметку со всех пространств имен. Кнопка "Сохранить" заблокирована.', function() {
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+
+                            tester.select().option('comagic_web').click();
+                            spendTime(100);
+                            tester.select().option('amocrm').click();
+                            spendTime(100);
+
+                            tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
+                            Promise.runAll(false, true);
+                            
+                            tester.select().withPlaceholder('Выберите пространство имен').errorIcon().putMouseOver();
+                            spendTime(100);
+                            tester.tooltip.expectToHaveTextContent('Это поле является обязательным для заполнения');
+
+                            tester.button('Сохранить').expectToHaveAttribute('disabled');
+                        });
+                        it(
+                            'Ввожу некорректные символы в пол для ввода мнемоники. Кнопка "Сохранить" заблокирована.',
+                        function() {
+                            tester.textfield().withPlaceholder('Введите название мнемоники').fill('вацап чат');
+                            Promise.runAll(false, true);
+
+                            tester.textfield().withPlaceholder('Введите название мнемоники').errorIcon().putMouseOver();
+                            spendTime(100);
+
+                            tester.tooltip.expectToHaveTextContent(
+                                'В поле могут быть введены только латинские строчные буквы, цифры и подчеркивание'
+                            );
+
+                            tester.button('Сохранить').expectToHaveAttribute('disabled');
+                        });
+                        it('Стираю название флага. Кнопка "Сохранить" заблокирована.', function() {
+                            tester.textfield().withPlaceholder('Введите название флага').clear();
+                            Promise.runAll(false, true);
+
+                            tester.button('Сохранить').click();
+                            Promise.runAll(false, true);
+                        });
+                        it('Безуспешно пытаюсь выбрать дату раньше сегдняшнего дня.', function() {
+                            tester.calendar().cell('23').click();
+
+                            tester.calendar().cell('23').expectToBeVisible();
+                            tester.textfield().withPlaceholder('Введте дату истечения').expectToHaveValue('');
+                        });
+                        it('Кнопка "Сохранить" доступна.', function() {
+                            tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                        });
+                    });
+                    it('Нажимаю на ссылку "Фичефлаги". Открыта страница списка фичефлагов.', function() {
+                        tester.page.anchor('Фичефлаги').click();
+                        tester.button('Добавить флаг').expectToBeVisible();
+                    });
+                    it('Нажимаю на ссылку "Отмена". Открыта страница списка фичефлагов.', function() {
+                        tester.page.anchor('Отмена').click();
+                        tester.button('Добавить флаг').expectToBeVisible();
+                    });
+                    it('Кнопка "Сохранить" заблокирована.', function() {
+                        tester.button('Сохранить').expectToHaveAttribute('disabled');
+                    });
+                });
+                it('Нажимаю на кнопку "Поиск". Отправлен запрос фичафлагов.', function() {
+                    tester.button('Поиск').click();
+                    Promise.runAll();
+
+                    tester.featureFlagsRequest().expectToBeSent();
+                });
+                it('Отмечена радиокнопка "Все".', function() {
+                    tester.radioButton('Global').expectNotToBeChecked();
+                    tester.radioButton('Связанные с AppID').expectNotToBeChecked();
+                    tester.radioButton('Все').expectToBeChecked();
+                });
+            });
             describe('Открываю раздел "Переотправка событий" без фильтра.', function() {
                 beforeEach(function() {
                     tester.path.open('/event-resending');
@@ -165,12 +1083,17 @@ tests.addTest(function (options) {
                                                             beforeEach(function() {
                                                                 tester.button('дальше').click();
                                                                 Promise.runAll();
-                                                                tester.amocrmEventsRequest().setOffset(75).expectToBeSent().
-                                                                    addEvents(75, 99).receiveResponse();
+
+                                                                tester.amocrmEventsRequest().
+                                                                    setOffset(75).
+                                                                    expectToBeSent().
+                                                                    addEvents(75, 99).
+                                                                    receiveResponse();
                                                             });
 
                                                             it(
-                                                                'Нажимаю на кнопку "В начало". Запрошена первая страница.',
+                                                                'Нажимаю на кнопку "В начало". Запрошена первая ' +
+                                                                'страница.',
                                                             function() {
                                                                 tester.button('В начало').click();
                                                                 Promise.runAll();
@@ -239,7 +1162,8 @@ tests.addTest(function (options) {
                                                 });
                                             });
                                             it('Отображена первая страница.', function() {
-                                                tester.table().paging().page(1).expectToHaveClass('pagination-item-active');
+                                                tester.table().paging().page(1).
+                                                    expectToHaveClass('pagination-item-active');
 
                                                 tester.root.expectTextContentToHaveSubstring(
                                                     '39314 ' +
@@ -258,8 +1182,8 @@ tests.addTest(function (options) {
                                             });
                                             
                                             describe(
-                                                'Отмечаю две строки. Нажимаю на кнопку "Повторить отправку". Отправлен ' +
-                                                'запрос переотправки событий.',
+                                                'Отмечаю две строки. Нажимаю на кнопку "Повторить отправку". ' +
+                                                'Отправлен запрос переотправки событий.',
                                             function() {
                                                 var amocrmEventsResendingRequest;
                                                 
@@ -271,14 +1195,19 @@ tests.addTest(function (options) {
 
                                                     tester.button('Повторить отправку').click();
                                                     Promise.runAll();
-                                                    amocrmEventsResendingRequest = tester.amocrmEventsResendingRequest().
-                                                        setTwoEvents().expectToBeSent();
+                                                    amocrmEventsResendingRequest =
+                                                        tester.amocrmEventsResendingRequest().
+                                                            setTwoEvents().
+                                                            expectToBeSent();
                                                 });
 
-                                                describe('Получен ответ сервера. Отправлен запрос событий.', function() {
+                                                describe(
+                                                    'Получен ответ сервера. Отправлен запрос событий.',
+                                                function() {
                                                     beforeEach(function() {
                                                         amocrmEventsResendingRequest.receiveResponse();
-                                                        amocrmEventsRequest = tester.amocrmEventsRequest().expectToBeSent();
+                                                        amocrmEventsRequest = tester.amocrmEventsRequest().
+                                                            expectToBeSent();
                                                     });
 
                                                     it(
@@ -300,23 +1229,24 @@ tests.addTest(function (options) {
                                                         tester.button('Повторить отправку').
                                                             expectToHaveAttribute('disabled');
 
-                                                        tester.table().cell().withContent('79157389283').row().checkbox().
-                                                            expectNotToBeChecked();
-                                                        tester.table().cell().withContent('79157389284').row().checkbox().
-                                                            expectNotToBeChecked();
-                                                        tester.table().cell().withContent('79157389285').row().checkbox().
-                                                            expectNotToBeChecked();
+                                                        tester.table().cell().withContent('79157389283').row().
+                                                            checkbox().expectNotToBeChecked();
+                                                        tester.table().cell().withContent('79157389284').row().
+                                                            checkbox().expectNotToBeChecked();
+                                                        tester.table().cell().withContent('79157389285').row().
+                                                            checkbox().expectNotToBeChecked();
                                                     });
                                                 });
                                                 it('Таблица заблокирована.', function() {
                                                     tester.spinner.expectToBeVisible();
                                                     tester.button('Применить').expectToHaveAttribute('disabled');
-                                                    tester.button('Повторить отправку').expectToHaveAttribute('disabled');
+                                                    tester.button('Повторить отправку').
+                                                        expectToHaveAttribute('disabled');
                                                 });
                                             });
                                             describe(
-                                                'Нажимаю на заголовок колонки "Дата и время события". Запрошены события ' +
-                                                'без сортировки.',
+                                                'Нажимаю на заголовок колонки "Дата и время события". Запрошены ' +
+                                                'события без сортировки.',
                                             function() {
                                                 beforeEach(function() {
                                                     tester.table().header().withContent('Дата и время события').click();
@@ -329,17 +1259,20 @@ tests.addTest(function (options) {
                                                     'события с сортировкой по возрастанию.',
                                                 function() {
                                                     beforeEach(function() {
-                                                        tester.table().header().withContent('Дата и время события').click();
+                                                        tester.table().header().withContent('Дата и время события').
+                                                            click();
                                                         Promise.runAll();
-                                                        tester.amocrmEventsRequest().setAscDirection().receiveResponse();
+                                                        tester.amocrmEventsRequest().setAscDirection().
+                                                            receiveResponse();
                                                     });
 
                                                     it(
                                                         'Нажимаю на заголовок колонки "Дата и время события". Под ' +
-                                                        'заголовком колонки "Дата и время события" отображена стрелочка ' +
-                                                        'вниз.',
+                                                        'заголовком колонки "Дата и время события" отображена ' +
+                                                        'стрелочка вниз.',
                                                     function() {
-                                                        tester.table().header().withContent('Дата и время события').click();
+                                                        tester.table().header().withContent('Дата и время события').
+                                                            click();
                                                         Promise.runAll();
                                                         tester.amocrmEventsRequest().receiveResponse();
 
@@ -366,8 +1299,8 @@ tests.addTest(function (options) {
                                                     'Стрелочка не отображена под заголовком колонки "Дата и время ' +
                                                     'события".',
                                                 function() {
-                                                    tester.table().header().withContent('Дата и время события').sortIcon().
-                                                        expectNotToExist();
+                                                    tester.table().header().withContent('Дата и время события').
+                                                        sortIcon().expectNotToExist();
 
                                                     tester.path.expectQueryToContain({
                                                         sort: undefined
@@ -375,10 +1308,11 @@ tests.addTest(function (options) {
                                                 });
                                             });
                                             it(
-                                                'Отмечаю одну строку. Нажимаю на кнопку "Повторить отправку". Отображено ' +
-                                                'оповещение о добавлении события в очередь.',
+                                                'Отмечаю одну строку. Нажимаю на кнопку "Повторить отправку". ' +
+                                                'Отображено оповещение о добавлении события в очередь.',
                                             function() {
-                                                tester.table().cell().withContent('79157389283').row().checkbox().click();
+                                                tester.table().cell().withContent('79157389283').row().checkbox().
+                                                    click();
 
                                                 tester.button('Повторить отправку').click();
                                                 Promise.runAll();
@@ -390,14 +1324,19 @@ tests.addTest(function (options) {
                                                     expectToHaveTextContent('В очередь добавлено 1 событие');
                                             });
                                             it(
-                                                'Отмечаю пять строк. Нажимаю на кнопку "Повторить отправку". Отображено ' +
-                                                'оповещение о добавлении события в очередь.',
+                                                'Отмечаю пять строк. Нажимаю на кнопку "Повторить отправку". ' +
+                                                'Отображено оповещение о добавлении события в очередь.',
                                             function() {
-                                                tester.table().cell().withContent('79157389283').row().checkbox().click();
-                                                tester.table().cell().withContent('79157389284').row().checkbox().click();
-                                                tester.table().cell().withContent('79157389285').row().checkbox().click();
-                                                tester.table().cell().withContent('79157389286').row().checkbox().click();
-                                                tester.table().cell().withContent('79157389287').row().checkbox().click();
+                                                tester.table().cell().withContent('79157389283').row().checkbox().
+                                                    click();
+                                                tester.table().cell().withContent('79157389284').row().checkbox().
+                                                    click();
+                                                tester.table().cell().withContent('79157389285').row().checkbox().
+                                                    click();
+                                                tester.table().cell().withContent('79157389286').row().checkbox().
+                                                    click();
+                                                tester.table().cell().withContent('79157389287').row().checkbox().
+                                                    click();
 
                                                 tester.button('Повторить отправку').click();
                                                 Promise.runAll();
@@ -438,9 +1377,9 @@ tests.addTest(function (options) {
                                                 );
                                             });
                                             it(
-                                                'Отображена таблица событий. Кнопка "Повторить отправку" заблокирована. ' +
-                                                'Таблица доступна. Под заголовком колонки "Дата и время события" ' +
-                                                'отображена стрелочка вниз.',
+                                                'Отображена таблица событий. Кнопка "Повторить отправку" ' +
+                                                'заблокирована. Таблица доступна. Под заголовком колонки "Дата и ' +
+                                                'время события" отображена стрелочка вниз.',
                                             function() {
                                                 tester.table().header().withContent('Дата и время события').sortIcon().
                                                     expectToBeArrowDown();
@@ -455,6 +1394,7 @@ tests.addTest(function (options) {
                                                     'Пользователи ' +
                                                     'CRM-интеграции ' +
                                                     'Переотправка событий ' +
+                                                    'Фичефлаги ' +
 
                                                     'Переотправка событий ' +
 
@@ -478,9 +1418,9 @@ tests.addTest(function (options) {
 
                                                     '79157389283 ' +
                                                     '03.02.2021 в 09:58 ' +
-                                                    'Exception in thread "main" java.lang.NullPointerException: Oops! ' +
-                                                        'at com.ericgoebelbecker.stacktraces.StackTrace.d StackTrace.' +
-                                                        'java... 10.04.2021 в 16:59 ' +
+                                                    'Exception in thread "main" java.lang.NullPointerException: ' +
+                                                        'Oops! at com.ericgoebelbecker.stacktraces.StackTrace.d ' +
+                                                        'StackTrace.java... 10.04.2021 в 16:59 ' +
                                                     '39285 ' +
 
                                                     '79157389284 ' +
@@ -587,8 +1527,8 @@ tests.addTest(function (options) {
                                             );
                                         });
                                         it(
-                                            'Некоторые события отправляются в данный момент. Вместо даты отображен текст ' +
-                                            '"Отправляется".',
+                                            'Некоторые события отправляются в данный момент. Вместо даты отображен ' +
+                                            'текст "Отправляется".',
                                         function() {
                                             amocrmEventsRequest.setSending().receiveResponse();
 
@@ -600,7 +1540,8 @@ tests.addTest(function (options) {
                                             );
                                         });
                                         it(
-                                            'Сообщение об ошибке отсутствует. Отображается сообщение "Неизвестная ошибка".',
+                                            'Сообщение об ошибке отсутствует. Отображается сообщение "Неизвестная ' +
+                                            'ошибка".',
                                         function() {
                                             amocrmEventsRequest.setNoErrorMessage().receiveResponse();
 
@@ -666,8 +1607,8 @@ tests.addTest(function (options) {
                                     });
                                 });
                                 it(
-                                    'Указываю другое время. Нажимаю на кнопку "Применить". Отправляется запрос с другим ' +
-                                    'временем.',
+                                    'Указываю другое время. Нажимаю на кнопку "Применить". Отправляется запрос с ' +
+                                    'другим временем.',
                                 function() {
                                     tester.calendar().timePickerButton().click();
                                     tester.forceUpdate();
@@ -702,7 +1643,9 @@ tests.addTest(function (options) {
                                     tester.textfield().withPlaceholder('Конечная дата').
                                         expectToHaveValue('24.08.2020 13:21:55');
                                 });
-                                it('Нажимаю на кнопку "Применить". Отправляется запрос сегодняшних событий.', function() {
+                                it(
+                                    'Нажимаю на кнопку "Применить". Отправляется запрос сегодняшних событий.',
+                                function() {
                                     tester.button('Применить').click();
                                     Promise.runAll();
                                     tester.amocrmEventsRequest().setDefaultDateRange().expectToBeSent();
@@ -738,7 +1681,7 @@ tests.addTest(function (options) {
                         function() {
                             tester.button('Применить').click();
                             Promise.runAll();
-                            tester.amocrmEventsRequest().setDefaultParams().expectToBeSent();
+                            tester.amocrmEventsRequest().setDefaultParams().receiveResponse();
                         });
                     });
                     it('Выбираю bitrix.', function() {
@@ -880,8 +1823,9 @@ tests.addTest(function (options) {
                 tester.checkbox().withLabel('Отправляются').expectNotToBeChecked();
                 tester.checkbox().withLabel('Не отправлялись').expectNotToBeChecked();
             });
-            it('Пункт меню "Переотправка событий" отображен.', function() {
+            it('Пункты меню "Переотправка событий" и "Фичефлаги" отображены.', function() {
                 tester.menuitem('Переотправка событий').expectHrefToHavePath('/event-resending');
+                tester.menuitem('Фичефлаги').expectHrefToHavePath('/feature-flags');
             });
         });
         describe('Доступен только раздел "Пользовтатели".', function() {

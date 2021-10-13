@@ -2390,7 +2390,13 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
         };
 
         return this;
-    },
+    };
+
+    this.findAllVisible = function () {
+        return this.findAll().filter(function (domElement) {
+            return utils.isVisible(domElement);
+        });
+    };
 
     this.findAll = function () {
         var i,
@@ -2398,7 +2404,7 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
             length = descendants.length,
             descendant,
             desiredDescendants = [];
-        
+
         for (i = 0; i < length; i ++) {
             descendant = descendants[i];
 
@@ -3514,12 +3520,13 @@ function JsTester_Requests (requests, utils) {
         indexOfRecentRequest = newIndexOfRecentRequest;
     };
     this.expectNoRequestsToBeSent = function () {
-        var recentRequest = getRecentRequest();
+        var callStack = callStacks[indexOfRecentRequest],
+            recentRequest = getRecentRequest();
 
         if (recentRequest) {
             throw new Error(
                 'Был отправлен запрос, тогда как ни один запрос не должен был быть отправлен. ' +
-                createRequestTester(recentRequest).getDescription()
+                createRequestTester(recentRequest).getDescription() + "\n" + callStack
             );
         }
     };
