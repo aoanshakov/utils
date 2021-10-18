@@ -31,7 +31,7 @@ actions['modify-code'] = actions['restore-code'].
 
 actions['commit'] = [`chmod +x ${preCommitHook}`, `${cda} git commit`, `chmod -x ${preCommitHook}`];
 
-actions['run-server'] = actions['modify-code'].concat([
+actions['run-server'] = actions['initialize'].concat(actions['modify-code'].concat([
     [
         'openssl req -x509',
             '-nodes',
@@ -46,7 +46,7 @@ actions['run-server'] = actions['modify-code'].concat([
     `cp ${nginxConfig} /etc/nginx/nginx.conf`,
     'service nginx start',
     `${cda} npm run dev`
-]);
+]));
 
 const {action, ...params} = (new Args({
     action: {

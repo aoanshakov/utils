@@ -5319,30 +5319,95 @@ function JsTester_DomElement (
             );
         }
     };
-    function textContentSubstringExpectation (args) {
+    function throwSubstringInclusionError (args) {
+        var substring = args.substring,
+            maybeNot = args.maybeNot,
+            actualContent = args.actualContent;
+
+        throw new Error(
+            utils.capitalize(getNominativeDescription()) + ' ' + maybeNot + gender.should + ' содержать текст, ' +
+            'содержащий ' + (typeof substring == 'string' ? 'подстроку' : 'подстроки') + ' "' +
+            (typeof substring == 'string' ? substring : substring.join('", "')) + '", тогда, как ' + gender.pronoun +
+            ' содержит текст "' + actualContent + '".'
+        );
+    }
+    function substringExpectation (args) {
         var substring = args.substring,
             isExpected = args.isExpected,
-            maybeNot = args.maybeNot;
+            maybeNot = args.maybeNot,
+            actualContent = args.actualContent;
         
-        me.expectToBeVisible();
-        var actualContent = utils.getTextContent(getDomElement());
+        var index = actualContent.indexOf(substring);
 
-        if (!isExpected(actualContent.indexOf(substring) !== -1)) {
-            throw new Error(
-                utils.capitalize(getNominativeDescription()) + ' ' + maybeNot + gender.should + ' содержать текст, ' +
-                'содержащий подстроку "' + substring + '", тогда, как ' + gender.pronoun + ' содержит текст "' +
-                actualContent + '".'
-            );
+        if (!isExpected(index !== -1)) {
+            throw throwSubstringInclusionError(args);
         }
+
+        return index;
     }
-    this.expectTextContentToHaveSubstring = function (expectedSubstring) {
-        textContentSubstringExpectation({
-            substring: expectedSubstring,
-            maybeNot: '',
-            isExpected: function (doesActualTextContainSubstring) {
-                return doesActualTextContainSubstring;
-            }
+    function getActualTextContent () {
+        me.expectToBeVisible();
+        return utils.getTextContent(getDomElement());
+    }
+    function textContentSubstringExpectation (args) {
+        args.actualContent = getActualTextContent();
+        substringExpectation(args);
+    }
+    function getTextContentSubstringInclusionExpectationArguments (args) {
+        args = args || {};
+
+        args.maybeNot = '';
+        args.isExpected = function (doesActualTextContainSubstring) {
+            return doesActualTextContainSubstring;
+        };
+
+        return args;
+    }
+    this.expectTextContentNotToHaveSubstrings = function () {
+        Array.prototype.slice.call(arguments, 0).forEach(function (expectedSubstring) {
+            me.expectTextContentNotToHaveSubstring(expectedSubstring);
         });
+    };
+    this.expectTextContentToHaveSubstringsConsideringOrder = function () {
+        var actualContent = getActualTextContent();
+        
+        Array.prototype.slice.call(arguments, 0).forEach(function (expectedSubstring) {
+            var index = substringExpectation(getTextContentSubstringInclusionExpectationArguments({
+                substring: expectedSubstring,
+                actualContent: actualContent
+            }));
+
+            actualContent = actualContent.substr(index + expectedSubstring.length);
+        });
+    };
+    this.expectTextContentNotToHaveSubstringsConsideringOrder = function () {
+        var actualContent = allActualContent = getActualTextContent(),
+            hasSubstring = true,
+            args = Array.prototype.slice.call(arguments, 0);
+        
+        try {
+            args.forEach(function (expectedSubstring) {
+                var index = substringExpectation(getTextContentSubstringInclusionExpectationArguments({
+                    substring: expectedSubstring,
+                    actualContent: actualContent
+                }));
+
+                actualContent = actualContent.substr(index + expectedSubstring.length);
+            });
+        } catch (e) {
+            hasSubstring = false;
+        }
+
+        hasSubstring && throwSubstringInclusionError({
+            substring: args,
+            actualContent: allActualContent,
+            maybeNot: 'не '
+        });
+    };
+    this.expectTextContentToHaveSubstring = function (expectedSubstring) {
+        textContentSubstringExpectation(getTextContentSubstringInclusionExpectationArguments({
+            substring: expectedSubstring
+        }));
     };
     this.expectTextContentNotToHaveSubstring = function (expectedSubstring) {
         textContentSubstringExpectation({
