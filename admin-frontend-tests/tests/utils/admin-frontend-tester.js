@@ -1230,7 +1230,6 @@ define(() => {
                     name: 'Чаты в WhatsApp',
                     mnemonic: 'whatsapp_chats',
                     namespaces: '{comagic_web,db,amocrm}',
-                    app_ids: [4735, 29572],
                     is_global: false,
                     expire_date: '2020-07-26',
                     is_enabled: true,
@@ -1245,6 +1244,11 @@ define(() => {
 
                     me.disabled = () => {
                         result.is_enabled = false;
+                        return me;
+                    };
+
+                    me.noAppIds = () => {
+                        result.app_ids = null;
                         return me;
                     };
 
@@ -1289,7 +1293,7 @@ define(() => {
                     id: undefined,
                     name: 'Чаты в WhatsApp',
                     mnemonic: 'whatsapp_chats',
-                    namespaces: ['comagic_web', 'amocrm', undefined],
+                    namespaces: ['amocrm', 'comagic_web', undefined],
                     is_enabled: false,
                     is_global: false,
                     expire_date: '2020-08-29',
@@ -1376,13 +1380,13 @@ define(() => {
                 const params = {
                     access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                     id: 829592,
-                    name: 'Чат в WhatsApp',
-                    mnemonic: 'whatsapp_chat',
-                    namespaces: ['comagic_web', 'db', undefined],
+                    name: 'Чаты в WhatsApp',
+                    mnemonic: 'whatsapp_chats',
+                    namespaces: ['amocrm', 'comagic_web', 'db', undefined],
                     expire_date: '2020-07-26',
                     is_enabled: false,
                     is_global: false,
-                    app_ids: [386527, 386530, 386531, 386526, undefined]
+                    app_ids: [386526, 386527, 386530, 386531, undefined]
                 };
 
                 let response = {
@@ -1402,6 +1406,21 @@ define(() => {
                 };
 
                 return addResponseModifiers({
+                    changeName() {
+                        params.name = 'Чат в WhatsApp';
+                        return this;
+                    },
+
+                    changeMnemonic() {
+                        params.mnemonic = 'whatsapp_chat';
+                        return this;
+                    },
+
+                    changeNamespaces() {
+                        params.namespaces = ['comagic_web', 'db', undefined];
+                        return this;
+                    },
+
                     changeExpireDate() {
                         params.expire_date = '2020-08-29';
                         return this

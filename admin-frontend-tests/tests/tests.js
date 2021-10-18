@@ -88,76 +88,109 @@ tests.addTest(function (options) {
                                     featureFlagRequest = tester.featureFlagRequest().expectToBeSent();
                                 });
 
-                                describe('Флаг включен. Флаг связан с клиентами.', function() {
+                                describe('Флаг связан с клиентами.', function() {
                                     beforeEach(function() {
                                         featureFlagRequest.receiveResponse();
                                         tester.appsRequest().changeLimit().receiveResponse();
                                     });
 
-                                    describe('Отмечаю других клиентов.', function() {
+                                    describe('Снимаю отметку с первого клиента.', function() {
                                         beforeEach(function() {
                                             tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
                                                 checkbox().click();
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
-                                                checkbox().click();
-
-                                            Promise.runAll(false, true);
                                         });
 
-                                        describe('Изменяю значение формы.', function() {
+                                        describe('Отмечаю других клиентов.', function() {
                                             beforeEach(function() {
-                                                tester.textfield().withPlaceholder('Введите название флага').
-                                                    fill('Чат в WhatsApp');
-                                                tester.textfield().withPlaceholder('Введите название мнемоники').
-                                                    fill('whatsapp_chat');
+                                                tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                                    checkbox().click();
 
-                                                tester.select().withPlaceholder('Выберите пространство имен').
-                                                    arrowIcon().click();
-                                                tester.select().option('amocrm').click();
-                                                tester.select().withPlaceholder('Выберите пространство имен').
-                                                    arrowIcon().click();
-
-                                                tester.switchField().withLabel('Состояние').click();
+                                                Promise.runAll(false, true);
                                             });
 
-                                            describe(
-                                                'Изменяю дату истечения. Нажимаю на кнопку сохранения. Отправлен ' +
-                                                'запрос обновление флага.',
-                                            function() {
-                                                let featureFlagUpdatingRequest;
-
+                                            describe('Изменяю значение формы.', function() {
                                                 beforeEach(function() {
-                                                    tester.textfield().withPlaceholder('Введте дату истечения').click();
-                                                    tester.calendar().nextMonth().click();
-                                                    tester.calendar().cell('29').second().click();
+                                                    tester.textfield().withPlaceholder('Введите название флага').
+                                                        fill('Чат в WhatsApp');
+                                                    tester.textfield().withPlaceholder('Введите название мнемоники').
+                                                        fill('whatsapp_chat');
 
+                                                    tester.select().withPlaceholder('Выберите пространство имен').
+                                                        arrowIcon().click();
+                                                    tester.select().option('amocrm').click();
+                                                    tester.select().withPlaceholder('Выберите пространство имен').
+                                                        arrowIcon().click();
+
+                                                    tester.switchField().withLabel('Состояние').click();
+                                                });
+
+                                                describe(
+                                                    'Изменяю дату истечения. Нажимаю на кнопку сохранения. Отправлен ' +
+                                                    'запрос обновление флага.',
+                                                function() {
+                                                    let featureFlagUpdatingRequest;
+
+                                                    beforeEach(function() {
+                                                        tester.textfield().withPlaceholder('Введте дату истечения').
+                                                            click();
+                                                        tester.calendar().nextMonth().click();
+                                                        tester.calendar().cell('29').second().click();
+
+                                                        Promise.runAll(false, true);
+                                                        tester.button('Сохранить').click();
+                                                        Promise.runAll(false, true);
+
+                                                        featureFlagUpdatingRequest =
+                                                            tester.featureFlagUpdatingRequest().
+                                                                changeName().
+                                                                changeMnemonic().
+                                                                changeNamespaces().
+                                                                changeExpireDate().
+                                                                expectToBeSent();
+                                                    });
+
+                                                    it(
+                                                        'Не удалось сохранить флаг. Отображено сообщение об ошибке.',
+                                                    function() {
+                                                        featureFlagUpdatingRequest.failed().receiveResponse();
+
+                                                        tester.notification.expectToHaveTextContent(
+                                                            'Произошла ошибка! ' +
+
+                                                            'Флаг с данной мнемоникой уже существует в одном из ' +
+                                                            'выбранных пространств имён'
+                                                        );
+
+                                                        tester.button('Добавить флаг').expectNotToExist();
+
+                                                        tester.textfield().withPlaceholder('Введите название флага').
+                                                            expectToBeVisible();
+                                                    });
+                                                    it('Удалось сохранить флаг. Отображен список флагов.', function() {
+                                                        featureFlagUpdatingRequest.receiveResponse();
+                                                        
+                                                        Promise.runAll(false, true);
+                                                        Promise.runAll(false, true);
+                                                        tester.featureFlagsRequest().searchString().receiveResponse();
+
+                                                        tester.textfield().withPlaceholder(
+                                                            'Название флага, Мнемоника, Пространство имен, AppID'
+                                                        ).expectToBeVisible();
+                                                    });
+                                                });
+                                                it(
+                                                    'Нажимаю на кнопку сохранения. Отправлен запрос обновление флага.',
+                                                function() {
                                                     Promise.runAll(false, true);
                                                     tester.button('Сохранить').click();
                                                     Promise.runAll(false, true);
 
-                                                    featureFlagUpdatingRequest = tester.featureFlagUpdatingRequest().
-                                                        changeExpireDate().expectToBeSent();
-                                                });
+                                                    tester.featureFlagUpdatingRequest().
+                                                        changeName().
+                                                        changeMnemonic().
+                                                        changeNamespaces().
+                                                        receiveResponse();
 
-                                                it(
-                                                    'Не удалось сохранить флаг. Отображено сообщение об ошибке.',
-                                                function() {
-                                                    featureFlagUpdatingRequest.failed().receiveResponse();
-
-                                                    tester.notification.expectToHaveTextContent(
-                                                        'Произошла ошибка! ' +
-
-                                                        'Флаг с данной мнемоникой уже существует в одном из ' +
-                                                        'выбранных пространств имён'
-                                                    );
-
-                                                    tester.button('Добавить флаг').expectNotToExist();
-
-                                                    tester.textfield().withPlaceholder('Введите название флага').
-                                                        expectToBeVisible();
-                                                });
-                                                it('Удалось сохранить флаг. Отображен список флагов.', function() {
-                                                    featureFlagUpdatingRequest.receiveResponse();
                                                     Promise.runAll(false, true);
                                                     Promise.runAll(false, true);
                                                     tester.featureFlagsRequest().searchString().receiveResponse();
@@ -167,34 +200,24 @@ tests.addTest(function (options) {
                                                     ).expectToBeVisible();
                                                 });
                                             });
-                                            it(
-                                                'Нажимаю на кнопку сохранения. Отправлен запрос обновление флага.',
-                                            function() {
-                                                Promise.runAll(false, true);
-                                                tester.button('Сохранить').click();
-                                                Promise.runAll(false, true);
-
-                                                tester.featureFlagUpdatingRequest().receiveResponse();
-                                                Promise.runAll(false, true);
-                                                Promise.runAll(false, true);
-                                                tester.featureFlagsRequest().searchString().receiveResponse();
-
-                                                tester.textfield().withPlaceholder(
-                                                    'Название флага, Мнемоника, Пространство имен, AppID'
-                                                ).expectToBeVisible();
+                                            it('Другие клиенты отмечены.', function() {
+                                                tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
+                                                    checkbox().expectNotToBeChecked();
+                                                tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                                    checkbox().expectNotToBeChecked();
+                                                tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                                    checkbox().expectToBeChecked();
+                                                tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
+                                                    checkbox().expectToBeChecked();
+                                                tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
+                                                    checkbox().expectNotToBeChecked();
                                             });
                                         });
-                                        it('Другие клиенты отмечены.', function() {
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
-                                                checkbox().expectNotToBeChecked();
+                                        it('Возвращаю первого клиента. Кнопка "Сохранить" заблокирована.', function() {
                                             tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
-                                                checkbox().expectNotToBeChecked();
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
-                                                checkbox().expectToBeChecked();
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
-                                                checkbox().expectToBeChecked();
-                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
-                                                checkbox().expectNotToBeChecked();
+                                                checkbox().click();
+
+                                            tester.button('Сохранить').expectToHaveAttribute('disabled');
                                         });
                                         it('Кнопка "Сохранить" доступна.', function() {
                                             tester.button('Сохранить').expectNotToHaveAttribute('disabled');
@@ -263,11 +286,127 @@ tests.addTest(function (options) {
 
                                                 'Чаты в WhatsApp ' +
                                                 'whatsapp_chats ' +
-                                                'comagic_web, db, amocrm ' +
+                                                'amocrm, comagic_web, db ' +
                                                 '4735, 29572 ' +
                                                 '26.07.2020 ' +
                                                 'Вкл'
                                             );
+                                        });
+                                    });
+                                    describe(
+                                        'Отмечаю радиокнопку "Global". Нажимаю на кнопку "Сохранить". Отправлен ' +
+                                        'запрос обновления флага.',
+                                    function() {
+                                        beforeEach(function() {
+                                            tester.radioButton('Global').click();
+                                            Promise.runAll(false, true);
+
+                                            tester.button('Сохранить').click();
+                                            Promise.runAll(false, true)
+                                        });
+
+                                        it(
+                                            'Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения флага.',
+                                        function() {
+                                            tester.modal().button('Сохранить').click();
+                                            Promise.runAll(false, true);
+
+                                            tester.featureFlagUpdatingRequest().enabled().global().expectToBeSent();
+
+                                            spendTime(100);
+                                            spendTime(100);
+                                            spendTime(100);
+                                            spendTime(100);
+
+                                            tester.modal().expectToBeHiddenOrNotExist();
+                                        });
+                                        it('Отображено предупреждение.', function() {
+                                            tester.modal().expectTextContentToHaveSubstring(
+                                                'Подтвердите смену типа флага ' +
+                                                'После сохранения флаг будет доступен всем клиентам. Подтвердить?'
+                                            );
+                                        });
+                                    });
+                                    describe('Убираю последнее пространство имен.', function() {
+                                        beforeEach(function() {
+                                            tester.select().withPlaceholder('Выберите пространство имен').
+                                                arrowIcon().click();
+                                            tester.select().option('db').click();
+                                            tester.select().withPlaceholder('Выберите пространство имен').
+                                                arrowIcon().click();
+                                            Promise.runAll(false, true);
+                                        });
+
+                                        it(
+                                            'Возвращаю последнее пространство имен. Кнопка "Сохранить" заблокирована.',
+                                        function() {
+                                            tester.select().withPlaceholder('Выберите пространство имен').
+                                                arrowIcon().click();
+                                            tester.select().option('db').click();
+                                            tester.select().withPlaceholder('Выберите пространство имен').
+                                                arrowIcon().click();
+                                            Promise.runAll(false, true);
+
+                                            spendTime(100);
+                                            spendTime(100);
+                                            spendTime(100);
+
+                                            tester.button('Сохранить').expectToHaveAttribute('disabled');
+                                        });
+                                        it('Кнопка "Сохранить" доступна.', function() {
+                                            tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                                        });
+                                    });
+                                    describe('Убираю первое пространство имен.', function() {
+                                        beforeEach(function() {
+                                            tester.select().withPlaceholder('Выберите пространство имен').
+                                                arrowIcon().click();
+                                            tester.select().option('amocrm').click();
+                                            tester.select().withPlaceholder('Выберите пространство имен').
+                                                arrowIcon().click();
+                                            Promise.runAll(false, true);
+                                        });
+
+                                        it(
+                                            'Возвращаю первое пространство имен. Кнопка "Сохранить" заблокирована.',
+                                        function() {
+                                            tester.select().withPlaceholder('Выберите пространство имен').
+                                                arrowIcon().click();
+                                            tester.select().option('amocrm').click();
+                                            tester.select().withPlaceholder('Выберите пространство имен').
+                                                arrowIcon().click();
+                                            Promise.runAll(false, true);
+
+                                            spendTime(100);
+                                            spendTime(100);
+                                            spendTime(100);
+
+                                            tester.button('Сохранить').expectToHaveAttribute('disabled');
+                                        });
+                                        it('Кнопка "Сохранить" доступна.', function() {
+                                            tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                                        });
+                                    });
+                                    describe('Снимаю отметку с последнего клиента.', function() {
+                                        beforeEach(function() {
+                                            tester.table().paging().page(2).click();
+                                            Promise.runAll();
+                                            tester.appsRequest().changeLimit().setSecondPage().receiveResponse();
+
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 8').row().
+                                                checkbox().click();
+                                        });
+
+                                        it(
+                                            'Возвращаю последнего клиента. Кнопка "Сохранить" заблокирована.',
+                                        function() {
+                                            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 8').row().
+                                                checkbox().click();
+
+                                            tester.button('Сохранить').expectToHaveAttribute('disabled');
+                                        });
+                                        it('Кнопка "Сохранить" доступна.', function() {
+                                            tester.button('Сохранить').expectNotToHaveAttribute('disabled');
                                         });
                                     });
                                     it(
@@ -289,13 +428,15 @@ tests.addTest(function (options) {
                                         tester.textfield().withPlaceholder('Введите название мнемоники').
                                             expectToHaveValue('whatsapp_chats');
                                         tester.select().withPlaceholder('Выберите пространство имен').
-                                            expectToHaveValue('comagic_web db amocrm');
+                                            expectToHaveValue('amocrm comagic_web db');
                                         tester.textfield().withPlaceholder('Введте дату истечения').
                                             expectToHaveValue('26.07.2020');
                                         tester.switchField().withLabel('Состояние').expectToBeChecked();
 
                                         tester.radioButton('Global').expectNotToBeChecked();
                                         tester.radioButton('Выбрать AppID').expectToBeChecked();
+
+                                        tester.button('Сохранить').expectToHaveAttribute('disabled');
                                     });
                                 });
                                 describe(
@@ -316,12 +457,6 @@ tests.addTest(function (options) {
                                     it(
                                         'Форма заполнена получеными данными. Кнопка "Сохранить" заблокирована.',
                                     function() {
-                                        tester.textfield().withPlaceholder('Введите название флага').
-                                            expectToHaveValue('Чаты в WhatsApp');
-                                        tester.textfield().withPlaceholder('Введите название мнемоники').
-                                            expectToHaveValue('whatsapp_chats');
-                                        tester.select().withPlaceholder('Выберите пространство имен').
-                                            expectToHaveValue('comagic_web db amocrm');
                                         tester.textfield().withPlaceholder('Введте дату истечения').
                                             expectToHaveValue('');
 
@@ -334,6 +469,22 @@ tests.addTest(function (options) {
 
                                         tester.root.expectTextContentToHaveSubstring('Редактирование фичефлага');
                                     });
+                                });
+                                it(
+                                    'Флаг связан с клиентами. Отмечаю радиокнопку "Global". Нажимаю на кнопку ' +
+                                    '"Сохранить". Отправлен запрос обновления флага.',
+                                function() {
+                                    featureFlagRequest.noAppIds().receiveResponse();
+                                    tester.appsRequest().changeLimit().receiveResponse();
+
+                                    tester.radioButton('Global').click();
+                                    Promise.runAll(false, true);
+
+                                    tester.button('Сохранить').click();
+                                    Promise.runAll(false, true)
+
+                                    tester.featureFlagUpdatingRequest().enabled().global().expectToBeSent();
+                                    tester.modal().expectToBeHiddenOrNotExist();
                                 });
                             });
                             describe('Нажимаю на иконку удаления.', function() {
@@ -431,7 +582,7 @@ tests.addTest(function (options) {
 
                                     'Чаты в WhatsApp ' +
                                     'whatsapp_chats ' +
-                                    'comagic_web, db, amocrm ' +
+                                    'amocrm, comagic_web, db ' +
                                     '4735, 29572 ' +
                                     '26.07.2020 ' +
                                     'Вкл'
@@ -465,8 +616,8 @@ tests.addTest(function (options) {
                                     tester.modal().expectTextContentToHaveSubstring(
                                         'Подтвердите включение ' +
 
-                                        'Флаг "Чаты в WhatsApp" включит скрытую функциональность в comagic_web, db и ' +
-                                        'amocrm для всех клиентов. Подтвердить?'
+                                        'Флаг "Чаты в WhatsApp" включит скрытую функциональность в amocrm, ' +
+                                        'comagic_web и db для всех клиентов. Подтвердить?'
                                     );
                                 });
                             });
@@ -481,7 +632,7 @@ tests.addTest(function (options) {
 
                                     'Чаты в WhatsApp ' +
                                     'whatsapp_chats ' +
-                                    'comagic_web, db, amocrm ' +
+                                    'amocrm, comagic_web, db ' +
                                     'Global ' +
                                     'Выкл'
                                 );
@@ -523,7 +674,7 @@ tests.addTest(function (options) {
 
                                     'Чаты в WhatsApp ' +
                                     'whatsapp_chats ' +
-                                    'comagic_web, db, amocrm ' +
+                                    'amocrm, comagic_web, db ' +
                                     '26.07.2020 ' +
                                     'Вкл'
                                 );
@@ -578,8 +729,8 @@ tests.addTest(function (options) {
                             tester.modal().expectTextContentToHaveSubstring(
                                 'Подтвердите включение ' +
 
-                                'Флаг "Чаты в WhatsApp" включит скрытую функциональность в comagic_web, db и ' +
-                                'amocrm для 4735 и 29572. Подтвердить?'
+                                'Флаг "Чаты в WhatsApp" включит скрытую функциональность в amocrm, comagic_web и ' +
+                                'db для 4735 и 29572. Подтвердить?'
                             );
                         });
                         it(
@@ -594,8 +745,8 @@ tests.addTest(function (options) {
                             tester.modal().expectTextContentToHaveSubstring(
                                 'Подтвердите включение ' +
 
-                                'Флаг "Чаты в WhatsApp" включит скрытую функциональность в comagic_web, db и ' +
-                                'amocrm для 4735. Подтвердить?'
+                                'Флаг "Чаты в WhatsApp" включит скрытую функциональность в amocrm, comagic_web и db ' +
+                                'для 4735. Подтвердить?'
                             );
                         });
                         it(
@@ -945,6 +1096,15 @@ tests.addTest(function (options) {
                     it('Нажимаю на ссылку "Отмена". Открыта страница списка фичефлагов.', function() {
                         tester.page.anchor('Отмена').click();
                         tester.button('Добавить флаг').expectToBeVisible();
+                    });
+                    it('Помещаю курсор над выпадающим списком пространств имен. Отображается подсказка.', function() {
+                        tester.select().withPlaceholder('Выберите пространство имен').putMouseOver();
+                        spendTime(100);
+                        
+                        tester.tooltip.expectToHaveTextContent(
+                            'Если хотите использовать пространство имен отсутствующее в списке, то попросите базиста ' +
+                            'добавить новое значение в enum feature.flag_namespace_mnemonic'
+                        );
                     });
                     it('Кнопка "Сохранить" заблокирована.', function() {
                         tester.button('Сохранить').expectToHaveAttribute('disabled');

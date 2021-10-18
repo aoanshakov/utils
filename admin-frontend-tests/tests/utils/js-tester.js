@@ -3821,7 +3821,9 @@ function JsTester_InputElement (
         }
     };
     this.putCursorAtEnd = function () {
-        this.putCursorAt(getDomElement().value.length);
+        var domElement = getDomElement();
+
+        this.putCursorAt(domElement ? domElement.value.length : 0);
         return this;
     };
     this.putCursorAtBegining = function () {

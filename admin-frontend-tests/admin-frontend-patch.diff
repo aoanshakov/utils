@@ -23,7 +23,7 @@ index f6100f5..7c89893 100644
      nConfig.plugins.push(new FilterWarningsPlugin({
          exclude: /mini-css-extract-plugin[^]*Conflicting order between:/
 diff --git a/public/index.html b/public/index.html
-index 2623908..8f58f64 100644
+index 2623908..ba033e8 100644
 --- a/public/index.html
 +++ b/public/index.html
 @@ -21,7 +21,59 @@
@@ -47,7 +47,7 @@ index 2623908..8f58f64 100644
 +            display: none !important;
 +        }
 +
-+        .zoom-enter, .zoom-big-fast-appear {
++        .zoom-enter, .zoom-big-fast-appear, .zoom-appear {
 +            opacity: 1 !important;
 +            -webkit-transform: none !important;
 +            -ms-transform: none !important;
@@ -58,7 +58,7 @@ index 2623908..8f58f64 100644
 +            display: none !important;
 +        }
 +
-+        .ant-notification-fade-enter {
++        .ant-notification-fade-enter, .fade-appear {
 +            opacity: 1 !important;
 +        }
 +
