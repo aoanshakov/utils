@@ -4468,10 +4468,6 @@ function JsTester_FetchMock (args) {
         utils = args.utils;
 
     return function (url, options) {
-        options = options || {
-            method: 'GET'
-        };
-
         var method = options.method,
             body = options.body,
             resolver = new JsTester_FunctionVariable(function () {});

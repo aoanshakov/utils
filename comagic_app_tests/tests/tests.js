@@ -19,9 +19,13 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
+            tester.configRequest().receiveResponse();
             tester.reportGroupsRequest().receiveResponse();
             tester.reportsListRequest().receiveResponse();
             tester.reportTypesRequest().receiveResponse();
+            tester.operatorStatusListRequest().receiveResponse();
+            tester.operatorListRequest().receiveResponse();
+            tester.operatorAccountRequest().receiveResponse();
             tester.reportStateRequest().receiveResponse();
             tester.reportRapidFiltersRequest().receiveResponse();
             tester.reportTotalRequest().receiveResponse();

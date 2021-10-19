@@ -2,36 +2,93 @@ const {Args, isOneOf, isTrue} = require('./arguments'),
     fs = require('fs'),
     execute = require('./execute'),
     rm = require('./rm'),
-    {application, nodeModules, nginxConfig, applicationPatch, preCommitHook} = require('./paths'),
-    cda = `cd ${application} &&`;
+    mkdir = require('./mkdir');
 
-const actions = {},
-    overridenFiles = 'public/index.html src/index.tsx src/history.ts config/webpack.config.js';
+const {
+    application,
+    nodeModules,
+    nginxConfig,
+    applicationPatch,
+    chatsPatch,
+    employeesPatch,
+    huskyPatch,
+    preCommitHook,
+    chats,
+    employees,
+    misc
+} = require('./paths');
 
+const cda = `cd ${application} &&`,
+    cdc = `cd ${chats} &&`,
+    actions = {},
+    chatOverridenFiles = 'src/models/RootStore.ts',
+    employeesOverridenFiles = chatOverridenFiles;
+
+const overridenFiles = [
+    'public/index.html',
+    'src/bootstrap.tsx',
+    'src/history.ts',
+    'config/webpack.config.js',
+    'package.json',
+    'src/models/RootStore.ts'
+].join(' ');
+    
 actions['fix-permissions'] =
     [`if [ -n "$APPLICATION_OWNER" ]; then chown -R $APPLICATION_OWNER:$APPLICATION_OWNER $1 ${application}; fi`];
 
-actions['initialize'] = !fs.existsSync(nodeModules) ?
-    [`chown -R root:root ${application}`, `${cda} npm install`].concat(actions['fix-permissions']) : [];
+const overriding = [{
+    application,
+    overridenFiles,
+    applicationPatch
+}, {
+    application: chats,
+    overridenFiles: chatOverridenFiles,
+    applicationPatch: chatsPatch
+}, {
+    application: employees,
+    overridenFiles: employeesOverridenFiles,
+    applicationPatch: employeesPatch
+}];
 
-actions['reset'] = [() => rm(nodeModules)];
+actions['create-patch'] = overriding.reduce((result, {
+    application,
+    overridenFiles,
+    applicationPatch
+}) => result.concat(fs.existsSync(application) ? [
+    `cd ${application} && git diff -- ${overridenFiles} > ${applicationPatch}`
+] : []), []);
+
+actions['restore-code'] = () => overriding.reduce((result, {
+    application,
+    overridenFiles
+}) => result.concat(fs.existsSync(application) ? [
+    `cd ${application} && git checkout ${overridenFiles}`
+] : []), []);
+
+actions['modify-code'] = () => actions['restore-code']().concat(overriding.reduce((result, {
+    application,
+    applicationPatch
+}) => result.concat(fs.existsSync(application) ? [
+    `cd ${application} && patch -p1 < ${applicationPatch}`
+] : []), [])).concat(
+    actions['fix-permissions']
+);
+
+actions['initialize'] = () => actions['modify-code']().concat([
+    ['chats', chats, ' --branch stand-va0'],
+    ['employees', employees, '']
+].map(([module, path, args]) => (!fs.existsSync(path) ? [
+    () => mkdir(misc),
+    `cd ${misc} && git clone${args} git@gitlab.uis.dev:web/comagic_app_modules/${module}.git`
+] : [])).reduce((result, item) => result.concat(item), []).concat(!fs.existsSync(nodeModules) ?
+    [`chown -R root:root ${application}`, `${cda} npm install --verbose`].concat(actions['fix-permissions']) : []));
+
+actions['reset'] = [() => rm(nodeModules), () => rm(misc)];
 actions['bash'] = [];
+actions['disable-hook'] = [`chmod +x ${preCommitHook}`, `${cda} patch -p1 < ${huskyPatch}`];
+actions['enable-hook'] = [/*`chmod -x ${preCommitHook}`, */`${cda} git checkout ${preCommitHook}`];
 
-actions['create-patch'] = [
-    `${cda} git diff -- ${overridenFiles} > ${applicationPatch}`
-];
-
-actions['restore-code'] = [
-    `${cda} git checkout ${overridenFiles}`
-];
-
-actions['modify-code'] = actions['restore-code'].
-    concat([`${cda} patch -p1 < ${applicationPatch}`].
-    concat(actions['fix-permissions']));
-
-actions['commit'] = [`chmod +x ${preCommitHook}`, `${cda} git commit`, `chmod -x ${preCommitHook}`];
-
-actions['run-server'] = actions['initialize'].concat(actions['modify-code'].concat([
+actions['run-server'] = () => actions['initialize']().concat([
     [
         'openssl req -x509',
             '-nodes',
@@ -46,7 +103,7 @@ actions['run-server'] = actions['initialize'].concat(actions['modify-code'].conc
     `cp ${nginxConfig} /etc/nginx/nginx.conf`,
     'service nginx start',
     `${cda} npm run dev`
-]));
+]);
 
 const {action, ...params} = (new Args({
     action: {

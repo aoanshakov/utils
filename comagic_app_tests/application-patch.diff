@@ -1,17 +1,146 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 69d3cf1e..f93e5025 100644
+index b19ab7b3..80a47565 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
-@@ -153,6 +153,9 @@ const plugins = () => {
-             filename: 'static/css/[name].[fullhash:8].css',
+@@ -16,18 +16,22 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+ const REACT_APP = /^REACT_APP_/i;
+ 
+ const appDirectory = fs.realpathSync(process.cwd());
++const miscDirectory = `${appDirectory}/misc`;
+ const dotenv = path.resolve(appDirectory, '.env');
+ const themeLessFileName = path.resolve(appDirectory, 'theme', 'theme.less');
+ const isProductionMode = NODE_ENV !== 'development';
+ const webpackMode = isProductionMode ? 'production' : 'development';
+ const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
+ const isBundleAnalyzerPlugin = false;
++const subModules = ['chats', 'employees'];
+ 
+ const lessLoader = {
+     loader: 'less-loader',
+     options: {
+         modifyVars: {
+-            'hack': `true; @import "${themeLessFileName}";`,
++            'hack': `true; @import "${themeLessFileName}"; ${
++                subModules.map(module => `@import "${miscDirectory}/${module}/theme/theme.less"`).join('; ')
++            }`,
+         },
+         javascriptEnabled: true,
+     },
+@@ -157,12 +161,13 @@ const plugins = () => {
              ignoreOrder: true,
          }),
+ 
+-        new ModuleFederationPlugin({
++        /*new ModuleFederationPlugin({
+             name: 'shell',
+             shared: ['react', 'react-dom'].reduce((shared, key) => {
+                 shared[key] = {
+                     requiredVersion: deps[key],
+                     singleton: true,
++                    eager: true
+                 };
+                 return shared;
+             }, {}),
+@@ -170,7 +175,11 @@ const plugins = () => {
+                 chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
+                 employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
+             },
+-        }),
++        }),*/
++
 +        new webpack.optimize.LimitChunkCountPlugin({
 +            maxChunks: 1
 +        })
      ];
  
      if (isBundleAnalyzerPlugin) {
+@@ -180,6 +189,13 @@ const plugins = () => {
+     return pluginsList;
+ };
+ 
++const createAliases = appDirectory => ({
++    '@': path.resolve(appDirectory, './src'),
++    '@models': path.resolve(appDirectory, './src/models'),
++    '@lib': path.resolve(appDirectory, './src/components/lib'),
++    '@hooks': path.resolve(appDirectory, './src/hooks'),
++});
++
+ module.exports = {
+     entry: './src/index.tsx',
+     target: 'web',
+@@ -269,12 +285,55 @@ module.exports = {
+     resolve: {
+         extensions: ['.tsx', '.ts', '.js'],
+         alias: {
+-            '@': path.resolve(appDirectory, './src'),
+-            '@models': path.resolve(appDirectory, './src/models'),
+-            '@lib': path.resolve(appDirectory, './src/components/lib'),
+-            '@hooks': path.resolve(appDirectory, './src/hooks'),
++            ...createAliases(appDirectory),
+             '@ant-design/icons/lib/dist$': path.resolve(appDirectory, './src/icons.ts'),
++            'employees/Root': 'employees/src/Root.tsx',
++            'chats/Root': 'chats/src/Root.tsx',
++            'chats/Account': 'chats/src/components/account/index.tsx',
++            'chats/ChatHistoryLog': 'chats/src/components/chats/chat-panel/HistoryLog.tsx',
++            'chats/HttpRpc': 'chats/src/httpRpc.ts',
++            'chats/ChatMessagesStore': 'chats/src/models/chats/ChatMessaagesStore.ts',
++            'chats/utils': 'chats/src/utils/index.ts',
+         },
++        plugins: [{
++            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
++                request,
++                resolveContext,
++                callback
++            ) =>  {
++                const target = resolver.ensureHook('resolve'),
++                    splitted = request.request.split('/');
++
++                const {
++                    directory,
++                    aliases
++                } = subModules.map(module => {
++                    const directory = `${miscDirectory}/${module}`;
++
++                    return {
++                        directory,
++                        aliases: createAliases(directory)
++                    };
++                }).find(({
++                    directory,
++                    aliases
++                }) => request.path.indexOf(directory) === 0 && Object.keys(aliases).some(
++                    alias => splitted[0] == alias
++                )) || {};
++
++                if (!directory) {
++                    callback();
++                    return;
++                }
++
++                splitted[0] = aliases[splitted[0]]
++
++                return resolver.doResolve(target, {
++                    ...request,
++                    request: splitted.join('/') 
++                }, null, resolveContext, callback);
++            })
++        }]
+     },
+     output: {
+         filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
+diff --git a/package.json b/package.json
+index 3a0ef1cc..39367053 100644
+--- a/package.json
++++ b/package.json
+@@ -79,6 +79,8 @@
+     "webpack-merge": "^5.7.3"
+   },
+   "dependencies": {
++    "employees": "./misc/employees",
++    "chats": "./misc/chats",
+     "antd": "^3.26.7",
+     "axios": "^0.19.2",
+     "classnames": "^2.2.6",
 diff --git a/public/index.html b/public/index.html
 index 98e0c107..0fe0c90f 100644
 --- a/public/index.html
@@ -49,6 +178,55 @@ index 98e0c107..0fe0c90f 100644
  </body>
  </html>
 \ No newline at end of file
+diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
+index 03e58fa0..5e4cfe4d 100644
+--- a/src/bootstrap.tsx
++++ b/src/bootstrap.tsx
+@@ -6,7 +6,9 @@ import { ConfigProvider } from 'antd';
+ import { useMountEffect } from '@hooks';
+ import { observer } from 'mobx-react-lite';
+ 
+-import { Provider, rootStore } from '@models/RootStore';
++import { Provider, rootStore, createRootStore } from '@models/RootStore';
++import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
++import { createRootStore as createEmployeesRootStore } from 'employees/src/models/RootStore';
+ 
+ import history from './history';
+ import { getAntdLocale, getIntlLocale, getIntlMessages } from './i18n';
+@@ -48,4 +50,32 @@ const Root: React.FC = observer(() => {
+     );
+ });
+ 
+-ReactDOM.render(<Root />, document.getElementById('root'));
++window.application = {
++    run({
++        setHistory = () => null
++    }) {
++        createRootStore();
++        createChatsRootStore();
++        createEmployeesRootStore();
++        setHistory(history);
++
++        this.exit();
++
++        const container = document.createElement('div');
++        container.id = 'root';
++        document.body.appendChild(container);
++
++        ReactDOM.render(<Root />, container);
++    },
++
++    exit() {
++        const container = document.getElementById('root');
++
++        if (!container) {
++            return;
++        }
++
++        container.firstChild && ReactDOM.unmountComponentAtNode(container);
++        container.remove();
++    }
++};
 diff --git a/src/history.ts b/src/history.ts
 index 33bf6a02..dceaff1c 100644
 --- a/src/history.ts
@@ -62,37 +240,17 @@ index 33bf6a02..dceaff1c 100644
  
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
-diff --git a/src/index.tsx b/src/index.tsx
-index e2360abd..a07843d5 100644
---- a/src/index.tsx
-+++ b/src/index.tsx
-@@ -48,4 +48,28 @@ const Root: React.FC = observer(() => {
-     );
- });
+diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
+index 86f60ae1..015c1dc8 100644
+--- a/src/models/RootStore.ts
++++ b/src/models/RootStore.ts
+@@ -257,7 +257,8 @@ export type DependencyInjection = {
+ export type RootInstance = Instance<typeof RootStore>;
+ export const RootStoreContext = React.createContext<null | RootInstance>(null);
+ export const Provider = RootStoreContext.Provider;
+-export const rootStore = RootStore.create({}, { httpRpc, httpRpcAuth });
++export let rootStore;
++export const createRootStore = () => (rootStore = RootStore.create({}, { httpRpc, httpRpcAuth }));
  
--ReactDOM.render(<Root />, document.getElementById('root'));
-+window.application = {
-+    run({
-+        setHistory = () => null
-+    }) {
-+        setHistory(history);
-+        this.exit();
-+
-+        const container = document.createElement('div');
-+        container.id = 'root';
-+        document.body.appendChild(container);
-+
-+        ReactDOM.render(<Root />, container);
-+    },
-+
-+    exit() {
-+        const container = document.getElementById('root');
-+
-+        if (!container || !container.firstChild) {
-+            return;
-+        }
-+
-+        ReactDOM.unmountComponentAtNode(container);
-+        container.remove();
-+    }
-+};
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+ 

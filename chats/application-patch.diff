@@ -1,0 +1,99 @@
+diff --git a/config/webpack.config.js b/config/webpack.config.js
+index a8dce29..dbe9607 100644
+--- a/config/webpack.config.js
++++ b/config/webpack.config.js
+@@ -162,11 +162,14 @@ const plugins = () => {
+             shared: ['react', 'react-dom'].reduce((shared, key) => {
+                 shared[key] = {
+                     requiredVersion: deps[key],
+-                    singleton: true,
++                    singleton: true
+                 };
+                 return shared;
+             }, {}),
+-        }),
++        }),/*
++        new webpack.optimize.LimitChunkCountPlugin({
++            maxChunks: 2,
++        }),*/
+     ];
+ };
+ 
+diff --git a/public/index.html b/public/index.html
+index 61ad137..2a5b161 100644
+--- a/public/index.html
++++ b/public/index.html
+@@ -4,9 +4,28 @@
+     <base href="/">
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
++    <script>
++        var windowLoadHandler = window.onload;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/boot.js"></script>
++    <script>
++        window.onload = windowLoadHandler;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-ajax/lib/mock-ajax.js"></script>
++    <script src="/tests/utils/jasmine/console-reporter.js"></script>
++    <script src="/tests/utils/js-tester.js"></script>
++    <script type="text/javascript">
++        var tests = new JsTester_Tests(new JsTester_Factory());
++        tests.exposeDebugUtils('jsTestDebug');
++    </script>
+ </head>
+ <body>
+     <noscript>You need to enable JavaScript to run this app.</noscript>
+     <div id="root"></div>
++    <script src="/tests/utils/require.js"></script>
++    <script src="/tests/tests.js"></script>
++    <script src="/tests/utils/tests.js"></script>
+ </body>
+ </html>
+\ No newline at end of file
+diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
+index 62b82af..5ecb477 100644
+--- a/src/bootstrap.tsx
++++ b/src/bootstrap.tsx
+@@ -5,4 +5,28 @@ import './global';
+ 
+ import Root from './Root';
+ 
+-ReactDOM.render(<Root />, document.getElementById('root'));
++window.application = {
++    run({
++        setHistory = () => null
++    }) {
++        setHistory(history);
++        this.exit();
++
++        const container = document.createElement('div');
++        container.id = 'root';
++        document.body.appendChild(container);
++
++        ReactDOM.render(<Root />, container);
++    },
++
++    exit() {
++        const container = document.getElementById('root');
++
++        if (!container || !container.firstChild) {
++            return;
++        }
++
++        ReactDOM.unmountComponentAtNode(container);
++        container.remove();
++    }
++};
+diff --git a/src/history.ts b/src/history.ts
+index 9937105..d590c48 100644
+--- a/src/history.ts
++++ b/src/history.ts
+@@ -1,3 +1,3 @@
+-import { createBrowserHistory } from 'history';
++import { createMemoryHistory } from 'history';
+ 
+-export default createBrowserHistory();
++export default createMemoryHistory();
