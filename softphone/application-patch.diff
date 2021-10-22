@@ -1,0 +1,149 @@
+diff --git a/config/webpack.config.js b/config/webpack.config.js
+index 517c0e0..fb3e647 100644
+--- a/config/webpack.config.js
++++ b/config/webpack.config.js
+@@ -134,6 +134,7 @@ const plugins = () => {
+             filename: 'static/css/[name].[fullhash:8].css',
+             ignoreOrder: true,
+         }),
++        /*
+         new ModuleFederationPlugin({
+             name: 'softphone',
+             filename: 'remoteEntry.js',
+@@ -149,6 +150,10 @@ const plugins = () => {
+                 return shared;
+             }, {}),
+         }),
++        */
++        new webpack.optimize.LimitChunkCountPlugin({
++            maxChunks: 1,
++        }),
+     ];
+ };
+ 
+diff --git a/package.json b/package.json
+index 1502b99..726a39a 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "comagic-app-module--chats",
++  "name": "comagic-app-module--softphone",
+   "version": "1.0.0",
+   "description": "",
+   "main": "index.js",
+@@ -65,7 +65,6 @@
+     "history": "^4.10.1",
+     "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.1.39",
+     "mobx": "^6.1.8",
+-    "mobx-devtools-mst": "^0.9.30",
+     "mobx-react-lite": "^3.2.0",
+     "mobx-state-tree": "^5.0.1",
+     "moment": "^2.29.1",
+@@ -73,9 +72,12 @@
+     "react-dom": "^17.0.1",
+     "react-intl": "^5.13.2",
+     "react-router-dom": "^5.2.0",
++    "react-redux": "^7.0.0",
++    "redux": "^4.0.0",
++    "redux-thunk": "^2.3.0",
+     "short-uuid": "^4.2.0",
+     "uuid": "^8.3.2",
+     "yup": "^0.32.9",
+-    "uis-softphone": "1.20.2"
++    "uis-softphone": "./misc/sip_lib"
+   }
+ }
+diff --git a/public/index.html b/public/index.html
+index 61ad137..2a5b161 100644
+--- a/public/index.html
++++ b/public/index.html
+@@ -4,9 +4,28 @@
+     <base href="/">
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
++    <script>
++        var windowLoadHandler = window.onload;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/boot.js"></script>
++    <script>
++        window.onload = windowLoadHandler;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-ajax/lib/mock-ajax.js"></script>
++    <script src="/tests/utils/jasmine/console-reporter.js"></script>
++    <script src="/tests/utils/js-tester.js"></script>
++    <script type="text/javascript">
++        var tests = new JsTester_Tests(new JsTester_Factory());
++        tests.exposeDebugUtils('jsTestDebug');
++    </script>
+ </head>
+ <body>
+     <noscript>You need to enable JavaScript to run this app.</noscript>
+     <div id="root"></div>
++    <script src="/tests/utils/require.js"></script>
++    <script src="/tests/tests.js"></script>
++    <script src="/tests/utils/tests.js"></script>
+ </body>
+ </html>
+\ No newline at end of file
+diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
+index cce2f32..01f14de 100644
+--- a/src/bootstrap.tsx
++++ b/src/bootstrap.tsx
+@@ -1,5 +1,30 @@
+ import React from 'react';
+ import ReactDOM from 'react-dom';
+ import Root from './Root';
++import { createRootStore } from '@models/RootStore';
+ 
+-ReactDOM.render(<Root />, document.getElementById('root'));
++window.application = {
++    run(args) {
++        createRootStore();
++
++        this.exit();
++
++        const callback = args?.callback || (() => null),
++            container = document.createElement('div');
++        container.id = 'root';
++        document.body.appendChild(container);
++
++        ReactDOM.render(<Root callback={callback} />, container);
++    },
++
++    exit() {
++        const container = document.getElementById('root');
++
++        if (!container) {
++            return;
++        }
++
++        container.firstChild && ReactDOM.unmountComponentAtNode(container);
++        container.remove();
++    }
++};
+diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
+index 3db55ae..0e19455 100644
+--- a/src/models/RootStore.ts
++++ b/src/models/RootStore.ts
+@@ -1,6 +1,5 @@
+ import React from 'react';
+ import { types, Instance, getSnapshot, applySnapshot, SnapshotOut } from 'mobx-state-tree';
+-import makeInspectable from 'mobx-devtools-mst';
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+ 
+@@ -41,9 +40,5 @@ export const RootStore = types
+ export type RootInstance = Instance<typeof RootStore>;
+ export const RootStoreContext = React.createContext<null | RootInstance>(null);
+ export const Provider = RootStoreContext.Provider;
+-export const rootStore = RootStore.create({});
+-
+-if (process.env.NODE_ENV === 'development') {
+-    window.softphoneRootStore = rootStore;
+-    makeInspectable(rootStore);
+-}
++export let rootStore;
++export const createRootStore = () => (rootStore = RootStore.create({}));
