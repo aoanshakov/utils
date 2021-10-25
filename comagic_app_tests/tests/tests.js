@@ -19,6 +19,7 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
+            tester.configRequest().softphone().receiveResponse();
             tester.configRequest().receiveResponse();
             tester.reportGroupsRequest().receiveResponse();
             tester.reportsListRequest().receiveResponse();

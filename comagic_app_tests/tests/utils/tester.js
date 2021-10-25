@@ -244,20 +244,32 @@ define(() => function ({
             }
         }),
 
-        configRequest: () => ({
-            receiveResponse: () => {
-                fetch.recentRequest().expectPathToContain('/config.json').respondSuccessfullyWith(JSON.stringify({
-                    REACT_APP_BASE_URL: 'https://lobarev.dev.uis.st/logic/operator',
-                    REACT_APP_AUTH_URL: 'https://dev-dataapi.uis.st/va0/auth/json_rpc',
-                    REACT_APP_WS_URL: 'wss://lobarev.dev.uis.st/ws',
-                    REACT_APP_LOCALE: 'ru'
-                }));
+        configRequest: () => {
+            let response = {
+                REACT_APP_BASE_URL: 'https://lobarev.dev.uis.st/logic/operator',
+                REACT_APP_AUTH_URL: 'https://dev-dataapi.uis.st/va0/auth/json_rpc',
+                REACT_APP_WS_URL: 'wss://lobarev.dev.uis.st/ws',
+                REACT_APP_LOCALE: 'ru'
+            };
 
-                Promise.runAll(false, true);
-                spendTime(0)
-                Promise.runAll(false, true);
-            }
-        }),
+            me = {
+                softphone: () => ((response = {
+                    REACT_APP_LOCALE: 'ru'
+                }), me),
+
+                receiveResponse: () => {
+                    fetch.recentRequest().expectPathToContain('/config.json').respondSuccessfullyWith(
+                        JSON.stringify(response)
+                    );
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+
+            return me;
+        },
 
         reportTableRequest: () => {
             const params = {
