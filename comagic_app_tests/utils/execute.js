@@ -13,7 +13,7 @@ const execute = (command, callback) => {
     }
 
     console.log(`> ${command}`);
-    const stream = exec(command, () => callback());
+    const stream = exec(command, error => !error && callback());
 
     stream.stdout.pipe(process.stdout)
     stream.stderr.pipe(process.stdout)

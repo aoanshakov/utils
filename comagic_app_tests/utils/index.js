@@ -12,17 +12,25 @@ const {
     chatsPatch,
     employeesPatch,
     huskyPatch,
+    softphonePatch,
     preCommitHook,
     chats,
     employees,
-    misc
+    softphone,
+    misc,
+    softphoneMisc,
+    sipLib,
+    sipLibPatch,
+    uisWebRTC
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
     cdc = `cd ${chats} &&`,
     actions = {},
-    chatOverridenFiles = 'src/models/RootStore.ts',
-    employeesOverridenFiles = chatOverridenFiles;
+    chatOverridenFiles = 'src/models/RootStore.ts package.json',
+    employeesOverridenFiles = chatOverridenFiles,
+    softphoneOverridenFiles = 'package.json',
+    sipLibOverridenFiles = softphoneOverridenFiles;
 
 const overridenFiles = [
     'public/index.html',
@@ -48,6 +56,14 @@ const overriding = [{
     application: employees,
     overridenFiles: employeesOverridenFiles,
     applicationPatch: employeesPatch
+}, {
+    application: softphone,
+    overridenFiles: softphoneOverridenFiles,
+    applicationPatch: softphonePatch
+}, {
+    application: sipLib,
+    overridenFiles: sipLibOverridenFiles,
+    applicationPatch: sipLibPatch
 }];
 
 actions['create-patch'] = overriding.reduce((result, {
@@ -68,25 +84,35 @@ actions['restore-code'] = () => overriding.reduce((result, {
 actions['modify-code'] = () => actions['restore-code']().concat(overriding.reduce((result, {
     application,
     applicationPatch
-}) => result.concat(fs.existsSync(application) ? [
-    `cd ${application} && patch -p1 < ${applicationPatch}`
-] : []), [])).concat(
+}) => result.concat([
+    `if [ -d ${application} ] && [ -f ${applicationPatch} ]; ` +
+        `then cd ${application} && patch -p1 < ${applicationPatch}; ` +
+    `fi`
+]), [])).concat(
     actions['fix-permissions']
 );
 
-actions['initialize'] = () => actions['modify-code']().concat([
-    ['chats', chats, ' --branch stand-va0'],
-    ['employees', employees, '']
-].map(([module, path, args]) => (!fs.existsSync(path) ? [
+const appModule = ([module, path, args]) => [`comagic_app_modules/${module}`, path, args, misc],
+    branch2487 = ' --branch tasks/PBL-2487';
+
+actions['initialize'] = () => [
+    appModule(['chats', chats, ' --branch stand-va0']),
+    appModule(['employees', employees, '']),
+    appModule(['softphone', softphone, '']),
+    ['sip_lib', sipLib, branch2487, softphoneMisc],
+    ['uis_webrtc', uisWebRTC, branch2487, sipLib]
+].map(([module, path, args, misc]) => (!fs.existsSync(path) ? [
     () => mkdir(misc),
-    `cd ${misc} && git clone${args} git@gitlab.uis.dev:web/comagic_app_modules/${module}.git`
-] : [])).reduce((result, item) => result.concat(item), []).concat(!fs.existsSync(nodeModules) ?
-    [`chown -R root:root ${application}`, `${cda} npm install --verbose`].concat(actions['fix-permissions']) : []));
+    `cd ${misc} && git clone${args} git@gitlab.uis.dev:web/${module}.git`
+] : [])).reduce((result, item) => result.concat(item), []).concat(
+    actions['modify-code']()
+).concat(!fs.existsSync(nodeModules) ?
+    [`chown -R root:root ${application}`, `${cda} npm install --verbose`].concat(actions['fix-permissions']) : []);
 
 actions['reset'] = [() => rm(nodeModules), () => rm(misc)];
 actions['bash'] = [];
 actions['disable-hook'] = [`chmod +x ${preCommitHook}`, `${cda} patch -p1 < ${huskyPatch}`];
-actions['enable-hook'] = [/*`chmod -x ${preCommitHook}`, */`${cda} git checkout ${preCommitHook}`];
+actions['enable-hook'] = [`${cda} git checkout ${preCommitHook}`];
 
 actions['run-server'] = () => actions['initialize']().concat([
     [
