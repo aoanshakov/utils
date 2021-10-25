@@ -19,3 +19,17 @@ index 1502b99..a1f271b 100644
 +    "uis-softphone": "./misc/sip_lib"
    }
  }
+diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
+index 3db55ae..f07365f 100644
+--- a/src/models/RootStore.ts
++++ b/src/models/RootStore.ts
+@@ -41,7 +41,8 @@ export const RootStore = types
+ export type RootInstance = Instance<typeof RootStore>;
+ export const RootStoreContext = React.createContext<null | RootInstance>(null);
+ export const Provider = RootStoreContext.Provider;
+-export const rootStore = RootStore.create({});
++export let rootStore;
++export const createRootStore = () => (rootStore = RootStore.create({}));
+ 
+ if (process.env.NODE_ENV === 'development') {
+     window.softphoneRootStore = rootStore;
