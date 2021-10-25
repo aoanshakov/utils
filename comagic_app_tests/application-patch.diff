@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index b19ab7b3..4d313798 100644
+index b19ab7b3..22cfffc2 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -16,21 +16,27 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
@@ -108,7 +108,7 @@ index b19ab7b3..4d313798 100644
 +                const {
 +                    directory,
 +                    aliases
-+                } = subModules.map(module => {
++                } = subModules.concat(['softphone']).map(module => {
 +                    const directory = `${miscDirectory}/${module}`;
 +
 +                    return {
