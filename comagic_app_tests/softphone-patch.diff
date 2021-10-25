@@ -20,10 +20,53 @@ index a50f531..f41418f 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3db55ae..f07365f 100644
+index 3db55ae..6a572f0 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -41,7 +41,8 @@ export const RootStore = types
+@@ -1,6 +1,11 @@
+ import React from 'react';
+ import { types, Instance, getSnapshot, applySnapshot, SnapshotOut } from 'mobx-state-tree';
+ import makeInspectable from 'mobx-devtools-mst';
++import createSoftphoneReducer from 'uis-softphone/reducer';
++import { showWidget, hideWidget } from 'uis-softphone/actions';
++import createSoftphoneMiddleware from 'uis-softphone/middleware';
++import thunkMiddleware from 'redux-thunk';
++import { combineReducers, createStore, applyMiddleware } from 'redux';
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+ 
+@@ -28,6 +33,30 @@ export const RootStore = types
+         let initialState: RootInstanceSnapshotOut;
+ 
+         const afterCreate = () => {
++            self.reduxStore = createStore(combineReducers({
++                requestUrls: () => () => ({
++                    httpServerUrl: `https://${self.configStore.SOFTPHONE_HOST}`
++                }),
++                mayHideSoftphone: () => () => true,
++                getPhoneNumber: () => () => '',
++                createSlavesNotification: () => state => ({}),
++                getWebRTCConfig: () => () => ({}),
++                ...createSoftphoneReducer({
++                    i18n: key => key,
++                    appProject: '',
++                    soundOverrides: {},
++                    overrides: {}
++                })
++            }), {}, applyMiddleware(
++                thunkMiddleware,
++                createSoftphoneMiddleware()
++            ));
++
++            const args = [self.reduxStore.dispatch, self.reduxStore.getState()];
++
++            self.showSoftphone = () => showWidget(...args);
++            self.hideSoftphone = () => hideWidget(...args)
++
+             initialState = getSnapshot(self);
+         };
+ 
+@@ -41,7 +70,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

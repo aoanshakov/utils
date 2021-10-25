@@ -53,7 +53,7 @@ tests.addTest(options => {
             reportTableRequest = tester.reportTableRequest().thirdColumn().visitorRegion().expectToBeSent();
         });
 
-        describe(
+        xdescribe(
             'Срок действия токена авторизации истек. Токен авторизации обновлен. Запрошены данные для отчета.',
         function() {
             beforeEach(function() {
@@ -79,6 +79,10 @@ tests.addTest(options => {
                 );
             });
         });
+        it('', function() {
+            tester.phoneIcon.click();
+        });
+        return;
         it('Получены данные для отчета. Отображен отчет.', function() {
             reportTableRequest.receiveResponse();
 

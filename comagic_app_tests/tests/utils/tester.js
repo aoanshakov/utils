@@ -15,8 +15,6 @@ define(() => function ({
     spendTime(0);
 
     return {
-        body: testersFactory.createDomElementTester('body'),
-
         operatorAccountRequest: () => ({
             receiveResponse() {
                 ajax.recentRequest().
@@ -254,6 +252,7 @@ define(() => function ({
 
             me = {
                 softphone: () => ((response = {
+                    SOFTPHONE_HOST: 'myint0.dev.uis.st',
                     REACT_APP_LOCALE: 'ru'
                 }), me),
 
@@ -1001,6 +1000,8 @@ define(() => function ({
         }),
 
         forceUpdate: () => utils.pressKey('k'),
+        body: testersFactory.createDomElementTester('body'),
+        phoneIcon: testersFactory.createDomElementTester('.cm-top-menu-phone-icon'),
 
         button: text => testersFactory.createDomElementTester(
             utils.descendantOfBody().

@@ -1,8 +1,16 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index b19ab7b3..94d2ff47 100644
+index b19ab7b3..2c975368 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
-@@ -16,21 +16,27 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+ const TerserPlugin = require('terser-webpack-plugin');
++const hash = require('string-hash');
+ 
+ const { ModuleFederationPlugin } = webpack.container;
+ const deps = require('../package.json').dependencies;
+@@ -16,21 +17,27 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
@@ -35,7 +43,7 @@ index b19ab7b3..94d2ff47 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -157,12 +163,13 @@ const plugins = () => {
+@@ -157,12 +164,13 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -50,7 +58,7 @@ index b19ab7b3..94d2ff47 100644
                  };
                  return shared;
              }, {}),
-@@ -170,7 +177,11 @@ const plugins = () => {
+@@ -170,7 +178,11 @@ const plugins = () => {
                  chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
                  employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
              },
@@ -63,7 +71,7 @@ index b19ab7b3..94d2ff47 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -180,6 +191,13 @@ const plugins = () => {
+@@ -180,6 +192,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -77,7 +85,7 @@ index b19ab7b3..94d2ff47 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -199,6 +217,21 @@ module.exports = {
+@@ -199,6 +218,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -99,7 +107,46 @@ index b19ab7b3..94d2ff47 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -269,12 +302,56 @@ module.exports = {
+@@ -249,6 +283,7 @@ module.exports = {
+             },
+             {
+                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
++                exclude: /\/softphone\/icons\//,
+                 use: [
+                     {
+                         loader: '@svgr/webpack',
+@@ -264,17 +299,88 @@ module.exports = {
+                     },
+                 ],
+             },
++            {
++                test: /\/softphone\/icons\/.*\.svg/,
++                use: ({resource}) => {
++                    return [{
++                        loader: 'babel-loader',
++                        options: {
++                            presets: ['@babel/preset-react', '@babel/preset-env'],
++                            comments: false
++                        }
++                    }, {
++                        loader: '@svgr/webpack',
++                        options: {
++                            babel: false,
++                            icon: true,
++                            svgoConfig: {
++                                plugins: [{
++                                    cleanupIDs: {
++                                        prefix: `svg${hash(path.relative(__dirname, resource))}`,
++                                        force: true
++                                    }
++                                }]
++                            }
++                        }
++                    }];
++                }
++            },
+         ],
+     },
      resolve: {
          extensions: ['.tsx', '.ts', '.js'],
          alias: {
@@ -111,6 +158,7 @@ index b19ab7b3..94d2ff47 100644
              '@ant-design/icons/lib/dist$': path.resolve(appDirectory, './src/icons.ts'),
 +            'employees/Root': 'employees/src/Root.tsx',
 +            'softphone/Root': 'softphone/src/Root.tsx',
++            'softphone/RootStore': 'softphone/src/models/RootStore.ts',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/ChatHistoryLog': 'chats/src/components/chats/chat-panel/HistoryLog.tsx',
@@ -300,10 +348,26 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 86f60ae1..015c1dc8 100644
+index 86f60ae1..d0173595 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -257,7 +257,8 @@ export type DependencyInjection = {
+@@ -26,6 +26,7 @@ import { PhonesStore } from '@models/phones/PhonesStore';
+ import { NumberPoolNumbersStore } from '@models/number-pool-numbers/NumberPoolNumbersStore';
+ import { MarketplaceStore } from '@models/marketplace/MarketplaceStore';
+ import { HttpRpcErrorModel } from '@models/shared/error';
++import { RootStore as SoftphoneStore } from 'softphone/RootStore';
+ 
+ const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
+ const ACCESS_TOKEN_INVALID = 'access_token_invalid';
+@@ -84,6 +85,7 @@ export const RootStore = types
+         isGodMode: types.optional(types.boolean, isGodMode()),
+         modalResponseErrorStore: types.optional(ModalResponseErrorStore, {}),
+         authStore: types.optional(AuthStore, {}),
++        softphoneStore: types.optional(SoftphoneStore, {}),
+         accountStore: types.optional(AccountStore, {}),
+         reportStore: types.optional(RootReportStore, {}),
+         tagsStore: types.optional(TagsStore, {}),
+@@ -257,7 +259,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
