@@ -3,7 +3,12 @@ document.addEventListener('DOMContentLoaded', function () {
         baseUrl: '/tests/utils'
     });
 
-    requirejs(['promise-mock', 'tester', 'softphone-tester'], function (PromiseMock, Tester, SoftphoneTester) {
+    requirejs(['promise-mock', 'tester', 'softphone-tester', 'sip'], function (
+        PromiseMock,
+        Tester,
+        SoftphoneTester,
+        Sip
+    ) {
         describe('', function() {
             beforeEach(function() {
                 PromiseMock.install();
@@ -15,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             tests.runTests({
+                Sip,
                 Tester: function (options) {
                     options.softphoneTester = new SoftphoneTester(options);
                     return new Tester(options);

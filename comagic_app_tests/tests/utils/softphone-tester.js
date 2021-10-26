@@ -29,6 +29,20 @@ define(function () {
 
         initialize();
 
+        function getSipLineButton (index) {
+            return document.querySelectorAll('.cmg-sip-line-button')[index];
+        }
+
+        this.innerContainer = testersFactory.createDomElementTester('#cmg-inner-container');
+
+        this.firstLineButton = testersFactory.createDomElementTester(function () {
+            return getSipLineButton(0);
+        });
+
+        this.secondLineButton = testersFactory.createDomElementTester(function () {
+            return getSipLineButton(1);
+        });
+
         this.expectMicrophoneDeviceIdToEqual = function (mediaStream, expectedDeviceId) {
             var actualDeviceId = mediaStream.getAudioTracks()[0].getSettings().deviceId;
 
@@ -2234,6 +2248,8 @@ define(function () {
                 }
             };
         };
+
+        this.phoneField = testersFactory.createTextFieldTester('.cmg-input');
 
         this.registrationRequest = function () {
             return {
