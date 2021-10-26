@@ -53,7 +53,7 @@ tests.addTest(options => {
             reportTableRequest = tester.reportTableRequest().thirdColumn().visitorRegion().expectToBeSent();
         });
 
-        xdescribe(
+        describe(
             'Срок действия токена авторизации истек. Токен авторизации обновлен. Запрошены данные для отчета.',
         function() {
             beforeEach(function() {
@@ -79,10 +79,19 @@ tests.addTest(options => {
                 );
             });
         });
-        it('', function() {
-            tester.phoneIcon.click();
+        describe('Нажимаю на иконку с телефоном.', function() {
+            beforeEach(function() {
+                tester.phoneIcon.click();
+            });
+
+            it('Нажимаю на иконку с телефоном. Кнопка вызова скрыта.', function() {
+                tester.phoneIcon.click();
+                tester.callButton.expectNotToExist();
+            });
+            it('Кнопка вызова заблокирована.', function() {
+                tester.callButton.expectToHaveAttribute('disabled');
+            });
         });
-        return;
         it('Получены данные для отчета. Отображен отчет.', function() {
             reportTableRequest.receiveResponse();
 

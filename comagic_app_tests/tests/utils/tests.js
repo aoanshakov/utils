@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
         baseUrl: '/tests/utils'
     });
 
-    requirejs(['promise-mock', 'tester'], function (PromiseMock, Tester) {
+    requirejs(['promise-mock', 'tester', 'softphone-tester'], function (PromiseMock, Tester, SoftphoneTester) {
         describe('', function() {
             beforeEach(function() {
                 PromiseMock.install();
@@ -14,7 +14,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 tests.afterEach();
             });
 
-            tests.runTests({Tester});
+            tests.runTests({
+                Tester: function (options) {
+                    options.softphoneTester = new SoftphoneTester(options);
+                    return new Tester(options);
+                } 
+            });
         });
 
         jasmine.getEnv().execute();

@@ -29,8 +29,8 @@ const cda = `cd ${application} &&`,
     actions = {},
     chatOverridenFiles = 'src/models/RootStore.ts package.json',
     employeesOverridenFiles = chatOverridenFiles,
-    softphoneOverridenFiles = 'package.json src/models/RootStore.ts',
-    sipLibOverridenFiles = 'package.json';
+    softphoneOverridenFiles = 'package.json',
+    sipLibOverridenFiles = softphoneOverridenFiles;
 
 const overridenFiles = [
     'public/index.html',

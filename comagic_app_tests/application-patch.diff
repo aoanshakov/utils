@@ -284,10 +284,10 @@ index 98e0c107..0fe0c90f 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 03e58fa0..54c80b7b 100644
+index 03e58fa0..5e4cfe4d 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -6,7 +6,10 @@ import { ConfigProvider } from 'antd';
+@@ -6,7 +6,9 @@ import { ConfigProvider } from 'antd';
  import { useMountEffect } from '@hooks';
  import { observer } from 'mobx-react-lite';
  
@@ -295,11 +295,10 @@ index 03e58fa0..54c80b7b 100644
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
 +import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
 +import { createRootStore as createEmployeesRootStore } from 'employees/src/models/RootStore';
-+import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
  
  import history from './history';
  import { getAntdLocale, getIntlLocale, getIntlMessages } from './i18n';
-@@ -48,4 +51,33 @@ const Root: React.FC = observer(() => {
+@@ -48,4 +50,32 @@ const Root: React.FC = observer(() => {
      );
  });
  
@@ -311,7 +310,6 @@ index 03e58fa0..54c80b7b 100644
 +        createRootStore();
 +        createChatsRootStore();
 +        createEmployeesRootStore();
-+        createSoftphoneRootStore();
 +        setHistory(history);
 +
 +        this.exit();
