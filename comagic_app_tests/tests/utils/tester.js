@@ -116,8 +116,8 @@ define(() => function ({
         };
 
         const headers = {
-            Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0'//,
-            //'X-Auth-Type': 'jwt'
+            Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
         };
 
         const request = addAuthErrorResponseModifiers({
