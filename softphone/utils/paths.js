@@ -18,6 +18,7 @@ module.exports = {
     indexHtml: `${application}/build/index.html`,
     testsHtml: `${tests}/tests/tests.html`,
     applicationPatch: `${tests}/application-patch.diff`,
+    devApplicationPatch: `${tests}/dev-application-patch.diff`,
     sipLibPatch: `${tests}/sip-lib-patch.diff`,
     misc,
     sipLib,
