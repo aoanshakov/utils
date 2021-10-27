@@ -21,7 +21,7 @@ const {
 const cda = `cd ${application} &&`,
     actions = {},
     sipLibOverridenFiles = 'package.json',
-    devOverridenFiles = sipLibOverridenFiles;
+    devOverridenFiles = 'config/webpack.config.js package.json';
 
 const overridenFiles = [
     'public/index.html',
@@ -111,7 +111,7 @@ actions['reset'] = [
 
 actions['bash'] = [];
 
-actions['run-server'] = () => actions['initialize']().concat([
+actions['run-server'] = params => actions['initialize'](params).concat([
     [
         'openssl req -x509',
             '-nodes',

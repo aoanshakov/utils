@@ -1,3 +1,18 @@
+diff --git a/config/webpack.config.js b/config/webpack.config.js
+index 82bd819..d9780cc 100644
+--- a/config/webpack.config.js
++++ b/config/webpack.config.js
+@@ -278,8 +278,8 @@ module.exports = {
+         },
+     },
+     output: {
+-        filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
+-        chunkFilename: isProductionMode ? 'static/js/[name].[contenthash:8].chunk.js' : 'static/js/[name].chunk.js',
++        filename: 'static/js/[name].[contenthash:8].js',
++        chunkFilename: 'static/js/[name].[contenthash:8].chunk.js',
+         path: path.resolve(appDirectory, 'build'),
+     },
+     plugins: plugins(),
 diff --git a/package.json b/package.json
 index a50f531..726a39a 100644
 --- a/package.json
