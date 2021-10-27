@@ -21,7 +21,8 @@ const {
     softphoneMisc,
     sipLib,
     sipLibPatch,
-    uisWebRTC
+    uisWebRTC,
+    packageLockJson
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -40,7 +41,7 @@ const overridenFiles = [
     'package.json',
     'src/models/RootStore.ts'
 ].join(' ');
-    
+
 actions['fix-permissions'] =
     [`if [ -n "$APPLICATION_OWNER" ]; then chown -R $APPLICATION_OWNER:$APPLICATION_OWNER $1 ${application}; fi`];
 
@@ -77,9 +78,11 @@ actions['create-patch'] = overriding.reduce((result, {
 actions['restore-code'] = () => overriding.reduce((result, {
     application,
     overridenFiles
-}) => result.concat(fs.existsSync(application) ? [
-    `cd ${application} && git checkout ${overridenFiles}`
-] : []), []);
+}) => result.concat([
+    `if [ -d ${application} ]; ` +
+        `then cd ${application} && git checkout ${overridenFiles}; ` +
+    `fi`
+]), []);
 
 actions['modify-code'] = () => actions['restore-code']().concat(overriding.reduce((result, {
     application,
@@ -109,7 +112,14 @@ actions['initialize'] = () => [
 ).concat(!fs.existsSync(nodeModules) ?
     [`chown -R root:root ${application}`, `${cda} npm install --verbose`].concat(actions['fix-permissions']) : []);
 
-actions['reset'] = [() => rm(nodeModules), () => rm(misc)];
+const rmVerbose = target => `if [ -e ${target} ]; then rm -rvf ${target}; fi`;
+
+actions['reset'] = [
+    rmVerbose(nodeModules),
+    rmVerbose(misc),
+    rmVerbose(packageLockJson)
+].concat(actions['restore-code']());
+
 actions['bash'] = [];
 actions['disable-hook'] = [`chmod +x ${preCommitHook}`, `${cda} patch -p1 < ${huskyPatch}`];
 actions['enable-hook'] = [`${cda} git checkout ${preCommitHook}`];

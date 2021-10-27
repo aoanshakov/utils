@@ -14,7 +14,9 @@ tests.addTest(options => {
         });
 
         it('Показываю софтфон. Кнопка вызова заблокирована.', function() {
-            tester.showSoftphone();
+            tester.store.toggleSoftphoneVisiblity();
+            spendTime(0);
+
             tester.callButton.expectToHaveAttribute('disabled');
         });
         it('Софтфон скрыт.', function() {

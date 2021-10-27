@@ -9,8 +9,7 @@ define(() => function ({
     me.configRequest = () => ({
         receiveResponse: () => {
             fetch.recentRequest().expectPathToContain('/config.json').respondSuccessfullyWith(JSON.stringify({
-                REACT_APP_LOCALE: 'ru',
-                SOFTPHONE_HOST: 'myint0.dev.uis.st'
+                REACT_APP_LOCALE: 'ru'
             }));
 
             Promise.runAll(false, true);
@@ -20,14 +19,9 @@ define(() => function ({
     });
         
     window.application.run({
-        callback: (args) => Object.entries(args).forEach(([key, value]) => (me[key] = (...args) => {
-            const result = value(...args);
-            spendTime(0);
-            return result;
-        }))
+        callback: store => (me.store = store)
     });
 
     spendTime(0);
-
     return me;
 });

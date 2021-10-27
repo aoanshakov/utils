@@ -68,28 +68,26 @@ index 61ad137..2a5b161 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index cce2f32..01f14de 100644
+index cb243c1..8f2d0a0 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,5 +1,30 @@
- import React from 'react';
- import ReactDOM from 'react-dom';
+@@ -3,4 +3,28 @@ import ReactDOM from 'react-dom';
  import Root from './Root';
-+import { createRootStore } from '@models/RootStore';
+ import { RootStore } from '@models/RootStore';
  
--ReactDOM.render(<Root />, document.getElementById('root'));
+-ReactDOM.render(<Root rootStore={RootStore.create({})} />, document.getElementById('root'));
 +window.application = {
 +    run(args) {
-+        createRootStore();
-+
 +        this.exit();
 +
 +        const callback = args?.callback || (() => null),
-+            container = document.createElement('div');
++            container = document.createElement('div'),
++            rootStore = RootStore.create({});
 +        container.id = 'root';
 +        document.body.appendChild(container);
 +
-+        ReactDOM.render(<Root callback={callback} />, container);
++        callback(rootStore);
++        ReactDOM.render(<Root rootStore={rootStore} />, container);
 +    },
 +
 +    exit() {
@@ -103,26 +101,3 @@ index cce2f32..01f14de 100644
 +        container.remove();
 +    }
 +};
-diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3db55ae..0e19455 100644
---- a/src/models/RootStore.ts
-+++ b/src/models/RootStore.ts
-@@ -1,6 +1,5 @@
- import React from 'react';
- import { types, Instance, getSnapshot, applySnapshot, SnapshotOut } from 'mobx-state-tree';
--import makeInspectable from 'mobx-devtools-mst';
- 
- type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
- 
-@@ -41,9 +40,5 @@ export const RootStore = types
- export type RootInstance = Instance<typeof RootStore>;
- export const RootStoreContext = React.createContext<null | RootInstance>(null);
- export const Provider = RootStoreContext.Provider;
--export const rootStore = RootStore.create({});
--
--if (process.env.NODE_ENV === 'development') {
--    window.softphoneRootStore = rootStore;
--    makeInspectable(rootStore);
--}
-+export let rootStore;
-+export const createRootStore = () => (rootStore = RootStore.create({}));

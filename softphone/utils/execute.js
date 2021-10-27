@@ -16,7 +16,8 @@ const execute = (command, callback) => {
 
     const stream = exec(
         command,
-        error => error ? console.log(`Failed to execute command: ${command}`) : callback()
+        {maxBuffer: 1024 * 1024 * 500},
+        error => error ? console.log(`Failed to execute command: ${command}`, error) : callback()
     );
 
     stream.stdout.pipe(process.stdout)

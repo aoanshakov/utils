@@ -5,18 +5,21 @@ const src = '/usr/local/src',
     tests = `${src}/tests`,
     nginxConfig = `${tests}/utils/nginx.conf`,
     preCommitHook = `${application}/.husky/pre-commit`,
-    misc = `${application}/misc`;
+    misc = `${application}/misc`,
+    sipLib = `${misc}/sip_lib`;
 
 module.exports = {
     application,
     tests,
-    misc,
     nodeModules,
     packageLockJson,
     nginxConfig,
     preCommitHook,
-    sipLib: `${misc}/sip_lib`,
     indexHtml: `${application}/build/index.html`,
     testsHtml: `${tests}/tests/tests.html`,
-    applicationPatch: `${tests}/application-patch.diff`
+    applicationPatch: `${tests}/application-patch.diff`,
+    sipLibPatch: `${tests}/sip-lib-patch.diff`,
+    misc,
+    sipLib,
+    uisWebRTC: `${sipLib}/uis_webrtc`
 };
