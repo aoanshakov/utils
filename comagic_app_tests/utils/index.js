@@ -9,6 +9,7 @@ const {
     nodeModules,
     nginxConfig,
     applicationPatch,
+    devApplicationPatch,
     chatsPatch,
     employeesPatch,
     huskyPatch,
@@ -31,7 +32,8 @@ const cda = `cd ${application} &&`,
     chatOverridenFiles = 'src/models/RootStore.ts package.json',
     employeesOverridenFiles = chatOverridenFiles,
     softphoneOverridenFiles = 'package.json',
-    sipLibOverridenFiles = softphoneOverridenFiles;
+    sipLibOverridenFiles = softphoneOverridenFiles,
+    devOverridenFiles = 'config/webpack.config.js';
 
 const overridenFiles = [
     'public/index.html',
@@ -47,27 +49,62 @@ actions['fix-permissions'] =
 
 const overriding = [{
     application,
-    overridenFiles,
-    applicationPatch
+    dev: {
+        overridenFiles: devOverridenFiles,
+        applicationPatch: devApplicationPatch
+    },
+    test: {
+        overridenFiles,
+        applicationPatch
+    }
 }, {
     application: chats,
-    overridenFiles: chatOverridenFiles,
-    applicationPatch: chatsPatch
+    dev: {
+        overridenFiles: chatOverridenFiles,
+        applicationPatch: chatsPatch
+    },
+    test: {
+        overridenFiles: chatOverridenFiles,
+        applicationPatch: chatsPatch
+    }
 }, {
     application: employees,
-    overridenFiles: employeesOverridenFiles,
-    applicationPatch: employeesPatch
+    dev: {
+        overridenFiles: employeesOverridenFiles,
+        applicationPatch: employeesPatch
+    },
+    test: {
+        overridenFiles: employeesOverridenFiles,
+        applicationPatch: employeesPatch
+    }
 }, {
     application: softphone,
-    overridenFiles: softphoneOverridenFiles,
-    applicationPatch: softphonePatch
+    dev: {
+        overridenFiles: softphoneOverridenFiles,
+        applicationPatch: softphonePatch
+    },
+    test: {
+        overridenFiles: softphoneOverridenFiles,
+        applicationPatch: softphonePatch
+    }
 }, {
     application: sipLib,
-    overridenFiles: sipLibOverridenFiles,
-    applicationPatch: sipLibPatch
+    dev: {
+        overridenFiles: sipLibOverridenFiles,
+        applicationPatch: sipLibPatch
+    },
+    test: {
+        overridenFiles: sipLibOverridenFiles,
+        applicationPatch: sipLibPatch
+    }
 }];
 
-actions['create-patch'] = overriding.reduce((result, {
+const getOverriding = ({dev}) => overriding.map(overriding => ({
+    application: overriding.application,
+    ...overriding[dev ? 'dev' : 'test']
+})).filter(({overridenFiles}) => overridenFiles);
+
+actions['create-patch'] = params => getOverriding(params).reduce((result, {
     application,
     overridenFiles,
     applicationPatch
@@ -75,7 +112,7 @@ actions['create-patch'] = overriding.reduce((result, {
     `cd ${application} && git diff -- ${overridenFiles} > ${applicationPatch}`
 ] : []), []);
 
-actions['restore-code'] = () => overriding.reduce((result, {
+actions['restore-code'] = params => getOverriding(params).reduce((result, {
     application,
     overridenFiles
 }) => result.concat([
@@ -84,7 +121,7 @@ actions['restore-code'] = () => overriding.reduce((result, {
     `fi`
 ]), []);
 
-actions['modify-code'] = () => actions['restore-code']().concat(overriding.reduce((result, {
+actions['modify-code'] = params => actions['restore-code']({}).concat(getOverriding(params).reduce((result, {
     application,
     applicationPatch
 }) => result.concat([
@@ -98,7 +135,7 @@ actions['modify-code'] = () => actions['restore-code']().concat(overriding.reduc
 const appModule = ([module, path, args]) => [`comagic_app_modules/${module}`, path, args, misc],
     branch2487 = ' --branch tasks/PBL-2487';
 
-actions['initialize'] = () => [
+actions['initialize'] = params => [
     appModule(['chats', chats, ' --branch stand-va0']),
     appModule(['employees', employees, '']),
     appModule(['softphone', softphone, '']),
@@ -108,7 +145,7 @@ actions['initialize'] = () => [
     () => mkdir(misc),
     `cd ${misc} && git clone${args} git@gitlab.uis.dev:web/${module}.git`
 ] : [])).reduce((result, item) => result.concat(item), []).concat(
-    actions['modify-code']()
+    actions['modify-code'](params)
 ).concat(!fs.existsSync(nodeModules) ?
     [`chown -R root:root ${application}`, `${cda} npm install --verbose`].concat(actions['fix-permissions']) : []);
 
@@ -118,13 +155,13 @@ actions['reset'] = [
     rmVerbose(nodeModules),
     rmVerbose(misc),
     rmVerbose(packageLockJson)
-].concat(actions['restore-code']());
+].concat(actions['restore-code']({}));
 
 actions['bash'] = [];
 actions['disable-hook'] = [`chmod +x ${preCommitHook}`, `${cda} patch -p1 < ${huskyPatch}`];
 actions['enable-hook'] = [`${cda} git checkout ${preCommitHook}`];
 
-actions['run-server'] = () => actions['initialize']().concat([
+actions['run-server'] = params => actions['initialize'](params).concat([
     [
         'openssl req -x509',
             '-nodes',
@@ -144,6 +181,9 @@ actions['run-server'] = () => actions['initialize']().concat([
 const {action, ...params} = (new Args({
     action: {
         validate: isOneOf.apply(null, Object.keys(actions))
+    },
+    dev: {
+        validate: isTrue
     }
 })).createObjectFromArgsArray(process.argv);
 

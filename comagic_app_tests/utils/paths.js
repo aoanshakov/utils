@@ -19,6 +19,7 @@ module.exports = {
     indexHtml: `${application}/build/index.html`,
     testsHtml: `${tests}/tests/tests.html`,
     applicationPatch: `${tests}/application-patch.diff`,
+    devApplicationPatch: `${tests}/dev-application-patch.diff`,
     chatsPatch: `${tests}/chats-patch.diff`,
     employeesPatch: `${tests}/employees-patch.diff`,
     softphonePatch: `${tests}/softphone-patch.diff`,

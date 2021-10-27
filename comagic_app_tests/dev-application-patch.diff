@@ -1,0 +1,129 @@
+diff --git a/config/webpack.config.js b/config/webpack.config.js
+index 88eaf103..45cf16f6 100644
+--- a/config/webpack.config.js
++++ b/config/webpack.config.js
+@@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+ const TerserPlugin = require('terser-webpack-plugin');
++const hash = require('string-hash');
+ 
+ const { ModuleFederationPlugin } = webpack.container;
+ const deps = require('../package.json').dependencies;
+@@ -16,20 +17,26 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+ const REACT_APP = /^REACT_APP_/i;
+ 
+ const appDirectory = fs.realpathSync(process.cwd());
++const miscDirectory = `${appDirectory}/misc`;
+ const dotenv = path.resolve(appDirectory, '.env');
+ const themeLessFileName = path.resolve(appDirectory, 'theme', 'theme.less');
+ const isProductionMode = NODE_ENV !== 'development';
+ const webpackMode = isProductionMode ? 'production' : 'development';
+ const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
+ const isBundleAnalyzerPlugin = false;
++const subModules = ['chats', 'employees'];
+ 
+ const lessLoader = {
+     loader: 'less-loader',
+     options: {
+-        modifyVars: {
+-            'hack': `true; @import "${themeLessFileName}";`,
++        lessOptions: {
++            modifyVars: {
++                'hack': `true; @import "${themeLessFileName}"; ${
++                    subModules.map(module => `@import "${miscDirectory}/${module}/theme/theme.less"`).join('; ')
++                }`,
++            },
++            javascriptEnabled: true,
+         },
+-        javascriptEnabled: true,
+     },
+ };
+ 
+@@ -167,9 +174,9 @@ const plugins = () => {
+                 return shared;
+             }, {}),
+             remotes: {
+-                chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
+-                employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
+-                softphone: `employees@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
++                //chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
++                //employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
++                softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
+             },
+         }),
+     ];
+@@ -181,6 +188,13 @@ const plugins = () => {
+     return pluginsList;
+ };
+ 
++const createAliases = appDirectory => ({
++    '@': path.resolve(appDirectory, './src'),
++    '@models': path.resolve(appDirectory, './src/models'),
++    '@lib': path.resolve(appDirectory, './src/components/lib'),
++    '@hooks': path.resolve(appDirectory, './src/hooks'),
++});
++
+ module.exports = {
+     entry: './src/index.tsx',
+     target: 'web',
+@@ -270,12 +284,55 @@ module.exports = {
+     resolve: {
+         extensions: ['.tsx', '.ts', '.js'],
+         alias: {
+-            '@': path.resolve(appDirectory, './src'),
+-            '@models': path.resolve(appDirectory, './src/models'),
+-            '@lib': path.resolve(appDirectory, './src/components/lib'),
+-            '@hooks': path.resolve(appDirectory, './src/hooks'),
++            ...createAliases(appDirectory),
+             '@ant-design/icons/lib/dist$': path.resolve(appDirectory, './src/icons.ts'),
++            'employees/Root': 'employees/src/Root.tsx',
++            'chats/Root': 'chats/src/Root.tsx',
++            'chats/Account': 'chats/src/components/account/index.tsx',
++            'chats/ChatHistoryLog': 'chats/src/components/chats/chat-panel/HistoryLog.tsx',
++            'chats/HttpRpc': 'chats/src/httpRpc.ts',
++            'chats/ChatMessagesStore': 'chats/src/models/chats/ChatMessaagesStore.ts',
++            'chats/utils': 'chats/src/utils/index.ts',
+         },
++        plugins: [{
++            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
++                request,
++                resolveContext,
++                callback
++            ) =>  {
++                const target = resolver.ensureHook('resolve'),
++                    splitted = request.request.split('/');
++
++                const {
++                    directory,
++                    aliases
++                } = subModules.concat(['softphone']).map(module => {
++                    const directory = `${miscDirectory}/${module}`;
++
++                    return {
++                        directory,
++                        aliases: createAliases(directory)
++                    };
++                }).find(({
++                    directory,
++                    aliases
++                }) => request.path.indexOf(directory) === 0 && Object.keys(aliases).some(
++                    alias => splitted[0] == alias
++                )) || {};
++
++                if (!directory) {
++                    callback();
++                    return;
++                }
++
++                splitted[0] = aliases[splitted[0]]
++
++                return resolver.doResolve(target, {
++                    ...request,
++                    request: splitted.join('/') 
++                }, null, resolveContext, callback);
++            })
++        }]
+     },
+     output: {
+         filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
