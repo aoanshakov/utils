@@ -346,29 +346,18 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3beddf38..84ab6ed8 100644
+index c694f554..84ab6ed8 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -12,7 +12,7 @@ import { HttpRpc } from '@/rpc/httpRpc';
- import { getHighchartsLocale, getProject } from '@/i18n';
- 
- import { ModalResponseErrorStore } from '@models/modal-response-error';
--import { AuthStore, getToken, setAuthHeaders } from '@models/auth/AuthStore';
-+import { AuthStore, getToken, setAuthHeaders, setAuthTypeHeader } from '@models/auth/AuthStore';
- import { AccountStore } from '@models/account/AccountStore';
- import { TagsStore } from '@models/tags/TagsStore';
- import GoalsTreeStore from '@models/goals/GoalsTreeStore';
-@@ -197,8 +197,8 @@ export const RootStore = types
+@@ -197,7 +197,7 @@ export const RootStore = types
                  }
              );
  
 -            addInterceptors(axios);
--            self.softphoneStore.setAxiosProcessor(addInterceptors);
 +            window.axiosInterceptors = addInterceptors(axios);
-+            self.softphoneStore.setAxiosProcessor(axios => (setAuthTypeHeader(axios.defaults), addInterceptors(axios)));
+             self.softphoneStore.setAxiosProcessor(axios => (setAuthTypeHeader(axios.defaults), addInterceptors(axios)));
          };
  
-         const setHighchartsOptions = () => {
 @@ -245,6 +245,7 @@ export const RootStore = types
          };
  
