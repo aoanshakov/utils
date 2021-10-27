@@ -15,6 +15,28 @@ define(() => function ({
     Promise.runAll(false, true);
     spendTime(0);
 
+    const addAuthErrorResponseModifiers = (me, response) => {
+        me.accessTokenExpired = () => {
+            Object.keys(response).forEach(key => delete(response[key]));
+
+            response.error = {
+                code: 401,
+                message: 'Время действия токена истекло',
+                request: null,
+                data: {
+                    mnemonic: 'access_token_expired',
+                    field: '',
+                    value: '',
+                    params: null
+                }
+            };
+
+            return me;
+        };
+
+        return me;
+    };
+
     me.incomingCallProceeding = () => ({
         receive: () => me.eventsWebSocket.receiveMessage({
             name: 'out_call',
@@ -66,49 +88,57 @@ define(() => function ({
     });
 
     me.settingsRequest = () => {
-        const data = me.addDefaultSettings({
-            application_version: '1.3.2',
-            ice_servers: [{
-                urls: ['stun:stun.uiscom.ru:19302']
-            }],
-            numb: '74950216806',
-            number_capacity_id: 124824,
-            sip_channels_count: 2,
-            sip_host: 'voip.uiscom.ru',
-            sip_login: '077368',
-            sip_password: 'e2tcXhxbfr',
-            ws_url: '/ws/L1G1MyQy6uz624BkJWuy1BW1L9INRWNt5_DW8Ik836A',
-            is_need_hide_numbers: false,
-            is_extended_integration_available: true,
-            is_use_widget_for_calls: true,
-            is_enable_incoming_call_sound: true,
-            is_need_open_widget_on_call: true,
-            is_need_close_widget_on_call_finished: false,
-            number_capacity_usage_rule: 'auto',
-            call_task: {
-                pause_between_calls_duration: 60,
-                call_card_show_duration: 10
-            }
-        });
+        const response = {
+            data: me.addDefaultSettings({
+                application_version: '1.3.2',
+                ice_servers: [{
+                    urls: ['stun:stun.uiscom.ru:19302']
+                }],
+                numb: '74950216806',
+                number_capacity_id: 124824,
+                sip_channels_count: 2,
+                sip_host: 'voip.uiscom.ru',
+                sip_login: '077368',
+                sip_password: 'e2tcXhxbfr',
+                ws_url: '/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                is_need_hide_numbers: false,
+                is_extended_integration_available: true,
+                is_use_widget_for_calls: true,
+                is_enable_incoming_call_sound: true,
+                is_need_open_widget_on_call: true,
+                is_need_close_widget_on_call_finished: false,
+                number_capacity_usage_rule: 'auto',
+                call_task: {
+                    pause_between_calls_duration: 60,
+                    call_card_show_duration: 10
+                }
+            })
+        };
 
-        const request = {
+        const headers = {
+            Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0'//,
+            //'X-Auth-Type': 'jwt'
+        };
+
+        const request = addAuthErrorResponseModifiers({
+            anotherAuthoriationToken: () =>
+                ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
+
             expectToBeSent: () => {
                 const request = ajax.recentRequest().
                     expectPathToContain('/sup/api/v1/settings').
-                    expectToHaveMethod('GET');
+                    expectToHaveMethod('GET').
+                    expectToHaveHeaders(headers);
 
-                return {
+                return addAuthErrorResponseModifiers({
                     receiveResponse: () => {
-                        request.respondSuccessfullyWith({
-                            data: data 
-                        });
-
+                        request.respondSuccessfullyWith(response);
                         Promise.runAll();
                     }
-                };
+                }, response);
             },
             receiveResponse: () => request.expectToBeSent().receiveResponse()
-        };
+        }, response);
 
         return request;
     };
@@ -430,7 +460,7 @@ define(() => function ({
             params.filter.filters[2].field = column;
         };
 
-        let response = {
+        const response = {
             result: {
                 data: {
                     date_from: '2020-10-01 15:23:05',
@@ -453,34 +483,12 @@ define(() => function ({
             }
         };
 
-        const addResponseModifiers = me => {
-            me.accessTokenExpired = () => {
-                response = {
-                    error: {
-                        code: 401,
-                        message: 'Время действия токена истекло',
-                        request: null,
-                        data: {
-                            mnemonic: 'access_token_expired',
-                            field: '',
-                            value: '',
-                            params: null
-                        }
-                    }
-                };
-
-                return me;
-            };
-
-            return me;
-        };
-
         const headers = {
             Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
             'X-Auth-Type': 'jwt'
         };
 
-        const request = addResponseModifiers({
+        const request = addAuthErrorResponseModifiers({
             anotherColumn: () => (setColumn('cc_10'), request),
             thirdColumn: () => (setColumn('cc_15'), request),
             visitorRegion: () => (setDimension('visitor_region'), request),
@@ -495,7 +503,7 @@ define(() => function ({
                         params
                     }).expectToHaveHeaders(headers);
 
-                return addResponseModifiers({
+                return addAuthErrorResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith(response);
 
@@ -503,11 +511,11 @@ define(() => function ({
                         spendTime(0)
                         Promise.runAll(false, true);
                     }
-                });
+                }, response);
             },
 
             receiveResponse: () => request.expectToBeSent().receiveResponse()
-        });
+        }, response);
 
         return request;
     };
@@ -1057,8 +1065,8 @@ define(() => function ({
     });
 
     me.refreshRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
+        expectToBeSent() {
+            request = ajax.recentRequest().
                 expectPathToContain('/auth/json_rpc').
                 expectToHaveMethod('POST').
                 expectToHaveHeaders({
@@ -1071,17 +1079,27 @@ define(() => function ({
                         jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
                         refresh: '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2'
                     }
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        jwt: '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
-                        refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
-                    }
                 });
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
+            return {
+                receiveResponse() {
+                    request.
+                        respondSuccessfullyWith({
+                            result: {
+                                jwt: '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
+                                refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
+                            }
+                        });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
         }
     });
 

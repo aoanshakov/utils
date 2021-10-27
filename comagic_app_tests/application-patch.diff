@@ -346,26 +346,27 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 86f60ae1..d0173595 100644
+index 3beddf38..a15e77df 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -26,6 +26,7 @@ import { PhonesStore } from '@models/phones/PhonesStore';
- import { NumberPoolNumbersStore } from '@models/number-pool-numbers/NumberPoolNumbersStore';
- import { MarketplaceStore } from '@models/marketplace/MarketplaceStore';
- import { HttpRpcErrorModel } from '@models/shared/error';
-+import { RootStore as SoftphoneStore } from 'softphone/RootStore';
+@@ -197,7 +197,7 @@ export const RootStore = types
+                 }
+             );
  
- const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
- const ACCESS_TOKEN_INVALID = 'access_token_invalid';
-@@ -84,6 +85,7 @@ export const RootStore = types
-         isGodMode: types.optional(types.boolean, isGodMode()),
-         modalResponseErrorStore: types.optional(ModalResponseErrorStore, {}),
-         authStore: types.optional(AuthStore, {}),
-+        softphoneStore: types.optional(SoftphoneStore, {}),
-         accountStore: types.optional(AccountStore, {}),
-         reportStore: types.optional(RootReportStore, {}),
-         tagsStore: types.optional(TagsStore, {}),
-@@ -257,7 +259,8 @@ export type DependencyInjection = {
+-            addInterceptors(axios);
++            window.axiosInterceptors = addInterceptors(axios);
+             self.softphoneStore.setAxiosProcessor(addInterceptors);
+         };
+ 
+@@ -245,6 +245,7 @@ export const RootStore = types
+         };
+ 
+         const afterCreate = () => {
++            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
+             initialState = getSnapshot(self);
+ 
+             setHighchartsOptions();
+@@ -264,7 +265,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

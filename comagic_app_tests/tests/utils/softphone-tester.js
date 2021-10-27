@@ -538,13 +538,26 @@ define(function () {
                 return me;
             }
 
+            var testRequest = function (request) {
+                return request;
+            };
+
             return addMethods({
+                anotherAuthoriationToken: function () {
+                    testRequest = function (request) {
+                        return request.expectToHaveHeaders({
+                            Authorization: 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'
+                        });
+                    };
+
+                    return this;
+                },
                 expectToBeSent: function () {
-                    var request = ajax.recentRequest();
+                    var request = testRequest(ajax.recentRequest().expectPathToContain('/sup/api/v1/users/me'));
 
                     return addMethods({
                         receiveResponse: function () {
-                            request.expectPathToContain('/sup/api/v1/users/me').respondSuccessfullyWith({
+                            request.respondSuccessfullyWith({
                                 data: user 
                             });
 
@@ -1103,9 +1116,15 @@ define(function () {
 
         this.phoneBookGroupsRequest = this.requestPhoneBookGroups;
 
+        var webSocketRegExp = /sup\/ws\/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0$/;
+
+        this.anotherEventWebSocketPath = () => {
+            webSocketRegExp = /sup\/ws\/935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf$/;
+        };
+
         this.getEventsWebSocket = function (index) {
             return this.eventsWebSocket = eventsWebSocket =
-                webSockets.getSocket(/sup\/ws\/L1G1MyQy6uz624BkJWuy1BW1L9INRWNt5_DW8Ik836A$/, index || 0);
+                webSockets.getSocket(webSocketRegExp, index || 0);
         };
 
         this.connectEventsWebSocket = function (index) {
@@ -1130,7 +1149,7 @@ define(function () {
         };
 
         this.discconnectEventsWebSocket = function (index) {
-            webSockets.getSocket(/sup\/ws\/L1G1MyQy6uz624BkJWuy1BW1L9INRWNt5_DW8Ik836A$/, index || 0).disconnect();
+            webSockets.getSocket(/sup\/ws\/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0$/, index || 0).disconnect();
         };
 
         function getWebRtcSocket (index) {
