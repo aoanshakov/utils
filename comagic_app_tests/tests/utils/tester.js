@@ -4,9 +4,17 @@ define(() => function ({
     ajax,
     fetch,
     spendTime,
-    softphoneTester: me
+    softphoneTester: me,
+    isAlreadyAuthenticated = false
 }) {
     let history;
+
+    const jwtToken = {
+        jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+        refresh: '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2'
+    };
+
+    isAlreadyAuthenticated && localStorage.setItem('auth', JSON.stringify(jwtToken));
 
     window.application.run({
         setHistory: value => (history = value)
@@ -14,6 +22,7 @@ define(() => function ({
 
     Promise.runAll(false, true);
     spendTime(0);
+    Promise.runAll(false, true);
 
     const addAuthErrorResponseModifiers = (me, response) => {
         me.accessTokenExpired = () => {
@@ -144,16 +153,25 @@ define(() => function ({
     };
 
     me.authCheckRequest = function () {
-        var request = ajax.recentRequest().expectPathToContain('/sup/auth/check');
-
         return {
-            occureError: function () {
-                request.respondUnauthorizedWith('');
-                Promise.runAll();
+            expectToBeSent() {
+                let request = ajax.recentRequest().
+                    expectPathToContain('/sup/auth/check').
+                    expectToHaveHeaders({
+                        Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                        'X-Auth-Type': 'jwt'
+                    });
+
+                return {
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith('');
+                        Promise.runAll();
+                    }
+                };
             },
-            receiveResponse: function () {
-                request.respondSuccessfullyWith('');
-                Promise.runAll();
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
             }
         };
     };
@@ -398,14 +416,24 @@ define(() => function ({
                 REACT_APP_LOCALE: 'ru'
             }), me),
 
-            receiveResponse: () => {
-                fetch.recentRequest().expectPathToContain('/config.json').respondSuccessfullyWith(
-                    JSON.stringify(response)
-                );
+            expectToBeSent: () => {
+                const request = fetch.recentRequest().expectPathToContain('/config.json');
 
-                Promise.runAll(false, true);
-                spendTime(0)
-                Promise.runAll(false, true);
+                return {
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(
+                            JSON.stringify(response)
+                        );
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                };
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
             }
         };
 
@@ -913,8 +941,8 @@ define(() => function ({
     });
 
     me.accountRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
+        expectToBeSent() {
+            let request = ajax.recentRequest().
                 expectPathToContain('/front/v2.0').
                 expectToHaveMethod('POST').
                 expectToHaveHeaders({
@@ -924,143 +952,152 @@ define(() => function ({
                 expectBodyToContain({
                     method: 'getobj.account',
                     params: {}
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        data: {
-                            lang: 'ru',
-                            tp_id: 406,
-                            app_id: 1103,
-                            project: 'comagic',
-                            tp_name: 'Comagic Enterprise',
-                            user_id: 151557,
-                            app_name: 'Карадимова Веска Анастасовна',
-                            crm_type: 'e2e_analytics',
-                            timezone: 'Europe/Moscow',
-                            app_state: 'active',
-                            user_name: 'karadimova',
-                            user_type: 'user',
-                            components: [
-                                'operation',
-                                'dialing',
-                                'ext_dialing',
-                                'extended_report',
-                                'fax_receiving',
-                                'voice_mail',
-                                'menu',
-                                'information_message',
-                                'auth',
-                                'integration',
-                                'fax_receiving_button',
-                                'transfer',
-                                'tag_call',
-                                'run_scenario',
-                                'trainer',
-                                'trainer_in',
-                                'trainer_button',
-                                'trainer_desktop',
-                                'call_distribution_report',
-                                'call_session_distribution_report',
-                                'recording_in',
-                                'recording_out',
-                                'recording_button',
-                                'notification',
-                                'notification_by_sms',
-                                'notification_by_email',
-                                'notification_by_http',
-                                'api',
-                                'callapi',
-                                'callapi_management_call',
-                                'callapi_informer_call',
-                                'callapi_scenario_call',
-                                'send_sms',
-                                'va',
-                                'call_tracking',
-                                'dynamic_call_tracking',
-                                'ppc_integration',
-                                'wa_integration',
-                                'callout',
-                                'callback',
-                                'sip',
-                                'consultant',
-                                'recording',
-                                'talk_option',
-                                'sitephone',
-                                'lead',
-                                'partner_integration',
-                                'amocrm',
-                                'reserve_dynamic_numbers',
-                                'retailcrm',
-                                'dashboard',
-                                'dataapi',
-                                'dataapi_reports',
-                                'dataapi_provisioning',
-                                'speech_analytics',
-                                'processed_lost_call',
-                                'bitrix',
-                                'distribution_by_communication_number',
-                                'distribution_by_region',
-                                'distribution_by_segment',
-                                'private_number',
-                                'megaplan',
-                                'internal_lines',
-                                'fmc',
-                                'auto_back_call_by_lost_call',
-                                'split_channel_recording',
-                                'infoclinica',
-                                'facebook_ads',
-                                'google_adwords',
-                                'yandex_direct',
-                                'sales_funnel',
-                                'number_capacity_auto_usage',
-                                'call_monitoring_and_analytics',
-                                'keyword_spotting',
-                                'attribution_tools',
-                                'assisted_conversions',
-                                'attribution_models',
-                                'antispam',
-                                'auto_back_call_by_offline_message',
-                                'amocrm_extended_integration',
-                                'spam_calls_blocking',
-                                'upload_calls',
-                                'preserved_calls',
-                                '1c_rarus',
-                                'fitness_1c',
-                                'yandex_metrika',
-                                'e2e_analytics',
-                                'vk_ads',
-                                'upload_offline_messages',
-                                'upload_chats',
-                                'mytarget_ads',
-                                'stt_crt',
-                                'upload_sessions',
-                            ],
-                            user_login: 'karadimova',
-                            customer_id: 183510,
-                            permissions: [
-                                {
-                                    'unit_id': 'call_recordings',
-                                    'is_delete': true,
-                                    'is_insert': false,
-                                    'is_select': true,
-                                    'is_update': true,
-                                },
-                                {
-                                    'unit_id': 'tag_management',
-                                    'is_delete': true,
-                                    'is_insert': true,
-                                    'is_select': true,
-                                    'is_update': true,
-                                },
-                            ],
-                            is_agent_app: false
-                        }
-                    }
                 });
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
+            return {
+                receiveResponse: () => {
+                    request.respondSuccessfullyWith({
+                        result: {
+                            data: {
+                                lang: 'ru',
+                                tp_id: 406,
+                                app_id: 1103,
+                                project: 'comagic',
+                                tp_name: 'Comagic Enterprise',
+                                user_id: 151557,
+                                app_name: 'Карадимова Веска Анастасовна',
+                                crm_type: 'e2e_analytics',
+                                timezone: 'Europe/Moscow',
+                                app_state: 'active',
+                                user_name: 'karadimova',
+                                user_type: 'user',
+                                components: [
+                                    'operation',
+                                    'dialing',
+                                    'ext_dialing',
+                                    'extended_report',
+                                    'fax_receiving',
+                                    'voice_mail',
+                                    'menu',
+                                    'information_message',
+                                    'auth',
+                                    'integration',
+                                    'fax_receiving_button',
+                                    'transfer',
+                                    'tag_call',
+                                    'run_scenario',
+                                    'trainer',
+                                    'trainer_in',
+                                    'trainer_button',
+                                    'trainer_desktop',
+                                    'call_distribution_report',
+                                    'call_session_distribution_report',
+                                    'recording_in',
+                                    'recording_out',
+                                    'recording_button',
+                                    'notification',
+                                    'notification_by_sms',
+                                    'notification_by_email',
+                                    'notification_by_http',
+                                    'api',
+                                    'callapi',
+                                    'callapi_management_call',
+                                    'callapi_informer_call',
+                                    'callapi_scenario_call',
+                                    'send_sms',
+                                    'va',
+                                    'call_tracking',
+                                    'dynamic_call_tracking',
+                                    'ppc_integration',
+                                    'wa_integration',
+                                    'callout',
+                                    'callback',
+                                    'sip',
+                                    'consultant',
+                                    'recording',
+                                    'talk_option',
+                                    'sitephone',
+                                    'lead',
+                                    'partner_integration',
+                                    'amocrm',
+                                    'reserve_dynamic_numbers',
+                                    'retailcrm',
+                                    'dashboard',
+                                    'dataapi',
+                                    'dataapi_reports',
+                                    'dataapi_provisioning',
+                                    'speech_analytics',
+                                    'processed_lost_call',
+                                    'bitrix',
+                                    'distribution_by_communication_number',
+                                    'distribution_by_region',
+                                    'distribution_by_segment',
+                                    'private_number',
+                                    'megaplan',
+                                    'internal_lines',
+                                    'fmc',
+                                    'auto_back_call_by_lost_call',
+                                    'split_channel_recording',
+                                    'infoclinica',
+                                    'facebook_ads',
+                                    'google_adwords',
+                                    'yandex_direct',
+                                    'sales_funnel',
+                                    'number_capacity_auto_usage',
+                                    'call_monitoring_and_analytics',
+                                    'keyword_spotting',
+                                    'attribution_tools',
+                                    'assisted_conversions',
+                                    'attribution_models',
+                                    'antispam',
+                                    'auto_back_call_by_offline_message',
+                                    'amocrm_extended_integration',
+                                    'spam_calls_blocking',
+                                    'upload_calls',
+                                    'preserved_calls',
+                                    '1c_rarus',
+                                    'fitness_1c',
+                                    'yandex_metrika',
+                                    'e2e_analytics',
+                                    'vk_ads',
+                                    'upload_offline_messages',
+                                    'upload_chats',
+                                    'mytarget_ads',
+                                    'stt_crt',
+                                    'upload_sessions',
+                                ],
+                                user_login: 'karadimova',
+                                customer_id: 183510,
+                                permissions: [
+                                    {
+                                        'unit_id': 'call_recordings',
+                                        'is_delete': true,
+                                        'is_insert': false,
+                                        'is_select': true,
+                                        'is_update': true,
+                                    },
+                                    {
+                                        'unit_id': 'tag_management',
+                                        'is_delete': true,
+                                        'is_insert': true,
+                                        'is_select': true,
+                                        'is_update': true,
+                                    },
+                                ],
+                                is_agent_app: false
+                            }
+                        }
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
         }
     });
 
@@ -1117,10 +1154,7 @@ define(() => function ({
                     }
                 }).
                 respondSuccessfullyWith({
-                    result: {
-                        jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                        refresh: '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2'
-                    }
+                    result: jwtToken 
                 });
 
             Promise.runAll(false, true);

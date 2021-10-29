@@ -70,6 +70,10 @@ tests.addTest(options => {
             reportTableRequest = tester.reportTableRequest().thirdColumn().visitorRegion().expectToBeSent();
         });
 
+        afterEach(function() {
+            spendTime(0);
+        });
+
         describe('Получены настройки софтфона.', function() {
             beforeEach(function() {
                 settingsRequest.receiveResponse();
@@ -83,50 +87,6 @@ tests.addTest(options => {
                 registrationRequest = tester.registrationRequest().expectToBeSent();
             });
 
-            describe('Получены данные для отчета.', function() {
-                beforeEach(function() {
-                    reportTableRequest.receiveResponse();
-                });
-
-                describe('Нажимаю на иконку с телефоном. Ввожу номер телефона.', function() {
-                    beforeEach(function() {
-                        tester.phoneIcon.click();
-                        tester.phoneField.input('79161234567');
-                    });
-
-                    it('SIP-регистрация завершена. Кнопка вызова доступна.', function() {
-                        registrationRequest.receiveResponse();
-                        tester.callButton.expectNotToHaveAttribute('disabled');
-                    });
-                    it('Нажимаю на иконку с телефоном. Кнопка вызова скрыта.', function() {
-                        tester.phoneIcon.click();
-                        tester.callButton.expectNotToExist();
-                    });
-                    it('Кнопка вызова заблокирована.', function() {
-                        tester.callButton.expectToHaveAttribute('disabled');
-                    });
-                });
-                it('SIP-регистрация завершена. Поступил входящий звонок.', function() {
-                    registrationRequest.receiveResponse();
-
-                    tester.incomingCall().receive();
-                    Promise.runAll(false, true);
-                    tester.numaRequest().receiveResponse();
-                    tester.incomingCallProceeding().receive();
-
-                    tester.innerContainer.expectTextContentToHaveSubstring('Шалева Дора');
-                    tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
-                    tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
-                });
-                it('Отображен отчет. Софтфон скрыт.', function() {
-                    tester.callButton.expectNotToExist();
-
-                    tester.body.expectTextContentToHaveSubstringsConsideringOrder(
-                        'Топ 10 регионов по количеству сделок',
-                        'Некое значение'
-                    );
-                });
-            });
             describe(
                 'SIP-регистрация завершена. Нажимаю на иконку с телефоном. Ввожу номер телефона. Срок действия ' +
                 'токена авторизации истек.',
@@ -143,6 +103,7 @@ tests.addTest(options => {
                     refreshRequest = tester.refreshRequest().expectToBeSent();
 
                     tester.eventsWebSocket.finishDisconnecting();
+                    spendTime(0);
                 });
 
                 describe('Токен авторизации обновлен. Запрошены данные для отчета.', function() {
@@ -206,6 +167,50 @@ tests.addTest(options => {
                     tester.callButton.expectToHaveAttribute('disabled');
                 });
             });
+            describe('Получены данные для отчета.', function() {
+                beforeEach(function() {
+                    reportTableRequest.receiveResponse();
+                });
+
+                describe('Нажимаю на иконку с телефоном. Ввожу номер телефона.', function() {
+                    beforeEach(function() {
+                        tester.phoneIcon.click();
+                        tester.phoneField.input('79161234567');
+                    });
+
+                    it('SIP-регистрация завершена. Кнопка вызова доступна.', function() {
+                        registrationRequest.receiveResponse();
+                        tester.callButton.expectNotToHaveAttribute('disabled');
+                    });
+                    it('Нажимаю на иконку с телефоном. Кнопка вызова скрыта.', function() {
+                        tester.phoneIcon.click();
+                        tester.callButton.expectNotToExist();
+                    });
+                    it('Кнопка вызова заблокирована.', function() {
+                        tester.callButton.expectToHaveAttribute('disabled');
+                    });
+                });
+                it('SIP-регистрация завершена. Поступил входящий звонок.', function() {
+                    registrationRequest.receiveResponse();
+
+                    tester.incomingCall().receive();
+                    Promise.runAll(false, true);
+                    tester.numaRequest().receiveResponse();
+                    tester.incomingCallProceeding().receive();
+
+                    tester.innerContainer.expectTextContentToHaveSubstring('Шалева Дора');
+                    tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
+                    tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
+                });
+                it('Отображен отчет. Софтфон скрыт.', function() {
+                    tester.callButton.expectNotToExist();
+
+                    tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                        'Топ 10 регионов по количеству сделок',
+                        'Некое значение'
+                    );
+                });
+            });
         });
         it('Срок действия токена авторизации истек. Токен авторизации обновлен. Софтфон подключен.', function() {
             settingsRequest.accessTokenExpired().receiveResponse();
@@ -221,5 +226,16 @@ tests.addTest(options => {
             tester.authenticatedUserRequest().anotherAuthoriationToken().receiveResponse();
             tester.registrationRequest().receiveResponse();
         });
+    });
+    it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
+        const tester = new Tester({
+            ...options,
+            isAlreadyAuthenticated: true
+        });
+
+        tester.authCheckRequest().expectToBeSent();
+        tester.accountRequest().expectToBeSent();
+
+        tester.configRequest().softphone().expectToBeSent();
     });
 });
