@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index b5d40f6..d4c174f 100644
+index 627f619..d4c174f 100644
 --- a/package.json
 +++ b/package.json
 @@ -15,7 +15,7 @@
@@ -15,7 +15,7 @@ index b5d40f6..d4c174f 100644
      "webpack": "5.28.0",
      "webpack-cli": "^4.2.0",
      "babel-loader": "^8.0.4",
--    "@uiscom/uis_webrtc": "1.1.0"
+-    "@uiscom/uis_webrtc": "1.2.0"
 +    "@uiscom/uis_webrtc": "./uis_webrtc"
    }
  }
