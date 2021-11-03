@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 88eaf103..d90b7a45 100644
+index 296b5ad1..a88a21c8 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -58,7 +58,7 @@ index 88eaf103..d90b7a45 100644
                  };
                  return shared;
              }, {}),
-@@ -171,7 +179,11 @@ const plugins = () => {
+@@ -172,7 +180,11 @@ const plugins = () => {
                  employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
                  softphone: `employees@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
              },
@@ -71,7 +71,7 @@ index 88eaf103..d90b7a45 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -181,6 +193,13 @@ const plugins = () => {
+@@ -182,6 +194,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -85,7 +85,7 @@ index 88eaf103..d90b7a45 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -200,6 +219,21 @@ module.exports = {
+@@ -201,6 +220,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -107,7 +107,7 @@ index 88eaf103..d90b7a45 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -250,6 +284,7 @@ module.exports = {
+@@ -251,6 +285,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -115,7 +115,7 @@ index 88eaf103..d90b7a45 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -265,17 +300,88 @@ module.exports = {
+@@ -266,17 +301,88 @@ module.exports = {
                      },
                  ],
              },
@@ -209,7 +209,7 @@ index 88eaf103..d90b7a45 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index 3a0ef1cc..36eb89f5 100644
+index a7aba4fa..822bc765 100644
 --- a/package.json
 +++ b/package.json
 @@ -60,7 +60,7 @@
@@ -231,7 +231,7 @@ index 3a0ef1cc..36eb89f5 100644
      "antd": "^3.26.7",
      "axios": "^0.19.2",
      "classnames": "^2.2.6",
-@@ -105,11 +108,12 @@
+@@ -105,10 +108,11 @@
      "react-intl": "^5.15.8",
      "react-list": "^0.8.13",
      "react-resizable": "^1.10.1",
@@ -239,7 +239,6 @@ index 3a0ef1cc..36eb89f5 100644
 +    "react-resize-detector": "^6.0.0",
      "react-router-dom": "^5.1.2",
      "react-transition-group": "^4.4.2",
-     "short-uuid": "^4.2.0",
      "wavesurfer.js": "^4.0.1",
 -    "yup": "^0.28.1"
 +    "yup": "^0.28.1",
