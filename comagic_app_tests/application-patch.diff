@@ -346,7 +346,7 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index c694f554..84ab6ed8 100644
+index 5c3dff20..e352f33c 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -197,7 +197,7 @@ export const RootStore = types
@@ -365,8 +365,8 @@ index c694f554..84ab6ed8 100644
 +            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
              initialState = getSnapshot(self);
  
-             setHighchartsOptions();
-@@ -264,7 +265,8 @@ export type DependencyInjection = {
+             self.softphoneStore.setSoftphoneHost(
+@@ -268,7 +269,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
