@@ -33,7 +33,7 @@ const cda = `cd ${application} &&`,
     employeesOverridenFiles = chatOverridenFiles,
     softphoneOverridenFiles = 'package.json',
     sipLibOverridenFiles = softphoneOverridenFiles,
-    devOverridenFiles = 'config/webpack.config.js';
+    devOverridenFiles = 'config/webpack.config.js .env';
 
 const overridenFiles = [
     'public/index.html',
@@ -121,16 +121,19 @@ actions['restore-code'] = params => getOverriding(params).reduce((result, {
     `fi`
 ]), []);
 
-actions['modify-code'] = params => actions['restore-code']({}).concat(getOverriding(params).reduce((result, {
-    application,
-    applicationPatch
-}) => result.concat([
-    `if [ -d ${application} ] && [ -f ${applicationPatch} ]; ` +
-        `then cd ${application} && patch -p1 < ${applicationPatch}; ` +
-    `fi`
-]), [])).concat(
-    actions['fix-permissions']
-);
+actions['modify-code'] = params => actions['restore-code']({}).
+    concat(actions['restore-code']({dev: true})).
+    concat(getOverriding(params).reduce((result, {
+        application,
+        applicationPatch
+    }) => result.concat([
+        `if [ -d ${application} ] && [ -f ${applicationPatch} ]; ` +
+            `then cd ${application} && patch -p1 < ${applicationPatch}; ` +
+        `fi`
+    ]), [])).
+    concat(
+        actions['fix-permissions']
+    );
 
 const appModule = ([module, path, args]) => [`comagic_app_modules/${module}`, path, args, misc],
     branch2487 = ' --branch tasks/PBL-2487';
