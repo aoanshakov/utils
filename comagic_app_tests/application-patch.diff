@@ -363,18 +363,10 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 5c3dff20..990dfb80 100644
+index e67d6887..990dfb80 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -174,7 +174,6 @@ export const RootStore = types
-                         const errorMnemonic = error?.data?.mnemonic;
- 
-                         if (errorMnemonic === ACCESS_TOKEN_EXPIRED) {
--                            self.softphoneStore.handleAuthTokenExpired();
-                             return refreshAccessToken(error, config, axios);
-                         } else if (errorMnemonic === ACCESS_TOKEN_INVALID) {
-                             self.authStore.logout();
-@@ -197,7 +196,7 @@ export const RootStore = types
+@@ -196,7 +196,7 @@ export const RootStore = types
                  }
              );
  
@@ -383,7 +375,7 @@ index 5c3dff20..990dfb80 100644
              self.softphoneStore.setAxiosProcessor(axios => (setAuthTypeHeader(axios.defaults), addInterceptors(axios)));
          };
  
-@@ -245,6 +244,7 @@ export const RootStore = types
+@@ -244,6 +244,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -391,7 +383,7 @@ index 5c3dff20..990dfb80 100644
              initialState = getSnapshot(self);
  
              self.softphoneStore.setSoftphoneHost(
-@@ -268,7 +268,8 @@ export type DependencyInjection = {
+@@ -267,7 +268,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
