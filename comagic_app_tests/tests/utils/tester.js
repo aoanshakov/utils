@@ -135,6 +135,23 @@ define(() => function ({
             'X-Auth-Type': 'jwt'
         };
 
+        const addAuthErrorResponseModifiers = (me, response) => {
+            me.accessTokenExpired = () => {
+                Object.keys(response).forEach(key => delete(response[key]));
+
+                response.error = {
+                    code: 401,
+                    message: 'Token has been expired',
+                    mnemonic: 'expired_token',
+                    is_smart: false
+                };
+
+                return me;
+            };
+
+            return me;
+        };
+
         const request = addAuthErrorResponseModifiers({
             anotherAuthoriationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),

@@ -363,19 +363,29 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index e67d6887..990dfb80 100644
+index e67d6887..e74dd028 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -196,7 +196,7 @@ export const RootStore = types
+@@ -164,7 +164,7 @@ export const RootStore = types
+ 
+             setAuthHeaders();
+ 
+-            const addInterceptors = axios => axios.interceptors.response.use(
++            window.axiosInterceptors = axios.interceptors.response.use(
+                 response => {
+                     if (response.data.error) {
+                         const {
+@@ -196,8 +196,7 @@ export const RootStore = types
                  }
              );
  
 -            addInterceptors(axios);
-+            window.axiosInterceptors = addInterceptors(axios);
-             self.softphoneStore.setAxiosProcessor(axios => (setAuthTypeHeader(axios.defaults), addInterceptors(axios)));
+-            self.softphoneStore.setAxiosProcessor(axios => (setAuthTypeHeader(axios.defaults), addInterceptors(axios)));
++            self.softphoneStore.setAxiosProcessor(axios => setAuthTypeHeader(axios.defaults));
          };
  
-@@ -244,6 +244,7 @@ export const RootStore = types
+         const setHighchartsOptions = () => {
+@@ -244,6 +243,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -383,7 +393,7 @@ index e67d6887..990dfb80 100644
              initialState = getSnapshot(self);
  
              self.softphoneStore.setSoftphoneHost(
-@@ -267,7 +268,8 @@ export type DependencyInjection = {
+@@ -267,7 +267,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

@@ -2010,7 +2010,12 @@ function JsTester_WindowEventsReplacer (args) {
     };
     this.restoreReal = function () {
         window.addEventListener = realEventListenerAssigner;
-        windowEventsListeners.clear();
+
+        windowEventsListeners.forEach(function (eventListeners, eventName) {
+            eventListeners.forEach(function (listener) {
+                window.removeEventListener(eventName, listener);
+            });
+        });
 
         originalWindowEventsListeners.forEach(function (eventListeners, eventName) {
             windowEventsListeners.set(eventName, eventListeners.slice(0));
