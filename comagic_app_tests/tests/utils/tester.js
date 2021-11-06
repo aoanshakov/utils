@@ -14,7 +14,13 @@ define(() => function ({
         refresh: '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2'
     };
 
-    isAlreadyAuthenticated && localStorage.setItem('auth', JSON.stringify(jwtToken));
+    isAlreadyAuthenticated && (
+        document.cookie =
+            'auth=%7B%22' +
+            'jwt%22%3A%22XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0%22%2C%22' +
+            'refresh%22%3A%222982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2%22%7D; ' +
+            'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
+    );
 
     window.application.run({
         setHistory: value => (history = value)

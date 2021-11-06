@@ -22,8 +22,10 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.authCheckRequest().receiveResponse();
-
             tester.accountRequest().receiveResponse();
+
+            tester.configRequest().softphone().receiveResponse();
+            tester.configRequest().receiveResponse();
 
             tester.statusesRequest().receiveResponse();
             settingsRequest = tester.settingsRequest().expectToBeSent();
@@ -31,15 +33,10 @@ tests.addTest(options => {
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
 
-            tester.configRequest().softphone().receiveResponse();
-            tester.configRequest().receiveResponse();
-
             tester.reportGroupsRequest().receiveResponse();
             tester.reportsListRequest().receiveResponse();
             tester.reportTypesRequest().receiveResponse();
 
-            tester.operatorStatusListRequest().receiveResponse();
-            tester.operatorListRequest().receiveResponse();
             tester.operatorAccountRequest().receiveResponse();
 
             tester.reportStateRequest().receiveResponse();
@@ -178,7 +175,6 @@ tests.addTest(options => {
             tester.registrationRequest().receiveResponse();
         });
     });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,

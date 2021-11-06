@@ -23,7 +23,8 @@ const {
     sipLib,
     sipLibPatch,
     uisWebRTC,
-    packageLockJson
+    packageLockJson,
+    stub
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -36,6 +37,7 @@ const cda = `cd ${application} &&`,
     devOverridenFiles = 'config/webpack.config.js .env';
 
 const overridenFiles = [
+    '.env',
     'public/index.html',
     'src/bootstrap.tsx',
     'src/history.ts',
@@ -131,6 +133,7 @@ actions['modify-code'] = params => actions['restore-code']({}).
             `then cd ${application} && patch -p1 < ${applicationPatch}; ` +
         `fi`
     ]), [])).
+    concat(`cp ${stub} ${misc}`).
     concat(
         actions['fix-permissions']
     );

@@ -1,5 +1,22 @@
+diff --git a/.env b/.env
+index 16343798..c6c383de 100644
+--- a/.env
++++ b/.env
+@@ -7,9 +7,9 @@ REACT_APP_EMBED_CODE_URL=
+ REACT_APP_SITE_SETTINGS_SERVER_URL=
+ REACT_APP_ANALYTICS_SERVER_URL=
+ REACT_APP_PROJECT=
+-REACT_APP_MODULE_CHATS=
+-REACT_APP_MODULE_EMPLOYEES=
+-REACT_APP_LEADGEN_MODULE=
++REACT_APP_MODULE_CHATS=https://localhost:8083
++REACT_APP_MODULE_EMPLOYEES=https://localhost:8082
++REACT_APP_LEADGEN_MODULE=https://localhost:8084
+ REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
+ 
+ REACT_APP_SOFTPHONE_BACKEND_HOST='myva0.dev.uis.st'
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 296b5ad1..a88a21c8 100644
+index 296b5ad1..6c6bcf0b 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -115,7 +132,7 @@ index 296b5ad1..a88a21c8 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -266,17 +301,88 @@ module.exports = {
+@@ -266,17 +301,89 @@ module.exports = {
                      },
                  ],
              },
@@ -156,6 +173,7 @@ index 296b5ad1..a88a21c8 100644
 -            '@hooks': path.resolve(appDirectory, './src/hooks'),
 +            ...createAliases(appDirectory),
              '@ant-design/icons/lib/dist$': path.resolve(appDirectory, './src/icons.ts'),
++            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'employees/Root': 'employees/src/Root.tsx',
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/RootStore': 'softphone/src/models/RootStore.ts',
@@ -345,10 +363,18 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 5c3dff20..e352f33c 100644
+index 5c3dff20..990dfb80 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -197,7 +197,7 @@ export const RootStore = types
+@@ -174,7 +174,6 @@ export const RootStore = types
+                         const errorMnemonic = error?.data?.mnemonic;
+ 
+                         if (errorMnemonic === ACCESS_TOKEN_EXPIRED) {
+-                            self.softphoneStore.handleAuthTokenExpired();
+                             return refreshAccessToken(error, config, axios);
+                         } else if (errorMnemonic === ACCESS_TOKEN_INVALID) {
+                             self.authStore.logout();
+@@ -197,7 +196,7 @@ export const RootStore = types
                  }
              );
  
@@ -357,7 +383,7 @@ index 5c3dff20..e352f33c 100644
              self.softphoneStore.setAxiosProcessor(axios => (setAuthTypeHeader(axios.defaults), addInterceptors(axios)));
          };
  
-@@ -245,6 +245,7 @@ export const RootStore = types
+@@ -245,6 +244,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -365,7 +391,7 @@ index 5c3dff20..e352f33c 100644
              initialState = getSnapshot(self);
  
              self.softphoneStore.setSoftphoneHost(
-@@ -268,7 +269,8 @@ export type DependencyInjection = {
+@@ -268,7 +268,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

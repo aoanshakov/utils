@@ -18,6 +18,7 @@ module.exports = {
     preCommitHook,
     indexHtml: `${application}/build/index.html`,
     testsHtml: `${tests}/tests/tests.html`,
+    stub: `${tests}/Stub.js`,
     applicationPatch: `${tests}/application-patch.diff`,
     devApplicationPatch: `${tests}/dev-application-patch.diff`,
     chatsPatch: `${tests}/chats-patch.diff`,

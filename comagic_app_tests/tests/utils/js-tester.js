@@ -418,7 +418,7 @@ function JsTester_MediaStreamWrapper (options) {
 }
 
 function JsTester_Variable () {
-    var value = false;
+    var value = arguments.length == 0 ? false : arguments[0];
 
     this.createGetter = function () {
         return function () {
@@ -432,8 +432,8 @@ function JsTester_Variable () {
     };
 }
 
-function JsTester_RWVariable () {
-    var variable = new JsTester_Variable();
+function JsTester_RWVariable (value) {
+    var variable = new JsTester_Variable(value);
 
     this.get = variable.createGetter();
     this.set = variable.createSetter();
@@ -936,6 +936,28 @@ function JsTester_StorageMocker () {
     this.restoreReal = function () {
         currentLocalStorage = realLocalStorage;
         currentSessionStorage = realSessionStorage;
+    };
+}
+
+function JsTester_CookieTester (cookie) {
+    Object.defineProperty(document, 'cookie', {
+        get: function () {
+            return cookie.get();
+        },
+        set: function (value) {
+            cookie.set(value);
+        }
+    });
+
+    return {
+        expectToEqual: function (expectedValue) {
+            if (expectedValue != cookie.get()) {
+                throw new Error(
+                    'В куки должна быть такая строка "' + expectedValue + '", однако там сохранена такая строка "' +
+                    cookie.get() + '".'
+                );
+            }
+        }
     };
 }
 
@@ -2841,6 +2863,8 @@ function JsTester_Tests (factory) {
         files = new Map(),
         fileReaderTester = new JsTester_FileReaderTester(files),
         fileReaderMocker = new JsTester_FileReaderMocker(files),
+        cookie = new JsTester_RWVariable(''),
+        cookieTester = new JsTester_CookieTester(cookie),
         storageMocker = new JsTester_StorageMocker(),
         timeoutLogger = new JsTester_Logger(),
         debug = factory.createDebugger(),
@@ -3162,6 +3186,7 @@ function JsTester_Tests (factory) {
             sdp: sdp,
             fileReader: fileReaderTester,
             triggerMutation: mutationObserverTester,
+            cookie: cookieTester,
             ajax: ajaxTester,
             fetch: fetchTester,
             testersFactory: testersFactory,
@@ -3245,6 +3270,7 @@ function JsTester_Tests (factory) {
         windowEventsReplacer.prepareToTest();
         notificationReplacer.replaceByFake();
         audioContextReplacer.replaceByFake();
+        cookie.set('');
         storageMocker.replaceByFake();
         rtcPeerConnectionMocker.replaceByFake();
         webSocketReplacer.replaceByFake();
