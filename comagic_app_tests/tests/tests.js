@@ -158,6 +158,10 @@ tests.addTest(options => {
                         'Топ 10 регионов по количеству сделок',
                         'Некое значение'
                     );
+
+                    refreshRequest.receiveResponse();
+                    tester.reportTableRequest().thirdColumn().visitorRegion().anotherAuthoriationToken().
+                        expectToBeSent();
                 });
             });
         });
@@ -173,6 +177,12 @@ tests.addTest(options => {
 
             tester.authenticatedUserRequest().anotherAuthoriationToken().receiveResponse();
             tester.registrationRequest().receiveResponse();
+        });
+        it('Токен невалиден.', function() {
+            settingsRequest.accessTokenInvalid().receiveResponse();
+            tester.authLogoutRequest().receiveResponse();
+
+            tester.textField.withFieldLabel('Логин').expectToBeVisible();
         });
     });
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {

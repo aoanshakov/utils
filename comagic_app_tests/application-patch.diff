@@ -264,10 +264,10 @@ index a7aba4fa..822bc765 100644
    }
  }
 diff --git a/public/index.html b/public/index.html
-index 98e0c107..0fe0c90f 100644
+index 98e0c107..5851e692 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -22,6 +22,22 @@
+@@ -22,6 +22,24 @@
      })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
      <!-- End Google Tag Manager -->
      <% } %>
@@ -287,15 +287,15 @@ index 98e0c107..0fe0c90f 100644
 +        var tests = new JsTester_Tests(new JsTester_Factory());
 +        tests.exposeDebugUtils('jsTestDebug');
 +    </script>
++    <script src="/tests/utils/require.js"></script>
++    <script src="/tests/tests.js"></script>
  </head>
  <body>
      <% if (htmlWebpackPlugin.options.env.production) { %>
-@@ -33,5 +49,8 @@
+@@ -33,5 +51,6 @@
      <% } %>
      <noscript>You need to enable JavaScript to run this app.</noscript>
      <div id="root"></div>
-+    <script src="/tests/utils/require.js"></script>
-+    <script src="/tests/tests.js"></script>
 +    <script src="/tests/utils/tests.js"></script>
  </body>
  </html>
@@ -393,3 +393,30 @@ index 6e7e6082..e74dd028 100644
  
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
+diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
+index 742f44e3..8a47a0d6 100644
+--- a/src/rpc/httpRpc.ts
++++ b/src/rpc/httpRpc.ts
+@@ -27,10 +27,11 @@ const buildMode: string = process.env.REACT_APP_BUILD_MODE;
+ const baseUrl: string =
+     buildMode === 'e2e_test' ? process.env.REACT_APP_BASE_URL_FOR_E2E : process.env.REACT_APP_BASE_URL;
+ 
+-let cancelTokenSource: CancelTokenSource = axios.CancelToken.source();
++let cancelTokenSource: CancelTokenSource = null;
++const getCancelTokenSource = () => cancelTokenSource || (cancelTokenSource = axios.CancelToken.source());
+ 
+ export const cancelPendingRequests = (message?: string): void => {
+-    cancelTokenSource.cancel(message);
++    getCancelTokenSource().cancel(message);
+     cancelTokenSource = axios.CancelToken.source();
+ };
+ 
+@@ -47,7 +48,7 @@ const httpRpc: HttpRpc = async <T>(method: string, params = {}, headers = {}, ur
+         data: rpcParams,
+         url: `${url}?method=${method}`,
+         headers,
+-        cancelToken: cancelTokenSource.token,
++        cancelToken: getCancelTokenSource().token,
+     };
+ 
+     try {

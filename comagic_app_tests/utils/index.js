@@ -43,7 +43,8 @@ const overridenFiles = [
     'src/history.ts',
     'config/webpack.config.js',
     'package.json',
-    'src/models/RootStore.ts'
+    'src/models/RootStore.ts',
+    'src/rpc/httpRpc.ts'
 ].join(' ');
 
 actions['fix-permissions'] =

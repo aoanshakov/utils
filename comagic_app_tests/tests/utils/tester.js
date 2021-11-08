@@ -92,7 +92,10 @@ define(() => function ({
             return {
                 receiveResponse: function () {
                     request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
-                    Promise.runAll();
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
                 }
             };
         },
@@ -149,6 +152,19 @@ define(() => function ({
                 return me;
             };
 
+            me.accessTokenInvalid = () => {
+                Object.keys(response).forEach(key => delete(response[key]));
+
+                response.error = {
+                    code: 401,
+                    message: 'Token is not active or invalid',
+                    mnemonic: 'invalid_token',
+                    is_smart: false
+                };
+
+                return me;
+            };
+
             return me;
         };
 
@@ -165,7 +181,10 @@ define(() => function ({
                 return addAuthErrorResponseModifiers({
                     receiveResponse: () => {
                         request.respondSuccessfullyWith(response);
-                        Promise.runAll();
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
                     }
                 }, response);
             },
@@ -174,30 +193,58 @@ define(() => function ({
 
         return request;
     };
+    
+    me.authLogoutRequest = () => ({
+        expectToBeSent() {
+            let request = ajax.recentRequest().
+                expectPathToContain('/sup/auth/logout').
+                expectToHaveHeaders({
+                    Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                    'X-Auth-Type': 'jwt'
+                });
 
-    me.authCheckRequest = function () {
-        return {
-            expectToBeSent() {
-                let request = ajax.recentRequest().
-                    expectPathToContain('/sup/auth/check').
-                    expectToHaveHeaders({
-                        Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                        'X-Auth-Type': 'jwt'
+            return {
+                receiveResponse: () => {
+                    request.respondSuccessfullyWith({
+                        result: true
                     });
 
-                return {
-                    receiveResponse: () => {
-                        request.respondSuccessfullyWith('');
-                        Promise.runAll();
-                    }
-                };
-            },
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
 
-            receiveResponse() {
-                this.expectToBeSent().receiveResponse();
-            }
-        };
-    };
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.authCheckRequest = () => ({
+        expectToBeSent() {
+            let request = ajax.recentRequest().
+                expectPathToContain('/sup/auth/check').
+                expectToHaveHeaders({
+                    Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                    'X-Auth-Type': 'jwt'
+                });
+
+            return {
+                receiveResponse: () => {
+                    request.respondSuccessfullyWith('');
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
 
     me.operatorAccountRequest = () => ({
         receiveResponse() {
