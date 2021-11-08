@@ -21,7 +21,7 @@ index 16343798..24c3148b 100644
 -REACT_APP_SOFTPHONE_BACKEND_HOST='myva0.dev.uis.st'
 +REACT_APP_SOFTPHONE_BACKEND_HOST='myint0.dev.uis.st'
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 296b5ad1..edce4b10 100644
+index 37d99a30..80630e5e 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -72,7 +72,7 @@ index 296b5ad1..edce4b10 100644
 +                //leadgen: `leadgen@${process.env.REACT_APP_LEADGEN_MODULE}/leadgen.js`,
 +                //chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
 +                //employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
-                 softphone: `employees@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
+                 softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
              },
          }),
 @@ -182,6 +189,13 @@ const plugins = () => {
