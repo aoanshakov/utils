@@ -21,7 +21,7 @@ index 16343798..24c3148b 100644
 -REACT_APP_SOFTPHONE_BACKEND_HOST='myva0.dev.uis.st'
 +REACT_APP_SOFTPHONE_BACKEND_HOST='myint0.dev.uis.st'
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 37d99a30..80630e5e 100644
+index 37d99a30..bd00441f 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -89,7 +89,29 @@ index 37d99a30..80630e5e 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -271,12 +285,56 @@ module.exports = {
+@@ -201,6 +215,21 @@ module.exports = {
+     module: {
+         rules: [
+             {
++                test: /\.js$/,
++                exclude: /node_modules/,
++                use: [{
++                    loader: 'babel-loader',
++                    options: {
++                        presets: ['@babel/preset-react', '@babel/preset-env'],
++                        comments: false,
++                        plugins: [
++                            '@babel/plugin-proposal-private-methods',
++                            '@babel/plugin-proposal-class-properties',
++                        ]
++                    }
++                }]
++            },
++            {
+                 test: /\.(ts|tsx)$/,
+                 use: {
+                     loader: 'ts-loader',
+@@ -271,12 +300,56 @@ module.exports = {
      resolve: {
          extensions: ['.tsx', '.ts', '.js'],
          alias: {
