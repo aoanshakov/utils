@@ -16,7 +16,7 @@ index 16343798..c6c383de 100644
  
  REACT_APP_SOFTPHONE_BACKEND_HOST='myva0.dev.uis.st'
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 296b5ad1..6c6bcf0b 100644
+index 37d99a30..f0466455 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -60,7 +60,7 @@ index 296b5ad1..6c6bcf0b 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -157,12 +164,13 @@ const plugins = () => {
+@@ -157,7 +164,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -69,15 +69,9 @@ index 296b5ad1..6c6bcf0b 100644
              name: 'shell',
              shared: ['react', 'react-dom'].reduce((shared, key) => {
                  shared[key] = {
-                     requiredVersion: deps[key],
-                     singleton: true,
-+                    eager: true
-                 };
-                 return shared;
-             }, {}),
-@@ -172,7 +180,11 @@ const plugins = () => {
+@@ -172,7 +179,11 @@ const plugins = () => {
                  employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
-                 softphone: `employees@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
+                 softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
              },
 -        }),
 +        }),*/
@@ -88,7 +82,7 @@ index 296b5ad1..6c6bcf0b 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -182,6 +194,13 @@ const plugins = () => {
+@@ -182,6 +193,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -102,7 +96,7 @@ index 296b5ad1..6c6bcf0b 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -201,6 +220,21 @@ module.exports = {
+@@ -201,6 +219,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -124,7 +118,7 @@ index 296b5ad1..6c6bcf0b 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -251,6 +285,7 @@ module.exports = {
+@@ -251,6 +284,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -132,7 +126,7 @@ index 296b5ad1..6c6bcf0b 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -266,17 +301,89 @@ module.exports = {
+@@ -266,17 +300,89 @@ module.exports = {
                      },
                  ],
              },
