@@ -1,5 +1,5 @@
 diff --git a/.env b/.env
-index 06c281cc..cc374e05 100644
+index 16343798..24c3148b 100644
 --- a/.env
 +++ b/.env
 @@ -1,7 +1,7 @@
@@ -14,16 +14,14 @@ index 06c281cc..cc374e05 100644
  REACT_APP_MARKETPLACE_URL=
  REACT_APP_EMBED_CODE_URL=
  REACT_APP_SITE_SETTINGS_SERVER_URL=
-@@ -12,4 +12,4 @@ REACT_APP_MODULE_CHATS=http://localhost:8081
- REACT_APP_MODULE_EMPLOYEES=http://localhost:8082
+@@ -12,4 +12,4 @@ REACT_APP_MODULE_EMPLOYEES=
+ REACT_APP_LEADGEN_MODULE=
  REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
  
 -REACT_APP_SOFTPHONE_BACKEND_HOST='myva0.dev.uis.st'
-\ No newline at end of file
 +REACT_APP_SOFTPHONE_BACKEND_HOST='myint0.dev.uis.st'
-\ No newline at end of file
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 88eaf103..45cf16f6 100644
+index 296b5ad1..edce4b10 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -68,16 +66,16 @@ index 88eaf103..45cf16f6 100644
                  return shared;
              }, {}),
              remotes: {
+-                leadgen: `leadgen@${process.env.REACT_APP_LEADGEN_MODULE}/leadgen.js`,
 -                chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
 -                employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
--                softphone: `employees@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
++                //leadgen: `leadgen@${process.env.REACT_APP_LEADGEN_MODULE}/leadgen.js`,
 +                //chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
 +                //employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
-+                softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
+                 softphone: `employees@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
              },
          }),
-     ];
-@@ -181,6 +188,13 @@ const plugins = () => {
+@@ -182,6 +189,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -91,7 +89,7 @@ index 88eaf103..45cf16f6 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -270,12 +284,55 @@ module.exports = {
+@@ -271,12 +285,56 @@ module.exports = {
      resolve: {
          extensions: ['.tsx', '.ts', '.js'],
          alias: {
@@ -102,6 +100,7 @@ index 88eaf103..45cf16f6 100644
 +            ...createAliases(appDirectory),
              '@ant-design/icons/lib/dist$': path.resolve(appDirectory, './src/icons.ts'),
 +            'employees/Root': 'employees/src/Root.tsx',
++            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/ChatHistoryLog': 'chats/src/components/chats/chat-panel/HistoryLog.tsx',
