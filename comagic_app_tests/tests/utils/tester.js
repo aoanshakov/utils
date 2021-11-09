@@ -30,6 +30,27 @@ define(() => function ({
     spendTime(0);
     Promise.runAll(false, true);
 
+    const addTesters = (me, getRootElement) => (me.select = (getSelectField => {
+        const tester = testersFactory.createDomElementTester(getSelectField);
+
+        tester.arrow = (tester => {
+            const click = tester.click.bind(tester);
+
+            tester.click = () => (click(), spendTime(0));
+            return tester;
+        })(testersFactory.createDomElementTester(
+            () => getSelectField().closest('.ui-select-container').querySelector('.ui-icon svg')
+        ));
+
+        tester.option = text => testersFactory.createDomElementTester(
+            utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find()
+        );
+
+        return tester;
+    })(() => (
+        getRootElement() || new JsTester_NoElement()
+    ).querySelector('.ui-select-field') || new JsTester_NoElement()));
+
     const addAuthErrorResponseModifiers = (me, response) => {
         me.accessTokenExpired = () => {
             Object.keys(response).forEach(key => delete(response[key]));
@@ -179,6 +200,11 @@ define(() => function ({
                     expectToHaveHeaders(headers);
 
                 return addAuthErrorResponseModifiers({
+                    allowNumberCapacitySelect() {
+                        response.data.number_capacity_usage_rule = 'fixed';
+                        return this;
+                    },
+
                     receiveResponse: () => {
                         request.respondSuccessfullyWith(response);
 
@@ -1236,6 +1262,10 @@ define(() => function ({
     me.forceUpdate = () => utils.pressKey('k');
     me.body = testersFactory.createDomElementTester('body');
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
+
+    addTesters(me, () => document.body);
+
+    me.dialpadButton = testersFactory.createDomElementTester('#cmg-dialpad-visibility-toggler');
 
     me.button = text => testersFactory.createDomElementTester(
         utils.descendantOfBody().

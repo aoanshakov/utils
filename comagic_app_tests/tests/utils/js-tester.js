@@ -3519,7 +3519,7 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
             length = descendants.length,
             descendant,
             desiredDescendants = [];
-        
+
         for (i = 0; i < length; i ++) {
             descendant = descendants[i];
 

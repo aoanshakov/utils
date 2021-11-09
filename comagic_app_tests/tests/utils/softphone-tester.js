@@ -343,6 +343,9 @@ define(function () {
 
         this.requestSaveNumberCapacity = function () {
             return {
+                receiveResponse: function () {
+                    this.send();
+                },
                 send: function () {
                     ajax.recentRequest().
                         expectPathToContain('number_capacity/077368').
@@ -358,6 +361,8 @@ define(function () {
                 }
             };
         };
+
+        this.saveNumberCapacityRequest = this.requestSaveNumberCapacity;
 
         this.requestContactCalls = function () {
             var queryParams = {
