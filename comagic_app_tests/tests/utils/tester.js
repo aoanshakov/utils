@@ -73,36 +73,46 @@ define(() => function ({
         return me;
     };
 
-    me.incomingCallProceeding = () => ({
-        receive: () => me.eventsWebSocket.receiveMessage({
-            name: 'out_call',
-            type: 'event',
-            params: {
-                calling_phone_number: '79161234567',
-                contact_phone_number: '79161234567',
-                virtual_phone_number: '79161234568',
-                virtual_number_comment: null,
-                call_source: 'va',
-                call_session_id: 980925456,
-                mark_ids: null,
-                is_transfer: false,
-                is_internal: false,
-                direction: 'in',
-                site_domain_name: 'somesite.com',
-                search_query: 'Какой-то поисковый запрос, который не помещается в одну строчку',
-                campaign_name: 'Некая рекламная кампания',
-                auto_call_campaign_name: null,
-                organization_name: 'ООО "Некая Организация"',
-                contact_full_name: 'Шалева Дора',
-                crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/382030',
-                first_call: true,
-                is_transfer: false,
-                transferred_by_employee_full_name: '',
-                active_leads: [],
-                is_final: true
-            } 
-        }) 
-    });
+    me.incomingCallProceeding = () => {
+        const params = {
+            calling_phone_number: '79161234567',
+            contact_phone_number: '79161234567',
+            virtual_phone_number: '79161234568',
+            virtual_number_comment: null,
+            call_source: 'va',
+            call_session_id: 980925456,
+            mark_ids: null,
+            is_transfer: false,
+            is_internal: false,
+            direction: 'in',
+            site_domain_name: 'somesite.com',
+            search_query: 'Какой-то поисковый запрос, который не помещается в одну строчку',
+            campaign_name: 'Некая рекламная кампания',
+            auto_call_campaign_name: null,
+            organization_name: 'ООО "Некая Организация"',
+            contact_full_name: 'Шалева Дора',
+            crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/382030',
+            first_call: true,
+            is_transfer: false,
+            transferred_by_employee_full_name: '',
+            active_leads: [],
+            is_final: true
+        };
+
+        return {
+            noName() {
+                params.contact_full_name = null;
+                crm_contact_link = null;
+                return this;
+            },
+
+            receive: () => me.eventsWebSocket.receiveMessage({
+                name: 'out_call',
+                type: 'event',
+                params
+            }) 
+        };
+    };
 
     me.numaRequest = () => ({
         expectToBeSent() {

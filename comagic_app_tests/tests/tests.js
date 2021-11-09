@@ -73,7 +73,7 @@ tests.addTest(options => {
             spendTime(0);
         });
 
-        xdescribe('Получены права.', function() {
+        describe('Получены права.', function() {
             beforeEach(function() {
                 permissionsRequest.receiveResponse();
             });
@@ -96,7 +96,7 @@ tests.addTest(options => {
                         reportTableRequest.receiveResponse();
                     });
 
-                    describe('Нажимаю на иконку с телефоном. Ввожу номер телефона.', function() {
+                    xdescribe('Нажимаю на иконку с телефоном. Ввожу номер телефона.', function() {
                         beforeEach(function() {
                             tester.phoneIcon.click();
                             tester.phoneField.fill('79161234567');
@@ -114,20 +114,43 @@ tests.addTest(options => {
                             tester.callButton.expectToHaveAttribute('disabled');
                         });
                     });
-                    it(
-                        'SIP-регистрация завершена. Поступил входящий звонок. Отображена информация о звонке.',
+                    describe(
+                        'SIP-регистрация завершена. Поступил входящий звонок.',
                     function() {
-                        registrationRequest.receiveResponse();
+                        beforeEach(function() {
+                            registrationRequest.receiveResponse();
 
-                        tester.incomingCall().receive();
-                        Promise.runAll(false, true);
-                        tester.numaRequest().receiveResponse();
-                        tester.incomingCallProceeding().receive();
+                            tester.incomingCall().receive();
+                            Promise.runAll(false, true);
+                            tester.numaRequest().receiveResponse();
+                        });
 
-                        tester.innerContainer.expectTextContentToHaveSubstring('Шалева Дора');
-                        tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
-                        tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
+                        xit('Отображено сообщение о поиске контакта.', function() {
+                            tester.innerContainer.expectTextContentToHaveSubstring(
+                                '+7 (916) 123-45-67 Searching for contact...'
+                            );
+                        });
+                        it('Контакт не найден. Отображно направление звонка.', function() {
+                            tester.incomingCallProceeding().noName().receive();
+
+                            tester.innerContainer.expectTextContentToHaveSubstring(
+                                '+7 (916) 123-45-67 Incoming call'
+                            );
+                                
+                            window.scrollTo(0, 0);
+                        });
+                        return;
+                        it('Контакт найден. Отображена информация о контакте.', function() {
+                            tester.incomingCallProceeding().receive();
+
+                            tester.innerContainer.expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67');
+                            tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
+                            tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
+
+                            window.scrollTo(0, 0);
+                        });
                     });
+                    return;
                     it('Отображен отчет. Софтфон скрыт.', function() {
                         tester.callButton.expectNotToExist();
 
@@ -137,6 +160,7 @@ tests.addTest(options => {
                         );
                     });
                 });
+                return;
                 describe(
                     'SIP-регистрация завершена. Срок действия токена авторизации истек.',
                 function() {
@@ -174,6 +198,7 @@ tests.addTest(options => {
                     });
                 });
             });
+            return;
             it('Срок действия токена авторизации истек. Токен авторизации обновлен. Софтфон подключен.', function() {
                 settingsRequest.accessTokenExpired().receiveResponse();
                 tester.refreshRequest().receiveResponse();
@@ -194,6 +219,7 @@ tests.addTest(options => {
                 tester.textField.withFieldLabel('Логин').expectToBeVisible();
             });
         });
+        return;
         describe('Нажимаю на иконку с микрофоном. Пользователь имеет права на список номеров.', function() {
             beforeEach(function() {
                 tester.phoneIcon.click();
@@ -215,7 +241,7 @@ tests.addTest(options => {
                     tester.registrationRequest().receiveResponse();
                 });
 
-                xdescribe('Раскрываю список номеров.', function() {
+                describe('Раскрываю список номеров.', function() {
                     beforeEach(function() {
                         tester.select.arrow.click();
                     });
@@ -233,7 +259,6 @@ tests.addTest(options => {
                     tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
                 });
             });
-            return;
             it('Безуспешно пытаюсь выбрать номер.', function() {
                 permissionsRequest.receiveResponse();
                 settingsRequest.allowNumberCapacitySelect().receiveResponse();
