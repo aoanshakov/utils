@@ -1,17 +1,17 @@
 diff --git a/package.json b/package.json
-index 5b53607..f41418f 100644
+index 5026fef..bc99c50 100644
 --- a/package.json
 +++ b/package.json
-@@ -54,7 +54,7 @@
-   },
+@@ -55,7 +55,7 @@
    "dependencies": {
+     "nanoid": "2.1.11",
      "@babel/runtime": "^7.13.9",
 -    "antd": "^4.13.0",
 +    "antd": "^3.26.7",
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -78,6 +78,6 @@
+@@ -79,6 +79,6 @@
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
      "yup": "^0.32.9",
