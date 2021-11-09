@@ -229,7 +229,6 @@ tests.addTest(options => {
                         tester.select.option('+7 (495) 021-68-06').expectToHaveClass('ui-list-option-selected');
                     });
                 });
-                return;
                 it('Отображен выбранный номер телефона.', function() {
                     tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
                 });
