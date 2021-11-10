@@ -388,8 +388,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'login.user',
                                 params: {
                                     login: 's.karamanova',
@@ -399,7 +397,8 @@ define(() => {
                             respondSuccessfullyWith({
                                 result: {
                                     data: {
-                                        access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
+                                        jwt: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                                        refresh: 'd33fe9b5808d4ca592bb70a2f33271cc'
                                     }
                                 }
                             });
@@ -461,12 +460,7 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
-                                method: 'get.user',
-                                params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
-                                }
+                                method: 'get.user'
                             }).
                             respondSuccessfullyWith({
                                 result: {
@@ -486,11 +480,8 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.apps_users',
                                 params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                                     app_id: '4735',
                                     limit: '50',
                                     offset: '0',
@@ -532,7 +523,6 @@ define(() => {
                     numa: '79162937183',
                     date_from: '2020-07-26 00:00:00',
                     date_till: '2020-08-17 13:21:55',
-                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                     is_show_not_sent: 'false',
                     is_show_in_process: 'true',
                     is_show_undelivered: 'true',
@@ -649,8 +639,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.amocrm_events',
                                 params
                             });
@@ -780,8 +768,7 @@ define(() => {
             amocrmEventsResendingRequest() {
                 const params = {
                     app_id: '4735',
-                    partner: 'amocrm',
-                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
+                    partner: 'amocrm'
                 };
 
                 return {
@@ -800,8 +787,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'send.amocrm_events',
                                 params
                             });
@@ -863,11 +848,8 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.directories',
                                 params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                                     keys: keys 
                                 }
                             }).respondSuccessfullyWith({
@@ -886,11 +868,8 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.integrations',
                                 params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                                     limit: 50,
                                     offset: 0,
                                     sort: null,
@@ -945,7 +924,6 @@ define(() => {
                 let processing = [];
 
                 const params = {
-                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                     limit: 50,
                     offset: 0,
                     sort: [{
@@ -1017,8 +995,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.apps',
                                 params
                             }).respondSuccessfullyWith({
@@ -1042,11 +1018,8 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.app_users',
                                 params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                                     app_id: 386524
                                 }
                             }).respondSuccessfullyWith({
@@ -1172,8 +1145,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.feature_flags',
                                 params
                             });
@@ -1267,8 +1238,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.feature_flag',
                                 params
                             });
@@ -1289,7 +1258,6 @@ define(() => {
 
             featureFlagCreatingRequest() {
                 const params = {
-                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                     id: undefined,
                     name: 'Чаты в WhatsApp',
                     mnemonic: 'whatsapp_chats',
@@ -1333,8 +1301,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'create.feature_flag',
                                 params
                             });
@@ -1361,12 +1327,7 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
-                                method: 'get.feature_flag_namespaces',
-                                params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
-                                }
+                                method: 'get.feature_flag_namespaces'
                             }).respondSuccessfullyWith({
                                 result: '{comagic_web,db,amocrm}'
                             });
@@ -1378,7 +1339,6 @@ define(() => {
 
             featureFlagUpdatingRequest() {
                 const params = {
-                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                     id: 829592,
                     name: 'Чаты в WhatsApp',
                     mnemonic: 'whatsapp_chats',
@@ -1427,7 +1387,7 @@ define(() => {
                     },
 
                     switching() {
-                        Object.keys(params).filter(name => !['id', 'is_enabled', 'access_token'].includes(name)).
+                        Object.keys(params).filter(name => !['id', 'is_enabled'].includes(name)).
                             forEach(name => (params[name] = undefined));
                         return this;
                     },
@@ -1448,8 +1408,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'update.feature_flag',
                                 params
                             });
@@ -1476,11 +1434,8 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'delete.feature_flag',
                                 params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                                     id: 829592
                                 }
                             }).respondSuccessfullyWith({

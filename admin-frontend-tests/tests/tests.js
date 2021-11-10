@@ -34,7 +34,7 @@ tests.addTest(function (options) {
             tester.userLoginRequest().receiveResponse();
         });
 
-        describe(
+        xdescribe(
             'Доступны разделы "Пользователи", "CRM-интеграции", "Переотправка событий" и "Фичефлаги".',
         function() {
             beforeEach(function() {
@@ -1988,7 +1988,7 @@ tests.addTest(function (options) {
                 tester.menuitem('Фичефлаги').expectHrefToHavePath('/feature-flags');
             });
         });
-        describe('Доступен только раздел "Пользовтатели".', function() {
+        xdescribe('Доступен только раздел "Пользовтатели".', function() {
             beforeEach(function() {
                 tester.userRequest().allowReadUsers().receiveResponse();
             });
@@ -2059,7 +2059,7 @@ tests.addTest(function (options) {
                 );
             });
         });
-        describe('Доступен только раздел "Клиенты".', function() {
+        xdescribe('Доступен только раздел "Клиенты".', function() {
             beforeEach(function() {
                 tester.userRequest().allowReadApps().allowWriteApps().receiveResponse();
                 tester.directionRequest().addAppStates().addTpTpvAll().receiveResponse();
@@ -2144,7 +2144,7 @@ tests.addTest(function (options) {
                 );
             });
         });
-        it(
+        xit(
             'Доступен только раздел "CRM-интеграции". Нажимаю на кнопку действий в строке, относящейся к amoCRM. ' +
             'Ссылка на раздел переотправки событий заблокирована. ',
         function() {
