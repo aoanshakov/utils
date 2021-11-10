@@ -1,13 +1,14 @@
 diff --git a/package.json b/package.json
-index b5d40f6..3a75f63 100644
+index 41b771f..fd11fab 100644
 --- a/package.json
 +++ b/package.json
-@@ -32,6 +32,6 @@
+@@ -32,7 +32,7 @@
      "webpack": "5.28.0",
      "webpack-cli": "^4.2.0",
      "babel-loader": "^8.0.4",
--    "@uiscom/uis_webrtc": "1.1.0"
-+    "@uiscom/uis_webrtc": "./uis_webrtc"
+-    "@uiscom/uis_webrtc": "1.2.1",
++    "@uiscom/uis_webrtc": "./uis_webrtc",
+     "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.1.46"
    }
  }
 \ No newline at end of file
