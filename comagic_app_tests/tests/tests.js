@@ -130,14 +130,15 @@ tests.addTest(options => {
                                 '+7 (916) 123-45-67 Searching for contact...'
                             );
                         });
-                        it('Контакт не найден. Отображно направление звонка.', function() {
+                        xit('Контакт не найден. Отображно направление звонка.', function() {
                             tester.incomingCallProceeding().noName().receive();
 
                             tester.innerContainer.expectTextContentToHaveSubstring(
                                 '+7 (916) 123-45-67 Incoming call'
                             );
-                                
-                            window.scrollTo(0, 0);
+                        });
+                        it('У контакта длинное имя.', function() {
+                            tester.incomingCallProceeding().longName().receive();
                         });
                         return;
                         it('Контакт найден. Отображена информация о контакте.', function() {
@@ -146,8 +147,6 @@ tests.addTest(options => {
                             tester.innerContainer.expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67');
                             tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
                             tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
-
-                            window.scrollTo(0, 0);
                         });
                     });
                     return;

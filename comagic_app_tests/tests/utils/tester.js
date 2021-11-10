@@ -100,6 +100,11 @@ define(() => function ({
         };
 
         return {
+            longName() {
+                params.contact_full_name = 'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна';
+                return this;
+            }
+            
             noName() {
                 params.contact_full_name = null;
                 crm_contact_link = null;
