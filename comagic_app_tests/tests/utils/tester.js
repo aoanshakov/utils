@@ -103,7 +103,7 @@ define(() => function ({
             longName() {
                 params.contact_full_name = 'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна';
                 return this;
-            }
+            },
             
             noName() {
                 params.contact_full_name = null;
@@ -1277,6 +1277,8 @@ define(() => function ({
     me.forceUpdate = () => utils.pressKey('k');
     me.body = testersFactory.createDomElementTester('body');
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
+    me.incomingIcon = testersFactory.createDomElementTester('.incoming_svg__cmg-direction-icon');
+    me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
 
     addTesters(me, () => document.body);
 
