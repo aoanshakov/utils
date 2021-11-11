@@ -89,7 +89,13 @@ define(() => function ({
         };
 
         return {
-            receive: function () {
+            noName() {
+                params.crm_contact_link = null;
+                params.contact_full_name = null;
+                return this;
+            },
+
+            receive() {
                 me.eventsWebSocket.receiveMessage({
                     name: 'out_call_session',
                     type: 'event',
@@ -1311,6 +1317,7 @@ define(() => function ({
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
     me.incomingIcon = testersFactory.createDomElementTester('.incoming_svg__cmg-direction-icon');
     me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
+    me.transferIncomingIcon = testersFactory.createDomElementTester('.transfer_incoming_svg__cmg-direction-icon');
 
     addTesters(me, () => document.body);
 

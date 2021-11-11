@@ -96,7 +96,7 @@ tests.addTest(options => {
                         reportTableRequest.receiveResponse();
                     });
 
-                    xdescribe('Нажимаю на иконку с телефоном. Ввожу номер телефона.', function() {
+                    describe('Нажимаю на иконку с телефоном. Ввожу номер телефона.', function() {
                         beforeEach(function() {
                             tester.phoneIcon.click();
                             tester.phoneField.fill('79161234567');
@@ -139,6 +139,14 @@ tests.addTest(options => {
                                     );
                                 });
                             });
+                            it('Данные контакта не найдены.', function() {
+                                tester.outCallSessionEvent().noName().receive();
+
+                                tester.outgoingIcon.expectToBeVisible();
+                                tester.innerContainer.expectTextContentToHaveSubstring(
+                                    '+7 (916) 123-45-67 Outgoing call 00:00:00'
+                                );
+                            });
                             it('Отображен номер, таймер, направление и сообщение о поиске контакта.', function() {
                                 tester.outgoingIcon.expectToBeVisible();
                                 tester.innerContainer.expectTextContentToHaveSubstring(
@@ -163,7 +171,7 @@ tests.addTest(options => {
                             tester.numaRequest().receiveResponse();
                         });
 
-                        xdescribe('Контакт найден.', function() {
+                        describe('Контакт найден.', function() {
                             beforeEach(function() {
                                 tester.outCallEvent().receive();
                             });
@@ -199,7 +207,7 @@ tests.addTest(options => {
                                 tester.outCallEvent().isTransfer().receive();
                             });
 
-                            it('Принимаю звонок. Отображено направление и номер.', function() {
+                            it('Принимаю звонок. Отображен знак трансфера номер и таймер.', function() {
                                 tester.callButton.click();
 
                                 tester.firstConnection.connectWebRTC();
@@ -209,13 +217,11 @@ tests.addTest(options => {
                                 tester.firstConnection.addCandidate();
                                 tester.requestAcceptIncomingCall();
 
-                                tester.incomingIcon.expectToBeVisible();
-
+                                tester.transferIncomingIcon.expectToBeVisible();
                                 tester.innerContainer.expectTextContentToHaveSubstring(
                                     'Шалева Дора +7 (916) 123-45-67 00:00:00'
                                 );
                             });
-                            return;
                             it('Отображено сообщение о переводе звонка.', function() {
                                 tester.incomingIcon.expectNotToExist();
                                 tester.outgoingIcon.expectNotToExist();
@@ -225,8 +231,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        return;
-                        xit('Контакт не найден. Отображно направление звонка.', function() {
+                        it('Контакт не найден. Отображно направление звонка.', function() {
                             tester.outCallEvent().noName().receive();
 
                             tester.incomingIcon.expectToBeVisible();
@@ -244,7 +249,6 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    return;
                     it('Отображен отчет. Софтфон скрыт.', function() {
                         tester.callButton.expectNotToExist();
 
@@ -254,7 +258,6 @@ tests.addTest(options => {
                         );
                     });
                 });
-                return;
                 describe(
                     'SIP-регистрация завершена. Срок действия токена авторизации истек.',
                 function() {
@@ -292,7 +295,6 @@ tests.addTest(options => {
                     });
                 });
             });
-            return;
             it('Срок действия токена авторизации истек. Токен авторизации обновлен. Софтфон подключен.', function() {
                 settingsRequest.accessTokenExpired().receiveResponse();
                 tester.refreshRequest().receiveResponse();
@@ -313,7 +315,6 @@ tests.addTest(options => {
                 tester.textField.withFieldLabel('Логин').expectToBeVisible();
             });
         });
-        return;
         describe('Нажимаю на иконку с микрофоном. Пользователь имеет права на список номеров.', function() {
             beforeEach(function() {
                 tester.phoneIcon.click();
@@ -371,7 +372,6 @@ tests.addTest(options => {
             });
         });
     });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
