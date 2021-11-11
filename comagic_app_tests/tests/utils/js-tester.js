@@ -2758,7 +2758,7 @@ function JsTester_MutationObserver (args) {
             throw new Error('Элемент должен существовать.');
         }
 
-        if (!domElement.getClientRects) {
+        if (domElement != document && !domElement.getClientRects) {
             throw new Error('Объект не является HTML-элементом.');
         }
 
@@ -2836,6 +2836,13 @@ function JsTester_MutationObserverMocker (factory) {
 }
 
 function JsTester_Tests (factory) {
+    Object.defineProperty(window, 'ResizeObserver', {
+        get: function () {
+            return undefined;
+        },
+        set: function () {}
+    }); 
+
     Object.defineProperty(window, 'MessageChannel', {
         get: function () {
             return undefined;
@@ -3189,6 +3196,7 @@ function JsTester_Tests (factory) {
                 '</body>' +
             '</html>',
             sdp: sdp,
+            mutationObserverMocker: mutationObserverMocker,
             fileReader: fileReaderTester,
             triggerMutation: mutationObserverTester,
             cookie: cookieTester,
@@ -3518,15 +3526,28 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
             descendants = ascendantElement.querySelectorAll(selector),
             length = descendants.length,
             descendant,
-            desiredDescendants = [];
+            text,
+            desiredDescendants = [],
+            allDescendants = [];
 
         for (i = 0; i < length; i ++) {
             descendant = descendants[i];
+            text = utils.getTextContent(descendant);
 
-            if (isDesiredText(utils.getTextContent(descendant))) {
+            logEnabled && allDescendants.push({
+                domElement: descendant,
+                text: text
+            });
+
+            if (isDesiredText(text)) {
                 desiredDescendants.push(descendant);
             }
         }
+
+        logEnabled && console.log({
+            allDescendants: allDescendants,
+            desiredDescendants: desiredDescendants
+        });
 
         return desiredDescendants;
     };
