@@ -102,9 +102,49 @@ tests.addTest(options => {
                             tester.phoneField.fill('79161234567');
                         });
 
-                        it('SIP-регистрация завершена. Кнопка вызова доступна.', function() {
-                            registrationRequest.receiveResponse();
-                            tester.callButton.expectNotToHaveAttribute('disabled');
+                        describe('SIP-регистрация завершена. Нажимаю на кнпоку вызова.', function() {
+                            let outboundCall;
+
+                            beforeEach(function() {
+                                registrationRequest.receiveResponse();
+
+                                tester.callButton.click();
+                                
+                                tester.firstConnection.connectWebRTC();
+                                tester.allowMediaInput();
+
+                                tester.numaRequest().receiveResponse();
+
+                                outboundCall = tester.outboundCall().start().setRinging();
+                                tester.firstConnection.callTrackHandler();
+                            });
+
+                            describe('Получены данные контакта.', function() {
+                                beforeEach(function() {
+                                    tester.outCallSessionEvent().receive();
+                                });
+
+                                it('Звонок принят. Отображено имя, номер и таймер.', function() {
+                                    outboundCall.setAccepted();
+
+                                    tester.outgoingIcon.expectToBeVisible();
+                                    tester.innerContainer.expectTextContentToHaveSubstring(
+                                        'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                    );
+                                });
+                                it('Отображено имя, номер и таймер.', function() {
+                                    tester.outgoingIcon.expectToBeVisible();
+                                    tester.innerContainer.expectTextContentToHaveSubstring(
+                                        'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                    );
+                                });
+                            });
+                            it('Отображен номер, таймер, направление и сообщение о поиске контакта.', function() {
+                                tester.outgoingIcon.expectToBeVisible();
+                                tester.innerContainer.expectTextContentToHaveSubstring(
+                                    '+7 (916) 123-45-67 Searching for contact... 00:00:00'
+                                );
+                            });
                         });
                         it('Нажимаю на иконку с телефоном. Кнопка вызова скрыта.', function() {
                             tester.phoneIcon.click();
@@ -114,9 +154,7 @@ tests.addTest(options => {
                             tester.callButton.expectToHaveAttribute('disabled');
                         });
                     });
-                    describe(
-                        'SIP-регистрация завершена. Поступил входящий звонок.',
-                    function() {
+                    describe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
                         beforeEach(function() {
                             registrationRequest.receiveResponse();
 
@@ -125,12 +163,12 @@ tests.addTest(options => {
                             tester.numaRequest().receiveResponse();
                         });
 
-                        describe('Контакт найден.', function() {
+                        xdescribe('Контакт найден.', function() {
                             beforeEach(function() {
-                                tester.incomingCallProceeding().receive();
+                                tester.outCallEvent().receive();
                             });
 
-                            it('', function() {
+                            it('Принимаю звонок. Отображено направление и номер.', function() {
                                 tester.callButton.click();
 
                                 tester.firstConnection.connectWebRTC();
@@ -140,11 +178,12 @@ tests.addTest(options => {
                                 tester.firstConnection.addCandidate();
                                 tester.requestAcceptIncomingCall();
 
-                                //tester.incomingIcon.expectToBeVisible();
+                                tester.incomingIcon.expectToBeVisible();
 
-                                window.scrollTo(0, 0);
+                                tester.innerContainer.expectTextContentToHaveSubstring(
+                                    'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                );
                             });
-                            return;
                             it('Отображена информация о контакте.', function() {
                                 tester.incomingIcon.expectToBeVisible();
                                 tester.innerContainer.expectTextContentToHaveSubstring(
@@ -155,23 +194,54 @@ tests.addTest(options => {
                                 tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
                             });
                         });
-                        return;
-                        xit('Отображено сообщение о поиске контакта.', function() {
-                            tester.incomingIcon.expectToBeVisible();
-                            tester.innerContainer.expectTextContentToHaveSubstring(
-                                '+7 (916) 123-45-67 Searching for contact...'
-                            );
+                        describe('Звонок переведен от другого сотрудника.', function() {
+                            beforeEach(function() {
+                                tester.outCallEvent().isTransfer().receive();
+                            });
+
+                            it('Принимаю звонок. Отображено направление и номер.', function() {
+                                tester.callButton.click();
+
+                                tester.firstConnection.connectWebRTC();
+                                tester.firstConnection.callTrackHandler();
+
+                                tester.allowMediaInput();
+                                tester.firstConnection.addCandidate();
+                                tester.requestAcceptIncomingCall();
+
+                                tester.incomingIcon.expectToBeVisible();
+
+                                tester.innerContainer.expectTextContentToHaveSubstring(
+                                    'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                );
+                            });
+                            return;
+                            it('Отображено сообщение о переводе звонка.', function() {
+                                tester.incomingIcon.expectNotToExist();
+                                tester.outgoingIcon.expectNotToExist();
+
+                                tester.innerContainer.expectTextContentToHaveSubstring(
+                                    'Шалева Дора +7 (916) 123-45-67 Transferred by Бисерка Макавеева'
+                                );
+                            });
                         });
+                        return;
                         xit('Контакт не найден. Отображно направление звонка.', function() {
-                            tester.incomingCallProceeding().noName().receive();
+                            tester.outCallEvent().noName().receive();
 
                             tester.incomingIcon.expectToBeVisible();
                             tester.innerContainer.expectTextContentToHaveSubstring(
                                 '+7 (916) 123-45-67 Incoming call'
                             );
                         });
-                        xit('У контакта длинное имя.', function() {
-                            tester.incomingCallProceeding().longName().receive();
+                        it('У контакта длинное имя.', function() {
+                            tester.outCallEvent().longName().receive();
+                        });
+                        it('Отображено сообщение о поиске контакта.', function() {
+                            tester.incomingIcon.expectToBeVisible();
+                            tester.innerContainer.expectTextContentToHaveSubstring(
+                                '+7 (916) 123-45-67 Searching for contact...'
+                            );
                         });
                     });
                     return;

@@ -73,7 +73,33 @@ define(() => function ({
         return me;
     };
 
-    me.incomingCallProceeding = () => {
+    me.outCallSessionEvent = () => {
+        const params = {
+            call_session_id: 182957828,
+            call_source: 'va',
+            is_internal: false,
+            direction: 'in',
+            virtual_phone_number: '+79161234567',
+            contact_phone_number: '+79161234567',
+            calling_phone_number: '+79161234567',
+            contact_full_name: 'Шалева Дора',
+            crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/382030',
+            active_leads: [],
+            is_final: true
+        };
+
+        return {
+            receive: function () {
+                me.eventsWebSocket.receiveMessage({
+                    name: 'out_call_session',
+                    type: 'event',
+                    params: params 
+                });
+            }
+        };
+    };
+
+    me.outCallEvent = () => {
         const params = {
             calling_phone_number: '79161234567',
             contact_phone_number: '79161234567',
@@ -100,6 +126,12 @@ define(() => function ({
         };
 
         return {
+            isTransfer() {
+                params.transferred_by_employee_full_name = 'Бисерка Макавеева';
+                params.is_transfer = true;
+                return this;
+            },
+
             longName() {
                 params.contact_full_name = 'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна';
                 return this;
