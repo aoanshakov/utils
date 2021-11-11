@@ -132,6 +132,11 @@ define(() => function ({
         };
 
         return {
+            autoCallCampaignName: function () {
+                params.auto_call_campaign_name = 'Обзвон лидов ЖК Солнцево Парк';
+                return this;
+            },
+
             isTransfer() {
                 params.transferred_by_employee_full_name = 'Бисерка Макавеева';
                 params.is_transfer = true;

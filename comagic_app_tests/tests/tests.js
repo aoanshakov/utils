@@ -231,6 +231,30 @@ tests.addTest(options => {
                                 );
                             });
                         });
+                        describe('Звонок производится в рамках исходящего обзвона.', function() {
+                            var outCallEvent;
+
+                            beforeEach(function() {
+                                outCallEvent = tester.outCallEvent().autoCallCampaignName();
+                            });
+
+                            it('Имя контакта отсутствует. Звонок обозначен, как исходящий обзвон.', function() {
+                                outCallEvent.noName().receive();
+
+                                tester.outgoingIcon.expectToBeVisible();
+                                tester.innerContainer.expectTextContentToHaveSubstring(
+                                    '+7 (916) 123-45-67 Outgoing auto-call'
+                                );
+                            });
+                            it('Звонок отображается как исходящий.', function() {
+                                outCallEvent.receive();
+
+                                tester.outgoingIcon.expectToBeVisible();
+                                tester.innerContainer.expectTextContentToHaveSubstring(
+                                    'Шалева Дора +7 (916) 123-45-67'
+                                );
+                            });
+                        });
                         it('Контакт не найден. Отображно направление звонка.', function() {
                             tester.outCallEvent().noName().receive();
 
