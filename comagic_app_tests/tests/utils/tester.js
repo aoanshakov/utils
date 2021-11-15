@@ -72,6 +72,62 @@ define(() => function ({
 
         return me;
     };
+    
+    me.callsRequest = () => {
+        const params = {
+            limit: '100',
+            search: '',
+            is_strict_date_till: '0'
+        };
+
+        const data = [{
+            cdr_type: 'default',
+            call_session_id: 980925444,
+            comment: null,
+            phone_book_contact_id: 2204382409,
+            direction: 'in',
+            duration: 20,
+            contact_name: 'Гяурова Марийка',
+            is_failed: false,
+            mark_ids: [],
+            number: '74950230625',
+            start_time: '2019-12-19T08:03:02.522+03:00'
+        }, {
+            cdr_type: 'default',
+            call_session_id: 980925445,
+            comment: null,
+            phone_book_contact_id: null,
+            direction: 'out',
+            duration: 21,
+            contact_name: 'Манова Тома',
+            is_failed: false,
+            mark_ids: [],
+            number: '74950230626',
+            start_time: '2019-12-18T18:08:25.522+03:00'
+        }].concat(me.getCalls({
+            date: '2019-12-17T18:07:25',
+            count: 98
+        }));
+
+        return {
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectPathToContain('/sup/api/v1/users/me/calls').
+                    expectQueryToContain(params);
+
+                return {
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith({data});
+                        Promise.runAll();
+                    }
+                };
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
+            }
+        };
+    };
 
     me.outCallSessionEvent = () => {
         const params = {
@@ -132,6 +188,22 @@ define(() => function ({
         };
 
         return {
+            activeLeads() {
+                params.active_leads = [{
+                    url: 'https://comagicwidgets.amocrm.ru/leads/detail/3003649',
+                    name: 'По звонку на 79154394339',
+                    status: 'Открыт',
+                    pipeline: 'Переговоры'
+                }, {
+                    url: 'https://comagicwidgets.amocrm.ru/leads/detail/3003651',
+                    name: 'По звонку с 79154394340',
+                    status: 'Закрыт',
+                    pipeline: 'Согласование договора'
+                }];
+
+                return this;
+            },
+
             autoCallCampaignName: function () {
                 params.auto_call_campaign_name = 'Обзвон лидов ЖК Солнцево Парк';
                 return this;
@@ -1323,6 +1395,13 @@ define(() => function ({
     me.incomingIcon = testersFactory.createDomElementTester('.incoming_svg__cmg-direction-icon');
     me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
     me.transferIncomingIcon = testersFactory.createDomElementTester('.transfer_incoming_svg__cmg-direction-icon');
+
+    me.callsHistoryButton = (tester => {
+        const click = tester.click.bind(tester);
+
+        tester.click = () => (click(), Promise.runAll(false, true));
+        return tester;
+    })(testersFactory.createDomElementTester('.cmg-calls-history-button'));
 
     addTesters(me, () => document.body);
 
