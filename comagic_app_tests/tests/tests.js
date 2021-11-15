@@ -2,7 +2,8 @@ tests.addTest(options => {
     const {
         utils,
         Tester,
-        spendTime
+        spendTime,
+        windowOpener
     } = options;
 
     describe(
@@ -162,6 +163,10 @@ tests.addTest(options => {
                             it('Открываю историю звонков.', function() {
                                 tester.callsHistoryButton.click();
                                 tester.callsRequest().receiveResponse();
+
+                                tester.callsHistoryItemName('Гяурова Марийка').click();
+                                windowOpener.
+                                    expectToHavePath('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
                             });
                         });
                         return;

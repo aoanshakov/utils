@@ -88,6 +88,7 @@ define(() => function ({
             direction: 'in',
             duration: 20,
             contact_name: 'Гяурова Марийка',
+            crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/218401',
             is_failed: false,
             mark_ids: [],
             number: '74950230625',
@@ -100,6 +101,7 @@ define(() => function ({
             direction: 'out',
             duration: 21,
             contact_name: 'Манова Тома',
+            crm_contact_link: null,
             is_failed: false,
             mark_ids: [],
             number: '74950230626',
@@ -1395,6 +1397,10 @@ define(() => function ({
     me.incomingIcon = testersFactory.createDomElementTester('.incoming_svg__cmg-direction-icon');
     me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
     me.transferIncomingIcon = testersFactory.createDomElementTester('.transfer_incoming_svg__cmg-direction-icon');
+
+    me.callsHistoryItemName = text => testersFactory.createDomElementTester(
+        utils.descendantOfBody().matchesSelector('.clct-calls-history__item-inner-row').textEquals(text).find()
+    );
 
     me.callsHistoryButton = (tester => {
         const click = tester.click.bind(tester);
