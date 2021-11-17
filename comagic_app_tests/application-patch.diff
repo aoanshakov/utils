@@ -16,7 +16,7 @@ index 16343798..c6c383de 100644
  
  REACT_APP_SOFTPHONE_BACKEND_HOST='myva0.dev.uis.st'
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 37d99a30..f0466455 100644
+index 37d99a30..446f82a9 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -122,7 +122,7 @@ index 37d99a30..f0466455 100644
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-+                exclude: /\/softphone\/icons\//,
++                exclude: /\/(softphone|uis_webrtc\/src)\/icons\//,
                  use: [
                      {
                          loader: '@svgr/webpack',
@@ -131,7 +131,7 @@ index 37d99a30..f0466455 100644
                  ],
              },
 +            {
-+                test: /\/softphone\/icons\/.*\.svg/,
++                test: /\/(softphone|uis_webrtc\/src)\/icons\//,
 +                use: ({resource}) => {
 +                    return [{
 +                        loader: 'babel-loader',

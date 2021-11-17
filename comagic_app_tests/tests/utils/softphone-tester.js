@@ -337,7 +337,8 @@ define(function () {
                 position_id: null,
                 short_phone: '9119',
                 status_id: 3,
-                is_sip_online: true
+                is_sip_online: true,
+                image: 'https://thispersondoesnotexist.com/image'
             };
         };
 
@@ -358,6 +359,7 @@ define(function () {
                         });
 
                     Promise.runAll();
+                    spendTime(0);
                 }
             };
         };
@@ -595,7 +597,8 @@ define(function () {
                 position_id: null,
                 short_phone: '8258',
                 status_id: 6,
-                is_sip_online: true
+                is_sip_online: true,
+                image: 'https://thispersondoesnotexist.com/image'
             }, {
                 first_name: 'Николина',
                 id: 583783,
@@ -615,7 +618,8 @@ define(function () {
                 position_id: null,
                 short_phone: '296',
                 status_id: 2,
-                is_sip_online: true
+                is_sip_online: true,
+                color: '#00aaea'
             }];
         };
 
@@ -905,11 +909,11 @@ define(function () {
                 numb: '74950216806'
             }, {
                 id: 124825,
-                numb: '79161238929'
+                numb: '79161238929',
+                comment: 'Некий номер'
             }, {
                 id: 124826,
-                numb: '79161238930',
-                comment: 'Некий номер'
+                numb: '79161238930'
             }, {
                 id: 124827,
                 numb: '79161238931'

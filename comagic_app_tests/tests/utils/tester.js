@@ -30,26 +30,55 @@ define(() => function ({
     spendTime(0);
     Promise.runAll(false, true);
 
-    const addTesters = (me, getRootElement) => (me.select = (getSelectField => {
-        const tester = testersFactory.createDomElementTester(getSelectField);
+    const addTesters = (me, getRootElement) => {
+        me.select = (getSelectField => {
+            const tester = testersFactory.createDomElementTester(getSelectField);
 
-        tester.arrow = (tester => {
-            const click = tester.click.bind(tester);
+            tester.arrow = (tester => {
+                const click = tester.click.bind(tester);
 
-            tester.click = () => (click(), spendTime(0));
+                tester.click = () => (click(), spendTime(0));
+                return tester;
+            })(testersFactory.createDomElementTester(
+                () => getSelectField().closest('.ui-select-container').querySelector('.ui-icon svg')
+            ));
+
+            tester.option = text => testersFactory.createDomElementTester(
+                utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find()
+            );
+
             return tester;
-        })(testersFactory.createDomElementTester(
-            () => getSelectField().closest('.ui-select-container').querySelector('.ui-icon svg')
-        ));
+        })(() => (
+            getRootElement() || new JsTester_NoElement()
+        ).querySelector('.ui-select-field') || new JsTester_NoElement())
 
-        tester.option = text => testersFactory.createDomElementTester(
-            utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find()
-        );
+        {
+            const getInput = () => utils.getVisibleSilently(
+                (getRootElement() || new JsTester_NoElement()).querySelectorAll('input')
+            );
 
-        return tester;
-    })(() => (
-        getRootElement() || new JsTester_NoElement()
-    ).querySelector('.ui-select-field') || new JsTester_NoElement()));
+            const addMethods = (tester, getInput) => ((tester.clearIcon = testersFactory.createDomElementTester(
+                () => getInput().closest('.ui-input').querySelector('.ui-input-suffix-close')
+            )), tester);
+
+            me.input = testersFactory.createTextFieldTester(getInput);
+
+            me.input.withFieldLabel = label => {
+                const input = utils.descendantOf(getRootElement()).
+                    textEquals(label).
+                    matchesSelector('.ant-col span, .ui-label-content-field-label').
+                    find().
+                    closest('.ant-row, .ui-label').
+                    querySelector('input');
+
+                return addMethods(testersFactory.createTextFieldTester(input), () => input);
+            };
+
+            addMethods(me.input, getInput);
+        }
+
+        return me;
+    };
 
     const addAuthErrorResponseModifiers = (me, response) => {
         me.accessTokenExpired = () => {
@@ -291,7 +320,7 @@ define(() => function ({
             'X-Auth-Type': 'jwt'
         };
 
-        const addAuthErrorResponseModifiers = (me, response) => {
+        const addResponseModifiers = (me, response) => {
             me.accessTokenExpired = () => {
                 Object.keys(response).forEach(key => delete(response[key]));
 
@@ -318,10 +347,20 @@ define(() => function ({
                 return me;
             };
 
+            me.allowNumberCapacitySelect = () => {
+                response.data.number_capacity_usage_rule = 'fixed';
+                return me;
+            };
+
+            me.numberCapacityComment = () => {
+                response.data.number_capacity_comment = 'Отдел консалтинга';
+                return me;
+            };
+
             return me;
         };
 
-        const request = addAuthErrorResponseModifiers({
+        const request = addResponseModifiers({
             anotherAuthoriationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
@@ -331,12 +370,7 @@ define(() => function ({
                     expectToHaveMethod('GET').
                     expectToHaveHeaders(headers);
 
-                return addAuthErrorResponseModifiers({
-                    allowNumberCapacitySelect() {
-                        response.data.number_capacity_usage_rule = 'fixed';
-                        return this;
-                    },
-
+                return addResponseModifiers({
                     receiveResponse: () => {
                         request.respondSuccessfullyWith(response);
 
@@ -1398,6 +1432,13 @@ define(() => function ({
     me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
     me.transferIncomingIcon = testersFactory.createDomElementTester('.transfer_incoming_svg__cmg-direction-icon');
 
+    me.transferButton = (tester => {
+        const click = tester.click.bind(tester);
+
+        tester.click = () => (click(), Promise.runAll(false, true));
+        return tester;
+    })(testersFactory.createDomElementTester('#cmg-transfer-button'));
+
     me.callsHistoryItemName = text => testersFactory.createDomElementTester(
         utils.descendantOfBody().matchesSelector('.clct-calls-history__item-inner-row').textEquals(text).find()
     );
@@ -1412,24 +1453,37 @@ define(() => function ({
     addTesters(me, () => document.body);
 
     me.dialpadButton = testersFactory.createDomElementTester('#cmg-dialpad-visibility-toggler');
+    me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
+    me.addressBookButton = testersFactory.createDomElementTester('#cmg-address-book-button');
+
+    me.employeeRow = text => (domElement => {
+        const tester = testersFactory.createDomElementTester(domElement);
+
+        tester.expectToBeDisaled = () => tester.expectToHaveClass('cmg-disabled');
+        tester.expectNotToBeDisaled = () => tester.expectNotToHaveClass('cmg-disabled');
+
+        tester.transferIcon = testersFactory.createDomElementTester(domElement.querySelector(
+            '.transfer_employee_svg__cmg-employee-transfer-icon'
+        ));
+
+        tester.callIcon = testersFactory.createDomElementTester(domElement.querySelector(
+            '.employees_grid_call_icon_svg__cmg-employee-call-icon'
+        ));
+
+        return tester;
+    })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
+
+    me.softphone = (getRootElement => addTesters(
+        testersFactory.createDomElementTester(getRootElement),
+        getRootElement
+    ))(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
 
     me.button = text => testersFactory.createDomElementTester(
         utils.descendantOfBody().
             textEquals(text).
-            matchesSelector('button').
+            matchesSelector('button, .clct-radio-button-default-inner').
             find()
     );
-
-    me.textField = {
-        withFieldLabel: label => testersFactory.createTextFieldTester(
-            utils.descendantOfBody().
-                textEquals(label).
-                matchesSelector('.ant-col span, .ui-label-content-field-label').
-                find().
-                closest('.ant-row, .ui-label').
-                querySelector('input')
-        ) 
-    };
 
     return me;
 });
