@@ -194,7 +194,14 @@ tests.addTest(options => {
                                     );
                                 });
                             });
+                            it('Нажимаю на кнопку открытия контакта.', function() {
+                                tester.contactOpeningButton.click();
+
+                                windowOpener.
+                                    expectToHavePath('https://comagicwidgets.amocrm.ru/contacts/detail/382030');
+                            });
                             it('Отображена информация о контакте.', function() {
+                                tester.contactOpeningButton.expectNotToHaveClass('cmg-button-disabled');
                                 tester.incomingIcon.expectToBeVisible();
                                 tester.softphone.expectTextContentToHaveSubstring(
                                     'Шалева Дора +7 (916) 123-45-67'
@@ -257,8 +264,14 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        it('Контакт не найден. Отображно направление звонка.', function() {
-                            tester.outCallEvent().noName().receive();
+                        it(
+                            'Контакт не найден. Отображно направление звонка. Кнопка открытия контакта заблокирована.',
+                        function() {
+                            tester.outCallEvent().noName().noCrmContactLink().receive();
+                            tester.contactOpeningButton.click();
+
+                            tester.contactOpeningButton.expectToHaveClass('cmg-button-disabled');
+                            windowOpener.expectNoWindowToBeOpened();
 
                             tester.incomingIcon.expectToBeVisible();
                             tester.softphone.expectTextContentToHaveSubstring(
@@ -267,11 +280,15 @@ tests.addTest(options => {
                         });
                         it('Открытые сделки существуют. Открытые сделки отображены.', function() {
                             tester.outCallEvent().activeLeads().receive();
+
+                            tester.anchor('По звонку с 79154394340').
+                                expectHrefToHavePath('https://comagicwidgets.amocrm.ru/leads/detail/3003651');
                         });
                         it('У контакта длинное имя.', function() {
                             tester.outCallEvent().longName().receive();
                         });
                         it('Отображено сообщение о поиске контакта.', function() {
+                            tester.contactOpeningButton.expectNotToExist();
                             tester.incomingIcon.expectToBeVisible();
                             tester.softphone.expectTextContentToHaveSubstring(
                                 '+7 (916) 123-45-67 Searching for contact...'

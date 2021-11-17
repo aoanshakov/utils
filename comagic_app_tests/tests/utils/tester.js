@@ -235,6 +235,11 @@ define(() => function ({
                 return this;
             },
 
+            noCrmContactLink: function () {
+                params.crm_contact_link = null;
+                return this;
+            },
+
             autoCallCampaignName: function () {
                 params.auto_call_campaign_name = 'Обзвон лидов ЖК Солнцево Парк';
                 return this;
@@ -1455,6 +1460,10 @@ define(() => function ({
     me.dialpadButton = testersFactory.createDomElementTester('#cmg-dialpad-visibility-toggler');
     me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
     me.addressBookButton = testersFactory.createDomElementTester('#cmg-address-book-button');
+    me.contactOpeningButton = testersFactory.createDomElementTester('#cmg-open-contact-button');
+
+    me.anchor = text => testersFactory.createAnchorTester(() =>
+        utils.descendantOfBody().matchesSelector('a').textEquals(text).find());
 
     me.employeeRow = text => (domElement => {
         const tester = testersFactory.createDomElementTester(domElement);

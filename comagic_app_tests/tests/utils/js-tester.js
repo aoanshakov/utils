@@ -4100,8 +4100,15 @@ function JsTester_OpenedWindow (path, query) {
                 'URL имеет путь "' + path + '".');
         }
     };
+    
     this.expectQueryToContain = function (params) {
         query.expectToContain(params);
+    };
+
+    this.expectNoWindowToBeOpened = function () {
+        throw new Error(
+            'Окно не должно быть открыто, тогда как было открыто окно, URL которого имеет путь "' + path + '".'
+        );
     };
 }
 
@@ -4112,12 +4119,16 @@ function JsTester_NoWindowOpened (utils) {
     this.expectQueryToContain = function (params) {
         throw new Error('Должен быть открыт URL с параметрами' + utils.getVariablePresentation(params));
     };
+    this.expectNoWindowToBeOpened = function () {};
 }
 
 function JsTester_WindowOpener (utils) {
     var open = window.open,
         actualWindow = new JsTester_NoWindowOpened(utils);
 
+    this.expectNoWindowToBeOpened = function () {
+        actualWindow.expectNoWindowToBeOpened();
+    };
     this.expectToHavePath = function (expectedValue) {
         actualWindow.expectToHavePath(expectedValue);
         return this;
