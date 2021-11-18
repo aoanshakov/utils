@@ -368,6 +368,30 @@ tests.addTest(options => {
                                 registrationRequest.receiveResponse();
                             });
 
+                            describe('Открываю историю звонков.', function() {
+                                beforeEach(function() {
+                                    tester.callsHistoryButton.click();
+                                    tester.callsRequest().receiveResponse();
+                                });
+
+                                it('Нажимаю на иконку звонка.', function() {
+                                    tester.callsHistoryRow('Гяурова Марийка').callIcon.click();
+
+                                    tester.firstConnection.connectWebRTC();
+                                    tester.firstConnection.callTrackHandler();
+                                    tester.allowMediaInput();
+
+                                    tester.numaRequest().anotherNumber().receiveResponse();
+                                    tester.outboundCall().setNumberFromCallsGrid().start().setRinging();
+
+                                    tester.callButton.expectToBeVisible();
+                                });
+                                it('Нажимаю на имя. Открыта страница контакта.', function() {
+                                    tester.callsHistoryRow('Гяурова Марийка').name.click();
+                                    windowOpener.
+                                        expectToHavePath('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
+                                });
+                            });
                             it('Нажимаю на кнопку таблицы сотрудников.', function() {
                                 tester.addressBookButton.click();
 
@@ -376,14 +400,6 @@ tests.addTest(options => {
                                 tester.groupsRequest().receiveResponse();
 
                                 tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
-                            });
-                            it('Открываю историю звонков.', function() {
-                                tester.callsHistoryButton.click();
-                                tester.callsRequest().receiveResponse();
-
-                                tester.callsHistoryItemName('Гяурова Марийка').click();
-                                windowOpener.
-                                    expectToHavePath('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
                             });
                             it('Выпадающий список номеров скрыт.', function() {
                                 tester.select.expectNotToExist();

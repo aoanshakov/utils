@@ -270,27 +270,36 @@ define(() => function ({
         };
     };
 
-    me.numaRequest = () => ({
-        expectToBeSent() {
-            var request = ajax.recentRequest().
-                expectPathToContain('/sup/api/v1/numa/79161234567').
-                expectToHaveMethod('GET');
+    me.numaRequest = () => {
+        let numa = 79161234567;
 
-            return {
-                receiveResponse: function () {
-                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+        return {
+            anotherNumber() {
+                numa = 74950230625;
+                return this;
+            },
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                    Promise.runAll(false, true);
-                }
-            };
-        },
+            expectToBeSent() {
+                var request = ajax.recentRequest().
+                    expectPathToContain(`/sup/api/v1/numa/${numa}`).
+                    expectToHaveMethod('GET');
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        } 
-    });
+                return {
+                    receiveResponse() {
+                        request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                };
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            } 
+        };
+    };
 
     me.settingsRequest = () => {
         const response = {
@@ -1444,9 +1453,17 @@ define(() => function ({
         return tester;
     })(testersFactory.createDomElementTester('#cmg-transfer-button'));
 
-    me.callsHistoryItemName = text => testersFactory.createDomElementTester(
-        utils.descendantOfBody().matchesSelector('.clct-calls-history__item-inner-row').textEquals(text).find()
-    );
+    me.callsHistoryRow = text => (name => {
+        const row = name.closest('.cmg-calls-history-row'),
+            tester = testersFactory.createDomElementTester(row);
+
+        tester.name = testersFactory.createDomElementTester(name);
+        tester.callIcon = testersFactory.createDomElementTester(row.querySelector('.clct-calls-history__start-call'));
+
+        return tester;
+    })(utils.descendantOfBody().matchesSelector(
+        '.clct-calls-history__item-inner-row'
+    ).textEquals(text).find());
 
     me.callsHistoryButton = (tester => {
         const click = tester.click.bind(tester);
