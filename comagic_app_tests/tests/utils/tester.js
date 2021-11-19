@@ -345,6 +345,8 @@ define(() => function ({
             })
         };
 
+        let respond = request => request.respondSuccessfullyWith(response);
+
         const headers = {
             Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
             'X-Auth-Type': 'jwt'
@@ -353,6 +355,7 @@ define(() => function ({
         const addResponseModifiers = (me, response) => {
             me.accessTokenExpired = () => {
                 Object.keys(response).forEach(key => delete(response[key]));
+                respond = request => request.respondUnauthorizedWith(response);
 
                 response.error = {
                     code: 401,
@@ -366,6 +369,7 @@ define(() => function ({
 
             me.accessTokenInvalid = () => {
                 Object.keys(response).forEach(key => delete(response[key]));
+                respond = request => request.respondUnauthorizedWith(response);
 
                 response.error = {
                     code: 401,
@@ -402,7 +406,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse: () => {
-                        request.respondSuccessfullyWith(response);
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)

@@ -134,37 +134,49 @@ tests.addTest(options => {
                                         tester.groupsRequest().receiveResponse();
                                     });
 
-                                    describe(
-                                        'Нажимаю на кнопку поиска. Ввожу значение в поле поиска.',
-                                    function() {
+                                    describe('Нажимаю на кнопку поиска.', function() {
                                         beforeEach(function() {
                                             tester.searchButton.click();
-                                            tester.softphone.input.fill('ова');
                                         });
 
-                                        it('Нажимаю на иконку очищения поля. Отображены все сотрудники.', function() {
-                                            tester.softphone.input.clearIcon.click();
+                                        describe('Ввожу значение в поле поиска.', function() {
+                                            beforeEach(function() {
+                                                tester.softphone.input.fill('ова');
+                                            });
 
-                                            tester.softphone.expectToHaveTextContent(
-                                                'Employees Groups ' +
+                                            it(
+                                                'Нажимаю на иконку очищения поля. Отображены все сотрудники.',
+                                            function() {
+                                                tester.softphone.input.clearIcon.click();
 
-                                                'ЙБ Божилова Йовка 296 ' +
-                                                'НГ Господинова Николина 295 ' +
-                                                'Шалева Дора 8258'
-                                            );
+                                                tester.softphone.expectToHaveTextContent(
+                                                    'Сотрудники Группы ' +
+
+                                                    'ЙБ Божилова Йовка 296 ' +
+                                                    'НГ Господинова Николина 295 ' +
+                                                    'Шалева Дора 8258'
+                                                );
+                                            });
+                                            it('Отображены найденные сотрудники.', function() {
+                                                tester.softphone.expectToHaveTextContent(
+                                                    'ЙБ Божил ова Йовка 296 ' +
+                                                    'НГ Господин ова Николина 295'
+                                                );
+                                            });
                                         });
-                                        it('Отображены найденные сотрудники.', function() {
-                                            tester.softphone.expectToHaveTextContent(
-                                                'ЙБ Божил ова Йовка 296 ' +
-                                                'НГ Господин ова Николина 295'
-                                            );
+                                        it(
+                                            'Ввожу значение в поле поиска. Ничего не найдено. Отображено сообщение о ' +
+                                            'том, что ничего не найдено.',
+                                        function() {
+                                            tester.softphone.input.fill('йцукен');
+                                            tester.softphone.expectToHaveTextContent('Сотрудник не найден');
                                         });
                                     });
                                     it('Открываю вкладку групп.', function() {
-                                        tester.button('Groups').click();
+                                        tester.button('Группы').click();
 
                                         tester.softphone.expectToHaveTextContent(
-                                            'Employees Groups ' +
+                                            'Сотрудники Группы ' +
 
                                             'Отдел дистрибуции 298 1 /1 ' +
                                             'Отдел по работе с ключевыми клиентами 726 0 /1 ' +
@@ -189,7 +201,7 @@ tests.addTest(options => {
                                     });
                                     it('Отображена таблица сотрудников.', function() {
                                         tester.softphone.expectToHaveTextContent(
-                                            'Employees Groups ' +
+                                            'Сотрудники Группы ' +
 
                                             'ЙБ Божилова Йовка 296 ' +
                                             'НГ Господинова Николина 295 ' +
@@ -250,7 +262,7 @@ tests.addTest(options => {
                                 tester.outgoingIcon.expectNotToExist();
 
                                 tester.softphone.expectTextContentToHaveSubstring(
-                                    'Шалева Дора +7 (916) 123-45-67 Transferred by Бисерка Макавеева'
+                                    'Шалева Дора +7 (916) 123-45-67 Трансфер от Бисерка Макавеева'
                                 );
                             });
                         });
@@ -266,7 +278,7 @@ tests.addTest(options => {
 
                                 tester.outgoingIcon.expectToBeVisible();
                                 tester.softphone.expectTextContentToHaveSubstring(
-                                    '+7 (916) 123-45-67 Outgoing auto-call'
+                                    '+7 (916) 123-45-67 Исходящий обзвон'
                                 );
                             });
                             it('Звонок отображается как исходящий.', function() {
@@ -289,7 +301,7 @@ tests.addTest(options => {
 
                             tester.incomingIcon.expectToBeVisible();
                             tester.softphone.expectTextContentToHaveSubstring(
-                                '+7 (916) 123-45-67 Incoming call'
+                                '+7 (916) 123-45-67 Входящий звонок'
                             );
                         });
                         it('Открытые сделки существуют. Открытые сделки отображены.', function() {
@@ -305,7 +317,7 @@ tests.addTest(options => {
                             tester.contactOpeningButton.expectNotToExist();
                             tester.incomingIcon.expectToBeVisible();
                             tester.softphone.expectTextContentToHaveSubstring(
-                                '+7 (916) 123-45-67 Searching for contact...'
+                                '+7 (916) 123-45-67 Поиск контакта...'
                             );
                         });
                     });
@@ -361,7 +373,7 @@ tests.addTest(options => {
 
                                     tester.outgoingIcon.expectToBeVisible();
                                     tester.softphone.expectTextContentToHaveSubstring(
-                                        '+7 (916) 123-45-67 Outgoing call 00:00:00'
+                                        '+7 (916) 123-45-67 Исходящий звонок 00:00:00'
                                     );
                                 });
                                 it(
@@ -369,7 +381,7 @@ tests.addTest(options => {
                                 function() {
                                     tester.outgoingIcon.expectToBeVisible();
                                     tester.softphone.expectTextContentToHaveSubstring(
-                                        '+7 (916) 123-45-67 Searching for contact... 00:00:00'
+                                        '+7 (916) 123-45-67 Поиск контакта... 00:00:00'
                                     );
                                 });
                             });
@@ -428,7 +440,10 @@ tests.addTest(options => {
                                 });
                                 it('Не было ни одного звонка. Отображено сообщение об отсутствии звонков.', function() {
                                     callsRequest.noCalls().receiveResponse();
-                                    tester.softphone.expectToHaveTextContent('Make call to display history');
+
+                                    tester.softphone.expectToHaveTextContent(
+                                        'Совершите звонок для отображения истории'
+                                    );
                                 });
                             });
                             it('Нажимаю на кнопку таблицы сотрудников.', function() {
@@ -444,7 +459,7 @@ tests.addTest(options => {
                                 tester.select.expectNotToExist();
                             });
                         });
-                        it('Нажимаю на иконку с телефоном. Кнопка вызова скрыта.', function() {
+                        it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                             tester.phoneIcon.click();
                             tester.callButton.expectNotToExist();
                         });
