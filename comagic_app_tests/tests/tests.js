@@ -426,6 +426,10 @@ tests.addTest(options => {
                                     tester.callsHistoryRow.withText('Гяурова Марийка').directory.
                                         expectToHaveClass('cmg-direction-transfer');
                                 });
+                                it('Не было ни одного звонка. Отображено сообщение об отсутствии звонков.', function() {
+                                    callsRequest.noCalls().receiveResponse();
+                                    tester.softphone.expectToHaveTextContent('Make call to display history');
+                                });
                             });
                             it('Нажимаю на кнопку таблицы сотрудников.', function() {
                                 tester.addressBookButton.click();

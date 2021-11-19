@@ -149,26 +149,11 @@ define(() => function ({
                 return me;
             };
 
-            me.noNames = () => {
-                processors.push(data => {
-                    data[0].contact_name = null;
-                    data[1].contact_name = null;
-                });
-
-                return me;
-            };
-
-            me.emptyResponse = () => (getResponse = () => null);
+            me.noCalls = () => ((getResponse = () => []), me);
             return me;
         };
 
         return addResponseModifiers({
-            withNames() {
-                params.limit = '10';
-                params.with_names = '1';
-                return this;
-            },
-
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectPathToContain('/sup/api/v1/users/me/calls').
