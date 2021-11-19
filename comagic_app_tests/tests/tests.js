@@ -149,7 +149,6 @@ tests.addTest(options => {
                                                 'Employees Groups ' +
 
                                                 'ЙБ Божилова Йовка 296 ' +
-                                                'Ганева Стефка 9119 ' +
                                                 'НГ Господинова Николина 295 ' +
                                                 'Шалева Дора 8258'
                                             );
@@ -167,17 +166,32 @@ tests.addTest(options => {
                                         tester.softphone.expectToHaveTextContent(
                                             'Employees Groups ' +
 
-                                            'Отдел дистрибуции 298 1 /2 ' +
+                                            'Отдел дистрибуции 298 1 /1 ' +
                                             'Отдел по работе с ключевыми клиентами 726 0 /1 ' +
                                             'Отдел региональных продаж 828 2 /2'
                                         );
+                                    });
+                                    it('Нажимаю на строку в таблице сотрудника.', function() {
+                                        tester.employeeRow('Господинова Николина').click();
+
+                                        tester.dtmf('#').send();
+                                        spendTime(600);
+                                        tester.dtmf('2').send();
+                                        spendTime(600);
+                                        tester.dtmf('9').send();
+                                        spendTime(600);
+                                        tester.dtmf('5').send();
+                                        spendTime(600);
+
+                                        tester.transferButton.click();
+
+                                        tester.dtmf('#').send();
                                     });
                                     it('Отображена таблица сотрудников.', function() {
                                         tester.softphone.expectToHaveTextContent(
                                             'Employees Groups ' +
 
                                             'ЙБ Божилова Йовка 296 ' +
-                                            'Ганева Стефка 9119 ' +
                                             'НГ Господинова Николина 295 ' +
                                             'Шалева Дора 8258'
                                         );
@@ -369,27 +383,48 @@ tests.addTest(options => {
                             });
 
                             describe('Открываю историю звонков.', function() {
+                                let callsRequest;
+                                
                                 beforeEach(function() {
                                     tester.callsHistoryButton.click();
-                                    tester.callsRequest().receiveResponse();
+                                    callsRequest = tester.callsRequest();
                                 });
 
-                                it('Нажимаю на иконку звонка.', function() {
-                                    tester.callsHistoryRow('Гяурова Марийка').callIcon.click();
+                                describe('Звонок не является трансфером.', function() {
+                                    beforeEach(function() {
+                                        callsRequest.receiveResponse();
+                                    });
 
-                                    tester.firstConnection.connectWebRTC();
-                                    tester.firstConnection.callTrackHandler();
-                                    tester.allowMediaInput();
+                                    it('Нажимаю на иконку звонка.', function() {
+                                        tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.click();
 
-                                    tester.numaRequest().anotherNumber().receiveResponse();
-                                    tester.outboundCall().setNumberFromCallsGrid().start().setRinging();
+                                        tester.firstConnection.connectWebRTC();
+                                        tester.firstConnection.callTrackHandler();
+                                        tester.allowMediaInput();
 
-                                    tester.callButton.expectToBeVisible();
+                                        tester.numaRequest().anotherNumber().receiveResponse();
+                                        tester.outboundCall().setNumberFromCallsGrid().start().setRinging();
+
+                                        tester.callButton.expectToBeVisible();
+                                    });
+                                    it('Нажимаю на имя. Открыта страница контакта.', function() {
+                                        tester.callsHistoryRow.withText('Гяурова Марийка').name.click();
+                                        windowOpener.
+                                            expectToHavePath('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
+                                    });
+                                    it('Отображены иконки направлений.', function() {
+                                        tester.callsHistoryRow.withText('Гяурова Марийка').directory.
+                                            expectToHaveClass('cmg-direction-incoming');
+
+                                        tester.callsHistoryRow.withText('Манова Тома').directory.
+                                            expectToHaveClass('cmg-direction-outgoing');
+                                    });
                                 });
-                                it('Нажимаю на имя. Открыта страница контакта.', function() {
-                                    tester.callsHistoryRow('Гяурова Марийка').name.click();
-                                    windowOpener.
-                                        expectToHavePath('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
+                                it('Звонок является трансфером. Отображена иконка трансфера.', function() {
+                                    callsRequest.transfer().receiveResponse();
+
+                                    tester.callsHistoryRow.withText('Гяурова Марийка').directory.
+                                        expectToHaveClass('cmg-direction-transfer');
                                 });
                             });
                             it('Нажимаю на кнопку таблицы сотрудников.', function() {

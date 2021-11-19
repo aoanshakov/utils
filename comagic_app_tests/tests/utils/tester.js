@@ -106,10 +106,11 @@ define(() => function ({
         const params = {
             limit: '100',
             search: '',
-            is_strict_date_till: '0'
+            is_strict_date_till: '0',
+            with_names: undefined
         };
 
-        const data = [{
+        let getResponse = count => [{
             cdr_type: 'default',
             call_session_id: 980925444,
             comment: null,
@@ -137,27 +138,57 @@ define(() => function ({
             start_time: '2019-12-18T18:08:25.522+03:00'
         }].concat(me.getCalls({
             date: '2019-12-17T18:07:25',
-            count: 98
+            count: count - 2
         }));
 
-        return {
+        const processors = [];
+
+        const addResponseModifiers = me => {
+            me.transfer = () => {
+                processors.push(data => (data[0].cdr_type = 'transfer_call'));
+                return me;
+            };
+
+            me.noNames = () => {
+                processors.push(data => {
+                    data[0].contact_name = null;
+                    data[1].contact_name = null;
+                });
+
+                return me;
+            };
+
+            me.emptyResponse = () => (getResponse = () => null);
+            return me;
+        };
+
+        return addResponseModifiers({
+            withNames() {
+                params.limit = '10';
+                params.with_names = '1';
+                return this;
+            },
+
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectPathToContain('/sup/api/v1/users/me/calls').
                     expectQueryToContain(params);
 
-                return {
+                return addResponseModifiers({
                     receiveResponse: () => {
+                        const data = getResponse(params.limit);
+                        processors.forEach(process => process(data));
+
                         request.respondSuccessfullyWith({data});
                         Promise.runAll();
                     }
-                };
+                });
             },
 
             receiveResponse() {
                 return this.expectToBeSent().receiveResponse();
             }
-        };
+        });
     };
 
     me.outCallSessionEvent = () => {
@@ -470,7 +501,7 @@ define(() => function ({
                             is_agent_app: false,
                             customer_id: 183510,
                             user_id: 151557,
-                            employee_id: 728405,
+                            employee_id: 20816,
                             user_type: 'user',
                             user_login: 'karadimova',
                             user_name: 'karadimova',
@@ -1453,17 +1484,29 @@ define(() => function ({
         return tester;
     })(testersFactory.createDomElementTester('#cmg-transfer-button'));
 
-    me.callsHistoryRow = text => (name => {
-        const row = name.closest('.cmg-calls-history-row'),
-            tester = testersFactory.createDomElementTester(row);
+    me.callsHistoryRow = (() => {
+        const createTester = row => {
+            row = row || new JsTester_NoElement();
+            const tester = testersFactory.createDomElementTester(row);
 
-        tester.name = testersFactory.createDomElementTester(name);
-        tester.callIcon = testersFactory.createDomElementTester(row.querySelector('.clct-calls-history__start-call'));
+            tester.name =
+                testersFactory.createDomElementTester(row.querySelector('.clct-calls-history__item-inner-row'));
+            tester.callIcon =
+                testersFactory.createDomElementTester(row.querySelector('.clct-calls-history__start-call'));
+            tester.directory =
+                testersFactory.createDomElementTester(row.querySelector('.clct-calls-history__item-direction svg'));
 
-        return tester;
-    })(utils.descendantOfBody().matchesSelector(
-        '.clct-calls-history__item-inner-row'
-    ).textEquals(text).find());
+            return tester;
+        };
+
+        return {
+            atIndex: index => createTester(document.querySelectorAll('.clct-calls-history__item')[index]),
+
+            withText: text => createTester(utils.descendantOfBody().matchesSelector(
+                '.clct-calls-history__item-inner-row'
+            ).textEquals(text).find().closest('.clct-calls-history__item'))
+        };
+    })();
 
     me.callsHistoryButton = (tester => {
         const click = tester.click.bind(tester);
