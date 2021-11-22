@@ -332,7 +332,8 @@ tests.addTest(options => {
                             });
 
                             describe('SIP-регистрация завершена. Нажимаю на кнпоку вызова.', function() {
-                                let outboundCall;
+                                let numaRequest,
+                                    outboundCall;
 
                                 beforeEach(function() {
                                     registrationRequest.receiveResponse();
@@ -342,24 +343,80 @@ tests.addTest(options => {
                                     tester.firstConnection.connectWebRTC();
                                     tester.allowMediaInput();
 
-                                    tester.numaRequest().receiveResponse();
-
                                     outboundCall = tester.outboundCall().start().setRinging();
                                     tester.firstConnection.callTrackHandler();
+
+                                    numaRequest = tester.numaRequest().expectToBeSent();
                                 });
 
-                                describe('Получены данные контакта.', function() {
+                                describe('Контакт не является сотрудником.', function() {
                                     beforeEach(function() {
-                                        tester.outCallSessionEvent().receive();
+                                        numaRequest.receiveResponse();
                                     });
 
-                                    it('Звонок принят. Отображено имя, номер и таймер.', function() {
-                                        outboundCall.setAccepted();
+                                    describe('Получены данные контакта.', function() {
+                                        beforeEach(function() {
+                                            tester.outCallSessionEvent().receive();
+                                        });
+
+                                        it('Звонок принят. Отображено имя, номер и таймер.', function() {
+                                            outboundCall.setAccepted();
+
+                                            tester.outgoingIcon.expectToBeVisible();
+                                            tester.softphone.expectTextContentToHaveSubstring(
+                                                'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                            );
+                                        });
+                                        it(
+                                            'Нажимаю на кнопку остановки звонка. Ввожу тот же самый номер. ' +
+                                            'Отображается поле номера.',
+                                        function() {
+                                            tester.stopCallButton.click();
+                                            tester.requestCancelOutgoingCall();
+
+                                            tester.phoneField.fill('79161234567');
+
+                                            tester.phoneField.expectToHaveValue('79161234567');
+                                        });
+                                        it('Отображено имя, номер и таймер.', function() {
+                                            tester.outgoingIcon.expectToBeVisible();
+                                            tester.softphone.expectTextContentToHaveSubstring(
+                                                'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                            );
+                                        });
+                                    });
+                                    it('Данные контакта не найдены.', function() {
+                                        tester.outCallSessionEvent().noName().receive();
 
                                         tester.outgoingIcon.expectToBeVisible();
                                         tester.softphone.expectTextContentToHaveSubstring(
-                                            'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                            '+7 (916) 123-45-67 Исходящий звонок 00:00:00'
                                         );
+                                    });
+                                    it(
+                                        'Отображен номер, таймер, направление и сообщение о поиске контакта.',
+                                    function() {
+                                        tester.outgoingIcon.expectToBeVisible();
+                                        tester.softphone.expectTextContentToHaveSubstring(
+                                            '+7 (916) 123-45-67 Поиск контакта... 00:00:00'
+                                        );
+                                    });
+                                });
+                                describe('Контакт является сотрудником.', function() {
+                                    beforeEach(function() {
+                                        numaRequest.employeeNameIsFound().receiveResponse();
+                                    });
+
+                                    it(
+                                        'Нажимаю на кнопку остановки звонка. Ввожу тот же самый номер. Отображается ' +
+                                        'поле номера.',
+                                    function() {
+                                        tester.stopCallButton.click();
+                                        tester.requestCancelOutgoingCall();
+
+                                        tester.phoneField.fill('79161234567');
+
+                                        tester.phoneField.expectToHaveValue('79161234567');
                                     });
                                     it('Отображено имя, номер и таймер.', function() {
                                         tester.outgoingIcon.expectToBeVisible();
@@ -367,22 +424,6 @@ tests.addTest(options => {
                                             'Шалева Дора +7 (916) 123-45-67 00:00:00'
                                         );
                                     });
-                                });
-                                it('Данные контакта не найдены.', function() {
-                                    tester.outCallSessionEvent().noName().receive();
-
-                                    tester.outgoingIcon.expectToBeVisible();
-                                    tester.softphone.expectTextContentToHaveSubstring(
-                                        '+7 (916) 123-45-67 Исходящий звонок 00:00:00'
-                                    );
-                                });
-                                it(
-                                    'Отображен номер, таймер, направление и сообщение о поиске контакта.',
-                                function() {
-                                    tester.outgoingIcon.expectToBeVisible();
-                                    tester.softphone.expectTextContentToHaveSubstring(
-                                        '+7 (916) 123-45-67 Поиск контакта... 00:00:00'
-                                    );
                                 });
                             });
                             it('Кнопка вызова заблокирована.', function() {

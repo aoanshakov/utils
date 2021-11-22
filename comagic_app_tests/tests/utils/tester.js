@@ -289,6 +289,9 @@ define(() => function ({
     me.numaRequest = () => {
         let numa = 79161234567;
 
+        let respond = request => request.
+            respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+
         return {
             anotherNumber() {
                 numa = 74950230625;
@@ -296,13 +299,21 @@ define(() => function ({
             },
 
             expectToBeSent() {
-                var request = ajax.recentRequest().
+                const request = ajax.recentRequest().
                     expectPathToContain(`/sup/api/v1/numa/${numa}`).
                     expectToHaveMethod('GET');
 
                 return {
+                    employeeNameIsFound() {
+                        respond = request => request.respondSuccessfullyWith({
+                            data: 'Шалева Дора'
+                        });
+
+                        return this;
+                    },
+
                     receiveResponse() {
-                        request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -1510,6 +1521,7 @@ define(() => function ({
     me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
     me.addressBookButton = testersFactory.createDomElementTester('#cmg-address-book-button');
     me.contactOpeningButton = testersFactory.createDomElementTester('#cmg-open-contact-button');
+    me.stopCallButton = testersFactory.createDomElementTester('.cmg-call-button-stop');
 
     me.anchor = text => testersFactory.createAnchorTester(() =>
         utils.descendantOfBody().matchesSelector('a').textEquals(text).find());
