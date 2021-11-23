@@ -4,8 +4,6 @@ define(() => function ({
     ajax,
     fetch,
     spendTime,
-    addSecond,
-    triggerMutation,
     softphoneTester: me,
     isAlreadyAuthenticated = false
 }) {
@@ -104,20 +102,6 @@ define(() => function ({
         return me;
     };
 
-    const triggerScrollRecalculation = () => {
-        Array.prototype.slice.call(document.querySelectorAll('.simplebar-content'), 0).
-            forEach(domElement => {
-                triggerMutation(domElement, {
-                    childList: true,
-                    subtree: true
-                }, []);
-            });
-
-        addSecond();
-    };
-    
-    me.triggerScrollRecalculation = triggerScrollRecalculation;
-    
     me.callsRequest = () => {
         const params = {
             limit: '100',
@@ -189,7 +173,7 @@ define(() => function ({
 
                         request.respondSuccessfullyWith({data});
                         Promise.runAll();
-                        triggerScrollRecalculation();
+                        me.triggerScrollRecalculation();
                     }
                 });
             },

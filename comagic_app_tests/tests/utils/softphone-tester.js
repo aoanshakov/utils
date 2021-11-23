@@ -13,6 +13,8 @@ define(function () {
             playingOscillatorsTester = options.playingOscillatorsTester,
             decodedTracksTester = options.decodedTracksTester,
             spendTime = options.spendTime,
+            addSecond = options.addSecond,
+            triggerMutation = options.triggerMutation,
             sip,
             eventsWebSocket,
             me = this,
@@ -625,6 +627,20 @@ define(function () {
             }];
         };
 
+        const triggerScrollRecalculation = () => {
+            Array.prototype.slice.call(document.querySelectorAll('.simplebar-content'), 0).
+                forEach(domElement => {
+                    triggerMutation(domElement, {
+                        childList: true,
+                        subtree: true
+                    }, []);
+                });
+
+            addSecond();
+        };
+        
+        this.triggerScrollRecalculation = triggerScrollRecalculation;
+
         this.requestUsers = function () {
             var params = {
                 with_active_phones: undefined
@@ -632,8 +648,8 @@ define(function () {
 
             var additionalUsers = [];
 
-            return {
-                addMoreUsers: function () {
+            function addResponseModifiers (me) {
+                me.addMoreUsers = me.addMore = function () {
                     var i;
 
                     for (i = 0; i < 100; i ++) {
@@ -648,8 +664,13 @@ define(function () {
                         });
                     }
 
-                    return this;
-                },
+                    return me;
+                };
+
+                return me;
+            }
+
+            return addResponseModifiers({
                 setHavingActivePhones: function () {
                     params.with_active_phones = '1';
                     return this;
@@ -659,7 +680,7 @@ define(function () {
                         expectPathToContain('/sup/api/v1/users').
                         expectQueryToContain(params);
 
-                    return {
+                    return addResponseModifiers({
                         receiveError: function () {
                             request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
                             Promise.runAll();
@@ -670,13 +691,14 @@ define(function () {
                             });
 
                             Promise.runAll(false, true);
+                            triggerScrollRecalculation();
                         }
-                    };
+                    });
                 },
                 send: function () {
                     this.expectToBeSent().receiveResponse();
                 }
-            };
+            });
         };
 
         this.usersRequest = function () {
@@ -699,8 +721,8 @@ define(function () {
         this.requestUsersInGroups = function () {
             var additionalUsersInGroups = [];
 
-            return {
-                addMore: function () {
+            function addResponseModifiers (me) {
+                me.addMore = function () {
                     var i;
 
                     for (i = 0; i < 100; i ++) {
@@ -711,52 +733,56 @@ define(function () {
                         });
                     }
 
+                    return me;
+                };
 
-                    return this;
-                },
-                send: function () {
-                    ajax.recentRequest().expectPathToContain('/sup/api/v1/users_in_groups').respondSuccessfullyWith({
-                        data: [{
-                            employee_id: 20816,
-                            group_id: 89203,
-                            id: 293032
-                        }, {
-                            employee_id: 82756,
-                            group_id: 89203,
-                            id: 293033
-                        }, {
-                            employee_id: 82756,
-                            group_id: 82958,
-                            id: 293034
-                        }, {
-                            employee_id: 583783,
-                            group_id: 82958,
-                            id: 293035
-                        }, {
-                            employee_id: 79582,
-                            group_id: 17589,
-                            id: 293036
-                        }].concat(additionalUsersInGroups)
+                return me;
+            }
+
+            return addResponseModifiers({
+                expectToBeSent: function () {
+                    var request = ajax.recentRequest().expectPathToContain('/sup/api/v1/users_in_groups');
+
+                    return addResponseModifiers({
+                        receiveResponse: function () {
+                            request.respondSuccessfullyWith({
+                                data: [{
+                                    employee_id: 20816,
+                                    group_id: 89203,
+                                    id: 293032
+                                }, {
+                                    employee_id: 82756,
+                                    group_id: 89203,
+                                    id: 293033
+                                }, {
+                                    employee_id: 82756,
+                                    group_id: 82958,
+                                    id: 293034
+                                }, {
+                                    employee_id: 583783,
+                                    group_id: 82958,
+                                    id: 293035
+                                }, {
+                                    employee_id: 79582,
+                                    group_id: 17589,
+                                    id: 293036
+                                }].concat(additionalUsersInGroups)
+                            });
+
+                            Promise.runAll();
+                        }
                     });
-
-                    Promise.runAll();
-                }
-            };
-        };
-
-        this.usersInGroupsRequest = function () {
-            var request = this.requestUsersInGroups();
-
-            return {
-                addMore: function () {
-                    request.addMore();
-                    return this;
                 },
                 receiveResponse: function () {
-                    request.send();
+                    this.send();
+                },
+                send: function () {
+                    this.expectToBeSent().receiveResponse();
                 }
-            };
+            });
         };
+
+        this.usersInGroupsRequest = this.requestUsersInGroups;
 
         this.requestGroups = function () {
             var additionalGroups = [];

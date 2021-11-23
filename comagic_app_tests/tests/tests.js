@@ -128,91 +128,105 @@ tests.addTest(options => {
                                 });
 
                                 describe('Нажимаю на кнопку трансфера.', function() {
+                                    let usersRequest,
+                                        usersInGroupsRequest;
+
                                     beforeEach(function() {
                                         tester.transferButton.click();
 
-                                        tester.usersRequest().receiveResponse();
-                                        tester.usersInGroupsRequest().receiveResponse();
+                                        usersRequest = tester.usersRequest().expectToBeSent();
+                                        usersInGroupsRequest = tester.usersInGroupsRequest().expectToBeSent();
                                         tester.groupsRequest().receiveResponse();
                                     });
 
-                                    describe('Нажимаю на кнопку поиска.', function() {
+                                    describe('Сотрдников мало.', function() {
                                         beforeEach(function() {
-                                            tester.searchButton.click();
+                                            usersRequest.receiveResponse();
+                                            usersInGroupsRequest.receiveResponse();
                                         });
 
-                                        describe('Ввожу значение в поле поиска.', function() {
+                                        describe('Нажимаю на кнопку поиска.', function() {
                                             beforeEach(function() {
-                                                tester.softphone.input.fill('ова');
+                                                tester.searchButton.click();
                                             });
 
+                                            describe('Ввожу значение в поле поиска.', function() {
+                                                beforeEach(function() {
+                                                    tester.softphone.input.fill('ова');
+                                                });
+
+                                                it(
+                                                    'Нажимаю на иконку очищения поля. Отображены все сотрудники.',
+                                                function() {
+                                                    tester.softphone.input.clearIcon.click();
+
+                                                    tester.softphone.expectToHaveTextContent(
+                                                        'Сотрудники Группы ' +
+
+                                                        'ЙБ Божилова Йовка 296 ' +
+                                                        'НГ Господинова Николина 295 ' +
+                                                        'Шалева Дора 8258'
+                                                    );
+                                                });
+                                                it('Отображены найденные сотрудники.', function() {
+                                                    tester.softphone.expectToHaveTextContent(
+                                                        'ЙБ Божил ова Йовка 296 ' +
+                                                        'НГ Господин ова Николина 295'
+                                                    );
+                                                });
+                                            });
                                             it(
-                                                'Нажимаю на иконку очищения поля. Отображены все сотрудники.',
+                                                'Ввожу значение в поле поиска. Ничего не найдено. Отображено сообщение о ' +
+                                                'том, что ничего не найдено.',
                                             function() {
-                                                tester.softphone.input.clearIcon.click();
-
-                                                tester.softphone.expectToHaveTextContent(
-                                                    'Сотрудники Группы ' +
-
-                                                    'ЙБ Божилова Йовка 296 ' +
-                                                    'НГ Господинова Николина 295 ' +
-                                                    'Шалева Дора 8258'
-                                                );
-                                            });
-                                            it('Отображены найденные сотрудники.', function() {
-                                                tester.softphone.expectToHaveTextContent(
-                                                    'ЙБ Божил ова Йовка 296 ' +
-                                                    'НГ Господин ова Николина 295'
-                                                );
+                                                tester.softphone.input.fill('йцукен');
+                                                tester.softphone.expectToHaveTextContent('Сотрудник не найден');
                                             });
                                         });
-                                        it(
-                                            'Ввожу значение в поле поиска. Ничего не найдено. Отображено сообщение о ' +
-                                            'том, что ничего не найдено.',
-                                        function() {
-                                            tester.softphone.input.fill('йцукен');
-                                            tester.softphone.expectToHaveTextContent('Сотрудник не найден');
+                                        it('Открываю вкладку групп.', function() {
+                                            tester.button('Группы').click();
+
+                                            tester.softphone.expectToHaveTextContent(
+                                                'Сотрудники Группы ' +
+
+                                                'Отдел дистрибуции 298 1 /1 ' +
+                                                'Отдел по работе с ключевыми клиентами 726 0 /1 ' +
+                                                'Отдел региональных продаж 828 2 /2'
+                                            );
+                                        });
+                                        it('Нажимаю на строку в таблице сотрудника.', function() {
+                                            tester.employeeRow('Господинова Николина').click();
+
+                                            tester.dtmf('#').send();
+                                            spendTime(600);
+                                            tester.dtmf('2').send();
+                                            spendTime(600);
+                                            tester.dtmf('9').send();
+                                            spendTime(600);
+                                            tester.dtmf('5').send();
+                                            spendTime(600);
+
+                                            tester.transferButton.click();
+
+                                            tester.dtmf('#').send();
+                                        });
+                                        it('Отображена таблица сотрудников.', function() {
+                                            tester.softphone.expectToHaveTextContent(
+                                                'Сотрудники Группы ' +
+
+                                                'ЙБ Божилова Йовка 296 ' +
+                                                'НГ Господинова Николина 295 ' +
+                                                'Шалева Дора 8258'
+                                            );
+
+                                            tester.employeeRow('Божилова Йовка').transferIcon.expectToBeVisible();
+                                            tester.employeeRow('Божилова Йовка').expectToBeDisaled();
+                                            tester.employeeRow('Шалева Дора').expectNotToBeDisaled();
                                         });
                                     });
-                                    it('Открываю вкладку групп.', function() {
-                                        tester.button('Группы').click();
-
-                                        tester.softphone.expectToHaveTextContent(
-                                            'Сотрудники Группы ' +
-
-                                            'Отдел дистрибуции 298 1 /1 ' +
-                                            'Отдел по работе с ключевыми клиентами 726 0 /1 ' +
-                                            'Отдел региональных продаж 828 2 /2'
-                                        );
-                                    });
-                                    it('Нажимаю на строку в таблице сотрудника.', function() {
-                                        tester.employeeRow('Господинова Николина').click();
-
-                                        tester.dtmf('#').send();
-                                        spendTime(600);
-                                        tester.dtmf('2').send();
-                                        spendTime(600);
-                                        tester.dtmf('9').send();
-                                        spendTime(600);
-                                        tester.dtmf('5').send();
-                                        spendTime(600);
-
-                                        tester.transferButton.click();
-
-                                        tester.dtmf('#').send();
-                                    });
-                                    it('Отображена таблица сотрудников.', function() {
-                                        tester.softphone.expectToHaveTextContent(
-                                            'Сотрудники Группы ' +
-
-                                            'ЙБ Божилова Йовка 296 ' +
-                                            'НГ Господинова Николина 295 ' +
-                                            'Шалева Дора 8258'
-                                        );
-
-                                        tester.employeeRow('Божилова Йовка').transferIcon.expectToBeVisible();
-                                        tester.employeeRow('Божилова Йовка').expectToBeDisaled();
-                                        tester.employeeRow('Шалева Дора').expectNotToBeDisaled();
+                                    it('Сотрудников много.', function() {
+                                        usersRequest.addMore().receiveResponse();
+                                        usersInGroupsRequest.addMore().receiveResponse();
                                     });
                                 });
                                 it('Отображено направление и номер.', function() {
