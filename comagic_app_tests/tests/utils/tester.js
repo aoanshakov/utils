@@ -4,6 +4,8 @@ define(() => function ({
     ajax,
     fetch,
     spendTime,
+    addSecond,
+    triggerMutation,
     softphoneTester: me,
     isAlreadyAuthenticated = false
 }) {
@@ -101,6 +103,20 @@ define(() => function ({
 
         return me;
     };
+
+    const triggerScrollRecalculation = () => {
+        Array.prototype.slice.call(document.querySelectorAll('.simplebar-content'), 0).
+            forEach(domElement => {
+                triggerMutation(domElement, {
+                    childList: true,
+                    subtree: true
+                }, []);
+            });
+
+        addSecond();
+    };
+    
+    me.triggerScrollRecalculation = triggerScrollRecalculation;
     
     me.callsRequest = () => {
         const params = {
@@ -154,6 +170,13 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            secondPage() {
+                params.to = '2019-11-22T21:37:26.362+03:00';
+                params.is_strict_date_till = '1';
+
+                return this;
+            },
+
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectPathToContain('/sup/api/v1/users/me/calls').
@@ -166,6 +189,7 @@ define(() => function ({
 
                         request.respondSuccessfullyWith({data});
                         Promise.runAll();
+                        triggerScrollRecalculation();
                     }
                 });
             },

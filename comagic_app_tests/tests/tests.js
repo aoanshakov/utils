@@ -3,7 +3,9 @@ tests.addTest(options => {
         utils,
         Tester,
         spendTime,
-        windowOpener
+        windowOpener,
+        triggerMutation,
+        ajax
     } = options;
 
     describe(
@@ -448,6 +450,28 @@ tests.addTest(options => {
                                         callsRequest.receiveResponse();
                                     });
 
+                                    describe('Прокручиваю историю.', function() {
+                                        beforeEach(function() {
+                                            tester.callsGridScrolling().toTheEnd().scroll();
+                                            tester.callsGridScrolling().toTheEnd().scroll();
+                                            tester.callsGridScrolling().toTheEnd().scroll();
+                                            tester.callsGridScrolling().toTheEnd().scroll();
+                                            tester.callsGridScrolling().toTheEnd().scroll();
+                                            tester.callsGridScrolling().toTheEnd().scroll();
+                                            tester.callsGridScrolling().toTheEnd().scroll();
+                                            tester.callsGridScrolling().toTheEnd().scroll();
+                                        });
+
+                                        it(
+                                            'Прокручиваю историю до конца. Запрошена вторая страница истории.',
+                                        function() {
+                                            tester.callsGridScrolling().toTheEnd().scroll();
+                                            tester.callsRequest().secondPage().expectToBeSent();
+                                        });
+                                        it('Вторая страница истории еще не запрошена.', function() {
+                                            ajax.expectNoRequestsToBeSent();
+                                        });
+                                    });
                                     it('Нажимаю на иконку звонка.', function() {
                                         tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.click();
 

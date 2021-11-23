@@ -268,7 +268,7 @@ define(function () {
         };
 
         this.callsGridScrolling = function () {
-            var callsGrid = getCallsGrid();
+            var callsGrid = getCallsGrid().querySelector('.simplebar-content-wrapper');
 
             if (!callsGrid) {
                 throw new Error('Таблица звонков не найдена.');
@@ -283,12 +283,14 @@ define(function () {
                     return this;
                 },
                 scroll: function () {
-                    var element = getCallsGrid(),
+                    var element = callsGrid,
                         event = new Event('scroll');
 
                     event.target = element;
                     element.scrollTop = top;
                     element.dispatchEvent(event);
+
+                    Promise.runAll(false, true);
                 }
             };
         };

@@ -2758,7 +2758,7 @@ function JsTester_MutationObserver (args) {
             throw new Error('Элемент должен существовать.');
         }
 
-        if (domElement != document && !domElement.getClientRects) {
+        if (domElement != document && !(domElement instanceof Text) && !domElement.getClientRects) {
             throw new Error('Объект не является HTML-элементом.');
         }
 
@@ -2781,7 +2781,7 @@ function JsTester_MutationObserverTester (args) {
     var domElementToMutationCallback = args.domElementToMutationCallback,
         utils = args.utils;
 
-    return function (domElement, expectedConfig) {
+    return function (domElement, expectedConfig, mutations) {
         if (!domElementToMutationCallback.has(domElement)) {
             return;
         }
@@ -2794,7 +2794,7 @@ function JsTester_MutationObserverTester (args) {
 
             try {
                 utils.expectObjectToContain(actualConfig, expectedConfig);
-                callback();
+                callback(mutations || []);
             } catch (e) {}
         });
     };
@@ -3083,6 +3083,10 @@ function JsTester_Tests (factory) {
             getNow: nowValue.createGetter()
         }),
         setNow = new JsTester_NowSetter(nowValue.createSetter()),
+        addSecond = function () {
+            nowValue.createSetter()(nowValue.createGetter()() + 1000);
+            spendTime(1000);
+        },
         now = new JsTester_Now({
             originalNow: Date.now,
             getNow: getNow
@@ -3215,6 +3219,7 @@ function JsTester_Tests (factory) {
             timeoutLogger: timeoutLogger,
             mediaStreamsTester: mediaStreamsTester,
             setNow: setNow,
+            addSecond: addSecond,
             playingOscillatorsTester: playingOscillatorsTester,
             windowEventsFirerer: windowEventsFirerer,
             audioDecodingTester: audioDecodingTester,
