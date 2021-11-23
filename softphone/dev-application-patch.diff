@@ -1,8 +1,8 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 82bd819..d9780cc 100644
+index bdd8667..00a973c 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
-@@ -278,8 +278,8 @@ module.exports = {
+@@ -284,8 +284,8 @@ module.exports = {
          },
      },
      output: {
@@ -14,14 +14,14 @@ index 82bd819..d9780cc 100644
      },
      plugins: plugins(),
 diff --git a/package.json b/package.json
-index eff9b41..4e2d5a1 100644
+index 62dbfe4..4e2d5a1 100644
 --- a/package.json
 +++ b/package.json
 @@ -79,6 +79,6 @@
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
      "yup": "^0.32.9",
--    "uis-softphone": "0.0.98"
+-    "uis-softphone": "0.0.109"
 +    "uis-softphone": "./misc/sip_lib"
    }
  }
