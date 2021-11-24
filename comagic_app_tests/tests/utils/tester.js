@@ -372,6 +372,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
+            me.callsAreManagedByAnotherDevice = () => {
+                response.data.is_use_widget_for_calls = false;
+                return me;
+            };
+
             me.accessTokenExpired = () => {
                 Object.keys(response).forEach(key => delete(response[key]));
                 respond = request => request.respondUnauthorizedWith(response);
@@ -1538,7 +1543,7 @@ define(() => function ({
         const tester = testersFactory.createDomElementTester(domElement);
 
         tester.expectToBeDisaled = () => tester.expectToHaveClass('cmg-disabled');
-        tester.expectNotToBeDisaled = () => tester.expectNotToHaveClass('cmg-disabled');
+        tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cmg-disabled');
 
         tester.transferIcon = testersFactory.createDomElementTester(domElement.querySelector(
             '.transfer_employee_svg__cmg-employee-transfer-icon'
@@ -1562,6 +1567,9 @@ define(() => function ({
             matchesSelector('button, .clct-radio-button-default-inner').
             find()
     );
+
+    me.microphoneUnavailabilityMessageCloseButton =
+        testersFactory.createDomElementTester('.cmg-miscrophone-unavailability-message-close');
 
     return me;
 });

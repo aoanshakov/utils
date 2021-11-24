@@ -541,6 +541,11 @@ define(function () {
             var user = this.authenticatedUser();
 
             function addMethods (me) {
+                me.sipIsOffline = function () {
+                    user.is_sip_online = false;
+                    return me;
+                };
+
                 me.setUnknownState = function () {
                     user.status_id = 6;
                     return me;
@@ -1185,7 +1190,7 @@ define(function () {
             }
         };
 
-        this.discconnectEventsWebSocket = function (index) {
+        this.disconnectEventsWebSocket = function (index) {
             webSockets.getSocket(/sup\/ws\/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0$/, index || 0).disconnect();
         };
 
