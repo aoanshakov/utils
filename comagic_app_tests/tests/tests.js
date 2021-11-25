@@ -511,6 +511,46 @@ tests.addTest(options => {
                                                     ajax.expectNoRequestsToBeSent();
                                                 });
                                             });
+                                            describe('Соединение разрывается.', function() {
+                                                beforeEach(function() {
+                                                    tester.disconnectEventsWebSocket();
+                                                });
+
+                                                describe('Нажимаю на кнопку закрытия сообщения.', function() {
+                                                    beforeEach(function() {
+                                                        tester.closeButton.click();
+                                                    });
+
+                                                    it(
+                                                        'Соединение востановлено и снова разорвано. Отображено ' +
+                                                        'сообщение о разрыве сети.',
+                                                    function() {
+                                                        spendTime(1001);
+                                                        Promise.runAll(false, true);
+
+                                                        tester.connectEventsWebSocket(1);
+                                                        Promise.runAll(false, true);
+                                                        tester.authenticatedUserRequest().receiveResponse();
+
+                                                        tester.disconnectEventsWebSocket(1);
+
+                                                        tester.softphone.
+                                                            expectTextContentToHaveSubstring('Разрыв сети');
+                                                    });
+                                                    it('Сообщение скрыто.', function() {
+                                                        tester.softphone.
+                                                            expectTextContentNotToHaveSubstring('Разрыв сети');
+                                                    });
+                                                });
+                                                it(
+                                                    'Кнопка звонка заблокирована. Отображено сообщение о разрыве сети.',
+                                                function() {
+                                                    tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.
+                                                        expectToHaveAttribute('disabled');
+
+                                                    tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
+                                                });
+                                            });
                                             it('Нажимаю на иконку звонка.', function() {
                                                 tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.click();
 
@@ -529,12 +569,6 @@ tests.addTest(options => {
                                                 windowOpener.expectToHavePath(
                                                     'https://comagicwidgets.amocrm.ru/contacts/detail/218401'
                                                 );
-                                            });
-                                            it('Соединение разрывается. Кнопка звонка заблокирована.', function() {
-                                                tester.disconnectEventsWebSocket();
-
-                                                tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.
-                                                    expectToHaveAttribute('disabled');
                                             });
                                             it('Отображены иконки направлений.', function() {
                                                 tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.
@@ -575,6 +609,8 @@ tests.addTest(options => {
                                         it('Соединение разрывается.', function() {
                                             tester.disconnectEventsWebSocket();
                                             tester.employeeRow('Шалева Дора').expectToBeDisaled();
+
+                                            tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
                                         });
                                         it('Отображена таблица сотрудников.', function() {
                                             tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
@@ -673,7 +709,7 @@ tests.addTest(options => {
                     });
 
                     it('Нажимаю на кнопку закрытия сообщения. Сообщение скрыто.', function() {
-                        tester.microphoneUnavailabilityMessageCloseButton.click();
+                        tester.closeButton.click();
                         tester.softphone.expectTextContentNotToHaveSubstring('Микрофон не обнаружен');
                     });
                     it('Отображено сообщение об отсутствии доступа к микрофону.', function() {

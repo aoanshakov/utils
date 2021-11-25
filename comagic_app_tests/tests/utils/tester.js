@@ -1587,8 +1587,9 @@ define(() => function ({
             find()
     );
 
-    me.microphoneUnavailabilityMessageCloseButton =
-        testersFactory.createDomElementTester('.cmg-miscrophone-unavailability-message-close');
+    me.closeButton = testersFactory.createDomElementTester(
+        '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close'
+    );
 
     return me;
 });
