@@ -1591,5 +1591,7 @@ define(() => function ({
         '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close'
     );
 
+    me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
+
     return me;
 });

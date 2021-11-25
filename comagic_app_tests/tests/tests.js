@@ -111,7 +111,7 @@ tests.addTest(options => {
                                 reportTableRequest.receiveResponse();
                             });
 
-                            describe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
+                            xdescribe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
                                 beforeEach(function() {
                                     registrationRequest.receiveResponse();
 
@@ -367,7 +367,7 @@ tests.addTest(options => {
                                     tester.phoneIcon.click();
                                 });
 
-                                describe('Ввожу номер телефона.', function() {
+                                xdescribe('Ввожу номер телефона.', function() {
                                     beforeEach(function() {
                                         tester.phoneField.fill('79161234567');
                                     });
@@ -476,7 +476,7 @@ tests.addTest(options => {
                                         registrationRequest.receiveResponse();
                                     });
 
-                                    describe('Открываю историю звонков.', function() {
+                                    xdescribe('Открываю историю звонков.', function() {
                                         let callsRequest;
                                         
                                         beforeEach(function() {
@@ -597,7 +597,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    describe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                    xdescribe('Нажимаю на кнопку таблицы сотрудников.', function() {
                                         beforeEach(function() {
                                             tester.addressBookButton.click();
 
@@ -616,7 +616,7 @@ tests.addTest(options => {
                                             tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
                                         });
                                     });
-                                    it(
+                                    xit(
                                         'Соединение разрывается. Отображено сообщение об установке соединения.',
                                     function() {
                                         tester.disconnectEventsWebSocket();
@@ -625,16 +625,26 @@ tests.addTest(options => {
                                             'Устанавливается соединение...'
                                         );
                                     });
-                                    it('Выпадающий список номеров скрыт.', function() {
+                                    it(
+                                        'Нажимаю на кнопку открытия диалпада. Кнопка удаления цифры видима.',
+                                    function() {
+                                        tester.dialpadButton.click();
+                                        tester.digitRemovingButton.expectToBeVisible();
+                                    });
+                                    return;
+                                    it('Выпадающий список номеров скрыт. Кнопка удаления цифры скрыта.', function() {
                                         tester.select.expectNotToExist();
                                         tester.softphone.expectTextContentNotToHaveSubstring('Микрофон не обнаружен');
+                                        tester.digitRemovingButton.expectNotToExist();
                                     });
                                 });
+                                return;
                                 it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                                     tester.phoneIcon.click();
                                     tester.callButton.expectNotToExist();
                                 });
                             });
+                            return;
                             it('Отображен отчет. Софтфон скрыт.', function() {
                                 tester.callButton.expectNotToExist();
 
@@ -644,6 +654,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
+                        return;
                         describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                             let refreshRequest;
 
@@ -679,6 +690,7 @@ tests.addTest(options => {
                             });
                         });
                     });
+                    return;
                     it(
                         'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о том, ' +
                         'что SIP-линия не зарегистрирована.',
@@ -697,6 +709,7 @@ tests.addTest(options => {
                         );
                     });
                 });
+                return;
                 describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                     beforeEach(function() {
                         tester.disallowMediaInput();
@@ -717,6 +730,7 @@ tests.addTest(options => {
                     });
                 });
             });
+            return;
             it(
                 'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена авторизации. ' +
                 'Отправлен только один запрос обновления токена.',
@@ -761,6 +775,7 @@ tests.addTest(options => {
                 tester.input.withFieldLabel('Логин').expectToBeVisible();
             });
         });
+        return;
         describe('Нажимаю на иконку с телефоном.', function() {
             beforeEach(function() {
                 reportTableRequest.receiveResponse();
@@ -931,6 +946,7 @@ tests.addTest(options => {
             });
         });
     });
+    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
