@@ -338,7 +338,7 @@ define(() => function ({
 
     me.settingsRequest = () => {
         const response = {
-            data: me.addDefaultSettings({
+            data: {
                 application_version: '1.3.2',
                 ice_servers: [{
                     urls: ['stun:stun.uiscom.ru:19302']
@@ -361,10 +361,13 @@ define(() => function ({
                     pause_between_calls_duration: 60,
                     call_card_show_duration: 10
                 }
-            })
+            }
         };
 
-        let respond = request => request.respondSuccessfullyWith(response);
+        let respond = request => {
+            response.data = me.addDefaultSettings(response.data);
+            request.respondSuccessfullyWith(response);
+        };
 
         const headers = {
             Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
@@ -372,6 +375,22 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
+            me.setInvalidRTUConfig = function () {
+                response.data.rtu_webrtc_urls = ['wss://rtu-webrtc.uiscom.ru'],
+                response.data.sip_phone = '076909';
+                return me;
+            };
+
+            me.setRTU = function () {
+                response.data.webrtc_urls = ['wss://webrtc.uiscom.ru'];
+                response.data.sip_phone = '076909';
+                response.data.rtu_sip_host = 'pp-rtu.uis.st:443';
+                response.data.sip_login = 'Kf98Bzv3';
+                response.data.sip_password = 'e2tcXhxbfr';
+
+                return me;
+            };
+
             me.callsAreManagedByAnotherDevice = () => {
                 response.data.is_use_widget_for_calls = false;
                 return me;

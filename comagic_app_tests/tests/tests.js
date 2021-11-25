@@ -841,28 +841,56 @@ tests.addTest(options => {
                     });
                 });
             });
-            describe('Включено управление звонками на другом устройстве.', function() {
+            describe('Пользователь не имеет права на список номеров.', function() {
                 beforeEach(function() {
                     permissionsRequest.receiveResponse();
-                    settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
                 });
 
-                it('Соединение установлено.', function() {
+                describe('Включено управление звонками на другом устройстве.', function() {
+                    beforeEach(function() {
+                        settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+                    });
+
+                    it('Соединение установлено.', function() {
+                        tester.connectEventsWebSocket();
+                        tester.authenticatedUserRequest().sipIsOffline().receiveResponse();
+
+                        tester.softphone.expectToHaveTextContent(
+                            'Используется на другом устройстве ' +
+                            'Включено управление звонками с другого устройства или программы'
+                        );
+                    });
+                    it('Устанавливается соединение. Отображено сообщение об установке соединения.', function() {
+                        tester.getEventsWebSocket().expectToBeConnecting();
+
+                        tester.softphone.expectToHaveTextContent(
+                            'Используется на другом устройстве ' +
+                            'Устанавливается соединение...'
+                        );
+                    });
+                });
+                it('Необходимо подключиться к РТУ напрямую. Подключаюсь.', function() {
+                    tester.setJsSIPRTUUrl();
+                    settingsRequest.setRTU().receiveResponse();
+
                     tester.connectEventsWebSocket();
-                    tester.authenticatedUserRequest().sipIsOffline().receiveResponse();
+                    tester.connectSIPWebSocket();
 
-                    tester.softphone.expectToHaveTextContent(
-                        'Используется на другом устройстве ' +
-                        'Включено управление звонками с другого устройства или программы'
-                    );
+                    tester.allowMediaInput();
+
+                    tester.authenticatedUserRequest().receiveResponse();
+                    tester.requestRegistration().setRTU().receiveResponse();
                 });
-                it('Устанавливается соединение. Отображено сообщение об установке соединения.', function() {
-                    tester.getEventsWebSocket().expectToBeConnecting();
+                it('Получена некорректная конфигурация прямого подключения к РТУ. Подключаюсь к каме.', function() {
+                    settingsRequest.setInvalidRTUConfig().receiveResponse();
 
-                    tester.softphone.expectToHaveTextContent(
-                        'Используется на другом устройстве ' +
-                        'Устанавливается соединение...'
-                    );
+                    tester.connectEventsWebSocket();
+                    tester.connectSIPWebSocket();
+
+                    tester.allowMediaInput();
+
+                    tester.authenticatedUserRequest().receiveResponse();
+                    tester.requestRegistration().receiveResponse();
                 });
             });
         });

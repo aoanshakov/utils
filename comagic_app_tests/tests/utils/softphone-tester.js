@@ -149,6 +149,12 @@ define(function () {
             webRtcUrlParam = 'webrtc_urls';
         };
 
+        this.setJsSIPRTUUrl = function () {
+            webRtcUrl = ['wss://rtu-webrtc.uiscom.ru'],
+            webRtcUrlParam = 'rtu_webrtc_urls';
+            webRtcUrlForGettingSocket = 'wss://rtu-webrtc.uiscom.ru';
+        };
+
         this.body = testersFactory.createDomElementTester(function () {
             return document.body;
         });
@@ -2226,7 +2232,16 @@ define(function () {
         this.requestRegistration = function () {
             var expires = '60',
                 sip_login = '077368',
+                sip_host = 'voip.uiscom.ru',
                 doSomething = function () {};
+                
+            var checkAuthorization = function (request) {
+                return request.expectToHaveHeader('Authorization');
+            };
+
+            var checkRegistration = function (request) {
+                return request;
+            };
 
             return {
                 setUnregister: function () {
@@ -2265,6 +2280,26 @@ define(function () {
                     sip_login = '093820';
                     return this;
                 },
+                setRTU: function () {
+                    sip_host = 'pp-rtu.uis.st:443';
+                    sip_login = '076909%24ROOT';
+
+                    checkAuthorization = function (request) {
+                        return request.expectHeaderToContain(
+                            'Authorization',
+                            'Digest algorithm=MD5, username="Kf98Bzv3", realm="pp-rtu.uis.st"' 
+                        );
+                    };
+
+                    checkRegistration = function (request) {
+                        return request.expectHeaderToContain(
+                            'Contact',
+                            '<sip:076909%24ROOT@pp-rtu.uis.st:443;transport=ws>;'
+                        );
+                    };
+
+                    return this;
+                },
                 receiveForbidden: function () {
                     this.expectToBeSent().receiveForbidden();
                 },
@@ -2272,20 +2307,20 @@ define(function () {
                     this.receiveResponse();
                 },
                 expectToBeSent: function () {
-                    sip.recentRequest().
-                        expectToHaveMethod('REGISTER').
-                        expectToHaveServerName('sip:voip.uiscom.ru').
-                        expectHeaderToContain('From', '<sip:' + sip_login + '@voip.uiscom.ru>').
-                        expectHeaderToContain('To', '<sip:' + sip_login + '@voip.uiscom.ru>').
-                        expectHeaderToHaveValue('Expires', 'Expires: ' + expires).
+                    checkRegistration(
+                        sip.recentRequest().
+                            expectToHaveMethod('REGISTER').
+                            expectToHaveServerName('sip:' + sip_host).
+                            expectHeaderToContain('From', '<sip:' + sip_login + '@' + sip_host + '>').
+                            expectHeaderToContain('To', '<sip:' + sip_login + '@' + sip_host + '>').
+                            expectHeaderToHaveValue('Expires', 'Expires: ' + expires)
+                    ).
                         response().
                         setUnauthorized().
                         addHeader('WWW-Authenticate: Digest realm="{server_name}", nonce="{to_tag}"').
                         send();
 
-                    var recentRequest = sip.recentRequest().
-                        expectToHaveMethod('REGISTER').
-                        expectToHaveHeader('Authorization');
+                    var recentRequest = checkAuthorization(sip.recentRequest().expectToHaveMethod('REGISTER'));
 
                     return {
                         receiveForbidden: function () {
