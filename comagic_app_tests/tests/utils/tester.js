@@ -5,7 +5,8 @@ define(() => function ({
     fetch,
     spendTime,
     softphoneTester: me,
-    isAlreadyAuthenticated = false
+    isAlreadyAuthenticated = false,
+    appName = ''
 }) {
     let history;
 
@@ -23,7 +24,8 @@ define(() => function ({
     );
 
     window.application.run({
-        setHistory: value => (history = value)
+        setHistory: value => (history = value),
+        appName
     });
 
     Promise.runAll(false, true);
@@ -1580,12 +1582,19 @@ define(() => function ({
         getRootElement
     ))(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
 
-    me.button = text => testersFactory.createDomElementTester(
-        utils.descendantOfBody().
-            textEquals(text).
-            matchesSelector('button, .clct-radio-button-default-inner').
-            find()
-    );
+    me.button = text => {
+        const tester = testersFactory.createDomElementTester(
+            utils.descendantOfBody().
+                textEquals(text).
+                matchesSelector('button, .clct-radio-button-default-inner').
+                find()
+        );
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), Promise.runAll(false, true));
+
+        return tester;
+    };
 
     me.closeButton = testersFactory.createDomElementTester(
         '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close'

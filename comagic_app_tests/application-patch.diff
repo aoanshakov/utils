@@ -295,7 +295,7 @@ index 98e0c107..5851e692 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 03e58fa0..5e4cfe4d 100644
+index 03e58fa0..3cbfb2b2 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -6,7 +6,9 @@ import { ConfigProvider } from 'antd';
@@ -309,14 +309,33 @@ index 03e58fa0..5e4cfe4d 100644
  
  import history from './history';
  import { getAntdLocale, getIntlLocale, getIntlMessages } from './i18n';
-@@ -48,4 +50,32 @@ const Root: React.FC = observer(() => {
+@@ -16,7 +18,7 @@ import App from './App';
+ import './global';
+ import { createPureHistory } from './utils';
+ 
+-const Root: React.FC = observer(() => {
++const Root: React.FC = observer(props => {
+     const getPopupContainer = (triggerNode: any): HTMLElement => {
+         if (triggerNode) {
+             return triggerNode.parentNode;
+@@ -40,7 +42,7 @@ const Root: React.FC = observer(() => {
+             <Router history={history}>
+                 <IntlProvider locale={getIntlLocale(locale)} messages={getIntlMessages(locale)}>
+                     <ConfigProvider locale={getAntdLocale(locale)} getPopupContainer={getPopupContainer}>
+-                        <App />
++                        <App {...(props || {})} />
+                     </ConfigProvider>
+                 </IntlProvider>
+             </Router>
+@@ -48,4 +50,33 @@ const Root: React.FC = observer(() => {
      );
  });
  
 -ReactDOM.render(<Root />, document.getElementById('root'));
 +window.application = {
 +    run({
-+        setHistory = () => null
++        setHistory = () => null,
++        appName = ''
 +    }) {
 +        createRootStore();
 +        createChatsRootStore();
@@ -329,7 +348,7 @@ index 03e58fa0..5e4cfe4d 100644
 +        container.id = 'root';
 +        document.body.appendChild(container);
 +
-+        ReactDOM.render(<Root />, container);
++        ReactDOM.render(<Root appName={appName} />, container);
 +    },
 +
 +    exit() {
