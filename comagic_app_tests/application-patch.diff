@@ -16,7 +16,7 @@ index 16343798..c6c383de 100644
  
  REACT_APP_SOFTPHONE_BACKEND_HOST='myva0.dev.uis.st'
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 37d99a30..446f82a9 100644
+index 188c48bf..6254dbd4 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -60,7 +60,7 @@ index 37d99a30..446f82a9 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -157,7 +164,7 @@ const plugins = () => {
+@@ -158,7 +165,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -69,7 +69,7 @@ index 37d99a30..446f82a9 100644
              name: 'shell',
              shared: ['react', 'react-dom'].reduce((shared, key) => {
                  shared[key] = {
-@@ -172,7 +179,11 @@ const plugins = () => {
+@@ -173,7 +180,11 @@ const plugins = () => {
                  employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
                  softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
              },
@@ -82,7 +82,7 @@ index 37d99a30..446f82a9 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -182,6 +193,13 @@ const plugins = () => {
+@@ -183,6 +194,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -96,7 +96,7 @@ index 37d99a30..446f82a9 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -201,6 +219,21 @@ module.exports = {
+@@ -202,6 +220,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -118,7 +118,7 @@ index 37d99a30..446f82a9 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -251,6 +284,7 @@ module.exports = {
+@@ -252,6 +285,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -126,7 +126,7 @@ index 37d99a30..446f82a9 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -266,17 +300,89 @@ module.exports = {
+@@ -267,17 +301,89 @@ module.exports = {
                      },
                  ],
              },
@@ -221,10 +221,10 @@ index 37d99a30..446f82a9 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index a7aba4fa..822bc765 100644
+index b0e78f38..bce4d28a 100644
 --- a/package.json
 +++ b/package.json
-@@ -60,7 +60,7 @@
+@@ -61,7 +61,7 @@
      "husky": "^6.0.0",
      "json-server": "^0.16.0",
      "less": "^3.10.3",
@@ -233,7 +233,7 @@ index a7aba4fa..822bc765 100644
      "mini-css-extract-plugin": "^1.3.9",
      "nanoid": "^2.1.11",
      "prettier": "^1.19.1",
-@@ -79,6 +79,9 @@
+@@ -80,6 +80,9 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -243,7 +243,7 @@ index a7aba4fa..822bc765 100644
      "antd": "^3.26.7",
      "axios": "^0.19.2",
      "classnames": "^2.2.6",
-@@ -105,10 +108,11 @@
+@@ -106,10 +109,11 @@
      "react-intl": "^5.15.8",
      "react-list": "^0.8.13",
      "react-resizable": "^1.10.1",
@@ -258,13 +258,14 @@ index a7aba4fa..822bc765 100644
    }
  }
 diff --git a/public/index.html b/public/index.html
-index 98e0c107..5851e692 100644
+index 09ee5ee2..5851e692 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -22,6 +22,24 @@
+@@ -22,7 +22,24 @@
      })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
      <!-- End Google Tag Manager -->
      <% } %>
+-    <script>window.rootConfig = <% htmlWebpackPlugin.options.env.rootConfig %>;</script>
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
 +    <script>
@@ -286,7 +287,7 @@ index 98e0c107..5851e692 100644
  </head>
  <body>
      <% if (htmlWebpackPlugin.options.env.production) { %>
-@@ -33,5 +51,6 @@
+@@ -34,5 +51,6 @@
      <% } %>
      <noscript>You need to enable JavaScript to run this app.</noscript>
      <div id="root"></div>
@@ -295,7 +296,7 @@ index 98e0c107..5851e692 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 03e58fa0..3cbfb2b2 100644
+index cbc7d61d..3cbfb2b2 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -6,7 +6,9 @@ import { ConfigProvider } from 'antd';
@@ -309,29 +310,11 @@ index 03e58fa0..3cbfb2b2 100644
  
  import history from './history';
  import { getAntdLocale, getIntlLocale, getIntlMessages } from './i18n';
-@@ -16,7 +18,7 @@ import App from './App';
- import './global';
- import { createPureHistory } from './utils';
- 
--const Root: React.FC = observer(() => {
-+const Root: React.FC = observer(props => {
-     const getPopupContainer = (triggerNode: any): HTMLElement => {
-         if (triggerNode) {
-             return triggerNode.parentNode;
-@@ -40,7 +42,7 @@ const Root: React.FC = observer(() => {
-             <Router history={history}>
-                 <IntlProvider locale={getIntlLocale(locale)} messages={getIntlMessages(locale)}>
-                     <ConfigProvider locale={getAntdLocale(locale)} getPopupContainer={getPopupContainer}>
--                        <App />
-+                        <App {...(props || {})} />
-                     </ConfigProvider>
-                 </IntlProvider>
-             </Router>
-@@ -48,4 +50,33 @@ const Root: React.FC = observer(() => {
+@@ -48,4 +50,33 @@ const Root: React.FC = observer(props => {
      );
  });
  
--ReactDOM.render(<Root />, document.getElementById('root'));
+-ReactDOM.render(<Root {...(window.rootConfig || {})}/>, document.getElementById('root'));
 +window.application = {
 +    run({
 +        setHistory = () => null,
