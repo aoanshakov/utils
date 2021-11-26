@@ -111,7 +111,7 @@ tests.addTest(options => {
                                 reportTableRequest.receiveResponse();
                             });
 
-                            xdescribe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
+                            describe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
                                 beforeEach(function() {
                                     registrationRequest.receiveResponse();
 
@@ -266,11 +266,24 @@ tests.addTest(options => {
                                         windowOpener.
                                             expectToHavePath('https://comagicwidgets.amocrm.ru/contacts/detail/382030');
                                     });
+                                    it('Нажимаю на кнопку сворачивания виджета. Виджет свернут.', function() {
+                                        tester.collapsednessToggleButton.click();
+
+                                        tester.collapsednessToggleButton.
+                                            expectToHaveClass('expand_svg__cmg-expand-icon');
+
+                                        tester.softphone.expectTextContentNotToHaveSubstring('Путь лида');
+                                    });
                                     it('Отображена информация о контакте.', function() {
+                                        tester.collapsednessToggleButton.
+                                            expectToHaveClass('collapse_svg__cmg-collapse-icon');
+
                                         tester.contactOpeningButton.expectNotToHaveClass('cmg-button-disabled');
                                         tester.incomingIcon.expectToBeVisible();
+
                                         tester.softphone.expectTextContentToHaveSubstring(
-                                            'Шалева Дора +7 (916) 123-45-67'
+                                            'Шалева Дора +7 (916) 123-45-67 ' +
+                                            'Путь лида'
                                         );
 
                                         tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
@@ -355,6 +368,7 @@ tests.addTest(options => {
                                     tester.outCallEvent().longName().receive();
                                 });
                                 it('Отображено сообщение о поиске контакта.', function() {
+                                    tester.collapsednessToggleButton.expectNotToExist();
                                     tester.contactOpeningButton.expectNotToExist();
                                     tester.incomingIcon.expectToBeVisible();
                                     tester.softphone.expectTextContentToHaveSubstring(
@@ -367,7 +381,7 @@ tests.addTest(options => {
                                     tester.phoneIcon.click();
                                 });
 
-                                xdescribe('Ввожу номер телефона.', function() {
+                                describe('Ввожу номер телефона.', function() {
                                     beforeEach(function() {
                                         tester.phoneField.fill('79161234567');
                                     });
@@ -476,7 +490,7 @@ tests.addTest(options => {
                                         registrationRequest.receiveResponse();
                                     });
 
-                                    xdescribe('Открываю историю звонков.', function() {
+                                    describe('Открываю историю звонков.', function() {
                                         let callsRequest;
                                         
                                         beforeEach(function() {
@@ -597,7 +611,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    xdescribe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                    describe('Нажимаю на кнопку таблицы сотрудников.', function() {
                                         beforeEach(function() {
                                             tester.addressBookButton.click();
 
@@ -616,7 +630,7 @@ tests.addTest(options => {
                                             tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
                                         });
                                     });
-                                    xit(
+                                    it(
                                         'Соединение разрывается. Отображено сообщение об установке соединения.',
                                     function() {
                                         tester.disconnectEventsWebSocket();
@@ -631,20 +645,17 @@ tests.addTest(options => {
                                         tester.dialpadButton.click();
                                         tester.digitRemovingButton.expectToBeVisible();
                                     });
-                                    return;
                                     it('Выпадающий список номеров скрыт. Кнопка удаления цифры скрыта.', function() {
                                         tester.select.expectNotToExist();
                                         tester.softphone.expectTextContentNotToHaveSubstring('Микрофон не обнаружен');
                                         tester.digitRemovingButton.expectNotToExist();
                                     });
                                 });
-                                return;
                                 it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                                     tester.phoneIcon.click();
                                     tester.callButton.expectNotToExist();
                                 });
                             });
-                            return;
                             it('Отображен отчет. Софтфон скрыт.', function() {
                                 tester.callButton.expectNotToExist();
 
@@ -654,7 +665,6 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        return;
                         describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                             let refreshRequest;
 
@@ -690,7 +700,6 @@ tests.addTest(options => {
                             });
                         });
                     });
-                    return;
                     it(
                         'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о том, ' +
                         'что SIP-линия не зарегистрирована.',
@@ -709,7 +718,6 @@ tests.addTest(options => {
                         );
                     });
                 });
-                return;
                 describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                     beforeEach(function() {
                         tester.disallowMediaInput();
@@ -730,7 +738,6 @@ tests.addTest(options => {
                     });
                 });
             });
-            return;
             it(
                 'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена авторизации. ' +
                 'Отправлен только один запрос обновления токена.',
@@ -775,7 +782,6 @@ tests.addTest(options => {
                 tester.input.withFieldLabel('Логин').expectToBeVisible();
             });
         });
-        return;
         describe('Нажимаю на иконку с телефоном.', function() {
             beforeEach(function() {
                 reportTableRequest.receiveResponse();
@@ -946,7 +952,6 @@ tests.addTest(options => {
             });
         });
     });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,

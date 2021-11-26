@@ -1592,6 +1592,7 @@ define(() => function ({
     );
 
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
+    me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
 
     return me;
 });
