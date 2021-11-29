@@ -1,20 +1,20 @@
 diff --git a/.env b/.env
-index 16343798..c6c383de 100644
+index b3b35c4c..9a96bab2 100644
 --- a/.env
 +++ b/.env
-@@ -7,9 +7,9 @@ REACT_APP_EMBED_CODE_URL=
+@@ -7,8 +7,8 @@ REACT_APP_EMBED_CODE_URL=
  REACT_APP_SITE_SETTINGS_SERVER_URL=
  REACT_APP_ANALYTICS_SERVER_URL=
  REACT_APP_PROJECT=
 -REACT_APP_MODULE_CHATS=
 -REACT_APP_MODULE_EMPLOYEES=
 -REACT_APP_LEADGEN_MODULE=
+-REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_CHATS=https://localhost:8083
 +REACT_APP_MODULE_EMPLOYEES=https://localhost:8082
 +REACT_APP_LEADGEN_MODULE=https://localhost:8084
- REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
- 
- REACT_APP_SOFTPHONE_BACKEND_HOST='myva0.dev.uis.st'
++REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
+ REACT_APP_SOFTPHONE_BACKEND_HOST='myint0.dev.uis.st'
 diff --git a/config/webpack.config.js b/config/webpack.config.js
 index 188c48bf..6254dbd4 100644
 --- a/config/webpack.config.js
@@ -221,7 +221,7 @@ index 188c48bf..6254dbd4 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index b0e78f38..bce4d28a 100644
+index cc4b69ef..d27ab84e 100644
 --- a/package.json
 +++ b/package.json
 @@ -61,7 +61,7 @@
@@ -233,8 +233,8 @@ index b0e78f38..bce4d28a 100644
      "mini-css-extract-plugin": "^1.3.9",
      "nanoid": "^2.1.11",
      "prettier": "^1.19.1",
-@@ -80,6 +80,9 @@
-     "webpack-merge": "^5.7.3"
+@@ -81,6 +81,9 @@
+     "electron-builder": "^22.9.1"
    },
    "dependencies": {
 +    "softphone": "./misc/softphone",
@@ -243,7 +243,7 @@ index b0e78f38..bce4d28a 100644
      "antd": "^3.26.7",
      "axios": "^0.19.2",
      "classnames": "^2.2.6",
-@@ -106,10 +109,11 @@
+@@ -107,11 +110,12 @@
      "react-intl": "^5.15.8",
      "react-list": "^0.8.13",
      "react-resizable": "^1.10.1",
@@ -252,9 +252,9 @@ index b0e78f38..bce4d28a 100644
      "react-router-dom": "^5.1.2",
      "react-transition-group": "^4.4.2",
      "wavesurfer.js": "^4.0.1",
--    "yup": "^0.28.1"
-+    "yup": "^0.28.1",
-+    "babel-loader": "^8.0.4"
+     "yup": "^0.28.1",
++    "babel-loader": "^8.0.4",
+     "electron": "^10.1.5"
    }
  }
 diff --git a/public/index.html b/public/index.html
