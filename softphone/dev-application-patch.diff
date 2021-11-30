@@ -14,14 +14,14 @@ index bdd8667..00a973c 100644
      },
      plugins: plugins(),
 diff --git a/package.json b/package.json
-index 62dbfe4..4e2d5a1 100644
+index c03e187..4e2d5a1 100644
 --- a/package.json
 +++ b/package.json
 @@ -79,6 +79,6 @@
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
      "yup": "^0.32.9",
--    "uis-softphone": "0.0.109"
+-    "uis-softphone": "0.0.124"
 +    "uis-softphone": "./misc/sip_lib"
    }
  }
