@@ -1,10 +1,10 @@
 diff --git a/.env b/.env
-index 16343798..c6c383de 100644
+index d41842db..1dca198c 100644
 --- a/.env
 +++ b/.env
-@@ -7,9 +7,9 @@ REACT_APP_EMBED_CODE_URL=
- REACT_APP_SITE_SETTINGS_SERVER_URL=
+@@ -8,9 +8,9 @@ REACT_APP_SITE_SETTINGS_SERVER_URL=
  REACT_APP_ANALYTICS_SERVER_URL=
+ REACT_APP_COMAGIC_WEB_URL=https://va0.dev.uis.st
  REACT_APP_PROJECT=
 -REACT_APP_MODULE_CHATS=
 -REACT_APP_MODULE_EMPLOYEES=
@@ -16,7 +16,7 @@ index 16343798..c6c383de 100644
  
  REACT_APP_SOFTPHONE_BACKEND_HOST='myva0.dev.uis.st'
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 37d99a30..446f82a9 100644
+index 1da43df0..56c09577 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -69,8 +69,8 @@ index 37d99a30..446f82a9 100644
              name: 'shell',
              shared: ['react', 'react-dom'].reduce((shared, key) => {
                  shared[key] = {
-@@ -172,7 +179,11 @@ const plugins = () => {
-                 employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
+@@ -171,7 +178,11 @@ const plugins = () => {
+                 chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
                  softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
              },
 -        }),
@@ -82,7 +82,7 @@ index 37d99a30..446f82a9 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -182,6 +193,13 @@ const plugins = () => {
+@@ -181,6 +192,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -96,7 +96,7 @@ index 37d99a30..446f82a9 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -201,6 +219,21 @@ module.exports = {
+@@ -200,6 +218,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -118,7 +118,7 @@ index 37d99a30..446f82a9 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -251,6 +284,7 @@ module.exports = {
+@@ -250,6 +283,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -126,7 +126,7 @@ index 37d99a30..446f82a9 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -266,17 +300,89 @@ module.exports = {
+@@ -265,17 +299,89 @@ module.exports = {
                      },
                  ],
              },
@@ -221,7 +221,7 @@ index 37d99a30..446f82a9 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index a7aba4fa..822bc765 100644
+index a6e0002f..ad027d33 100644
 --- a/package.json
 +++ b/package.json
 @@ -60,7 +60,7 @@
@@ -295,12 +295,12 @@ index 98e0c107..5851e692 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 03e58fa0..3cbfb2b2 100644
+index 4bd3c66a..de01bf9e 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -6,7 +6,9 @@ import { ConfigProvider } from 'antd';
- import { useMountEffect } from '@hooks';
+@@ -7,7 +7,9 @@ import { useMountEffect } from '@hooks';
  import { observer } from 'mobx-react-lite';
+ import moment from 'moment';
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
@@ -309,16 +309,16 @@ index 03e58fa0..3cbfb2b2 100644
  
  import history from './history';
  import { getAntdLocale, getIntlLocale, getIntlMessages } from './i18n';
-@@ -16,7 +18,7 @@ import App from './App';
- import './global';
- import { createPureHistory } from './utils';
+@@ -25,7 +27,7 @@ const getPopupContainer = (triggerNode: HTMLElement): HTMLElement => {
+     return document.body;
+ };
  
 -const Root: React.FC = observer(() => {
 +const Root: React.FC = observer(props => {
-     const getPopupContainer = (triggerNode: any): HTMLElement => {
-         if (triggerNode) {
-             return triggerNode.parentNode;
-@@ -40,7 +42,7 @@ const Root: React.FC = observer(() => {
+     const {
+         projectData: { locale },
+     } = rootStore;
+@@ -56,7 +58,7 @@ const Root: React.FC = observer(() => {
              <Router history={history}>
                  <IntlProvider locale={getIntlLocale(locale)} messages={getIntlMessages(locale)}>
                      <ConfigProvider locale={getAntdLocale(locale)} getPopupContainer={getPopupContainer}>
@@ -327,7 +327,7 @@ index 03e58fa0..3cbfb2b2 100644
                      </ConfigProvider>
                  </IntlProvider>
              </Router>
-@@ -48,4 +50,33 @@ const Root: React.FC = observer(() => {
+@@ -64,4 +66,33 @@ const Root: React.FC = observer(() => {
      );
  });
  
@@ -376,7 +376,7 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 6e7e6082..e74dd028 100644
+index 30d23e27..bd0f9bdf 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -164,7 +164,7 @@ export const RootStore = types

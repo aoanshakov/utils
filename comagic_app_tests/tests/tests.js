@@ -8,7 +8,7 @@ tests.addTest(options => {
         ajax
     } = options;
 
-    xdescribe(
+    describe(
         'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -951,46 +951,6 @@ tests.addTest(options => {
             });
         });
     });
-    describe('', function() {
-        let tester;
-
-        beforeEach(function() {
-            tester = new Tester({
-                ...options,
-                appName: 'softphone'
-            });
-            
-            tester.input.withFieldLabel('Логин').fill('botusharova');
-            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
-
-            tester.button('Войти').click();
-
-            tester.loginRequest().receiveResponse();
-            tester.configRequest().softphone().receiveResponse();
-            tester.authCheckRequest().receiveResponse();
-
-            tester.statusesRequest().receiveResponse();
-            tester.settingsRequest().receiveResponse();
-            tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
-
-            tester.connectEventsWebSocket();
-            tester.connectSIPWebSocket();
-
-            tester.allowMediaInput();
-
-            tester.authenticatedUserRequest().receiveResponse();
-            tester.registrationRequest().expectToBeSent();
-        });
-
-        afterEach(function() {
-            spendTime(0);
-        });
-
-        it('', function() {
-        });
-    });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
