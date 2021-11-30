@@ -32,7 +32,7 @@ tests.addTest(options => {
             tester.accountRequest().receiveResponse();
 
             tester.configRequest().softphone().receiveResponse();
-            tester.configRequest().receiveResponse();
+            //tester.configRequest().receiveResponse();
 
             tester.statusesRequest().receiveResponse();
             settingsRequest = tester.settingsRequest().expectToBeSent();
@@ -43,6 +43,7 @@ tests.addTest(options => {
             tester.reportsListRequest().receiveResponse();
             tester.reportTypesRequest().receiveResponse();
 
+            /*
             tester.operatorAccountRequest().receiveResponse();
 
             tester.reportStateRequest().receiveResponse();
@@ -71,6 +72,7 @@ tests.addTest(options => {
             tester.reportTableRequest().anotherColumn().receiveResponse();
             tester.reportTableRequest().thirdColumn().receiveResponse();
             reportTableRequest = tester.reportTableRequest().thirdColumn().visitorRegion().expectToBeSent();
+            */
         });
 
         afterEach(function() {
@@ -108,7 +110,7 @@ tests.addTest(options => {
 
                         describe('Получены данные для отчета.', function() {
                             beforeEach(function() {
-                                reportTableRequest.receiveResponse();
+                                //reportTableRequest.receiveResponse();
                             });
 
                             xdescribe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
@@ -378,7 +380,7 @@ tests.addTest(options => {
                             });
                             describe('Нажимаю на иконку с телефоном.', function() {
                                 beforeEach(function() {
-                                    tester.phoneIcon.click();
+                                    tester.button('Софтфон').click();
                                 });
 
                                 xdescribe('Ввожу номер телефона.', function() {
@@ -653,7 +655,7 @@ tests.addTest(options => {
                                 });
                                 return;
                                 it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
-                                    tester.phoneIcon.click();
+                                    tester.button('Софтфон').click();
                                     tester.callButton.expectNotToExist();
                                 });
                             });
@@ -674,7 +676,7 @@ tests.addTest(options => {
                             beforeEach(function() {
                                 registrationRequest.receiveResponse();
 
-                                reportTableRequest.accessTokenExpired().receiveResponse();
+                                //reportTableRequest.accessTokenExpired().receiveResponse();
                                 refreshRequest = tester.refreshRequest().expectToBeSent();
 
                                 spendTime(0);
@@ -683,8 +685,8 @@ tests.addTest(options => {
                             it('Токен авторизации обновлен. Получены данные для отчета. Отображен отчет.', function() {
                                 refreshRequest.receiveResponse();
 
-                                tester.reportTableRequest().thirdColumn().visitorRegion().anotherAuthoriationToken().
-                                    receiveResponse();
+                                /*tester.reportTableRequest().thirdColumn().visitorRegion().anotherAuthoriationToken().
+                                    receiveResponse();*/
 
                                 tester.body.expectTextContentToHaveSubstringsConsideringOrder(
                                     'Топ 10 регионов по количеству сделок',
@@ -698,8 +700,8 @@ tests.addTest(options => {
                                 );
 
                                 refreshRequest.receiveResponse();
-                                tester.reportTableRequest().thirdColumn().visitorRegion().anotherAuthoriationToken().
-                                    expectToBeSent();
+                                /*tester.reportTableRequest().thirdColumn().visitorRegion().anotherAuthoriationToken().
+                                    expectToBeSent();*/
                             });
                         });
                     });
@@ -708,12 +710,12 @@ tests.addTest(options => {
                         'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о том, ' +
                         'что SIP-линия не зарегистрирована.',
                     function() {
-                        tester.phoneIcon.click();
+                        tester.button('Софтфон').click();
                         tester.phoneField.fill('79161234567');
 
                         authenticatedUserRequest.sipIsOffline().receiveResponse();
                         registrationRequest.receiveResponse();
-                        reportTableRequest.receiveResponse();
+                        //reportTableRequest.receiveResponse();
 
                         tester.callButton.expectToHaveAttribute('disabled');
 
@@ -728,10 +730,10 @@ tests.addTest(options => {
                         tester.disallowMediaInput();
 
                         authenticatedUserRequest.receiveResponse();
-                        reportTableRequest.receiveResponse();
+                        //reportTableRequest.receiveResponse();
                         registrationRequest.receiveResponse();
 
-                        tester.phoneIcon.click();
+                        tester.button('Софтфон').click();
                     });
 
                     it('Нажимаю на кнопку закрытия сообщения. Сообщение скрыто.', function() {
@@ -748,7 +750,7 @@ tests.addTest(options => {
                 'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена авторизации. ' +
                 'Отправлен только один запрос обновления токена.',
             function() {
-                reportTableRequest.accessTokenExpired().receiveResponse();
+                //reportTableRequest.accessTokenExpired().receiveResponse();
                 settingsRequest.accessTokenExpired().receiveResponse();
 
                 tester.refreshRequest().receiveResponse();
@@ -761,12 +763,12 @@ tests.addTest(options => {
                 'Отправлен только один запрос обновления токена.',
             function() {
                 settingsRequest.accessTokenExpired().receiveResponse();
-                reportTableRequest.accessTokenExpired().receiveResponse();
+                //reportTableRequest.accessTokenExpired().receiveResponse();
 
                 tester.refreshRequest().receiveResponse();
 
                 tester.settingsRequest().anotherAuthoriationToken().expectToBeSent();
-                tester.reportTableRequest().thirdColumn().visitorRegion().anotherAuthoriationToken().expectToBeSent();
+                //tester.reportTableRequest().thirdColumn().visitorRegion().anotherAuthoriationToken().expectToBeSent();
             });
             it('Срок действия токена авторизации истек. Токен авторизации обновлен. Софтфон подключен.', function() {
                 settingsRequest.accessTokenExpired().receiveResponse();
@@ -791,8 +793,8 @@ tests.addTest(options => {
         return;
         describe('Нажимаю на иконку с телефоном.', function() {
             beforeEach(function() {
-                reportTableRequest.receiveResponse();
-                tester.phoneIcon.click();
+                //reportTableRequest.receiveResponse();
+                tester.button('Софтфон').click();
             });
 
             describe('Пользователь имеет права на список номеров.', function() {

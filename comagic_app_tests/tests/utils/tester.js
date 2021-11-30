@@ -1243,7 +1243,7 @@ define(() => function ({
                     result: {
                         data: [{
                             id: 582729,
-                            group_id: 3893727,
+                            group_id: 1,
                             type: 'marketer_dashboard',
                             name: 'Некий отчет',
                             description: 'Описание некого отчета',
@@ -1269,8 +1269,8 @@ define(() => function ({
                 respondSuccessfullyWith({
                     result: {
                         data: [{
-                            id: 3893727,
-                            name: 'Некие отчеты',
+                            id: 1,
+                            name: 'Дашборды',
                             parent_id: null,
                             sort: 0
                         }]
@@ -1421,6 +1421,13 @@ define(() => function ({
                                     },
                                     {
                                         'unit_id': 'tag_management',
+                                        'is_delete': true,
+                                        'is_insert': true,
+                                        'is_select': true,
+                                        'is_update': true,
+                                    },
+                                    {
+                                        'unit_id': 'softphone_login',
                                         'is_delete': true,
                                         'is_insert': true,
                                         'is_select': true,
