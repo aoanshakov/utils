@@ -14,6 +14,7 @@ tests.addTest(options => {
     function() {
         let tester,
             reportTableRequest,
+            reportGroupsRequest,
             settingsRequest,
             permissionsRequest;
 
@@ -32,47 +33,15 @@ tests.addTest(options => {
             tester.accountRequest().receiveResponse();
 
             tester.configRequest().softphone().receiveResponse();
-            //tester.configRequest().receiveResponse();
 
             tester.statusesRequest().receiveResponse();
             settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
 
-            tester.reportGroupsRequest().receiveResponse();
+            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent();
             tester.reportsListRequest().receiveResponse();
             tester.reportTypesRequest().receiveResponse();
-
-            /*
-            tester.operatorAccountRequest().receiveResponse();
-
-            tester.reportStateRequest().receiveResponse();
-            tester.reportRapidFiltersRequest().receiveResponse();
-            tester.reportTotalRequest().receiveResponse();
-
-            tester.communicationsRequest().receiveResponse();
-            tester.communicationsRequest().anotherDate().receiveResponse();
-
-            tester.reportTotalRequest().anotherColumn().receiveResponse();
-            tester.reportTotalRequest().anotherColumn().anotherDate().receiveResponse();
-            tester.reportTotalRequest().thirdColumn().receiveResponse();
-            tester.reportTotalRequest().thirdColumn().anotherDate().receiveResponse();
-            tester.reportTotalRequest().fourthColumn().receiveResponse();
-            tester.reportTotalRequest().fourthColumn().anotherDate().receiveResponse();
-            tester.reportTotalRequest().fifthColumn().adAnalytics().receiveResponse();
-            tester.reportTotalRequest().sixthColumn().adAnalytics().receiveResponse();
-            tester.reportTotalRequest().seventhColumn().adAnalytics().receiveResponse();
-            tester.reportTotalRequest().eighthColumn().adAnalytics().receiveResponse();
-            tester.reportTotalRequest().ninthColumn().adAnalytics().receiveResponse();
-            tester.reportTotalRequest().tenthColumn().adAnalytics().receiveResponse();
-            tester.reportTotalRequest().eleventhColumn().adAnalytics().receiveResponse();
-            tester.reportTotalRequest().twelvethColumn().adAnalytics().receiveResponse();
-            tester.reportTotalRequest().thirtinthColumn().adAnalytics().receiveResponse();
-            tester.reportTableRequest().receiveResponse();
-            tester.reportTableRequest().anotherColumn().receiveResponse();
-            tester.reportTableRequest().thirdColumn().receiveResponse();
-            reportTableRequest = tester.reportTableRequest().thirdColumn().visitorRegion().expectToBeSent();
-            */
         });
 
         afterEach(function() {
@@ -110,10 +79,10 @@ tests.addTest(options => {
 
                         describe('Получены данные для отчета.', function() {
                             beforeEach(function() {
-                                //reportTableRequest.receiveResponse();
+                                reportGroupsRequest.receiveResponse();
                             });
 
-                            xdescribe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
+                            describe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
                                 beforeEach(function() {
                                     registrationRequest.receiveResponse();
 
@@ -383,7 +352,7 @@ tests.addTest(options => {
                                     tester.button('Софтфон').click();
                                 });
 
-                                xdescribe('Ввожу номер телефона.', function() {
+                                describe('Ввожу номер телефона.', function() {
                                     beforeEach(function() {
                                         tester.phoneField.fill('79161234567');
                                     });
@@ -492,7 +461,7 @@ tests.addTest(options => {
                                         registrationRequest.receiveResponse();
                                     });
 
-                                    xdescribe('Открываю историю звонков.', function() {
+                                    describe('Открываю историю звонков.', function() {
                                         let callsRequest;
                                         
                                         beforeEach(function() {
@@ -613,7 +582,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    xdescribe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                    describe('Нажимаю на кнопку таблицы сотрудников.', function() {
                                         beforeEach(function() {
                                             tester.addressBookButton.click();
 
@@ -632,7 +601,7 @@ tests.addTest(options => {
                                             tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
                                         });
                                     });
-                                    xit(
+                                    it(
                                         'Соединение разрывается. Отображено сообщение об установке соединения.',
                                     function() {
                                         tester.disconnectEventsWebSocket();
@@ -641,7 +610,7 @@ tests.addTest(options => {
                                             'Устанавливается соединение...'
                                         );
                                     });
-                                    xit(
+                                    it(
                                         'Нажимаю на кнопку открытия диалпада. Кнопка удаления цифры видима.',
                                     function() {
                                         tester.dialpadButton.click();
@@ -653,59 +622,44 @@ tests.addTest(options => {
                                         tester.digitRemovingButton.expectNotToExist();
                                     });
                                 });
-                                return;
                                 it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                                     tester.button('Софтфон').click();
                                     tester.callButton.expectNotToExist();
                                 });
                             });
-                            return;
-                            it('Отображен отчет. Софтфон скрыт.', function() {
+                            it('Отображен пункт меню. Софтфон скрыт.', function() {
                                 tester.callButton.expectNotToExist();
-
-                                tester.body.expectTextContentToHaveSubstringsConsideringOrder(
-                                    'Топ 10 регионов по количеству сделок',
-                                    'Некое значение'
-                                );
+                                tester.body.expectTextContentToHaveSubstring('Дашборды');
                             });
                         });
-                        return;
                         describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                             let refreshRequest;
 
                             beforeEach(function() {
                                 registrationRequest.receiveResponse();
 
-                                //reportTableRequest.accessTokenExpired().receiveResponse();
+                                reportGroupsRequest.accessTokenExpired().receiveResponse();
                                 refreshRequest = tester.refreshRequest().expectToBeSent();
 
                                 spendTime(0);
                             });
 
-                            it('Токен авторизации обновлен. Получены данные для отчета. Отображен отчет.', function() {
+                            it(
+                                'Токен авторизации обновлен. Получены данные для отчета. Отображен пункт меню.',
+                            function() {
                                 refreshRequest.receiveResponse();
+                                tester.reportGroupsRequest().anotherAuthoriationToken().receiveResponse();
 
-                                /*tester.reportTableRequest().thirdColumn().visitorRegion().anotherAuthoriationToken().
-                                    receiveResponse();*/
-
-                                tester.body.expectTextContentToHaveSubstringsConsideringOrder(
-                                    'Топ 10 регионов по количеству сделок',
-                                    'Некое значение'
-                                );
+                                tester.body.expectTextContentToHaveSubstring('Дашборды');
                             });
-                            it('Отчет не отображен.', function() {
-                                tester.body.expectTextContentNotToHaveSubstringsConsideringOrder(
-                                    'Топ 10 регионов по количеству сделок',
-                                    'Некое значение'
-                                );
+                            it('Пункт меню не отображен.', function() {
+                                tester.body.expectTextContentNotToHaveSubstring('Дашборды');
 
                                 refreshRequest.receiveResponse();
-                                /*tester.reportTableRequest().thirdColumn().visitorRegion().anotherAuthoriationToken().
-                                    expectToBeSent();*/
+                                tester.reportGroupsRequest().anotherAuthoriationToken().expectToBeSent();
                             });
                         });
                     });
-                    return;
                     it(
                         'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о том, ' +
                         'что SIP-линия не зарегистрирована.',
@@ -715,7 +669,7 @@ tests.addTest(options => {
 
                         authenticatedUserRequest.sipIsOffline().receiveResponse();
                         registrationRequest.receiveResponse();
-                        //reportTableRequest.receiveResponse();
+                        reportGroupsRequest.receiveResponse();
 
                         tester.callButton.expectToHaveAttribute('disabled');
 
@@ -724,13 +678,12 @@ tests.addTest(options => {
                         );
                     });
                 });
-                return;
                 describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                     beforeEach(function() {
                         tester.disallowMediaInput();
 
                         authenticatedUserRequest.receiveResponse();
-                        //reportTableRequest.receiveResponse();
+                        reportGroupsRequest.receiveResponse();
                         registrationRequest.receiveResponse();
 
                         tester.button('Софтфон').click();
@@ -745,30 +698,29 @@ tests.addTest(options => {
                     });
                 });
             });
-            return;
             it(
                 'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена авторизации. ' +
                 'Отправлен только один запрос обновления токена.',
             function() {
-                //reportTableRequest.accessTokenExpired().receiveResponse();
+                reportGroupsRequest.accessTokenExpired().receiveResponse();
                 settingsRequest.accessTokenExpired().receiveResponse();
 
                 tester.refreshRequest().receiveResponse();
 
                 tester.settingsRequest().anotherAuthoriationToken().expectToBeSent();
-                tester.reportTableRequest().thirdColumn().visitorRegion().anotherAuthoriationToken().expectToBeSent();
+                tester.reportGroupsRequest().anotherAuthoriationToken().expectToBeSent();
             });
             it(
                 'Сначала запрос от софтфона, а потом и запрос от лк завершился ошибкой истечения токена авторизации. ' +
                 'Отправлен только один запрос обновления токена.',
             function() {
                 settingsRequest.accessTokenExpired().receiveResponse();
-                //reportTableRequest.accessTokenExpired().receiveResponse();
+                reportGroupsRequest.accessTokenExpired().receiveResponse();
 
                 tester.refreshRequest().receiveResponse();
 
                 tester.settingsRequest().anotherAuthoriationToken().expectToBeSent();
-                //tester.reportTableRequest().thirdColumn().visitorRegion().anotherAuthoriationToken().expectToBeSent();
+                tester.reportGroupsRequest().anotherAuthoriationToken().expectToBeSent();
             });
             it('Срок действия токена авторизации истек. Токен авторизации обновлен. Софтфон подключен.', function() {
                 settingsRequest.accessTokenExpired().receiveResponse();
@@ -790,10 +742,9 @@ tests.addTest(options => {
                 tester.input.withFieldLabel('Логин').expectToBeVisible();
             });
         });
-        return;
         describe('Нажимаю на иконку с телефоном.', function() {
             beforeEach(function() {
-                //reportTableRequest.receiveResponse();
+                reportGroupsRequest.receiveResponse();
                 tester.button('Софтфон').click();
             });
 
@@ -961,7 +912,6 @@ tests.addTest(options => {
             });
         });
     });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
@@ -969,8 +919,6 @@ tests.addTest(options => {
         });
 
         tester.authCheckRequest().expectToBeSent();
-        tester.accountRequest().expectToBeSent();
-
         tester.configRequest().softphone().expectToBeSent();
     });
 });

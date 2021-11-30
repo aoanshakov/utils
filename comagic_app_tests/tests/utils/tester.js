@@ -1259,29 +1259,51 @@ define(() => function ({
         }
     });
 
-    me.reportGroupsRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
-                expectBodyToContain({
+    me.reportGroupsRequest = () => {
+        const response = {
+            result: {
+                data: [{
+                    id: 1,
+                    name: 'Дашборды',
+                    parent_id: null,
+                    sort: 0
+                }]
+            }
+        };
+
+        const headers = {
+            Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
+        const request = addAuthErrorResponseModifiers({
+            anotherAuthoriationToken: () =>
+                ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
+
+            expectToBeSent() {
+                const request = ajax.recentRequest().expectBodyToContain({
                     method: 'get.report_groups',
                     params: {}
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        data: [{
-                            id: 1,
-                            name: 'Дашборды',
-                            parent_id: null,
-                            sort: 0
-                        }]
-                    }
-                });
+                }).expectToHaveHeaders(headers);
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
-        }
-    });
+                return addAuthErrorResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                }, response);
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        }, response);
+
+        return request;
+    };
 
     me.accountRequest = () => ({
         expectToBeSent() {
