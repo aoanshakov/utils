@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index 1f77a85..6299876 100644
+index 7ff3ecb..68c3d36 100644
 --- a/package.json
 +++ b/package.json
-@@ -55,7 +55,7 @@
+@@ -54,7 +54,7 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
@@ -12,10 +12,10 @@ index 1f77a85..6299876 100644
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d7871b1..dd49dec 100644
+index 772a2d0..b94e54f 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -84,7 +84,8 @@ export const RootStore = types
+@@ -87,7 +87,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

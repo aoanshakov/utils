@@ -31,6 +31,7 @@ define(() => function ({
     Promise.runAll(false, true);
     spendTime(0);
     Promise.runAll(false, true);
+    spendTime(0);
 
     const addTesters = (me, getRootElement) => {
         me.select = (getSelectField => {
@@ -66,12 +67,13 @@ define(() => function ({
             me.input = testersFactory.createTextFieldTester(getInput);
 
             me.input.withFieldLabel = label => {
-                const input = utils.descendantOf(getRootElement()).
+                const labelEl = utils.descendantOf(getRootElement()).
                     textEquals(label).
-                    matchesSelector('.ant-col span, .ui-label-content-field-label').
-                    find().
-                    closest('.ant-row, .ui-label').
-                    querySelector('input');
+                    matchesSelector('.ui-label-content-field-label').
+                    find();
+
+                const row = labelEl.closest('.ant-row'),
+                    input = (row || labelEl.closest('.ui-label')).querySelector('input');
 
                 return addMethods(testersFactory.createTextFieldTester(input), () => input);
             };

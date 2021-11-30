@@ -16,7 +16,7 @@ index d41842db..1dca198c 100644
  
  REACT_APP_SOFTPHONE_BACKEND_HOST='myva0.dev.uis.st'
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 1da43df0..56c09577 100644
+index 1da43df0..db30bae4 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -126,7 +126,7 @@ index 1da43df0..56c09577 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -265,17 +299,89 @@ module.exports = {
+@@ -265,17 +299,86 @@ module.exports = {
                      },
                  ],
              },
@@ -173,10 +173,7 @@ index 1da43df0..56c09577 100644
 +            'softphone/RootStore': 'softphone/src/models/RootStore.ts',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
-+            'chats/ChatHistoryLog': 'chats/src/components/chats/chat-panel/HistoryLog.tsx',
-+            'chats/HttpRpc': 'chats/src/httpRpc.ts',
-+            'chats/ChatMessagesStore': 'chats/src/models/chats/ChatMessaagesStore.ts',
-+            'chats/utils': 'chats/src/utils/index.ts',
++            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
          },
 +        plugins: [{
 +            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
