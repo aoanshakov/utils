@@ -616,6 +616,76 @@ tests.addTest(options => {
                                                 tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
                                             });
                                         });
+                                        describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
+                                            beforeEach(function() {
+                                                tester.userName.click();
+                                                tester.logoutButton.click();
+
+                                                tester.userLogout().receiveResponse();
+
+                                                Promise.runAll(false, true);
+                                                spendTime(0);
+                                                Promise.runAll(false, true);
+                                                spendTime(0);
+                                                Promise.runAll(false, true);
+                                                spendTime(0);
+
+                                                tester.authLogoutRequest().receiveResponse();
+                                                tester.eventsWebSocket.finishDisconnecting();
+                                                tester.registrationRequest().expired().receiveResponse();
+
+                                                tester.input.withFieldLabel('Логин').fill('botusharova');
+                                                tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                                                tester.button('Войти').click();
+
+                                                tester.loginRequest().anotherAuthorizationToken().receiveResponse();
+                                                accountRequest = tester.accountRequest().anotherAuthorizationToken().
+                                                    expectToBeSent();
+                                            });
+
+                                            it('Софтфон недоступен.', function() {
+                                                accountRequest.softphoneUnavailable().receiveResponse();
+
+                                                tester.reportGroupsRequest().anotherAuthorizationToken().
+                                                    receiveResponse();
+                                                tester.reportsListRequest().receiveResponse();
+                                                tester.reportTypesRequest().receiveResponse();
+
+                                                tester.softphone.expectNotToExist();
+                                                tester.button('Софтфон').expectNotToExist();
+                                            });
+                                            it('Софтфон доступен. Отображен софтфон.', function() {
+                                                accountRequest.receiveResponse();
+
+                                                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
+                                                tester.configRequest().softphone().receiveResponse();
+
+                                                tester.reportGroupsRequest().anotherAuthorizationToken().
+                                                    receiveResponse();
+                                                tester.reportsListRequest().receiveResponse();
+                                                tester.reportTypesRequest().receiveResponse();
+
+                                                tester.statusesRequest().createExpectation().
+                                                    anotherAuthorizationToken().checkCompliance().receiveResponse();
+
+                                                tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
+                                                tester.talkOptionsRequest().receiveResponse();
+                                                tester.permissionsRequest().receiveResponse();
+
+                                                tester.connectEventsWebSocket(1);
+                                                tester.connectSIPWebSocket(1);
+
+                                                tester.authenticatedUserRequest().receiveResponse();
+                                                tester.registrationRequest().receiveResponse();
+                                                tester.allowMediaInput();
+
+                                                tester.phoneField.fill('79161234567');
+
+                                                tester.callButton.expectNotToHaveAttribute('disabled');
+                                                tester.button('Софтфон').expectToBeVisible();
+                                            });
+                                        });
                                         it(
                                             'Соединение разрывается. Отображено сообщение об установке соединения.',
                                         function() {
@@ -669,7 +739,7 @@ tests.addTest(options => {
                                     'Токен авторизации обновлен. Получены данные для отчета. Отображен пункт меню.',
                                 function() {
                                     refreshRequest.receiveResponse();
-                                    tester.reportGroupsRequest().anotherAuthoriationToken().receiveResponse();
+                                    tester.reportGroupsRequest().anotherAuthorizationToken().receiveResponse();
 
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
                                 });
@@ -677,7 +747,7 @@ tests.addTest(options => {
                                     tester.body.expectTextContentNotToHaveSubstring('Дашборды');
 
                                     refreshRequest.receiveResponse();
-                                    tester.reportGroupsRequest().anotherAuthoriationToken().expectToBeSent();
+                                    tester.reportGroupsRequest().anotherAuthorizationToken().expectToBeSent();
                                 });
                             });
                         });
@@ -728,8 +798,8 @@ tests.addTest(options => {
 
                     tester.refreshRequest().receiveResponse();
 
-                    tester.settingsRequest().anotherAuthoriationToken().expectToBeSent();
-                    tester.reportGroupsRequest().anotherAuthoriationToken().expectToBeSent();
+                    tester.settingsRequest().anotherAuthorizationToken().expectToBeSent();
+                    tester.reportGroupsRequest().anotherAuthorizationToken().expectToBeSent();
                 });
                 it(
                     'Сначала запрос от софтфона, а потом и запрос от лк завершился ошибкой истечения токена ' +
@@ -740,22 +810,22 @@ tests.addTest(options => {
 
                     tester.refreshRequest().receiveResponse();
 
-                    tester.settingsRequest().anotherAuthoriationToken().expectToBeSent();
-                    tester.reportGroupsRequest().anotherAuthoriationToken().expectToBeSent();
+                    tester.settingsRequest().anotherAuthorizationToken().expectToBeSent();
+                    tester.reportGroupsRequest().anotherAuthorizationToken().expectToBeSent();
                 });
                 it(
                     'Срок действия токена авторизации истек. Токен авторизации обновлен. Софтфон подключен.',
                 function() {
                     settingsRequest.accessTokenExpired().receiveResponse();
                     tester.refreshRequest().receiveResponse();
-                    tester.settingsRequest().anotherAuthoriationToken().receiveResponse();
+                    tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
 
                     tester.connectEventsWebSocket();
                     tester.connectSIPWebSocket();
 
                     tester.allowMediaInput();
 
-                    tester.authenticatedUserRequest().anotherAuthoriationToken().receiveResponse();
+                    tester.authenticatedUserRequest().anotherAuthorizationToken().receiveResponse();
                     tester.registrationRequest().receiveResponse();
                 });
                 it('Токен невалиден. Отображена форма аутентификации.', function() {

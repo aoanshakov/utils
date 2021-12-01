@@ -15,6 +15,11 @@ define(() => function ({
         refresh: '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2'
     };
 
+    const anotherJwtToken = {
+        jwt: '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
+        refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
+    };
+
     isAlreadyAuthenticated && (
         document.cookie =
             'auth=%7B%22' +
@@ -106,6 +111,34 @@ define(() => function ({
 
         return me;
     };
+
+    me.userLogout = () => ({
+        expectToBeSent() {
+            const request = ajax.recentRequest().expectBodyToContain({
+                method: 'logout.user',
+            });
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        result: {
+                            data: {
+                                success: true
+                            }
+                        }
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
 
     me.callsRequest = () => {
         const params = {
@@ -443,7 +476,7 @@ define(() => function ({
         };
 
         const request = addResponseModifiers({
-            anotherAuthoriationToken: () =>
+            anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
             expectToBeSent: () => {
@@ -495,30 +528,39 @@ define(() => function ({
         }
     });
 
-    me.authCheckRequest = () => ({
-        expectToBeSent() {
-            let request = ajax.recentRequest().
-                expectPathToContain('/sup/auth/check').
-                expectToHaveHeaders({
-                    Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                    'X-Auth-Type': 'jwt'
-                });
+    me.authCheckRequest = () => {
+        let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
 
-            return {
-                receiveResponse: () => {
-                    request.respondSuccessfullyWith('');
+        return {
+            anotherAuthorizationToken() {
+                token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                    Promise.runAll(false, true);
-                }
-            };
-        },
+            expectToBeSent() {
+                let request = ajax.recentRequest().
+                    expectPathToContain('/sup/auth/check').
+                    expectToHaveHeaders({
+                        Authorization: `Bearer ${token}`,
+                        'X-Auth-Type': 'jwt'
+                    });
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        }
-    });
+                return {
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith('');
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                };
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        };
+    };
 
     me.operatorAccountRequest = () => ({
         receiveResponse() {
@@ -865,7 +907,7 @@ define(() => function ({
             thirdColumn: () => (setColumn('cc_15'), request),
             visitorRegion: () => (setDimension('visitor_region'), request),
 
-            anotherAuthoriationToken: () =>
+            anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
             expectToBeSent: () => {
@@ -1278,7 +1320,7 @@ define(() => function ({
         };
 
         const request = addAuthErrorResponseModifiers({
-            anotherAuthoriationToken: () =>
+            anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
             expectToBeSent() {
@@ -1306,183 +1348,196 @@ define(() => function ({
         return request;
     };
 
-    me.accountRequest = () => ({
-        expectToBeSent() {
-            let request = ajax.recentRequest().
-                expectPathToContain('/front/v2.0').
-                expectToHaveMethod('POST').
-                expectToHaveHeaders({
-                    Authorization: `Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0`,
-                    'X-Auth-Type': 'jwt'
-                }).
-                expectBodyToContain({
-                    method: 'getobj.account',
-                    params: {}
-                });
+    me.accountRequest = () => {
+        let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
 
-            const response = {
-                result: {
-                    data: {
-                        lang: 'ru',
-                        tp_id: 406,
-                        app_id: 1103,
-                        project: 'comagic',
-                        tp_name: 'Comagic Enterprise',
-                        user_id: 151557,
-                        app_name: 'Карадимова Веска Анастасовна',
-                        crm_type: 'e2e_analytics',
-                        timezone: 'Europe/Moscow',
-                        app_state: 'active',
-                        user_name: 'karadimova',
-                        user_type: 'user',
-                        feature_flags: ['softphone'],
-                        components: [
-                            'operation',
-                            'dialing',
-                            'ext_dialing',
-                            'extended_report',
-                            'fax_receiving',
-                            'voice_mail',
-                            'menu',
-                            'information_message',
-                            'auth',
-                            'integration',
-                            'fax_receiving_button',
-                            'transfer',
-                            'tag_call',
-                            'run_scenario',
-                            'trainer',
-                            'trainer_in',
-                            'trainer_button',
-                            'trainer_desktop',
-                            'call_distribution_report',
-                            'call_session_distribution_report',
-                            'recording_in',
-                            'recording_out',
-                            'recording_button',
-                            'notification',
-                            'notification_by_sms',
-                            'notification_by_email',
-                            'notification_by_http',
-                            'api',
-                            'callapi',
-                            'callapi_management_call',
-                            'callapi_informer_call',
-                            'callapi_scenario_call',
-                            'send_sms',
-                            'va',
-                            'call_tracking',
-                            'dynamic_call_tracking',
-                            'ppc_integration',
-                            'wa_integration',
-                            'callout',
-                            'callback',
-                            'sip',
-                            'consultant',
-                            'recording',
-                            'talk_option',
-                            'sitephone',
-                            'lead',
-                            'partner_integration',
-                            'amocrm',
-                            'reserve_dynamic_numbers',
-                            'retailcrm',
-                            'dashboard',
-                            'dataapi',
-                            'dataapi_reports',
-                            'dataapi_provisioning',
-                            'speech_analytics',
-                            'processed_lost_call',
-                            'bitrix',
-                            'distribution_by_communication_number',
-                            'distribution_by_region',
-                            'distribution_by_segment',
-                            'private_number',
-                            'megaplan',
-                            'internal_lines',
-                            'fmc',
-                            'auto_back_call_by_lost_call',
-                            'split_channel_recording',
-                            'infoclinica',
-                            'facebook_ads',
-                            'google_adwords',
-                            'yandex_direct',
-                            'sales_funnel',
-                            'number_capacity_auto_usage',
-                            'call_monitoring_and_analytics',
-                            'keyword_spotting',
-                            'attribution_tools',
-                            'assisted_conversions',
-                            'attribution_models',
-                            'antispam',
-                            'auto_back_call_by_offline_message',
-                            'amocrm_extended_integration',
-                            'spam_calls_blocking',
-                            'upload_calls',
-                            'preserved_calls',
-                            '1c_rarus',
-                            'fitness_1c',
-                            'yandex_metrika',
-                            'e2e_analytics',
-                            'vk_ads',
-                            'upload_offline_messages',
-                            'upload_chats',
-                            'mytarget_ads',
-                            'stt_crt',
-                            'upload_sessions',
-                        ],
-                        user_login: 'karadimova',
-                        customer_id: 183510,
-                        permissions: [
-                            {
-                                'unit_id': 'call_recordings',
-                                'is_delete': true,
-                                'is_insert': false,
-                                'is_select': true,
-                                'is_update': true,
-                            },
-                            {
-                                'unit_id': 'tag_management',
-                                'is_delete': true,
-                                'is_insert': true,
-                                'is_select': true,
-                                'is_update': true,
-                            },
-                            {
-                                'unit_id': 'softphone_login',
-                                'is_delete': true,
-                                'is_insert': true,
-                                'is_select': true,
-                                'is_update': true,
-                            },
-                        ],
-                        is_agent_app: false
-                    }
+        const response = {
+            result: {
+                data: {
+                    lang: 'ru',
+                    tp_id: 406,
+                    app_id: 1103,
+                    project: 'comagic',
+                    tp_name: 'Comagic Enterprise',
+                    user_id: 151557,
+                    app_name: 'Карадимова Веска Анастасовна',
+                    crm_type: 'e2e_analytics',
+                    timezone: 'Europe/Moscow',
+                    app_state: 'active',
+                    user_name: 'karadimova',
+                    user_type: 'user',
+                    feature_flags: ['softphone'],
+                    components: [
+                        'operation',
+                        'dialing',
+                        'ext_dialing',
+                        'extended_report',
+                        'fax_receiving',
+                        'voice_mail',
+                        'menu',
+                        'information_message',
+                        'auth',
+                        'integration',
+                        'fax_receiving_button',
+                        'transfer',
+                        'tag_call',
+                        'run_scenario',
+                        'trainer',
+                        'trainer_in',
+                        'trainer_button',
+                        'trainer_desktop',
+                        'call_distribution_report',
+                        'call_session_distribution_report',
+                        'recording_in',
+                        'recording_out',
+                        'recording_button',
+                        'notification',
+                        'notification_by_sms',
+                        'notification_by_email',
+                        'notification_by_http',
+                        'api',
+                        'callapi',
+                        'callapi_management_call',
+                        'callapi_informer_call',
+                        'callapi_scenario_call',
+                        'send_sms',
+                        'va',
+                        'call_tracking',
+                        'dynamic_call_tracking',
+                        'ppc_integration',
+                        'wa_integration',
+                        'callout',
+                        'callback',
+                        'sip',
+                        'consultant',
+                        'recording',
+                        'talk_option',
+                        'sitephone',
+                        'lead',
+                        'partner_integration',
+                        'amocrm',
+                        'reserve_dynamic_numbers',
+                        'retailcrm',
+                        'dashboard',
+                        'dataapi',
+                        'dataapi_reports',
+                        'dataapi_provisioning',
+                        'speech_analytics',
+                        'processed_lost_call',
+                        'bitrix',
+                        'distribution_by_communication_number',
+                        'distribution_by_region',
+                        'distribution_by_segment',
+                        'private_number',
+                        'megaplan',
+                        'internal_lines',
+                        'fmc',
+                        'auto_back_call_by_lost_call',
+                        'split_channel_recording',
+                        'infoclinica',
+                        'facebook_ads',
+                        'google_adwords',
+                        'yandex_direct',
+                        'sales_funnel',
+                        'number_capacity_auto_usage',
+                        'call_monitoring_and_analytics',
+                        'keyword_spotting',
+                        'attribution_tools',
+                        'assisted_conversions',
+                        'attribution_models',
+                        'antispam',
+                        'auto_back_call_by_offline_message',
+                        'amocrm_extended_integration',
+                        'spam_calls_blocking',
+                        'upload_calls',
+                        'preserved_calls',
+                        '1c_rarus',
+                        'fitness_1c',
+                        'yandex_metrika',
+                        'e2e_analytics',
+                        'vk_ads',
+                        'upload_offline_messages',
+                        'upload_chats',
+                        'mytarget_ads',
+                        'stt_crt',
+                        'upload_sessions',
+                    ],
+                    user_login: 'karadimova',
+                    customer_id: 183510,
+                    permissions: [
+                        {
+                            'unit_id': 'call_recordings',
+                            'is_delete': true,
+                            'is_insert': false,
+                            'is_select': true,
+                            'is_update': true,
+                        },
+                        {
+                            'unit_id': 'tag_management',
+                            'is_delete': true,
+                            'is_insert': true,
+                            'is_select': true,
+                            'is_update': true,
+                        },
+                        {
+                            'unit_id': 'softphone_login',
+                            'is_delete': true,
+                            'is_insert': true,
+                            'is_select': true,
+                            'is_update': true,
+                        },
+                    ],
+                    is_agent_app: false
                 }
-            };
+            }
+        };
 
-            const me = {
-                softphoneFeatureFlagDisabled: () => ((response.result.data.feature_flags = []), me),
+        const addResponseModifiers = me => {
+            me.softphoneFeatureFlagDisabled = () => ((response.result.data.feature_flags = []), me);
 
-                softphoneUnavailable: () =>
-                    ((response.result.data.permissions = response.result.data.permissions.slice(0, 2)), me),
-
-                receiveResponse: () => {
-                    request.respondSuccessfullyWith(response);
-
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                    Promise.runAll(false, true);
-                }
-            };
+            me.softphoneUnavailable = () =>
+                ((response.result.data.permissions = response.result.data.permissions.slice(0, 2)), me);
 
             return me;
-        },
+        };
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        }
-    });
+        return addResponseModifiers({
+            anotherAuthorizationToken() {
+                token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+
+            expectToBeSent() {
+                let request = ajax.recentRequest().
+                    expectPathToContain('/front/v2.0').
+                    expectToHaveMethod('POST').
+                    expectToHaveHeaders({
+                        Authorization: `Bearer ${token}`,
+                        'X-Auth-Type': 'jwt'
+                    }).
+                    expectBodyToContain({
+                        method: 'getobj.account',
+                        params: {}
+                    });
+
+                const me = addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                });
+
+                return me;
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.refreshRequest = () => ({
         expectToBeSent() {
@@ -1523,28 +1578,37 @@ define(() => function ({
         }
     });
 
-    me.loginRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
-                expectPathToContain('/auth/json_rpc').
-                expectToHaveMethod('POST').
-                expectBodyToContain({
-                    method: 'login',
-                    params: {
-                        login: 'botusharova',
-                        password: '8Gls8h31agwLf5k',
-                        project: 'comagic'
-                    }
-                }).
-                respondSuccessfullyWith({
-                    result: jwtToken 
-                });
+    me.loginRequest = () => {
+        const response = {
+            result: jwtToken 
+        };
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
-        }
-    });
+        return {
+            anotherAuthorizationToken() {
+                response.result = anotherJwtToken;
+                return this;
+            },
+
+            receiveResponse() {
+                ajax.recentRequest().
+                    expectPathToContain('/auth/json_rpc').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'login',
+                        params: {
+                            login: 'botusharova',
+                            password: '8Gls8h31agwLf5k',
+                            project: 'comagic'
+                        }
+                    }).
+                    respondSuccessfullyWith(response);
+
+                Promise.runAll(false, true);
+                spendTime(0)
+                Promise.runAll(false, true);
+            }
+        };
+    };
 
     me.forceUpdate = () => utils.pressKey('k');
     me.body = testersFactory.createDomElementTester('body');
@@ -1644,6 +1708,17 @@ define(() => function ({
 
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
     me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
+    me.userName = testersFactory.createDomElementTester('.cm-user-only-account--username');
+
+    me.logoutButton = (() => {
+        const tester = testersFactory.createDomElementTester(() => utils.descendantOfBody().
+            matchesSelector('.cm-user-only-account--popup-content span').textEquals('Выход').find());
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), Promise.runAll(false, true));
+
+        return tester;
+    })();
 
     return me;
 });

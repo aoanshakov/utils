@@ -565,7 +565,7 @@ define(function () {
             };
 
             return addMethods({
-                anotherAuthoriationToken: function () {
+                anotherAuthorizationToken: function () {
                     testRequest = function (request) {
                         return request.expectToHaveHeaders({
                             Authorization: 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'
@@ -2244,6 +2244,9 @@ define(function () {
             };
 
             return {
+                expired: function () {
+                    return this.setUnregister();
+                },
                 setUnregister: function () {
                     expires = '0';
                     return this;
@@ -2341,25 +2344,16 @@ define(function () {
                 },
                 receiveResponse: function () {
                     return this.expectToBeSent().receiveResponse();
+                },
+                receiveForbidden: function () {
+                    return this.expectToBeSent().receiveForbidden();
                 }
             };
         };
 
         this.phoneField = testersFactory.createTextFieldTester('.cmg-input');
 
-        this.registrationRequest = function () {
-            return {
-                expectToBeSent: function () {
-                    return me.requestRegistration().expectToBeSent();
-                },
-                receiveForbidden: function () {
-                    return this.expectToBeSent().receiveForbidden();
-                },
-                receiveResponse: function () {
-                    return this.expectToBeSent().receiveResponse();
-                }
-            };
-        };
+        this.registrationRequest = this.requestRegistration;
 
         this.expectToneSevenToPlay = function () {
             playingOscillatorsTester.expectFrequenciesToPlay(852, 1209);
@@ -3801,6 +3795,10 @@ define(function () {
                     var token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
 
                     return {
+                        anotherAuthorizationToken() {
+                            token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                            return this;
+                        },
                         setAnotherAuthorizationToken: function () {
                             token = 'Fl298gw0e2Foiweoa4Ua-0923gLwe84we3LErwiI230';
                             return this;
