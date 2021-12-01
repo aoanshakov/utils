@@ -39,8 +39,9 @@ tests.addTest(options => {
         describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
-                tester.authCheckRequest().receiveResponse();
+                
                 tester.configRequest().softphone().receiveResponse();
+                tester.authCheckRequest().receiveResponse();
 
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent();
                 tester.reportsListRequest().receiveResponse();
@@ -86,7 +87,7 @@ tests.addTest(options => {
                                     reportGroupsRequest.receiveResponse();
                                 });
 
-                                describe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
+                                xdescribe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
                                     beforeEach(function() {
                                         registrationRequest.receiveResponse();
 
@@ -362,7 +363,7 @@ tests.addTest(options => {
                                         tester.button('Софтфон').click();
                                     });
 
-                                    describe('Ввожу номер телефона.', function() {
+                                    xdescribe('Ввожу номер телефона.', function() {
                                         beforeEach(function() {
                                             tester.phoneField.fill('79161234567');
                                         });
@@ -472,7 +473,7 @@ tests.addTest(options => {
                                             registrationRequest.receiveResponse();
                                         });
 
-                                        describe('Открываю историю звонков.', function() {
+                                        xdescribe('Открываю историю звонков.', function() {
                                             let callsRequest;
                                             
                                             beforeEach(function() {
@@ -597,26 +598,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        describe('Нажимаю на кнопку таблицы сотрудников.', function() {
-                                            beforeEach(function() {
-                                                tester.addressBookButton.click();
-
-                                                tester.usersRequest().receiveResponse();
-                                                tester.usersInGroupsRequest().receiveResponse();
-                                                tester.groupsRequest().receiveResponse();
-                                            });
-
-                                            it('Соединение разрывается.', function() {
-                                                tester.disconnectEventsWebSocket();
-                                                tester.employeeRow('Шалева Дора').expectToBeDisaled();
-
-                                                tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
-                                            });
-                                            it('Отображена таблица сотрудников.', function() {
-                                                tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
-                                            });
-                                        });
-                                        describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
+                                        xdescribe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
                                             beforeEach(function() {
                                                 tester.userName.click();
                                                 tester.logoutButton.click();
@@ -686,7 +668,26 @@ tests.addTest(options => {
                                                 tester.button('Софтфон').expectToBeVisible();
                                             });
                                         });
-                                        it(
+                                        xdescribe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                            beforeEach(function() {
+                                                tester.addressBookButton.click();
+
+                                                tester.usersRequest().receiveResponse();
+                                                tester.usersInGroupsRequest().receiveResponse();
+                                                tester.groupsRequest().receiveResponse();
+                                            });
+
+                                            it('Соединение разрывается.', function() {
+                                                tester.disconnectEventsWebSocket();
+                                                tester.employeeRow('Шалева Дора').expectToBeDisaled();
+
+                                                tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
+                                            });
+                                            it('Отображена таблица сотрудников.', function() {
+                                                tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
+                                            });
+                                        });
+                                        xit(
                                             'Соединение разрывается. Отображено сообщение об установке соединения.',
                                         function() {
                                             tester.disconnectEventsWebSocket();
@@ -695,7 +696,7 @@ tests.addTest(options => {
                                                 'Устанавливается соединение...'
                                             );
                                         });
-                                        it(
+                                        xit(
                                             'Нажимаю на кнопку открытия диалпада. Кнопка удаления цифры видима.',
                                         function() {
                                             tester.dialpadButton.click();
@@ -713,16 +714,19 @@ tests.addTest(options => {
                                             tester.digitRemovingButton.expectNotToExist();
                                         });
                                     });
+                                    return;
                                     it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                                         tester.button('Софтфон').click();
                                         tester.callButton.expectNotToExist();
                                     });
                                 });
+                                return;
                                 it('Отображен пункт меню. Софтфон скрыт.', function() {
                                     tester.callButton.expectNotToExist();
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
                                 });
                             });
+                            return;
                             describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                                 let refreshRequest;
 
@@ -751,6 +755,7 @@ tests.addTest(options => {
                                 });
                             });
                         });
+                        return;
                         it(
                             'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о ' +
                             'том, что SIP-линия не зарегистрирована.',
@@ -769,6 +774,7 @@ tests.addTest(options => {
                             );
                         });
                     });
+                    return;
                     describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                         beforeEach(function() {
                             tester.disallowMediaInput();
@@ -789,6 +795,7 @@ tests.addTest(options => {
                         });
                     });
                 });
+                return;
                 it(
                     'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
@@ -835,6 +842,7 @@ tests.addTest(options => {
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
                 });
             });
+            return;
             describe('Нажимаю на иконку с телефоном.', function() {
                 beforeEach(function() {
                     reportGroupsRequest.receiveResponse();
@@ -1009,6 +1017,7 @@ tests.addTest(options => {
                 });
             });
         });
+        return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -1028,6 +1037,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
+    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
@@ -1035,8 +1045,9 @@ tests.addTest(options => {
         });
 
         tester.accountRequest().receiveResponse();
-        tester.authCheckRequest().expectToBeSent();
+
         tester.configRequest().softphone().expectToBeSent();
+        tester.authCheckRequest().expectToBeSent();
 
         tester.reportGroupsRequest().receiveResponse();
         tester.reportsListRequest().receiveResponse();

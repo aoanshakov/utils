@@ -539,7 +539,7 @@ define(() => function ({
 
             expectToBeSent() {
                 let request = ajax.recentRequest().
-                    expectPathToContain('/sup/auth/check').
+                    expectToHavePath('https://myint0.dev.uis.st/sup/auth/check').
                     expectToHaveHeaders({
                         Authorization: `Bearer ${token}`,
                         'X-Auth-Type': 'jwt'
@@ -792,14 +792,15 @@ define(() => function ({
     me.configRequest = () => {
         let response = {
             REACT_APP_BASE_URL: 'https://lobarev.dev.uis.st/logic/operator',
-            REACT_APP_AUTH_URL: 'https://dev-dataapi.uis.st/va0/auth/json_rpc',
+            REACT_APP_AUTH_URL: 'https://dev-dataapi.uis.st/int0/auth/json_rpc',
             REACT_APP_WS_URL: 'wss://lobarev.dev.uis.st/ws',
             REACT_APP_LOCALE: 'ru'
         };
 
         const me = {
             softphone: () => ((response = {
-                REACT_APP_LOCALE: 'ru'
+                REACT_APP_LOCALE: 'ru',
+                REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st'
             }), me),
 
             expectToBeSent: () => {
