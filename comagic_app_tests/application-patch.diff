@@ -292,7 +292,7 @@ index 98e0c107..5851e692 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 4bd3c66a..de01bf9e 100644
+index 4bd3c66a..27e40f51 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -7,7 +7,9 @@ import { useMountEffect } from '@hooks';
@@ -306,34 +306,13 @@ index 4bd3c66a..de01bf9e 100644
  
  import history from './history';
  import { getAntdLocale, getIntlLocale, getIntlMessages } from './i18n';
-@@ -25,7 +27,7 @@ const getPopupContainer = (triggerNode: HTMLElement): HTMLElement => {
-     return document.body;
- };
- 
--const Root: React.FC = observer(() => {
-+const Root: React.FC = observer(props => {
-     const {
-         projectData: { locale },
-     } = rootStore;
-@@ -56,7 +58,7 @@ const Root: React.FC = observer(() => {
-             <Router history={history}>
-                 <IntlProvider locale={getIntlLocale(locale)} messages={getIntlMessages(locale)}>
-                     <ConfigProvider locale={getAntdLocale(locale)} getPopupContainer={getPopupContainer}>
--                        <App />
-+                        <App {...(props || {})} />
-                     </ConfigProvider>
-                 </IntlProvider>
-             </Router>
-@@ -64,4 +66,33 @@ const Root: React.FC = observer(() => {
+@@ -64,4 +66,30 @@ const Root: React.FC = observer(() => {
      );
  });
  
 -ReactDOM.render(<Root />, document.getElementById('root'));
 +window.application = {
-+    run({
-+        setHistory = () => null,
-+        appName = ''
-+    }) {
++    run({setHistory = () => null}) {
 +        createRootStore();
 +        createChatsRootStore();
 +        createEmployeesRootStore();
@@ -345,7 +324,7 @@ index 4bd3c66a..de01bf9e 100644
 +        container.id = 'root';
 +        document.body.appendChild(container);
 +
-+        ReactDOM.render(<Root appName={appName} />, container);
++        ReactDOM.render(<Root />, container);
 +    },
 +
 +    exit() {
