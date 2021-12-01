@@ -1,8 +1,8 @@
 diff --git a/.env b/.env
-index 54884ec3..5910d5d1 100644
+index 2b7c7036..3ea2245e 100644
 --- a/.env
 +++ b/.env
-@@ -8,7 +8,7 @@ REACT_APP_SITE_SETTINGS_SERVER_URL=
+@@ -8,6 +8,6 @@ REACT_APP_SITE_SETTINGS_SERVER_URL=
  REACT_APP_ANALYTICS_SERVER_URL=
  REACT_APP_COMAGIC_WEB_URL=https://va0.dev.uis.st
  REACT_APP_PROJECT=
@@ -12,7 +12,6 @@ index 54884ec3..5910d5d1 100644
 +REACT_APP_MODULE_CHATS=https://localhost:8083
 +REACT_APP_LEADGEN_MODULE=https://localhost:8084
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
- REACT_APP_SOFTPHONE_BACKEND_HOST=myva0.dev.uis.st
 diff --git a/config/webpack.config.js b/config/webpack.config.js
 index 1da43df0..db30bae4 100644
 --- a/config/webpack.config.js
