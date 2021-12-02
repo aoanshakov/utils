@@ -87,7 +87,7 @@ tests.addTest(options => {
                                     reportGroupsRequest.receiveResponse();
                                 });
 
-                                xdescribe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
+                                describe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
                                     beforeEach(function() {
                                         registrationRequest.receiveResponse();
 
@@ -363,7 +363,7 @@ tests.addTest(options => {
                                         tester.button('Софтфон').click();
                                     });
 
-                                    xdescribe('Ввожу номер телефона.', function() {
+                                    describe('Ввожу номер телефона.', function() {
                                         beforeEach(function() {
                                             tester.phoneField.fill('79161234567');
                                         });
@@ -473,7 +473,7 @@ tests.addTest(options => {
                                             registrationRequest.receiveResponse();
                                         });
 
-                                        xdescribe('Открываю историю звонков.', function() {
+                                        describe('Открываю историю звонков.', function() {
                                             let callsRequest;
                                             
                                             beforeEach(function() {
@@ -598,7 +598,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        xdescribe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
+                                        describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
                                             beforeEach(function() {
                                                 tester.userName.click();
                                                 tester.logoutButton.click();
@@ -668,7 +668,7 @@ tests.addTest(options => {
                                                 tester.button('Софтфон').expectToBeVisible();
                                             });
                                         });
-                                        xdescribe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                        describe('Нажимаю на кнопку таблицы сотрудников.', function() {
                                             beforeEach(function() {
                                                 tester.addressBookButton.click();
 
@@ -687,7 +687,7 @@ tests.addTest(options => {
                                                 tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
                                             });
                                         });
-                                        xit(
+                                        it(
                                             'Соединение разрывается. Отображено сообщение об установке соединения.',
                                         function() {
                                             tester.disconnectEventsWebSocket();
@@ -696,7 +696,7 @@ tests.addTest(options => {
                                                 'Устанавливается соединение...'
                                             );
                                         });
-                                        xit(
+                                        it(
                                             'Нажимаю на кнопку открытия диалпада. Кнопка удаления цифры видима.',
                                         function() {
                                             tester.dialpadButton.click();
@@ -714,19 +714,16 @@ tests.addTest(options => {
                                             tester.digitRemovingButton.expectNotToExist();
                                         });
                                     });
-                                    return;
                                     it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                                         tester.button('Софтфон').click();
                                         tester.callButton.expectNotToExist();
                                     });
                                 });
-                                return;
                                 it('Отображен пункт меню. Софтфон скрыт.', function() {
                                     tester.callButton.expectNotToExist();
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
                                 });
                             });
-                            return;
                             describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                                 let refreshRequest;
 
@@ -755,7 +752,6 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        return;
                         it(
                             'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о ' +
                             'том, что SIP-линия не зарегистрирована.',
@@ -774,7 +770,6 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    return;
                     describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                         beforeEach(function() {
                             tester.disallowMediaInput();
@@ -795,7 +790,6 @@ tests.addTest(options => {
                         });
                     });
                 });
-                return;
                 it(
                     'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
@@ -842,7 +836,6 @@ tests.addTest(options => {
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
                 });
             });
-            return;
             describe('Нажимаю на иконку с телефоном.', function() {
                 beforeEach(function() {
                     reportGroupsRequest.receiveResponse();
@@ -1017,7 +1010,6 @@ tests.addTest(options => {
                 });
             });
         });
-        return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -1037,7 +1029,6 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
