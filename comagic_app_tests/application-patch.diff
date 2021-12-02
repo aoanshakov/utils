@@ -350,26 +350,10 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 0b3fc4b1..5b791600 100644
+index 1a215222..ad3b5f11 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -26,7 +26,6 @@ import { PhonesStore } from '@models/phones/PhonesStore';
- import { NumberPoolNumbersStore } from '@models/number-pool-numbers/NumberPoolNumbersStore';
- import { MarketplaceStore } from '@models/marketplace/MarketplaceStore';
- import { HttpRpcErrorModel } from '@models/shared/error';
--import { RootStore as SoftphoneStore } from 'softphone/RootStore';
- 
- const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
- const ACCESS_TOKEN_INVALID = 'access_token_invalid';
-@@ -85,7 +84,6 @@ export const RootStore = types
-         isGodMode: types.optional(types.boolean, isGodMode()),
-         modalResponseErrorStore: types.optional(ModalResponseErrorStore, {}),
-         authStore: types.optional(AuthStore, {}),
--        softphoneStore: types.optional(SoftphoneStore, {}),
-         accountStore: types.optional(AccountStore, {}),
-         menuStore: types.optional(MenuStore, {}),
-         reportStore: types.optional(RootReportStore, {}),
-@@ -164,7 +162,7 @@ export const RootStore = types
+@@ -162,7 +162,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -378,16 +362,7 @@ index 0b3fc4b1..5b791600 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -195,8 +193,6 @@ export const RootStore = types
-                     return Promise.reject(error);
-                 }
-             );
--
--            self.softphoneStore.setAxiosProcessor(axios => setAuthTypeHeader(axios.defaults));
-         };
- 
-         const setHighchartsOptions = () => {
-@@ -243,6 +239,7 @@ export const RootStore = types
+@@ -239,6 +239,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -395,16 +370,6 @@ index 0b3fc4b1..5b791600 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -262,7 +259,8 @@ export type DependencyInjection = {
- export type RootInstance = Instance<typeof RootStore>;
- export const RootStoreContext = React.createContext<null | RootInstance>(null);
- export const Provider = RootStoreContext.Provider;
--export const rootStore = RootStore.create({}, { httpRpc, httpRpcAuth });
-+export let rootStore;
-+export const createRootStore = () => (rootStore = RootStore.create({}, { httpRpc, httpRpcAuth }));
- 
- type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
- 
 diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
 index 742f44e3..8a47a0d6 100644
 --- a/src/rpc/httpRpc.ts
