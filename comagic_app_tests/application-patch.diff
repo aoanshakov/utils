@@ -13,7 +13,7 @@ index 2b7c7036..3ea2245e 100644
 +REACT_APP_LEADGEN_MODULE=https://localhost:8084
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 1da43df0..db30bae4 100644
+index 1da43df0..bfd7f1bc 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -123,7 +123,7 @@ index 1da43df0..db30bae4 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -265,17 +299,86 @@ module.exports = {
+@@ -265,17 +299,85 @@ module.exports = {
                      },
                  ],
              },
@@ -167,7 +167,6 @@ index 1da43df0..db30bae4 100644
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'employees/Root': 'employees/src/Root.tsx',
 +            'softphone/Root': 'softphone/src/Root.tsx',
-+            'softphone/RootStore': 'softphone/src/models/RootStore.ts',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
@@ -289,10 +288,10 @@ index 98e0c107..5851e692 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 4bd3c66a..27e40f51 100644
+index 4bd3c66a..3a6af60a 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -7,7 +7,9 @@ import { useMountEffect } from '@hooks';
+@@ -7,7 +7,10 @@ import { useMountEffect } from '@hooks';
  import { observer } from 'mobx-react-lite';
  import moment from 'moment';
  
@@ -300,10 +299,11 @@ index 4bd3c66a..27e40f51 100644
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
 +import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
 +import { createRootStore as createEmployeesRootStore } from 'employees/src/models/RootStore';
++import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
  
  import history from './history';
  import { getAntdLocale, getIntlLocale, getIntlMessages } from './i18n';
-@@ -64,4 +66,30 @@ const Root: React.FC = observer(() => {
+@@ -64,4 +67,31 @@ const Root: React.FC = observer(() => {
      );
  });
  
@@ -313,6 +313,7 @@ index 4bd3c66a..27e40f51 100644
 +        createRootStore();
 +        createChatsRootStore();
 +        createEmployeesRootStore();
++        createSoftphoneRootStore();
 +        setHistory(history);
 +
 +        this.exit();
@@ -349,10 +350,26 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 0b3fc4b1..61803be3 100644
+index 0b3fc4b1..5b791600 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -164,7 +164,7 @@ export const RootStore = types
+@@ -26,7 +26,6 @@ import { PhonesStore } from '@models/phones/PhonesStore';
+ import { NumberPoolNumbersStore } from '@models/number-pool-numbers/NumberPoolNumbersStore';
+ import { MarketplaceStore } from '@models/marketplace/MarketplaceStore';
+ import { HttpRpcErrorModel } from '@models/shared/error';
+-import { RootStore as SoftphoneStore } from 'softphone/RootStore';
+ 
+ const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
+ const ACCESS_TOKEN_INVALID = 'access_token_invalid';
+@@ -85,7 +84,6 @@ export const RootStore = types
+         isGodMode: types.optional(types.boolean, isGodMode()),
+         modalResponseErrorStore: types.optional(ModalResponseErrorStore, {}),
+         authStore: types.optional(AuthStore, {}),
+-        softphoneStore: types.optional(SoftphoneStore, {}),
+         accountStore: types.optional(AccountStore, {}),
+         menuStore: types.optional(MenuStore, {}),
+         reportStore: types.optional(RootReportStore, {}),
+@@ -164,7 +162,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -361,7 +378,16 @@ index 0b3fc4b1..61803be3 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -243,6 +243,7 @@ export const RootStore = types
+@@ -195,8 +193,6 @@ export const RootStore = types
+                     return Promise.reject(error);
+                 }
+             );
+-
+-            self.softphoneStore.setAxiosProcessor(axios => setAuthTypeHeader(axios.defaults));
+         };
+ 
+         const setHighchartsOptions = () => {
+@@ -243,6 +239,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -369,7 +395,7 @@ index 0b3fc4b1..61803be3 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -262,7 +263,8 @@ export type DependencyInjection = {
+@@ -262,7 +259,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
