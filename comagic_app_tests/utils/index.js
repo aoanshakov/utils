@@ -14,6 +14,7 @@ const {
     employeesPatch,
     huskyPatch,
     softphonePatch,
+    devSoftphonePatch,
     preCommitHook,
     chats,
     employees,
@@ -32,8 +33,9 @@ const cda = `cd ${application} &&`,
     actions = {},
     chatOverridenFiles = 'src/models/RootStore.ts package.json',
     employeesOverridenFiles = chatOverridenFiles,
-    softphoneOverridenFiles = 'package.json',
-    sipLibOverridenFiles = softphoneOverridenFiles,
+    devSoftphoneOverridenFiles = 'package.json',
+    softphoneOverridenFiles = chatOverridenFiles,
+    sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js .env';
 
 const overridenFiles = [
@@ -83,8 +85,8 @@ const overriding = [{
 }, {
     application: softphone,
     dev: {
-        overridenFiles: softphoneOverridenFiles,
-        applicationPatch: softphonePatch
+        overridenFiles: devSoftphoneOverridenFiles,
+        applicationPatch: devSoftphonePatch
     },
     test: {
         overridenFiles: softphoneOverridenFiles,
