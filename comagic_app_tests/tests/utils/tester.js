@@ -800,7 +800,7 @@ define(() => function ({
         const me = {
             softphone: () => ((response = {
                 REACT_APP_LOCALE: 'ru',
-                REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st'
+                REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
                 REACT_APP_AUTH_COOKIE: 'auth'
             }), me),
 
