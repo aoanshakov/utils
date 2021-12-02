@@ -350,7 +350,7 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 1a215222..ad3b5f11 100644
+index 1a215222..5b791600 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -162,7 +162,7 @@ export const RootStore = types
@@ -370,6 +370,16 @@ index 1a215222..ad3b5f11 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
+@@ -258,7 +259,8 @@ export type DependencyInjection = {
+ export type RootInstance = Instance<typeof RootStore>;
+ export const RootStoreContext = React.createContext<null | RootInstance>(null);
+ export const Provider = RootStoreContext.Provider;
+-export const rootStore = RootStore.create({}, { httpRpc, httpRpcAuth });
++export let rootStore;
++export const createRootStore = () => (rootStore = RootStore.create({}, { httpRpc, httpRpcAuth }));
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+ 
 diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
 index 742f44e3..8a47a0d6 100644
 --- a/src/rpc/httpRpc.ts
