@@ -46,6 +46,7 @@ const overridenFiles = [
     'config/webpack.config.js',
     'package.json',
     'src/models/RootStore.ts',
+    'src/models/auth/AuthStore.ts',
     'src/rpc/httpRpc.ts'
 ].join(' ');
 

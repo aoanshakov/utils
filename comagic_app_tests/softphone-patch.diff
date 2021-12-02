@@ -20,10 +20,10 @@ index 1273c1f..bc99c50 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 5865e35..cb8c2c1 100644
+index 7465bd8..644ab9e 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -203,4 +203,5 @@ export const RootStore = types
+@@ -198,4 +198,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
