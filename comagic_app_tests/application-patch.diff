@@ -381,7 +381,7 @@ index c0fbe9a1..b159ccd2 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index f1aeb179..67f14ff6 100644
+index 9706f5b2..1b6ca50f 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -105,7 +105,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -394,7 +394,7 @@ index f1aeb179..67f14ff6 100644
          windowId: types.optional(types.string, generateTraceId('local')),
      })
 @@ -204,6 +204,8 @@ export const AuthStore = Loader.named('AuthStore')
-             isTokenRefreshing = false,
+             isTokenRefreshing = false;
              refreshingCall = null;
  
 +            setAuthorized(Boolean(getToken()));
