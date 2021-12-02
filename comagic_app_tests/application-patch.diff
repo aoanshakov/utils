@@ -349,7 +349,7 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 717066f9..60622481 100644
+index 0b3fc4b1..61803be3 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -164,7 +164,7 @@ export const RootStore = types
