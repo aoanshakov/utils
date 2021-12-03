@@ -36,7 +36,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        describe('Фичафлаг софтфона включен.', function() {
+        xdescribe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -1010,6 +1010,31 @@ tests.addTest(options => {
                 });
             });
         });
+        it('Чаты доступны.', function() {
+            accountRequest.operatorWorkplaceAvailable().receiveResponse();
+
+            tester.reportGroupsRequest().receiveResponse();
+            tester.reportsListRequest().receiveResponse();
+            tester.reportTypesRequest().receiveResponse();
+
+            tester.configRequest().softphone().receiveResponse();
+            tester.configRequest().softphone().receiveResponse();
+            tester.authCheckRequest().receiveResponse();
+
+            tester.statusesRequest().receiveResponse();
+            tester.settingsRequest().receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+
+            tester.connectEventsWebSocket();
+            tester.connectSIPWebSocket();
+
+            tester.authenticatedUserRequest().receiveResponse();
+            tester.registrationRequest().receiveResponse();
+
+            tester.allowMediaInput();
+        });
+        return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -1029,6 +1054,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
+    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,

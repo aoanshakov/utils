@@ -790,6 +790,8 @@ define(() => function ({
     });
 
     me.configRequest = () => {
+        let host = '';
+
         let response = {
             REACT_APP_BASE_URL: 'https://lobarev.dev.uis.st/logic/operator',
             REACT_APP_AUTH_URL: 'https://dev-dataapi.uis.st/int0/auth/json_rpc',
@@ -798,14 +800,19 @@ define(() => function ({
         };
 
         const me = {
-            softphone: () => ((response = {
-                REACT_APP_LOCALE: 'ru',
-                REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
-                REACT_APP_AUTH_COOKIE: 'auth'
-            }), me),
+            softphone: () => {
+                host = 'localhost:8083';
+                response = {
+                    REACT_APP_LOCALE: 'ru',
+                    REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
+                    REACT_APP_AUTH_COOKIE: 'auth'
+                };
+
+                return me;
+            },
 
             expectToBeSent: () => {
-                const request = fetch.recentRequest().expectPathToContain('/config.json');
+                const request = fetch.recentRequest().expectPathToContain(`https://${host}/config.json`);
 
                 return {
                     receiveResponse: () => {
@@ -1495,6 +1502,19 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.operatorWorkplaceAvailable = () => {
+                response.result.data.components.push('operator_workplace');
+                response.result.data.permissions.push({
+                    'unit_id': 'operator_workplace_access',
+                    'is_delete': true,
+                    'is_insert': true,
+                    'is_select': true,
+                    'is_update': true,
+                });
+
+                return me;
+            };
+            
             me.softphoneFeatureFlagDisabled = () => ((response.result.data.feature_flags = []), me);
 
             me.softphoneUnavailable = () =>
