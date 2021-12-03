@@ -337,7 +337,7 @@ index 4bd3c66a..3a6af60a 100644
 +    }
 +};
 diff --git a/src/history.ts b/src/history.ts
-index 33bf6a02..dceaff1c 100644
+index 33bf6a02..fe524735 100644
 --- a/src/history.ts
 +++ b/src/history.ts
 @@ -1,6 +1,6 @@
@@ -345,7 +345,7 @@ index 33bf6a02..dceaff1c 100644
 +import { createMemoryHistory } from 'history';
  
 -const history = createBrowserHistory();
-+const history = createMemoryHistory();
++const history = window.memoryHistory = createMemoryHistory();
  
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {

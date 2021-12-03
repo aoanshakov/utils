@@ -562,6 +562,23 @@ define(() => function ({
         };
     };
 
+    me.chatChannelListRequest = () => ({
+        receiveResponse() {
+            ajax.recentRequest().
+                expectPathToContain('/logic/operator/chat/channel/list').
+                expectToHaveMethod('GET').
+                respondSuccessfullyWith({
+                    result: {
+                        data: []
+                    }
+                });
+
+            Promise.runAll(false, true);
+            spendTime(0)
+            Promise.runAll(false, true);
+        }
+    });
+
     me.operatorAccountRequest = () => ({
         receiveResponse() {
             ajax.recentRequest().
@@ -604,6 +621,23 @@ define(() => function ({
                                 'is_update': true,
                             }]
                         }
+                    }
+                });
+
+            Promise.runAll(false, true);
+            spendTime(0)
+            Promise.runAll(false, true);
+        }
+    });
+
+    me.operatorSiteListRequest = () => ({
+        receiveResponse() {
+            ajax.recentRequest().
+                expectPathToContain('/logic/operator/site/list').
+                expectToHaveMethod('GET').
+                respondSuccessfullyWith({
+                    result: {
+                        data: []
                     }
                 });
 
@@ -790,7 +824,7 @@ define(() => function ({
     });
 
     me.configRequest = () => {
-        let host = '';
+        let host = 'localhost:8082';
 
         let response = {
             REACT_APP_BASE_URL: 'https://lobarev.dev.uis.st/logic/operator',

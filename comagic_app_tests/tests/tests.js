@@ -1018,8 +1018,14 @@ tests.addTest(options => {
             tester.reportTypesRequest().receiveResponse();
 
             tester.configRequest().softphone().receiveResponse();
-            tester.configRequest().softphone().receiveResponse();
+            tester.configRequest().receiveResponse();
+
             tester.authCheckRequest().receiveResponse();
+
+            tester.chatChannelListRequest().receiveResponse();
+            tester.operatorStatusListRequest().receiveResponse();
+            tester.operatorListRequest().receiveResponse();
+            tester.operatorSiteListRequest().receiveResponse();
 
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();

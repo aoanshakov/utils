@@ -11,6 +11,17 @@ index 7ff3ecb..68c3d36 100644
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
+diff --git a/src/history.ts b/src/history.ts
+index 564e8ec..e156b1f 100644
+--- a/src/history.ts
++++ b/src/history.ts
+@@ -1,5 +1,2 @@
+-import { createBrowserHistory } from 'history';
+-
+-const history = createBrowserHistory();
+-
++const history = window.memoryHistory;
+ export default history;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
 index 772a2d0..b94e54f 100644
 --- a/src/models/RootStore.ts
