@@ -20,10 +20,31 @@ index 1273c1f..bc99c50 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d796ef1..93879ba 100644
+index d796ef1..3b14281 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -208,4 +208,5 @@ export const RootStore = types
+@@ -121,7 +121,6 @@ export const RootStore = types
+ 
+                     return newState => {
+                         let isChanged = false;
+-                        'token' in newState && state.token && !newState.token && (newState.disabled = true);
+ 
+                         Object.keys(newState).forEach(key => {
+                             const value = newState[key];
+@@ -173,8 +172,10 @@ export const RootStore = types
+ 
+                 window.addEventListener('tokenChange', () => updateState(getTokenParams()));
+ 
+-                self.disable = () => updateState({disabled: true});
+-                self.setDisabled = value => value ? self.disable() : self.enable();
++                window.addEventListener('tokenRemove', () => updateState({
++                    token: '',
++                    disabled: true
++                }));
+ 
+                 self.enable = () => updateState({
+                     ...getTokenParams(),
+@@ -208,4 +209,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
