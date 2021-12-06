@@ -11,6 +11,28 @@ index 7ff3ecb..68c3d36 100644
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
+diff --git a/src/App.tsx b/src/App.tsx
+index 5f054bd..1386b7e 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -43,7 +43,7 @@ const App: React.FC = observer(() => {
+         };
+     });
+ 
+-    return (
++    return [false, true].some(value => value === isAuthorized) ? (
+         <div className="cm-app-module">
+             <Switch>
+                 <Route path="/login" render={props => <LoginRoute {...props} isAuthorized={isAuthorized} />} />
+@@ -52,7 +52,7 @@ const App: React.FC = observer(() => {
+                 </AuthProtectedRoute>
+             </Switch>
+         </div>
+-    );
++    ) : null;
+ });
+ 
+ export default App;
 diff --git a/src/history.ts b/src/history.ts
 index 564e8ec..e156b1f 100644
 --- a/src/history.ts
@@ -36,3 +58,16 @@ index 772a2d0..b94e54f 100644
  
  if (process.env.NODE_ENV === 'development') {
      window.chatsRootStore = rootStore;
+diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
+index f470280..29d9152 100644
+--- a/src/models/auth/AuthStore.ts
++++ b/src/models/auth/AuthStore.ts
+@@ -24,7 +24,7 @@ type Auth = {
+ 
+ export const AuthStore = types
+     .model('AuthStore', {
+-        isAuthorized: types.optional(types.boolean, Boolean(false)),
++        isAuthorized: types.maybe(types.boolean),
+         windowId: types.optional(types.string, generateTraceId('local')),
+     })
+     .views(self => ({
