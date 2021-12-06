@@ -36,7 +36,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        xdescribe('Фичафлаг софтфона включен.', function() {
+        describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -603,7 +603,7 @@ tests.addTest(options => {
                                                 tester.userName.click();
                                                 tester.logoutButton.click();
 
-                                                tester.userLogout().receiveResponse();
+                                                tester.userLogoutRequest().receiveResponse();
 
                                                 Promise.runAll(false, true);
                                                 spendTime(0);
@@ -1010,15 +1010,18 @@ tests.addTest(options => {
                 });
             });
         });
-        it('Чаты доступны.', function() {
+        it('Чаты доступны. Отображается статус сотрудника.', function() {
             accountRequest.operatorWorkplaceAvailable().receiveResponse();
 
             tester.reportGroupsRequest().receiveResponse();
             tester.reportsListRequest().receiveResponse();
             tester.reportTypesRequest().receiveResponse();
 
+            tester.configRequest().receiveResponse();
             tester.configRequest().softphone().receiveResponse();
             tester.configRequest().receiveResponse();
+
+            tester.operatorAccountRequest().receiveResponse();
 
             tester.authCheckRequest().receiveResponse();
 
@@ -1026,6 +1029,13 @@ tests.addTest(options => {
             tester.operatorStatusListRequest().receiveResponse();
             tester.operatorListRequest().receiveResponse();
             tester.operatorSiteListRequest().receiveResponse();
+            tester.operatorAccountRequest().receiveResponse();
+
+            tester.chatsWebSocket.connect();
+            tester.chatsInitMessage().expectToBeSent();
+
+            tester.operatorOfflineMessageListRequest().receiveResponse();
+            tester.chatListRequest().receiveResponse();
 
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
@@ -1035,12 +1045,13 @@ tests.addTest(options => {
             tester.connectEventsWebSocket();
             tester.connectSIPWebSocket();
 
+            tester.allowMediaInput();
+
             tester.authenticatedUserRequest().receiveResponse();
             tester.registrationRequest().receiveResponse();
 
-            tester.allowMediaInput();
+            tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
         });
-        return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -1060,7 +1071,6 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
