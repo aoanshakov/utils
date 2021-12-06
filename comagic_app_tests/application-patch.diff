@@ -381,16 +381,10 @@ index c0fbe9a1..b159ccd2 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 9706f5b2..2bfc83cf 100644
+index de6e0d6f..2bfc83cf 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -100,12 +100,12 @@ const removeToken = (skipLocalStorage = false) => {
- 
-     axios.defaults.headers['Authorization'] = null;
-     axios.defaults.headers['X-Auth-Type'] = null;
--    window.dispatchEvent(new Event('tokenChange'));
-+    window.dispatchEvent(new Event('tokenRemove'));
- };
+@@ -105,7 +105,7 @@ const removeToken = (skipLocalStorage = false) => {
  
  export const AuthStore = Loader.named('AuthStore')
      .props({
