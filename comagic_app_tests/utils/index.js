@@ -31,10 +31,10 @@ const {
 const cda = `cd ${application} &&`,
     cdc = `cd ${chats} &&`,
     actions = {},
-    chatOverridenFiles = 'src/models/RootStore.ts package.json src/history.ts',
+    chatOverridenFiles = 'src/models/RootStore.ts package.json src/history.ts src/App.tsx src/models/auth/AuthStore.ts',
     employeesOverridenFiles = 'src/models/RootStore.ts package.json',
     devSoftphoneOverridenFiles = 'package.json',
-    softphoneOverridenFiles = chatOverridenFiles,
+    softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js .env';
 
