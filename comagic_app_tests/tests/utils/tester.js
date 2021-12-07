@@ -113,6 +113,23 @@ define(() => function ({
         return me;
     };
 
+    me.operatorStatusUpdateRequest = () => ({
+        receiveResponse() {
+            ajax.recentRequest().
+                expectToHaveMethod('PATCH').
+                expectPathToContain('logic/operator/status').
+                expectBodyToContain({
+                    status: 2
+                }).respondSuccessfullyWith({
+                    data: true
+                });
+
+            Promise.runAll(false, true);
+            spendTime(0)
+            Promise.runAll(false, true);
+        }
+    });
+
     me.operatorOfflineMessageListRequest = () => ({
         expectToBeSent() {
             const request = ajax.recentRequest().
@@ -146,9 +163,20 @@ define(() => function ({
 
         return {
             connect: () => getWebSocket(0).connect(),
-            expectSentMessageToContain: message => getWebSocket(0).expectSentMessageToContain(message)
+            expectSentMessageToContain: message => getWebSocket(0).expectSentMessageToContain(message),
+            receive: message => getWebSocket(0).receiveMessage(message)
         };
     })();
+
+    me.chatsEmployeeChangeMessage = () => ({
+        receive: () => me.chatsWebSocket.receive(JSON.stringify({
+            method: 'employee_update',
+            params: {
+                id: 20816,
+                status_id: 2
+            }
+        }))
+    });
 
     me.chatsInitMessage = () => ({
         expectToBeSent: () => me.chatsWebSocket.expectSentMessageToContain({
@@ -927,8 +955,9 @@ define(() => function ({
                 return me;
             },
 
-            expectToBeSent: () => {
-                const request = fetch.recentRequest().expectPathToContain(`https://${host}/config.json`);
+            expectToBeSent: requests => {
+                const request = (requests ? requests.someRequest() : fetch.recentRequest()).
+                    expectPathToContain(`https://${host}/config.json`);
 
                 return {
                     receiveResponse: () => {
@@ -1847,7 +1876,48 @@ define(() => function ({
 
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
     me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
-    me.userName = testersFactory.createDomElementTester('.cm-user-only-account--username');
+
+    me.userName = (tester => {
+        const putMouseOver = tester.putMouseOver.bind(tester);
+        tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
+        return tester;
+    })(testersFactory.createDomElementTester(
+        '.cm-user-only-account--username, .cm-chats--account--username'
+    ));
+
+    me.statusesList = (() => {
+        const selector = '.cm-chats--account-popup',
+            tester = testersFactory.createDomElementTester(selector);
+
+        tester.item = text => {
+            const domElement = utils.descendantOf(document.querySelector(selector)).
+                matchesSelector('.cm-chats--account-popup--item').
+                textEquals(text).
+                find();
+
+            const tester = testersFactory.createDomElementTester(domElement),
+                click = tester.click.bind(tester),
+                isSelected = () => !!domElement.querySelectorAll('.ui-icon')[1];
+
+            tester.click = () => (click(), Promise.runAll(false, true));
+            
+            tester.expectToBeSelected = () => {
+                if (!isSelected()) {
+                    throw new Error(`Статус "${text}" должен быть выбран.`);
+                }
+            };
+
+            tester.expectNotToBeSelected = () => {
+                if (isSelected()) {
+                    throw new Error(`Статус "${text}" не должен быть выбран.`);
+                }
+            };
+
+            return tester;
+        };
+
+        return tester;
+    })();
 
     me.logoutButton = (() => {
         const tester = testersFactory.createDomElementTester(() => utils.descendantOfBody().

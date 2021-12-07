@@ -4421,6 +4421,141 @@ function JsTester_PredictedRequest (assertions, utils) {
     defineWrapperMethod('expectQueryToContain');
 }
 
+function JsTester_SomeRequest (args) {
+    var calls = args.calls,
+        responder = args.responder;
+
+    [
+        'expectPathToMatch',
+        'expectPathToContain',
+        'expectToHavePath',
+        'expectToHaveMethod',
+        'expectToHaveHeaders',
+        'testBodyParam',
+        'testQueryParam',
+        'expectBodyToContain',
+        'expectQueryToContain'
+    ].forEach(function (methodName) {
+        this[methodName] = function () {
+            calls.push({
+                methodName: methodName,
+                args: Array.prototype.slice.call(arguments, 0)
+            });
+
+            return this;
+        };
+    }.bind(this));
+
+    [
+        'printCallStack',
+        'proceedUploading',
+        'respondSuccessfullyWith',
+        'respondUnsuccessfullyWith',
+        'respondUnauthorizedWith'
+    ].forEach(function (methodName) {
+        this[methodName] = function () {
+            responder[methodName].apply(responder, arguments);
+        };
+    }.bind(this));
+}
+
+function JsTester_MaybeResponder () {
+    var responder;
+
+    [
+        'printCallStack',
+        'proceedUploading',
+        'respondSuccessfullyWith',
+        'respondUnsuccessfullyWith',
+        'respondUnauthorizedWith'
+    ].forEach(function (methodName) {
+        this[methodName] = function () {
+            if (!responder) {
+                throw new Error('Запрос не найден.');
+            }
+
+            responder[methodName].apply(responder, arguments);
+            Promise.runAll(false, true);
+        };
+    }.bind(this));
+
+    this.setResponder = function (value) {
+        responder = value;
+    };
+}
+
+function JsTester_RequestInAnyOrder (requests) {
+    var testings = [],
+        recentRequests = [],
+        errors = [];
+
+    this.someRequest = function () {
+        var calls = [],
+            responder = new JsTester_MaybeResponder();
+
+        testings.push({
+            calls: calls,
+            responder: responder
+        });
+
+        recentRequests.push(requests.recentRequest());
+
+        return new JsTester_SomeRequest({
+            calls: calls,
+            responder: responder
+        });
+    };
+
+    function callMethods (me, calls) {
+        calls.forEach(function (a) {
+            var methodName = a.methodName,
+                args = a.args;
+
+            me[methodName].apply(me, args);
+        });
+    }
+
+    this.expectToBeSent = function () {
+        var failedTestings = [];
+
+        testings.forEach(function (args) {
+            var calls = args.calls,
+                responder = args.responder;
+
+            var index = recentRequests.findIndex(function (request) {
+                try {
+                    callMethods(request, calls);
+                } catch (e) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            if (index == -1) {
+                failedTestings.push(calls);
+            } else {
+                responder.setResponder(recentRequests[index]);
+                recentRequests.splice(index, 1);
+            }
+        });
+
+        if (failedTestings.length) {
+            failedTestings.forEach(function (calls) {
+                recentRequests.forEach(function (request) {
+                    try {
+                        callMethods(request, calls)
+                    } catch (e) {
+                        errors.push(e.message);
+                    }
+                });
+            });
+
+            throw new Error(errors.join("\n\n"));
+        }
+    };
+}
+
 function JsTester_RequestTester (args) {
     var requests,
         utils = args.utils,
@@ -4428,6 +4563,9 @@ function JsTester_RequestTester (args) {
         replaceByFake = args.replaceByFake,
         expectNoExceptionsToBeThrown = args.expectNoExceptionsToBeThrown;
 
+    this.inAnyOrder = function () {
+        return new JsTester_RequestInAnyOrder(requests);
+    };
     this.recentRequest = function () {
         return requests.recentRequest();
     };
