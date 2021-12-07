@@ -13,7 +13,7 @@ index 2b7c7036..57a57040 100644
 +REACT_APP_LEADGEN_MODULE=https://localhost:8084
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 1da43df0..9668762b 100644
+index 1da43df0..c445915a 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -123,7 +123,7 @@ index 1da43df0..9668762b 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -265,17 +299,86 @@ module.exports = {
+@@ -265,17 +299,87 @@ module.exports = {
                      },
                  ],
              },
@@ -170,6 +170,7 @@ index 1da43df0..9668762b 100644
 +            'softphone/Account': 'softphone/src/Account.tsx',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
++            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
 +            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
          },
 +        plugins: [{
