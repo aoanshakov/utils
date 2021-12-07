@@ -20,10 +20,76 @@ index 1273c1f..bc99c50 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 976e547..3b14281 100644
+index 976e547..891e28f 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -209,4 +209,5 @@ export const RootStore = types
+@@ -3,13 +3,17 @@ import { types, Instance, getSnapshot, applySnapshot, SnapshotOut } from 'mobx-s
+ import makeInspectable from 'mobx-devtools-mst';
+ import createSoftphoneReducer from 'uis-softphone/reducer';
+ import createI18N from 'uis-softphone/common/createI18N';
+-import { toggleWidgetVisiblity, setAxiosProcessor } from 'uis-softphone/actions';
++import { toggleWidgetVisiblity, setAxiosProcessor, setStatus } from 'uis-softphone/actions';
+ import { authorization } from 'uis-softphone/authorization/actions';
+ import createSoftphoneMiddleware from 'uis-softphone/middleware';
+ import thunkMiddleware from 'redux-thunk';
+ import { combineReducers, createStore, applyMiddleware } from 'redux';
+-import { INTERCEPT_REQUEST } from 'uis-softphone/constants';
++import { INTERCEPT_REQUEST, SET_USER, SET_STATUSES } from 'uis-softphone/constants';
+ import { AuthStore } from './auth/AuthStore';
++import { AccountStore } from './account/AccountStore';
++import { EmployeesStore } from './employees/EmployeesStore';
++import { WebsocketStore } from './websocket/WebsocketStore';
++import { StatusesStore } from './statuses/StatusesStore';
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+ 
+@@ -37,6 +41,10 @@ export const RootStore = types
+     .model('RootStore', {
+         authStore: types.optional(AuthStore, {}),
+         configStore: types.optional(ConfigStore, {}),
++        accountStore: types.optional(AccountStore, {}),
++        employeesStore: types.optional(EmployeesStore, {}),
++        websocketStore: types.optional(WebsocketStore, {}),
++        statusesStore: types.optional(StatusesStore, {}),
+     })
+     .actions(self => {
+         let initialState: RootInstanceSnapshotOut;
+@@ -73,6 +81,24 @@ export const RootStore = types
+                 createSoftphoneMiddleware(),
+                 store => next => action => {
+                     switch (action.type) {
++                        case SET_STATUSES:
++                            self.statusesStore.setStatuses(action.data || []);
++                            break;
++                        case SET_USER: {
++                            const {user} = action;
++
++                            self.employeesStore.setEmployee({
++                                status_id: user.status_id
++                            });
++
++                            self.accountStore.setAccount({
++                                user_name: ['last_name', 'first_name'].
++                                    map(name => user[name]).filter(name => !!name).join(' '),
++                                employee_id: user.id
++                            });
++
++                            break;
++                        }
+                         case INTERCEPT_REQUEST: {
+                             const {
+                                 args,
+@@ -107,7 +133,8 @@ export const RootStore = types
+             ));
+ 
+             const {dispatch, getState} = self.reduxStore;
+-
++            
++            self.statusesStore.setStatusUpdator((statusId: number) => dispatch(setStatus(statusId)));
+             self.setDictonary = i18n.setDictonary;
+             window.addEventListener('toggleSoftphoneVisiblity', () => dispatch(toggleWidgetVisiblity));
+ 
+@@ -209,4 +236,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

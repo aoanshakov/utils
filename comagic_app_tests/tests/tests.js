@@ -46,6 +46,7 @@ tests.addTest(options => {
                 tester.reportTypesRequest().receiveResponse();
                 
                 tester.configRequest().softphone().receiveResponse();
+                tester.accountRequest().receiveResponse();
                 tester.authCheckRequest().receiveResponse();
 
                 tester.statusesRequest().receiveResponse();
@@ -359,12 +360,12 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
-                                xdescribe('Нажимаю на иконку с телефоном.', function() {
+                                describe('Нажимаю на иконку с телефоном.', function() {
                                     beforeEach(function() {
                                         tester.button('Софтфон').click();
                                     });
 
-                                    describe('Ввожу номер телефона.', function() {
+                                    xdescribe('Ввожу номер телефона.', function() {
                                         beforeEach(function() {
                                             tester.phoneField.fill('79161234567');
                                         });
@@ -474,7 +475,7 @@ tests.addTest(options => {
                                             registrationRequest.receiveResponse();
                                         });
 
-                                        describe('Открываю историю звонков.', function() {
+                                        xdescribe('Открываю историю звонков.', function() {
                                             let callsRequest;
                                             
                                             beforeEach(function() {
@@ -599,7 +600,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
+                                        xdescribe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
                                             beforeEach(function() {
                                                 tester.userName.click();
                                                 tester.logoutButton.click();
@@ -669,6 +670,37 @@ tests.addTest(options => {
                                                 tester.button('Софтфон').expectToBeVisible();
                                             });
                                         });
+                                        describe('Нажимаю на кнопку аккаунта.', function() {
+                                            beforeEach(function() {
+                                                tester.userName.putMouseOver();
+                                            });
+
+                                            it('Выбираю другой статус. Другой статус выбран.', function() {
+                                                tester.statusesList.item('Нет на месте').click();
+
+                                                tester.userStateUpdateRequest().receiveResponse();
+                                                tester.notificationOfUserStateChanging().anotherStatus().receive();
+
+                                                tester.statusesList.item('Доступен').expectNotToBeSelected();
+                                                tester.statusesList.item('Нет на месте').expectToBeSelected();
+
+                                                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+                                            });
+                                            return;
+                                            it('Отображен список статусов.', function() {
+                                                tester.statusesList.item('Доступен').expectToBeSelected();
+                                                tester.statusesList.item('Перерыв').expectNotToBeSelected();
+
+                                                tester.statusesList.expectTextContentToHaveSubstring(
+                                                    'Доступен ' +
+                                                    'Перерыв ' +
+                                                    'Не беспокоить ' +
+                                                    'Нет на месте ' +
+                                                    'Нет на работе'
+                                                );
+                                            });
+                                        });
+                                        return;
                                         describe('Нажимаю на кнопку таблицы сотрудников.', function() {
                                             beforeEach(function() {
                                                 tester.addressBookButton.click();
@@ -713,48 +745,19 @@ tests.addTest(options => {
                                             );
 
                                             tester.digitRemovingButton.expectNotToExist();
+                                            tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
                                         });
                                     });
+                                    return;
                                     it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                                         tester.button('Софтфон').click();
                                         tester.callButton.expectNotToExist();
-                                    });
-                                });
-                                describe('Нажимаю на кнопку аккаунта.', function() {
-                                    beforeEach(function() {
-                                        tester.userName.putMouseOver();
-                                    });
-
-                                    it('Выбираю другой статус. Другой статус выбран.', function() {
-                                        tester.statusesList.item('Перерыв').click();
-
-                                        tester.userStateUpdateRequest().receiveResponse();
-                                        tester.notificationOfUserStateChanging().receive();
-
-                                        tester.statusesList.item('Доступен').expectNotToBeSelected();
-                                        tester.statusesList.item('Перерыв').expectToBeSelected();
-
-                                        tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
-                                    });
-                                    return;
-                                    it('Отображен список статусов.', function() {
-                                        tester.statusesList.item('Доступен').expectToBeSelected();
-                                        tester.statusesList.item('Перерыв').expectNotToBeSelected();
-
-                                        tester.statusesList.expectTextContentToHaveSubstring(
-                                            'Доступен ' +
-                                            'Перерыв ' +
-                                            'Не беспокоить ' +
-                                            'Нет на месте ' +
-                                            'Нет на работе'
-                                        );
                                     });
                                 });
                                 return;
                                 it('Отображен пункт меню. Софтфон скрыт. Отображается статус сотрудника.', function() {
                                     tester.callButton.expectNotToExist();
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
-                                    tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
                                 });
                             });
                             return;
