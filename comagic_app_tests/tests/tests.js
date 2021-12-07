@@ -89,7 +89,7 @@ tests.addTest(options => {
                                     reportGroupsRequest.receiveResponse();
                                 });
 
-                                xdescribe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
+                                describe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
                                     beforeEach(function() {
                                         registrationRequest.receiveResponse();
 
@@ -365,7 +365,7 @@ tests.addTest(options => {
                                         tester.button('Софтфон').click();
                                     });
 
-                                    xdescribe('Ввожу номер телефона.', function() {
+                                    describe('Ввожу номер телефона.', function() {
                                         beforeEach(function() {
                                             tester.phoneField.fill('79161234567');
                                         });
@@ -475,7 +475,7 @@ tests.addTest(options => {
                                             registrationRequest.receiveResponse();
                                         });
 
-                                        xdescribe('Открываю историю звонков.', function() {
+                                        describe('Открываю историю звонков.', function() {
                                             let callsRequest;
                                             
                                             beforeEach(function() {
@@ -600,7 +600,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        xdescribe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
+                                        describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
                                             beforeEach(function() {
                                                 tester.userName.click();
                                                 tester.logoutButton.click();
@@ -686,7 +686,6 @@ tests.addTest(options => {
 
                                                 tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
                                             });
-                                            return;
                                             it('Отображен список статусов.', function() {
                                                 tester.statusesList.item('Доступен').expectToBeSelected();
                                                 tester.statusesList.item('Перерыв').expectNotToBeSelected();
@@ -700,7 +699,6 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        return;
                                         describe('Нажимаю на кнопку таблицы сотрудников.', function() {
                                             beforeEach(function() {
                                                 tester.addressBookButton.click();
@@ -748,19 +746,16 @@ tests.addTest(options => {
                                             tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
                                         });
                                     });
-                                    return;
                                     it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                                         tester.button('Софтфон').click();
                                         tester.callButton.expectNotToExist();
                                     });
                                 });
-                                return;
                                 it('Отображен пункт меню. Софтфон скрыт. Отображается статус сотрудника.', function() {
                                     tester.callButton.expectNotToExist();
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
                                 });
                             });
-                            return;
                             describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                                 let refreshRequest;
 
@@ -789,7 +784,6 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        return;
                         it(
                             'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о ' +
                             'том, что SIP-линия не зарегистрирована.',
@@ -808,7 +802,6 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    return;
                     describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                         beforeEach(function() {
                             tester.disallowMediaInput();
@@ -829,7 +822,6 @@ tests.addTest(options => {
                         });
                     });
                 });
-                return;
                 it(
                     'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
@@ -876,7 +868,6 @@ tests.addTest(options => {
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
                 });
             });
-            return;
             describe('Нажимаю на иконку с телефоном.', function() {
                 beforeEach(function() {
                     reportGroupsRequest.receiveResponse();
@@ -1051,7 +1042,6 @@ tests.addTest(options => {
                 });
             });
         });
-        return;
         describe('Чаты доступны.', function() {
             beforeEach(function() {
                 accountRequest.operatorWorkplaceAvailable().receiveResponse();
@@ -1154,7 +1144,6 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
