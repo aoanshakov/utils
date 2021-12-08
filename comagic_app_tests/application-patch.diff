@@ -13,7 +13,7 @@ index a8ae4714..88083d0d 100644
 +REACT_APP_LEADGEN_MODULE=https://localhost:8084
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 7ae73d79..aeacaef4 100644
+index 7ae73d79..b1c07c03 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -115,7 +115,7 @@ index 7ae73d79..aeacaef4 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -271,17 +303,89 @@ module.exports = {
+@@ -271,17 +303,88 @@ module.exports = {
                      },
                  ],
              },
@@ -158,14 +158,13 @@ index 7ae73d79..aeacaef4 100644
              '@ant-design/icons/lib/dist$': path.resolve(appDirectory, './src/icons.ts'),
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'employees/Root': 'employees/src/Root.tsx',
++            'softphone/Account': 'softphone/src/Account.tsx',
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/RootStore': 'softphone/src/models/RootStore.ts',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
-+            'chats/ChatHistoryLog': 'chats/src/components/chats/chat-panel/HistoryLog.tsx',
-+            'chats/HttpRpc': 'chats/src/httpRpc.ts',
-+            'chats/ChatMessagesStore': 'chats/src/models/chats/ChatMessaagesStore.ts',
-+            'chats/utils': 'chats/src/utils/index.ts',
++            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
++            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
          },
 +        plugins: [{
 +            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
