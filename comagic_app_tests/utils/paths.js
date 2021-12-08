@@ -24,6 +24,7 @@ module.exports = {
     chatsPatch: `${tests}/chats-patch.diff`,
     employeesPatch: `${tests}/employees-patch.diff`,
     softphonePatch: `${tests}/softphone-patch.diff`,
+    devSoftphonePatch: `${tests}/dev-softphone-patch.diff`,
     sipLibPatch: `${tests}/sip-lib-patch.diff`,
     huskyPatch: `${tests}/husky-patch.diff`,
     misc,

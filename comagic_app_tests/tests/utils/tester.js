@@ -6,13 +6,19 @@ define(() => function ({
     spendTime,
     softphoneTester: me,
     isAlreadyAuthenticated = false,
-    appName = ''
+    appName = '',
+    webSockets
 }) {
     let history;
 
     const jwtToken = {
         jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
         refresh: '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2'
+    };
+
+    const anotherJwtToken = {
+        jwt: '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
+        refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
     };
 
     isAlreadyAuthenticated && (
@@ -28,6 +34,8 @@ define(() => function ({
         appName
     });
 
+    Promise.runAll(false, true);
+    spendTime(0);
     Promise.runAll(false, true);
     spendTime(0);
     Promise.runAll(false, true);
@@ -66,12 +74,13 @@ define(() => function ({
             me.input = testersFactory.createTextFieldTester(getInput);
 
             me.input.withFieldLabel = label => {
-                const input = utils.descendantOf(getRootElement()).
+                const labelEl = utils.descendantOf(getRootElement()).
                     textEquals(label).
-                    matchesSelector('.ant-col span, .ui-label-content-field-label').
-                    find().
-                    closest('.ant-row, .ui-label').
-                    querySelector('input');
+                    matchesSelector('.ui-label-content-field-label').
+                    find();
+
+                const row = labelEl.closest('.ant-row'),
+                    input = (row || labelEl.closest('.ui-label')).querySelector('input');
 
                 return addMethods(testersFactory.createTextFieldTester(input), () => input);
             };
@@ -103,6 +112,114 @@ define(() => function ({
 
         return me;
     };
+
+    me.operatorStatusUpdateRequest = () => ({
+        receiveResponse() {
+            ajax.recentRequest().
+                expectToHaveMethod('PATCH').
+                expectPathToContain('logic/operator/status').
+                expectBodyToContain({
+                    status: 2
+                }).respondSuccessfullyWith({
+                    data: true
+                });
+
+            Promise.runAll(false, true);
+            spendTime(0)
+            Promise.runAll(false, true);
+        }
+    });
+
+    me.operatorOfflineMessageListRequest = () => ({
+        expectToBeSent() {
+            const request = ajax.recentRequest().
+                expectPathToContain('logic/operator/offline_message/list').
+                expectBodyToContain({
+                    statuses: ['not_processed', 'processing'],
+                    limit: 1000,
+                    offset: 0
+                });
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        data: []
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.chatsWebSocket = (() => {
+        const getWebSocket = index => webSockets.getSocket('wss://lobarev.dev.uis.st/ws', index);
+
+        return {
+            connect: () => getWebSocket(0).connect(),
+            expectSentMessageToContain: message => getWebSocket(0).expectSentMessageToContain(message),
+            receive: message => getWebSocket(0).receiveMessage(message)
+        };
+    })();
+
+    me.chatsEmployeeChangeMessage = () => ({
+        receive: () => me.chatsWebSocket.receive(JSON.stringify({
+            method: 'employee_update',
+            params: {
+                id: 20816,
+                status_id: 2
+            }
+        }))
+    });
+
+    me.chatsInitMessage = () => ({
+        expectToBeSent: () => me.chatsWebSocket.expectSentMessageToContain({
+            method: 'init',
+            params: {
+                access_token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                access_type: 'jwt',
+                employee_id: 20816
+            }
+        })
+    });
+    
+    this.connectEventsWebSocket = function (index) {
+        this.getEventsWebSocket(index).connect();
+    };
+
+    me.userLogoutRequest = () => ({
+        expectToBeSent() {
+            const request = ajax.recentRequest().expectBodyToContain({
+                method: 'logout.user',
+            });
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        result: {
+                            data: {
+                                success: true
+                            }
+                        }
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
 
     me.callsRequest = () => {
         const params = {
@@ -440,7 +557,7 @@ define(() => function ({
         };
 
         const request = addResponseModifiers({
-            anotherAuthoriationToken: () =>
+            anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
             expectToBeSent: () => {
@@ -492,28 +609,81 @@ define(() => function ({
         }
     });
 
-    me.authCheckRequest = () => ({
-        expectToBeSent() {
-            let request = ajax.recentRequest().
-                expectPathToContain('/sup/auth/check').
-                expectToHaveHeaders({
-                    Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                    'X-Auth-Type': 'jwt'
+    me.authCheckRequest = () => {
+        let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+
+        return {
+            anotherAuthorizationToken() {
+                token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+
+            expectToBeSent() {
+                let request = ajax.recentRequest().
+                    expectToHavePath('https://myint0.dev.uis.st/sup/auth/check').
+                    expectToHaveHeaders({
+                        Authorization: `Bearer ${token}`,
+                        'X-Auth-Type': 'jwt'
+                    });
+
+                return {
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith('');
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                };
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        };
+    };
+
+    me.chatChannelListRequest = () => ({
+        receiveResponse() {
+            ajax.recentRequest().
+                expectPathToContain('/logic/operator/chat/channel/list').
+                expectToHaveMethod('GET').
+                respondSuccessfullyWith({
+                    result: {
+                        data: []
+                    }
                 });
 
-            return {
-                receiveResponse: () => {
-                    request.respondSuccessfullyWith('');
+            Promise.runAll(false, true);
+            spendTime(0)
+            Promise.runAll(false, true);
+        }
+    });
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                    Promise.runAll(false, true);
-                }
-            };
-        },
-
+    me.chatListRequest = () => ({
         receiveResponse() {
-            this.expectToBeSent().receiveResponse();
+            ajax.recentRequest().
+                expectPathToContain('/logic/operator').
+                expectToHaveMethod('POST').
+                expectBodyToContain({
+                    method: 'get_chat_list',
+                    params: {
+                        app_id: 1103,
+                        employee_id: 20816,
+                        statuses: ['new', 'active'],
+                        limit: 1000,
+                        offset: 0
+                    }
+                }).
+                respondSuccessfullyWith({
+                    result: {
+                        data: []
+                    }
+                });
+
+            Promise.runAll(false, true);
+            spendTime(0)
+            Promise.runAll(false, true);
         }
     });
 
@@ -568,20 +738,35 @@ define(() => function ({
         }
     });
 
+    me.operatorSiteListRequest = () => ({
+        receiveResponse() {
+            ajax.recentRequest().
+                expectPathToContain('/logic/operator/site/list').
+                expectToHaveMethod('GET').
+                respondSuccessfullyWith({
+                    result: {
+                        data: []
+                    }
+                });
+
+            Promise.runAll(false, true);
+            spendTime(0)
+            Promise.runAll(false, true);
+        }
+    });
+
     me.operatorListRequest = () => ({
         receiveResponse() {
             ajax.recentRequest().
                 expectPathToContain('/logic/operator/list').
                 expectToHaveMethod('GET').
                 respondSuccessfullyWith({
-                    result: {
-                        data: [{
-                            id: 48274,
-                            full_name: 'Терзиева Сийка Петковна',
-                            status_id: 1,
-                            photo_link: null
-                        }]
-                    }
+                    data: [{
+                        id: 20816,
+                        full_name: 'Карадимова Веска Анастасовна',
+                        status_id: 1,
+                        photo_link: null
+                    }]
                 });
 
             Promise.runAll(false, true);
@@ -596,146 +781,144 @@ define(() => function ({
                 expectPathToContain('/logic/operator/status/list').
                 expectToHaveMethod('GET').
                 respondSuccessfullyWith({
-                    result: {
-                        data: [{
-                            id: 1,
-                            is_worktime: true,
-                            mnemonic: 'available',
-                            name: 'Доступен',
-                            is_select_allowed: true,
-                            description: 'все вызовы',
-                            color: '#48b882',
-                            icon_mnemonic: 'tick',
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            in_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            allowed_phone_protocols: [
-                                'SIP'
-                            ],
-                        }, {
-                            id: 2,
-                            is_worktime: true,
-                            mnemonic: 'break',
-                            name: 'Перерыв',
-                            is_select_allowed: true,
-                            description: 'временное отключение',
-                            color: '#1179ad',
-                            icon_mnemonic: 'pause',
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [],
-                            in_internal_allowed_call_directions: [],
-                            out_external_allowed_call_directions: [],
-                            out_internal_allowed_call_directions: [],
-                            allowed_phone_protocols: [
-                                'SIP'
-                            ],
-                        }, {
-                            id: 3,
-                            is_worktime: true,
-                            mnemonic: 'do_not_disturb',
-                            name: 'Не беспокоить',
-                            is_select_allowed: true,
-                            icon_mnemonic: 'minus',
-                            description: 'только исходящие',
-                            color: '#cc5d35',
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [],
-                            in_internal_allowed_call_directions: [],
-                            out_external_allowed_call_directions: [],
-                            out_internal_allowed_call_directions: []
-                        }, {
-                            id: 4,
-                            is_worktime: true,
-                            mnemonic: 'not_at_workplace',
-                            name: 'Нет на месте',
-                            is_select_allowed: true,
-                            description: 'все вызовы на мобильном',
-                            color: '#ebb03b',
-                            icon_mnemonic: 'time',
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            in_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            allowed_phone_protocols: [
-                                'SIP'
-                            ]
-                        }, {
-                            id: 5,
-                            is_worktime: false,
-                            mnemonic: 'not_at_work',
-                            name: 'Нет на работе',
-                            is_select_allowed: true,
-                            description: 'полное отключение',
-                            color: '#99acb7',
-                            icon_mnemonic: 'cross',
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [],
-                            in_internal_allowed_call_directions: [],
-                            out_external_allowed_call_directions: [],
-                            out_internal_allowed_call_directions: []
-                        }, {
-                            id: 6,
-                            is_worktime: false,
-                            mnemonic: 'unknown',
-                            name: 'Неизвестно',
-                            is_select_allowed: false,
-                            icon_mnemonic: 'unknown',
-                            color: null,
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            in_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            allowed_phone_protocols: [
-                                'SIP'
-                            ]
-                        }]
-                    }
+                    data: [{
+                        id: 1,
+                        is_worktime: true,
+                        mnemonic: 'available',
+                        name: 'Доступен',
+                        is_select_allowed: true,
+                        description: 'все вызовы',
+                        color: '#48b882',
+                        icon_mnemonic: 'tick',
+                        is_auto_out_calls_ready: true,
+                        is_deleted: false,
+                        in_external_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        in_internal_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        out_external_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        out_internal_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        allowed_phone_protocols: [
+                            'SIP'
+                        ],
+                    }, {
+                        id: 2,
+                        is_worktime: true,
+                        mnemonic: 'break',
+                        name: 'Перерыв',
+                        is_select_allowed: true,
+                        description: 'временное отключение',
+                        color: '#1179ad',
+                        icon_mnemonic: 'pause',
+                        is_auto_out_calls_ready: true,
+                        is_deleted: false,
+                        in_external_allowed_call_directions: [],
+                        in_internal_allowed_call_directions: [],
+                        out_external_allowed_call_directions: [],
+                        out_internal_allowed_call_directions: [],
+                        allowed_phone_protocols: [
+                            'SIP'
+                        ],
+                    }, {
+                        id: 3,
+                        is_worktime: true,
+                        mnemonic: 'do_not_disturb',
+                        name: 'Не беспокоить',
+                        is_select_allowed: true,
+                        icon_mnemonic: 'minus',
+                        description: 'только исходящие',
+                        color: '#cc5d35',
+                        is_auto_out_calls_ready: true,
+                        is_deleted: false,
+                        in_external_allowed_call_directions: [],
+                        in_internal_allowed_call_directions: [],
+                        out_external_allowed_call_directions: [],
+                        out_internal_allowed_call_directions: []
+                    }, {
+                        id: 4,
+                        is_worktime: true,
+                        mnemonic: 'not_at_workplace',
+                        name: 'Нет на месте',
+                        is_select_allowed: true,
+                        description: 'все вызовы на мобильном',
+                        color: '#ebb03b',
+                        icon_mnemonic: 'time',
+                        is_auto_out_calls_ready: true,
+                        is_deleted: false,
+                        in_external_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        in_internal_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        out_external_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        out_internal_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        allowed_phone_protocols: [
+                            'SIP'
+                        ]
+                    }, {
+                        id: 5,
+                        is_worktime: false,
+                        mnemonic: 'not_at_work',
+                        name: 'Нет на работе',
+                        is_select_allowed: true,
+                        description: 'полное отключение',
+                        color: '#99acb7',
+                        icon_mnemonic: 'cross',
+                        is_auto_out_calls_ready: true,
+                        is_deleted: false,
+                        in_external_allowed_call_directions: [],
+                        in_internal_allowed_call_directions: [],
+                        out_external_allowed_call_directions: [],
+                        out_internal_allowed_call_directions: []
+                    }, {
+                        id: 6,
+                        is_worktime: false,
+                        mnemonic: 'unknown',
+                        name: 'Неизвестно',
+                        is_select_allowed: false,
+                        icon_mnemonic: 'unknown',
+                        color: null,
+                        is_auto_out_calls_ready: true,
+                        is_deleted: false,
+                        in_external_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        in_internal_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        out_external_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        out_internal_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        allowed_phone_protocols: [
+                            'SIP'
+                        ]
+                    }]
                 });
 
             Promise.runAll(false, true);
@@ -745,20 +928,36 @@ define(() => function ({
     });
 
     me.configRequest = () => {
+        let host = 'localhost:8082';
+
         let response = {
+            ENV: 'dev',
+            LOCATION: 'msk',
+            STAND: '',
+            APPVERSION: 'dev',
             REACT_APP_BASE_URL: 'https://lobarev.dev.uis.st/logic/operator',
-            REACT_APP_AUTH_URL: 'https://dev-dataapi.uis.st/va0/auth/json_rpc',
+            REACT_APP_AUTH_URL: 'https://dev-dataapi.uis.st/int0/auth/json_rpc',
             REACT_APP_WS_URL: 'wss://lobarev.dev.uis.st/ws',
-            REACT_APP_LOCALE: 'ru'
+            REACT_APP_LOCALE: 'ru',
+            REACT_APP_BUILD_MODE: '',
+            REACT_APP_AUTH_COOKIE: 'auth'
         };
 
         const me = {
-            softphone: () => ((response = {
-                REACT_APP_LOCALE: 'ru'
-            }), me),
+            softphone: () => {
+                host = 'localhost:8083';
+                response = {
+                    REACT_APP_LOCALE: 'ru',
+                    REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
+                    REACT_APP_AUTH_COOKIE: 'auth'
+                };
 
-            expectToBeSent: () => {
-                const request = fetch.recentRequest().expectPathToContain('/config.json');
+                return me;
+            },
+
+            expectToBeSent: requests => {
+                const request = (requests ? requests.someRequest() : fetch.recentRequest()).
+                    expectPathToContain(`https://${host}/config.json`);
 
                 return {
                     receiveResponse: () => {
@@ -862,7 +1061,7 @@ define(() => function ({
             thirdColumn: () => (setColumn('cc_15'), request),
             visitorRegion: () => (setDimension('visitor_region'), request),
 
-            anotherAuthoriationToken: () =>
+            anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
             expectToBeSent: () => {
@@ -1209,224 +1408,25 @@ define(() => function ({
 
     me.reportTypesRequest = () => ({
         receiveResponse() {
-            ajax.recentRequest().
+            this.expectToBeSent().receiveResponse();
+        },
+
+        expectToBeSent: requests => {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                 expectBodyToContain({
                     method: 'get.report_types',
-                    params: {}
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        data: [{
-                            id: 'marketer_dashboard',
-                            name: 'Некий тип отчета',
-                            configuration: 'dashboard'
-                        }]
-                    }
-                });
-
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
-        }
-    });
-
-    me.reportsListRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
-                expectBodyToContain({
-                    method: 'get.reports_list',
-                    params: {}
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        data: [{
-                            id: 582729,
-                            group_id: 3893727,
-                            type: 'marketer_dashboard',
-                            name: 'Некий отчет',
-                            description: 'Описание некого отчета',
-                            folder: null,
-                            sort: 0
-                        }]
-                    }
-                });
-
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
-        }
-    });
-
-    me.reportGroupsRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
-                expectBodyToContain({
-                    method: 'get.report_groups',
-                    params: {}
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        data: [{
-                            id: 3893727,
-                            name: 'Некие отчеты',
-                            parent_id: null,
-                            sort: 0
-                        }]
-                    }
-                });
-
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
-        }
-    });
-
-    me.accountRequest = () => ({
-        expectToBeSent() {
-            let request = ajax.recentRequest().
-                expectPathToContain('/front/v2.0').
-                expectToHaveMethod('POST').
-                expectToHaveHeaders({
-                    Authorization: `Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0`,
-                    'X-Auth-Type': 'jwt'
-                }).
-                expectBodyToContain({
-                    method: 'getobj.account',
                     params: {}
                 });
 
             return {
-                receiveResponse: () => {
+                receiveResponse() {
                     request.respondSuccessfullyWith({
                         result: {
-                            data: {
-                                lang: 'ru',
-                                tp_id: 406,
-                                app_id: 1103,
-                                project: 'comagic',
-                                tp_name: 'Comagic Enterprise',
-                                user_id: 151557,
-                                app_name: 'Карадимова Веска Анастасовна',
-                                crm_type: 'e2e_analytics',
-                                timezone: 'Europe/Moscow',
-                                app_state: 'active',
-                                user_name: 'karadimova',
-                                user_type: 'user',
-                                components: [
-                                    'operation',
-                                    'dialing',
-                                    'ext_dialing',
-                                    'extended_report',
-                                    'fax_receiving',
-                                    'voice_mail',
-                                    'menu',
-                                    'information_message',
-                                    'auth',
-                                    'integration',
-                                    'fax_receiving_button',
-                                    'transfer',
-                                    'tag_call',
-                                    'run_scenario',
-                                    'trainer',
-                                    'trainer_in',
-                                    'trainer_button',
-                                    'trainer_desktop',
-                                    'call_distribution_report',
-                                    'call_session_distribution_report',
-                                    'recording_in',
-                                    'recording_out',
-                                    'recording_button',
-                                    'notification',
-                                    'notification_by_sms',
-                                    'notification_by_email',
-                                    'notification_by_http',
-                                    'api',
-                                    'callapi',
-                                    'callapi_management_call',
-                                    'callapi_informer_call',
-                                    'callapi_scenario_call',
-                                    'send_sms',
-                                    'va',
-                                    'call_tracking',
-                                    'dynamic_call_tracking',
-                                    'ppc_integration',
-                                    'wa_integration',
-                                    'callout',
-                                    'callback',
-                                    'sip',
-                                    'consultant',
-                                    'recording',
-                                    'talk_option',
-                                    'sitephone',
-                                    'lead',
-                                    'partner_integration',
-                                    'amocrm',
-                                    'reserve_dynamic_numbers',
-                                    'retailcrm',
-                                    'dashboard',
-                                    'dataapi',
-                                    'dataapi_reports',
-                                    'dataapi_provisioning',
-                                    'speech_analytics',
-                                    'processed_lost_call',
-                                    'bitrix',
-                                    'distribution_by_communication_number',
-                                    'distribution_by_region',
-                                    'distribution_by_segment',
-                                    'private_number',
-                                    'megaplan',
-                                    'internal_lines',
-                                    'fmc',
-                                    'auto_back_call_by_lost_call',
-                                    'split_channel_recording',
-                                    'infoclinica',
-                                    'facebook_ads',
-                                    'google_adwords',
-                                    'yandex_direct',
-                                    'sales_funnel',
-                                    'number_capacity_auto_usage',
-                                    'call_monitoring_and_analytics',
-                                    'keyword_spotting',
-                                    'attribution_tools',
-                                    'assisted_conversions',
-                                    'attribution_models',
-                                    'antispam',
-                                    'auto_back_call_by_offline_message',
-                                    'amocrm_extended_integration',
-                                    'spam_calls_blocking',
-                                    'upload_calls',
-                                    'preserved_calls',
-                                    '1c_rarus',
-                                    'fitness_1c',
-                                    'yandex_metrika',
-                                    'e2e_analytics',
-                                    'vk_ads',
-                                    'upload_offline_messages',
-                                    'upload_chats',
-                                    'mytarget_ads',
-                                    'stt_crt',
-                                    'upload_sessions',
-                                ],
-                                user_login: 'karadimova',
-                                customer_id: 183510,
-                                permissions: [
-                                    {
-                                        'unit_id': 'call_recordings',
-                                        'is_delete': true,
-                                        'is_insert': false,
-                                        'is_select': true,
-                                        'is_update': true,
-                                    },
-                                    {
-                                        'unit_id': 'tag_management',
-                                        'is_delete': true,
-                                        'is_insert': true,
-                                        'is_select': true,
-                                        'is_update': true,
-                                    },
-                                ],
-                                is_agent_app: false
-                            }
+                            data: [{
+                                id: 'marketer_dashboard',
+                                name: 'Некий тип отчета',
+                                configuration: 'dashboard'
+                            }]
                         }
                     });
 
@@ -1435,12 +1435,298 @@ define(() => function ({
                     Promise.runAll(false, true);
                 }
             };
-        },
-
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
         }
     });
+
+    me.reportsListRequest = () => ({
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        },
+
+        expectToBeSent: requests => {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectBodyToContain({
+                    method: 'get.reports_list',
+                    params: {}
+                });
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        result: {
+                            data: [{
+                                id: 582729,
+                                group_id: 1,
+                                type: 'marketer_dashboard',
+                                name: 'Некий отчет',
+                                description: 'Описание некого отчета',
+                                folder: null,
+                                sort: 0
+                            }]
+                        }
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            }
+        }
+    });
+
+    me.reportGroupsRequest = () => {
+        const response = {
+            result: {
+                data: [{
+                    id: 1,
+                    name: 'Дашборды',
+                    parent_id: null,
+                    sort: 0
+                }]
+            }
+        };
+
+        const headers = {
+            Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
+        const request = addAuthErrorResponseModifiers({
+            anotherAuthorizationToken: () =>
+                ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).expectBodyToContain({
+                    method: 'get.report_groups',
+                    params: {}
+                }).expectToHaveHeaders(headers);
+
+                return addAuthErrorResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                }, response);
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        }, response);
+
+        return request;
+    };
+
+    me.accountRequest = () => {
+        let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+
+        const response = {
+            result: {
+                data: {
+                    lang: 'ru',
+                    tp_id: 406,
+                    app_id: 1103,
+                    project: 'comagic',
+                    tp_name: 'Comagic Enterprise',
+                    user_id: 151557,
+                    employee_id: 20816,
+                    app_name: 'Карадимова Веска Анастасовна',
+                    crm_type: 'e2e_analytics',
+                    timezone: 'Europe/Moscow',
+                    app_state: 'active',
+                    user_name: 'karadimova',
+                    user_type: 'user',
+                    feature_flags: ['softphone'],
+                    components: [
+                        'operation',
+                        'dialing',
+                        'ext_dialing',
+                        'extended_report',
+                        'fax_receiving',
+                        'voice_mail',
+                        'menu',
+                        'information_message',
+                        'auth',
+                        'integration',
+                        'fax_receiving_button',
+                        'transfer',
+                        'tag_call',
+                        'run_scenario',
+                        'trainer',
+                        'trainer_in',
+                        'trainer_button',
+                        'trainer_desktop',
+                        'call_distribution_report',
+                        'call_session_distribution_report',
+                        'recording_in',
+                        'recording_out',
+                        'recording_button',
+                        'notification',
+                        'notification_by_sms',
+                        'notification_by_email',
+                        'notification_by_http',
+                        'api',
+                        'callapi',
+                        'callapi_management_call',
+                        'callapi_informer_call',
+                        'callapi_scenario_call',
+                        'send_sms',
+                        'va',
+                        'call_tracking',
+                        'dynamic_call_tracking',
+                        'ppc_integration',
+                        'wa_integration',
+                        'callout',
+                        'callback',
+                        'sip',
+                        'consultant',
+                        'recording',
+                        'talk_option',
+                        'sitephone',
+                        'lead',
+                        'partner_integration',
+                        'amocrm',
+                        'reserve_dynamic_numbers',
+                        'retailcrm',
+                        'dashboard',
+                        'dataapi',
+                        'dataapi_reports',
+                        'dataapi_provisioning',
+                        'speech_analytics',
+                        'processed_lost_call',
+                        'bitrix',
+                        'distribution_by_communication_number',
+                        'distribution_by_region',
+                        'distribution_by_segment',
+                        'private_number',
+                        'megaplan',
+                        'internal_lines',
+                        'fmc',
+                        'auto_back_call_by_lost_call',
+                        'split_channel_recording',
+                        'infoclinica',
+                        'facebook_ads',
+                        'google_adwords',
+                        'yandex_direct',
+                        'sales_funnel',
+                        'number_capacity_auto_usage',
+                        'call_monitoring_and_analytics',
+                        'keyword_spotting',
+                        'attribution_tools',
+                        'assisted_conversions',
+                        'attribution_models',
+                        'antispam',
+                        'auto_back_call_by_offline_message',
+                        'amocrm_extended_integration',
+                        'spam_calls_blocking',
+                        'upload_calls',
+                        'preserved_calls',
+                        '1c_rarus',
+                        'fitness_1c',
+                        'yandex_metrika',
+                        'e2e_analytics',
+                        'vk_ads',
+                        'upload_offline_messages',
+                        'upload_chats',
+                        'mytarget_ads',
+                        'stt_crt',
+                        'upload_sessions',
+                    ],
+                    user_login: 'karadimova',
+                    customer_id: 183510,
+                    permissions: [
+                        {
+                            'unit_id': 'call_recordings',
+                            'is_delete': true,
+                            'is_insert': false,
+                            'is_select': true,
+                            'is_update': true,
+                        },
+                        {
+                            'unit_id': 'tag_management',
+                            'is_delete': true,
+                            'is_insert': true,
+                            'is_select': true,
+                            'is_update': true,
+                        },
+                        {
+                            'unit_id': 'softphone_login',
+                            'is_delete': true,
+                            'is_insert': true,
+                            'is_select': true,
+                            'is_update': true,
+                        },
+                    ],
+                    is_agent_app: false
+                }
+            }
+        };
+
+        const addResponseModifiers = me => {
+            me.operatorWorkplaceAvailable = () => {
+                response.result.data.components.push('operator_workplace');
+
+                response.result.data.permissions.push({
+                    'unit_id': 'operator_workplace_access',
+                    'is_delete': true,
+                    'is_insert': true,
+                    'is_select': true,
+                    'is_update': true,
+                });
+
+                return me;
+            };
+            
+            me.softphoneFeatureFlagDisabled = () => ((response.result.data.feature_flags = []), me);
+
+            me.softphoneUnavailable = () => ((response.result.data.permissions =
+                response.result.data.permissions.filter(({unit_id}) => unit_id != 'softphone_login')), me);
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            anotherAuthorizationToken() {
+                token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                let request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('/front/v2.0').
+                    expectToHaveMethod('POST').
+                    expectToHaveHeaders({
+                        Authorization: `Bearer ${token}`,
+                        'X-Auth-Type': 'jwt'
+                    }).
+                    expectBodyToContain({
+                        method: 'getobj.account',
+                        params: {}
+                    });
+
+                const me = addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                });
+
+                return me;
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.refreshRequest = () => ({
         expectToBeSent() {
@@ -1481,28 +1767,37 @@ define(() => function ({
         }
     });
 
-    me.loginRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
-                expectPathToContain('/auth/json_rpc').
-                expectToHaveMethod('POST').
-                expectBodyToContain({
-                    method: 'login',
-                    params: {
-                        login: 'botusharova',
-                        password: '8Gls8h31agwLf5k',
-                        project: 'comagic'
-                    }
-                }).
-                respondSuccessfullyWith({
-                    result: jwtToken 
-                });
+    me.loginRequest = () => {
+        const response = {
+            result: jwtToken 
+        };
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
-        }
-    });
+        return {
+            anotherAuthorizationToken() {
+                response.result = anotherJwtToken;
+                return this;
+            },
+
+            receiveResponse() {
+                ajax.recentRequest().
+                    expectPathToContain('/auth/json_rpc').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'login',
+                        params: {
+                            login: 'botusharova',
+                            password: '8Gls8h31agwLf5k',
+                            project: 'comagic'
+                        }
+                    }).
+                    respondSuccessfullyWith(response);
+
+                Promise.runAll(false, true);
+                spendTime(0)
+                Promise.runAll(false, true);
+            }
+        };
+    };
 
     me.forceUpdate = () => utils.pressKey('k');
     me.body = testersFactory.createDomElementTester('body');
@@ -1602,6 +1897,69 @@ define(() => function ({
 
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
     me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
+
+    me.userName = (tester => {
+        const putMouseOver = tester.putMouseOver.bind(tester);
+        tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
+        return tester;
+    })(testersFactory.createDomElementTester(
+        '.cm-user-only-account--username, .cm-chats--account--username'
+    ));
+
+    me.statusesList = (() => {
+        const selector = '.cm-chats--account-popup',
+            tester = testersFactory.createDomElementTester(selector);
+
+        tester.item = text => {
+            const domElement = utils.descendantOf(document.querySelector(selector)).
+                matchesSelector('.cm-chats--account-popup--item').
+                textEquals(text).
+                find();
+
+            const tester = testersFactory.createDomElementTester(domElement),
+                click = tester.click.bind(tester),
+                isSelected = () => !!domElement.querySelectorAll('.ui-icon')[1];
+
+            tester.click = () => (click(), Promise.runAll(false, true));
+            
+            tester.expectToBeSelected = () => {
+                if (!isSelected()) {
+                    throw new Error(`Статус "${text}" должен быть выбран.`);
+                }
+            };
+
+            tester.expectNotToBeSelected = () => {
+                if (isSelected()) {
+                    throw new Error(`Статус "${text}" не должен быть выбран.`);
+                }
+            };
+
+            return tester;
+        };
+
+        return tester;
+    })();
+
+    me.logoutButton = (() => {
+        const tester = testersFactory.createDomElementTester(() => {
+            let domElement = utils.descendantOfBody().
+                matchesSelector('.cm-user-only-account--popup-content span').
+                textEquals('Выход').
+                find();
+
+            domElement instanceof JsTester_NoElement && (domElement = utils.descendantOfBody().
+                matchesSelector('.cm-chats--account-popup--item').
+                textEquals('Выход').
+                find());
+
+            return domElement;
+        });
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), Promise.runAll(false, true));
+
+        return tester;
+    })();
 
     return me;
 });

@@ -565,7 +565,7 @@ define(function () {
             };
 
             return addMethods({
-                anotherAuthoriationToken: function () {
+                anotherAuthorizationToken: function () {
                     testRequest = function (request) {
                         return request.expectToHaveHeaders({
                             Authorization: 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'
@@ -2244,6 +2244,9 @@ define(function () {
             };
 
             return {
+                expired: function () {
+                    return this.setUnregister();
+                },
                 setUnregister: function () {
                     expires = '0';
                     return this;
@@ -2341,25 +2344,16 @@ define(function () {
                 },
                 receiveResponse: function () {
                     return this.expectToBeSent().receiveResponse();
+                },
+                receiveForbidden: function () {
+                    return this.expectToBeSent().receiveForbidden();
                 }
             };
         };
 
         this.phoneField = testersFactory.createTextFieldTester('.cmg-input');
 
-        this.registrationRequest = function () {
-            return {
-                expectToBeSent: function () {
-                    return me.requestRegistration().expectToBeSent();
-                },
-                receiveForbidden: function () {
-                    return this.expectToBeSent().receiveForbidden();
-                },
-                receiveResponse: function () {
-                    return this.expectToBeSent().receiveResponse();
-                }
-            };
-        };
+        this.registrationRequest = this.requestRegistration;
 
         this.expectToneSevenToPlay = function () {
             playingOscillatorsTester.expectFrequenciesToPlay(852, 1209);
@@ -3573,9 +3567,18 @@ define(function () {
         this.notificationOfUserStateChanging = function () {
             var id = 20816;
 
+            var data = {
+                id: id,
+                status_id: 2
+            };
+
             return {
                 setOtherUser: function () {
                     id = 583783;
+                    return this;
+                },
+                anotherStatus: function () {
+                    data.status_id = 4;
                     return this;
                 },
                 receive: function () {
@@ -3584,10 +3587,7 @@ define(function () {
                         type: 'event',
                         params: {
                             action: 'update',
-                            data: {
-                                id: id,
-                                status_id: 2
-                            }
+                            data: data
                         }
                     });
                 }
@@ -3801,6 +3801,10 @@ define(function () {
                     var token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
 
                     return {
+                        anotherAuthorizationToken() {
+                            token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                            return this;
+                        },
                         setAnotherAuthorizationToken: function () {
                             token = 'Fl298gw0e2Foiweoa4Ua-0923gLwe84we3LErwiI230';
                             return this;
@@ -4063,21 +4067,34 @@ define(function () {
 
         this.requestUpdateUserState = function () {
             return {
-                send: function () {
-                    ajax.recentRequest().
+                expectToBeSent: function () {
+                    const request = ajax.recentRequest().
                         expectPathToContain('sup/api/v1/users/me').
                         expectToHaveMethod('PATCH').
                         expectBodyToContain({
                             status: 4
-                        }).
-                        respondSuccessfullyWith({
-                            data: true
                         });
 
-                    Promise.runAll();
+                    return {
+                        send: function () {
+                            this.receiveResponse();
+                        },
+                        receiveResponse: function () {
+                            request.respondSuccessfullyWith({
+                                data: true
+                            });
+
+                            Promise.runAll();
+                        }
+                    };
+                },
+                receiveResponse: function () {
+                    this.expectToBeSent().receiveResponse();
                 }
             };
         };
+
+        this.userStateUpdateRequest = this.requestUpdateUserState;
 
         this.secondRingtone = 'Eq8ZAtHhtF';
         this.customHoldMusic = 'UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==';

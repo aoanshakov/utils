@@ -1,8 +1,8 @@
 diff --git a/.env b/.env
-index 16343798..24c3148b 100644
+index 2b7c7036..ec6fe4ef 100644
 --- a/.env
 +++ b/.env
-@@ -1,7 +1,7 @@
+@@ -1,13 +1,13 @@
 -REACT_APP_BASE_URL=https://dev-dataapi.uis.st/va0/front/v2.0
 -REACT_APP_AUTH_URL=https://dev-dataapi.uis.st/va0/auth/json_rpc
 -REACT_APP_DOWNLOAD_URL=https://dev-dataapi.uis.st/va0/download
@@ -14,14 +14,17 @@ index 16343798..24c3148b 100644
  REACT_APP_MARKETPLACE_URL=
  REACT_APP_EMBED_CODE_URL=
  REACT_APP_SITE_SETTINGS_SERVER_URL=
-@@ -12,4 +12,4 @@ REACT_APP_MODULE_EMPLOYEES=
- REACT_APP_LEADGEN_MODULE=
- REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
- 
--REACT_APP_SOFTPHONE_BACKEND_HOST='myva0.dev.uis.st'
-+REACT_APP_SOFTPHONE_BACKEND_HOST='myint0.dev.uis.st'
+ REACT_APP_ANALYTICS_SERVER_URL=
+ REACT_APP_COMAGIC_WEB_URL=https://va0.dev.uis.st
+ REACT_APP_PROJECT=
+-REACT_APP_MODULE_CHATS=
+-REACT_APP_LEADGEN_MODULE=
+-REACT_APP_MODULE_SOFTPHONE=https://softphone-va0-softphone.uis.st
++REACT_APP_MODULE_CHATS=https://localhost:8083
++REACT_APP_LEADGEN_MODULE=https://localhost:8084
++REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 37d99a30..bd00441f 100644
+index 1da43df0..d92229d0 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -62,20 +65,18 @@ index 37d99a30..bd00441f 100644
      },
  };
  
-@@ -167,9 +174,9 @@ const plugins = () => {
+@@ -167,8 +174,8 @@ const plugins = () => {
                  return shared;
              }, {}),
              remotes: {
 -                leadgen: `leadgen@${process.env.REACT_APP_LEADGEN_MODULE}/leadgen.js`,
 -                chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
--                employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
 +                //leadgen: `leadgen@${process.env.REACT_APP_LEADGEN_MODULE}/leadgen.js`,
 +                //chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
-+                //employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
                  softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
              },
          }),
-@@ -182,6 +189,13 @@ const plugins = () => {
+@@ -181,6 +188,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -89,7 +90,7 @@ index 37d99a30..bd00441f 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -201,6 +215,21 @@ module.exports = {
+@@ -200,6 +214,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -111,7 +112,7 @@ index 37d99a30..bd00441f 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -271,12 +300,56 @@ module.exports = {
+@@ -270,12 +299,53 @@ module.exports = {
      resolve: {
          extensions: ['.tsx', '.ts', '.js'],
          alias: {
@@ -125,10 +126,7 @@ index 37d99a30..bd00441f 100644
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
-+            'chats/ChatHistoryLog': 'chats/src/components/chats/chat-panel/HistoryLog.tsx',
-+            'chats/HttpRpc': 'chats/src/httpRpc.ts',
-+            'chats/ChatMessagesStore': 'chats/src/models/chats/ChatMessaagesStore.ts',
-+            'chats/utils': 'chats/src/utils/index.ts',
++            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
          },
 +        plugins: [{
 +            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
