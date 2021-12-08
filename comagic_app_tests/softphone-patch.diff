@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index c03e187..bc99c50 100644
+index 1273c1f..bc99c50 100644
 --- a/package.json
 +++ b/package.json
 @@ -55,7 +55,7 @@
@@ -15,17 +15,18 @@ index c03e187..bc99c50 100644
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
      "yup": "^0.32.9",
--    "uis-softphone": "0.0.124"
+-    "uis-softphone": "0.0.127"
 +    "uis-softphone": "./misc/sip_lib"
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 30a3a67..a53b738 100644
+index 78c67fe..627e04f 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -139,3 +139,5 @@ export const RootStore = types
+@@ -227,4 +227,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
+-export const rootStore = RootStore.create({});
 +export let rootStore;
 +export const createRootStore = () => (rootStore = RootStore.create({}));
