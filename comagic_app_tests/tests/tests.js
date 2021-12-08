@@ -15,7 +15,7 @@ tests.addTest(options => {
         spendTime(0);
     });
 
-    xdescribe(
+    describe(
         'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -1137,7 +1137,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    xdescribe('Открываю декстопное приложение софтфона.', function() {
+    describe('Открываю декстопное приложение софтфона.', function() {
         let tester,
             packages;
 
@@ -1198,15 +1198,6 @@ tests.addTest(options => {
             ...options,
             isAlreadyAuthenticated: true
         });
-
-        Promise.runAll(false, true);
-        spendTime(0);
-        Promise.runAll(false, true);
-        spendTime(0);
-        Promise.runAll(false, true);
-        spendTime(0);
-        Promise.runAll(false, true);
-        spendTime(0);
 
         tester.accountRequest().receiveResponse();
 
