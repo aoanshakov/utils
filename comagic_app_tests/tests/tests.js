@@ -7,6 +7,7 @@ tests.addTest(options => {
         triggerMutation,
         mutationObserverMocker,
         ajax,
+        FakeRequire,
         fetch
     } = options;
 
@@ -14,7 +15,7 @@ tests.addTest(options => {
         spendTime(0);
     });
 
-    describe(
+    xdescribe(
         'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -1137,9 +1138,13 @@ tests.addTest(options => {
         });
     });
     describe('', function() {
-        let tester;
+        let tester,
+            packages;
 
         beforeEach(function() {
+            packages = new FakeRequire();
+            packages.replaceByFake();
+
             tester = new Tester({
                 ...options,
                 appName: 'softphone'
@@ -1175,6 +1180,7 @@ tests.addTest(options => {
         it('', function() {
         });
     });
+    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,

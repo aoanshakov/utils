@@ -269,7 +269,7 @@ index 6143f5e1..1ad2c181 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index dd53f96d..de01bf9e 100644
+index dd53f96d..c5515b70 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -7,7 +7,9 @@ import { useMountEffect } from '@hooks';
@@ -278,8 +278,8 @@ index dd53f96d..de01bf9e 100644
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
++import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
 +import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
-+import { createRootStore as createEmployeesRootStore } from 'employees/src/models/RootStore';
  
  import history from './history';
  import { getAntdLocale, getIntlLocale, getIntlMessages } from './i18n';
@@ -295,7 +295,7 @@ index dd53f96d..de01bf9e 100644
 +    }) {
 +        createRootStore();
 +        createChatsRootStore();
-+        createEmployeesRootStore();
++        createSoftphoneRootStore();
 +        setHistory(history);
 +
 +        this.exit();
