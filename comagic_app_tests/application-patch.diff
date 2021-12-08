@@ -1,22 +1,19 @@
 diff --git a/.env b/.env
-index 769734ff..5aa06dc3 100644
+index a8ae4714..88083d0d 100644
 --- a/.env
 +++ b/.env
-@@ -7,8 +7,8 @@ REACT_APP_EMBED_CODE_URL=
- REACT_APP_SITE_SETTINGS_SERVER_URL=
+@@ -8,6 +8,6 @@ REACT_APP_SITE_SETTINGS_SERVER_URL=
  REACT_APP_ANALYTICS_SERVER_URL=
+ REACT_APP_COMAGIC_WEB_URL=https://int0.dev.uis.st
  REACT_APP_PROJECT=
 -REACT_APP_MODULE_CHATS=https://chats-int0-chats.uis.st
--REACT_APP_MODULE_EMPLOYEES=
 -REACT_APP_LEADGEN_MODULE=https://leadgen-int0-leadgen-web.uis.st
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_CHATS=https://localhost:8083
-+REACT_APP_MODULE_EMPLOYEES=https://localhost:8082
 +REACT_APP_LEADGEN_MODULE=https://localhost:8084
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
- REACT_APP_SOFTPHONE_BACKEND_HOST=myint0.dev.uis.st
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 035cfc39..6d4fd43b 100644
+index 7ae73d79..aeacaef4 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -61,8 +58,8 @@ index 035cfc39..6d4fd43b 100644
              name: 'shell',
              shared: ['react', 'react-dom'].reduce((shared, key) => {
                  shared[key] = {
-@@ -178,7 +183,11 @@ const plugins = () => {
-                 employees: `employees@${process.env.REACT_APP_MODULE_EMPLOYEES}/employees/remoteEntry.js`,
+@@ -177,7 +182,11 @@ const plugins = () => {
+                 chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
                  softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
              },
 -        }),
@@ -74,7 +71,7 @@ index 035cfc39..6d4fd43b 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -188,6 +197,13 @@ const plugins = () => {
+@@ -187,6 +196,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -88,7 +85,7 @@ index 035cfc39..6d4fd43b 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -207,6 +223,21 @@ module.exports = {
+@@ -206,6 +222,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -110,7 +107,7 @@ index 035cfc39..6d4fd43b 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -257,6 +288,7 @@ module.exports = {
+@@ -256,6 +287,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -118,7 +115,7 @@ index 035cfc39..6d4fd43b 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -272,17 +304,89 @@ module.exports = {
+@@ -271,17 +303,89 @@ module.exports = {
                      },
                  ],
              },
@@ -213,7 +210,7 @@ index 035cfc39..6d4fd43b 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index b6620386..1642e4d0 100644
+index ca4d5019..d1f5ddaa 100644
 --- a/package.json
 +++ b/package.json
 @@ -83,6 +83,9 @@
@@ -273,12 +270,12 @@ index 6143f5e1..1ad2c181 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index cbc7d61d..3cbfb2b2 100644
+index dd53f96d..de01bf9e 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -6,7 +6,9 @@ import { ConfigProvider } from 'antd';
- import { useMountEffect } from '@hooks';
+@@ -7,7 +7,9 @@ import { useMountEffect } from '@hooks';
  import { observer } from 'mobx-react-lite';
+ import moment from 'moment';
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
@@ -287,7 +284,7 @@ index cbc7d61d..3cbfb2b2 100644
  
  import history from './history';
  import { getAntdLocale, getIntlLocale, getIntlMessages } from './i18n';
-@@ -48,4 +50,33 @@ const Root: React.FC = observer(props => {
+@@ -64,4 +66,33 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -336,10 +333,10 @@ index 33bf6a02..dceaff1c 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 6e7e6082..e74dd028 100644
+index c0fbe9a1..b159ccd2 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -164,7 +164,7 @@ export const RootStore = types
+@@ -161,7 +161,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -348,15 +345,15 @@ index 6e7e6082..e74dd028 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -243,6 +243,7 @@ export const RootStore = types
+@@ -238,6 +238,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
 +            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
              initialState = getSnapshot(self);
  
-             self.softphoneStore.setSoftphoneHost(
-@@ -266,7 +267,8 @@ export type DependencyInjection = {
+             setHighchartsOptions();
+@@ -257,7 +258,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
