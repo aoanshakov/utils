@@ -1412,7 +1412,7 @@ define(() => function ({
         },
 
         expectToBeSent: requests => {
-            const request = ajax.recentRequest().
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                 expectBodyToContain({
                     method: 'get.report_types',
                     params: {}
@@ -1668,6 +1668,7 @@ define(() => function ({
         const addResponseModifiers = me => {
             me.operatorWorkplaceAvailable = () => {
                 response.result.data.components.push('operator_workplace');
+
                 response.result.data.permissions.push({
                     'unit_id': 'operator_workplace_access',
                     'is_delete': true,
@@ -1681,8 +1682,8 @@ define(() => function ({
             
             me.softphoneFeatureFlagDisabled = () => ((response.result.data.feature_flags = []), me);
 
-            me.softphoneUnavailable = () =>
-                ((response.result.data.permissions = response.result.data.permissions.slice(0, 2)), me);
+            me.softphoneUnavailable = () => ((response.result.data.permissions =
+                response.result.data.permissions.filter(({unit_id}) => unit_id != 'softphone_login')), me);
 
             return me;
         };
@@ -1710,6 +1711,8 @@ define(() => function ({
                     receiveResponse: () => {
                         request.respondSuccessfullyWith(response);
 
+                        Promise.runAll(false, true);
+                        spendTime(0)
                         Promise.runAll(false, true);
                         spendTime(0)
                         Promise.runAll(false, true);
@@ -1938,8 +1941,19 @@ define(() => function ({
     })();
 
     me.logoutButton = (() => {
-        const tester = testersFactory.createDomElementTester(() => utils.descendantOfBody().
-            matchesSelector('.cm-user-only-account--popup-content span').textEquals('Выход').find());
+        const tester = testersFactory.createDomElementTester(() => {
+            let domElement = utils.descendantOfBody().
+                matchesSelector('.cm-user-only-account--popup-content span').
+                textEquals('Выход').
+                find();
+
+            domElement instanceof JsTester_NoElement && (domElement = utils.descendantOfBody().
+                matchesSelector('.cm-chats--account-popup--item').
+                textEquals('Выход').
+                find());
+
+            return domElement;
+        });
 
         const click = tester.click.bind(tester);
         tester.click = () => (click(), Promise.runAll(false, true));
