@@ -15,7 +15,7 @@ tests.addTest(options => {
         spendTime(0);
     });
 
-    xdescribe(
+    describe(
         'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -38,7 +38,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        describe('Фичафлаг софтфона включен.', function() {
+        xdescribe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -1085,6 +1085,9 @@ tests.addTest(options => {
                 tester.chatListRequest().receiveResponse();
             });
 
+            it('', function() {
+            });
+            return;
             describe('Нажимаю на кнопку аккаунта.', function() {
                 beforeEach(function() {
                     tester.userName.putMouseOver();
@@ -1118,6 +1121,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
             });
         });
+        return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -1137,7 +1141,8 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    describe('', function() {
+    return;
+    describe('Открываю декстопное приложение софтфона.', function() {
         let tester,
             packages;
 
@@ -1158,6 +1163,7 @@ tests.addTest(options => {
             tester.loginRequest().receiveResponse();
             tester.configRequest().softphone().receiveResponse();
             tester.authCheckRequest().receiveResponse();
+            tester.accountRequest().receiveResponse();
 
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
@@ -1170,17 +1176,28 @@ tests.addTest(options => {
             tester.allowMediaInput();
 
             tester.authenticatedUserRequest().receiveResponse();
-            tester.registrationRequest().expectToBeSent();
+            tester.registrationRequest().receiveResponse();
         });
 
         afterEach(function() {
             spendTime(0);
         });
 
-        it('', function() {
+        it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
+            tester.dialpadButton.click();
+
+            tester.userName.putMouseOver();
+
+            tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
+            tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
+        });
+        it('Раскрываю список статусов. Отображены статусы.', function() {
+            tester.userName.putMouseOver();
+
+            tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
+            tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
         });
     });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,

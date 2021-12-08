@@ -1903,7 +1903,7 @@ define(() => function ({
         tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
         return tester;
     })(testersFactory.createDomElementTester(
-        '.cm-user-only-account--username, .cm-chats--account--username'
+        '.cm-user-only-account--username, .cm-chats--account-icon, .cm-chats--account--username'
     ));
 
     me.statusesList = (() => {
