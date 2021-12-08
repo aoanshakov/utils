@@ -1408,51 +1408,69 @@ define(() => function ({
 
     me.reportTypesRequest = () => ({
         receiveResponse() {
-            ajax.recentRequest().
+            this.expectToBeSent().receiveResponse();
+        },
+
+        expectToBeSent: requests => {
+            const request = ajax.recentRequest().
                 expectBodyToContain({
                     method: 'get.report_types',
                     params: {}
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        data: [{
-                            id: 'marketer_dashboard',
-                            name: 'Некий тип отчета',
-                            configuration: 'dashboard'
-                        }]
-                    }
                 });
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        result: {
+                            data: [{
+                                id: 'marketer_dashboard',
+                                name: 'Некий тип отчета',
+                                configuration: 'dashboard'
+                            }]
+                        }
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
         }
     });
 
     me.reportsListRequest = () => ({
         receiveResponse() {
-            ajax.recentRequest().
+            this.expectToBeSent().receiveResponse();
+        },
+
+        expectToBeSent: requests => {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                 expectBodyToContain({
                     method: 'get.reports_list',
                     params: {}
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        data: [{
-                            id: 582729,
-                            group_id: 1,
-                            type: 'marketer_dashboard',
-                            name: 'Некий отчет',
-                            description: 'Описание некого отчета',
-                            folder: null,
-                            sort: 0
-                        }]
-                    }
                 });
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        result: {
+                            data: [{
+                                id: 582729,
+                                group_id: 1,
+                                type: 'marketer_dashboard',
+                                name: 'Некий отчет',
+                                description: 'Описание некого отчета',
+                                folder: null,
+                                sort: 0
+                            }]
+                        }
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            }
         }
     });
 
@@ -1477,8 +1495,8 @@ define(() => function ({
             anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
-            expectToBeSent() {
-                const request = ajax.recentRequest().expectBodyToContain({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).expectBodyToContain({
                     method: 'get.report_groups',
                     params: {}
                 }).expectToHaveHeaders(headers);
@@ -1675,8 +1693,8 @@ define(() => function ({
                 return this;
             },
 
-            expectToBeSent() {
-                let request = ajax.recentRequest().
+            expectToBeSent(requests) {
+                let request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('/front/v2.0').
                     expectToHaveMethod('POST').
                     expectToHaveHeaders({

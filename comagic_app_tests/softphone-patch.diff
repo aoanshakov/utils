@@ -20,10 +20,43 @@ index 1273c1f..bc99c50 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d2abc31..cc60b82 100644
+index d2abc31..cfef952 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -228,4 +228,5 @@ export const RootStore = types
+@@ -8,7 +8,8 @@ import { authorization } from 'uis-softphone/authorization/actions';
+ import createSoftphoneMiddleware from 'uis-softphone/middleware';
+ import thunkMiddleware from 'redux-thunk';
+ import { combineReducers, createStore, applyMiddleware } from 'redux';
+-import { INTERCEPT_REQUEST, SET_USER, SET_STATUSES  } from 'uis-softphone/constants';
++import { INTERCEPT_REQUEST, SET_STATUSES  } from 'uis-softphone/constants';
++import { STATUSES_MANAGER_CREATED } from 'uis-softphone/authorization/constants.js';
+ import { AuthStore } from './auth/AuthStore';
+ import { EmployeesStore } from './employees/EmployeesStore';
+ import { WebsocketStore } from './websocket/WebsocketStore';
+@@ -82,15 +83,15 @@ export const RootStore = types
+                         case SET_STATUSES:
+                             self.statusesStore.setStatuses(action.data || []);
+                             break;
+-                        case SET_USER: {
+-                            const {user} = action;
+-
+-                            self.employeesStore.setEmployee({
+-                                status_id: user.status_id
+-                            });
++                        case STATUSES_MANAGER_CREATED:
++                            action.statusesManager.on(
++                                'employeeChanged',
++                                ({status_id}) => self.employeesStore.setEmployee({
++                                    status_id
++                                })
++                            );
+ 
+                             break;
+-                        }
+                         case INTERCEPT_REQUEST: {
+                             const {
+                                 args,
+@@ -228,4 +229,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
