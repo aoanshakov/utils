@@ -15,7 +15,7 @@ tests.addTest(options => {
         spendTime(0);
     });
 
-    describe(
+    xdescribe(
         'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -38,7 +38,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        xdescribe('Фичафлаг софтфона включен.', function() {
+        describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -1085,9 +1085,6 @@ tests.addTest(options => {
                 tester.chatListRequest().receiveResponse();
             });
 
-            it('', function() {
-            });
-            return;
             describe('Нажимаю на кнопку аккаунта.', function() {
                 beforeEach(function() {
                     tester.userName.putMouseOver();
@@ -1121,7 +1118,6 @@ tests.addTest(options => {
                 tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
             });
         });
-        return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -1141,8 +1137,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    return;
-    describe('Открываю декстопное приложение софтфона.', function() {
+    xdescribe('Открываю декстопное приложение софтфона.', function() {
         let tester,
             packages;
 
@@ -1188,14 +1183,14 @@ tests.addTest(options => {
 
             tester.userName.putMouseOver();
 
-            tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
-            tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
+            tester.statusesList.item('Не беспокоить').expectToBeSelected();
+            tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
         });
         it('Раскрываю список статусов. Отображены статусы.', function() {
             tester.userName.putMouseOver();
 
-            tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
-            tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
+            tester.statusesList.item('Не беспокоить').expectToBeSelected();
+            tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
         });
     });
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
@@ -1203,6 +1198,15 @@ tests.addTest(options => {
             ...options,
             isAlreadyAuthenticated: true
         });
+
+        Promise.runAll(false, true);
+        spendTime(0);
+        Promise.runAll(false, true);
+        spendTime(0);
+        Promise.runAll(false, true);
+        spendTime(0);
+        Promise.runAll(false, true);
+        spendTime(0);
 
         tester.accountRequest().receiveResponse();
 

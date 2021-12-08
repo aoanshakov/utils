@@ -362,6 +362,28 @@ index c0fbe9a1..b159ccd2 100644
  
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
+diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
+index de6e0d6f..2bfc83cf 100644
+--- a/src/models/auth/AuthStore.ts
++++ b/src/models/auth/AuthStore.ts
+@@ -105,7 +105,7 @@ const removeToken = (skipLocalStorage = false) => {
+ 
+ export const AuthStore = Loader.named('AuthStore')
+     .props({
+-        isAuthorized: types.optional(types.boolean, Boolean(getToken())),
++        isAuthorized: types.optional(types.boolean, false),
+         isTokenRefreshing: types.optional(types.boolean, false),
+         windowId: types.optional(types.string, generateTraceId('local')),
+     })
+@@ -204,6 +204,8 @@ export const AuthStore = Loader.named('AuthStore')
+             isTokenRefreshing = false;
+             refreshingCall = null;
+ 
++            setAuthorized(Boolean(getToken()));
++
+             window.addEventListener('doLogoutUser', (event: CustomEvent) => {
+                 const eventWindowId = event.detail;
+                 if (eventWindowId !== authStore.windowId) {
 diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
 index 742f44e3..8a47a0d6 100644
 --- a/src/rpc/httpRpc.ts
