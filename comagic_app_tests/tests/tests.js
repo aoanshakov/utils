@@ -15,7 +15,7 @@ tests.addTest(options => {
         spendTime(0);
     });
 
-    xdescribe(
+    describe(
         'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -611,7 +611,9 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
+                                        describe(
+                                            'Нажимаю на кнопку "Выход". Вхожу в лк заново. Удалось войти.',
+                                        function() {
                                             beforeEach(function() {
                                                 tester.userName.putMouseOver();
                                                 tester.logoutButton.click();
@@ -628,6 +630,9 @@ tests.addTest(options => {
                                                 tester.authLogoutRequest().receiveResponse();
                                                 tester.eventsWebSocket.finishDisconnecting();
                                                 tester.registrationRequest().expired().receiveResponse();
+
+                                                spendTime(2000);
+                                                tester.webrtcWebsocket.finishDisconnecting();
 
                                                 tester.input.withFieldLabel('Логин').fill('botusharova');
                                                 tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -1186,16 +1191,50 @@ tests.addTest(options => {
                 tester.userName.putMouseOver();
             });
 
-            it('Нажимаю на кнопку "Выход".', function() {
+            it('Нажимаю на кнопку "Выход". Вхожу в софтфон заново. Удалось войти.', function() {
                 tester.statusesList.item('Выход').click();
+
+                tester.userLogoutRequest().receiveResponse();
+
+                tester.eventsWebSocket.finishDisconnecting();
+                tester.authLogoutRequest().receiveResponse();
+                tester.registrationRequest().expired().receiveResponse();
+
+                spendTime(2000);
+                tester.webrtcWebsocket.finishDisconnecting();
+
+                tester.input.withFieldLabel('Логин').fill('botusharova');
+                tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                tester.button('Войти').click();
+
+                tester.loginRequest().anotherAuthorizationToken().receiveResponse();
+
+                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
+                tester.configRequest().softphone().receiveResponse();
+
+                tester.statusesRequest().createExpectation().
+                    anotherAuthorizationToken().checkCompliance().receiveResponse();
+
+                tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+
+                tester.connectEventsWebSocket(1);
+                tester.connectSIPWebSocket(1);
+
+                tester.authenticatedUserRequest().receiveResponse();
+                tester.registrationRequest().receiveResponse();
+
+                tester.allowMediaInput();
             });
-            return;
             it('Отображены статусы.', function() {
                 tester.statusesList.item('Не беспокоить').expectToBeSelected();
                 tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
             });
         });
-        return;
         it(
             'Поступает входящий звонок от пользователя имеющего открытые сделки. Нажимаю на открытую сделку. ' +
             'Открывается страница сделки.',
@@ -1229,7 +1268,6 @@ tests.addTest(options => {
             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
         });
     });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
