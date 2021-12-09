@@ -15,7 +15,7 @@ tests.addTest(options => {
         spendTime(0);
     });
 
-    describe(
+    xdescribe(
         'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -1181,6 +1181,21 @@ tests.addTest(options => {
             spendTime(0);
         });
 
+        describe('Раскрываю список статусов.', function() {
+            beforeEach(function() {
+                tester.userName.putMouseOver();
+            });
+
+            it('Нажимаю на кнопку "Выход".', function() {
+                tester.statusesList.item('Выход').click();
+            });
+            return;
+            it('Отображены статусы.', function() {
+                tester.statusesList.item('Не беспокоить').expectToBeSelected();
+                tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
+            });
+        });
+        return;
         it(
             'Поступает входящий звонок от пользователя имеющего открытые сделки. Нажимаю на открытую сделку. ' +
             'Открывается страница сделки.',
@@ -1213,13 +1228,8 @@ tests.addTest(options => {
             tester.statusesList.item('Не беспокоить').expectToBeSelected();
             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
         });
-        it('Раскрываю список статусов. Отображены статусы.', function() {
-            tester.userName.putMouseOver();
-
-            tester.statusesList.item('Не беспокоить').expectToBeSelected();
-            tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
-        });
     });
+    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
