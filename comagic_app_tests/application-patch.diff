@@ -209,7 +209,7 @@ index 7ae73d79..b1c07c03 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index ca4d5019..d1f5ddaa 100644
+index 8ad6c536..73a6557f 100644
 --- a/package.json
 +++ b/package.json
 @@ -83,6 +83,9 @@
