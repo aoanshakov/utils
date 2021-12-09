@@ -15,7 +15,7 @@ tests.addTest(options => {
         spendTime(0);
     });
 
-    xdescribe(
+    describe(
         'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -353,7 +353,9 @@ tests.addTest(options => {
                                     it('Открытые сделки существуют. Открытые сделки отображены.', function() {
                                         tester.outCallEvent().activeLeads().receive();
 
-                                        tester.anchor('По звонку с 79154394340').expectHrefToHavePath(
+                                        tester.anchor('По звонку с 79154394340').click();
+
+                                        windowOpener.expectToHavePath(
                                             'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
                                         );
                                     });
@@ -1175,14 +1177,34 @@ tests.addTest(options => {
         });
 
         afterEach(function() {
+            window.getElectronCookiesManager().reset();
             spendTime(0);
         });
 
-        it('Открываю историю звонков.', function() {
+        it(
+            'Поступает входящий звонок от пользователя имеющего открытые сделки. Нажимаю на открытую сделку. ' +
+            'Открывается страница сделки.',
+        function() {
+            tester.incomingCall().receive();
+            Promise.runAll(false, true);
+            tester.numaRequest().receiveResponse();
+
+            tester.outCallEvent().activeLeads().receive();
+
+            tester.anchor('По звонку с 79154394340').click();
+
+            packages.electron.shell.
+                expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/leads/detail/3003651');
+        });
+        it('Открываю историю звонков. Открывается страница контакта.', function() {
             tester.callsHistoryButton.click();
             tester.callsRequest().receiveResponse();
+
+            tester.callsHistoryRow.withText('Гяурова Марийка').name.click();
+
+            packages.electron.shell.
+                expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
         });
-        return;
         it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
             tester.dialpadButton.click();
 
@@ -1198,7 +1220,6 @@ tests.addTest(options => {
             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
         });
     });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,

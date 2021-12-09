@@ -29,6 +29,8 @@ define(() => function ({
             'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
     );
 
+    window.rootConfig = {appName};
+
     window.application.run({
         setHistory: value => (history = value),
         appName
