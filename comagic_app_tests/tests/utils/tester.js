@@ -1982,7 +1982,6 @@ define(() => function ({
             textEquals(text).
             matchesSelector(
                 'button, ' +
-                '.clct-radio-button-default-inner, ' +
                 '.clct-c-button, ' +
                 '.ui-radio-content, ' +
                 '.cmg-switch-label'
@@ -1991,7 +1990,7 @@ define(() => function ({
 
         const fieldTester = testersFactory.createDomElementTester(() => (
             domElement.closest('.ui-radio-wrapper, .cmg-switch-wrapper') || new JsTester_NoElement()
-        ).querySelector('input, .ui-switch'));
+        ).querySelector('.ui-radio, .ui-switch'));
 
         const tester = testersFactory.createDomElementTester(domElement),
             click = tester.click.bind(tester);
@@ -2011,13 +2010,10 @@ define(() => function ({
             spendTime(0);
         };
 
-        if (isSwitch) {
-            tester.expectToBeChecked = () => fieldTester.expectToHaveClass('ui-switch-checked');
-            tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass('ui-switch-checked');
-        } else {
-            tester.expectToBeChecked = () => fieldTester.expectToHaveAttribute('checked');
-            tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveAttribute('checked');
-        }
+        const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked';
+
+        tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
+        tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
         
         return tester;
     };

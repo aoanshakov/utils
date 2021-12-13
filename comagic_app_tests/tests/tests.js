@@ -15,7 +15,7 @@ tests.addTest(options => {
         spendTime(0);
     });
 
-    xdescribe(
+    describe(
         'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -1186,7 +1186,7 @@ tests.addTest(options => {
             spendTime(0);
         });
 
-        xdescribe('Раскрываю список статусов.', function() {
+        describe('Раскрываю список статусов.', function() {
             beforeEach(function() {
                 tester.userName.putMouseOver();
             });
@@ -1240,7 +1240,7 @@ tests.addTest(options => {
                 tester.settingsButton.click();
             });
             
-            xit('Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".', function() {
+            it('Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".', function() {
                 tester.button('Статусы').click();
 
                 tester.button('Автоматически').click();
@@ -1257,7 +1257,7 @@ tests.addTest(options => {
                 tester.settingsUpdatingRequest().dontDisturbOnLogout().receiveResponse();
                 tester.settingsRequest().autoSetStatus().pauseOnLogin().dontDisturbOnLogout().receiveResponse();
             });
-            xit(
+            it(
                 'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или IP-телефон". Отмечена кнопка ' +
                 '"Софтфон или IP-телефон".',
             function() {
@@ -1273,7 +1273,7 @@ tests.addTest(options => {
                 tester.button('Виджет').expectNotToBeChecked();
                 tester.button('Софтфон или IP-телефон').expectToBeChecked();
             });
-            xit('Нажимаю на кнопку "Включить мелодию звонка".', function() {
+            it('Нажимаю на кнопку "Включить мелодию звонка".', function() {
                 tester.button('Включить мелодию звонка').click();
                 tester.settingsUpdatingRequest().incomingCallSoundDisabled().receiveResponse();
                 tester.settingsRequest().incomingCallSoundDisabled().receiveResponse();
@@ -1287,7 +1287,6 @@ tests.addTest(options => {
                 tester.button('Открывать во время звонка').expectNotToExist();
             });
         });
-        return;
         it(
             'Поступает входящий звонок от пользователя имеющего открытые сделки. Нажимаю на открытую сделку. ' +
             'Открывается страница сделки.',
@@ -1321,7 +1320,6 @@ tests.addTest(options => {
             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
         });
     });
-    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
