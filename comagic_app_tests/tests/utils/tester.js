@@ -60,9 +60,12 @@ define(() => function ({
             );
 
             return tester;
-        })(() => (
+        })(() => [
+            '.ui-select-field',
+            '.ui-select'
+        ].reduce((domElement, selector) => domElement || (
             getRootElement() || new JsTester_NoElement()
-        ).querySelector('.ui-select-field') || new JsTester_NoElement())
+        ).querySelector(selector), null) || new JsTester_NoElement())
 
         {
             const getInput = () => utils.getVisibleSilently(
@@ -92,6 +95,18 @@ define(() => function ({
 
         return me;
     };
+
+    me.fieldRow = text => (() => {
+        const labelEl = utils.descendantOfBody().
+            textEquals(text).
+            matchesSelector('.ui-label-content-field-label, .clct-settings-field-label').
+            find();
+
+        const row = labelEl.closest('.ant-row, .clct-settings-field-row'),
+            me = testersFactory.createDomElementTester(row);
+
+        return addTesters(me, () => row);
+    })();
 
     const addAuthErrorResponseModifiers = (me, response) => {
         me.accessTokenExpired = () => {
@@ -457,6 +472,60 @@ define(() => function ({
         };
     };
 
+    me.settingsUpdatingRequest = () => {
+        const params = {};
+
+        return {
+            incomingCallSoundDisabled() {
+                params.is_enable_incoming_call_sound = false;
+                return this;
+            },
+
+            callsAreManagedByAnotherDevice() {
+                params.is_use_widget_for_calls = false;
+                return this;
+            },
+
+            autoSetStatus() {
+                params.is_need_auto_set_status = true;
+                return this;
+            },
+
+            pauseOnLogin() {
+                params.on_login_status_id = 2;
+                return this;
+            },
+
+            dontDisturbOnLogout() {
+                params.on_logout_status_id = 3;
+                return this;
+            },
+
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectPathToContain('/sup/api/v1/settings').
+                    expectToHaveMethod('PATCH').
+                    expectBodyToContain(params);
+
+                return {
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: true
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                }
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
+            }
+        };
+    };
+
     me.settingsRequest = () => {
         const response = {
             data: {
@@ -496,13 +565,33 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
-            me.setInvalidRTUConfig = function () {
+            me.incomingCallSoundDisabled = () => {
+                response.data.is_enable_incoming_call_sound = false;
+                return me;
+            };
+
+            me.autoSetStatus = () => {
+                response.data.is_need_auto_set_status = true;
+                return me;
+            };
+
+            me.pauseOnLogin = () => {
+                response.data.on_login_status_id = 2;
+                return me;
+            };
+
+            me.dontDisturbOnLogout = () => {
+                response.data.on_logout_status_id = 3;
+                return me;
+            };
+
+            me.setInvalidRTUConfig = () => {
                 response.data.rtu_webrtc_urls = ['wss://rtu-webrtc.uiscom.ru'],
                 response.data.sip_phone = '076909';
                 return me;
             };
 
-            me.setRTU = function () {
+            me.setRTU = () => {
                 response.data.webrtc_urls = ['wss://webrtc.uiscom.ru'];
                 response.data.sip_phone = '076909';
                 response.data.rtu_sip_host = 'pp-rtu.uis.st:443';
@@ -1889,16 +1978,47 @@ define(() => function ({
     ))(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
 
     me.button = text => {
-        const tester = testersFactory.createDomElementTester(
-            utils.descendantOfBody().
-                textEquals(text).
-                matchesSelector('button, .clct-radio-button-default-inner').
-                find()
-        );
+        const domElement = utils.descendantOfBody().
+            textEquals(text).
+            matchesSelector(
+                'button, ' +
+                '.clct-radio-button-default-inner, ' +
+                '.clct-c-button, ' +
+                '.ui-radio-content, ' +
+                '.cmg-switch-label'
+            ).
+            find();
 
-        const click = tester.click.bind(tester);
-        tester.click = () => (click(), Promise.runAll(false, true));
+        const fieldTester = testersFactory.createDomElementTester(() => (
+            domElement.closest('.ui-radio-wrapper, .cmg-switch-wrapper') || new JsTester_NoElement()
+        ).querySelector('input, .ui-switch'));
 
+        const tester = testersFactory.createDomElementTester(domElement),
+            click = tester.click.bind(tester);
+
+        const isSwitch = (() => {
+            try {
+                return domElement.classList.contains('cmg-switch-label')
+            } catch (e) {
+                return false;
+            }
+        })();
+        
+        tester.click = () => {
+            isSwitch ? fieldTester.click() : click();
+
+            Promise.runAll(false, true);
+            spendTime(0);
+        };
+
+        if (isSwitch) {
+            tester.expectToBeChecked = () => fieldTester.expectToHaveClass('ui-switch-checked');
+            tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass('ui-switch-checked');
+        } else {
+            tester.expectToBeChecked = () => fieldTester.expectToHaveAttribute('checked');
+            tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveAttribute('checked');
+        }
+        
         return tester;
     };
 
@@ -1908,6 +2028,7 @@ define(() => function ({
 
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
     me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
+    me.settingsButton = testersFactory.createDomElementTester('.cmg-settings-button');
 
     me.userName = (tester => {
         const putMouseOver = tester.putMouseOver.bind(tester);

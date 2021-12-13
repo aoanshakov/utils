@@ -5355,6 +5355,9 @@ function JsTester_NoElement () {
     this.classList = {
         add: function () {
             throw new Error('Элемент должен существовать');
+        },
+        contains: function () {
+            throw new Error('Элемент должен существовать');
         }
     };
     this.closest = function () {

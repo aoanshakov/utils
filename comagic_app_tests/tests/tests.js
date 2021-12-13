@@ -15,7 +15,7 @@ tests.addTest(options => {
         spendTime(0);
     });
 
-    describe(
+    xdescribe(
         'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -1186,7 +1186,7 @@ tests.addTest(options => {
             spendTime(0);
         });
 
-        describe('Раскрываю список статусов.', function() {
+        xdescribe('Раскрываю список статусов.', function() {
             beforeEach(function() {
                 tester.userName.putMouseOver();
             });
@@ -1235,6 +1235,59 @@ tests.addTest(options => {
                 tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
             });
         });
+        describe('Нажимаю на кнопку настроек.', function() {
+            beforeEach(function() {
+                tester.settingsButton.click();
+            });
+            
+            xit('Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".', function() {
+                tester.button('Статусы').click();
+
+                tester.button('Автоматически').click();
+                tester.settingsUpdatingRequest().autoSetStatus().receiveResponse();
+                tester.settingsRequest().autoSetStatus().receiveResponse();
+
+                tester.fieldRow('При входе').select.arrow.click();
+                tester.select.option('Перерыв').click();
+                tester.settingsUpdatingRequest().pauseOnLogin().receiveResponse();
+                tester.settingsRequest().autoSetStatus().pauseOnLogin().receiveResponse();
+
+                tester.fieldRow('При выходе').select.arrow.click();
+                tester.select.option('Не беспокоить').click();
+                tester.settingsUpdatingRequest().dontDisturbOnLogout().receiveResponse();
+                tester.settingsRequest().autoSetStatus().pauseOnLogin().dontDisturbOnLogout().receiveResponse();
+            });
+            xit(
+                'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или IP-телефон". Отмечена кнопка ' +
+                '"Софтфон или IP-телефон".',
+            function() {
+                tester.button('Софтфон или IP-телефон').click();
+                tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().receiveResponse();
+                tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
+
+                tester.registrationRequest().expired().receiveResponse();
+                
+                spendTime(2000);
+                tester.webrtcWebsocket.finishDisconnecting();
+
+                tester.button('Виджет').expectNotToBeChecked();
+                tester.button('Софтфон или IP-телефон').expectToBeChecked();
+            });
+            xit('Нажимаю на кнопку "Включить мелодию звонка".', function() {
+                tester.button('Включить мелодию звонка').click();
+                tester.settingsUpdatingRequest().incomingCallSoundDisabled().receiveResponse();
+                tester.settingsRequest().incomingCallSoundDisabled().receiveResponse();
+
+                tester.button('Включить мелодию звонка').expectNotToBeChecked();
+            });
+            it('Отмечена кнопка "Виджет".', function() {
+                tester.button('Виджет').expectToBeChecked();
+                tester.button('Софтфон или IP-телефон').expectNotToBeChecked();
+                tester.button('Включить мелодию звонка').expectToBeChecked();
+                tester.button('Открывать во время звонка').expectNotToExist();
+            });
+        });
+        return;
         it(
             'Поступает входящий звонок от пользователя имеющего открытые сделки. Нажимаю на открытую сделку. ' +
             'Открывается страница сделки.',
@@ -1268,6 +1321,7 @@ tests.addTest(options => {
             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
         });
     });
+    return;
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
