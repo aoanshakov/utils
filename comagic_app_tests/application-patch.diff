@@ -13,14 +13,14 @@ index debf8e05..6a97aa48 100644
 +REACT_APP_LEADGEN_MODULE=https://localhost:8084
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 689b3bc5..014253b5 100644
+index 689b3bc5..db8551cb 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -9,6 +9,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
  const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
  const TerserPlugin = require('terser-webpack-plugin');
  const comagicCoreDeps = require('@comagic/core/package.json');
-++const hash = require('string-hash');
++const hash = require('string-hash');
  
  const { ModuleFederationPlugin } = webpack.container;
  const deps = require('../package.json').dependencies;
