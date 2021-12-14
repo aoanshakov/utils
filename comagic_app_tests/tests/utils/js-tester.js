@@ -3527,6 +3527,10 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
     };
 
     this.findAll = function (logEnabled) {
+        if (!ascendantElement.querySelectorAll) {
+            throw new Error(`Объект ${ascendantElement} не является HTML-элементом.`);
+        }
+
         var i,
             descendants = ascendantElement.querySelectorAll(selector),
             length = descendants.length,

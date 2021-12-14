@@ -43,6 +43,51 @@ define(() => function ({
     Promise.runAll(false, true);
 
     const addTesters = (me, getRootElement) => {
+        me.button = text => {
+            let domElement = utils.descendantOf(getRootElement()).
+                textEquals(text).
+                matchesSelector(
+                    'button, ' +
+                    '.clct-c-button, ' +
+                    '.ui-radio-content, ' +
+                    '.cmg-switch-label, ' +
+                    '.src-components-main-menu-nav-item-styles-module__label, ' +
+                    '.src-components-main-menu-settings-styles-module__label'
+                ).
+                find();
+
+            domElement = domElement.querySelector('a') || domElement;
+
+            const fieldTester = testersFactory.createDomElementTester(() => (
+                domElement.closest('.ui-radio-wrapper, .cmg-switch-wrapper') || new JsTester_NoElement()
+            ).querySelector('.ui-radio, .ui-switch'));
+
+            const tester = testersFactory.createDomElementTester(domElement),
+                click = tester.click.bind(tester);
+
+            const isSwitch = (() => {
+                try {
+                    return domElement.classList.contains('cmg-switch-label')
+                } catch (e) {
+                    return false;
+                }
+            })();
+            
+            tester.click = () => {
+                isSwitch ? fieldTester.click() : click();
+
+                Promise.runAll(false, true);
+                spendTime(0);
+            };
+
+            const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked';
+
+            tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
+            tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
+            
+            return tester;
+        };
+
         me.select = (getSelectField => {
             const tester = testersFactory.createDomElementTester(getSelectField);
 
@@ -95,6 +140,13 @@ define(() => function ({
 
         return me;
     };
+
+    me.popover = (() => {
+        const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
 
     me.fieldRow = text => (() => {
         const labelEl = utils.descendantOfBody().
@@ -1749,7 +1801,7 @@ define(() => function ({
                             'is_insert': true,
                             'is_select': true,
                             'is_update': true,
-                        },
+                        }
                     ],
                     is_agent_app: false
                 }
@@ -1976,48 +2028,6 @@ define(() => function ({
         testersFactory.createDomElementTester(getRootElement),
         getRootElement
     ))(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
-
-    me.button = text => {
-        const domElement = utils.descendantOfBody().
-            textEquals(text).
-            matchesSelector(
-                'button, ' +
-                '.clct-c-button, ' +
-                '.ui-radio-content, ' +
-                '.cmg-switch-label, ' +
-                '.src-components-main-menu-nav-item-styles-module__label'
-            ).
-            find();
-
-        const fieldTester = testersFactory.createDomElementTester(() => (
-            domElement.closest('.ui-radio-wrapper, .cmg-switch-wrapper') || new JsTester_NoElement()
-        ).querySelector('.ui-radio, .ui-switch'));
-
-        const tester = testersFactory.createDomElementTester(domElement),
-            click = tester.click.bind(tester);
-
-        const isSwitch = (() => {
-            try {
-                return domElement.classList.contains('cmg-switch-label')
-            } catch (e) {
-                return false;
-            }
-        })();
-        
-        tester.click = () => {
-            isSwitch ? fieldTester.click() : click();
-
-            Promise.runAll(false, true);
-            spendTime(0);
-        };
-
-        const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked';
-
-        tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
-        tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
-        
-        return tester;
-    };
 
     me.closeButton = testersFactory.createDomElementTester(
         '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close'

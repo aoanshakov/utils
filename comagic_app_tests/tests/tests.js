@@ -103,7 +103,7 @@ tests.addTest(options => {
                                         registrationRequest.receiveResponse();
                                     });
 
-                                    xdescribe('Поступил входящий звонок.', function() {
+                                    describe('Поступил входящий звонок.', function() {
                                         beforeEach(function() {
                                             tester.incomingCall().receive();
                                             Promise.runAll(false, true);
@@ -376,9 +376,12 @@ tests.addTest(options => {
                                     });
                                     it('Нажимаю на кнопку "Настройки".', function() {
                                         tester.button('Настройки').click();
+                                        tester.popover.button('Софтфон').click();
+
+                                        tester.popover.expectToBeHiddenOrNotExist();
+                                        tester.button('Софтфон или IP-телефон').expectToBeVisible();
                                     });
                                 });
-                                return;
                                 describe('Нажимаю на иконку с телефоном.', function() {
                                     beforeEach(function() {
                                         tester.button('Софтфон').click();
@@ -782,7 +785,6 @@ tests.addTest(options => {
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
                                 });
                             });
-                            return;
                             describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                                 let refreshRequest;
 
@@ -811,7 +813,6 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        return;
                         it(
                             'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о ' +
                             'том, что SIP-линия не зарегистрирована.',
@@ -830,7 +831,6 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    return;
                     describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                         beforeEach(function() {
                             tester.disallowMediaInput();
@@ -851,7 +851,6 @@ tests.addTest(options => {
                         });
                     });
                 });
-                return;
                 it(
                     'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
@@ -898,7 +897,6 @@ tests.addTest(options => {
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
                 });
             });
-            return;
             describe('Нажимаю на иконку с телефоном.', function() {
                 beforeEach(function() {
                     reportGroupsRequest.receiveResponse();
@@ -1073,7 +1071,6 @@ tests.addTest(options => {
                 });
             });
         });
-        return;
         describe('Чаты доступны. Софтфон недоступен.', function() {
             beforeEach(function() {
                 accountRequest.operatorWorkplaceAvailable().softphoneUnavailable().receiveResponse();
@@ -1159,7 +1156,6 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    return;
     describe('Открываю декстопное приложение софтфона.', function() {
         let tester,
             packages;
