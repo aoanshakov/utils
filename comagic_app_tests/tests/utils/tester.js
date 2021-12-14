@@ -34,6 +34,8 @@ define(() => function ({
         appName
     });
 
+    history.replace('/');
+
     Promise.runAll(false, true);
     spendTime(0);
     Promise.runAll(false, true);
@@ -131,8 +133,8 @@ define(() => function ({
     });
 
     me.operatorOfflineMessageListRequest = () => ({
-        expectToBeSent() {
-            const request = ajax.recentRequest().
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                 expectPathToContain('logic/operator/offline_message/list').
                 expectBodyToContain({
                     statuses: ['not_processed', 'processing'],
@@ -644,286 +646,338 @@ define(() => function ({
     };
 
     me.chatChannelListRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                 expectPathToContain('/logic/operator/chat/channel/list').
-                expectToHaveMethod('GET').
-                respondSuccessfullyWith({
-                    result: {
-                        data: []
-                    }
-                });
+                expectToHaveMethod('GET');
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        result: {
+                            data: []
+                        }
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
         }
     });
 
     me.chatListRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                 expectPathToContain('/logic/operator').
                 expectToHaveMethod('POST').
                 expectBodyToContain({
                     method: 'get_chat_list',
                     params: {
-                        app_id: 1103,
-                        employee_id: 20816,
                         statuses: ['new', 'active'],
                         limit: 1000,
                         offset: 0
                     }
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        data: []
-                    }
                 });
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        result: {
+                            data: []
+                        }
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
         }
     });
 
     me.operatorAccountRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                 expectPathToContain('/logic/operator').
                 expectToHaveMethod('POST').
                 expectBodyToContain({
                     method: 'get_account',
                     params: {}
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        data: {
-                            app_id: 1103,
-                            app_state: 'active',
-                            app_name: 'Карадимова Веска Анастасовна',
-                            is_agent_app: false,
-                            customer_id: 183510,
-                            user_id: 151557,
-                            employee_id: 20816,
-                            user_type: 'user',
-                            user_login: 'karadimova',
-                            user_name: 'karadimova',
-                            tp_id: 406,
-                            tp_name: 'Comagic Enterprise',
-                            crm_type: 'e2e_analytics',
-                            lang: 'ru',
-                            project: 'comagic',
-                            timezone: 'Europe/Moscow',
-                            permissions: [{
-                                'unit_id': 'call_recordings',
-                                'is_delete': true,
-                                'is_insert': false,
-                                'is_select': true,
-                                'is_update': true,
-                            }, {
-                                'unit_id': 'tag_management',
-                                'is_delete': true,
-                                'is_insert': true,
-                                'is_select': true,
-                                'is_update': true,
-                            }]
-                        }
-                    }
                 });
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        result: {
+                            data: {
+                                app_id: 1103,
+                                app_state: 'active',
+                                app_name: 'Карадимова Веска Анастасовна',
+                                is_agent_app: false,
+                                customer_id: 183510,
+                                user_id: 151557,
+                                employee_id: 20816,
+                                user_type: 'user',
+                                user_login: 'karadimova',
+                                user_name: 'karadimova',
+                                tp_id: 406,
+                                tp_name: 'Comagic Enterprise',
+                                crm_type: 'e2e_analytics',
+                                lang: 'ru',
+                                project: 'comagic',
+                                timezone: 'Europe/Moscow',
+                                permissions: [{
+                                    'unit_id': 'call_recordings',
+                                    'is_delete': true,
+                                    'is_insert': false,
+                                    'is_select': true,
+                                    'is_update': true,
+                                }, {
+                                    'unit_id': 'tag_management',
+                                    'is_delete': true,
+                                    'is_insert': true,
+                                    'is_select': true,
+                                    'is_update': true,
+                                }]
+                            }
+                        }
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
         }
     });
 
     me.operatorSiteListRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                 expectPathToContain('/logic/operator/site/list').
-                expectToHaveMethod('GET').
-                respondSuccessfullyWith({
-                    result: {
-                        data: []
-                    }
-                });
+                expectToHaveMethod('GET');
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        result: {
+                            data: []
+                        }
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
         }
     });
 
     me.operatorListRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                 expectPathToContain('/logic/operator/list').
-                expectToHaveMethod('GET').
-                respondSuccessfullyWith({
-                    data: [{
-                        id: 20816,
-                        full_name: 'Карадимова Веска Анастасовна',
-                        status_id: 1,
-                        photo_link: null
-                    }]
-                });
+                expectToHaveMethod('GET');
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        data: [{
+                            id: 20816,
+                            full_name: 'Карадимова Веска Анастасовна',
+                            status_id: 1,
+                            photo_link: null
+                        }]
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
         }
     });
 
     me.operatorStatusListRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                 expectPathToContain('/logic/operator/status/list').
-                expectToHaveMethod('GET').
-                respondSuccessfullyWith({
-                    data: [{
-                        id: 1,
-                        is_worktime: true,
-                        mnemonic: 'available',
-                        name: 'Доступен',
-                        is_select_allowed: true,
-                        description: 'все вызовы',
-                        color: '#48b882',
-                        icon_mnemonic: 'tick',
-                        is_auto_out_calls_ready: true,
-                        is_deleted: false,
-                        in_external_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        in_internal_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        out_external_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        out_internal_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        allowed_phone_protocols: [
-                            'SIP'
-                        ],
-                    }, {
-                        id: 2,
-                        is_worktime: true,
-                        mnemonic: 'break',
-                        name: 'Перерыв',
-                        is_select_allowed: true,
-                        description: 'временное отключение',
-                        color: '#1179ad',
-                        icon_mnemonic: 'pause',
-                        is_auto_out_calls_ready: true,
-                        is_deleted: false,
-                        in_external_allowed_call_directions: [],
-                        in_internal_allowed_call_directions: [],
-                        out_external_allowed_call_directions: [],
-                        out_internal_allowed_call_directions: [],
-                        allowed_phone_protocols: [
-                            'SIP'
-                        ],
-                    }, {
-                        id: 3,
-                        is_worktime: true,
-                        mnemonic: 'do_not_disturb',
-                        name: 'Не беспокоить',
-                        is_select_allowed: true,
-                        icon_mnemonic: 'minus',
-                        description: 'только исходящие',
-                        color: '#cc5d35',
-                        is_auto_out_calls_ready: true,
-                        is_deleted: false,
-                        in_external_allowed_call_directions: [],
-                        in_internal_allowed_call_directions: [],
-                        out_external_allowed_call_directions: [],
-                        out_internal_allowed_call_directions: []
-                    }, {
-                        id: 4,
-                        is_worktime: true,
-                        mnemonic: 'not_at_workplace',
-                        name: 'Нет на месте',
-                        is_select_allowed: true,
-                        description: 'все вызовы на мобильном',
-                        color: '#ebb03b',
-                        icon_mnemonic: 'time',
-                        is_auto_out_calls_ready: true,
-                        is_deleted: false,
-                        in_external_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        in_internal_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        out_external_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        out_internal_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        allowed_phone_protocols: [
-                            'SIP'
-                        ]
-                    }, {
-                        id: 5,
-                        is_worktime: false,
-                        mnemonic: 'not_at_work',
-                        name: 'Нет на работе',
-                        is_select_allowed: true,
-                        description: 'полное отключение',
-                        color: '#99acb7',
-                        icon_mnemonic: 'cross',
-                        is_auto_out_calls_ready: true,
-                        is_deleted: false,
-                        in_external_allowed_call_directions: [],
-                        in_internal_allowed_call_directions: [],
-                        out_external_allowed_call_directions: [],
-                        out_internal_allowed_call_directions: []
-                    }, {
-                        id: 6,
-                        is_worktime: false,
-                        mnemonic: 'unknown',
-                        name: 'Неизвестно',
-                        is_select_allowed: false,
-                        icon_mnemonic: 'unknown',
-                        color: null,
-                        is_auto_out_calls_ready: true,
-                        is_deleted: false,
-                        in_external_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        in_internal_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        out_external_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        out_internal_allowed_call_directions: [
-                            'in',
-                            'out'
-                        ],
-                        allowed_phone_protocols: [
-                            'SIP'
-                        ]
-                    }]
-                });
+                expectToHaveMethod('GET');
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        data: [{
+                            id: 1,
+                            is_worktime: true,
+                            mnemonic: 'available',
+                            name: 'Доступен',
+                            is_select_allowed: true,
+                            description: 'все вызовы',
+                            color: '#48b882',
+                            icon_mnemonic: 'tick',
+                            is_auto_out_calls_ready: true,
+                            is_deleted: false,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ],
+                        }, {
+                            id: 2,
+                            is_worktime: true,
+                            mnemonic: 'break',
+                            name: 'Перерыв',
+                            is_select_allowed: true,
+                            description: 'временное отключение',
+                            color: '#1179ad',
+                            icon_mnemonic: 'pause',
+                            is_auto_out_calls_ready: true,
+                            is_deleted: false,
+                            in_external_allowed_call_directions: [],
+                            in_internal_allowed_call_directions: [],
+                            out_external_allowed_call_directions: [],
+                            out_internal_allowed_call_directions: [],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ],
+                        }, {
+                            id: 3,
+                            is_worktime: true,
+                            mnemonic: 'do_not_disturb',
+                            name: 'Не беспокоить',
+                            is_select_allowed: true,
+                            icon_mnemonic: 'minus',
+                            description: 'только исходящие',
+                            color: '#cc5d35',
+                            is_auto_out_calls_ready: true,
+                            is_deleted: false,
+                            in_external_allowed_call_directions: [],
+                            in_internal_allowed_call_directions: [],
+                            out_external_allowed_call_directions: [],
+                            out_internal_allowed_call_directions: []
+                        }, {
+                            id: 4,
+                            is_worktime: true,
+                            mnemonic: 'not_at_workplace',
+                            name: 'Нет на месте',
+                            is_select_allowed: true,
+                            description: 'все вызовы на мобильном',
+                            color: '#ebb03b',
+                            icon_mnemonic: 'time',
+                            is_auto_out_calls_ready: true,
+                            is_deleted: false,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 5,
+                            is_worktime: false,
+                            mnemonic: 'not_at_work',
+                            name: 'Нет на работе',
+                            is_select_allowed: true,
+                            description: 'полное отключение',
+                            color: '#99acb7',
+                            icon_mnemonic: 'cross',
+                            is_auto_out_calls_ready: true,
+                            is_deleted: false,
+                            in_external_allowed_call_directions: [],
+                            in_internal_allowed_call_directions: [],
+                            out_external_allowed_call_directions: [],
+                            out_internal_allowed_call_directions: []
+                        }, {
+                            id: 6,
+                            is_worktime: false,
+                            mnemonic: 'unknown',
+                            name: 'Неизвестно',
+                            is_select_allowed: false,
+                            icon_mnemonic: 'unknown',
+                            color: null,
+                            is_auto_out_calls_ready: true,
+                            is_deleted: false,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }]
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
         }
     });
 

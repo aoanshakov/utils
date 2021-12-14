@@ -1059,29 +1059,44 @@ tests.addTest(options => {
                 tester.reportsListRequest().receiveResponse();
                 tester.reportTypesRequest().receiveResponse();
 
-                const requests = fetch.inAnyOrder();
+                let requests = fetch.inAnyOrder();
 
                 const configRequest1 = tester.configRequest().expectToBeSent(requests),
-                    configRequest2 = tester.configRequest().expectToBeSent(requests);
+                    configRequest2 = tester.configRequest().expectToBeSent(requests),
+                    configRequest3 = tester.configRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 configRequest1.receiveResponse();
                 configRequest2.receiveResponse();
+                configRequest3.receiveResponse();
 
-                tester.operatorAccountRequest().receiveResponse();
+                requests = ajax.inAnyOrder();
 
-                tester.chatChannelListRequest().receiveResponse();
-                tester.operatorStatusListRequest().receiveResponse();
-                tester.operatorListRequest().receiveResponse();
-                tester.operatorSiteListRequest().receiveResponse();
-                tester.operatorAccountRequest().receiveResponse();
+                const secondOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests),
+                    chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
+                    operatorStatusListRequest = tester.operatorStatusListRequest().expectToBeSent(requests),
+                    operatorListRequest = tester.operatorListRequest().expectToBeSent(requests),
+                    operatorSiteListRequest = tester.operatorSiteListRequest().expectToBeSent(requests),
+                    thirdOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests);
+                    operatorOfflineMessageListRequest =
+                        tester.operatorOfflineMessageListRequest().expectToBeSent(requests);
+                    chatListRequest = tester.chatListRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                secondOperatorAccountRequest.receiveResponse();
+                chatChannelListRequest.receiveResponse();
+                operatorStatusListRequest.receiveResponse();
+                operatorListRequest.receiveResponse();
+                operatorSiteListRequest.receiveResponse();
+                thirdOperatorAccountRequest.receiveResponse();
 
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
 
-                tester.operatorOfflineMessageListRequest().receiveResponse();
-                tester.chatListRequest().receiveResponse();
+                operatorOfflineMessageListRequest.receiveResponse();
+                chatListRequest.receiveResponse();
             });
 
             describe('Нажимаю на кнопку аккаунта.', function() {
