@@ -1984,7 +1984,8 @@ define(() => function ({
                 'button, ' +
                 '.clct-c-button, ' +
                 '.ui-radio-content, ' +
-                '.cmg-switch-label'
+                '.cmg-switch-label, ' +
+                '.src-components-main-menu-nav-item-styles-module__label'
             ).
             find();
 

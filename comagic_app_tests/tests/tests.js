@@ -98,22 +98,197 @@ tests.addTest(options => {
                                     reportGroupsRequest.receiveResponse();
                                 });
 
-                                describe('SIP-регистрация завершена. Поступил входящий звонок.', function() {
+                                describe('SIP-регистрация завершена.', function() {
                                     beforeEach(function() {
                                         registrationRequest.receiveResponse();
-
-                                        tester.incomingCall().receive();
-                                        Promise.runAll(false, true);
-                                        tester.numaRequest().receiveResponse();
                                     });
 
-                                    describe('Контакт найден.', function() {
+                                    xdescribe('Поступил входящий звонок.', function() {
                                         beforeEach(function() {
-                                            tester.outCallEvent().receive();
+                                            tester.incomingCall().receive();
+                                            Promise.runAll(false, true);
+                                            tester.numaRequest().receiveResponse();
                                         });
 
-                                        describe('Принимаю звонок.', function() {
+                                        describe('Контакт найден.', function() {
                                             beforeEach(function() {
+                                                tester.outCallEvent().receive();
+                                            });
+
+                                            describe('Принимаю звонок.', function() {
+                                                beforeEach(function() {
+                                                    tester.callButton.click();
+
+                                                    tester.firstConnection.connectWebRTC();
+                                                    tester.firstConnection.callTrackHandler();
+
+                                                    tester.allowMediaInput();
+                                                    tester.firstConnection.addCandidate();
+                                                    tester.requestAcceptIncomingCall();
+                                                });
+
+                                                describe('Нажимаю на кнопку трансфера.', function() {
+                                                    let usersRequest,
+                                                        usersInGroupsRequest;
+
+                                                    beforeEach(function() {
+                                                        tester.transferButton.click();
+
+                                                        usersRequest = tester.usersRequest().expectToBeSent();
+                                                        usersInGroupsRequest = tester.usersInGroupsRequest().
+                                                            expectToBeSent();
+                                                        tester.groupsRequest().receiveResponse();
+                                                    });
+
+                                                    describe('Сотрдников мало.', function() {
+                                                        beforeEach(function() {
+                                                            usersRequest.receiveResponse();
+                                                            usersInGroupsRequest.receiveResponse();
+                                                        });
+
+                                                        describe('Нажимаю на кнопку поиска.', function() {
+                                                            beforeEach(function() {
+                                                                tester.searchButton.click();
+                                                            });
+
+                                                            describe('Ввожу значение в поле поиска.', function() {
+                                                                beforeEach(function() {
+                                                                    tester.softphone.input.fill('ова');
+                                                                });
+
+                                                                it(
+                                                                    'Нажимаю на иконку очищения поля. Отображены все ' +
+                                                                    'сотрудники.',
+                                                                function() {
+                                                                    tester.softphone.input.clearIcon.click();
+
+                                                                    tester.softphone.expectToHaveTextContent(
+                                                                        'Сотрудники Группы ' +
+
+                                                                        'ЙБ Божилова Йовка 296 ' +
+                                                                        'НГ Господинова Николина 295 ' +
+                                                                        'Шалева Дора 8258'
+                                                                    );
+                                                                });
+                                                                it('Отображены найденные сотрудники.', function() {
+                                                                    tester.softphone.expectToHaveTextContent(
+                                                                        'ЙБ Божил ова Йовка 296 ' +
+                                                                        'НГ Господин ова Николина 295'
+                                                                    );
+                                                                });
+                                                            });
+                                                            it(
+                                                                'Ввожу значение в поле поиска. Ничего не найдено. ' +
+                                                                'Отображено сообщение о том, что ничего не найдено.',
+                                                            function() {
+                                                                tester.softphone.input.fill('йцукен');
+                                                                tester.softphone.
+                                                                    expectToHaveTextContent('Сотрудник не найден');
+                                                            });
+                                                        });
+                                                        describe('Открываю вкладку групп.', function() {
+                                                            beforeEach(function() {
+                                                                tester.button('Группы').click();
+                                                            });
+
+                                                            it(
+                                                                'Соединение разрывается. Кнопка звонка заблокирована.',
+                                                            function() {
+                                                                tester.disconnectEventsWebSocket();
+                                                                tester.employeeRow('Отдел дистрибуции').expectToBeDisaled();
+                                                            });
+                                                            it('Отображена таблица групп.', function() {
+                                                                tester.employeeRow('Отдел дистрибуции').expectToBeEnabled();
+
+                                                                tester.softphone.expectToHaveTextContent(
+                                                                    'Сотрудники Группы ' +
+
+                                                                    'Отдел дистрибуции 298 1 /1 ' +
+                                                                    'Отдел по работе с ключевыми клиентами 726 0 /1 ' +
+                                                                    'Отдел региональных продаж 828 2 /2'
+                                                                );
+                                                            });
+                                                        });
+                                                        it('Нажимаю на строку в таблице сотрудника.', function() {
+                                                            tester.employeeRow('Господинова Николина').click();
+
+                                                            tester.dtmf('#').send();
+                                                            spendTime(600);
+                                                            tester.dtmf('2').send();
+                                                            spendTime(600);
+                                                            tester.dtmf('9').send();
+                                                            spendTime(600);
+                                                            tester.dtmf('5').send();
+                                                            spendTime(600);
+
+                                                            tester.transferButton.click();
+
+                                                            tester.dtmf('#').send();
+                                                        });
+                                                        it('Отображена таблица сотрудников.', function() {
+                                                            tester.softphone.expectToHaveTextContent(
+                                                                'Сотрудники Группы ' +
+
+                                                                'ЙБ Божилова Йовка 296 ' +
+                                                                'НГ Господинова Николина 295 ' +
+                                                                'Шалева Дора 8258'
+                                                            );
+
+                                                            tester.employeeRow('Божилова Йовка').transferIcon.
+                                                                expectToBeVisible();
+                                                            tester.employeeRow('Божилова Йовка').expectToBeDisaled();
+                                                            tester.employeeRow('Шалева Дора').expectToBeEnabled();
+                                                        });
+                                                    });
+                                                    it('Сотрудников много.', function() {
+                                                        usersRequest.addMore().receiveResponse();
+                                                        usersInGroupsRequest.addMore().receiveResponse();
+                                                    });
+                                                });
+                                                it('Отображено направление и номер.', function() {
+                                                    tester.incomingIcon.expectToBeVisible();
+                                                    tester.softphone.expectTextContentToHaveSubstring(
+                                                        'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                    );
+                                                });
+                                            });
+                                            it('Нажимаю на кнопку открытия контакта.', function() {
+                                                tester.contactOpeningButton.click();
+
+                                                windowOpener.expectToHavePath(
+                                                    'https://comagicwidgets.amocrm.ru/contacts/detail/382030'
+                                                );
+                                            });
+                                            it('Нажимаю на кнопку сворачивания виджета. Виджет свернут.', function() {
+                                                tester.collapsednessToggleButton.click();
+
+                                                tester.collapsednessToggleButton.
+                                                    expectToHaveClass('expand_svg__cmg-expand-icon');
+
+                                                tester.softphone.expectTextContentNotToHaveSubstring('Путь лида');
+                                            });
+                                            it('Отображена информация о контакте.', function() {
+                                                tester.collapsednessToggleButton.
+                                                    expectToHaveClass('collapse_svg__cmg-collapse-icon');
+
+                                                tester.contactOpeningButton.expectNotToHaveClass('cmg-button-disabled');
+                                                tester.incomingIcon.expectToBeVisible();
+
+                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                    'Шалева Дора +7 (916) 123-45-67 ' +
+                                                    'Путь лида'
+                                                );
+
+                                                tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
+                                                tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
+                                            });
+                                        });
+                                        describe('Звонок переведен от другого сотрудника.', function() {
+                                            beforeEach(function() {
+                                                tester.outCallEvent().isTransfer().receive();
+                                            });
+
+                                            it('Принимаю звонок. Отображен знак трансфера номер и таймер.', function() {
                                                 tester.callButton.click();
 
                                                 tester.firstConnection.connectWebRTC();
@@ -122,255 +297,88 @@ tests.addTest(options => {
                                                 tester.allowMediaInput();
                                                 tester.firstConnection.addCandidate();
                                                 tester.requestAcceptIncomingCall();
-                                            });
 
-                                            describe('Нажимаю на кнопку трансфера.', function() {
-                                                let usersRequest,
-                                                    usersInGroupsRequest;
-
-                                                beforeEach(function() {
-                                                    tester.transferButton.click();
-
-                                                    usersRequest = tester.usersRequest().expectToBeSent();
-                                                    usersInGroupsRequest = tester.usersInGroupsRequest().
-                                                        expectToBeSent();
-                                                    tester.groupsRequest().receiveResponse();
-                                                });
-
-                                                describe('Сотрдников мало.', function() {
-                                                    beforeEach(function() {
-                                                        usersRequest.receiveResponse();
-                                                        usersInGroupsRequest.receiveResponse();
-                                                    });
-
-                                                    describe('Нажимаю на кнопку поиска.', function() {
-                                                        beforeEach(function() {
-                                                            tester.searchButton.click();
-                                                        });
-
-                                                        describe('Ввожу значение в поле поиска.', function() {
-                                                            beforeEach(function() {
-                                                                tester.softphone.input.fill('ова');
-                                                            });
-
-                                                            it(
-                                                                'Нажимаю на иконку очищения поля. Отображены все ' +
-                                                                'сотрудники.',
-                                                            function() {
-                                                                tester.softphone.input.clearIcon.click();
-
-                                                                tester.softphone.expectToHaveTextContent(
-                                                                    'Сотрудники Группы ' +
-
-                                                                    'ЙБ Божилова Йовка 296 ' +
-                                                                    'НГ Господинова Николина 295 ' +
-                                                                    'Шалева Дора 8258'
-                                                                );
-                                                            });
-                                                            it('Отображены найденные сотрудники.', function() {
-                                                                tester.softphone.expectToHaveTextContent(
-                                                                    'ЙБ Божил ова Йовка 296 ' +
-                                                                    'НГ Господин ова Николина 295'
-                                                                );
-                                                            });
-                                                        });
-                                                        it(
-                                                            'Ввожу значение в поле поиска. Ничего не найдено. ' +
-                                                            'Отображено сообщение о том, что ничего не найдено.',
-                                                        function() {
-                                                            tester.softphone.input.fill('йцукен');
-                                                            tester.softphone.
-                                                                expectToHaveTextContent('Сотрудник не найден');
-                                                        });
-                                                    });
-                                                    describe('Открываю вкладку групп.', function() {
-                                                        beforeEach(function() {
-                                                            tester.button('Группы').click();
-                                                        });
-
-                                                        it(
-                                                            'Соединение разрывается. Кнопка звонка заблокирована.',
-                                                        function() {
-                                                            tester.disconnectEventsWebSocket();
-                                                            tester.employeeRow('Отдел дистрибуции').expectToBeDisaled();
-                                                        });
-                                                        it('Отображена таблица групп.', function() {
-                                                            tester.employeeRow('Отдел дистрибуции').expectToBeEnabled();
-
-                                                            tester.softphone.expectToHaveTextContent(
-                                                                'Сотрудники Группы ' +
-
-                                                                'Отдел дистрибуции 298 1 /1 ' +
-                                                                'Отдел по работе с ключевыми клиентами 726 0 /1 ' +
-                                                                'Отдел региональных продаж 828 2 /2'
-                                                            );
-                                                        });
-                                                    });
-                                                    it('Нажимаю на строку в таблице сотрудника.', function() {
-                                                        tester.employeeRow('Господинова Николина').click();
-
-                                                        tester.dtmf('#').send();
-                                                        spendTime(600);
-                                                        tester.dtmf('2').send();
-                                                        spendTime(600);
-                                                        tester.dtmf('9').send();
-                                                        spendTime(600);
-                                                        tester.dtmf('5').send();
-                                                        spendTime(600);
-
-                                                        tester.transferButton.click();
-
-                                                        tester.dtmf('#').send();
-                                                    });
-                                                    it('Отображена таблица сотрудников.', function() {
-                                                        tester.softphone.expectToHaveTextContent(
-                                                            'Сотрудники Группы ' +
-
-                                                            'ЙБ Божилова Йовка 296 ' +
-                                                            'НГ Господинова Николина 295 ' +
-                                                            'Шалева Дора 8258'
-                                                        );
-
-                                                        tester.employeeRow('Божилова Йовка').transferIcon.
-                                                            expectToBeVisible();
-                                                        tester.employeeRow('Божилова Йовка').expectToBeDisaled();
-                                                        tester.employeeRow('Шалева Дора').expectToBeEnabled();
-                                                    });
-                                                });
-                                                it('Сотрудников много.', function() {
-                                                    usersRequest.addMore().receiveResponse();
-                                                    usersInGroupsRequest.addMore().receiveResponse();
-                                                });
-                                            });
-                                            it('Отображено направление и номер.', function() {
-                                                tester.incomingIcon.expectToBeVisible();
+                                                tester.transferIncomingIcon.expectToBeVisible();
                                                 tester.softphone.expectTextContentToHaveSubstring(
                                                     'Шалева Дора +7 (916) 123-45-67 00:00:00'
                                                 );
                                             });
+                                            it('Отображено сообщение о переводе звонка.', function() {
+                                                tester.incomingIcon.expectNotToExist();
+                                                tester.outgoingIcon.expectNotToExist();
+
+                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                    'Шалева Дора +7 (916) 123-45-67 Трансфер от Бисерка Макавеева'
+                                                );
+                                            });
                                         });
-                                        it('Нажимаю на кнопку открытия контакта.', function() {
+                                        describe('Звонок производится в рамках исходящего обзвона.', function() {
+                                            var outCallEvent;
+
+                                            beforeEach(function() {
+                                                outCallEvent = tester.outCallEvent().autoCallCampaignName();
+                                            });
+
+                                            it(
+                                                'Имя контакта отсутствует. Звонок обозначен, как исходящий обзвон.',
+                                            function() {
+                                                outCallEvent.noName().receive();
+
+                                                tester.outgoingIcon.expectToBeVisible();
+                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                    '+7 (916) 123-45-67 Исходящий обзвон'
+                                                );
+                                            });
+                                            it('Звонок отображается как исходящий.', function() {
+                                                outCallEvent.receive();
+
+                                                tester.outgoingIcon.expectToBeVisible();
+                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                    'Шалева Дора +7 (916) 123-45-67'
+                                                );
+                                            });
+                                        });
+                                        it(
+                                            'Контакт не найден. Отображно направление звонка. Кнопка открытия контакта ' +
+                                            'заблокирована.',
+                                        function() {
+                                            tester.outCallEvent().noName().noCrmContactLink().receive();
                                             tester.contactOpeningButton.click();
 
-                                            windowOpener.expectToHavePath(
-                                                'https://comagicwidgets.amocrm.ru/contacts/detail/382030'
-                                            );
-                                        });
-                                        it('Нажимаю на кнопку сворачивания виджета. Виджет свернут.', function() {
-                                            tester.collapsednessToggleButton.click();
+                                            tester.contactOpeningButton.expectToHaveClass('cmg-button-disabled');
+                                            windowOpener.expectNoWindowToBeOpened();
 
-                                            tester.collapsednessToggleButton.
-                                                expectToHaveClass('expand_svg__cmg-expand-icon');
-
-                                            tester.softphone.expectTextContentNotToHaveSubstring('Путь лида');
-                                        });
-                                        it('Отображена информация о контакте.', function() {
-                                            tester.collapsednessToggleButton.
-                                                expectToHaveClass('collapse_svg__cmg-collapse-icon');
-
-                                            tester.contactOpeningButton.expectNotToHaveClass('cmg-button-disabled');
                                             tester.incomingIcon.expectToBeVisible();
-
                                             tester.softphone.expectTextContentToHaveSubstring(
-                                                'Шалева Дора +7 (916) 123-45-67 ' +
-                                                'Путь лида'
-                                            );
-
-                                            tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
-                                            tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
-                                        });
-                                    });
-                                    describe('Звонок переведен от другого сотрудника.', function() {
-                                        beforeEach(function() {
-                                            tester.outCallEvent().isTransfer().receive();
-                                        });
-
-                                        it('Принимаю звонок. Отображен знак трансфера номер и таймер.', function() {
-                                            tester.callButton.click();
-
-                                            tester.firstConnection.connectWebRTC();
-                                            tester.firstConnection.callTrackHandler();
-
-                                            tester.allowMediaInput();
-                                            tester.firstConnection.addCandidate();
-                                            tester.requestAcceptIncomingCall();
-
-                                            tester.transferIncomingIcon.expectToBeVisible();
-                                            tester.softphone.expectTextContentToHaveSubstring(
-                                                'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                '+7 (916) 123-45-67 Входящий звонок'
                                             );
                                         });
-                                        it('Отображено сообщение о переводе звонка.', function() {
-                                            tester.incomingIcon.expectNotToExist();
-                                            tester.outgoingIcon.expectNotToExist();
+                                        it('Открытые сделки существуют. Открытые сделки отображены.', function() {
+                                            tester.outCallEvent().activeLeads().receive();
 
+                                            tester.anchor('По звонку с 79154394340').click();
+
+                                            windowOpener.expectToHavePath(
+                                                'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
+                                            );
+                                        });
+                                        it('У контакта длинное имя.', function() {
+                                            tester.outCallEvent().longName().receive();
+                                        });
+                                        it('Отображено сообщение о поиске контакта.', function() {
+                                            tester.collapsednessToggleButton.expectNotToExist();
+                                            tester.contactOpeningButton.expectNotToExist();
+                                            tester.incomingIcon.expectToBeVisible();
                                             tester.softphone.expectTextContentToHaveSubstring(
-                                                'Шалева Дора +7 (916) 123-45-67 Трансфер от Бисерка Макавеева'
+                                                '+7 (916) 123-45-67 Поиск контакта...'
                                             );
                                         });
                                     });
-                                    describe('Звонок производится в рамках исходящего обзвона.', function() {
-                                        var outCallEvent;
-
-                                        beforeEach(function() {
-                                            outCallEvent = tester.outCallEvent().autoCallCampaignName();
-                                        });
-
-                                        it(
-                                            'Имя контакта отсутствует. Звонок обозначен, как исходящий обзвон.',
-                                        function() {
-                                            outCallEvent.noName().receive();
-
-                                            tester.outgoingIcon.expectToBeVisible();
-                                            tester.softphone.expectTextContentToHaveSubstring(
-                                                '+7 (916) 123-45-67 Исходящий обзвон'
-                                            );
-                                        });
-                                        it('Звонок отображается как исходящий.', function() {
-                                            outCallEvent.receive();
-
-                                            tester.outgoingIcon.expectToBeVisible();
-                                            tester.softphone.expectTextContentToHaveSubstring(
-                                                'Шалева Дора +7 (916) 123-45-67'
-                                            );
-                                        });
-                                    });
-                                    it(
-                                        'Контакт не найден. Отображно направление звонка. Кнопка открытия контакта ' +
-                                        'заблокирована.',
-                                    function() {
-                                        tester.outCallEvent().noName().noCrmContactLink().receive();
-                                        tester.contactOpeningButton.click();
-
-                                        tester.contactOpeningButton.expectToHaveClass('cmg-button-disabled');
-                                        windowOpener.expectNoWindowToBeOpened();
-
-                                        tester.incomingIcon.expectToBeVisible();
-                                        tester.softphone.expectTextContentToHaveSubstring(
-                                            '+7 (916) 123-45-67 Входящий звонок'
-                                        );
-                                    });
-                                    it('Открытые сделки существуют. Открытые сделки отображены.', function() {
-                                        tester.outCallEvent().activeLeads().receive();
-
-                                        tester.anchor('По звонку с 79154394340').click();
-
-                                        windowOpener.expectToHavePath(
-                                            'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
-                                        );
-                                    });
-                                    it('У контакта длинное имя.', function() {
-                                        tester.outCallEvent().longName().receive();
-                                    });
-                                    it('Отображено сообщение о поиске контакта.', function() {
-                                        tester.collapsednessToggleButton.expectNotToExist();
-                                        tester.contactOpeningButton.expectNotToExist();
-                                        tester.incomingIcon.expectToBeVisible();
-                                        tester.softphone.expectTextContentToHaveSubstring(
-                                            '+7 (916) 123-45-67 Поиск контакта...'
-                                        );
+                                    it('Нажимаю на кнопку "Настройки".', function() {
+                                        tester.button('Настройки').click();
                                     });
                                 });
+                                return;
                                 describe('Нажимаю на иконку с телефоном.', function() {
                                     beforeEach(function() {
                                         tester.button('Софтфон').click();
@@ -761,6 +769,7 @@ tests.addTest(options => {
 
                                             tester.digitRemovingButton.expectNotToExist();
                                             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
+                                            tester.settingsButton.expectNotToExist();
                                         });
                                     });
                                     it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
@@ -773,6 +782,7 @@ tests.addTest(options => {
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
                                 });
                             });
+                            return;
                             describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                                 let refreshRequest;
 
@@ -801,6 +811,7 @@ tests.addTest(options => {
                                 });
                             });
                         });
+                        return;
                         it(
                             'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о ' +
                             'том, что SIP-линия не зарегистрирована.',
@@ -819,6 +830,7 @@ tests.addTest(options => {
                             );
                         });
                     });
+                    return;
                     describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                         beforeEach(function() {
                             tester.disallowMediaInput();
@@ -839,6 +851,7 @@ tests.addTest(options => {
                         });
                     });
                 });
+                return;
                 it(
                     'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
@@ -885,6 +898,7 @@ tests.addTest(options => {
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
                 });
             });
+            return;
             describe('Нажимаю на иконку с телефоном.', function() {
                 beforeEach(function() {
                     reportGroupsRequest.receiveResponse();
@@ -1059,6 +1073,7 @@ tests.addTest(options => {
                 });
             });
         });
+        return;
         describe('Чаты доступны. Софтфон недоступен.', function() {
             beforeEach(function() {
                 accountRequest.operatorWorkplaceAvailable().softphoneUnavailable().receiveResponse();
@@ -1144,6 +1159,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
+    return;
     describe('Открываю декстопное приложение софтфона.', function() {
         let tester,
             packages;

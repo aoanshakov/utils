@@ -13,7 +13,7 @@ index a8ae4714..acdff3a8 100644
 +REACT_APP_LEADGEN_MODULE=https://localhost:8084
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 7ae73d79..b1c07c03 100644
+index 7ae73d79..0e27eeec 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -115,7 +115,7 @@ index 7ae73d79..b1c07c03 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -271,17 +303,88 @@ module.exports = {
+@@ -271,17 +303,89 @@ module.exports = {
                      },
                  ],
              },
@@ -159,6 +159,7 @@ index 7ae73d79..b1c07c03 100644
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'employees/Root': 'employees/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
++            'softphone/Settings': 'softphone/src/Settings.tsx',
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/RootStore': 'softphone/src/models/RootStore.ts',
 +            'chats/Root': 'chats/src/Root.tsx',
