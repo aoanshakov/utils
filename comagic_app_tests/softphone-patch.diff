@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 8c19eba..bc99c50 100644
+index faf9d38..1970775 100644
 --- a/package.json
 +++ b/package.json
 @@ -55,7 +55,7 @@

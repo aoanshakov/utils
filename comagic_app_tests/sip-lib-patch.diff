@@ -1,17 +1,8 @@
 diff --git a/package.json b/package.json
-index 9a9246b..9506b3a 100644
+index e56dd3b..3588bc9 100644
 --- a/package.json
 +++ b/package.json
-@@ -15,7 +15,7 @@
-   "homepage": "https://gitlab.uis.dev/web/sip_lib",
-   "dependencies": {
-     "sdp-transform": "^2.7.0",
--    "antd": "4.14.0",
-+    "antd": "^3.26.7",
-     "webrtc-adapter": "7.4.0",
-     "react-list": "^0.8.10",
-     "moment": "^2.22.2",
-@@ -33,7 +33,7 @@
+@@ -32,7 +32,7 @@
      "webpack": "5.28.0",
      "webpack-cli": "^4.2.0",
      "babel-loader": "^8.0.4",
