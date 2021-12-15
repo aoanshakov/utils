@@ -6,8 +6,11 @@ tests.addTest(options => {
         windowOpener,
         triggerMutation,
         mutationObserverMocker,
+        mediaStreamsTester,
         ajax,
-        fetch
+        fetch,
+        soundSources,
+        setNow
     } = options;
 
     afterEach(function() {
@@ -102,7 +105,7 @@ tests.addTest(options => {
                                         registrationRequest.receiveResponse();
                                     });
 
-                                    xdescribe('Поступил входящий звонок.', function() {
+                                    describe('Поступил входящий звонок.', function() {
                                         beforeEach(function() {
                                             tester.incomingCall().receive();
                                             Promise.runAll(false, true);
@@ -194,10 +197,13 @@ tests.addTest(options => {
                                                                 'Соединение разрывается. Кнопка звонка заблокирована.',
                                                             function() {
                                                                 tester.disconnectEventsWebSocket();
-                                                                tester.employeeRow('Отдел дистрибуции').expectToBeDisaled();
+
+                                                                tester.employeeRow('Отдел дистрибуции').
+                                                                    expectToBeDisaled();
                                                             });
                                                             it('Отображена таблица групп.', function() {
-                                                                tester.employeeRow('Отдел дистрибуции').expectToBeEnabled();
+                                                                tester.employeeRow('Отдел дистрибуции').
+                                                                    expectToBeEnabled();
 
                                                                 tester.softphone.expectToHaveTextContent(
                                                                     'Сотрудники Группы ' +
@@ -245,6 +251,8 @@ tests.addTest(options => {
                                                     });
                                                 });
                                                 it('Отображено направление и номер.', function() {
+                                                    tester.firstConnection.expectSinkIdToEqual('default');
+                                                    tester.firstConnection.expectInputDeviceIdToEqual('default');
                                                     tester.incomingIcon.expectToBeVisible();
                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                         'Шалева Дора +7 (916) 123-45-67 00:00:00'
@@ -279,7 +287,8 @@ tests.addTest(options => {
                                                 );
 
                                                 tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
-                                                tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
+                                                tester.secondLineButton.
+                                                    expectNotToHaveClass('cmg-bottom-button-selected');
                                             });
                                         });
                                         describe('Звонок переведен от другого сотрудника.', function() {
@@ -338,8 +347,8 @@ tests.addTest(options => {
                                             });
                                         });
                                         it(
-                                            'Контакт не найден. Отображно направление звонка. Кнопка открытия контакта ' +
-                                            'заблокирована.',
+                                            'Контакт не найден. Отображно направление звонка. Кнопка открытия ' +
+                                            'контакта заблокирована.',
                                         function() {
                                             tester.outCallEvent().noName().noCrmContactLink().receive();
                                             tester.contactOpeningButton.click();
@@ -369,17 +378,111 @@ tests.addTest(options => {
                                             tester.softphone.expectTextContentToHaveSubstring(
                                                 '+7 (916) 123-45-67 Поиск контакта...'
                                             );
+
+                                            mediaStreamsTester.expectSinkIdToEqual(
+                                                soundSources.incomingCall,
+                                                'default'
+                                            );
                                         });
                                     });
-                                    it('Нажимаю на кнопку "Настройки".', function() {
-                                        tester.button('Настройки').click();
-                                        tester.popover.button('Софтфон').click();
+                                    describe('Нажимаю на кнопку "Настройки".', function() {
+                                        beforeEach(function() {
+                                            tester.button('Настройки').click();
+                                            tester.popover.button('Софтфон').click();
+                                        });
 
-                                        tester.popover.expectToBeHiddenOrNotExist();
-                                        tester.button('Софтфон или IP-телефон').expectToBeVisible();
+                                        describe('Открываю вкладку "Звук".', function() {
+                                            beforeEach(function() {
+                                                tester.button('Звук').click();
+                                            });
+
+                                            describe('Настраиваю звук. Поступает входящий звонок.', function() {
+                                                beforeEach(function() {
+                                                    tester.fieldRow('Микрофон').select.arrow.click();
+                                                    tester.select.option('Микрофон SURE').click();
+
+                                                    tester.fieldRow('Динамики').select.arrow.click();
+                                                    tester.select.option('Колонка JBL').click();
+
+                                                    tester.fieldRow('Звонящее устройство').select.arrow.click();
+                                                    tester.select.option('Встроенный динамик').click();
+
+                                                    tester.incomingCall().receive();
+                                                    tester.numaRequest().receiveResponse();
+
+                                                    tester.outCallEvent().receive();
+                                                });
+
+                                                it(
+                                                    'Принимаю звонок. Выбранные настройки звука применены.',
+                                                function() {
+                                                    tester.callButton.click();
+
+                                                    tester.firstConnection.connectWebRTC();
+                                                    tester.firstConnection.callTrackHandler();
+
+                                                    const mediaStream = tester.allowMediaInput();
+
+                                                    tester.firstConnection.addCandidate();
+                                                    tester.requestAcceptIncomingCall();
+
+                                                    tester.firstConnection.expectSinkIdToEqual('g8294gjg29guslg82pgj' +
+                                                        '2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab');
+
+                                                    tester.expectMicrophoneDeviceIdToEqual(
+                                                        mediaStream, 
+
+                                                        '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a48' +
+                                                        'ghal4'
+                                                    );
+                                                });
+                                                it('Рингтон доносится из выбранного устройства.', function() {
+                                                    mediaStreamsTester.expectSinkIdToEqual(
+                                                        soundSources.incomingCall,
+
+                                                        '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6' +
+                                                        '943ab'
+                                                    );
+
+                                                    tester.fieldRow('Микрофон').select.
+                                                        expectToHaveTextContent('Микрофон SURE');
+
+                                                    tester.fieldRow('Динамики').select.
+                                                        expectToHaveTextContent('Колонка JBL');
+
+                                                    tester.fieldRow('Звонящее устройство').select.
+                                                        expectToHaveTextContent('Встроенный динамик');
+
+                                                    utils.expectJSONObjectToContain(
+                                                        localStorage.getItem('audioSettings'),
+                                                        {
+                                                            microphone: {
+                                                                deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg42' +
+                                                                    '7gla8g2hg289hg9a48ghal4'
+                                                            },
+                                                            ringtone: {
+                                                                deviceId: '6943f509802439f2c170bea3f42991df56faee134' +
+                                                                    'b25b3a2f2a13f0fad6943ab'
+                                                            },
+                                                            outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0p' +
+                                                                'agulo48g92gj28ogtjog82jgab'
+                                                        }
+                                                    );
+                                                });
+                                            });
+                                            it('Настройки не выбраны.', function() {
+                                                tester.fieldRow('Микрофон').select.expectToHaveTextContent('');
+                                                tester.fieldRow('Динамики').select.expectToHaveTextContent('');
+                                                tester.fieldRow('Звонящее устройство').select.
+                                                    expectToHaveTextContent('');
+                                            });
+                                        });
+                                        it('Отображены общие настройки.', function() {
+                                            tester.popover.expectToBeHiddenOrNotExist();
+                                            tester.button('Софтфон или IP-телефон').expectToBeVisible();
+                                        });
                                     });
                                 });
-                                return;
                                 describe('Нажимаю на иконку с телефоном.', function() {
                                     beforeEach(function() {
                                         tester.button('Софтфон').click();
@@ -777,7 +880,6 @@ tests.addTest(options => {
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
                                 });
                             });
-                            return;
                             describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                                 let refreshRequest;
 
@@ -806,7 +908,6 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        return;
                         it(
                             'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о ' +
                             'том, что SIP-линия не зарегистрирована.',
@@ -825,7 +926,6 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    return;
                     describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                         beforeEach(function() {
                             tester.disallowMediaInput();
@@ -846,7 +946,6 @@ tests.addTest(options => {
                         });
                     });
                 });
-                return;
                 it(
                     'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
@@ -893,7 +992,6 @@ tests.addTest(options => {
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
                 });
             });
-            return;
             describe('Нажимаю на иконку с телефоном.', function() {
                 beforeEach(function() {
                     reportGroupsRequest.receiveResponse();
@@ -1068,7 +1166,6 @@ tests.addTest(options => {
                 });
             });
         });
-        return;
         describe('Чаты доступны. Софтфон недоступен.', function() {
             beforeEach(function() {
                 accountRequest.operatorWorkplaceAvailable().softphoneUnavailable().receiveResponse();
@@ -1169,7 +1266,71 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    return;
+    it('Ранее были выбраны настройки звука. Открываю настройки звука. Настройки звука отображены.', function() {
+        localStorage.setItem('audioSettings', JSON.stringify({
+            microphone: {
+                deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg42' +
+                    '7gla8g2hg289hg9a48ghal4'
+            },
+            ringtone: {
+                deviceId: '6943f509802439f2c170bea3f42991df56faee134' +
+                    'b25b3a2f2a13f0fad6943ab'
+            },
+            outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0p' +
+                'agulo48g92gj28ogtjog82jgab'
+        }));
+            
+        setNow('2019-12-19T12:10:06');
+
+        const tester = new Tester(options);
+
+        tester.input.withFieldLabel('Логин').fill('botusharova');
+        tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+        tester.button('Войти').click();
+
+        tester.loginRequest().receiveResponse();
+        tester.accountRequest().receiveResponse();
+
+        const requests = ajax.inAnyOrder();
+
+        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+            accountRequest = tester.accountRequest().expectToBeSent(requests);
+
+        requests.expectToBeSent();
+
+        reportsListRequest.receiveResponse();
+        reportTypesRequest.receiveResponse();
+        accountRequest.receiveResponse();
+        reportGroupsRequest.receiveResponse();
+
+        tester.configRequest().softphone().receiveResponse();
+
+        tester.authCheckRequest().receiveResponse();
+        tester.statusesRequest().receiveResponse();
+        tester.settingsRequest().receiveResponse();
+        tester.talkOptionsRequest().receiveResponse();
+        tester.permissionsRequest().receiveResponse();
+
+        tester.connectEventsWebSocket();
+        tester.connectSIPWebSocket();
+
+        tester.authenticatedUserRequest().receiveResponse();
+        tester.registrationRequest().receiveResponse();
+
+        tester.allowMediaInput();
+
+        tester.button('Настройки').click();
+        tester.popover.button('Софтфон').click();
+
+        tester.button('Звук').click();
+
+        tester.fieldRow('Микрофон').select.expectToHaveTextContent('Микрофон SURE');
+        tester.fieldRow('Динамики').select.expectToHaveTextContent('Колонка JBL');
+        tester.fieldRow('Звонящее устройство').select.expectToHaveTextContent('Встроенный динамик');
+    });
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
             ...options,
