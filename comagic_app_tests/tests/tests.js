@@ -252,7 +252,7 @@ tests.addTest(options => {
                                                 });
                                                 it('Отображено направление и номер.', function() {
                                                     tester.firstConnection.expectSinkIdToEqual('default');
-                                                    tester.firstConnection.expectInputDeviceIdToEqual('default');
+                                                    tester.firstConnection.expectInputDeviceNotToBeSpecified();
                                                     tester.incomingIcon.expectToBeVisible();
                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                         'Шалева Дора +7 (916) 123-45-67 00:00:00'
@@ -1266,70 +1266,115 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    it('Ранее были выбраны настройки звука. Открываю настройки звука. Настройки звука отображены.', function() {
-        localStorage.setItem('audioSettings', JSON.stringify({
-            microphone: {
-                deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg42' +
-                    '7gla8g2hg289hg9a48ghal4'
-            },
-            ringtone: {
-                deviceId: '6943f509802439f2c170bea3f42991df56faee134' +
-                    'b25b3a2f2a13f0fad6943ab'
-            },
-            outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0p' +
-                'agulo48g92gj28ogtjog82jgab'
-        }));
-            
-        setNow('2019-12-19T12:10:06');
+    describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
+        let tester;
 
-        const tester = new Tester(options);
+        beforeEach(function() {
+            localStorage.setItem('audioSettings', JSON.stringify({
+                microphone: {
+                    deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg42' +
+                        '7gla8g2hg289hg9a48ghal4'
+                },
+                ringtone: {
+                    deviceId: '6943f509802439f2c170bea3f42991df56faee134' +
+                        'b25b3a2f2a13f0fad6943ab'
+                },
+                outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0p' +
+                    'agulo48g92gj28ogtjog82jgab'
+            }));
+                
+            setNow('2019-12-19T12:10:06');
 
-        tester.input.withFieldLabel('Логин').fill('botusharova');
-        tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+            tester = new Tester(options);
 
-        tester.button('Войти').click();
+            tester.input.withFieldLabel('Логин').fill('botusharova');
+            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
-        tester.loginRequest().receiveResponse();
-        tester.accountRequest().receiveResponse();
+            tester.button('Войти').click();
 
-        const requests = ajax.inAnyOrder();
+            tester.loginRequest().receiveResponse();
+            tester.accountRequest().receiveResponse();
 
-        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
-            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-            accountRequest = tester.accountRequest().expectToBeSent(requests);
+            const requests = ajax.inAnyOrder();
 
-        requests.expectToBeSent();
+            const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                accountRequest = tester.accountRequest().expectToBeSent(requests);
 
-        reportsListRequest.receiveResponse();
-        reportTypesRequest.receiveResponse();
-        accountRequest.receiveResponse();
-        reportGroupsRequest.receiveResponse();
+            requests.expectToBeSent();
 
-        tester.configRequest().softphone().receiveResponse();
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            accountRequest.receiveResponse();
+            reportGroupsRequest.receiveResponse();
 
-        tester.authCheckRequest().receiveResponse();
-        tester.statusesRequest().receiveResponse();
-        tester.settingsRequest().receiveResponse();
-        tester.talkOptionsRequest().receiveResponse();
-        tester.permissionsRequest().receiveResponse();
+            tester.configRequest().softphone().receiveResponse();
 
-        tester.connectEventsWebSocket();
-        tester.connectSIPWebSocket();
+            tester.authCheckRequest().receiveResponse();
+            tester.statusesRequest().receiveResponse();
+            tester.settingsRequest().receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
 
-        tester.authenticatedUserRequest().receiveResponse();
-        tester.registrationRequest().receiveResponse();
+            tester.connectEventsWebSocket();
+            tester.connectSIPWebSocket();
 
-        tester.allowMediaInput();
+            tester.authenticatedUserRequest().receiveResponse();
+            tester.registrationRequest().receiveResponse();
 
-        tester.button('Настройки').click();
-        tester.popover.button('Софтфон').click();
+            tester.allowMediaInput();
 
-        tester.button('Звук').click();
+            tester.button('Настройки').click();
+            tester.popover.button('Софтфон').click();
 
-        tester.fieldRow('Микрофон').select.expectToHaveTextContent('Микрофон SURE');
-        tester.fieldRow('Динамики').select.expectToHaveTextContent('Колонка JBL');
-        tester.fieldRow('Звонящее устройство').select.expectToHaveTextContent('Встроенный динамик');
+            tester.button('Звук').click();
+        });
+
+        describe('Поступил входящий звонок.', function() {
+            beforeEach(function() {
+                tester.incomingCall().receive();
+                tester.numaRequest().receiveResponse();
+
+                tester.outCallEvent().receive();
+            });
+
+
+            it('Принимаю звонок. Выбранные настройки звука применены.', function() {
+                tester.callButton.click();
+
+                tester.firstConnection.connectWebRTC();
+                tester.firstConnection.callTrackHandler();
+
+                const mediaStream = tester.allowMediaInput();
+
+                tester.firstConnection.addCandidate();
+                tester.requestAcceptIncomingCall();
+
+                tester.firstConnection.expectSinkIdToEqual('g8294gjg29guslg82pgj' +
+                    '2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab');
+
+                tester.expectMicrophoneDeviceIdToEqual(
+                    mediaStream, 
+
+                    '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a48' +
+                    'ghal4'
+                );
+            });
+            it('Рингтон доносится из выбранного устройства.', function() {
+                mediaStreamsTester.expectSinkIdToEqual(
+                    soundSources.incomingCall,
+
+                    '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6' +
+                    '943ab'
+                );
+            });
+        });
+        it('Настройки звука отображены.', function() {
+            tester.fieldRow('Микрофон').select.expectToHaveTextContent('Микрофон SURE');
+            tester.fieldRow('Динамики').select.expectToHaveTextContent('Колонка JBL');
+            tester.fieldRow('Звонящее устройство').select.expectToHaveTextContent('Встроенный динамик');
+        });
     });
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
