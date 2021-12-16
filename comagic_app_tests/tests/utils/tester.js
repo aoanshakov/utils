@@ -43,6 +43,16 @@ define(() => function ({
     Promise.runAll(false, true);
 
     const addTesters = (me, getRootElement) => {
+        me.slider = (() => {
+            const tester = testersFactory.createDomElementTester(() =>
+                (getRootElement() || new JsTester_NoElement()).querySelector('.ant-slider-track'))
+
+            const click = tester.click.bind(tester);
+            tester.click = x => (click(x, 50), spendTime(100));
+
+            return tester;
+        })();
+
         me.button = text => {
             let domElement = utils.descendantOf(getRootElement()).
                 textEquals(text).

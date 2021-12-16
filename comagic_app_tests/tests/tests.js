@@ -105,7 +105,7 @@ tests.addTest(options => {
                                         registrationRequest.receiveResponse();
                                     });
 
-                                    xdescribe('Поступил входящий звонок.', function() {
+                                    describe('Поступил входящий звонок.', function() {
                                         beforeEach(function() {
                                             tester.incomingCall().receive();
                                             Promise.runAll(false, true);
@@ -396,8 +396,10 @@ tests.addTest(options => {
                                                 tester.button('Звук').click();
                                             });
 
-                                            xdescribe('Настраиваю звук. Поступает входящий звонок.', function() {
+                                            describe('Настраиваю звук. Поступает входящий звонок.', function() {
                                                 beforeEach(function() {
+                                                    tester.slider.click(25);
+
                                                     tester.fieldRow('Микрофон').select.arrow.click();
                                                     tester.select.option('Микрофон SURE').click();
 
@@ -436,13 +438,21 @@ tests.addTest(options => {
                                                         'ghal4'
                                                     );
                                                 });
-                                                it('Рингтон доносится из выбранного устройства.', function() {
+                                                it('Настройки применены.', function() {
+                                                    mediaStreamsTester.expectStreamsToPlay(soundSources.incomingCall);
+
+                                                    mediaStreamsTester.
+                                                        expectVolumeToEqual(soundSources.incomingCall, 25);
+
                                                     mediaStreamsTester.expectSinkIdToEqual(
                                                         soundSources.incomingCall,
 
                                                         '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6' +
                                                         '943ab'
                                                     );
+
+                                                    tester.body.
+                                                        expectTextContentToHaveSubstring('Громкость звонка 25%');
 
                                                     tester.fieldRow('Микрофон').select.
                                                         expectToHaveTextContent('Микрофон SURE');
@@ -462,10 +472,11 @@ tests.addTest(options => {
                                                             },
                                                             ringtone: {
                                                                 deviceId: '6943f509802439f2c170bea3f42991df56faee134' +
-                                                                    'b25b3a2f2a13f0fad6943ab'
+                                                                    'b25b3a2f2a13f0fad6943ab',
+                                                                volume: 25
                                                             },
                                                             outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0p' +
-                                                                'agulo48g92gj28ogtjog82jgab'
+                                                                'agulo48g92gj28ogtjog82jgab',
                                                         }
                                                     );
                                                 });
@@ -477,15 +488,12 @@ tests.addTest(options => {
                                                     expectToHaveTextContent('');
                                             });
                                         });
-                                        return;
                                         it('Отображены общие настройки.', function() {
                                             tester.popover.expectToBeHiddenOrNotExist();
                                             tester.button('Софтфон или IP-телефон').expectToBeVisible();
                                         });
                                     });
-                                    return;
                                 });
-                                return;
                                 describe('Нажимаю на иконку с телефоном.', function() {
                                     beforeEach(function() {
                                         tester.button('Софтфон').click();
@@ -883,7 +891,6 @@ tests.addTest(options => {
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
                                 });
                             });
-                            return;
                             describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                                 let refreshRequest;
 
@@ -912,7 +919,6 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        return;
                         it(
                             'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о ' +
                             'том, что SIP-линия не зарегистрирована.',
@@ -931,7 +937,6 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    return;
                     describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                         beforeEach(function() {
                             tester.disallowMediaInput();
@@ -952,7 +957,6 @@ tests.addTest(options => {
                         });
                     });
                 });
-                return;
                 it(
                     'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
@@ -999,7 +1003,6 @@ tests.addTest(options => {
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
                 });
             });
-            return;
             describe('Нажимаю на иконку с телефоном.', function() {
                 beforeEach(function() {
                     reportGroupsRequest.receiveResponse();
@@ -1174,7 +1177,6 @@ tests.addTest(options => {
                 });
             });
         });
-        return;
         describe('Чаты доступны. Софтфон недоступен.', function() {
             beforeEach(function() {
                 accountRequest.operatorWorkplaceAvailable().softphoneUnavailable().receiveResponse();
@@ -1275,7 +1277,6 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    return;
     describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
         let tester;
 
