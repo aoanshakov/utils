@@ -1288,7 +1288,8 @@ tests.addTest(options => {
                 },
                 ringtone: {
                     deviceId: '6943f509802439f2c170bea3f42991df56faee134' +
-                        'b25b3a2f2a13f0fad6943ab'
+                        'b25b3a2f2a13f0fad6943ab',
+                    volume: 25
                 },
                 outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0p' +
                     'agulo48g92gj28ogtjog82jgab'
@@ -1371,7 +1372,19 @@ tests.addTest(options => {
                     'ghal4'
                 );
             });
-            it('Рингтон доносится из выбранного устройства.', function() {
+            it('Выбранные настройки звука применены.', function() {
+                mediaStreamsTester.expectSinkIdToEqual(
+                    soundSources.incomingCall,
+
+                    '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6' +
+                    '943ab'
+                );
+
+                mediaStreamsTester.expectStreamsToPlay(soundSources.incomingCall);
+
+                mediaStreamsTester.
+                    expectVolumeToEqual(soundSources.incomingCall, 25);
+
                 mediaStreamsTester.expectSinkIdToEqual(
                     soundSources.incomingCall,
 
@@ -1381,6 +1394,7 @@ tests.addTest(options => {
             });
         });
         it('Настройки звука отображены.', function() {
+            tester.body.expectTextContentToHaveSubstring('Громкость звонка 25%');
             tester.fieldRow('Микрофон').select.expectToHaveTextContent('Микрофон SURE');
             tester.fieldRow('Динамики').select.expectToHaveTextContent('Колонка JBL');
             tester.fieldRow('Звонящее устройство').select.expectToHaveTextContent('Встроенный динамик');
