@@ -151,6 +151,8 @@ define(() => function ({
         return me;
     };
 
+    me.playerButton = testersFactory.createDomElementTester('.clct-audio-button');
+
     me.popover = (() => {
         const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),
             tester = testersFactory.createDomElementTester(getDomElement);
@@ -538,6 +540,11 @@ define(() => function ({
         const params = {};
 
         return {
+            secondRington() {
+                params.ringtone = 'softphone_ringtone2';
+                return this;
+            },
+
             incomingCallSoundDisabled() {
                 params.is_enable_incoming_call_sound = false;
                 return this;
@@ -627,6 +634,17 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
+            me.secondRington = () => {
+                response.data.ringtone = 'softphone_ringtone2';
+
+                response.data.ringtone_file = {
+                    mtime: 1556529288674,
+                    link: 'https://somehost.com/softphone_ringtone2.mp3'
+                };
+
+                return me;
+            };
+
             me.incomingCallSoundDisabled = () => {
                 response.data.is_enable_incoming_call_sound = false;
                 return me;
@@ -2098,6 +2116,7 @@ define(() => function ({
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
     me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
     me.settingsButton = testersFactory.createDomElementTester('.cmg-settings-button');
+    me.hideButton = testersFactory.createDomElementTester('.cmg-hide-button');
 
     me.userName = (tester => {
         const putMouseOver = tester.putMouseOver.bind(tester);

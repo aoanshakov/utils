@@ -10,7 +10,8 @@ tests.addTest(options => {
         ajax,
         fetch,
         soundSources,
-        setNow
+        setNow,
+        fileReader
     } = options;
 
     afterEach(function() {
@@ -105,7 +106,7 @@ tests.addTest(options => {
                                         registrationRequest.receiveResponse();
                                     });
 
-                                    xdescribe('Поступил входящий звонок.', function() {
+                                    describe('Поступил входящий звонок.', function() {
                                         beforeEach(function() {
                                             tester.incomingCall().receive();
                                             Promise.runAll(false, true);
@@ -379,6 +380,9 @@ tests.addTest(options => {
                                                 '+7 (916) 123-45-67 Поиск контакта...'
                                             );
 
+                                            mediaStreamsTester.
+                                                expectStreamsToPlay(soundSources.incomingCall);
+
                                             mediaStreamsTester.expectSinkIdToEqual(
                                                 soundSources.incomingCall,
                                                 'default'
@@ -396,7 +400,9 @@ tests.addTest(options => {
                                                 tester.button('Звук').click();
                                             });
 
-                                            xdescribe('Настраиваю звук. Поступает входящий звонок.', function() {
+                                            describe('Настраиваю звук.', function() {
+                                                let secondRingtoneRequest;
+
                                                 beforeEach(function() {
                                                     tester.slider.click(25);
 
@@ -409,76 +415,127 @@ tests.addTest(options => {
                                                     tester.fieldRow('Звонящее устройство').select.arrow.click();
                                                     tester.select.option('Встроенный динамик').click();
 
-                                                    tester.incomingCall().receive();
-                                                    tester.numaRequest().receiveResponse();
+                                                    tester.fieldRow('Мелодия звонка').select.arrow.click();
+                                                    tester.select.option('Мелодия звонка 2').click();
 
-                                                    tester.outCallEvent().receive();
+                                                    tester.settingsUpdatingRequest().secondRington().receiveResponse();
+                                                    tester.settingsRequest().secondRington().receiveResponse();
+
+                                                    secondRingtoneRequest = tester.secondRingtoneRequest().
+                                                        expectToBeSent();
                                                 });
 
-                                                it(
-                                                    'Принимаю звонок. Выбранные настройки звука применены.',
-                                                function() {
-                                                    tester.callButton.click();
+                                                describe('Мелодия загружена.', function() {
+                                                    beforeEach(function() {
+                                                        secondRingtoneRequest.receiveResponse();
+                                                        fileReader.accomplishFileLoading(tester.secondRingtone);
 
-                                                    tester.firstConnection.connectWebRTC();
-                                                    tester.firstConnection.callTrackHandler();
+                                                        mediaStreamsTester.setIsAbleToPlayThough(
+                                                            'data:audio/wav;base64,' +
+                                                            tester.secondRingtone
+                                                        );
+                                                    });
 
-                                                    const mediaStream = tester.allowMediaInput();
+                                                    describe('Поступает входящий звонок.', function() {
+                                                        beforeEach(function() {
+                                                            tester.incomingCall().receive();
+                                                            tester.numaRequest().receiveResponse();
 
-                                                    tester.firstConnection.addCandidate();
-                                                    tester.requestAcceptIncomingCall();
+                                                            tester.outCallEvent().receive();
+                                                        });
 
-                                                    tester.firstConnection.expectSinkIdToEqual('g8294gjg29guslg82pgj' +
-                                                        '2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab');
+                                                        it(
+                                                            'Принимаю звонок. Выбранные настройки звука применены.',
+                                                        function() {
+                                                            tester.callButton.click();
 
-                                                    tester.expectMicrophoneDeviceIdToEqual(
-                                                        mediaStream, 
+                                                            tester.firstConnection.connectWebRTC();
+                                                            tester.firstConnection.callTrackHandler();
 
-                                                        '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a48' +
-                                                        'ghal4'
-                                                    );
+                                                            const mediaStream = tester.allowMediaInput();
+
+                                                            tester.firstConnection.addCandidate();
+                                                            tester.requestAcceptIncomingCall();
+
+                                                            tester.firstConnection.expectSinkIdToEqual('g8294gjg29gus' +
+                                                                'lg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab');
+
+                                                            tester.expectMicrophoneDeviceIdToEqual(
+                                                                mediaStream, 
+
+                                                                '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg28' +
+                                                                '9hg9a48ghal4'
+                                                            );
+                                                        });
+                                                        it('Настройки применены.', function() {
+                                                            mediaStreamsTester.expectStreamsToPlay(
+                                                                'data:audio/wav;base64,' + tester.secondRingtone
+                                                            );
+
+                                                            mediaStreamsTester.expectVolumeToEqual(
+                                                                'data:audio/wav;base64,' + tester.secondRingtone,
+                                                                25
+                                                            );
+
+                                                            mediaStreamsTester.expectSinkIdToEqual(
+                                                                'data:audio/wav;base64,' + tester.secondRingtone,
+
+                                                                '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a1' +
+                                                                '3f0fad6943ab'
+                                                            );
+
+                                                            tester.body.expectTextContentToHaveSubstring(
+                                                                'Громкость звонка 25%'
+                                                            );
+
+                                                            tester.fieldRow('Микрофон').select.
+                                                                expectToHaveTextContent('Микрофон SURE');
+
+                                                            tester.fieldRow('Динамики').select.
+                                                                expectToHaveTextContent('Колонка JBL');
+
+                                                            tester.fieldRow('Звонящее устройство').select.
+                                                                expectToHaveTextContent('Встроенный динамик');
+
+                                                            utils.expectJSONObjectToContain(
+                                                                localStorage.getItem('audioSettings'),
+                                                                {
+                                                                    microphone: {
+                                                                        deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g' +
+                                                                            '724hg427gla8g2hg289hg9a48ghal4'
+                                                                    },
+                                                                    ringtone: {
+                                                                        deviceId: '6943f509802439f2c170bea3f42991df56' +
+                                                                            'faee134b25b3a2f2a13f0fad6943ab',
+                                                                        volume: 25
+                                                                    },
+                                                                    outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u' +
+                                                                        '29gj0pagulo48g92gj28ogtjog82jgab',
+                                                                }
+                                                            );
+                                                        });
+                                                    });
+                                                    it(
+                                                        'Нажимаю на кнопку проигрывания. Рингтон проигрывается. ' +
+                                                        'Отображена иконка остановки.',
+                                                    function() {
+                                                        tester.playerButton.click();
+
+                                                        mediaStreamsTester.expectStreamsToPlay(
+                                                            'data:audio/wav;base64,' +
+                                                            tester.secondRingtone
+                                                        );
+
+                                                        tester.playerButton.findElement('svg').expectNotToExist();
+                                                    });
+                                                    it('Кнопка проигрывания доступна.', function() {
+                                                        tester.playerButton.
+                                                            expectNotToHaveClass('cmg-ringtone-player-disabled');
+                                                    });
                                                 });
-                                                it('Настройки применены.', function() {
-                                                    mediaStreamsTester.expectStreamsToPlay(soundSources.incomingCall);
-
-                                                    mediaStreamsTester.
-                                                        expectVolumeToEqual(soundSources.incomingCall, 25);
-
-                                                    mediaStreamsTester.expectSinkIdToEqual(
-                                                        soundSources.incomingCall,
-
-                                                        '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6' +
-                                                        '943ab'
-                                                    );
-
-                                                    tester.body.
-                                                        expectTextContentToHaveSubstring('Громкость звонка 25%');
-
-                                                    tester.fieldRow('Микрофон').select.
-                                                        expectToHaveTextContent('Микрофон SURE');
-
-                                                    tester.fieldRow('Динамики').select.
-                                                        expectToHaveTextContent('Колонка JBL');
-
-                                                    tester.fieldRow('Звонящее устройство').select.
-                                                        expectToHaveTextContent('Встроенный динамик');
-
-                                                    utils.expectJSONObjectToContain(
-                                                        localStorage.getItem('audioSettings'),
-                                                        {
-                                                            microphone: {
-                                                                deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg42' +
-                                                                    '7gla8g2hg289hg9a48ghal4'
-                                                            },
-                                                            ringtone: {
-                                                                deviceId: '6943f509802439f2c170bea3f42991df56faee134' +
-                                                                    'b25b3a2f2a13f0fad6943ab',
-                                                                volume: 25
-                                                            },
-                                                            outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0p' +
-                                                                'agulo48g92gj28ogtjog82jgab',
-                                                        }
-                                                    );
+                                                it('Кнопка проигрывания заблокирования.', function() {
+                                                    tester.playerButton.
+                                                        expectToHaveClass('cmg-ringtone-player-disabled');
                                                 });
                                             });
                                             it('Настройки не выбраны.', function() {
@@ -486,17 +543,17 @@ tests.addTest(options => {
                                                 tester.fieldRow('Динамики').select.expectToHaveTextContent('');
                                                 tester.fieldRow('Звонящее устройство').select.
                                                     expectToHaveTextContent('');
+                                                tester.playerButton.
+                                                    expectNotToHaveClass('cmg-ringtone-player-disabled');
+                                                tester.playerButton.findElement('svg').expectToExist();
                                             });
                                         });
-                                        return;
                                         it('Отображены общие настройки.', function() {
                                             tester.popover.expectToBeHiddenOrNotExist();
                                             tester.button('Софтфон или IP-телефон').expectToBeVisible();
                                         });
                                     });
-                                    return;
                                 });
-                                return;
                                 describe('Нажимаю на иконку с телефоном.', function() {
                                     beforeEach(function() {
                                         tester.button('Софтфон').click();
@@ -884,6 +941,10 @@ tests.addTest(options => {
                                             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
                                         });
                                     });
+                                    it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
+                                        tester.hideButton.click();
+                                        tester.callButton.expectNotToExist();
+                                    });
                                     it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                                         tester.button('Софтфон').click();
                                         tester.callButton.expectNotToExist();
@@ -894,7 +955,6 @@ tests.addTest(options => {
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
                                 });
                             });
-                            return;
                             describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                                 let refreshRequest;
 
@@ -923,7 +983,6 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        return;
                         it(
                             'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о ' +
                             'том, что SIP-линия не зарегистрирована.',
@@ -942,7 +1001,6 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    return;
                     describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                         beforeEach(function() {
                             tester.disallowMediaInput();
@@ -963,7 +1021,6 @@ tests.addTest(options => {
                         });
                     });
                 });
-                return;
                 it(
                     'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
@@ -1010,7 +1067,6 @@ tests.addTest(options => {
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
                 });
             });
-            return;
             describe('Нажимаю на иконку с телефоном.', function() {
                 beforeEach(function() {
                     reportGroupsRequest.receiveResponse();
@@ -1185,7 +1241,6 @@ tests.addTest(options => {
                 });
             });
         });
-        return;
         describe('Чаты доступны. Софтфон недоступен.', function() {
             beforeEach(function() {
                 accountRequest.operatorWorkplaceAvailable().softphoneUnavailable().receiveResponse();
@@ -1286,7 +1341,6 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    return;
     describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
         let tester;
 
@@ -1335,9 +1389,13 @@ tests.addTest(options => {
 
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
-            tester.settingsRequest().receiveResponse();
+            tester.settingsRequest().secondRington().receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
+
+            tester.secondRingtoneRequest().receiveResponse();
+            fileReader.accomplishFileLoading(tester.secondRingtone);
+            mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
 
             tester.connectEventsWebSocket();
             tester.connectSIPWebSocket();
@@ -1383,20 +1441,11 @@ tests.addTest(options => {
                 );
             });
             it('Выбранные настройки звука применены.', function() {
-                mediaStreamsTester.expectSinkIdToEqual(
-                    soundSources.incomingCall,
-
-                    '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6' +
-                    '943ab'
-                );
-
-                mediaStreamsTester.expectStreamsToPlay(soundSources.incomingCall);
-
-                mediaStreamsTester.
-                    expectVolumeToEqual(soundSources.incomingCall, 25);
+                mediaStreamsTester.expectStreamsToPlay('data:audio/wav;base64,' + tester.secondRingtone);
+                mediaStreamsTester.expectVolumeToEqual(soundSources.incomingCall, 25);
 
                 mediaStreamsTester.expectSinkIdToEqual(
-                    soundSources.incomingCall,
+                    'data:audio/wav;base64,' + tester.secondRingtone,
 
                     '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6' +
                     '943ab'
@@ -1405,6 +1454,7 @@ tests.addTest(options => {
         });
         it('Настройки звука отображены.', function() {
             tester.body.expectTextContentToHaveSubstring('Громкость звонка 25%');
+            tester.fieldRow('Мелодия звонка').select.expectToHaveTextContent('Мелодия звонка 2');
             tester.fieldRow('Микрофон').select.expectToHaveTextContent('Микрофон SURE');
             tester.fieldRow('Динамики').select.expectToHaveTextContent('Колонка JBL');
             tester.fieldRow('Звонящее устройство').select.expectToHaveTextContent('Встроенный динамик');
