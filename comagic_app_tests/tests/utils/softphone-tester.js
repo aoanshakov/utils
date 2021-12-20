@@ -4019,7 +4019,6 @@ define(function () {
                 ws_url: '/ws/L1G1MyQy6uz624BkJWuy1BW1L9INRWNt5_DW8Ik836A',
                 is_extended_integration_available: true,
                 is_use_widget_for_calls: false,
-                is_enable_incoming_call_sound: true,
                 call_task: {
                     pause_between_calls_duration: 60,
                     call_card_show_duration: 10

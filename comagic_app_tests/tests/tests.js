@@ -415,11 +415,16 @@ tests.addTest(options => {
                                                     tester.fieldRow('Звонящее устройство').select.arrow.click();
                                                     tester.select.option('Встроенный динамик').click();
 
+                                                    tester.button('Сигнал о завершении звонка').click();
+                                                    tester.settingsUpdatingRequest().isNeedDisconnectSignal().
+                                                        receiveResponse();
+                                                    tester.settingsRequest().isNeedDisconnectSignal().receiveResponse();
+
                                                     tester.fieldRow('Мелодия звонка').select.arrow.click();
                                                     tester.select.option('Мелодия звонка 2').click();
-
                                                     tester.settingsUpdatingRequest().secondRington().receiveResponse();
-                                                    tester.settingsRequest().secondRington().receiveResponse();
+                                                    tester.settingsRequest().secondRington().isNeedDisconnectSignal().
+                                                        receiveResponse();
 
                                                     secondRingtoneRequest = tester.secondRingtoneRequest().
                                                         expectToBeSent();
@@ -497,6 +502,9 @@ tests.addTest(options => {
                                                             tester.fieldRow('Звонящее устройство').select.
                                                                 expectToHaveTextContent('Встроенный динамик');
 
+                                                            tester.button('Сигнал о завершении звонка').
+                                                                expectToBeChecked();
+
                                                             utils.expectJSONObjectToContain(
                                                                 localStorage.getItem('audioSettings'),
                                                                 {
@@ -543,6 +551,7 @@ tests.addTest(options => {
                                                 tester.fieldRow('Динамики').select.expectToHaveTextContent('');
                                                 tester.fieldRow('Звонящее устройство').select.
                                                     expectToHaveTextContent('');
+                                                tester.button('Сигнал о завершении звонка').expectNotToBeChecked();
                                                 tester.playerButton.
                                                     expectNotToHaveClass('cmg-ringtone-player-disabled');
                                                 tester.playerButton.findElement('svg').expectToExist();
@@ -1401,7 +1410,7 @@ tests.addTest(options => {
 
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
-            tester.settingsRequest().secondRington().receiveResponse();
+            tester.settingsRequest().secondRington().isNeedDisconnectSignal().receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
 
@@ -1454,7 +1463,7 @@ tests.addTest(options => {
             });
             it('Выбранные настройки звука применены.', function() {
                 mediaStreamsTester.expectStreamsToPlay('data:audio/wav;base64,' + tester.secondRingtone);
-                mediaStreamsTester.expectVolumeToEqual(soundSources.incomingCall, 25);
+                mediaStreamsTester.expectVolumeToEqual('data:audio/wav;base64,' + tester.secondRingtone, 25);
 
                 mediaStreamsTester.expectSinkIdToEqual(
                     'data:audio/wav;base64,' + tester.secondRingtone,
@@ -1470,6 +1479,7 @@ tests.addTest(options => {
             tester.fieldRow('Микрофон').select.expectToHaveTextContent('Микрофон SURE');
             tester.fieldRow('Динамики').select.expectToHaveTextContent('Колонка JBL');
             tester.fieldRow('Звонящее устройство').select.expectToHaveTextContent('Встроенный динамик');
+            tester.button('Сигнал о завершении звонка').expectToBeChecked();
         });
     });
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {

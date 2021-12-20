@@ -540,13 +540,13 @@ define(() => function ({
         const params = {};
 
         return {
-            secondRington() {
-                params.ringtone = 'softphone_ringtone2';
-                return this;
+            isNeedDisconnectSignal() {
+                params.is_need_disconnect_signal = true;
+                return this
             },
 
-            incomingCallSoundDisabled() {
-                params.is_enable_incoming_call_sound = false;
+            secondRington() {
+                params.ringtone = 'softphone_ringtone2';
                 return this;
             },
 
@@ -612,7 +612,6 @@ define(() => function ({
                 is_need_hide_numbers: false,
                 is_extended_integration_available: true,
                 is_use_widget_for_calls: true,
-                is_enable_incoming_call_sound: true,
                 is_need_open_widget_on_call: true,
                 is_need_close_widget_on_call_finished: false,
                 number_capacity_usage_rule: 'auto',
@@ -634,6 +633,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
+            me.isNeedDisconnectSignal = () => {
+                response.data.is_need_disconnect_signal = true;
+                return me
+            };
+
             me.secondRington = () => {
                 response.data.ringtone = 'softphone_ringtone2';
 
@@ -642,11 +646,6 @@ define(() => function ({
                     link: 'https://somehost.com/softphone_ringtone2.mp3'
                 };
 
-                return me;
-            };
-
-            me.incomingCallSoundDisabled = () => {
-                response.data.is_enable_incoming_call_sound = false;
                 return me;
             };
 
