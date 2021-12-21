@@ -200,17 +200,33 @@ function JsTester_UserMedia (args) {
         debug = args.debug,
         tracksCreationCallStacks = args.tracksCreationCallStacks,
         additionalDevices = args.additionalDevices,
-        mediaDevicesEventListeners = args.mediaDevicesEventListeners;
+        mediaDevicesEventListeners = args.mediaDevicesEventListeners,
+        spendTime = args.spendTime;
 
-    this.plugInNewDevice = () => {
+    function handleDeviceChange () {
+        mediaDevicesEventListeners.get('devicechange') && mediaDevicesEventListeners.get('devicechange').
+            forEach(handleDeviceChange => handleDeviceChange());
+
+        Promise.runAll(false, true);
+        spendTime(0);
+    }
+
+    this.plugInNewDevice = function () {
         additionalDevices.push({
             kind: 'audiooutput',
             label: 'Колонка Marshall',
             deviceId: 'tg4j0oz8g03ogjgo3q8uj0qo83j40toto8s4jql83otul34tu84tz8utoz4tl8z4'
         });
 
-        mediaDevicesEventListeners.get('devicechange') && mediaDevicesEventListeners.get('devicechange').
-            forEach(handleDeviceChange => handleDeviceChange());
+        handleDeviceChange();
+    };
+
+    this.unplugDevice = function () {
+        additionalDevices.splice(additionalDevices.findIndex(function (device) {
+            return device.deviceId == 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab';
+        }), 1);
+
+        handleDeviceChange();
     };
 
     this.expectToBeRequested = function () {
@@ -323,10 +339,6 @@ function JsTester_NavigatorMock (args) {
                 kind: 'audiooutput',
                 label: 'Встроенный динамик',
                 deviceId: '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943ab'
-            }, {
-                kind: 'audiooutput',
-                label: 'Колонка JBL',
-                deviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab'
             }].concat(additionalDevices));
         }
     };
@@ -2893,8 +2905,14 @@ function JsTester_Tests (factory) {
             JsTester_RepetitiveDelayedTask,
             timeoutLogger,
             debug
-        ),
-        utils = factory.createUtils(debug),
+        );
+
+    var spendTime = function (time) {
+        timeout.spendTime(time);
+        interval.spendTime(time);
+    };
+
+    var utils = factory.createUtils(debug),
         mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
         mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
         mutationObserverTester =  mutationObserverFactory.createTester(),
@@ -2964,6 +2982,7 @@ function JsTester_Tests (factory) {
             tracksCreationCallStacks: tracksCreationCallStacks,
             mediaStreams: mediaStreams,
             eventHandlers: userMediaEventHandlers,
+            spendTime: spendTime,
             debug: debug
         }),
         sdp = [
@@ -3161,11 +3180,6 @@ function JsTester_Tests (factory) {
         interval.runCallbacks();
     };
 
-    var spendTime = function (time) {
-        timeout.spendTime(time);
-        interval.spendTime(time);
-    };
-
     this.exposeDebugUtils = function (variableName) {
         window[variableName] = debug;
     };
@@ -3273,6 +3287,11 @@ function JsTester_Tests (factory) {
         setBrowserHidden(false);
         audioNodesConnection.reset();
         additionalDevices.splice(0, additionalDevices.length);
+        additionalDevices.push({
+            kind: 'audiooutput',
+            label: 'Колонка JBL',
+            deviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab'
+        });
         userDeviceHandling.reset();
         utils.enableScrollingIntoView();
         mutationObserverMocker.replaceByFake();

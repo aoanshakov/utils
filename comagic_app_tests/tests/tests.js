@@ -11,7 +11,8 @@ tests.addTest(options => {
         fetch,
         soundSources,
         setNow,
-        fileReader
+        fileReader,
+        userMedia
     } = options;
 
     afterEach(function() {
@@ -546,13 +547,18 @@ tests.addTest(options => {
                                                 });
                                             });
                                             it('Настройки не выбраны.', function() {
-                                                tester.fieldRow('Микрофон').select.expectToHaveTextContent('');
-                                                tester.fieldRow('Динамики').select.expectToHaveTextContent('');
+                                                tester.fieldRow('Микрофон').select.
+                                                    expectToHaveTextContent('По умолчанию');
+                                                tester.fieldRow('Динамики').select.
+                                                    expectToHaveTextContent('По умолчанию');
                                                 tester.fieldRow('Звонящее устройство').select.
-                                                    expectToHaveTextContent('');
+                                                    expectToHaveTextContent('По умолчанию');
+
                                                 tester.button('Сигнал о завершении звонка').expectNotToBeChecked();
+                                                
                                                 tester.playerButton.
                                                     expectNotToHaveClass('cmg-ringtone-player-disabled');
+
                                                 tester.playerButton.findElement('svg').expectToExist();
                                             });
                                         });
@@ -1524,6 +1530,10 @@ tests.addTest(options => {
                     '943ab'
                 );
             });
+        });
+        it('Отключаю выбранное устройство. Выбрано устройство по умолчанию.', function() {
+            userMedia.unplugDevice();
+            tester.fieldRow('Динамики').select.expectToHaveTextContent('По умолчанию');
         });
         it('Настройки звука отображены.', function() {
             tester.body.expectTextContentToHaveSubstring('Громкость звонка 25%');
