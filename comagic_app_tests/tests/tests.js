@@ -556,9 +556,22 @@ tests.addTest(options => {
                                                 tester.playerButton.findElement('svg').expectToExist();
                                             });
                                         });
-                                        it('Отображены общие настройки.', function() {
-                                            tester.popover.expectToBeHiddenOrNotExist();
-                                            tester.button('Софтфон или IP-телефон').expectToBeVisible();
+                                        it(
+                                            'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или ' +
+                                            'IP-телефон". Отмечена кнопка "Софтфон или IP-телефон".',
+                                        function() {
+                                            tester.button('Софтфон или IP-телефон').click();
+                                            tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().
+                                                receiveResponse();
+                                            tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
+
+                                            tester.registrationRequest().expired().receiveResponse();
+                                            
+                                            spendTime(2000);
+                                            tester.webrtcWebsocket.finishDisconnecting();
+
+                                            tester.button('Виджет').expectNotToBeChecked();
+                                            tester.button('Софтфон или IP-телефон').expectToBeChecked();
                                         });
                                     });
                                 });
@@ -1228,14 +1241,33 @@ tests.addTest(options => {
                             settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
                         });
 
-                        it('Соединение установлено.', function() {
-                            tester.connectEventsWebSocket();
-                            tester.authenticatedUserRequest().sipIsOffline().receiveResponse();
+                        describe('Соединение установлено.', function() {
+                            beforeEach(function() {
+                                tester.connectEventsWebSocket();
+                                tester.authenticatedUserRequest().sipIsOffline().receiveResponse();
+                            });
 
-                            tester.softphone.expectToHaveTextContent(
-                                'Используется на другом устройстве ' +
-                                'Включено управление звонками с другого устройства или программы'
-                            );
+                            it('Нажимаю на кнопку аккаунта. Выбираю другой статус. Другой статус выбран.', function() {
+                                tester.userName.putMouseOver();
+                                tester.statusesList.item('Нет на месте').click();
+
+                                tester.userStateUpdateRequest().receiveResponse();
+                                tester.notificationOfUserStateChanging().anotherStatus().receive();
+
+                                tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
+                                tester.statusesList.item('Нет на месте').expectToBeSelected();
+
+                                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+                            });
+                            it(
+                                'Отображено сообщение о том, включено управление звонками с другого устройстви или ' +
+                                'программы.',
+                            function() {
+                                tester.softphone.expectToHaveTextContent(
+                                    'Используется на другом устройстве ' +
+                                    'Включено управление звонками с другого устройства или программы'
+                                );
+                            });
                         });
                         it('Устанавливается соединение. Отображено сообщение об установке соединения.', function() {
                             tester.getEventsWebSocket().expectToBeConnecting();
