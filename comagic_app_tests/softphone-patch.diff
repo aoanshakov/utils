@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index a0244a4..c047c3d 100644
+index d96a824..c047c3d 100644
 --- a/package.json
 +++ b/package.json
 @@ -55,7 +55,7 @@
@@ -15,7 +15,7 @@ index a0244a4..c047c3d 100644
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
      "yup": "^0.32.9",
--    "uis-softphone": "0.0.139"
+-    "uis-softphone": "0.0.140"
 +    "uis-softphone": "./misc/sip_lib"
    }
  }
