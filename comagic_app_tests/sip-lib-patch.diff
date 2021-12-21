@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index 718aa41..38570b8 100644
+index 0c7dcef..e44be7e 100644
 --- a/package.json
 +++ b/package.json
-@@ -32,7 +32,7 @@
+@@ -33,7 +33,7 @@
      "webpack": "5.28.0",
      "webpack-cli": "^4.2.0",
      "babel-loader": "^8.0.4",
