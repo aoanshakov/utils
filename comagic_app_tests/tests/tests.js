@@ -619,10 +619,16 @@ tests.addTest(options => {
 
                                                         tester.phoneField.expectToHaveValue('79161234567');
                                                     });
-                                                    it('Поступил входящий звонок.', function() {
+                                                    it(
+                                                        'Поступил входящий звонок. Отображено сообщение о звонке.',
+                                                    function() {
                                                         tester.incomingCall().thirdNumber().receive();
                                                         tester.numaRequest().thirdNumber().receiveResponse();
                                                         tester.outCallEvent().anotherPerson().receive();
+
+                                                        tester.softphone.expectTextContentToHaveSubstring(
+                                                            'Гигова Петранка Входящий...'
+                                                        );
                                                     });
                                                     it('Отображено имя, номер и таймер.', function() {
                                                         tester.outgoingIcon.expectToBeVisible();
