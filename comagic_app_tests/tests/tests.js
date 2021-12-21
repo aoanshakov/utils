@@ -109,7 +109,6 @@ tests.addTest(options => {
                                     describe('Поступил входящий звонок.', function() {
                                         beforeEach(function() {
                                             tester.incomingCall().receive();
-                                            Promise.runAll(false, true);
                                             tester.numaRequest().receiveResponse();
                                         });
 
@@ -619,6 +618,11 @@ tests.addTest(options => {
                                                         tester.phoneField.fill('79161234567');
 
                                                         tester.phoneField.expectToHaveValue('79161234567');
+                                                    });
+                                                    it('Поступил входящий звонок.', function() {
+                                                        tester.incomingCall().thirdNumber().receive();
+                                                        tester.numaRequest().thirdNumber().receiveResponse();
+                                                        tester.outCallEvent().anotherPerson().receive();
                                                     });
                                                     it('Отображено имя, номер и таймер.', function() {
                                                         tester.outgoingIcon.expectToBeVisible();

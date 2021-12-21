@@ -443,6 +443,12 @@ define(() => function ({
         };
 
         return {
+            anotherPerson: function () {
+                params.calling_phone_number = params.contact_phone_number = '79161234510';
+                params.contact_full_name = 'Гигова Петранка';
+                return this;
+            },
+
             activeLeads() {
                 params.active_leads = [{
                     url: 'https://comagicwidgets.amocrm.ru/leads/detail/3003649',
@@ -501,6 +507,11 @@ define(() => function ({
             respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
 
         return {
+            thirdNumber: function () {
+                numa = 79161234510;
+                return this;
+            },
+
             anotherNumber() {
                 numa = 74950230625;
                 return this;

@@ -2562,6 +2562,12 @@ define(function () {
                     phone = '79161234569';
                     return this;
                 },
+                anotherNumber: function () {
+                    return this.setAnotherNumber();
+                },
+                thirdNumber: function () {
+                    return this.setThirdNumber();
+                },
                 setShortNumber: function () {
                     phone = '79161';
                     return this;
@@ -2586,6 +2592,7 @@ define(function () {
                     var response = sip.recentResponse();
 
                     expectSomeStatus(response);
+                    Promise.runAll(false, true);
 
                     return {
                         cancel: function () {
