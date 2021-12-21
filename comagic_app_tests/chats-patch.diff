@@ -1,13 +1,13 @@
 diff --git a/package.json b/package.json
-index 7ff3ecb..68c3d36 100644
+index f3a5296..8f99e96 100644
 --- a/package.json
 +++ b/package.json
-@@ -54,7 +54,7 @@
-   },
+@@ -55,7 +55,7 @@
    "dependencies": {
      "@babel/runtime": "^7.13.9",
+     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.0.8",
 -    "antd": "^4.13.0",
-+    "antd": "^3.26.7",
++    "antd": "3.26.7",
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",

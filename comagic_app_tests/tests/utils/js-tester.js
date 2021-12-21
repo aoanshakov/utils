@@ -646,7 +646,7 @@ function JsTester_RTCPeerConnectionTester (options) {
         return !getLocalAudioTrack().enabled;
     }
     
-    function getDeviceId () {
+    function getDeviceId (logEnabled) {
         return getLocalAudioTrack().getSettings().deviceId;
     }
 
@@ -736,7 +736,7 @@ function JsTester_RTCPeerConnectionTester (options) {
     };
 
     this.expectInputDeviceIdToEqual = function (expectedValue) {
-        var actualValue = getDeviceId();
+        var actualValue = getDeviceId(true);
 
         if (!actualValue) {
             throw new Error('Устройство не выбрано.');
@@ -2907,7 +2907,7 @@ function JsTester_Tests (factory) {
         notificationPermissionRequests = new JsTester_Queue({
             callback: function () {}
         }),
-        notificationPermission = new JsTester_RWVariable();
+        notificationPermission = new JsTester_RWVariable(),
         notificationClickHandler = new JsTester_FunctionVariable(function () {}),
         notificationTester = new JsTester_NotificationTester({
             notifications: notifications,
@@ -3984,6 +3984,24 @@ function JsTester_Utils (debug) {
     this.findElementByTextContent = function (ascendantElement, desiredTextContent, selector) {
         return (new JsTester_DescendantFinder(ascendantElement, this)).matchesSelector(selector || '*').
             textEquals(desiredTextContent).find();
+    };
+    this.expectJSONObjectToContain = function (object, expectedContent) {
+        if (!object) {
+            throw new Error('Строка, которую необходимо разобрать как JSON не должна быть пустой.');
+        }
+
+        if (typeof object != 'string') {
+            throw new Error('Значение переданное для разбора в качестве JSON должно быть строковым.');
+        }
+
+        try {
+            object = JSON.parse(object);
+        } catch (e) {
+            throw new Error('Не удалось разобрать JSON.');
+        }
+
+
+        this.expectObjectToContain(object, expectedContent);
     };
     this.expectObjectToContain = function (object, expectedContent) {
         if (typeof expectedContent != 'object') {

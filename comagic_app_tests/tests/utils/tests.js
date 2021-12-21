@@ -3,12 +3,13 @@ document.addEventListener('DOMContentLoaded', function () {
         baseUrl: '/tests/utils'
     });
 
-    requirejs(['promise-mock', 'tester', 'softphone-tester', 'sip', 'fake-require'], function (
+    requirejs(['promise-mock', 'tester', 'softphone-tester', 'sip', 'fake-require', 'sound-sources'], function (
         PromiseMock,
         Tester,
         SoftphoneTester,
         Sip,
-        FakeRequire
+        FakeRequire,
+        soundSources
     ) {
         describe('', function() {
             beforeEach(function() {
@@ -23,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tests.runTests({
                 Sip,
                 FakeRequire: FakeRequire,
+                soundSources,
                 Tester: function (options) {
                     options.softphoneTester = new SoftphoneTester(options);
                     return new Tester(options);
