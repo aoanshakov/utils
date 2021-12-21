@@ -644,6 +644,18 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
+            me.noTelephony = () => {
+                Object.keys(response.data).forEach(key => ![
+                    'ws_url',
+                    'sip_channels_count',
+                    'ice_servers',
+                    'application_version'
+                ].includes(key) && delete(response.data[key]));
+
+                ['sip_host', 'sip_login', 'sip_password'].forEach(key => (response.data[key] = null));
+                return me;
+            };
+
             me.isNeedDisconnectSignal = () => {
                 response.data.is_need_disconnect_signal = true;
                 return me

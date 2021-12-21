@@ -1269,6 +1269,16 @@ tests.addTest(options => {
                         tester.authenticatedUserRequest().receiveResponse();
                         tester.requestRegistration().receiveResponse();
                     });
+                    it('Телефония недоступна. Отображено сообщение "Sip-линия не зарегистрирована".', function() {
+                        settingsRequest.noTelephony().receiveResponse();
+
+                        tester.connectEventsWebSocket();
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.softphone.expectTextContentToHaveSubstring(
+                            'Sip-линия не зарегистрирована'
+                        );
+                    });
                 });
             });
         });
