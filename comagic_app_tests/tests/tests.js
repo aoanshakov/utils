@@ -1629,6 +1629,10 @@ tests.addTest(options => {
                 tester.button('Виджет').expectNotToBeChecked();
                 tester.button('Софтфон или IP-телефон').expectToBeChecked();
             });
+            it('Открываю вкладку "Звук". Отображены настройки звука.', function() {
+                tester.button('Звук').click();
+                tester.body.expectTextContentToHaveSubstring('Громкость звонка 100%');
+            });
             it('Отмечена кнопка "Виджет".', function() {
                 tester.button('Виджет').expectToBeChecked();
                 tester.button('Софтфон или IP-телефон').expectNotToBeChecked();
