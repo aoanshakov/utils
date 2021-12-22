@@ -20,7 +20,7 @@ tests.addTest(options => {
         spendTime(0);
     });
 
-    describe(
+    xdescribe(
         'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -1427,7 +1427,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
+    xdescribe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
         let tester;
 
         beforeEach(function() {
@@ -1551,7 +1551,7 @@ tests.addTest(options => {
             tester.button('Сигнал о завершении звонка').expectToBeChecked();
         });
     });
-    describe('Открываю декстопное приложение софтфона.', function() {
+    xdescribe('Открываю декстопное приложение софтфона.', function() {
         let tester,
             packages;
 
@@ -1730,18 +1730,32 @@ tests.addTest(options => {
 
         const requests = ajax.inAnyOrder();
 
-        reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-        const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
             reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
             secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
         requests.expectToBeSent();
 
+        reportGroupsRequest.receiveResponse();
         reportsListRequest.receiveResponse();
         reportTypesRequest.receiveResponse();
         secondAccountRequest.receiveResponse();
 
         tester.configRequest().softphone().receiveResponse();
-        tester.authCheckRequest().expectToBeSent();
+
+        tester.authCheckRequest().receiveResponse();
+        tester.statusesRequest().receiveResponse();
+        tester.settingsRequest().receiveResponse();
+        tester.talkOptionsRequest().receiveResponse();
+        tester.permissionsRequest().receiveResponse();
+
+        tester.connectEventsWebSocket();
+        tester.connectSIPWebSocket();
+
+        tester.authenticatedUserRequest().receiveResponse();
+        tester.registrationRequest().receiveResponse();
+
+        tester.allowMediaInput();
     });
 });
