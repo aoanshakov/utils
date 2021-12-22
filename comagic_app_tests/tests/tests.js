@@ -563,10 +563,10 @@ tests.addTest(options => {
                                             });
                                         });
                                         it(
-                                            'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или ' +
-                                            'IP-телефон". Отмечена кнопка "Софтфон или IP-телефон".',
+                                            'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "IP-телефон". ' +
+                                            'Отмечена кнопка "IP-телефон".',
                                         function() {
-                                            tester.button('Софтфон или IP-телефон').click();
+                                            tester.button('IP-телефон').click();
                                             tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().
                                                 receiveResponse();
                                             tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
@@ -576,8 +576,8 @@ tests.addTest(options => {
                                             spendTime(2000);
                                             tester.webrtcWebsocket.finishDisconnecting();
 
-                                            tester.button('Виджет').expectNotToBeChecked();
-                                            tester.button('Софтфон или IP-телефон').expectToBeChecked();
+                                            tester.button('Текущее устройство').expectNotToBeChecked();
+                                            tester.button('IP-телефон').expectToBeChecked();
                                         });
                                     });
                                 });
