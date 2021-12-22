@@ -1,8 +1,15 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener, debug, fakeNow) {
-    var tester;
+tests.addTest(function(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        wait = args.wait,
+        utils = args.utils,
+        windowOpener = args.windowOpener,
+        debug = args.debug,
+        fakeNow = args.fakeNow,
+        tester;
     
     beforeEach(function() {
-        tester = new EasystartAmocrm(requestsManager, testersFactory, utils);
+        tester = new EasystartAmocrm(args);
     });
 
     describe('Открываю страницу легкого входа amoCRM. Нажимаю на кнопку "Продолжить".', function() {
@@ -94,5 +101,13 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
 
         tester.tooltipTrigger.putMouseOver();
         tester.titleOfPhoneNumberTooltip.expectToBeVisible();
+    });
+    it(
+        'Открываю страницу легкого входа Битрикс24. Произошла фатальная ошибка. Отображено сообщение об ошибке.',
+    function() {
+        tester.setFatalError();
+        EasyStart.getApplication().checkIfPartnerReady();
+        wait(10);
+        tester.fatalErrorMessage.expectToBeVisible();
     });
 });

@@ -32,6 +32,7 @@ function EasystartBitrix(args) {
             partner: 'bitrix'
         };
     };
+
     this.comagicWebAuthRequest = function () {
         return {
             expectToBeSent: function () {

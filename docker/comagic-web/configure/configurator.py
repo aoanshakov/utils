@@ -94,10 +94,17 @@ def override_params(traverser, parent, new_values):
     )
 
 
-def override_file(original_config_path, overriden_config_path, original_config_preparer, new_values):
+def override_file(
+    original_config_path,
+    overriden_config_path,
+    original_config_preparer,
+    new_values,
+    callback
+):
     with open(original_config_path, 'r') as original_config:
         with open(overriden_config_path, 'w') as overriden_config:
             root = ast.parse(original_config_preparer(original_config.read()))
+            callback(root)
 
             override_params(
                 traverser=each_assign_node,
@@ -108,12 +115,18 @@ def override_file(original_config_path, overriden_config_path, original_config_p
             overriden_config.write("# -*- coding:utf-8 -*-\n\n" + astor.to_source(root))
 
 
-def handle_config(path, original_config_preparer=lambda code: code, new_values={}):
+def handle_config(
+    path,
+    original_config_preparer=lambda code: code,
+    new_values={},
+    callback=lambda root: None
+):
     override_file(
         original_config_path=path + '.txt',
         overriden_config_path=path + '.py',
         original_config_preparer=original_config_preparer,
-        new_values=new_values
+        new_values=new_values,
+        callback=callback
     )
 
 
@@ -159,6 +172,13 @@ def get_local_config_new_values(new_values):
     return values
 
 
+def maybe_change_project(project, root):
+    if project == 'comagic':
+        return
+
+    #print('ASSIGNMENT', ast.parse('DOMAIN_DATA[-1]["project"] = "uis2"'))
+
+
 def configure(new_values_path, comagic_web_path):
     with open(new_values_path) as new_values:
         new_values = json.load(new_values)
@@ -166,7 +186,11 @@ def configure(new_values_path, comagic_web_path):
         handle_config(
             path=os.path.join(comagic_web_path, 'comagic', 'local_config'),
             original_config_preparer=prepare_local_config,
-            new_values=get_local_config_new_values(new_values)
+            new_values=get_local_config_new_values(new_values),
+            callback=lambda root: maybe_change_project(
+                new_values.get('project', 'comagic'),
+                root
+            )
         )
 
         handle_config(

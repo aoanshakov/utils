@@ -15,7 +15,7 @@ tests.addTest(function(args) {
         tester.afterEach();
     });
 
-    xdescribe(
+    describe(
         'Открываю страницу легкого входа Битрикс24. Нажимаю на кнопку "Тестировать бесплатно". Нажимаю на кнопку ' +
         '"Продолжить". В соответствии с данными, полученными от сервера ни один сотрудник не был выбран ранее.',
     function() {
@@ -106,7 +106,7 @@ tests.addTest(function(args) {
             tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
         });
     });
-    xdescribe('Нажимаю на кнопку "Тестировать бесплатно".', function() {
+    describe('Нажимаю на кнопку "Тестировать бесплатно".', function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
             wait();
@@ -177,7 +177,7 @@ tests.addTest(function(args) {
             wait();
         });
 
-        xdescribe('Нажимаю на вход в колл-центр.', function() {
+        describe('Нажимаю на вход в колл-центр.', function() {
             var authIframe,
                 workplaceIframe;
 
@@ -310,7 +310,7 @@ tests.addTest(function(args) {
                 comagicWebAuthRequest = tester.comagicWebAuthRequest().expectToBeSent();
             });
 
-            xit('Логин найден. ЛК открыт в новой вкладке.', function() {
+            it('Логин найден. ЛК открыт в новой вкладке.', function() {
                 comagicWebAuthRequest.receiveResponse();
 
                 tester.redirectionAuthForm.expectAttributeToHaveValue('action', 'https://app.comagic.ru/login/');
@@ -329,7 +329,6 @@ tests.addTest(function(args) {
                 tester.authForm.expectTextContentToHaveSubstring('Логин не найден');
             });
         });
-        return;
         it('Кнопка "Тестировать бесплатно" скрыта.', function() {
             tester.tryForFreeButton.expectToBeHidden();
             tester.mainPageHeader.expectTextContentToHaveSubstring('Приложение установлено');
@@ -340,7 +339,6 @@ tests.addTest(function(args) {
             );
         });
     });
-    return;
     describe('Открываю страницу легкого входа Битрикс24. Приложение еще не установлено.', function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
@@ -386,8 +384,11 @@ tests.addTest(function(args) {
         'Открываю страницу легкого входа Битрикс24. Произошла фатальная ошибка. Отображено сообщение об ошибке.',
     function() {
         tester.setFatalError();
+
         EasyStart.getApplication().checkIfPartnerReady();
         wait(10);
-        tester.fatalErrorMessage.expectToBeVisible();
+
+        tester.fatalErrorMessage.expectNotToExist();
+        tester.button('Завершить установку').expectToBeVisible();
     });
 });
