@@ -12,7 +12,8 @@ tests.addTest(options => {
         fetch,
         soundSources,
         setNow,
-        fileReader
+        fileReader,
+        userMedia
     } = options;
 
     afterEach(function() {
@@ -549,19 +550,37 @@ tests.addTest(options => {
                                                 });
                                             });
                                             it('Настройки не выбраны.', function() {
-                                                tester.fieldRow('Микрофон').select.expectToHaveTextContent('');
-                                                tester.fieldRow('Динамики').select.expectToHaveTextContent('');
+                                                tester.fieldRow('Микрофон').select.
+                                                    expectToHaveTextContent('По умолчанию');
+                                                tester.fieldRow('Динамики').select.
+                                                    expectToHaveTextContent('По умолчанию');
                                                 tester.fieldRow('Звонящее устройство').select.
-                                                    expectToHaveTextContent('');
+                                                    expectToHaveTextContent('По умолчанию');
+
                                                 tester.button('Сигнал о завершении звонка').expectNotToBeChecked();
+                                                
                                                 tester.playerButton.
                                                     expectNotToHaveClass('cmg-ringtone-player-disabled');
+
                                                 tester.playerButton.findElement('svg').expectToExist();
                                             });
                                         });
-                                        it('Отображены общие настройки.', function() {
-                                            tester.popover.expectToBeHiddenOrNotExist();
-                                            tester.button('Софтфон или IP-телефон').expectToBeVisible();
+                                        it(
+                                            'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "IP-телефон". ' +
+                                            'Отмечена кнопка "IP-телефон".',
+                                        function() {
+                                            tester.button('IP-телефон').click();
+                                            tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().
+                                                receiveResponse();
+                                            tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
+
+                                            tester.registrationRequest().expired().receiveResponse();
+                                            
+                                            spendTime(2000);
+                                            tester.webrtcWebsocket.finishDisconnecting();
+
+                                            tester.button('Текущее устройство').expectNotToBeChecked();
+                                            tester.button('IP-телефон').expectToBeChecked();
                                         });
                                     });
                                 });
@@ -1235,14 +1254,33 @@ tests.addTest(options => {
                             settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
                         });
 
-                        it('Соединение установлено.', function() {
-                            tester.connectEventsWebSocket();
-                            tester.authenticatedUserRequest().sipIsOffline().receiveResponse();
+                        describe('Соединение установлено.', function() {
+                            beforeEach(function() {
+                                tester.connectEventsWebSocket();
+                                tester.authenticatedUserRequest().sipIsOffline().receiveResponse();
+                            });
 
-                            tester.softphone.expectToHaveTextContent(
-                                'Используется на другом устройстве ' +
-                                'Включено управление звонками с другого устройства или программы'
-                            );
+                            it('Нажимаю на кнопку аккаунта. Выбираю другой статус. Другой статус выбран.', function() {
+                                tester.userName.putMouseOver();
+                                tester.statusesList.item('Нет на месте').click();
+
+                                tester.userStateUpdateRequest().receiveResponse();
+                                tester.notificationOfUserStateChanging().anotherStatus().receive();
+
+                                tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
+                                tester.statusesList.item('Нет на месте').expectToBeSelected();
+
+                                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+                            });
+                            it(
+                                'Отображено сообщение о том, включено управление звонками с другого устройстви или ' +
+                                'программы.',
+                            function() {
+                                tester.softphone.expectToHaveTextContent(
+                                    'Используется на другом устройстве ' +
+                                    'Включено управление звонками с другого устройства или программы'
+                                );
+                            });
                         });
                         it('Устанавливается соединение. Отображено сообщение об установке соединения.', function() {
                             tester.getEventsWebSocket().expectToBeConnecting();
@@ -1275,6 +1313,16 @@ tests.addTest(options => {
 
                         tester.authenticatedUserRequest().receiveResponse();
                         tester.requestRegistration().receiveResponse();
+                    });
+                    it('Телефония недоступна. Отображено сообщение "Sip-линия не зарегистрирована".', function() {
+                        settingsRequest.noTelephony().receiveResponse();
+
+                        tester.connectEventsWebSocket();
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.softphone.expectTextContentToHaveSubstring(
+                            'Sip-линия не зарегистрирована'
+                        );
                     });
                 });
             });
@@ -1489,6 +1537,10 @@ tests.addTest(options => {
                     '943ab'
                 );
             });
+        });
+        it('Отключаю выбранное устройство. Выбрано устройство по умолчанию.', function() {
+            userMedia.unplugDevice();
+            tester.fieldRow('Динамики').select.expectToHaveTextContent('По умолчанию');
         });
         it('Настройки звука отображены.', function() {
             tester.body.expectTextContentToHaveSubstring('Громкость звонка 25%');
