@@ -176,7 +176,18 @@ def maybe_change_project(project, root):
     if project == 'comagic':
         return
 
-    #print('ASSIGNMENT', ast.parse('DOMAIN_DATA[-1]["project"] = "uis2"'))
+    root.body.append(ast.Assign(
+        targets=[ast.Subscript(
+            value=ast.Subscript(
+                value=ast.Name(id='DOMAIN_DATA', ctx=ast.Load()),
+                slice=ast.Index(value=ast.UnaryOp(op=ast.USub(), operand=ast.Num(n=1))),
+                ctx=ast.Load()
+            ),
+            slice=ast.Index(value=ast.Str(s='project')),
+            ctx=ast.Store()
+        )],
+        value=ast.Str(s='uis2')
+    ))
 
 
 def configure(new_values_path, comagic_web_path):

@@ -36,7 +36,6 @@ RUN /home/venv/bin/pip3 install black astor
 
 ADD requirements.txt.diff /home/requirements.txt.diff
 ADD pip.conf /home/pip.conf
-ADD configure /home/configure
 ADD scripts/* /usr/local/bin/
 
 ADD run.sh /run.sh
