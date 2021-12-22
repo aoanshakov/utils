@@ -20,8 +20,8 @@ tests.addTest(options => {
         spendTime(0);
     });
 
-    xdescribe(
-        'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
+    describe(
+        'Открываю новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
             reportGroupsRequest,
@@ -1427,7 +1427,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    xdescribe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
+    describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
         let tester;
 
         beforeEach(function() {
@@ -1551,7 +1551,7 @@ tests.addTest(options => {
             tester.button('Сигнал о завершении звонка').expectToBeChecked();
         });
     });
-    xdescribe('Открываю декстопное приложение софтфона.', function() {
+    describe('Открываю декстопное приложение софтфона.', function() {
         let tester,
             packages;
 
@@ -1615,9 +1615,9 @@ tests.addTest(options => {
             });
             it(
                 'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или IP-телефон". Отмечена кнопка ' +
-                '"Софтфон или IP-телефон".',
+                '"IP-телефон".',
             function() {
-                tester.button('Софтфон или IP-телефон').click();
+                tester.button('IP-телефон').click();
                 tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().receiveResponse();
                 tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
 
@@ -1626,16 +1626,16 @@ tests.addTest(options => {
                 spendTime(2000);
                 tester.webrtcWebsocket.finishDisconnecting();
 
-                tester.button('Виджет').expectNotToBeChecked();
-                tester.button('Софтфон или IP-телефон').expectToBeChecked();
+                tester.button('Текущее устройство').expectNotToBeChecked();
+                tester.button('IP-телефон').expectToBeChecked();
             });
             it('Открываю вкладку "Звук". Отображены настройки звука.', function() {
                 tester.button('Звук').click();
                 tester.body.expectTextContentToHaveSubstring('Громкость звонка 100%');
             });
-            it('Отмечена кнопка "Виджет".', function() {
-                tester.button('Виджет').expectToBeChecked();
-                tester.button('Софтфон или IP-телефон').expectNotToBeChecked();
+            it('Отмечена кнопка "Текущее устройство".', function() {
+                tester.button('Текущее устройство').expectToBeChecked();
+                tester.button('IP-телефон').expectNotToBeChecked();
             });
         });
         describe('Раскрываю список статусов.', function() {
@@ -1720,42 +1720,56 @@ tests.addTest(options => {
             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
         });
     });
-    it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
-        const tester = new Tester({
-            ...options,
-            isAlreadyAuthenticated: true
+    describe('Я уже аутентифицирован. Открываю новый личный кабинет.', function() {
+        let authenticatedUserRequest,
+            tester;
+
+        beforeEach(function() {
+            tester = new Tester({
+                ...options,
+                isAlreadyAuthenticated: true
+            });
+
+            tester.accountRequest().receiveResponse();
+
+            const requests = ajax.inAnyOrder();
+
+            const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            reportGroupsRequest.receiveResponse();
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            secondAccountRequest.receiveResponse();
+
+            tester.configRequest().softphone().receiveResponse();
+
+            tester.authCheckRequest().receiveResponse();
+            tester.statusesRequest().receiveResponse();
+            tester.settingsRequest().receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+
+            tester.connectEventsWebSocket();
+            tester.connectSIPWebSocket();
+
+            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+            tester.registrationRequest().receiveResponse();
+            tester.allowMediaInput();
+
+            authenticatedUserRequest.receiveResponse();
         });
-
-        tester.accountRequest().receiveResponse();
-
-        const requests = ajax.inAnyOrder();
-
-        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-            secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
-
-        requests.expectToBeSent();
-
-        reportGroupsRequest.receiveResponse();
-        reportsListRequest.receiveResponse();
-        reportTypesRequest.receiveResponse();
-        secondAccountRequest.receiveResponse();
-
-        tester.configRequest().softphone().receiveResponse();
-
-        tester.authCheckRequest().receiveResponse();
-        tester.statusesRequest().receiveResponse();
-        tester.settingsRequest().receiveResponse();
-        tester.talkOptionsRequest().receiveResponse();
-        tester.permissionsRequest().receiveResponse();
-
-        tester.connectEventsWebSocket();
-        tester.connectSIPWebSocket();
-
-        tester.authenticatedUserRequest().receiveResponse();
-        tester.registrationRequest().receiveResponse();
-
-        tester.allowMediaInput();
+            
+        it('Статус сотрудника изменился. Отображен новый статус сотрудника.', function() {
+            tester.notificationOfUserStateChanging().anotherStatus().receive();
+            tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+        });
+        it('Отображен статус сотрудника.', function() {
+            tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
+        });
     });
 });
