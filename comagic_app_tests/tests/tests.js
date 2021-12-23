@@ -1633,6 +1633,15 @@ tests.addTest(options => {
                 tester.button('Звук').click();
                 tester.body.expectTextContentToHaveSubstring('Громкость звонка 100%');
             });
+            it(
+                'Прошло некоторое время. Сервер событий не отвечает. Отображено сообщение об установке соединения.',
+            function() {
+                spendTime(5000);
+                tester.expectPingToBeSent();
+                spendTime(2000);
+
+                tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
+            });
             it('Отмечена кнопка "Текущее устройство".', function() {
                 tester.button('Текущее устройство').expectToBeChecked();
                 tester.button('IP-телефон').expectNotToBeChecked();
