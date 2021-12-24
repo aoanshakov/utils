@@ -376,7 +376,6 @@ tests.addTest(options => {
                                             tester.outCallEvent().longName().receive();
                                         });
                                         it('Отображено сообщение о поиске контакта.', function() {
-                                            tester.collapsednessToggleButton.expectNotToExist();
                                             tester.contactOpeningButton.expectNotToExist();
                                             tester.incomingIcon.expectToBeVisible();
                                             tester.softphone.expectTextContentToHaveSubstring(
@@ -723,29 +722,6 @@ tests.addTest(options => {
                                                     callsRequest.receiveResponse();
                                                 });
 
-                                                describe('Прокручиваю историю.', function() {
-                                                    beforeEach(function() {
-                                                        tester.callsGridScrolling().toTheEnd().scroll();
-                                                        tester.callsGridScrolling().toTheEnd().scroll();
-                                                        tester.callsGridScrolling().toTheEnd().scroll();
-                                                        tester.callsGridScrolling().toTheEnd().scroll();
-                                                        tester.callsGridScrolling().toTheEnd().scroll();
-                                                        tester.callsGridScrolling().toTheEnd().scroll();
-                                                        tester.callsGridScrolling().toTheEnd().scroll();
-                                                        tester.callsGridScrolling().toTheEnd().scroll();
-                                                    });
-
-                                                    it(
-                                                        'Прокручиваю историю до конца. Запрошена вторая страница ' +
-                                                        'истории.',
-                                                    function() {
-                                                        tester.callsGridScrolling().toTheEnd().scroll();
-                                                        tester.callsRequest().secondPage().expectToBeSent();
-                                                    });
-                                                    it('Вторая страница истории еще не запрошена.', function() {
-                                                        ajax.expectNoRequestsToBeSent();
-                                                    });
-                                                });
                                                 describe('Соединение разрывается.', function() {
                                                     beforeEach(function() {
                                                         tester.disconnectEventsWebSocket();
@@ -789,6 +765,29 @@ tests.addTest(options => {
                                                         );
                                                     });
                                                 });
+                                                describe('Прокручиваю историю.', function() {
+                                                    beforeEach(function() {
+                                                        tester.callsGridScrolling().toTheEnd().scroll();
+                                                        tester.callsGridScrolling().toTheEnd().scroll();
+                                                        tester.callsGridScrolling().toTheEnd().scroll();
+                                                        tester.callsGridScrolling().toTheEnd().scroll();
+                                                        tester.callsGridScrolling().toTheEnd().scroll();
+                                                        tester.callsGridScrolling().toTheEnd().scroll();
+                                                        tester.callsGridScrolling().toTheEnd().scroll();
+                                                        tester.callsGridScrolling().toTheEnd().scroll();
+                                                    });
+
+                                                    it(
+                                                        'Прокручиваю историю до конца. Запрошена вторая страница ' +
+                                                        'истории.',
+                                                    function() {
+                                                        tester.callsGridScrolling().toTheEnd().scroll();
+                                                        tester.callsRequest().secondPage().expectToBeSent();
+                                                    });
+                                                    it('Вторая страница истории еще не запрошена.', function() {
+                                                        ajax.expectNoRequestsToBeSent();
+                                                    });
+                                                });
                                                 it('Нажимаю на иконку звонка.', function() {
                                                     tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.click();
 
@@ -807,6 +806,13 @@ tests.addTest(options => {
                                                     windowOpener.expectToHavePath(
                                                         'https://comagicwidgets.amocrm.ru/contacts/detail/218401'
                                                     );
+                                                });
+                                                it(
+                                                    'Нажимаю на кнопку сворачивания софтфона. Отображено поле для ' +
+                                                    'ввода телефона.',
+                                                function() {
+                                                    tester.collapsednessToggleButton.click();
+                                                    tester.phoneField.expectToBeVisible();
                                                 });
                                                 it('Отображены иконки направлений.', function() {
                                                     tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.
@@ -957,6 +963,34 @@ tests.addTest(options => {
                                                 tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
                                             });
                                         });
+                                        describe('Нажимаю на кнопку разворачивания софтфона.', function() {
+                                            beforeEach(function() {
+                                                tester.collapsednessToggleButton.click();
+                                            });
+
+                                            it(
+                                                'Нажимаю на кнопку сворачивания софтфона. Кнопка удаления цифры ' +
+                                                'скрыта.',
+                                            function() {
+                                                tester.collapsednessToggleButton.click();
+                                                tester.digitRemovingButton.expectNotToExist();
+                                            });
+                                            it('Кнопка удаления цифры видима.', function() {
+                                                tester.digitRemovingButton.expectToBeVisible();
+                                            });
+                                        });
+                                        it(
+                                            'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
+                                            'сообщение об установке соединения.',
+                                        function() {
+                                            spendTime(5000);
+                                            tester.expectPingToBeSent();
+                                            spendTime(2000);
+
+                                            tester.softphone.expectToHaveTextContent(
+                                                'Устанавливается соединение...'
+                                            );
+                                        });
                                         it(
                                             'Соединение разрывается. Отображено сообщение об установке соединения.',
                                         function() {
@@ -984,18 +1018,6 @@ tests.addTest(options => {
                                             tester.digitRemovingButton.expectNotToExist();
                                             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
                                             tester.settingsButton.expectNotToExist();
-                                        });
-                                        it(
-                                            'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
-                                            'сообщение об установке соединения.',
-                                        function() {
-                                            spendTime(5000);
-                                            tester.expectPingToBeSent();
-                                            spendTime(2000);
-
-                                            tester.softphone.expectToHaveTextContent(
-                                                'Устанавливается соединение...'
-                                            );
                                         });
                                     });
                                     it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
