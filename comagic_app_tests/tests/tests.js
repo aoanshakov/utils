@@ -980,6 +980,20 @@ tests.addTest(options => {
                                             });
                                         });
                                         it(
+                                            'Софтфон открыт в другом окне. Отображено сообщение о том, что софтфон ' +
+                                            'открыт в другом окне.',
+                                        function() {
+                                            tester.eventsWebSocket.disconnect(4429);
+                                            tester.authLogoutRequest().receiveResponse();
+                                            tester.registrationRequest().expired().receiveResponse();
+                                            
+                                            spendTime(2000);
+                                            tester.webrtcWebsocket.finishDisconnecting();
+
+                                            tester.softphone.
+                                                expectTextContentToHaveSubstring('Софтфон открыт в другом окне');
+                                        });
+                                        it(
                                             'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
                                             'сообщение об установке соединения.',
                                         function() {
@@ -1613,6 +1627,52 @@ tests.addTest(options => {
                     tester.statusesList.item('Не беспокоить').expectToBeSelected();
                     tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                 });
+            });
+            it(
+                'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку "Выход". Вхожу в софтфон ' +
+                'заново. Удалось войти. Софтфон готов к работе.',
+            function() {
+                tester.eventsWebSocket.disconnect(4429);
+                tester.authLogoutRequest().receiveResponse();
+                tester.registrationRequest().expired().receiveResponse();
+                
+                spendTime(2000);
+                tester.webrtcWebsocket.finishDisconnecting();
+
+                tester.userName.putMouseOver();
+                tester.statusesList.item('Выход').click();
+
+                tester.userLogoutRequest().receiveResponse();
+
+                tester.input.withFieldLabel('Логин').fill('botusharova');
+                tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                tester.button('Войти').click();
+
+                tester.loginRequest().anotherAuthorizationToken().receiveResponse();
+
+                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
+                tester.configRequest().softphone().receiveResponse();
+
+                tester.statusesRequest().createExpectation().
+                    anotherAuthorizationToken().checkCompliance().receiveResponse();
+
+                tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+
+                tester.connectEventsWebSocket(1);
+                tester.connectSIPWebSocket(1);
+
+                tester.authenticatedUserRequest().receiveResponse();
+                tester.registrationRequest().receiveResponse();
+
+                tester.allowMediaInput();
+
+                tester.phoneField.fill('79161234567');
+                tester.callButton.expectNotToHaveAttribute('disabled');
             });
             it(
                 'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок. Отображено сообщение о ' +
