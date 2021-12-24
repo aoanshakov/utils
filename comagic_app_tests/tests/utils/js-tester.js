@@ -3224,6 +3224,7 @@ function JsTester_Tests (factory) {
             wait: wait,
             spendTime: spendTime,
             utils: utils,
+            debug: debug,
             windowOpener: windowOpener,
             webSockets: webSockets,
             webSocketLogger: webSocketLogger,

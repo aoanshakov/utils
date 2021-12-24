@@ -1,7 +1,62 @@
 define(function () {
-    return function () {
-        var opened,
+    return function (args) {
+        var utils = args.utils,
+            debug = args.debug,
+            opened,
+            messages,
             maximizeChangeHandlers = [];
+
+        function NoMessage () {
+            this.expectNotToBeSent = function () {};
+
+            this.expectToBeSentToChannel = function (expectedChannel) {
+                throw new Error(
+                    'Сообщение должно быть отправлено в канал "' + expectedChannel + '", тогда как никакое сообщение ' +
+                    'отправлено не было.'
+                );
+            };
+
+            this.expectToBeSentWithArguments = function () {
+                throw new Error(
+                    'Сообщение должно быть отправлено с аргументами ' +
+                    JSON.stringify(Array.prototype.slice.call(arguments, 0)) + ', тогда как никакое сообщение ' +
+                    'отправлено не было.'
+                );
+            };
+        }
+
+        function Message (args) {
+            var actualChannel = args[0],
+                actualArguments = args.slice(1),
+                callStack = debug.getCallStack();
+
+            this.expectToBeSentToChannel = function (expectedChannel) {
+                if (actualChannel != expectedChannel) {
+                    throw new Error(
+                        'Сообщение должно быть отправлено в канал "' + expectedChannel + '", а не "' + actualChannel +
+                        '".'
+                    );
+                }
+
+                return this;
+            };
+
+            this.expectToBeSentWithArguments = function () {
+                utils.expectObjectToContain(
+                    actualArguments,
+                    Array.prototype.slice.call(arguments, 0).concat([undefined])
+                )
+
+                return this;
+            };
+
+            this.expectNotToBeSent = function () {
+                throw new Error(
+                    'Ни одно сообщение не должно быть отправлено, тогда как было отправлено сообщение в канал "' +
+                    actualChannel + '".' + "\n\n" + callStack
+                );
+            };
+        }
 
         return {
             electron: {
@@ -31,11 +86,18 @@ define(function () {
                                 appSimpleMode: true
                             });
                         });
+                    },
+                    recentlySentMessage: function () {
+                        return messages.pop();
+                    },
+                    expectNoMessageToBeSent: function () {
+                        return messages.pop().expectNotToBeSent();
                     }
                 }
             },
             replaceByFake: function () {
                 opened = {};
+                messages = new JsTester_Queue(new NoMessage());
 
                 window.require = function (name) {
                     var packages = {
@@ -57,7 +119,9 @@ define(function () {
                                 on: function (eventName, handler) {
                                     eventName == 'maximizechange' && maximizeChangeHandlers.push(handler);
                                 },
-                                send: function () {}
+                                send: function () {
+                                    messages.add(new Message(Array.prototype.slice.call(arguments, 0)));
+                                }
                             }
                         },
                         'electron-log': {
