@@ -20,10 +20,27 @@ index 8802fd7..c047c3d 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index aafb3bd..b62875e 100644
+index aafb3bd..c41a579 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -233,4 +233,5 @@ export const RootStore = types
+@@ -5,6 +5,7 @@ import createSoftphoneReducer from 'uis-softphone/reducer';
+ import createI18N from 'uis-softphone/common/createI18N';
+ import { toggleWidgetVisiblity, setAxiosProcessor, setStatus } from 'uis-softphone/actions';
+ import { authorization } from 'uis-softphone/authorization/actions';
++import { setStartApp } from 'uis-softphone/settings/actions';
+ import createSoftphoneMiddleware from 'uis-softphone/middleware';
+ import thunkMiddleware from 'redux-thunk';
+ import { combineReducers, createStore, applyMiddleware } from 'redux';
+@@ -201,6 +202,8 @@ export const RootStore = types
+                     disabled: true
+                 }));
+ 
++                self.setStartApp = isStartApp => self.reduxStore.dispatch(setStartApp(isStartApp));
++
+                 self.enable = () => updateState({
+                     ...getTokenParams(),
+                     disabled: false
+@@ -233,4 +236,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

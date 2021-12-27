@@ -18,7 +18,7 @@ tests.addTest(options => {
 
     const getPackage = Tester.createPackagesGetter(options);
 
-    describe(
+    xdescribe(
         'Открываю новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -1508,7 +1508,7 @@ tests.addTest(options => {
                         tester.settingsButton.click();
                     });
                     
-                    it('Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".', function() {
+                    xit('Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".', function() {
                         tester.button('Автоматически').click();
                         tester.settingsUpdatingRequest().autoSetStatus().receiveResponse();
                         tester.settingsRequest().autoSetStatus().receiveResponse();
@@ -1523,7 +1523,7 @@ tests.addTest(options => {
                         tester.settingsUpdatingRequest().dontDisturbOnLogout().receiveResponse();
                         tester.settingsRequest().autoSetStatus().pauseOnLogin().dontDisturbOnLogout().receiveResponse();
                     });
-                    it(
+                    xit(
                         'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или IP-телефон". Отмечена ' +
                         'кнопка "IP-телефон".',
                     function() {
@@ -1539,11 +1539,11 @@ tests.addTest(options => {
                         tester.button('Текущее устройство').expectNotToBeChecked();
                         tester.button('IP-телефон').expectToBeChecked();
                     });
-                    it('Открываю вкладку "Звук". Отображены настройки звука.', function() {
+                    xit('Открываю вкладку "Звук". Отображены настройки звука.', function() {
                         tester.button('Звук').click();
                         tester.body.expectTextContentToHaveSubstring('Громкость звонка 100%');
                     });
-                    it(
+                    xit(
                         'Прошло некоторое время. Сервер событий не отвечает. Отображено сообщение об установке ' +
                         'соединения.',
                     function() {
@@ -1553,7 +1553,7 @@ tests.addTest(options => {
 
                         tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
                     });
-                    it('Отмечаю свитчбокс "Поверх окон при входящем". Значение параметра сохранено.', function() {
+                    xit('Отмечаю свитчбокс "Поверх окон при входящем". Значение параметра сохранено.', function() {
                         tester.button('Поверх окон при входящем').click();
                         tester.button('Поверх окон при входящем').expectToBeChecked();
 
@@ -1561,7 +1561,7 @@ tests.addTest(options => {
                             throw new Error('Значение параметра "Поверх окон при входящем" должно быть сохранено.');
                         }
                     });
-                    it(
+                    xit(
                         'Отмечаю свитчбокс "Автозапуск приложения". Отправлено сообщение о ' +
                         'необходимости запускать приложение автоматически.',
                     function() {
@@ -1582,8 +1582,10 @@ tests.addTest(options => {
                             isStartApp: true
                         });
 
+                        tester.button('Поверх окон при входящем').expectNotToBeChecked();
                         tester.button('Автозапуск приложения').expectToBeChecked();
                     });
+                    return;
                     it('Форма настроек заполнена правильно.', function() {
                         tester.button('Текущее устройство').expectToBeChecked();
                         tester.button('IP-телефон').expectNotToBeChecked();
@@ -1595,6 +1597,7 @@ tests.addTest(options => {
                         }
                     });
                 });
+                return;
                 describe('Раскрываю список статусов.', function() {
                     beforeEach(function() {
                         tester.userName.putMouseOver();
@@ -1755,6 +1758,7 @@ tests.addTest(options => {
                     tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                 });
             });
+            return;
             it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
                 authenticatedUserRequest.sipIsOffline().receiveResponse();
                 tester.userName.putMouseOver();
@@ -1762,6 +1766,7 @@ tests.addTest(options => {
                 tester.statusesList.item('Не беспокоить').expectToBeSelected();
             });
         });
+        return;
         it(
             'Софтфон должен отображаться поверх окон при входящем. Поступил входящий звонок. Отправлено сообщение о ' +
             'необходимости поднять окно софтфона.',
@@ -1808,6 +1813,7 @@ tests.addTest(options => {
                 expectToBeSentWithArguments(true);
         });
     });
+    return;
     describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
         let tester;
 

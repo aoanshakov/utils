@@ -336,10 +336,65 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3845248a..7b685636 100644
+index 3845248a..08c802fe 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -181,7 +181,7 @@ export const RootStore = types
+@@ -80,23 +80,41 @@ const projectsData: Record<string, ProjectData> = {
+ type RequestToRefresh = (nextResolve: boolean) => void;
+ 
+ const enableAutoLauncherUpdating = () => {
+-    let isStartApp = false,
+-        setStartApp = () => null;
+-
+-    const updateStartApp = () => setStartApp(isStartApp);
++    const defaultStore = {
++        setStartApp: () => null,
++        setStartMinimize: () => null
++    };
+ 
+-    (
+-        (window.require || (() => null))('electron')?.ipcRenderer || {on: () => null}
+-    ).on('checkautolauncher', (event, data) => {
+-        isStartApp = data?.isStartApp;
+-        updateStartApp();
++    let store = defaultStore;
++    const params = {};
++
++    const items = [{
++        channelName: 'checkautolauncher',
++        paramName: 'isStartApp',
++        setParamValue: 'setStartApp'
++    }, {
++        channelName: 'checkstartminimize',
++        paramName: 'isStartMinimize',
++        setParamValue: 'setStartMinimize'
++    }];
++
++    items.forEach(item => {
++        const {channelName, paramName, setParamValue} = item,
++            updateParamValue = () => store[setParamValue](params[paramName]);
++        item.updateParamValue = updateParamValue;
++
++        (
++            (window.require || (() => null))('electron')?.ipcRenderer || {on: () => null}
++        ).on(channelName, (event, data) => {
++            params[paramName] = (data || {})[paramName];
++            updateParamValue();
++        });
+     });
+ 
+-    return store => {
+-        setStartApp = store.setStartApp || (() => null);
+-        updateStartApp();
++    return value => {
++        store = value 
++        items.forEach(({updateParamValue}) => updateParamValue());
+     };
+-
+ };
+ 
+ export const RootStore = types
+@@ -181,7 +199,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -348,7 +403,7 @@ index 3845248a..7b685636 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -260,6 +260,7 @@ export const RootStore = types
+@@ -260,6 +278,7 @@ export const RootStore = types
          let setSoftphoneStore = () => null;
  
          const afterCreate = () => {
@@ -356,7 +411,7 @@ index 3845248a..7b685636 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -284,7 +285,8 @@ export type DependencyInjection = {
+@@ -284,7 +303,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
