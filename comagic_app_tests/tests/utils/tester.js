@@ -96,6 +96,8 @@ define(() => function ({
 
             tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
             tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
+            tester.expectToBeEnabled = () => fieldTester.expectNotToHaveClass('ui-switch-disabled');
+            tester.expectToBeDisabled = () => fieldTester.expectToHaveClass('ui-switch-disabled');
             
             return tester;
         };

@@ -18,7 +18,7 @@ tests.addTest(options => {
 
     const getPackage = Tester.createPackagesGetter(options);
 
-    xdescribe(
+    describe(
         'Открываю новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
@@ -1508,7 +1508,72 @@ tests.addTest(options => {
                         tester.settingsButton.click();
                     });
                     
-                    xit('Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".', function() {
+                    describe('Софтфон должен запускаться автоматически.', function() {
+                        beforeEach(function() {
+                            getPackage('electron').ipcRenderer.receiveMessage('checkautolauncher', {
+                                isStartApp: true
+                            });
+                        });
+
+                        it(
+                            'Отмечаю переключатель "Запускать свернуто". Отправлено событие о необходимости ' +
+                            'запускать софтфон свернуто.',
+                        function() {
+                            tester.button('Запускать свернуто').click();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('startminimizechange').
+                                expectToBeSentWithArguments(true);
+
+                            tester.button('Поверх окон при входящем').expectNotToBeChecked();
+                            tester.button('Автозапуск приложения').expectToBeChecked();
+                            tester.button('Запускать свернуто').expectToBeChecked();
+                        });
+                        it('Приложение должно запускаться свернутым.', function() {
+                            getPackage('electron').ipcRenderer.receiveMessage('checkstartminimize', {
+                                isStartMinimize: true
+                            });
+
+                            tester.button('Поверх окон при входящем').expectNotToBeChecked();
+                            tester.button('Автозапуск приложения').expectToBeChecked();
+                            tester.button('Запускать свернуто').expectToBeChecked();
+                        });
+                        it('Форма настроек корректно заполнена.', function() {
+                            tester.button('Поверх окон при входящем').expectNotToBeChecked();
+                            tester.button('Автозапуск приложения').expectToBeChecked();
+
+                            tester.button('Запускать свернуто').expectToBeEnabled();
+                            tester.button('Запускать свернуто').expectNotToBeChecked();
+                        });
+                    });
+                    it(
+                        'Отмечаю свитчбокс "Автозапуск приложения". Отправлено сообщение о ' +
+                        'необходимости запускать приложение автоматически.',
+                    function() {
+                        tester.button('Автозапуск приложения').click();
+
+                        getPackage('electron').ipcRenderer.
+                            recentlySentMessage().
+                            expectToBeSentToChannel('autolauncherchange').
+                            expectToBeSentWithArguments(true);
+
+                        tester.button('Поверх окон при входящем').expectNotToBeChecked();
+                        tester.button('Автозапуск приложения').expectToBeChecked();
+                        tester.button('Запускать свернуто').expectNotToBeChecked();
+                    });
+                    it('Отмечаю свитчбокс "Поверх окон при входящем". Значение параметра сохранено.', function() {
+                        tester.button('Поверх окон при входящем').click();
+
+                        tester.button('Поверх окон при входящем').expectToBeChecked();
+                        tester.button('Автозапуск приложения').expectNotToBeChecked();
+                        tester.button('Запускать свернуто').expectNotToBeChecked();
+
+                        if (localStorage.getItem('clct:to_top_on_call') !== true) {
+                            throw new Error('Значение параметра "Поверх окон при входящем" должно быть сохранено.');
+                        }
+                    });
+                    it('Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".', function() {
                         tester.button('Автоматически').click();
                         tester.settingsUpdatingRequest().autoSetStatus().receiveResponse();
                         tester.settingsRequest().autoSetStatus().receiveResponse();
@@ -1523,7 +1588,7 @@ tests.addTest(options => {
                         tester.settingsUpdatingRequest().dontDisturbOnLogout().receiveResponse();
                         tester.settingsRequest().autoSetStatus().pauseOnLogin().dontDisturbOnLogout().receiveResponse();
                     });
-                    xit(
+                    it(
                         'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или IP-телефон". Отмечена ' +
                         'кнопка "IP-телефон".',
                     function() {
@@ -1539,11 +1604,7 @@ tests.addTest(options => {
                         tester.button('Текущее устройство').expectNotToBeChecked();
                         tester.button('IP-телефон').expectToBeChecked();
                     });
-                    xit('Открываю вкладку "Звук". Отображены настройки звука.', function() {
-                        tester.button('Звук').click();
-                        tester.body.expectTextContentToHaveSubstring('Громкость звонка 100%');
-                    });
-                    xit(
+                    it(
                         'Прошло некоторое время. Сервер событий не отвечает. Отображено сообщение об установке ' +
                         'соединения.',
                     function() {
@@ -1553,51 +1614,24 @@ tests.addTest(options => {
 
                         tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
                     });
-                    xit('Отмечаю свитчбокс "Поверх окон при входящем". Значение параметра сохранено.', function() {
-                        tester.button('Поверх окон при входящем').click();
-                        tester.button('Поверх окон при входящем').expectToBeChecked();
-
-                        if (localStorage.getItem('clct:to_top_on_call') !== true) {
-                            throw new Error('Значение параметра "Поверх окон при входящем" должно быть сохранено.');
-                        }
+                    it('Открываю вкладку "Звук". Отображены настройки звука.', function() {
+                        tester.button('Звук').click();
+                        tester.body.expectTextContentToHaveSubstring('Громкость звонка 100%');
                     });
-                    xit(
-                        'Отмечаю свитчбокс "Автозапуск приложения". Отправлено сообщение о ' +
-                        'необходимости запускать приложение автоматически.',
-                    function() {
-                        tester.button('Автозапуск приложения').click();
-
-                        getPackage('electron').ipcRenderer.
-                            recentlySentMessage().
-                            expectToBeSentToChannel('autolauncherchange').
-                            expectToBeSentWithArguments(true);
-
-                        tester.button('Автозапуск приложения').expectToBeChecked();
-                    });
-                    it(
-                        'Софтфон должен запускаться автоматически. Переключатель "Автозапуск ' +
-                        'приложения" отмечен.',
-                    function() {
-                        getPackage('electron').ipcRenderer.receiveMessage('checkautolauncher', {
-                            isStartApp: true
-                        });
-
-                        tester.button('Поверх окон при входящем').expectNotToBeChecked();
-                        tester.button('Автозапуск приложения').expectToBeChecked();
-                    });
-                    return;
                     it('Форма настроек заполнена правильно.', function() {
                         tester.button('Текущее устройство').expectToBeChecked();
                         tester.button('IP-телефон').expectNotToBeChecked();
                         tester.button('Поверх окон при входящем').expectNotToBeChecked();
                         tester.button('Автозапуск приложения').expectNotToBeChecked();
 
+                        tester.button('Запускать свернуто').expectNotToBeChecked();
+                        tester.button('Запускать свернуто').expectToBeDisabled();
+
                         if (localStorage.getItem('clct:to_top_on_call')) {
                             throw new Error('Значение параметра "Поверх окон при входящем" не должно быть сохранено.');
                         }
                     });
                 });
-                return;
                 describe('Раскрываю список статусов.', function() {
                     beforeEach(function() {
                         tester.userName.putMouseOver();
@@ -1758,7 +1792,6 @@ tests.addTest(options => {
                     tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                 });
             });
-            return;
             it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
                 authenticatedUserRequest.sipIsOffline().receiveResponse();
                 tester.userName.putMouseOver();
@@ -1766,7 +1799,6 @@ tests.addTest(options => {
                 tester.statusesList.item('Не беспокоить').expectToBeSelected();
             });
         });
-        return;
         it(
             'Софтфон должен отображаться поверх окон при входящем. Поступил входящий звонок. Отправлено сообщение о ' +
             'необходимости поднять окно софтфона.',
@@ -1813,7 +1845,6 @@ tests.addTest(options => {
                 expectToBeSentWithArguments(true);
         });
     });
-    return;
     describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
         let tester;
 
