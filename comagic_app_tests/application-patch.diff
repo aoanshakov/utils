@@ -336,27 +336,9 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 80d7715d..3e6e63eb 100644
+index 91ce150c..3e6e63eb 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -100,7 +100,7 @@ const enableAutoLauncherUpdating = () => {
- 
-     items.forEach(item => {
-         const {channelName, paramName, setParamValue} = item,
--            updateParamValue = () => store[setParamValue](params[paramName]);
-+            updateParamValue = () => paramName in params && store[setParamValue](params[paramName]);
-         item.updateParamValue = updateParamValue;
- 
-         (
-@@ -112,7 +112,7 @@ const enableAutoLauncherUpdating = () => {
-     });
- 
-     return value => {
--        store = value 
-+        store = value || defaultStore;
-         items.forEach(({updateParamValue}) => updateParamValue());
-     };
- };
 @@ -199,7 +199,7 @@ export const RootStore = types
  
              setAuthHeaders();
