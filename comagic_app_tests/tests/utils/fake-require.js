@@ -4,7 +4,7 @@ define(function () {
             debug = args.debug,
             opened,
             messages,
-            maximizeChangeHandlers = [];
+            messageHandlers = {};
 
         function NoMessage () {
             this.expectNotToBeSent = function () {};
@@ -80,11 +80,11 @@ define(function () {
                     }
                 },
                 ipcRenderer: {
-                    collapse: function () {
-                        maximizeChangeHandlers.forEach(function (handler) {
-                            handler({}, {
-                                appSimpleMode: true
-                            });
+                    receiveMessage: function (channel) {
+                        var args = Array.prototype.slice.call(arguments, 0);
+
+                        (messageHandlers[channel] || []).forEach(function (handler) {
+                            handler.apply(null, args);
                         });
                     },
                     recentlySentMessage: function () {
@@ -117,7 +117,7 @@ define(function () {
                             },
                             ipcRenderer: {
                                 on: function (eventName, handler) {
-                                    eventName == 'maximizechange' && maximizeChangeHandlers.push(handler);
+                                    (messageHandlers[eventName] || (messageHandlers[eventName] = [])).push(handler)
                                 },
                                 send: function () {
                                     messages.add(new Message(Array.prototype.slice.call(arguments, 0)));
