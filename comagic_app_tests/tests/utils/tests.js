@@ -21,14 +21,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 tests.afterEach();
             });
 
+            const WrappedTester = function (options) {
+                options.softphoneTester = new SoftphoneTester(options);
+                return new Tester(options);
+            };
+
+            WrappedTester.createPackagesGetter = args => {
+                let packages;
+                const {FakeRequire, spendTime} = args;
+
+                beforeEach(function() {
+                    packages = new FakeRequire(args);
+                    packages.replaceByFake();
+                });
+
+                afterEach(function() {
+                    window.getElectronCookiesManager().reset();
+                    spendTime(0);
+
+                    packages.electron.ipcRenderer.expectNoMessageToBeSent();
+                });
+
+                return packageName => packages[packageName];
+            };
+
             tests.runTests({
                 Sip,
                 FakeRequire: FakeRequire,
                 soundSources,
-                Tester: function (options) {
-                    options.softphoneTester = new SoftphoneTester(options);
-                    return new Tester(options);
-                } 
+                Tester: WrappedTester 
             });
         });
 

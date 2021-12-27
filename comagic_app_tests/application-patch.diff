@@ -336,10 +336,37 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index c0fbe9a1..b159ccd2 100644
+index c0fbe9a1..7b685636 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -161,7 +161,7 @@ export const RootStore = types
+@@ -79,6 +79,26 @@ const projectsData: Record<string, ProjectData> = {
+ 
+ type RequestToRefresh = (nextResolve: boolean) => void;
+ 
++const enableAutoLauncherUpdating = () => {
++    let isStartApp = false,
++        setStartApp = () => null;
++
++    const updateStartApp = () => setStartApp(isStartApp);
++
++    (
++        (window.require || (() => null))('electron')?.ipcRenderer || {on: () => null}
++    ).on('checkautolauncher', (event, data) => {
++        isStartApp = data?.isStartApp;
++        updateStartApp();
++    });
++
++    return store => {
++        setStartApp = store.setStartApp || (() => null);
++        updateStartApp();
++    };
++
++};
++
+ export const RootStore = types
+     .model('RootStore', {
+         isGodMode: types.optional(types.boolean, isGodMode()),
+@@ -161,7 +181,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -348,15 +375,35 @@ index c0fbe9a1..b159ccd2 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -238,6 +238,7 @@ export const RootStore = types
+@@ -237,18 +257,26 @@ export const RootStore = types
+             });
          };
  
++        let setSoftphoneStore = () => null;
++
          const afterCreate = () => {
 +            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -257,7 +258,8 @@ export type DependencyInjection = {
+             setHttpRequestsDefault();
++            setSoftphoneStore = enableAutoLauncherUpdating();
+         };
+ 
+         const resetStore = () => {
+             applySnapshot(self, initialState);
+         };
+ 
+-        return { afterCreate, resetStore };
++        return {
++            afterCreate,
++            resetStore,
++            setSoftphoneStore: store => setSoftphoneStore(store) 
++        };
+     });
+ 
+ export type DependencyInjection = {
+@@ -257,7 +285,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

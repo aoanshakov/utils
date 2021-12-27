@@ -16,9 +16,7 @@ tests.addTest(options => {
         userMedia
     } = options;
 
-    afterEach(function() {
-        spendTime(0);
-    });
+    const getPackage = Tester.createPackagesGetter(options);
 
     describe(
         'Открываю новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
@@ -565,8 +563,7 @@ tests.addTest(options => {
                                             });
                                         });
                                         it(
-                                            'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "IP-телефон". ' +
-                                            'Отмечена кнопка "IP-телефон".',
+                                            'Нажимаю на кнопку "Общие настройки". Форма настроек заполнена правильно.',
                                         function() {
                                             tester.button('IP-телефон').click();
                                             tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().
@@ -1464,20 +1461,7 @@ tests.addTest(options => {
         });
     });
     describe('Открываю декстопное приложение софтфона.', function() {
-        let tester,
-            packages;
-
-        beforeEach(function() {
-            packages = new FakeRequire(options);
-            packages.replaceByFake();
-        });
-
-        afterEach(function() {
-            window.getElectronCookiesManager().reset();
-            spendTime(0);
-
-            packages.electron.ipcRenderer.expectNoMessageToBeSent();
-        });
+        let tester;
 
         describe('Софтфон не должен отображаться поверх окон при входящем.', function() {
             let authenticatedUserRequest;
@@ -1488,7 +1472,7 @@ tests.addTest(options => {
                     appName: 'softphone'
                 });
 
-                packages.electron.ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
+                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
                 
                 tester.input.withFieldLabel('Логин').fill('botusharova');
                 tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -1577,10 +1561,34 @@ tests.addTest(options => {
                             throw new Error('Значение параметра "Поверх окон при входящем" должно быть сохранено.');
                         }
                     });
-                    it('Отмечена кнопка "Текущее устройство".', function() {
+                    it(
+                        'Отмечаю свитчбокс "Автозапуск приложения". Отправлено сообщение о ' +
+                        'необходимости запускать приложение автоматически.',
+                    function() {
+                        tester.button('Автозапуск приложения').click();
+
+                        getPackage('electron').ipcRenderer.
+                            recentlySentMessage().
+                            expectToBeSentToChannel('autolauncherchange').
+                            expectToBeSentWithArguments(true);
+
+                        tester.button('Автозапуск приложения').expectToBeChecked();
+                    });
+                    it(
+                        'Софтфон должен запускаться автоматически. Переключатель "Автозапуск ' +
+                        'приложения" отмечен.',
+                    function() {
+                        getPackage('electron').ipcRenderer.receiveMessage('checkautolauncher', {
+                            isStartApp: true
+                        });
+
+                        tester.button('Автозапуск приложения').expectToBeChecked();
+                    });
+                    it('Форма настроек заполнена правильно.', function() {
                         tester.button('Текущее устройство').expectToBeChecked();
                         tester.button('IP-телефон').expectNotToBeChecked();
                         tester.button('Поверх окон при входящем').expectNotToBeChecked();
+                        tester.button('Автозапуск приложения').expectNotToBeChecked();
 
                         if (localStorage.getItem('clct:to_top_on_call')) {
                             throw new Error('Значение параметра "Поверх окон при входящем" не должно быть сохранено.');
@@ -1702,7 +1710,9 @@ tests.addTest(options => {
                     tester.numaRequest().thirdNumber().receiveResponse();
                     tester.outCallEvent().anotherPerson().receive();
 
-                    packages.electron.ipcRenderer.recentlySentMessage().expectToBeSentToChannel('incoming-call').
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('incoming-call').
                         expectToBeSentWithArguments(false);
 
                     tester.softphone.expectTextContentToHaveSubstring(
@@ -1717,12 +1727,14 @@ tests.addTest(options => {
                     tester.numaRequest().receiveResponse();
                     tester.outCallEvent().activeLeads().receive();
 
-                    packages.electron.ipcRenderer.recentlySentMessage().expectToBeSentToChannel('incoming-call').
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('incoming-call').
                         expectToBeSentWithArguments(false);
 
                     tester.anchor('По звонку с 79154394340').click();
 
-                    packages.electron.shell.
+                    getPackage('electron').shell.
                         expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/leads/detail/3003651');
                 });
                 it('Открываю историю звонков. Открывается страница контакта.', function() {
@@ -1731,7 +1743,7 @@ tests.addTest(options => {
 
                     tester.callsHistoryRow.withText('Гяурова Марийка').name.click();
 
-                    packages.electron.shell.
+                    getPackage('electron').shell.
                         expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
                 });
                 it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
@@ -1761,7 +1773,7 @@ tests.addTest(options => {
                 appName: 'softphone'
             });
 
-            packages.electron.ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
+            getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
             
             tester.input.withFieldLabel('Логин').fill('botusharova');
             tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -1790,7 +1802,9 @@ tests.addTest(options => {
             tester.numaRequest().receiveResponse();
             tester.outCallEvent().receive();
 
-            packages.electron.ipcRenderer.recentlySentMessage().expectToBeSentToChannel('incoming-call').
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('incoming-call').
                 expectToBeSentWithArguments(true);
         });
     });

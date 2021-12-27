@@ -2,6 +2,7 @@ define(function () {
     return function (args) {
         var utils = args.utils,
             debug = args.debug,
+            spendTime = args.spendTime,
             opened,
             messages,
             messageHandlers = {};
@@ -86,6 +87,8 @@ define(function () {
                         (messageHandlers[channel] || []).forEach(function (handler) {
                             handler.apply(null, args);
                         });
+
+                        spendTime(0);
                     },
                     recentlySentMessage: function () {
                         return messages.pop();
