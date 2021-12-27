@@ -210,7 +210,7 @@ index df24e5bb..c85e6844 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index 57ef8ded..90e8eae5 100644
+index 7b6e2ea3..7303204c 100644
 --- a/package.json
 +++ b/package.json
 @@ -83,8 +83,11 @@
@@ -232,8 +232,8 @@ index 57ef8ded..90e8eae5 100644
      "yup": "^0.28.1",
 +    "babel-loader": "^8.0.4",
      "electron-log": "^4.3.0",
+     "electron-store": "^6.0.1",
      "auto-launch": "^5.0.5"
-   }
 diff --git a/public/index.html b/public/index.html
 index 6143f5e1..1ad2c181 100644
 --- a/public/index.html

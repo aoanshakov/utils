@@ -2992,7 +2992,7 @@ function JsTester_Tests (factory) {
             't=0 0',
             'a=group:BUNDLE 0',
             'a=msid-semantic: WMS 2c90093a-9b17-4821-aaf3-7b858065ff07',
-            'm=audio 9 UDP/TLS/RTP/SAVPF 111 103 104 9 0 8 106 105 13 110 112 113 126',
+            'm=audio 9 UDP/TLS/RTP/SAVPF 111 103 104 9 8 106 105 13 110 112 113 126',
             'c=IN IP4 0.0.0.0',
             'a=rtcp:9 IN IP4 0.0.0.0',
             'a=ice-ufrag:7MXY',
@@ -3013,9 +3013,10 @@ function JsTester_Tests (factory) {
             'a=rtcp-fb:111 transport-cc',
             'a=fmtp:111 minptime=10;useinbandfec=1',
             'a=rtpmap:103 ISAC/16000',
+            'a=rtcp-fb:103 transport-cc',
+            'a=fmtp:103 minptime=10;useinbandfec=1',
             'a=rtpmap:104 ISAC/32000',
             'a=rtpmap:9 G722/8000',
-            'a=rtpmap:0 PCMU/8000',
             'a=rtpmap:8 PCMA/8000',
             'a=rtpmap:106 CN/32000',
             'a=rtpmap:105 CN/16000',
@@ -3589,6 +3590,55 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
         }
 
         return new JsTester_NoElement();
+    };
+}
+
+function JsTester_TextExpectations (throwSubstringInclusionError) {
+    this.substringExpectation = function (args) {
+        var substring = args.substring,
+            isExpected = args.isExpected,
+            maybeNot = args.maybeNot,
+            actualContent = args.actualContent;
+        
+        var index = actualContent.indexOf(substring);
+
+        if (!isExpected(index !== -1)) {
+            throw throwSubstringInclusionError(args);
+        }
+
+        return index;
+    };
+
+    this.expectTextNotToHaveSubstring = function (args) {
+        args.maybeNot = 'не ';
+
+        args.isExpected = function (doesActualTextContainSubstring) {
+            return !doesActualTextContainSubstring;
+        };
+
+        this.substringExpectation(args);
+    };
+
+    this.getTextContentSubstringInclusionExpectationArguments = function (args) {
+        args = args || {};
+
+        args.maybeNot = '';
+        args.isExpected = function (doesActualTextContainSubstring) {
+            return doesActualTextContainSubstring;
+        };
+
+        return args;
+    };
+    
+    this.expectTextToHaveSubstringsConsideringOrder = function(actualContent, expectedSubstrings) {
+        expectedSubstrings.forEach(function (expectedSubstring) {
+            var index = this.substringExpectation(this.getTextContentSubstringInclusionExpectationArguments({
+                substring: expectedSubstring,
+                actualContent: actualContent
+            }));
+
+            actualContent = actualContent.substr(index + expectedSubstring.length);
+        }.bind(this));
     };
 }
 
@@ -5586,37 +5636,16 @@ function JsTester_DomElement (
             ' содержит текст "' + actualContent + '".'
         );
     }
-    function substringExpectation (args) {
-        var substring = args.substring,
-            isExpected = args.isExpected,
-            maybeNot = args.maybeNot,
-            actualContent = args.actualContent;
-        
-        var index = actualContent.indexOf(substring);
 
-        if (!isExpected(index !== -1)) {
-            throw throwSubstringInclusionError(args);
-        }
+    var textExpectations = new JsTester_TextExpectations(throwSubstringInclusionError);
 
-        return index;
-    }
     function getActualTextContent () {
         me.expectToBeVisible();
         return utils.getTextContent(getDomElement());
     }
     function textContentSubstringExpectation (args) {
         args.actualContent = getActualTextContent();
-        substringExpectation(args);
-    }
-    function getTextContentSubstringInclusionExpectationArguments (args) {
-        args = args || {};
-
-        args.maybeNot = '';
-        args.isExpected = function (doesActualTextContainSubstring) {
-            return doesActualTextContainSubstring;
-        };
-
-        return args;
+        textExpectations.substringExpectation(args);
     }
     this.expectTextContentNotToHaveSubstrings = function () {
         Array.prototype.slice.call(arguments, 0).forEach(function (expectedSubstring) {
@@ -5624,16 +5653,10 @@ function JsTester_DomElement (
         });
     };
     this.expectTextContentToHaveSubstringsConsideringOrder = function () {
-        var actualContent = getActualTextContent();
-        
-        Array.prototype.slice.call(arguments, 0).forEach(function (expectedSubstring) {
-            var index = substringExpectation(getTextContentSubstringInclusionExpectationArguments({
-                substring: expectedSubstring,
-                actualContent: actualContent
-            }));
-
-            actualContent = actualContent.substr(index + expectedSubstring.length);
-        });
+        textExpectations.expectTextToHaveSubstringsConsideringOrder(
+            getActualTextContent(),
+            Array.prototype.slice.call(arguments, 0)
+        );
     };
     this.expectTextContentNotToHaveSubstringsConsideringOrder = function () {
         var actualContent = allActualContent = getActualTextContent(),
@@ -5642,10 +5665,12 @@ function JsTester_DomElement (
         
         try {
             args.forEach(function (expectedSubstring) {
-                var index = substringExpectation(getTextContentSubstringInclusionExpectationArguments({
-                    substring: expectedSubstring,
-                    actualContent: actualContent
-                }));
+                var index = textExpectations.substringExpectation(
+                    textExpectations.getTextContentSubstringInclusionExpectationArguments({
+                        substring: expectedSubstring,
+                        actualContent: actualContent
+                    })
+                );
 
                 actualContent = actualContent.substr(index + expectedSubstring.length);
             });
@@ -5660,17 +5685,14 @@ function JsTester_DomElement (
         });
     };
     this.expectTextContentToHaveSubstring = function (expectedSubstring) {
-        textContentSubstringExpectation(getTextContentSubstringInclusionExpectationArguments({
+        textContentSubstringExpectation(textExpectations.getTextContentSubstringInclusionExpectationArguments({
             substring: expectedSubstring
         }));
     };
     this.expectTextContentNotToHaveSubstring = function (expectedSubstring) {
-        textContentSubstringExpectation({
-            substring: expectedSubstring,
-            maybeNot: 'не ',
-            isExpected: function (doesActualTextContainSubstring) {
-                return !doesActualTextContainSubstring;
-            }
+        textExpectations.expectTextNotToHaveSubstring({
+            actualContent: getActualTextContent(),
+            substring: expectedSubstring
         });
     };
     this.expectToHaveTextContent = function (expectedContent) {
