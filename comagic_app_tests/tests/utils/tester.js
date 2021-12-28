@@ -46,6 +46,9 @@ define(() => function ({
     Promise.runAll(false, true);
 
     const addTesters = (me, getRootElement) => {
+        me.callStartingButton = testersFactory.createDomElementTester(() =>
+            utils.getVisibleSilently(getRootElement().querySelectorAll('.cmg-call-button-start')));
+
         me.slider = (() => {
             const tester = testersFactory.createDomElementTester(() =>
                 (getRootElement() || new JsTester_NoElement()).querySelector('.ant-slider-track'))
@@ -156,26 +159,14 @@ define(() => function ({
         return me;
     };
 
-    me.playerButton = testersFactory.createDomElementTester('.clct-audio-button');
+    const createRootTester = selector => {
+        const getRootElement = () => document.querySelector(selector) || new JsTester_NoElement();
 
-    me.popover = (() => {
-        const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),
-            tester = testersFactory.createDomElementTester(getDomElement);
-
-        return addTesters(tester, getDomElement);
-    })();
-
-    me.fieldRow = text => (() => {
-        const labelEl = utils.descendantOfBody().
-            textEquals(text).
-            matchesSelector('.ui-label-content-field-label, .clct-settings-field-label').
-            find();
-
-        const row = labelEl.closest('.ant-row, .clct-settings-field-row'),
-            me = testersFactory.createDomElementTester(row);
-
-        return addTesters(me, () => row);
-    })();
+        return addTesters(
+            testersFactory.createDomElementTester(getRootElement),
+            getRootElement
+        );
+    };
 
     const addAuthErrorResponseModifiers = (me, response) => {
         me.accessTokenExpired = () => {
@@ -2143,19 +2134,36 @@ define(() => function ({
         return tester;
     })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
 
-    me.softphone = (getRootElement => addTesters(
-        testersFactory.createDomElementTester(getRootElement),
-        getRootElement
-    ))(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
-
     me.closeButton = testersFactory.createDomElementTester(
         '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close'
     );
 
+    me.softphone = createRootTester('#cmg-amocrm-widget');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
     me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
     me.settingsButton = testersFactory.createDomElementTester('.cmg-settings-button');
     me.hideButton = testersFactory.createDomElementTester('.cmg-hide-button');
+    me.playerButton = testersFactory.createDomElementTester('.clct-audio-button');
+    me.otherChannelCallNotification = createRootTester('#cmg-another-sip-line-incoming-call-notification');
+
+    me.popover = (() => {
+        const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
+
+    me.fieldRow = text => (() => {
+        const labelEl = utils.descendantOfBody().
+            textEquals(text).
+            matchesSelector('.ui-label-content-field-label, .clct-settings-field-label').
+            find();
+
+        const row = labelEl.closest('.ant-row, .clct-settings-field-row'),
+            me = testersFactory.createDomElementTester(row);
+
+        return addTesters(me, () => row);
+    })();
 
     me.userName = (tester => {
         const putMouseOver = tester.putMouseOver.bind(tester);

@@ -10,7 +10,8 @@ tests.addTest(options => {
         soundSources,
         setNow,
         fileReader,
-        userMedia
+        userMedia,
+        audioDecodingTester
     } = options;
 
     const getPackage = Tester.createPackagesGetter(options);
@@ -116,7 +117,7 @@ tests.addTest(options => {
 
                                             describe('Принимаю звонок.', function() {
                                                 beforeEach(function() {
-                                                    tester.callButton.click();
+                                                    tester.callStartingButton.click();
 
                                                     tester.firstConnection.connectWebRTC();
                                                     tester.firstConnection.callTrackHandler();
@@ -294,7 +295,7 @@ tests.addTest(options => {
                                             });
 
                                             it('Принимаю звонок. Отображен знак трансфера номер и таймер.', function() {
-                                                tester.callButton.click();
+                                                tester.callStartingButton.click();
 
                                                 tester.firstConnection.connectWebRTC();
                                                 tester.firstConnection.callTrackHandler();
@@ -449,7 +450,7 @@ tests.addTest(options => {
                                                         it(
                                                             'Принимаю звонок. Выбранные настройки звука применены.',
                                                         function() {
-                                                            tester.callButton.click();
+                                                            tester.callStartingButton.click();
 
                                                             tester.firstConnection.connectWebRTC();
                                                             tester.firstConnection.callTrackHandler();
@@ -594,7 +595,7 @@ tests.addTest(options => {
                                             beforeEach(function() {
                                                 registrationRequest.receiveResponse();
 
-                                                tester.callButton.click();
+                                                tester.callStartingButton.click();
                                                 
                                                 tester.firstConnection.connectWebRTC();
                                                 tester.allowMediaInput();
@@ -615,13 +616,42 @@ tests.addTest(options => {
                                                         tester.outCallSessionEvent().receive();
                                                     });
 
-                                                    it('Звонок принят. Отображено имя, номер и таймер.', function() {
-                                                        outboundCall.setAccepted();
+                                                    describe('Звонок принят.', function() {
+                                                        beforeEach(function() {
+                                                            outboundCall.setAccepted();
+                                                        });
 
-                                                        tester.outgoingIcon.expectToBeVisible();
-                                                        tester.softphone.expectTextContentToHaveSubstring(
-                                                            'Шалева Дора +7 (916) 123-45-67 00:00:00'
-                                                        );
+                                                        describe('Поступил входящий звонок.', function() {
+                                                            beforeEach(function() {
+                                                                tester.incomingCall().thirdNumber().receive();
+                                                                tester.numaRequest().thirdNumber().receiveResponse();
+                                                                tester.outCallEvent().anotherPerson().receive();
+                                                            });
+
+                                                            it('Принимаю звонок на второй линии.', function() {
+                                                                tester.otherChannelCallNotification.
+                                                                    callStartingButton.click();
+
+                                                                tester.secondConnection.connectWebRTC();
+                                                                tester.secondConnection.callTrackHandler();
+                                                                tester.allowMediaInput();
+                                                                tester.secondConnection.addCandidate();
+                                                                tester.requestAcceptIncomingCall();
+
+                                                                audioDecodingTester.accomplishAudioDecoding();
+                                                            });
+                                                            it('Отображено сообщение о звонке.', function() {
+                                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                                    'Гигова Петранка Входящий...'
+                                                                );
+                                                            });
+                                                        });
+                                                        it('Отображено имя, номер и таймер.', function() {
+                                                            tester.outgoingIcon.expectToBeVisible();
+                                                            tester.softphone.expectTextContentToHaveSubstring(
+                                                                'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                            );
+                                                        });
                                                     });
                                                     it(
                                                         'Нажимаю на кнопку остановки звонка. Ввожу тот же самый ' +
@@ -633,17 +663,6 @@ tests.addTest(options => {
                                                         tester.phoneField.fill('79161234567');
 
                                                         tester.phoneField.expectToHaveValue('79161234567');
-                                                    });
-                                                    it(
-                                                        'Поступил входящий звонок. Отображено сообщение о звонке.',
-                                                    function() {
-                                                        tester.incomingCall().thirdNumber().receive();
-                                                        tester.numaRequest().thirdNumber().receiveResponse();
-                                                        tester.outCallEvent().anotherPerson().receive();
-
-                                                        tester.softphone.expectTextContentToHaveSubstring(
-                                                            'Гигова Петранка Входящий...'
-                                                        );
                                                     });
                                                     it('Отображено имя, номер и таймер.', function() {
                                                         tester.outgoingIcon.expectToBeVisible();
@@ -695,7 +714,7 @@ tests.addTest(options => {
                                             });
                                         });
                                         it('Кнопка вызова заблокирована.', function() {
-                                            tester.callButton.expectToHaveAttribute('disabled');
+                                            tester.callStartingButton.expectToHaveAttribute('disabled');
                                         });
                                     });
                                     describe('SIP-регистрация завершена.', function() {
@@ -792,7 +811,7 @@ tests.addTest(options => {
                                                     tester.numaRequest().anotherNumber().receiveResponse();
                                                     tester.outboundCall().setNumberFromCallsGrid().start().setRinging();
 
-                                                    tester.callButton.expectToBeVisible();
+                                                    tester.callStartingButton.expectToBeVisible();
                                                 });
                                                 it('Нажимаю на имя. Открыта страница контакта.', function() {
                                                     tester.callsHistoryRow.withText('Гяурова Марийка').name.click();
@@ -905,7 +924,7 @@ tests.addTest(options => {
 
                                                 tester.phoneField.fill('79161234567');
 
-                                                tester.callButton.expectNotToHaveAttribute('disabled');
+                                                tester.callStartingButton.expectNotToHaveAttribute('disabled');
                                                 tester.button('Софтфон').expectToBeVisible();
                                             });
                                         });
@@ -1030,15 +1049,15 @@ tests.addTest(options => {
                                     });
                                     it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
                                         tester.hideButton.click();
-                                        tester.callButton.expectNotToExist();
+                                        tester.callStartingButton.expectNotToExist();
                                     });
                                     it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                                         tester.button('Софтфон').click();
-                                        tester.callButton.expectNotToExist();
+                                        tester.callStartingButton.expectNotToExist();
                                     });
                                 });
                                 it('Отображен пункт меню. Софтфон скрыт. Отображается статус сотрудника.', function() {
-                                    tester.callButton.expectNotToExist();
+                                    tester.callStartingButton.expectNotToExist();
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
                                 });
                             });
@@ -1081,7 +1100,7 @@ tests.addTest(options => {
                             registrationRequest.receiveResponse();
                             reportGroupsRequest.receiveResponse();
 
-                            tester.callButton.expectToHaveAttribute('disabled');
+                            tester.callStartingButton.expectToHaveAttribute('disabled');
 
                             tester.softphone.expectTextContentToHaveSubstring(
                                 'Sip-линия не зарегистрирована'
@@ -1749,14 +1768,14 @@ tests.addTest(options => {
                     tester.allowMediaInput();
 
                     tester.phoneField.fill('79161234567');
-                    tester.callButton.expectNotToHaveAttribute('disabled');
+                    tester.callStartingButton.expectNotToHaveAttribute('disabled');
                 });
                 it(
                     'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок. Отображено сообщение ' +
                     'о звонке.',
                 function() {
                     tester.phoneField.fill('79161234567');
-                    tester.callButton.click();
+                    tester.callStartingButton.click();
 
                     tester.firstConnection.connectWebRTC();
                     tester.allowMediaInput();
@@ -1951,7 +1970,7 @@ tests.addTest(options => {
             });
 
             it('Принимаю звонок. Выбранные настройки звука применены.', function() {
-                tester.callButton.click();
+                tester.callStartingButton.click();
 
                 tester.firstConnection.connectWebRTC();
                 tester.firstConnection.callTrackHandler();
