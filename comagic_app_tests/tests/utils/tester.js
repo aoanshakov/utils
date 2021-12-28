@@ -10,6 +10,7 @@ define(() => function ({
     webSockets
 }) {
     let history;
+    const mainTester = me;
 
     const jwtToken = {
         jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
@@ -780,6 +781,8 @@ define(() => function ({
                         Promise.runAll(false, true);
                         spendTime(0)
                         Promise.runAll(false, true);
+
+                        me.triggerScrollRecalculation();
                     }
                 }, response);
             },

@@ -4,11 +4,8 @@ tests.addTest(options => {
         Tester,
         spendTime,
         windowOpener,
-        triggerMutation,
-        mutationObserverMocker,
         mediaStreamsTester,
         ajax,
-        FakeRequire,
         fetch,
         soundSources,
         setNow,
@@ -1175,6 +1172,8 @@ tests.addTest(options => {
                         });
 
                         describe('Пользователь имеет права на выбор номера.', function() {
+                            let authenticatedUserRequest;
+
                             beforeEach(function() {
                                 permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
 
@@ -1185,37 +1184,56 @@ tests.addTest(options => {
 
                                 tester.numberCapacityRequest().receiveResponse();
                                 tester.registrationRequest().receiveResponse();
-                                tester.authenticatedUserRequest().receiveResponse();
+                                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                             });
-                            
-                            describe('Раскрываю список номеров.', function() {
+
+                            describe('SIP-линия зарегистрирована.', function() {
                                 beforeEach(function() {
-                                    tester.select.arrow.click();
+                                    authenticatedUserRequest.receiveResponse();
                                 });
 
-                                it(
-                                    'Выбираю номер. Отправлен запрос смены номера. Отображен выбранный номер.',
-                                function() {
-                                    tester.select.option('+7 (916) 123-89-29').click();
+                                describe('Раскрываю список номеров.', function() {
+                                    beforeEach(function() {
+                                        tester.select.arrow.click();
+                                    });
 
-                                    tester.saveNumberCapacityRequest().receiveResponse();
+                                    it(
+                                        'Выбираю номер. Отправлен запрос смены номера. Отображен выбранный номер.',
+                                    function() {
+                                        tester.select.option('+7 (916) 123-89-29').click();
 
-                                    tester.softphone.expectTextContentToHaveSubstring(
-                                        '+7 (916) 123-89-29 ' +
-                                        'Некий номер'
-                                    );
+                                        tester.saveNumberCapacityRequest().receiveResponse();
+
+                                        tester.softphone.expectTextContentToHaveSubstring(
+                                            '+7 (916) 123-89-29 ' +
+                                            'Некий номер'
+                                        );
+                                    });
+                                    it('Выбранный номер выделен.', function() {
+                                        tester.select.option('+7 (916) 123-89-27').
+                                            expectNotToHaveClass('ui-list-option-selected');
+
+                                        tester.select.option('+7 (495) 021-68-06').
+                                            expectToHaveClass('ui-list-option-selected');
+                                    });
                                 });
-                                it('Выбранный номер выделен.', function() {
-                                    tester.select.option('+7 (916) 123-89-27').
-                                        expectNotToHaveClass('ui-list-option-selected');
+                                it('Отображен выбранный номер телефона.', function() {
+                                    tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
 
-                                    tester.select.option('+7 (495) 021-68-06').
-                                        expectToHaveClass('ui-list-option-selected');
                                 });
                             });
-                            it('Отображен выбранный номер телефона.', function() {
-                                tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
+                            it(
+                                'SIP-линия не зарегистрирована. Отображено сообщение о том, что SIP-линия не ' +
+                                'зарегистрирована.',
+                            function() {
+                                authenticatedUserRequest.sipIsOffline().receiveResponse();
 
+                                tester.softphone.expectToHaveTextContent(
+                                    'Sip-линия не зарегистрирована ' +
+                                    'Выберите АОН из списка ' +
+
+                                    '+7 (495) 021-68-06'
+                                );
                             });
                         });
                         it('Безуспешно пытаюсь выбрать номер.', function() {
