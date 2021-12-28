@@ -1481,6 +1481,11 @@ tests.addTest(options => {
 
                 tester.loginRequest().receiveResponse();
                 tester.configRequest().softphone().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('app-ready');
+
                 tester.authCheckRequest().receiveResponse();
                 tester.accountRequest().receiveResponse();
 
@@ -1621,6 +1626,7 @@ tests.addTest(options => {
                     it('Форма настроек заполнена правильно.', function() {
                         tester.button('Текущее устройство').expectToBeChecked();
                         tester.button('IP-телефон').expectNotToBeChecked();
+
                         tester.button('Поверх окон при входящем').expectNotToBeChecked();
                         tester.button('Автозапуск приложения').expectNotToBeChecked();
 
@@ -1819,6 +1825,9 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.configRequest().softphone().receiveResponse();
+
+            getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
+
             tester.authCheckRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
 

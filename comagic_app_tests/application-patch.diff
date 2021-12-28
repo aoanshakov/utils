@@ -336,10 +336,77 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 91ce150c..3e6e63eb 100644
+index 91ce150c..e277f280 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -199,7 +199,7 @@ export const RootStore = types
+@@ -79,42 +79,32 @@ const projectsData: Record<string, ProjectData> = {
+ 
+ type RequestToRefresh = (nextResolve: boolean) => void;
+ 
+-const enableAutoLauncherUpdating = () => {
+-    const defaultStore = {
+-        setStartApp: () => null,
+-        setStartMinimize: () => null
+-    };
+-
+-    let store = defaultStore;
+-    const params = {};
+-
+-    const items = [{
+-        channelName: 'checkautolauncher',
+-        paramName: 'isStartApp',
+-        setParamValue: 'setStartApp'
+-    }, {
+-        channelName: 'checkstartminimize',
+-        paramName: 'isStartMinimize',
+-        setParamValue: 'setStartMinimize'
+-    }];
+-
+-    items.forEach(item => {
+-        const {channelName, paramName, setParamValue} = item,
+-            updateParamValue = () => paramName in params && store[setParamValue](params[paramName]);
+-        item.updateParamValue = updateParamValue;
+-
+-        (
+-            (window.require || (() => null))('electron')?.ipcRenderer || {on: () => null}
+-        ).on(channelName, (event, data) => {
+-            params[paramName] = (data || {})[paramName];
+-            updateParamValue();
+-        });
+-    });
++const createSoftphoneStoreCreatingHandler = () => {
++    let handleStoreCreating = store => {
++        const ipcRenderer = (
++            window.rootConfig?.appName == 'softphone' &&
++            ((window.require || (() => null))('electron')?.ipcRenderer)
++        ) || {
++            on: () => null,
++            send: () => null
++        };
+ 
+-    return value => {
+-        store = value || defaultStore;
+-        items.forEach(({updateParamValue}) => updateParamValue());
++        [{
++            channelName: 'checkautolauncher',
++            paramName: 'isStartApp',
++            setParamValue: 'setStartApp'
++        }, {
++            channelName: 'checkstartminimize',
++            paramName: 'isStartMinimize',
++            setParamValue: 'setStartMinimize'
++        }].forEach(({channelName, paramName, setParamValue}) =>
++            ipcRenderer.on(channelName, (event, data) => store[setParamValue]((data || {})[paramName])));
++
++        ipcRenderer.send('app-ready');
++        handleStoreCreating = () => null;
+     };
++
++    return store => handleStoreCreating(store);
+ };
+ 
+ export const RootStore = types
+@@ -199,7 +189,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -348,7 +415,7 @@ index 91ce150c..3e6e63eb 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -278,6 +278,7 @@ export const RootStore = types
+@@ -278,11 +268,12 @@ export const RootStore = types
          let setSoftphoneStore = () => null;
  
          const afterCreate = () => {
@@ -356,7 +423,13 @@ index 91ce150c..3e6e63eb 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -302,7 +303,8 @@ export type DependencyInjection = {
+             setHttpRequestsDefault();
+-            setSoftphoneStore = enableAutoLauncherUpdating();
++            setSoftphoneStore = createSoftphoneStoreCreatingHandler();
+         };
+ 
+         const resetStore = () => {
+@@ -302,7 +293,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
