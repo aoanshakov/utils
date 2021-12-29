@@ -639,6 +639,14 @@ tests.addTest(options => {
                                                                 tester.requestAcceptIncomingCall();
 
                                                                 audioDecodingTester.accomplishAudioDecoding();
+
+                                                                tester.firstConnection.expectHoldMusicToPlay();
+                                                                tester.secondConnection.expectRemoteStreamToPlay();
+
+                                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                                    'Гигова Петранка ' +
+                                                                    '+7 (916) 123-45-10 00:00:00'
+                                                                );
                                                             });
                                                             it('Отображено сообщение о звонке.', function() {
                                                                 tester.softphone.expectTextContentToHaveSubstring(
@@ -649,7 +657,8 @@ tests.addTest(options => {
                                                         it('Отображено имя, номер и таймер.', function() {
                                                             tester.outgoingIcon.expectToBeVisible();
                                                             tester.softphone.expectTextContentToHaveSubstring(
-                                                                'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                                'Шалева Дора ' +
+                                                                '+7 (916) 123-45-67 00:00:00'
                                                             );
                                                         });
                                                     });

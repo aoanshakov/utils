@@ -188,7 +188,7 @@ tests.addTest(function(args) {
                 authIframe = document.querySelector('iframe');
             });
 
-            describe('Ответ на запрос аутентификации отправлен в Iframe с РМР. ', function() {
+            describe('Из Iframe с аутентификацией РМР может прийти сообщение.', function() {
                 beforeEach(function() {
                     Object.defineProperty((authIframe || {}), 'contentWindow', {
                         get: function () {
@@ -197,7 +197,10 @@ tests.addTest(function(args) {
                     });
                 });
 
-                describe('Получно сообщение о принятии ответа на запрос аутентификации.', function() {
+                describe(
+                    'Из Iframe с РМР получено сообщение о готовности приложения. Ответ на запрос аутентификации ' +
+                    'отправлен в Iframe с РМР.',
+                function() {
                     beforeEach(function() {
                         utils.receiveWindowMessage({
                             data: 'ready',
@@ -205,79 +208,93 @@ tests.addTest(function(args) {
                         });
 
                         postMessagesTester.expectMessageToBeSent('{"token":"XhaIfhS93shg"}');
+                    });
 
+                    describe('Получно сообщение о принятии ответа на запрос аутентификации.', function() {
+                        beforeEach(function() {
+                            utils.receiveWindowMessage({
+                                data: 'authenticated',
+                                origin: 'https://mynonexistent.ru'
+                            });
+
+                            workplaceIframe = document.querySelector('iframe');
+                        });
+
+                        it('Пришел запрос изменения высоты приложения.', function() {
+                            utils.receiveWindowMessage({
+                                data: JSON.stringify({
+                                    type: 'resizeWindow',
+                                    height: 825
+                                }),
+                                origin: 'https://mynonexistent.ru'
+                            });
+
+                            if (workplaceIframe.style.height != '825px') {
+                                throw new Error(
+                                    'Iframe должен быть высотой в 825 пикселей, однако высота Iframe это ' +
+                                    workplaceIframe.style.height + ' пикселей.'
+                                );
+                            }
+
+                            if (BX24.getScrollSize().scrollHeight != 825) {
+                                throw new Error(
+                                    'Приложение должно быть высотой в 825 пикселей, однако высота приложения это ' +
+                                    BX24.getScrollSize().scrollHeight + '.'
+                                );
+                            }
+
+                            if (BX24.getScrollSize().scrollWidth != 635) {
+                                throw new Error(
+                                    'Приложение должно быть шириной в 635 пикселей, однако ширина приложения это ' +
+                                    BX24.getScrollSize().scrollWidth + '.'
+                                );
+                            }
+                        });
+                        it('Открыт РМР.', function() {
+                            var expectedSrc = 'https://mynonexistent.ru/workplace?bitrix';
+
+                            if (!workplaceIframe) {
+                                throw new Error(
+                                    'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако Iframe не ' +
+                                    'был открыт.'
+                                );
+                            }
+
+                            if (workplaceIframe.src != expectedSrc) {
+                                throw new Error(
+                                    'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако была ' +
+                                    'открыта страница "' +
+                                    workplaceIframe.src + '".'
+                                );
+                            }
+
+                            if (workplaceIframe.style.height != '724px') {
+                                throw new Error(
+                                    'Iframe должен быть высотой в 724 пикселей, однако высота Iframe это ' +
+                                    workplaceIframe.style.height + ' пикселей.'
+                                );
+                            }
+
+                            if (workplaceIframe.style.width != '635px') {
+                                throw new Error(
+                                    'Iframe должен быть шириной в 635 пикселей, однако ширина Iframe это ' +
+                                    workplaceIframe.style.width + ' пикселей.'
+                                );
+                            }
+                        });
+                    });
+                    it('Получно сообщение об ошибке аутентификации.', function() {
                         utils.receiveWindowMessage({
-                            data: 'received',
+                            data: 'error',
                             origin: 'https://mynonexistent.ru'
                         });
 
-                        workplaceIframe = document.querySelector('iframe');
-                    });
+                        wait();
 
-                    it('Пришел запрос изменения высоты приложения.', function() {
-                        utils.receiveWindowMessage({
-                            data: JSON.stringify({
-                                type: 'resizeWindow',
-                                height: 825
-                            }),
-                            origin: 'https://mynonexistent.ru'
-                        });
-
-                        if (workplaceIframe.style.height != '825px') {
-                            throw new Error(
-                                'Iframe должен быть высотой в 825 пикселей, однако высота Iframe это ' +
-                                workplaceIframe.style.height + ' пикселей.'
-                            );
-                        }
-
-                        if (BX24.getScrollSize().scrollHeight != 825) {
-                            throw new Error(
-                                'Приложение должно быть высотой в 825 пикселей, однако высота приложения это ' +
-                                BX24.getScrollSize().scrollHeight + '.'
-                            );
-                        }
-
-                        if (BX24.getScrollSize().scrollWidth != 635) {
-                            throw new Error(
-                                'Приложение должно быть шириной в 635 пикселей, однако ширина приложения это ' +
-                                BX24.getScrollSize().scrollWidth + '.'
-                            );
-                        }
-                    });
-                    it('Открыт РМР.', function() {
-                        var expectedSrc = 'https://mynonexistent.ru/workplace?bitrix';
-
-                        if (!workplaceIframe) {
-                            throw new Error(
-                                'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако Iframe не был ' +
-                                'открыт.'
-                            );
-                        }
-
-                        if (workplaceIframe.src != expectedSrc) {
-                            throw new Error(
-                                'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако была открыта ' +
-                                'страница "' +
-                                workplaceIframe.src + '".'
-                            );
-                        }
-
-                        if (workplaceIframe.style.height != '724px') {
-                            throw new Error(
-                                'Iframe должен быть высотой в 724 пикселей, однако высота Iframe это ' +
-                                workplaceIframe.style.height + ' пикселей.'
-                            );
-                        }
-
-                        if (workplaceIframe.style.width != '635px') {
-                            throw new Error(
-                                'Iframe должен быть шириной в 635 пикселей, однако ширина Iframe это ' +
-                                workplaceIframe.style.width + ' пикселей.'
-                            );
-                        }
+                        tester.callCenterOpeningPanel.expectTextContentToHaveSubstring('Колл-центр недоступен');
                     });
                 });
-                it('Получно сообщение не от Iframe c РМР. Ничего не происходит.', function() {
+                it('Сообщение о готовности приложения получено не из Iframe с РМР. Ничего не происходит.', function() {
                     utils.receiveWindowMessage({
                         data: 'ready',
                         origin: 'https://otherdomain.ru'

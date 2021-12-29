@@ -1027,6 +1027,8 @@ function EasystartBitrix(args) {
         return me.settingsStep('Тестовый звонок').down('button[text="Заказать тестовый звонок"]');
     });
 
+    this.callCenterOpeningPanel = testersFactory.createDomElementTester('.easystart-call-center-opening-panel');
+
     this.authForm = (function () {
         function getForm () {
             return EasyStart.getApplication().findComponent('#authForm');
@@ -1041,9 +1043,12 @@ function EasystartBitrix(args) {
         return tester;
     })();
 
-    this.redirectionAuthForm = testersFactory.createDomElementTester(function () {
+    function getRedirectionAuthForm () {
         return document.querySelector('.easystart-comagic-web-auth');
-    });
+    }
+
+    (getRedirectionAuthForm() || {remove: function () {}}).remove();
+    this.redirectionAuthForm = testersFactory.createDomElementTester(getRedirectionAuthForm);
 
     this.floatingForm = testersFactory.createFormTester(function () {
         return utils.getFloatingComponent();
