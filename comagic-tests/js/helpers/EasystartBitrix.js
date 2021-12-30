@@ -1,7 +1,8 @@
 function EasystartBitrix(args) {
     var requestsManager = args.requestsManager,
         testersFactory = args.testersFactory,
-        utils = args.utils;
+        utils = args.utils
+        wait = args.wait;
 
     var me = this;
 
@@ -59,6 +60,7 @@ function EasystartBitrix(args) {
                     },
                     receiveResponse: function () {
                         request.respondSuccessfullyWith(response);
+                        wait();
                     }
                 };
             },
@@ -68,18 +70,42 @@ function EasystartBitrix(args) {
         };
     };
     this.callCenterAuthRequest = function () {
-        return {
-            receiveResponse: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('/easystart/bitrix/call_center_auth/').
-                    respondSuccessfullyWith({
-                        success: true,
-                        result: {
-                            token: 'XhaIfhS93shg'
-                        }
-                    });
+        var response = {
+            success: true,
+            result: {
+                token: 'XhaIfhS93shg'
             }
         };
+
+        function addResponseModifiers (me) {
+            me.failed = function () {
+                response = {
+                    error: 'Error 401',
+                    success: false
+                };
+
+                return me;
+            };
+
+            return me;
+        }
+
+        return addResponseModifiers({
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
+                    expectToHavePath('/easystart/bitrix/call_center_auth/');
+
+                return addResponseModifiers({
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith(response);
+                        wait();
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
     };
     this.requestOrderCallback = function () {
         return {
