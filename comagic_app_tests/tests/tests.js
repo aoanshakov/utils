@@ -658,29 +658,6 @@ tests.addTest(options => {
                                                                     expectNotToHaveClass('cmg-button-disabled');
                                                             });
                                                         });
-                                                        it(
-                                                            'Поступил входящий звонок. Кнопка принятия звонка на ' +
-                                                            'второй линии заблокирована.',
-                                                        function() {
-                                                            tester.incomingCall().thirdNumber().receive();
-                                                            tester.numaRequest().thirdNumber().receiveResponse();
-                                                            tester.outCallEvent().anotherPerson().receive();
-
-                                                            tester.otherChannelCallNotification.
-                                                                callStartingButton.
-                                                                expectToHaveClass('cmg-button-disabled');
-
-                                                            tester.otherChannelCallNotification.
-                                                                callStartingButton.
-                                                                click();
-
-                                                            tester.firstConnection.expectRemoteStreamToPlay();
-
-                                                            tester.softphone.expectTextContentToHaveSubstring(
-                                                                'Шалева Дора ' +
-                                                                '+7 (916) 123-45-67 00:00:00'
-                                                            );
-                                                        });
                                                         it('Отображено имя, номер и таймер.', function() {
                                                             tester.outgoingIcon.expectToBeVisible();
                                                             tester.softphone.expectTextContentToHaveSubstring(
@@ -688,6 +665,29 @@ tests.addTest(options => {
                                                                 '+7 (916) 123-45-67 00:00:00'
                                                             );
                                                         });
+                                                    });
+                                                    it(
+                                                        'Поступил входящий звонок. Кнопка принятия звонка на ' +
+                                                        'второй линии заблокирована.',
+                                                    function() {
+                                                        tester.incomingCall().thirdNumber().receive();
+                                                        tester.numaRequest().thirdNumber().receiveResponse();
+                                                        tester.outCallEvent().anotherPerson().receive();
+
+                                                        tester.otherChannelCallNotification.
+                                                            callStartingButton.
+                                                            expectToHaveClass('cmg-button-disabled');
+
+                                                        tester.otherChannelCallNotification.
+                                                            callStartingButton.
+                                                            click();
+
+                                                        tester.firstConnection.expectRemoteStreamToPlay();
+
+                                                        tester.softphone.expectTextContentToHaveSubstring(
+                                                            'Шалева Дора ' +
+                                                            '+7 (916) 123-45-67 00:00:00'
+                                                        );
                                                     });
                                                     it(
                                                         'Нажимаю на кнопку остановки звонка. Ввожу тот же самый ' +
@@ -1560,13 +1560,13 @@ tests.addTest(options => {
                     recentlySentMessage().
                     expectToBeSentToChannel('app-ready');
 
-                tester.authCheckRequest().receiveResponse();
                 accountRequest = tester.accountRequest().expectToBeSent();
             });
 
             describe('Софтфон доступен.', function() {
                 beforeEach(function() {
                     accountRequest.receiveResponse();
+                    tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
                     tester.settingsRequest().receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
@@ -1739,18 +1739,15 @@ tests.addTest(options => {
                             tester.button('Войти').click();
 
                             tester.loginRequest().anotherAuthorizationToken().receiveResponse();
-
-                            tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
                             tester.configRequest().softphone().receiveResponse();
 
+                            tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+                            tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
                             tester.statusesRequest().createExpectation().
                                 anotherAuthorizationToken().checkCompliance().receiveResponse();
-
                             tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
                             tester.talkOptionsRequest().receiveResponse();
                             tester.permissionsRequest().receiveResponse();
-
-                            tester.accountRequest().anotherAuthorizationToken().receiveResponse();
 
                             tester.connectEventsWebSocket(1);
                             tester.connectSIPWebSocket(1);
@@ -1787,18 +1784,16 @@ tests.addTest(options => {
                         tester.button('Войти').click();
 
                         tester.loginRequest().anotherAuthorizationToken().receiveResponse();
-
-                        tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
                         tester.configRequest().softphone().receiveResponse();
 
+                        tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+
+                        tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
                         tester.statusesRequest().createExpectation().
                             anotherAuthorizationToken().checkCompliance().receiveResponse();
-
                         tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
                         tester.talkOptionsRequest().receiveResponse();
                         tester.permissionsRequest().receiveResponse();
-
-                        tester.accountRequest().anotherAuthorizationToken().receiveResponse();
 
                         tester.connectEventsWebSocket(1);
                         tester.connectSIPWebSocket(1);
@@ -1812,8 +1807,8 @@ tests.addTest(options => {
                         tester.callStartingButton.expectNotToHaveAttribute('disabled');
                     });
                     it(
-                        'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок. Отображено сообщение ' +
-                        'о звонке.',
+                        'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок. Отображено ' +
+                        'сообщение о звонке.',
                     function() {
                         tester.phoneField.fill('79161234567');
                         tester.callStartingButton.click();
@@ -1883,8 +1878,11 @@ tests.addTest(options => {
                     tester.statusesList.item('Не беспокоить').expectToBeSelected();
                 });
             });
-            it('Софтфон недоступен.', function() {
+            it('Софтфон недоступен. Отображена форма аутентификации.', function() {
                 accountRequest.softphoneUnavailable().receiveResponse();
+                tester.userLogoutRequest().receiveResponse();
+
+                tester.button('Войти').expectToBeVisible();
             });
         });
         it(
@@ -1910,9 +1908,8 @@ tests.addTest(options => {
 
             getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
-            tester.authCheckRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
-
+            tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
