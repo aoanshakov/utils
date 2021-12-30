@@ -652,7 +652,34 @@ tests.addTest(options => {
                                                                 tester.softphone.expectTextContentToHaveSubstring(
                                                                     'Гигова Петранка Входящий...'
                                                                 );
+
+                                                                tester.otherChannelCallNotification.
+                                                                    callStartingButton.
+                                                                    expectNotToHaveClass('cmg-button-disabled');
                                                             });
+                                                        });
+                                                        it(
+                                                            'Поступил входящий звонок. Кнопка принятия звонка на ' +
+                                                            'второй линии заблокирована.',
+                                                        function() {
+                                                            tester.incomingCall().thirdNumber().receive();
+                                                            tester.numaRequest().thirdNumber().receiveResponse();
+                                                            tester.outCallEvent().anotherPerson().receive();
+
+                                                            tester.otherChannelCallNotification.
+                                                                callStartingButton.
+                                                                expectToHaveClass('cmg-button-disabled');
+
+                                                            tester.otherChannelCallNotification.
+                                                                callStartingButton.
+                                                                click();
+
+                                                            tester.firstConnection.expectRemoteStreamToPlay();
+
+                                                            tester.softphone.expectTextContentToHaveSubstring(
+                                                                'Шалева Дора ' +
+                                                                '+7 (916) 123-45-67 00:00:00'
+                                                            );
                                                         });
                                                         it('Отображено имя, номер и таймер.', function() {
                                                             tester.outgoingIcon.expectToBeVisible();
