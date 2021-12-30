@@ -628,9 +628,35 @@ tests.addTest(options => {
                                                                 tester.outCallEvent().anotherPerson().receive();
                                                             });
 
-                                                            it('Принимаю звонок на второй линии.', function() {
+                                                            it(
+                                                                'Принимаю звонок на второй линии. Отображаются ' +
+                                                                'данные о звонке.',
+                                                            function() {
                                                                 tester.otherChannelCallNotification.
                                                                     callStartingButton.click();
+
+                                                                tester.secondConnection.connectWebRTC();
+                                                                tester.secondConnection.callTrackHandler();
+                                                                tester.allowMediaInput();
+                                                                tester.secondConnection.addCandidate();
+                                                                tester.requestAcceptIncomingCall();
+
+                                                                audioDecodingTester.accomplishAudioDecoding();
+
+                                                                tester.firstConnection.expectHoldMusicToPlay();
+                                                                tester.secondConnection.expectRemoteStreamToPlay();
+
+                                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                                    'Гигова Петранка ' +
+                                                                    '+7 (916) 123-45-10 00:00:00'
+                                                                );
+                                                            });
+                                                            it(
+                                                                'Нажимаю на кнопку второй линии. Принимаю звонок на ' +
+                                                                'второй линии. Отображаются данные о звонке.',
+                                                            function() {
+                                                                tester.secondLineButton.click();
+                                                                tester.callStartingButton.click();
 
                                                                 tester.secondConnection.connectWebRTC();
                                                                 tester.secondConnection.callTrackHandler();
@@ -666,28 +692,40 @@ tests.addTest(options => {
                                                             );
                                                         });
                                                     });
-                                                    it(
-                                                        'Поступил входящий звонок. Кнопка принятия звонка на ' +
-                                                        'второй линии заблокирована.',
-                                                    function() {
-                                                        tester.incomingCall().thirdNumber().receive();
-                                                        tester.numaRequest().thirdNumber().receiveResponse();
-                                                        tester.outCallEvent().anotherPerson().receive();
+                                                    describe('Поступил входящий звонок.', function() {
+                                                        beforeEach(function() {
+                                                            tester.incomingCall().thirdNumber().receive();
+                                                            tester.numaRequest().thirdNumber().receiveResponse();
+                                                            tester.outCallEvent().anotherPerson().receive();
+                                                        });
 
-                                                        tester.otherChannelCallNotification.
-                                                            callStartingButton.
-                                                            expectToHaveClass('cmg-button-disabled');
+                                                        it(
+                                                            'Нажимаю на кнопку второй линии. Кнпока принятия звонка ' +
+                                                            'заблокирована.',
+                                                        function() {
+                                                            tester.secondLineButton.click();
+                                                            tester.callStartingButton.click();
 
-                                                        tester.otherChannelCallNotification.
-                                                            callStartingButton.
-                                                            click();
+                                                            tester.callStartingButton.expectToHaveAttribute('disabled');
+                                                        });
+                                                        it(
+                                                            'Кнопка принятия звонка на второй линии заблокирована.',
+                                                        function() {
+                                                            tester.otherChannelCallNotification.
+                                                                callStartingButton.
+                                                                click();
 
-                                                        tester.firstConnection.expectRemoteStreamToPlay();
+                                                            tester.otherChannelCallNotification.
+                                                                callStartingButton.
+                                                                expectToHaveClass('cmg-button-disabled');
 
-                                                        tester.softphone.expectTextContentToHaveSubstring(
-                                                            'Шалева Дора ' +
-                                                            '+7 (916) 123-45-67 00:00:00'
-                                                        );
+                                                            tester.firstConnection.expectRemoteStreamToPlay();
+
+                                                            tester.softphone.expectTextContentToHaveSubstring(
+                                                                'Шалева Дора ' +
+                                                                '+7 (916) 123-45-67 00:00:00'
+                                                            );
+                                                        });
                                                     });
                                                     it(
                                                         'Нажимаю на кнопку остановки звонка. Ввожу тот же самый ' +
