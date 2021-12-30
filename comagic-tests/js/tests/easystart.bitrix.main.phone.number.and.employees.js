@@ -153,6 +153,8 @@ tests.addTest(function(args) {
 
                         describe('Получно сообщение о принятии ответа на запрос аутентификации.', function() {
                             beforeEach(function() {
+                                tester.resetWindowSize();
+
                                 utils.receiveWindowMessage({
                                     data: 'authenticated',
                                     origin: 'https://mynonexistent.ru'
@@ -193,6 +195,7 @@ tests.addTest(function(args) {
                             });
                             it('Открыт РМР.', function() {
                                 var expectedSrc = 'https://mynonexistent.ru/workplace?bitrix';
+                                tester.expectSpinnerToBeHidden();
 
                                 if (!workplaceIframe) {
                                     throw new Error(
@@ -233,6 +236,7 @@ tests.addTest(function(args) {
                             wait();
 
                             tester.callCenterOpeningPanel.expectTextContentToHaveSubstring('Колл-центр недоступен');
+                            tester.expectSpinnerToBeHidden();
                         });
                     });
                     it(
@@ -246,6 +250,7 @@ tests.addTest(function(args) {
                 });
                 it('Открыт Iframe с аутентификацией РМР.', function() {
                     var expectedSrc = 'https://mynonexistent.ru/workplace?auth';
+                    tester.expectSpinnerToBeVisible();
 
                     if (!authIframe) {
                         throw new Error(
@@ -261,14 +266,18 @@ tests.addTest(function(args) {
                     }
                 });
             });
-            it('Iframe с аутентификацией РМР не был открыт .', function() {
+            it('Не удалось аутенифицироваться. Iframe с аутентификацией РМР не был открыт .', function() {
                 callCenterAuthRequest.failed().receiveResponse();
 
+                tester.expectSpinnerToBeHidden();
                 tester.callCenterOpeningPanel.expectTextContentToHaveSubstring('Колл-центр недоступен');
 
                 if (document.querySelector('iframe')) {
                     throw new Error('Iframe с аутентификацией РМР не должен быть открыт .');
                 }
+            });
+            it('Спиннер видим.', function() {
+                tester.expectSpinnerToBeVisible();
             });
         });
         describe('Заполняю форму аутентификации. Нажимаю на кнопку "Войти".', function() {

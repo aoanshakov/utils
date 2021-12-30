@@ -1257,13 +1257,19 @@ function EasystartBitrix(args) {
 
     this.installFinishCallStack = null;
 
-    window.BX24 = (function () {
-        var size = {
-            scrollWidth: 635,
-            scrollHeight: 724
+    (function () {
+        var size;
+
+        this.resetWindowSize = function () {
+            size = {
+                scrollWidth: 635,
+                scrollHeight: 724
+            };
         };
 
-        return {
+        this.resetWindowSize();
+        
+        window.BX24 = {
             init: function (callback) {
                 callback();
             },
@@ -1310,5 +1316,5 @@ function EasystartBitrix(args) {
                 me.expectWindowToBeReloaded = Ext.emptyFn;
             }
         };
-    })();
+    }.bind(this))();
 }
