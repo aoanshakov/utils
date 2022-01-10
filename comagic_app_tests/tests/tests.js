@@ -684,9 +684,14 @@ tests.addTest(options => {
                                                         });
                                                         it('Отображено имя, номер и таймер.', function() {
                                                             tester.outgoingIcon.expectToBeVisible();
+
                                                             tester.softphone.expectTextContentToHaveSubstring(
                                                                 'Шалева Дора ' +
                                                                 '+7 (916) 123-45-67 00:00:00'
+                                                            );
+                                                            
+                                                            tester.body.expectTextContentToHaveSubstring(
+                                                                'karadimova Не беспокоить'
                                                             );
                                                         });
                                                     });
