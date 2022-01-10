@@ -16,9 +16,7 @@ tests.addTest(options => {
 
     const getPackage = Tester.createPackagesGetter(options);
 
-    describe(
-        'Открываю новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
-    function() {
+    describe('Открываю новый личный кабинет.', function() {
         let tester,
             reportGroupsRequest,
             settingsRequest,
