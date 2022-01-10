@@ -20,18 +20,9 @@ index b987f3e..c047c3d 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 1ab983e..2f66b1c 100644
+index b5ca458..2f66b1c 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -92,7 +92,7 @@ export const RootStore = types
-                         case STATUSES_MANAGER_CREATED:
-                             action.statusesManager.on(
-                                 'employeeChanged',
--                                ({status_id}) => self.employeesStore.setEmployee({status_id})
-+                                ({status_id}) => status_id !== undefined && self.employeesStore.setEmployee({status_id})
-                             );
-  
-                             break;
 @@ -250,4 +250,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
