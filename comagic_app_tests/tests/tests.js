@@ -373,7 +373,6 @@ tests.addTest(options => {
                                             tester.outCallEvent().longName().receive();
                                         });
                                         it('Отображено сообщение о поиске контакта.', function() {
-                                            tester.collapsednessToggleButton.expectNotToExist();
                                             tester.contactOpeningButton.expectNotToExist();
                                             tester.incomingIcon.expectToBeVisible();
                                             tester.softphone.expectTextContentToHaveSubstring(
