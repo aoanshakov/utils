@@ -1582,6 +1582,8 @@ tests.addTest(options => {
                 accountRequest;
 
             beforeEach(function() {
+                localStorage.setItem('clct:to_top_on_call', 'false');
+
                 tester = new Tester({
                     ...options,
                     appName: 'softphone'
@@ -1693,7 +1695,7 @@ tests.addTest(options => {
                             tester.button('Автозапуск приложения').expectNotToBeChecked();
                             tester.button('Запускать свернуто').expectNotToBeChecked();
 
-                            if (localStorage.getItem('clct:to_top_on_call') !== true) {
+                            if (localStorage.getItem('clct:to_top_on_call') !== 'true') {
                                 throw new Error('Значение параметра "Поверх окон при входящем" должно быть сохранено.');
                             }
                         });
@@ -1710,11 +1712,12 @@ tests.addTest(options => {
                             tester.fieldRow('При выходе').select.arrow.click();
                             tester.select.option('Не беспокоить').click();
                             tester.settingsUpdatingRequest().dontDisturbOnLogout().receiveResponse();
-                            tester.settingsRequest().autoSetStatus().pauseOnLogin().dontDisturbOnLogout().receiveResponse();
+                            tester.settingsRequest().autoSetStatus().pauseOnLogin().dontDisturbOnLogout().
+                                receiveResponse();
                         });
                         it(
-                            'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или IP-телефон". Отмечена ' +
-                            'кнопка "IP-телефон".',
+                            'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или IP-телефон". ' +
+                            'Отмечена кнопка "IP-телефон".',
                         function() {
                             tester.button('IP-телефон').click();
                             tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().receiveResponse();
@@ -1751,10 +1754,6 @@ tests.addTest(options => {
 
                             tester.button('Запускать свернуто').expectNotToBeChecked();
                             tester.button('Запускать свернуто').expectToBeDisabled();
-
-                            if (localStorage.getItem('clct:to_top_on_call')) {
-                                throw new Error('Значение параметра "Поверх окон при входящем" не должно быть сохранено.');
-                            }
                         });
                     });
                     describe('Раскрываю список статусов.', function() {
@@ -1877,8 +1876,8 @@ tests.addTest(options => {
                         );
                     });
                     it(
-                        'Поступает входящий звонок от пользователя имеющего открытые сделки. Нажимаю на открытую сделку. ' +
-                        'Открывается страница сделки.',
+                        'Поступает входящий звонок от пользователя имеющего открытые сделки. Нажимаю на открытую ' +
+                        'сделку. Открывается страница сделки.',
                     function() {
                         tester.incomingCall().receive();
                         tester.numaRequest().receiveResponse();
@@ -1926,52 +1925,107 @@ tests.addTest(options => {
                 tester.button('Войти').expectToBeVisible();
             });
         });
-        it(
-            'Софтфон должен отображаться поверх окон при входящем. Поступил входящий звонок. Отправлено сообщение о ' +
-            'необходимости поднять окно софтфона.',
-        function() {
-            localStorage.setItem('clct:to_top_on_call', 'true');
+        describe('Софтфон должен отображаться поверх окон при входящем.', function() {
+            beforeEach(function() {
+                localStorage.setItem('clct:to_top_on_call', 'true');
 
-            tester = new Tester({
-                ...options,
-                appName: 'softphone'
+                tester = new Tester({
+                    ...options,
+                    appName: 'softphone'
+                });
+
+                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
+                
+                tester.input.withFieldLabel('Логин').fill('botusharova');
+                tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                tester.button('Войти').click();
+
+                tester.loginRequest().receiveResponse();
+                tester.configRequest().softphone().receiveResponse();
+
+                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
+
+                tester.accountRequest().receiveResponse();
+                tester.authCheckRequest().receiveResponse();
+                tester.statusesRequest().receiveResponse();
+                tester.settingsRequest().receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                tester.connectEventsWebSocket();
+                tester.connectSIPWebSocket();
+
+                tester.allowMediaInput();
+
+                tester.authenticatedUserRequest().receiveResponse();
+                tester.registrationRequest().receiveResponse();
             });
 
-            getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
-            
-            tester.input.withFieldLabel('Логин').fill('botusharova');
-            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+            it('Поступил входящий звонок. Отправлено сообщение о необходимости поднять окно софтфона.', function() {
+                tester.incomingCall().receive();
+                tester.numaRequest().receiveResponse();
+                tester.outCallEvent().receive();
 
-            tester.button('Войти').click();
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('incoming-call').
+                    expectToBeSentWithArguments(true);
+            });
+            it('Открываю настройки. Свитчбокс "Поверх окон при входящем" отмечен.', function() {
+                tester.settingsButton.click();
+                tester.button('Поверх окон при входящем').expectToBeChecked();
+            });
+        });
+        describe('Настройка отображения поверх окон при входящем не сохранена.', function() {
+            beforeEach(function() {
+                tester = new Tester({
+                    ...options,
+                    appName: 'softphone'
+                });
 
-            tester.loginRequest().receiveResponse();
-            tester.configRequest().softphone().receiveResponse();
+                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
+                
+                tester.input.withFieldLabel('Логин').fill('botusharova');
+                tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
-            getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
+                tester.button('Войти').click();
 
-            tester.accountRequest().receiveResponse();
-            tester.authCheckRequest().receiveResponse();
-            tester.statusesRequest().receiveResponse();
-            tester.settingsRequest().receiveResponse();
-            tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
+                tester.loginRequest().receiveResponse();
+                tester.configRequest().softphone().receiveResponse();
 
-            tester.connectEventsWebSocket();
-            tester.connectSIPWebSocket();
+                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
-            tester.allowMediaInput();
+                tester.accountRequest().receiveResponse();
+                tester.authCheckRequest().receiveResponse();
+                tester.statusesRequest().receiveResponse();
+                tester.settingsRequest().receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
 
-            tester.authenticatedUserRequest().receiveResponse();
-            tester.registrationRequest().receiveResponse();
+                tester.connectEventsWebSocket();
+                tester.connectSIPWebSocket();
 
-            tester.incomingCall().receive();
-            tester.numaRequest().receiveResponse();
-            tester.outCallEvent().receive();
+                tester.allowMediaInput();
 
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('incoming-call').
-                expectToBeSentWithArguments(true);
+                tester.authenticatedUserRequest().receiveResponse();
+                tester.registrationRequest().receiveResponse();
+            });
+
+            it('Поступил входящий звонок. Отправлено сообщение о необходимости поднять окно софтфона.', function() {
+                tester.incomingCall().receive();
+                tester.numaRequest().receiveResponse();
+                tester.outCallEvent().receive();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('incoming-call').
+                    expectToBeSentWithArguments(true);
+            });
+            it('Открываю настройки. Свитчбокс "Поверх окон при входящем" отмечен.', function() {
+                tester.settingsButton.click();
+                tester.button('Поверх окон при входящем').expectToBeChecked();
+            });
         });
     });
     describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {

@@ -888,7 +888,7 @@ function JsTester_Storage () {
             keyToIndex[key] = index;
         }
 
-        values[key] = value;
+        values[key] = '' + value;
     };
     this.getItem = function (key) {
         return values[key] || null;
