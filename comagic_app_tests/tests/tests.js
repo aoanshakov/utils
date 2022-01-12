@@ -870,6 +870,7 @@ tests.addTest(options => {
                                                 tester.softphone.expectNotToExist();
                                                 tester.button('Софтфон').expectNotToExist();
                                             });
+                                            /*
                                             it('Софтфон доступен. Отображен софтфон.', function() {
                                                 accountRequest.receiveResponse();
                                                 tester.accountRequest().anotherAuthorizationToken().receiveResponse();
@@ -901,6 +902,7 @@ tests.addTest(options => {
                                                 tester.callButton.expectNotToHaveAttribute('disabled');
                                                 tester.button('Софтфон').expectToBeVisible();
                                             });
+                                            */
                                         });
                                         describe('Нажимаю на кнопку аккаунта.', function() {
                                             beforeEach(function() {

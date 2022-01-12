@@ -1173,7 +1173,7 @@ define(() => function ({
     });
 
     me.configRequest = () => {
-        let host = 'localhost:8082';
+        let host = 'http://localhost:8083';
 
         let response = {
             ENV: 'dev',
@@ -1190,7 +1190,7 @@ define(() => function ({
 
         const me = {
             softphone: () => {
-                host = 'localhost:8083';
+                host = 'https://localhost:8084';
                 response = {
                     REACT_APP_LOCALE: 'ru',
                     REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
@@ -1202,7 +1202,7 @@ define(() => function ({
 
             expectToBeSent: requests => {
                 const request = (requests ? requests.someRequest() : fetch.recentRequest()).
-                    expectPathToContain(`https://${host}/config.json`);
+                    expectPathToContain(`${host}/config.json`);
 
                 return {
                     receiveResponse: () => {
