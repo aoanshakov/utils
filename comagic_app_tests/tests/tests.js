@@ -977,13 +977,13 @@ tests.addTest(options => {
                                                 accountRequest.receiveResponse();
                                                 tester.accountRequest().anotherAuthorizationToken().receiveResponse();
 
-                                                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
-                                                tester.configRequest().softphone().receiveResponse();
-
                                                 tester.reportGroupsRequest().anotherAuthorizationToken().
                                                     receiveResponse();
                                                 tester.reportsListRequest().receiveResponse();
                                                 tester.reportTypesRequest().receiveResponse();
+
+                                                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
+                                                tester.configRequest().softphone().receiveResponse();
 
                                                 tester.statusesRequest().createExpectation().
                                                     anotherAuthorizationToken().checkCompliance().receiveResponse();
@@ -1110,9 +1110,7 @@ tests.addTest(options => {
                                             tester.dialpadButton.click();
                                             tester.digitRemovingButton.expectToBeVisible();
                                         });
-                                        it(
-                                            'Выпадающий список номеров скрыт. Кнопка удаления цифры скрыта.',
-                                        function() {
+                                        it('Отображен софтфон.', function() {
                                             tester.select.expectNotToExist();
 
                                             tester.softphone.expectTextContentNotToHaveSubstring(
@@ -1122,6 +1120,9 @@ tests.addTest(options => {
                                             tester.digitRemovingButton.expectNotToExist();
                                             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
                                             tester.settingsButton.expectNotToExist();
+
+                                            tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
+                                            tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
                                         });
                                     });
                                     it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
