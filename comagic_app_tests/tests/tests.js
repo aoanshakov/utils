@@ -1301,10 +1301,7 @@ tests.addTest(options => {
 
                                         tester.saveNumberCapacityRequest().receiveResponse();
 
-                                        tester.softphone.expectTextContentToHaveSubstring(
-                                            '+7 (916) 123-89-29 ' +
-                                            'Некий номер'
-                                        );
+                                        tester.softphone.expectTextContentToHaveSubstring('+7 (916) 123-89-29');
                                     });
                                     it('Выбранный номер выделен.', function() {
                                         tester.select.option('+7 (916) 123-89-27').
@@ -1378,17 +1375,13 @@ tests.addTest(options => {
                                 'Sip-линия не зарегистрирована ' +
                                 'Выберите АОН из списка ' +
 
-                                '+7 (495) 021-68-06 ' +
-                                'Отдел консалтинга'
+                                '+7 (495) 021-68-06'
                             );
                         });
-                        it('Отображен выбранный номер и комментарий.', function() {
+                        it('Отображен выбранный номер.', function() {
                             authenticatedUserRequest.receiveResponse();
 
-                            tester.softphone.expectToHaveTextContent(
-                                '+7 (495) 021-68-06 ' +
-                                'Отдел консалтинга'
-                            );
+                            tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
                         });
                     });
                 });
