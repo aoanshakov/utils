@@ -336,10 +336,39 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 66b0f544..e277f280 100644
+index 66b0f544..b40e4e23 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -189,7 +189,7 @@ export const RootStore = types
+@@ -79,7 +79,7 @@ const projectsData: Record<string, ProjectData> = {
+ 
+ type RequestToRefresh = (nextResolve: boolean) => void;
+ 
+-const createSoftphoneStoreCreatingHandler = () => {
++const createSoftphoneStoreCreatingHandler = rootStore => {
+     let handleStoreCreating = store => {
+         const ipcRenderer = (
+             window.rootConfig?.appName == 'softphone' &&
+@@ -100,7 +100,9 @@ const createSoftphoneStoreCreatingHandler = () => {
+         }].forEach(({channelName, paramName, setParamValue}) =>
+             ipcRenderer.on(channelName, (event, data) => store[setParamValue]((data || {})[paramName])));
+ 
++        ipcRenderer.on('logfilepath', (event, data) => rootStore.setLogFilePath(data.logFilePath));
+         ipcRenderer.send('app-ready');
++
+         handleStoreCreating = () => null;
+     };
+ 
+@@ -124,6 +126,9 @@ export const RootStore = types
+         numberPoolStore: types.optional(NumberPool, {}),
+         numberPoolNumbersStore: types.optional(NumberPoolNumbersStore, {}),
+         marketplaceStore: types.optional(MarketplaceStore, {}),
++        logFilePath: types.maybe(types.string),
++        message: types.maybe(types.string),
++        title: types.maybe(types.string)
+     })
+     .views(self => ({
+         get projectData() {
+@@ -189,7 +194,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -348,7 +377,7 @@ index 66b0f544..e277f280 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -268,6 +268,7 @@ export const RootStore = types
+@@ -268,20 +273,49 @@ export const RootStore = types
          let setSoftphoneStore = () => null;
  
          const afterCreate = () => {
@@ -356,7 +385,50 @@ index 66b0f544..e277f280 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -292,7 +293,8 @@ export type DependencyInjection = {
+             setHttpRequestsDefault();
+-            setSoftphoneStore = createSoftphoneStoreCreatingHandler();
++            setSoftphoneStore = createSoftphoneStoreCreatingHandler(self);
+         };
+ 
+         const resetStore = () => {
+             applySnapshot(self, initialState);
+         };
+ 
++        const setLogFilePath = value => (self.logFilePath = value);
++
++        const closeMessage = () => {
++            self.title = '';
++            self.message = '';
++        };
++
++        const setMessage = (title, message) => {
++            self.title = title;
++            self.message = message;
++        };
++
++        self.fileLogger = {
++            downloadLog: () => self.setMessage(
++                'Log path',
++                self.logFilePath
++            ),
++
++            log: (...messages) => window.require('electron').remote.require('electron-log').info(
++                messages.map(
++                    message => typeof message == 'object' ? JSON.stringify(message) : `${message}`
++                ).join(' ').trim()
++            )
++        };
++
+         return {
+             afterCreate,
+             resetStore,
++            setMessage,
++            closeMessage,
++            setLogFilePath,
+             setSoftphoneStore: store => setSoftphoneStore(store) 
+         };
+     });
+@@ -292,7 +326,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
