@@ -804,6 +804,12 @@ tests.addTest(options => {
                                                         'https://comagicwidgets.amocrm.ru/contacts/detail/218401'
                                                     );
                                                 });
+                                                it(
+                                                    'Нажимаю на кнопку первой линии. Отображено поле для ввода номера.',
+                                                function() {
+                                                    tester.firstLineButton.click();
+                                                    tester.phoneField.expectToBeVisible();
+                                                });
                                                 it('Отображены иконки направлений.', function() {
                                                     tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.
                                                         expectNotToHaveAttribute('disabled');
@@ -870,18 +876,17 @@ tests.addTest(options => {
                                                 tester.softphone.expectNotToExist();
                                                 tester.button('Софтфон').expectNotToExist();
                                             });
-                                            /*
                                             it('Софтфон доступен. Отображен софтфон.', function() {
                                                 accountRequest.receiveResponse();
                                                 tester.accountRequest().anotherAuthorizationToken().receiveResponse();
-
-                                                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
-                                                tester.configRequest().softphone().receiveResponse();
 
                                                 tester.reportGroupsRequest().anotherAuthorizationToken().
                                                     receiveResponse();
                                                 tester.reportsListRequest().receiveResponse();
                                                 tester.reportTypesRequest().receiveResponse();
+
+                                                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
+                                                tester.configRequest().softphone().receiveResponse();
 
                                                 tester.statusesRequest().createExpectation().
                                                     anotherAuthorizationToken().checkCompliance().receiveResponse();
@@ -902,7 +907,6 @@ tests.addTest(options => {
                                                 tester.callButton.expectNotToHaveAttribute('disabled');
                                                 tester.button('Софтфон').expectToBeVisible();
                                             });
-                                            */
                                         });
                                         describe('Нажимаю на кнопку аккаунта.', function() {
                                             beforeEach(function() {
@@ -1236,17 +1240,12 @@ tests.addTest(options => {
                                 'Sip-линия не зарегистрирована ' +
                                 'Выберите АОН из списка ' +
 
-                                '+7 (495) 021-68-06 ' +
-                                'Отдел консалтинга'
+                                '+7 (495) 021-68-06'
                             );
                         });
                         it('Отображен выбранный номер и комментарий.', function() {
                             authenticatedUserRequest.receiveResponse();
-
-                            tester.softphone.expectToHaveTextContent(
-                                '+7 (495) 021-68-06 ' +
-                                'Отдел консалтинга'
-                            );
+                            tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
                         });
                     });
                 });
