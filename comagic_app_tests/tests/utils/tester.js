@@ -2145,6 +2145,7 @@ define(() => function ({
     me.hideButton = testersFactory.createDomElementTester('.cmg-hide-button');
     me.playerButton = testersFactory.createDomElementTester('.clct-audio-button');
     me.otherChannelCallNotification = createRootTester('#cmg-another-sip-line-incoming-call-notification');
+    me.bugButton = testersFactory.createDomElementTester('.cmg-bug-icon');
 
     me.popover = (() => {
         const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),

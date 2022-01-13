@@ -5,7 +5,8 @@ define(function () {
             spendTime = args.spendTime,
             opened,
             messages,
-            messageHandlers = {};
+            messageHandlers = {},
+            infoLogMessages = [];
 
         function NoMessage () {
             this.expectNotToBeSent = function () {};
@@ -60,6 +61,18 @@ define(function () {
         }
 
         return {
+            'electron-log': {
+                expectToContain: expectedSubstring => {
+                    if (!infoLogMessages.some(message => message.includes(expectedSubstring))) {
+                        console.log(infoLogMessages);
+
+                        throw new Error(
+                            `В лог должно быть выведено сообщение содержащее подстроку "${expectedSubstring}", ` +
+                            `однако содержимое лога таково`
+                        );
+                    }
+                }
+            },
             electron: {
                 shell: {
                     expectExternalUrlToBeOpened: function (url) {
@@ -128,7 +141,9 @@ define(function () {
                             }
                         },
                         'electron-log': {
-                            info: function () {},
+                            info: function (message) {
+                                infoLogMessages.push(message);
+                            },
                             error: function () {}
                         }
                     };

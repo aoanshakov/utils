@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     packages.electron.ipcRenderer.expectNoMessageToBeSent();
                 });
 
-                return packageName => packages[packageName];
+                return packageName => packageName != 'replaceByFake' ? packages[packageName] : null;
             };
 
             tests.runTests({

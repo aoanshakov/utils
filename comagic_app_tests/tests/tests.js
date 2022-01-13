@@ -1597,6 +1597,10 @@ tests.addTest(options => {
                     recentlySentMessage().
                     expectToBeSentToChannel('app-ready');
 
+                getPackage('electron').ipcRenderer.receiveMessage('logfilepath', {
+                    logFilePath: '/Users/karadimova/Library/Logs/comagic-app/Softphone.20220112.230312.256.log'
+                });
+
                 accountRequest = tester.accountRequest().expectToBeSent();
             });
 
@@ -1796,6 +1800,24 @@ tests.addTest(options => {
                             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                         });
                     });
+                    describe('Нажимаю на кнопку дебага.', function() {
+                        beforeEach(function() {
+                            tester.bugButton.click();
+                        });
+
+                        it('Нажимаю на кнопку закрытия сообщения. Путь к логу не отображен.', function() {
+                            tester.closeButton.click();
+
+                            tester.body.expectTextContentNotToHaveSubstring(
+                                '/Users/karadimova/Library/Logs/comagic-app/Softphone.20220112.230312.256.log'
+                            );
+                        });
+                        it('Отображен путь к логу.', function() {
+                            tester.body.expectTextContentToHaveSubstring(
+                                '/Users/karadimova/Library/Logs/comagic-app/Softphone.20220112.230312.256.log'
+                            );
+                        });
+                    });
                     it(
                         'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку "Выход". Вхожу в ' +
                         'софтфон заново. Удалось войти. Софтфон готов к работе.',
@@ -1903,6 +1925,9 @@ tests.addTest(options => {
 
                         tester.statusesList.item('Не беспокоить').expectToBeSelected();
                         tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
+                    });
+                    it('Некие сообщения выведены в лог.', function() {
+                        getPackage('electron-log').expectToContain('State changed');
                     });
                 });
                 it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
