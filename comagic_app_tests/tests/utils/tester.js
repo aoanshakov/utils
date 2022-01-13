@@ -2126,10 +2126,17 @@ define(() => function ({
         return tester;
     })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
 
-    me.softphone = (getRootElement => addTesters(
-        testersFactory.createDomElementTester(getRootElement),
-        getRootElement
-    ))(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
+    me.softphone = (getRootElement => {
+        const tester = addTesters(
+            testersFactory.createDomElementTester(getRootElement),
+            getRootElement
+        );
+
+        tester.expectToBeCollapsed = () => tester.expectToHaveHeight(212);
+        tester.expectToBeExpanded = () => tester.expectToHaveHeight(568);
+
+        return tester;
+    })(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
 
     me.closeButton = testersFactory.createDomElementTester(
         '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close'

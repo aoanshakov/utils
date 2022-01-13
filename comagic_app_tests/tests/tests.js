@@ -1154,17 +1154,30 @@ tests.addTest(options => {
                                     tester.select.arrow.click();
                                 });
 
-                                it(
-                                    'Выбираю номер. Отправлен запрос смены номера. Отображен выбранный номер.',
+                                describe(
+                                    'Выбираю номер. Отправлен запрос смены номера.',
                                 function() {
-                                    tester.select.option('+7 (916) 123-89-29').click();
+                                    beforeEach(function() {
+                                        tester.select.option('+7 (916) 123-89-29').click();
+                                        tester.saveNumberCapacityRequest().receiveResponse();
+                                    });
 
-                                    tester.saveNumberCapacityRequest().receiveResponse();
+                                    it(
+                                        'Нажимаю на кнопку открытия диалпада. Отображен выбранный номер с ' +
+                                        'комментарием.',
+                                    function() {
+                                        tester.dialpadButton.click();
 
-                                    tester.softphone.expectTextContentToHaveSubstring(
-                                        '+7 (916) 123-89-29 ' +
-                                        'Некий номер'
-                                    );
+                                        tester.softphone.expectTextContentToHaveSubstring(
+                                            '+7 (916) 123-89-29 ' +
+                                            'Некий номер'
+                                        );
+                                    });
+                                    it('Отображен выбранный номер.', function() {
+                                        tester.softphone.expectToHaveTextContent(
+                                            '+7 (916) 123-89-29'
+                                        );
+                                    });
                                 });
                                 it('Выбранный номер выделен.', function() {
                                     tester.select.option('+7 (916) 123-89-27').
@@ -1175,8 +1188,7 @@ tests.addTest(options => {
                                 });
                             });
                             it('Отображен выбранный номер телефона.', function() {
-                                tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
-
+                                tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
                             });
                         });
                         it('Безуспешно пытаюсь выбрать номер.', function() {
