@@ -9,7 +9,7 @@ index 3dbc8c6f..fa3b1413 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-va0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 5417d1bc..b3ff89cc 100644
+index 5417d1bc..58ca9cd4 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -10,6 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
@@ -31,7 +31,7 @@ index 5417d1bc..b3ff89cc 100644
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
-+const subModules = ['chats', 'employees'];
++const subModules = ['chats'];
  
  const lessLoader = {
      loader: 'less-loader',
@@ -217,7 +217,7 @@ index 5417d1bc..b3ff89cc 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index a51164f8..1844d82d 100644
+index a51164f8..cf0b600c 100644
 --- a/package.json
 +++ b/package.json
 @@ -60,7 +60,7 @@
@@ -240,12 +240,11 @@ index a51164f8..1844d82d 100644
      "url-loader": "^3.0.0",
      "webpack": "^5.38.1",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -79,8 +79,11 @@
+@@ -79,8 +79,10 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
 +    "softphone": "./misc/softphone",
-+    "employees": "./misc/employees",
 +    "chats": "./misc/chats",
      "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.3.1",
 -    "antd": "^3.26.7",
@@ -253,7 +252,7 @@ index a51164f8..1844d82d 100644
      "axios": "^0.24.0",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
-@@ -92,7 +95,7 @@
+@@ -92,7 +94,7 @@
      "highcharts-react-official": "^3.0.0",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
@@ -262,13 +261,18 @@ index a51164f8..1844d82d 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -105,10 +108,11 @@
-     "react-intl": "^5.15.8",
+@@ -102,13 +104,15 @@
+     "react-beautiful-dnd": "^13.0.0",
+     "react-dom": "^17.0.2",
+     "react-input-mask": "^2.0.4",
+-    "react-intl": "^5.15.8",
++    "react-intl": "5.15.8",
      "react-list": "^0.8.13",
      "react-resizable": "^1.10.1",
 -    "react-resize-detector": "^5.2.0",
 +    "react-resize-detector": "^6.0.0",
      "react-router-dom": "^5.1.2",
++    "react-router": "5.2.1",
      "react-transition-group": "^4.4.2",
      "wavesurfer.js": "^4.0.1",
 -    "yup": "^0.28.1"
