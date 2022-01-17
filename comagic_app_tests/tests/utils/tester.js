@@ -2061,6 +2061,15 @@ define(() => function ({
         };
     };
 
+    me.disableTimeout = callback => {
+        const setTimeout = window.setTimeout;
+        window.setTimeout = () => null;
+
+        callback();
+
+        window.setTimeout = setTimeout;
+    };
+
     me.forceUpdate = () => utils.pressKey('k');
     me.body = testersFactory.createDomElementTester('body');
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');

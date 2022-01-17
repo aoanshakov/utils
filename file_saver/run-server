@@ -1,0 +1,19 @@
+#!/bin/bash
+
+path=/usr/local/src
+cd $path
+
+if [ ! -d $path ]
+then
+    echo "директория приложения смонтирована некорректно"
+    exit 1
+fi
+
+if [ ! -d $path/node_modules ]
+then
+    npm install --verbose
+fi
+
+cp nginx.conf /etc/nginx/nginx.conf
+service nginx start
+npm run start

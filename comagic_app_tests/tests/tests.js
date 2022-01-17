@@ -11,7 +11,8 @@ tests.addTest(options => {
         setNow,
         fileReader,
         userMedia,
-        audioDecodingTester
+        audioDecodingTester,
+        blobsTester
     } = options;
 
     const getPackage = Tester.createPackagesGetter(options);
@@ -977,13 +978,13 @@ tests.addTest(options => {
                                                 accountRequest.receiveResponse();
                                                 tester.accountRequest().anotherAuthorizationToken().receiveResponse();
 
+                                                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
+                                                tester.configRequest().softphone().receiveResponse();
+
                                                 tester.reportGroupsRequest().anotherAuthorizationToken().
                                                     receiveResponse();
                                                 tester.reportsListRequest().receiveResponse();
                                                 tester.reportTypesRequest().receiveResponse();
-
-                                                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
-                                                tester.configRequest().softphone().receiveResponse();
 
                                                 tester.statusesRequest().createExpectation().
                                                     anotherAuthorizationToken().checkCompliance().receiveResponse();
@@ -1597,10 +1598,6 @@ tests.addTest(options => {
                     recentlySentMessage().
                     expectToBeSentToChannel('app-ready');
 
-                getPackage('electron').ipcRenderer.receiveMessage('logfilepath', {
-                    logFilePath: '/Users/karadimova/Library/Logs/comagic-app/Softphone.20220112.230312.256.log'
-                });
-
                 accountRequest = tester.accountRequest().expectToBeSent();
             });
 
@@ -1803,19 +1800,26 @@ tests.addTest(options => {
                     describe('Нажимаю на кнопку дебага.', function() {
                         beforeEach(function() {
                             tester.bugButton.click();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('collect_logs');
                         });
 
-                        it('Нажимаю на кнопку закрытия сообщения. Путь к логу не отображен.', function() {
-                            tester.closeButton.click();
+                        it('Логи собраны. Загружается архив с логами. Спиннер скрыт.', function() {
+                            tester.disableTimeout(() => getPackage('electron').ipcRenderer.receiveMessage(
+                                'logs_collected',
+                                new JsTester_ZipArchive()
+                            ));
 
-                            tester.body.expectTextContentNotToHaveSubstring(
-                                '/Users/karadimova/Library/Logs/comagic-app/Softphone.20220112.230312.256.log'
-                            );
+                            blobsTester.getLast().
+                                expectToHaveType('application/zip').
+                                expectToBeCreatedFromArray(new JsTester_ZipArchive());
+
+                            tester.spinner.expectNotToExist();
                         });
-                        it('Отображен путь к логу.', function() {
-                            tester.body.expectTextContentToHaveSubstring(
-                                '/Users/karadimova/Library/Logs/comagic-app/Softphone.20220112.230312.256.log'
-                            );
+                        it('Отображен спиннер.', function() {
+                            tester.spinner.expectToBeVisible();
                         });
                     });
                     it(

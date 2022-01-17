@@ -255,9 +255,7 @@ define(function () {
 
         this.getCallsGridItem = getCallsGridItem;
 
-        this.spinner = testersFactory.createDomElementTester(function () {
-            return document.querySelector('.clct-spinner');
-        });
+        this.spinner = testersFactory.createDomElementTester('.clct-spinner, .ant-spin');
 
         this.callsGridItemNameContainer = function (name) {
             function createTester (index) {

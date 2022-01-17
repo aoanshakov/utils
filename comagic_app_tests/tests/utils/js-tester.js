@@ -2281,10 +2281,48 @@ function JsTester_BlobTester(args) {
         return actualContent;
     }
 
+    this.expectToBeCreatedFromArray = function (expectedArray) {
+        var actualArray = (constructorArguments[0] || [])[0];
+
+        [
+            [expectedArray, 'Ожидаемое значение имеет некорректный тип.'],
+            [actualArray, 'Блоб должен быть создан на основе массива.']
+        ].forEach(function (args) {
+            var array = args[0],
+                message = args[1];
+
+            if (!array || !array.buffer || !(array.buffer instanceof ArrayBuffer)) {
+                throw new Error(message);
+            }
+        });
+
+        function serialize (array) {
+            return JSON.stringify(Object.values(array));
+        }
+
+        if (serialize(expectedArray) != serialize(actualArray)) {
+            throw new Error('Массив на основе которого был создан блоб не соответствует ожидаемому.');
+        }
+
+        return this;
+    };
+
+    this.expectToHaveType = function (expectedType) {
+        var actualType = constructorArguments[1] && constructorArguments[1].type;
+
+        if (actualType != expectedType) {
+            throw new Error('Блоб должен иметь тип "' + expectedType + '", однако он имеет тип "' + actualType + '".');
+        }
+
+        return this;
+    };
+
     this.expectToHaveSubstrings = function (expectedSubstrings) {
         expectedSubstrings.forEach(function (expectedSubstring) {
             me.expectToHaveSubstring(expectedSubstring);
         });
+
+        return this;
     };
 
     this.expectToHaveSubstring = function (expectedSubstring) {
@@ -2296,6 +2334,8 @@ function JsTester_BlobTester(args) {
                 'такое содержание ' + "\n\n" + actualContent + "\n\n"
             );
         }
+
+        return this;
     };
 
     this.expectToHaveContent = function (expectedContent) {
@@ -2307,6 +2347,8 @@ function JsTester_BlobTester(args) {
                 'такое содержание ' + "\n\n" + actualContent + "\n\n"
             );
         }
+
+        return this;
     };
 }
 
@@ -2845,6 +2887,15 @@ function JsTester_MutationObserverMocker (factory) {
     this.restoreReal = function () {
         window.MutationObserver = RealMutationObserver;
     };
+}
+
+function JsTester_ZipArchive () {
+    return new Uint8Array([
+        80,75,3,4,10,0,0,0,0,0,173,56,49,84,7,161,234,221,2,0,0,0,2,0,0,0,1,0,28,0,97,85,84,9,0,3,54,21,229,97,54,21,
+        229,97,117,120,11,0,1,4,0,0,0,0,4,0,0,0,0,97,10,80,75,1,2,30,3,10,0,0,0,0,0,173,56,49,84,7,161,234,221,2,0,0,0,
+        2,0,0,0,1,0,24,0,0,0,0,0,1,0,0,0,164,129,0,0,0,0,97,85,84,5,0,3,54,21,229,97,117,120,11,0,1,4,0,0,0,0,4,0,0,0,0,
+        80,75,5,6,0,0,0,0,1,0,1,0,71,0,0,0,61,0,0,0,0,0
+    ]);
 }
 
 function JsTester_Tests (factory) {
