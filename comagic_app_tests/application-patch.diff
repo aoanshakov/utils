@@ -9,7 +9,7 @@ index 3dbc8c6f..fa3b1413 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-va0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 5417d1bc..bc5076e7 100644
+index 5417d1bc..58ca9cd4 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -10,6 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
@@ -31,7 +31,7 @@ index 5417d1bc..bc5076e7 100644
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
-+const subModules = ['chats', 'employees'];
++const subModules = ['chats'];
  
  const lessLoader = {
      loader: 'less-loader',
@@ -119,7 +119,7 @@ index 5417d1bc..bc5076e7 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -290,17 +324,93 @@ module.exports = {
+@@ -290,17 +324,92 @@ module.exports = {
                      },
                  ],
              },
@@ -161,7 +161,6 @@ index 5417d1bc..bc5076e7 100644
 +            ...createAliases(appDirectory),
              '@ant-design/icons/lib/dist$': path.resolve(appDirectory, './src/icons.ts'),
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
-+            'employees/Root': 'employees/src/Root.tsx',
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
 +            'softphone/Settings': 'softphone/src/Settings.tsx',
