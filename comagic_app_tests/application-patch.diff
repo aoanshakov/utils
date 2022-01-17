@@ -210,30 +210,60 @@ index df24e5bb..c85e6844 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index 7b6e2ea3..7303204c 100644
+index 7b6e2ea3..e4bcadac 100644
 --- a/package.json
 +++ b/package.json
-@@ -83,8 +83,11 @@
-     "dmg-license": "^1.0.9"
+@@ -50,6 +50,9 @@
+     "css-loader": "^5.1.1",
+     "css-minimizer-webpack-plugin": "^1.3.0",
+     "cypress": "^4.9.0",
++    "dmg-license": "^1.0.9",
++    "electron": "^10.1.5",
++    "electron-builder": "22.10.5",
+     "eslint": "^7.28.0",
+     "eslint-config-prettier": "^8.3.0",
+     "eslint-plugin-cypress": "^2.11.1",
+@@ -77,18 +80,22 @@
+     "webpack-bundle-analyzer": "^4.4.0",
+     "webpack-cli": "^4.5.0",
+     "webpack-dev-server": "^3.11.2",
+-    "webpack-merge": "^5.7.3",
+-    "electron-builder": "22.10.5",
+-    "electron": "^10.1.5",
+-    "dmg-license": "^1.0.9"
++    "webpack-merge": "^5.7.3"
    },
    "dependencies": {
-+    "softphone": "./misc/softphone",
-+    "employees": "./misc/employees",
-+    "chats": "./misc/chats",
      "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.0.8",
 -    "antd": "^3.26.7",
 +    "antd": "3.26.7",
++    "auto-launch": "^5.0.5",
      "axios": "^0.19.2",
++    "babel-loader": "^8.0.4",
++    "chats": "./misc/chats",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
-@@ -115,6 +118,7 @@
+     "dotenv-expand": "^5.1.0",
++    "electron-log": "^4.3.0",
++    "electron-store": "^6.0.1",
++    "employees": "./misc/employees",
++    "file-saver": "^2.0.5",
+     "formik": "^2.2.9",
+     "google-libphonenumber": "^3.2.19",
+     "hash-sum": "^2.0.0",
+@@ -113,10 +120,8 @@
+     "react-resize-detector": "^6.0.0",
+     "react-router-dom": "^5.1.2",
      "react-transition-group": "^4.4.2",
++    "softphone": "./misc/softphone",
      "wavesurfer.js": "^4.0.1",
-     "yup": "^0.28.1",
-+    "babel-loader": "^8.0.4",
-     "electron-log": "^4.3.0",
-     "electron-store": "^6.0.1",
-     "auto-launch": "^5.0.5"
+-    "yup": "^0.28.1",
+-    "electron-log": "^4.3.0",
+-    "electron-store": "^6.0.1",
+-    "auto-launch": "^5.0.5"
++    "yup": "^0.28.1"
+   }
+ }
 diff --git a/public/index.html b/public/index.html
 index 6143f5e1..1ad2c181 100644
 --- a/public/index.html
@@ -336,10 +366,81 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 7a7b6f71..b40e4e23 100644
+index 7a7b6f71..0b4bf619 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -194,7 +194,7 @@ export const RootStore = types
+@@ -1,9 +1,11 @@
+ import React from 'react';
+ import { applySnapshot, getSnapshot, Instance, SnapshotOut, types } from 'mobx-state-tree';
+ import axios, { AxiosRequestConfig } from 'axios';
++import moment from 'moment';
+ import Highcharts from 'highcharts';
+ import patternFill from 'highcharts/modules/pattern-fill';
+ import HighchartsCustomEvents from 'highcharts-custom-events';
++import * as fileSaver from 'file-saver';
+ 
+ import { GOD_MODE } from '@/config';
+ import { httpRpc, httpRpcAuth } from '@/rpc';
+@@ -79,16 +81,16 @@ const projectsData: Record<string, ProjectData> = {
+ 
+ type RequestToRefresh = (nextResolve: boolean) => void;
+ 
++const getIpcRender = () => (
++    window.rootConfig?.appName == 'softphone' &&
++    ((window.require || (() => null))('electron')?.ipcRenderer)
++) || {
++    on: () => null,
++    send: () => null
++};
++
+ const createSoftphoneStoreCreatingHandler = rootStore => {
+     let handleStoreCreating = store => {
+-        const ipcRenderer = (
+-            window.rootConfig?.appName == 'softphone' &&
+-            ((window.require || (() => null))('electron')?.ipcRenderer)
+-        ) || {
+-            on: () => null,
+-            send: () => null
+-        };
+-
+         [{
+             channelName: 'checkautolauncher',
+             paramName: 'isStartApp',
+@@ -98,11 +100,9 @@ const createSoftphoneStoreCreatingHandler = rootStore => {
+             paramName: 'isStartMinimize',
+             setParamValue: 'setStartMinimize'
+         }].forEach(({channelName, paramName, setParamValue}) =>
+-            ipcRenderer.on(channelName, (event, data) => store[setParamValue]((data || {})[paramName])));
+-
+-        ipcRenderer.on('logfilepath', (event, data) => rootStore.setLogFilePath(data.logFilePath));
+-        ipcRenderer.send('app-ready');
++            getIpcRender().on(channelName, (event, data) => store[setParamValue]((data || {})[paramName])));
+ 
++        getIpcRender().send('app-ready');
+         handleStoreCreating = () => null;
+     };
+ 
+@@ -112,6 +112,7 @@ const createSoftphoneStoreCreatingHandler = rootStore => {
+ export const RootStore = types
+     .model('RootStore', {
+         isGodMode: types.optional(types.boolean, isGodMode()),
++        isLogDownloading: types.optional(types.boolean, false),
+         modalResponseErrorStore: types.optional(ModalResponseErrorStore, {}),
+         authStore: types.optional(AuthStore, {}),
+         accountStore: types.optional(AccountStore, {}),
+@@ -125,10 +126,7 @@ export const RootStore = types
+         numberStore: types.optional(NumberStore, {}),
+         numberPoolStore: types.optional(NumberPool, {}),
+         numberPoolNumbersStore: types.optional(NumberPoolNumbersStore, {}),
+-        marketplaceStore: types.optional(MarketplaceStore, {}),
+-        logFilePath: types.maybe(types.string),
+-        message: types.maybe(types.string),
+-        title: types.maybe(types.string)
++        marketplaceStore: types.optional(MarketplaceStore, {})
+     })
+     .views(self => ({
+         get projectData() {
+@@ -194,7 +192,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -348,15 +449,72 @@ index 7a7b6f71..b40e4e23 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -273,6 +273,7 @@ export const RootStore = types
+@@ -272,11 +270,27 @@ export const RootStore = types
+ 
          let setSoftphoneStore = () => null;
  
++        const downloadLog = () => {
++            self.isLogDownloading = true;
++            getIpcRender().send('collect_logs');
++        };
++
++        const handleLogsCollected = data => {
++            self.isLogDownloading = false;
++
++            fileSaver.saveAs(new Blob([data], {
++                type: 'application/zip'
++            }), `Softphone.${moment().format('YYYYMMDD.HHmmss.SSS')}.log.zip`)
++        };
++
          const afterCreate = () => {
 +            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -325,7 +326,8 @@ export type DependencyInjection = {
+             setHttpRequestsDefault();
++
++            getIpcRender().on('logs_collected', (event, data) => self.handleLogsCollected(data));
+             setSoftphoneStore = createSoftphoneStoreCreatingHandler(self);
+         };
+ 
+@@ -284,23 +298,8 @@ export const RootStore = types
+             applySnapshot(self, initialState);
+         };
+ 
+-        const setLogFilePath = value => (self.logFilePath = value);
+-
+-        const closeMessage = () => {
+-            self.title = '';
+-            self.message = '';
+-        };
+-
+-        const setMessage = (title, message) => {
+-            self.title = title;
+-            self.message = message;
+-        };
+-
+         self.fileLogger = {
+-            downloadLog: () => self.setMessage(
+-                'Log path',
+-                self.logFilePath
+-            ),
++            downloadLog: () => self.downloadLog(),
+ 
+             log: (...messages) => window.require('electron').remote.require('electron-log').info(
+                 messages.map(
+@@ -312,9 +311,8 @@ export const RootStore = types
+         return {
+             afterCreate,
+             resetStore,
+-            setMessage,
+-            closeMessage,
+-            setLogFilePath,
++            downloadLog,
++            handleLogsCollected,
+             setSoftphoneStore: store => setSoftphoneStore(store) 
+         };
+     });
+@@ -325,7 +323,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
