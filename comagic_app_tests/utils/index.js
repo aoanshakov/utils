@@ -11,13 +11,11 @@ const {
     applicationPatch,
     devApplicationPatch,
     chatsPatch,
-    employeesPatch,
     huskyPatch,
     softphonePatch,
     devSoftphonePatch,
     preCommitHook,
     chats,
-    employees,
     softphone,
     misc,
     softphoneMisc,
@@ -72,16 +70,6 @@ const overriding = [{
     test: {
         overridenFiles: chatOverridenFiles,
         applicationPatch: chatsPatch
-    }
-}, {
-    application: employees,
-    dev: {
-        overridenFiles: employeesOverridenFiles,
-        applicationPatch: employeesPatch
-    },
-    test: {
-        overridenFiles: employeesOverridenFiles,
-        applicationPatch: employeesPatch
     }
 }, {
     application: softphone,
@@ -147,7 +135,6 @@ const appModule = ([module, path, args]) => [`comagic_app_modules/${module}`, pa
 
 actions['initialize'] = params => [
     appModule(['chats', chats, ' --branch stand-va0']),
-    appModule(['employees', employees, '']),
     appModule(['softphone', softphone, '']),
     ['sip_lib', sipLib, branch2487, softphoneMisc],
     ['uis_webrtc', uisWebRTC, branch2487, sipLib]
