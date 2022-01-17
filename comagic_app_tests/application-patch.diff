@@ -217,7 +217,7 @@ index 5417d1bc..b3ff89cc 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index a51164f8..416f64a7 100644
+index a51164f8..1844d82d 100644
 --- a/package.json
 +++ b/package.json
 @@ -60,7 +60,7 @@
@@ -253,6 +253,15 @@ index a51164f8..416f64a7 100644
      "axios": "^0.24.0",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
+@@ -92,7 +95,7 @@
+     "highcharts-react-official": "^3.0.0",
+     "history": "^4.10.1",
+     "lodash": "^4.17.20",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.5.3",
++    "magic-ui": "./misc/magic_ui",
+     "mobx": "^6.3.8",
+     "mobx-react-lite": "^3.2.2",
+     "mobx-state-tree": "^5.1.0",
 @@ -105,10 +108,11 @@
      "react-intl": "^5.15.8",
      "react-list": "^0.8.13",
