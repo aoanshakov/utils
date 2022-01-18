@@ -2209,14 +2209,30 @@ define(() => function ({
                 isSelected = () => !!domElement.querySelectorAll('.ui-icon')[1];
 
             tester.click = () => (click(), Promise.runAll(false, true));
+
+            const expectToBeVisible = tester.expectToBeVisible.bind(tester);
+
+            tester.expectToBeVisible = () => {
+                expectToBeVisible();
+
+                if ((
+                    domElement.closest('.cm-chats--account-popup') || new JsTester_NoElement()
+                ).parentNode.style.visibility == 'hidden') {
+                    throw new Error('Выпадающий список статусов должен быть видимым.');
+                }
+            };
             
             tester.expectToBeSelected = () => {
+                tester.expectToBeVisible();
+
                 if (!isSelected()) {
                     throw new Error(`Статус "${text}" должен быть выбран.`);
                 }
             };
 
             tester.expectNotToBeSelected = () => {
+                tester.expectToBeVisible();
+
                 if (isSelected()) {
                     throw new Error(`Статус "${text}" не должен быть выбран.`);
                 }

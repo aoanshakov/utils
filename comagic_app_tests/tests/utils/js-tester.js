@@ -5495,14 +5495,34 @@ function JsTester_InputElement (
 }
 
 function JsTester_NoElement () {
-    this.classList = {
-        add: function () {
-            throw new Error('Элемент должен существовать');
-        },
-        contains: function () {
-            throw new Error('Элемент должен существовать');
+    Object.defineProperty(this, 'parentNode', {
+        set: function () {},
+        get: function () {
+            return new JsTester_NoElement();
         }
-    };
+    });
+
+    Object.defineProperty(this, 'style', {
+        set: function () {},
+        get: function () {
+            return {};
+        }
+    });
+
+    Object.defineProperty(this, 'classList', {
+        set: function () {},
+        get: function () {
+            return {
+                add: function () {
+                    throw new Error('Элемент должен существовать');
+                },
+                contains: function () {
+                    throw new Error('Элемент должен существовать');
+                }
+            };
+        }
+    });
+
     this.closest = function () {
         return new JsTester_NoElement();
     };
