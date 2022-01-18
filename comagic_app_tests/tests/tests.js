@@ -1362,8 +1362,6 @@ tests.addTest(options => {
 
                                 tester.softphone.expectToHaveTextContent(
                                     'Sip-линия не зарегистрирована ' +
-                                    'Выберите АОН из списка ' +
-
                                     '+7 (495) 021-68-06'
                                 );
                             });
