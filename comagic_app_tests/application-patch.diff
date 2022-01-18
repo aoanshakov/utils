@@ -12,7 +12,7 @@ index cf35fde4..d8cbccb3 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 06aa1441..74c4c6cb 100644
+index 06aa1441..91d618d4 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -10,6 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
@@ -114,7 +114,7 @@ index 06aa1441..74c4c6cb 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -296,17 +328,88 @@ module.exports = {
+@@ -296,17 +328,92 @@ module.exports = {
                      },
                  ],
              },
@@ -164,6 +164,10 @@ index 06aa1441..74c4c6cb 100644
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
 +            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
 +            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
++            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
++            'callTracking/CalltrackingSubstitutionRules': `${miscDirectory}/Stub.js`,
++            'callTracking/NumberPools': `${miscDirectory}/Stub.js`,
++            'callTracking/Sites': `${miscDirectory}/Stub.js`
          },
 +        plugins: [{
 +            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
