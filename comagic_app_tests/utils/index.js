@@ -11,11 +11,13 @@ const {
     applicationPatch,
     devApplicationPatch,
     chatsPatch,
+    magicUiPatch,
     huskyPatch,
     softphonePatch,
     devSoftphonePatch,
     preCommitHook,
     chats,
+    magicUi,
     softphone,
     misc,
     softphoneMisc,
@@ -30,8 +32,8 @@ const cda = `cd ${application} &&`,
     cdc = `cd ${chats} &&`,
     actions = {},
     chatOverridenFiles = 'src/models/RootStore.ts package.json src/history.ts src/App.tsx src/models/auth/AuthStore.ts',
-    employeesOverridenFiles = 'src/models/RootStore.ts package.json',
-    devSoftphoneOverridenFiles = 'package.json',
+    magicUiOverridenFiles = 'package.json',
+    devSoftphoneOverridenFiles = magicUiOverridenFiles,
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js .env';
@@ -70,6 +72,16 @@ const overriding = [{
     test: {
         overridenFiles: chatOverridenFiles,
         applicationPatch: chatsPatch
+    }
+}, {
+    application: magicUi,
+    dev: {
+        overridenFiles: magicUiOverridenFiles,
+        applicationPatch: magicUiPatch
+    },
+    test: {
+        overridenFiles: magicUiOverridenFiles,
+        applicationPatch: magicUiPatch
     }
 }, {
     application: softphone,
@@ -130,14 +142,14 @@ actions['modify-code'] = params => actions['restore-code']({}).
         actions['fix-permissions']
     );
 
-const appModule = ([module, path, args]) => [`comagic_app_modules/${module}`, path, args, misc],
-    branch2487 = ' --branch tasks/PBL-2487';
+const appModule = ([module, path, args]) => [`comagic_app_modules/${module}`, path, args, misc];
 
 actions['initialize'] = params => [
-    appModule(['chats', chats, ' --branch stand-va0']),
+    appModule(['chats', chats, '']),
     appModule(['softphone', softphone, '']),
-    ['sip_lib', sipLib, branch2487, softphoneMisc],
-    ['uis_webrtc', uisWebRTC, branch2487, sipLib]
+    ['magic_ui', magicUi, '', misc],
+    ['sip_lib', sipLib, '', softphoneMisc],
+    ['uis_webrtc', uisWebRTC, '', sipLib]
 ].map(([module, path, args, misc]) => (!fs.existsSync(path) ? [
     () => mkdir(misc),
     `cd ${misc} && git clone${args} git@gitlab.uis.dev:web/${module}.git`
