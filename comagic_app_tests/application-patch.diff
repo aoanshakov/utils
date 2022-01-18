@@ -1,30 +1,29 @@
 diff --git a/.env b/.env
-index a8ae4714..a0b0163c 100644
+index cf35fde4..d8cbccb3 100644
 --- a/.env
 +++ b/.env
-@@ -8,6 +8,6 @@ REACT_APP_SITE_SETTINGS_SERVER_URL=
- REACT_APP_ANALYTICS_SERVER_URL=
- REACT_APP_COMAGIC_WEB_URL=https://int0.dev.uis.st
+@@ -10,6 +10,6 @@ REACT_APP_COMAGIC_WEB_URL=https://int0.dev.uis.st
  REACT_APP_PROJECT=
+ REACT_APP_MODULE_ANALYTICS=http://localhost:8081
+ REACT_APP_MODULE_CALL_TRACKING=http://localhost:8082
 -REACT_APP_MODULE_CHATS=https://chats-int0-chats.uis.st
--REACT_APP_LEADGEN_MODULE=https://leadgen-int0-leadgen-web.uis.st
++REACT_APP_MODULE_CHATS=https://localhost:8083
+ REACT_APP_LEADGEN_MODULE=
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
-+REACT_APP_MODULE_CHATS=https://localhost:8082
-+REACT_APP_LEADGEN_MODULE=
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index df24e5bb..110481f3 100644
+index 06aa1441..74c4c6cb 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
-@@ -9,6 +9,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
- const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+@@ -10,6 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
  const TerserPlugin = require('terser-webpack-plugin');
  const comagicCoreDeps = require('@comagic/core/package.json');
+ const magicUIDeps = require('magic-ui/package.json');
 +const hash = require('string-hash');
  
  const { ModuleFederationPlugin } = webpack.container;
  const deps = require('../package.json').dependencies;
-@@ -17,19 +18,23 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -18,19 +19,23 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
@@ -49,7 +48,7 @@ index df24e5bb..110481f3 100644
              },
              javascriptEnabled: true,
          },
-@@ -184,7 +189,7 @@ const plugins = () => {
+@@ -192,7 +197,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -58,8 +57,8 @@ index df24e5bb..110481f3 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -192,7 +197,11 @@ const plugins = () => {
-                 chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
+@@ -202,7 +207,11 @@ const plugins = () => {
+                 callTracking: `callTracking@${process.env.REACT_APP_MODULE_CALL_TRACKING}/remoteEntry.js`,
                  softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
              },
 -        }),
@@ -71,7 +70,7 @@ index df24e5bb..110481f3 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -202,6 +211,13 @@ const plugins = () => {
+@@ -212,6 +221,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -85,7 +84,7 @@ index df24e5bb..110481f3 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -221,6 +237,21 @@ module.exports = {
+@@ -231,6 +247,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -107,7 +106,7 @@ index df24e5bb..110481f3 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -271,6 +302,7 @@ module.exports = {
+@@ -281,6 +312,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -115,7 +114,7 @@ index df24e5bb..110481f3 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -286,17 +318,88 @@ module.exports = {
+@@ -296,17 +328,88 @@ module.exports = {
                      },
                  ],
              },
@@ -209,7 +208,7 @@ index df24e5bb..110481f3 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index dd3bb1ef..3f3028fc 100644
+index 6284d2a2..3de3a252 100644
 --- a/package.json
 +++ b/package.json
 @@ -73,8 +73,8 @@
@@ -226,27 +225,27 @@ index dd3bb1ef..3f3028fc 100644
 @@ -84,10 +84,12 @@
    },
    "dependencies": {
-     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.0.8",
+     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.3.1",
 -    "antd": "^3.26.7",
 +    "antd": "3.26.7",
      "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
-     "axios": "^0.19.2",
+     "axios": "^0.24.0",
 +    "babel-loader": "^8.0.4",
 +    "chats": "./misc/chats",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -102,7 +104,7 @@
+@@ -101,7 +103,7 @@
      "highcharts-react-official": "^3.0.0",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.2.11",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.5.3",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
-     "mobx-state-tree": "^5.0.5",
-@@ -117,7 +119,9 @@
+     "mobx-state-tree": "^5.1.0",
+@@ -116,7 +118,9 @@
      "react-resizable": "^1.10.1",
      "react-resize-detector": "^6.0.0",
      "react-router-dom": "^5.1.2",
@@ -295,7 +294,7 @@ index 6143f5e1..1ad2c181 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index aaf65408..41b85ee5 100644
+index 78af2c8d..a53cf28e 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -8,7 +8,9 @@ import { observer } from 'mobx-react-lite';
@@ -309,7 +308,7 @@ index aaf65408..41b85ee5 100644
  
  import history from './history';
  import { getAntdLocale, getIntlLocale, getIntlMessages } from './i18n';
-@@ -67,4 +69,33 @@ const Root: React.FC = observer(props => {
+@@ -68,4 +70,33 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -358,10 +357,10 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 1350d67e..0b4bf619 100644
+index 8cd70b4d..6861fa6b 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -192,7 +192,7 @@ export const RootStore = types
+@@ -186,7 +186,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -370,7 +369,7 @@ index 1350d67e..0b4bf619 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -284,6 +284,7 @@ export const RootStore = types
+@@ -278,6 +278,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -378,7 +377,7 @@ index 1350d67e..0b4bf619 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -322,7 +323,8 @@ export type DependencyInjection = {
+@@ -316,7 +317,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -389,10 +388,10 @@ index 1350d67e..0b4bf619 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index ca1e21ed..70b68e72 100644
+index 65e66c9f..1eaf4dda 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -105,7 +105,7 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -106,7 +106,7 @@ const removeToken = (skipLocalStorage = false) => {
  
  export const AuthStore = Loader.named('AuthStore')
      .props({
@@ -401,7 +400,7 @@ index ca1e21ed..70b68e72 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -204,6 +204,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -205,6 +205,8 @@ export const AuthStore = Loader.named('AuthStore')
              isTokenRefreshing = false;
              refreshingCall = null;
  
