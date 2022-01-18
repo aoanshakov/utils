@@ -286,6 +286,8 @@ tests.addTest(options => {
                                                 tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
                                                 tester.secondLineButton.
                                                     expectNotToHaveClass('cmg-bottom-button-selected');
+
+                                                tester.softphone.expectToBeExpanded();
                                             });
                                         });
                                         describe('Звонок переведен от другого сотрудника.', function() {
@@ -785,6 +787,8 @@ tests.addTest(options => {
                                                 });
                                                 it('Отображено имя, номер и таймер.', function() {
                                                     tester.outgoingIcon.expectToBeVisible();
+                                                    tester.softphone.expectToBeCollapsed();
+
                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                         'Шалева Дора +7 (916) 123-45-67 00:00:00'
                                                     );
@@ -920,6 +924,8 @@ tests.addTest(options => {
 
                                                     tester.callsHistoryRow.withText('Манова Тома').directory.
                                                         expectToHaveClass('cmg-direction-outgoing');
+
+                                                    tester.softphone.expectToBeExpanded();
                                                 });
                                             });
                                             it('Звонок является трансфером. Отображена иконка трансфера.', function() {
@@ -933,9 +939,8 @@ tests.addTest(options => {
                                             function() {
                                                 callsRequest.noCalls().receiveResponse();
 
-                                                tester.softphone.expectToHaveTextContent(
-                                                    'Совершите звонок для отображения истории'
-                                                );
+                                                tester.softphone.
+                                                    expectToHaveTextContent('Совершите звонок для отображения истории');
                                             });
                                         });
                                         describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
@@ -1058,6 +1063,7 @@ tests.addTest(options => {
                                             });
                                             it('Отображена таблица сотрудников.', function() {
                                                 tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
+                                                tester.softphone.expectToBeExpanded();
                                             });
                                         });
                                         describe('Нажимаю на кнопку разворачивания софтфона.', function() {
@@ -1106,16 +1112,26 @@ tests.addTest(options => {
                                             'Соединение разрывается. Отображено сообщение об установке соединения.',
                                         function() {
                                             tester.disconnectEventsWebSocket();
-
-                                            tester.softphone.expectToHaveTextContent(
-                                                'Устанавливается соединение...'
-                                            );
+                                            tester.softphone.expectToHaveTextContent('Устанавливается соединение...');
                                         });
                                         it(
                                             'Нажимаю на кнопку открытия диалпада. Кнопка удаления цифры видима.',
                                         function() {
                                             tester.dialpadButton.click();
+
                                             tester.digitRemovingButton.expectToBeVisible();
+                                            tester.softphone.expectToBeExpanded();
+                                        });
+                                        it(
+                                            'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
+                                            'сообщение об установке соединения.',
+                                        function() {
+                                            spendTime(5000);
+                                            tester.expectPingToBeSent();
+                                            spendTime(2000);
+
+                                            tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
+                                            tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
                                         });
                                         it('Отображен софтфон.', function() {
                                             tester.select.expectNotToExist();
@@ -1126,10 +1142,8 @@ tests.addTest(options => {
 
                                             tester.digitRemovingButton.expectNotToExist();
                                             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
+                                            tester.softphone.expectToBeCollapsed();
                                             tester.settingsButton.expectNotToExist();
-
-                                            tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
-                                            tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
                                         });
                                     });
                                     it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
@@ -1185,6 +1199,7 @@ tests.addTest(options => {
                             registrationRequest.receiveResponse();
                             reportGroupsRequest.receiveResponse();
 
+                            tester.softphone.expectToBeCollapsed();
                             tester.callStartingButton.expectToHaveAttribute('disabled');
 
                             tester.softphone.expectTextContentToHaveSubstring(
@@ -1397,9 +1412,9 @@ tests.addTest(options => {
                         function() {
                             authenticatedUserRequest.sipIsOffline().receiveResponse();
 
+                            tester.softphone.expectToBeCollapsed();
                             tester.softphone.expectToHaveTextContent(
                                 'Sip-линия не зарегистрирована ' +
-                                'Выберите АОН из списка ' +
 
                                 '+7 (495) 021-68-06'
                             );
@@ -1442,6 +1457,8 @@ tests.addTest(options => {
                                 'Отображено сообщение о том, включено управление звонками с другого устройстви или ' +
                                 'программы.',
                             function() {
+                                tester.softphone.expectToBeCollapsed();
+
                                 tester.softphone.expectToHaveTextContent(
                                     'Используется на другом устройстве ' +
                                     'Включено управление звонками с другого устройства или программы'
@@ -1485,6 +1502,8 @@ tests.addTest(options => {
 
                         tester.connectEventsWebSocket();
                         tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.softphone.expectToBeCollapsed();
 
                         tester.softphone.expectTextContentToHaveSubstring(
                             'Sip-линия не зарегистрирована'
