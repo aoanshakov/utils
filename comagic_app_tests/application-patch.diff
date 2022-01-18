@@ -1,5 +1,5 @@
 diff --git a/.env b/.env
-index a8ae4714..acdff3a8 100644
+index a8ae4714..a0b0163c 100644
 --- a/.env
 +++ b/.env
 @@ -8,6 +8,6 @@ REACT_APP_SITE_SETTINGS_SERVER_URL=
@@ -10,8 +10,8 @@ index a8ae4714..acdff3a8 100644
 -REACT_APP_LEADGEN_MODULE=https://leadgen-int0-leadgen-web.uis.st
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_CHATS=https://localhost:8082
-+REACT_APP_LEADGEN_MODULE=https://localhost:8084
-+REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
++REACT_APP_LEADGEN_MODULE=
++REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
 index df24e5bb..c85e6844 100644
 --- a/config/webpack.config.js
