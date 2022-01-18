@@ -392,7 +392,7 @@ index 9dab7a27..37a3b30d 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 65e66c9f..31b8996e 100644
+index d1e3a087..31b8996e 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -106,7 +106,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -404,30 +404,7 @@ index 65e66c9f..31b8996e 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -189,7 +189,14 @@ export const AuthStore = Loader.named('AuthStore')
-             }
-         });
- 
-+        let isUserLogoutProceeding = false;
-+
-         const fetchLogoutUser = flow(function*() {
-+            if (isUserLogoutProceeding) {
-+                return;
-+            }
-+
-+            isUserLogoutProceeding = true;
-             self.setLoading(true);
- 
-             try {
-@@ -198,6 +205,7 @@ export const AuthStore = Loader.named('AuthStore')
-                 return Promise.reject(e);
-             } finally {
-                 logout();
-+                isUserLogoutProceeding = false;
-             }
-         });
- 
-@@ -205,6 +213,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -213,6 +213,8 @@ export const AuthStore = Loader.named('AuthStore')
              isTokenRefreshing = false;
              refreshingCall = null;
  
