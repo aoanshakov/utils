@@ -409,7 +409,7 @@ index 23d1306d..05777b6c 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index a32c7259..0bc0b03e 100644
+index 65e66c9f..1eaf4dda 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -106,7 +106,7 @@ const removeToken = (skipLocalStorage = false) => {
