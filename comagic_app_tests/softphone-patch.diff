@@ -28,59 +28,10 @@ index 722f2d1..aa2f663 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3dd02fd..b928155 100644
+index 8f79fe7..b928155 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -52,7 +52,8 @@ export const RootStore = types
-         const afterCreate = () => {
-             const SET_SOFTPHONE_HOST = 'SET_SOFTPHONE_HOST',
-                 requests = [],
--                i18n = createI18N();
-+                i18n = createI18N(),
-+                isSingleApp = window.rootConfig?.appName == 'softphone';
- 
-             let handleIncomingCall = () => null;
- 
-@@ -78,7 +79,7 @@ export const RootStore = types
-                 mayHideSoftphone: () => () => true,
-                 getPhoneNumber: () => () => '',
-                 createSlavesNotification: () => state => ({}),
--                getWebRTCConfig: () => () => window.rootConfig?.appName == 'softphone' ? {
-+                getWebRTCConfig: () => () => isSingleApp ? {
-                     createFileLogger: () => ({
-                         downloadLog: () => fileLogger.downloadLog(),
-                         log: (...messages) => fileLogger.log(...messages)
-@@ -210,14 +211,23 @@ export const RootStore = types
-                 });
- 
-                 self.handleAccountFetched = ({
--                    account: { permissions },
--                    hasFeatureFlag
--                }) => updateState({
--                    accessGranted: !!(
-+                    authStore: { fetchLogoutUser },
-+                    accountStore: {
-+                        account: {
-+                            app_id,
-+                            permissions
-+                        },
-+                        hasFeatureFlag
-+                    }
-+                }) => {
-+                    const accessGranted = !!(
-                         permissions.get('softphone_login')?.is_select &&
-                         hasFeatureFlag('softphone')
--                    )
--                });
-+                    );
-+
-+                    updateState({accessGranted});
-+                    app_id && isSingleApp && !accessGranted && fetchLogoutUser();
-+                };
- 
-                 window.addEventListener('tokenChange', () => updateState(getTokenParams()));
- 
-@@ -262,4 +272,5 @@ export const RootStore = types
+@@ -272,4 +272,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
