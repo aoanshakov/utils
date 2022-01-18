@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 722f2d1..c047c3d 100644
+index 722f2d1..aa2f663 100644
 --- a/package.json
 +++ b/package.json
 @@ -55,7 +55,7 @@
@@ -11,7 +11,15 @@ index 722f2d1..c047c3d 100644
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -79,6 +79,6 @@
+@@ -64,7 +64,6 @@
+     "filesize": "^8.0.3",
+     "formik": "^2.2.9",
+     "history": "^4.10.1",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.2.11",
+     "mobx": "^6.1.8",
+     "mobx-react-lite": "^3.2.0",
+     "mobx-state-tree": "^5.0.1",
+@@ -79,6 +78,6 @@
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
      "yup": "^0.32.9",

@@ -1181,7 +1181,7 @@ define(() => function ({
     });
 
     me.configRequest = () => {
-        let host = 'localhost:8082';
+        let host = 'http://localhost:8083';
 
         let response = {
             ENV: 'dev',
@@ -1198,7 +1198,7 @@ define(() => function ({
 
         const me = {
             softphone: () => {
-                host = 'localhost:8083';
+                host = 'https://localhost:8084';
                 response = {
                     REACT_APP_LOCALE: 'ru',
                     REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
@@ -1210,7 +1210,7 @@ define(() => function ({
 
             expectToBeSent: requests => {
                 const request = (requests ? requests.someRequest() : fetch.recentRequest()).
-                    expectPathToContain(`https://${host}/config.json`);
+                    expectPathToContain(`${host}/config.json`);
 
                 return {
                     receiveResponse: () => {
@@ -2143,11 +2143,22 @@ define(() => function ({
         return tester;
     })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
 
+    me.softphone = (getRootElement => {
+        const tester = addTesters(
+            testersFactory.createDomElementTester(getRootElement),
+            getRootElement
+        );
+
+        tester.expectToBeCollapsed = () => tester.expectToHaveHeight(212);
+        tester.expectToBeExpanded = () => tester.expectToHaveHeight(568);
+
+        return tester;
+    })(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
+
     me.closeButton = testersFactory.createDomElementTester(
         '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close'
     );
 
-    me.softphone = createRootTester('#cmg-amocrm-widget');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
     me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
     me.settingsButton = testersFactory.createDomElementTester('.cmg-settings-button');
