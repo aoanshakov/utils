@@ -210,15 +210,16 @@ index df24e5bb..c85e6844 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index cb339abf..e4bcadac 100644
+index dd3bb1ef..351327d1 100644
 --- a/package.json
 +++ b/package.json
-@@ -84,14 +84,17 @@
+@@ -84,10 +84,12 @@
    },
    "dependencies": {
      "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.0.8",
 -    "antd": "^3.26.7",
 +    "antd": "3.26.7",
+     "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
      "axios": "^0.19.2",
 +    "babel-loader": "^8.0.4",
@@ -226,20 +227,14 @@ index cb339abf..e4bcadac 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-     "electron-log": "^4.3.0",
-     "electron-store": "^6.0.1",
-+    "employees": "./misc/employees",
-     "file-saver": "^2.0.5",
-     "formik": "^2.2.9",
-     "google-libphonenumber": "^3.2.19",
-@@ -117,6 +120,7 @@
+@@ -118,6 +120,7 @@
      "react-resize-detector": "^6.0.0",
      "react-router-dom": "^5.1.2",
      "react-transition-group": "^4.4.2",
 +    "softphone": "./misc/softphone",
+     "stream-buffers": "^3.0.2",
      "wavesurfer.js": "^4.0.1",
      "yup": "^0.28.1"
-   }
 diff --git a/public/index.html b/public/index.html
 index 6143f5e1..1ad2c181 100644
 --- a/public/index.html
