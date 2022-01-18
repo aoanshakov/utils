@@ -13,7 +13,7 @@ index a8ae4714..a0b0163c 100644
 +REACT_APP_LEADGEN_MODULE=
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index df24e5bb..c85e6844 100644
+index df24e5bb..110481f3 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -9,6 +9,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -35,7 +35,7 @@ index df24e5bb..c85e6844 100644
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
-+const subModules = ['chats', 'employees'];
++const subModules = ['chats'];
  
  const lessLoader = {
      loader: 'less-loader',
@@ -115,7 +115,7 @@ index df24e5bb..c85e6844 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -286,17 +318,89 @@ module.exports = {
+@@ -286,17 +318,88 @@ module.exports = {
                      },
                  ],
              },
@@ -157,10 +157,9 @@ index df24e5bb..c85e6844 100644
 +            ...createAliases(appDirectory),
              '@ant-design/icons/lib/dist$': path.resolve(appDirectory, './src/icons.ts'),
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
-+            'employees/Root': 'employees/src/Root.tsx',
++            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
 +            'softphone/Settings': 'softphone/src/Settings.tsx',
-+            'softphone/Root': 'softphone/src/Root.tsx',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
@@ -210,9 +209,20 @@ index df24e5bb..c85e6844 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index dd3bb1ef..351327d1 100644
+index dd3bb1ef..3f3028fc 100644
 --- a/package.json
 +++ b/package.json
+@@ -73,8 +73,8 @@
+     "style-loader": "^2.0.0",
+     "terser-webpack-plugin": "^5.1.4",
+     "ts-import-plugin": "^1.6.7",
+-    "ts-loader": "^8.0.17",
+-    "typescript": "4.4.3",
++    "ts-loader": "8.0.17",
++    "typescript": "4.2.2",
+     "url-loader": "^3.0.0",
+     "webpack": "^5.38.1",
+     "webpack-bundle-analyzer": "^4.4.0",
 @@ -84,10 +84,12 @@
    },
    "dependencies": {
@@ -227,9 +237,20 @@ index dd3bb1ef..351327d1 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -118,6 +120,7 @@
+@@ -102,7 +104,7 @@
+     "highcharts-react-official": "^3.0.0",
+     "history": "^4.10.1",
+     "lodash": "^4.17.20",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.2.11",
++    "magic-ui": "./misc/magic_ui",
+     "mobx": "^6.3.8",
+     "mobx-react-lite": "^3.2.2",
+     "mobx-state-tree": "^5.0.5",
+@@ -117,7 +119,9 @@
+     "react-resizable": "^1.10.1",
      "react-resize-detector": "^6.0.0",
      "react-router-dom": "^5.1.2",
++    "react-router": "5.2.1",
      "react-transition-group": "^4.4.2",
 +    "softphone": "./misc/softphone",
      "stream-buffers": "^3.0.2",
