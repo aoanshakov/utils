@@ -20,7 +20,7 @@ tests.addTest(options => {
     });
 
     describe(
-        'Открывый новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
+        'Открываю новый личный кабинет. Запрошены данные для отчета. Запрошены настройки софтфона. Запрошены права.',
     function() {
         let tester,
             reportGroupsRequest,
@@ -975,6 +975,13 @@ tests.addTest(options => {
 
                                             tester.digitRemovingButton.expectToBeVisible();
                                             tester.softphone.expectToBeExpanded();
+
+                                            if (localStorage.getItem('isSoftphoneHigh') != 'true') {
+                                                throw new Error(
+                                                    'В локальном хранилище должна быть сохранена развернутость ' +
+                                                    'софтфона.'
+                                                );
+                                            }
                                         });
                                         it(
                                             'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
@@ -991,6 +998,12 @@ tests.addTest(options => {
                                         it(
                                             'Выпадающий список номеров скрыт. Кнопка удаления цифры скрыта.',
                                         function() {
+                                            if (localStorage.getItem('isSoftphoneHigh') != 'false') {
+                                                throw new Error(
+                                                    'В локальном хранилище должна быть сохранена свернутость софтфона.'
+                                                );
+                                            }
+
                                             tester.select.expectNotToExist();
 
                                             tester.softphone.expectTextContentNotToHaveSubstring(
@@ -1566,6 +1579,60 @@ tests.addTest(options => {
             tester.fieldRow('Звонящее устройство').select.expectToHaveTextContent('Встроенный динамик');
             tester.button('Сигнал о завершении звонка').expectToBeChecked();
         });
+    });
+    it('Ранее софтфон был развернут. Софтфон развернут.', function() {
+        localStorage.setItem('isSoftphoneHigh', true);
+            
+        setNow('2019-12-19T12:10:06');
+
+        const tester = new Tester(options);
+
+        tester.input.withFieldLabel('Логин').fill('botusharova');
+        tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+        tester.button('Войти').click();
+
+        tester.loginRequest().receiveResponse();
+        tester.accountRequest().receiveResponse();
+
+        const requests = ajax.inAnyOrder();
+
+        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+            accountRequest = tester.accountRequest().expectToBeSent(requests);
+
+        requests.expectToBeSent();
+
+        reportsListRequest.receiveResponse();
+        reportTypesRequest.receiveResponse();
+        accountRequest.receiveResponse();
+        reportGroupsRequest.receiveResponse();
+
+        tester.configRequest().softphone().receiveResponse();
+
+        tester.authCheckRequest().receiveResponse();
+        tester.statusesRequest().receiveResponse();
+        tester.settingsRequest().secondRington().isNeedDisconnectSignal().receiveResponse();
+        tester.talkOptionsRequest().receiveResponse();
+        tester.permissionsRequest().receiveResponse();
+
+        tester.secondRingtoneRequest().receiveResponse();
+        fileReader.accomplishFileLoading(tester.secondRingtone);
+        mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
+
+        tester.connectEventsWebSocket();
+        tester.connectSIPWebSocket();
+
+        tester.authenticatedUserRequest().receiveResponse();
+        tester.registrationRequest().receiveResponse();
+
+        tester.allowMediaInput();
+
+        tester.button('Софтфон').click();
+
+        tester.softphone.expectToBeExpanded();
+        tester.phoneField.expectToBeVisible();
     });
     it('Я уже аутентифицирован. Открывый новый личный кабинет. Проверяется аутентификация в софтфоне.', function() {
         const tester = new Tester({
