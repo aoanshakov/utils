@@ -402,7 +402,7 @@ tests.addTest(options => {
                                             });
 
                                             describe('Настраиваю звук.', function() {
-                                                let secondRingtoneRequest;
+                                                let ringtoneRequest;
 
                                                 beforeEach(function() {
                                                     tester.slider.click(25);
@@ -423,17 +423,17 @@ tests.addTest(options => {
 
                                                     tester.fieldRow('Мелодия звонка').select.arrow.click();
                                                     tester.select.option('Мелодия звонка 2').click();
-                                                    tester.settingsUpdatingRequest().secondRington().receiveResponse();
-                                                    tester.settingsRequest().secondRington().isNeedDisconnectSignal().
+                                                    tester.settingsUpdatingRequest().secondRingtone().receiveResponse();
+                                                    tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().
                                                         receiveResponse();
 
-                                                    secondRingtoneRequest = tester.secondRingtoneRequest().
+                                                    ringtoneRequest = tester.ringtoneRequest().
                                                         expectToBeSent();
                                                 });
 
                                                 describe('Мелодия загружена.', function() {
                                                     beforeEach(function() {
-                                                        secondRingtoneRequest.receiveResponse();
+                                                        ringtoneRequest.receiveResponse();
                                                         fileReader.accomplishFileLoading(tester.secondRingtone);
 
                                                         mediaStreamsTester.setIsAbleToPlayThough(
@@ -1504,11 +1504,11 @@ tests.addTest(options => {
 
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
-            tester.settingsRequest().secondRington().isNeedDisconnectSignal().receiveResponse();
+            tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
 
-            tester.secondRingtoneRequest().receiveResponse();
+            tester.ringtoneRequest().receiveResponse();
             fileReader.accomplishFileLoading(tester.secondRingtone);
             mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
 
@@ -1534,6 +1534,49 @@ tests.addTest(options => {
                 tester.outCallEvent().receive();
             });
 
+            describe('Событие canplaythrough вызвано.', function() {
+                beforeEach(function() {
+                    mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
+                });
+                
+                describe('Принимаю звонок.', function() {
+                    beforeEach(function() {
+                        tester.callButton.click();
+
+                        tester.firstConnection.connectWebRTC();
+                        tester.firstConnection.callTrackHandler();
+
+                        tester.allowMediaInput();
+
+                        tester.firstConnection.addCandidate();
+                        tester.requestAcceptIncomingCall();
+                    });
+
+                    it('Выбираю другой рингтон. Звучит больше не звучит.', function() {
+                        tester.fieldRow('Мелодия звонка').select.arrow.click();
+                        tester.select.option('Мелодия звонка 3').click();
+
+                        tester.settingsUpdatingRequest().thirdRingtone().receiveResponse();
+                        tester.settingsRequest().thirdRingtone().isNeedDisconnectSignal().receiveResponse();
+
+                        tester.ringtoneRequest().third().receiveResponse();
+                        fileReader.accomplishFileLoading(tester.thirdRingtone);
+
+                        mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.thirdRingtone);
+                        tester.firstConnection.expectRemoteStreamToPlay();
+                    });
+                    it('Событие canplaythrough вызвано. Рингтон больше не звучит.', function() {
+                        mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
+                        tester.firstConnection.expectRemoteStreamToPlay();
+                    });
+                    it('Рингтон больше не звучит.', function() {
+                        tester.firstConnection.expectRemoteStreamToPlay();
+                    });
+                });
+                it('Звучит рингтон.', function() {
+                    mediaStreamsTester.expectStreamsToPlay('data:audio/wav;base64,' + tester.secondRingtone);
+                });
+            });
             it('Принимаю звонок. Выбранные настройки звука применены.', function() {
                 tester.callButton.click();
 
@@ -1544,6 +1587,8 @@ tests.addTest(options => {
 
                 tester.firstConnection.addCandidate();
                 tester.requestAcceptIncomingCall();
+                    
+                tester.firstConnection.expectRemoteStreamToPlay();
 
                 tester.firstConnection.expectSinkIdToEqual('g8294gjg29guslg82pgj' +
                     '2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab');
@@ -1554,6 +1599,31 @@ tests.addTest(options => {
                     '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a48' +
                     'ghal4'
                 );
+            });
+            it('Выбираю другой рингтон. Звучит рингтон.', function() {
+                tester.fieldRow('Мелодия звонка').select.arrow.click();
+                tester.select.option('Мелодия звонка 3').click();
+
+                tester.settingsUpdatingRequest().thirdRingtone().receiveResponse();
+                tester.settingsRequest().thirdRingtone().isNeedDisconnectSignal().receiveResponse();
+
+                tester.ringtoneRequest().third().receiveResponse();
+                fileReader.accomplishFileLoading(tester.thirdRingtone);
+
+                mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.thirdRingtone);
+
+                tester.softphone.expectTextContentToHaveSubstring('Шалева Дора');
+                mediaStreamsTester.expectStreamsToPlay('data:audio/wav;base64,' + tester.thirdRingtone);
+            });
+            it('Выбираю рингтон по умолчанию. Звучит рингтон.', function() {
+                tester.fieldRow('Мелодия звонка').select.arrow.click();
+                tester.select.option('По умолчанию').click();
+
+                tester.settingsUpdatingRequest().defaultRingtone().receiveResponse();
+                tester.settingsRequest().isNeedDisconnectSignal().receiveResponse();
+
+                mediaStreamsTester.expectStreamsToPlay(soundSources.incomingCall);
+                tester.fieldRow('Мелодия звонка').select.expectToHaveTextContent('По умолчанию');
             });
             it('Выбранные настройки звука применены.', function() {
                 mediaStreamsTester.expectStreamsToPlay('data:audio/wav;base64,' + tester.secondRingtone);
@@ -1613,11 +1683,11 @@ tests.addTest(options => {
 
         tester.authCheckRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();
-        tester.settingsRequest().secondRington().isNeedDisconnectSignal().receiveResponse();
+        tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
 
-        tester.secondRingtoneRequest().receiveResponse();
+        tester.ringtoneRequest().receiveResponse();
         fileReader.accomplishFileLoading(tester.secondRingtone);
         mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
 
@@ -1667,11 +1737,11 @@ tests.addTest(options => {
 
         tester.authCheckRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();
-        tester.settingsRequest().secondRington().isNeedDisconnectSignal().receiveResponse();
+        tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
 
-        tester.secondRingtoneRequest().receiveResponse();
+        tester.ringtoneRequest().receiveResponse();
         fileReader.accomplishFileLoading(tester.secondRingtone);
         mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
 

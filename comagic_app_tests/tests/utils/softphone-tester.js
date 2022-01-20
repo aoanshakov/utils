@@ -4103,10 +4103,12 @@ define(function () {
         this.userStateUpdateRequest = this.requestUpdateUserState;
 
         this.secondRingtone = 'Eq8ZAtHhtF';
+        this.thirdRingtone = 'I2g0wh2htF';
         this.customHoldMusic = 'UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==';
 
-        this.secondRingtoneRequest = function () {
-            var response = me.secondRingtone;
+        this.ringtoneRequest = function () {
+            var response = me.secondRingtone,
+                number = '2';
 
             function addMethods (me) {
                 me.setModified = function () {
@@ -4118,9 +4120,14 @@ define(function () {
             }
 
             return addMethods({
+                third: function () {
+                    response = me.thirdRingtone;
+                    number = '3';
+                    return this;
+                },
                 expectToBeSent: function () {
                     var request = ajax.recentRequest().
-                        expectToHavePath('https://somehost.com/softphone_ringtone2.mp3').
+                        expectToHavePath('https://somehost.com/softphone_ringtone' + number + '.mp3').
                         expectToHaveMethod('GET');
 
                     return addMethods({

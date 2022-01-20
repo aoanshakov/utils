@@ -556,8 +556,18 @@ define(() => function ({
                 return this
             },
 
-            secondRington() {
+            defaultRingtone() {
+                params.ringtone = null;
+                return this;
+            },
+
+            secondRingtone() {
                 params.ringtone = 'softphone_ringtone2';
+                return this;
+            },
+
+            thirdRingtone() {
+                params.ringtone = 'softphone_ringtone3';
                 return this;
             },
 
@@ -661,16 +671,19 @@ define(() => function ({
                 return me
             };
 
-            me.secondRington = () => {
-                response.data.ringtone = 'softphone_ringtone2';
+            const ringtone = number => {
+                response.data.ringtone = `softphone_ringtone${number}`;
 
                 response.data.ringtone_file = {
                     mtime: 1556529288674,
-                    link: 'https://somehost.com/softphone_ringtone2.mp3'
+                    link: `https://somehost.com/softphone_ringtone${number}.mp3`
                 };
 
                 return me;
             };
+
+            me.secondRingtone = () => ringtone('2');
+            me.thirdRingtone = () => ringtone('3');
 
             me.autoSetStatus = () => {
                 response.data.is_need_auto_set_status = true;
