@@ -1647,15 +1647,18 @@ tests.addTest(options => {
                     accountRequest.receiveResponse();
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
-                    tester.settingsRequest().receiveResponse();
+                    tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
-                    tester.permissionsRequest().receiveResponse();
+
+                    tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().
+                        receiveResponse();
 
                     tester.connectEventsWebSocket();
                     tester.connectSIPWebSocket();
 
                     tester.allowMediaInput();
 
+                    tester.numberCapacityRequest().receiveResponse();
                     authenticatedUserRequest =  tester.authenticatedUserRequest().expectToBeSent();
                     tester.registrationRequest().receiveResponse();
                 });
