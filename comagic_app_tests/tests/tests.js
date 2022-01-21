@@ -1976,6 +1976,7 @@ tests.addTest(options => {
                     });
                     it('Некие сообщения выведены в лог.', function() {
                         getPackage('electron-log').expectToContain('State changed');
+                        getPackage('electron-log').expectToContain('/auth/json_rpc');
                     });
                 });
                 return;
