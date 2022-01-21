@@ -361,51 +361,10 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 9dab7a27..2efdcdb0 100644
+index d2e9264e..65d0169e 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -133,6 +133,12 @@ export const RootStore = types
-         let requestsToRefresh: RequestToRefresh[] = [];
-         let isRefreshRequesting = false;
- 
-+        const log = (...messages) => window.require('electron').remote.require('electron-log').info(
-+            messages.map(
-+                message => typeof message == 'object' ? JSON.stringify(message) : `${message}`
-+            ).join(' ').trim()
-+        );
-+
-         const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
-             const auth = getToken();
-             const { method } = JSON.parse(config.data);
-@@ -174,13 +180,35 @@ export const RootStore = types
-             });
-         };
- 
-+        const logRequest = ({
-+            response: r,
-+            isError
-+        }) => {
-+            const {
-+                data: response,
-+                config: {
-+                    data,
-+                    url,
-+                    method
-+                }
-+            } = r;
-+
-+            log([
-+                'Ajax request',
-+                `URL "${url}"`,
-+                `Method "${method}"`,
-+                `Parameters ${typeof data == 'object' ? JSON.stringify(data) : data}`,
-+                `${isError ? 'Error' : 'Response'} ${JSON.stringify(response)}`
-+            ].join("\n"));
-+        };
-+
-         const setHttpRequestsDefault = () => {
-             axios.defaults.headers.post['Accept'] = 'application/json';
-             axios.defaults.headers.post['Content-Type'] = 'application/json';
+@@ -208,7 +208,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -414,23 +373,7 @@ index 9dab7a27..2efdcdb0 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -205,9 +233,15 @@ export const RootStore = types
-                         }
-                     }
- 
-+                    logRequest({response});
-                     return response;
-                 },
-                 error => {
-+                    logRequest({
-+                        response: error.response,
-+                        isError: true
-+                    });
-+
-                     return Promise.reject(error);
-                 }
-             );
-@@ -272,6 +306,7 @@ export const RootStore = types
+@@ -306,6 +306,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -438,21 +381,7 @@ index 9dab7a27..2efdcdb0 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -287,12 +322,7 @@ export const RootStore = types
- 
-         self.fileLogger = {
-             downloadLog: () => self.downloadLog(),
--
--            log: (...messages) => window.require('electron').remote.require('electron-log').info(
--                messages.map(
--                    message => typeof message == 'object' ? JSON.stringify(message) : `${message}`
--                ).join(' ').trim()
--            )
-+            log
-         };
- 
-         return {
-@@ -310,7 +340,8 @@ export type DependencyInjection = {
+@@ -344,7 +345,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
