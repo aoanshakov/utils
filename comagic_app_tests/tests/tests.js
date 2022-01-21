@@ -42,7 +42,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        describe('Фичафлаг софтфона включен.', function() {
+        xdescribe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -1404,7 +1404,7 @@ tests.addTest(options => {
                 chatListRequest.receiveResponse();
             });
 
-            describe('Нажимаю на кнопку аккаунта.', function() {
+            xdescribe('Нажимаю на кнопку аккаунта.', function() {
                 beforeEach(function() {
                     tester.userName.putMouseOver();
                 });
@@ -1437,6 +1437,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
             });
         });
+        return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -1456,6 +1457,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
+    return;
     describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
         let tester;
 

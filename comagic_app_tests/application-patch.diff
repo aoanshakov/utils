@@ -217,7 +217,7 @@ index 5417d1bc..58ca9cd4 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index a51164f8..cf0b600c 100644
+index a51164f8..2ab78597 100644
 --- a/package.json
 +++ b/package.json
 @@ -60,7 +60,7 @@
@@ -240,10 +240,11 @@ index a51164f8..cf0b600c 100644
      "url-loader": "^3.0.0",
      "webpack": "^5.38.1",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -79,8 +79,10 @@
+@@ -79,8 +79,11 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
++    "visitors": "./misc/visitors",
 +    "softphone": "./misc/softphone",
 +    "chats": "./misc/chats",
      "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.3.1",
@@ -252,7 +253,7 @@ index a51164f8..cf0b600c 100644
      "axios": "^0.24.0",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
-@@ -92,7 +94,7 @@
+@@ -92,7 +95,7 @@
      "highcharts-react-official": "^3.0.0",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
@@ -261,7 +262,7 @@ index a51164f8..cf0b600c 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -102,13 +104,15 @@
+@@ -102,13 +105,15 @@
      "react-beautiful-dnd": "^13.0.0",
      "react-dom": "^17.0.2",
      "react-input-mask": "^2.0.4",
