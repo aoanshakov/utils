@@ -918,25 +918,6 @@ tests.addTest(options => {
                                                 tester.dialpadVisibilityButton.click();
                                             });
 
-                                            describe('Нажимаю на кнопку таблицы сотрудников.', function() {
-                                                beforeEach(function() {
-                                                    tester.addressBookButton.click();
-
-                                                    tester.usersRequest().receiveResponse();
-                                                    tester.usersInGroupsRequest().receiveResponse();
-                                                    tester.groupsRequest().receiveResponse();
-                                                });
-
-                                                it('Нажата кнопка таблицы сотрудников.', function() {
-                                                    tester.dialpadVisibilityButton.
-                                                        expectNotToHaveClass('cmg-button-pressed');
-                                                    tester.addressBookButton.expectToHaveClass('cmg-button-pressed');
-                                                });
-                                                it('Нажимаю на кнопку первой линии. Софтфон развернут.', function() {
-                                                    tester.firstLineButton.click();
-                                                    tester.softphone.expectToBeExpanded();
-                                                });
-                                            });
                                             describe('Поступил входящий звонок.', function() {
                                                 beforeEach(function() {
                                                     tester.incomingCall().receive();
@@ -1019,6 +1000,31 @@ tests.addTest(options => {
                                                     tester.dialpadVisibilityButton.
                                                         expectNotToHaveClass('cmg-button-pressed');
                                                     tester.softphone.expectTextContentToHaveSubstring('Путь лида');
+                                                });
+                                            });
+                                            describe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                                beforeEach(function() {
+                                                    tester.addressBookButton.click();
+
+                                                    tester.usersRequest().receiveResponse();
+                                                    tester.usersInGroupsRequest().receiveResponse();
+                                                    tester.groupsRequest().receiveResponse();
+                                                });
+
+                                                it('Нажата кнопка таблицы сотрудников.', function() {
+                                                    tester.dialpadVisibilityButton.
+                                                        expectNotToHaveClass('cmg-button-pressed');
+                                                    tester.addressBookButton.expectToHaveClass('cmg-button-pressed');
+                                                });
+                                                it('Нажимаю на кнопку первой линии. Софтфон развернут.', function() {
+                                                    tester.firstLineButton.click();
+                                                    tester.softphone.expectToBeExpanded();
+                                                });
+                                                it(
+                                                    'Нажимаю на кнопку сворачивания софтфона. Софтфон свернут.',
+                                                function() {
+                                                    tester.collapsednessToggleButton.click();
+                                                    tester.softphone.expectToBeCollapsed();
                                                 });
                                             });
                                             it('Диалпад открыт.', function() {

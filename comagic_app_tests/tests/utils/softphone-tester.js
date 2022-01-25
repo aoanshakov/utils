@@ -4082,7 +4082,31 @@ define(function () {
         };
 
         this.requestUpdateUserState = function () {
+            var response = {
+                data: true
+            };
+
+            var respond = function (request) {
+                request.respondSuccessfullyWith(response);
+            };
+
             return {
+                tokenExpired: function () {
+                    response = {
+                        error: {
+                            code: 401,
+                            message: 'Token has been expired',
+                            mnemonic: 'expired_token',
+                            is_smart: false
+                        }
+                    };
+
+                    respond = function (request) {
+                        request.respondUnsuccessfullyWith(response);
+                    };
+
+                    return this;
+                },
                 expectToBeSent: function () {
                     const request = ajax.recentRequest().
                         expectPathToContain('sup/api/v1/users/me').
@@ -4096,10 +4120,7 @@ define(function () {
                             this.receiveResponse();
                         },
                         receiveResponse: function () {
-                            request.respondSuccessfullyWith({
-                                data: true
-                            });
-
+                            respond(request);
                             Promise.runAll();
                         }
                     };
