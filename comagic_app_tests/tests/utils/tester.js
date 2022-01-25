@@ -2113,7 +2113,7 @@ define(() => function ({
 
     addTesters(me, () => document.body);
 
-    me.dialpadButton = testersFactory.createDomElementTester('#cmg-dialpad-visibility-toggler');
+    me.dialpadVisibilityButton = testersFactory.createDomElementTester('#cmg-dialpad-visibility-toggler');
     me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
     me.addressBookButton = testersFactory.createDomElementTester('#cmg-address-book-button');
     me.contactOpeningButton = testersFactory.createDomElementTester('#cmg-open-contact-button');

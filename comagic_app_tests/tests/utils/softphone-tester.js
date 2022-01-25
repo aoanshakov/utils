@@ -172,6 +172,13 @@ define(function () {
                 matchesSelector('.clct-c-button').textEquals(text).find());
         };
 
+        this.dialpadButton = function (text) {
+            return testersFactory.createDomElementTester(function () {
+                return utils.descendantOfBody().matchesSelector('.clct-adress-book__dialpad-button').textEquals(text).
+                    find();
+            });
+        };
+
         this.removeDigitButton = testersFactory.createDomElementTester(function () {
             return document.querySelector('.clct-adress-book__dialpad-header-clear');
         });

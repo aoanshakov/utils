@@ -915,7 +915,7 @@ tests.addTest(options => {
                                         });
                                         describe('Нажимаю на кнопку открытия диалпада.', function() {
                                             beforeEach(function() {
-                                                tester.dialpadButton.click();
+                                                tester.dialpadVisibilityButton.click();
                                             });
 
                                             describe('Нажимаю на кнопку таблицы сотрудников.', function() {
@@ -928,7 +928,8 @@ tests.addTest(options => {
                                                 });
 
                                                 it('Нажата кнопка таблицы сотрудников.', function() {
-                                                    tester.dialpadButton.expectNotToHaveClass('cmg-button-pressed');
+                                                    tester.dialpadVisibilityButton.
+                                                        expectNotToHaveClass('cmg-button-pressed');
                                                     tester.addressBookButton.expectToHaveClass('cmg-button-pressed');
                                                 });
                                                 it('Нажимаю на кнопку первой линии. Софтфон развернут.', function() {
@@ -936,8 +937,94 @@ tests.addTest(options => {
                                                     tester.softphone.expectToBeExpanded();
                                                 });
                                             });
+                                            describe('Поступил входящий звонок.', function() {
+                                                beforeEach(function() {
+                                                    tester.incomingCall().receive();
+                                                    tester.numaRequest().receiveResponse();
+                                                    tester.outCallEvent().receive();
+                                                });
+
+                                                describe('Принимаю звонок.', function() {
+                                                    beforeEach(function() {
+                                                        tester.callButton.click();
+
+                                                        tester.firstConnection.connectWebRTC();
+                                                        tester.firstConnection.callTrackHandler();
+
+                                                        tester.allowMediaInput();
+                                                        tester.firstConnection.addCandidate();
+                                                        tester.requestAcceptIncomingCall();
+                                                    });
+
+                                                    describe('Нажимаю на кнопку сворачивания.', function() {
+                                                        beforeEach(function() {
+                                                            tester.collapsednessToggleButton.click();
+                                                        });
+                                                        
+                                                        it(
+                                                            'Нажимаю на кнопку разворачивания. Софтфон развернут.',
+                                                        function() {
+                                                            tester.collapsednessToggleButton.click();
+
+                                                            tester.softphone.
+                                                                expectTextContentToHaveSubstring('Путь лида');
+                                                        });
+                                                        it('Софтфон свернут.', function() {
+                                                            tester.softphone.expectToBeCollapsed();
+                                                        });
+                                                    });
+                                                    describe(
+                                                        'Открываю историю звонков. Нажимаю на кнопку сворачивания ' +
+                                                        'софтфона.',
+                                                    function() {
+                                                        beforeEach(function() {
+                                                            tester.callsHistoryButton.click();
+                                                            tester.callsRequest().receiveResponse();
+
+                                                            tester.collapsednessToggleButton.click();
+                                                        });
+
+                                                        it(
+                                                            'Открываю историю звонков. Нажимаю на кнопку ' +
+                                                            'сворачивания софтфона. Софтфон свернут.',
+                                                        function() {
+                                                            tester.callsHistoryButton.click();
+                                                            tester.callsRequest().receiveResponse();
+
+                                                            tester.collapsednessToggleButton.click();
+                                                            tester.softphone.expectToBeCollapsed();
+                                                        });
+                                                        it('Софтфон свернут.', function() {
+                                                            tester.softphone.expectToBeCollapsed();
+                                                        });
+                                                    });
+                                                    it('Кнопка диалпада нажата.', function() {
+                                                        tester.dialpadButton(1).expectToBeVisible();;
+
+                                                        tester.dialpadVisibilityButton.
+                                                            expectNotToHaveClass('cmg-button-disabled');
+                                                        tester.dialpadVisibilityButton.
+                                                            expectToHaveClass('cmg-button-pressed');
+                                                    });
+                                                });
+                                                it(
+                                                    'Нажимаю на кнопку сворачивания софтфона. Софтфон свернут.',
+                                                function() {
+                                                    tester.collapsednessToggleButton.click();
+                                                    tester.softphone.expectToBeCollapsed();
+                                                });
+                                                it('Отображен путь лида.', function() {
+                                                    tester.dialpadVisibilityButton.
+                                                        expectToHaveClass('cmg-button-disabled');
+                                                    tester.dialpadVisibilityButton.
+                                                        expectNotToHaveClass('cmg-button-pressed');
+                                                    tester.softphone.expectTextContentToHaveSubstring('Путь лида');
+                                                });
+                                            });
                                             it('Диалпад открыт.', function() {
-                                                tester.dialpadButton.expectToHaveClass('cmg-button-pressed');
+                                                tester.dialpadVisibilityButton.
+                                                    expectNotToHaveClass('cmg-button-disabled');
+                                                tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-pressed');
                                                 tester.addressBookButton.expectNotToHaveClass('cmg-button-pressed');
                                                 tester.digitRemovingButton.expectToBeVisible();
                                                 tester.softphone.expectToBeExpanded();
@@ -1216,7 +1303,7 @@ tests.addTest(options => {
                                         'Нажимаю на кнопку открытия диалпада. Отображен выбранный номер с ' +
                                         'комментарием.',
                                     function() {
-                                        tester.dialpadButton.click();
+                                        tester.dialpadVisibilityButton.click();
 
                                         tester.softphone.expectTextContentToHaveSubstring(
                                             '+7 (916) 123-89-29 ' +
