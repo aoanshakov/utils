@@ -913,6 +913,67 @@ tests.addTest(options => {
                                                 tester.button('Софтфон').expectToBeVisible();
                                             });
                                         });
+                                        describe('Нажимаю на кнопку открытия диалпада.', function() {
+                                            beforeEach(function() {
+                                                tester.dialpadButton.click();
+                                            });
+
+                                            describe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                                beforeEach(function() {
+                                                    tester.addressBookButton.click();
+
+                                                    tester.usersRequest().receiveResponse();
+                                                    tester.usersInGroupsRequest().receiveResponse();
+                                                    tester.groupsRequest().receiveResponse();
+                                                });
+
+                                                it('Нажата кнопка таблицы сотрудников.', function() {
+                                                    tester.dialpadButton.expectNotToHaveClass('cmg-button-pressed');
+                                                    tester.addressBookButton.expectToHaveClass('cmg-button-pressed');
+                                                });
+                                                it('Нажимаю на кнопку первой линии. Софтфон развернут.', function() {
+                                                    tester.firstLineButton.click();
+                                                    tester.softphone.expectToBeExpanded();
+                                                });
+                                            });
+                                            it('Диалпад открыт.', function() {
+                                                tester.dialpadButton.expectToHaveClass('cmg-button-pressed');
+                                                tester.addressBookButton.expectNotToHaveClass('cmg-button-pressed');
+                                                tester.digitRemovingButton.expectToBeVisible();
+                                                tester.softphone.expectToBeExpanded();
+
+                                                if (localStorage.getItem('isSoftphoneHigh') != 'true') {
+                                                    throw new Error(
+                                                        'В локальном хранилище должна быть сохранена развернутость ' +
+                                                        'софтфона.'
+                                                    );
+                                                }
+                                            });
+                                        });
+                                        describe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                            beforeEach(function() {
+                                                tester.addressBookButton.click();
+
+                                                tester.usersRequest().receiveResponse();
+                                                tester.usersInGroupsRequest().receiveResponse();
+                                                tester.groupsRequest().receiveResponse();
+                                            });
+
+                                            it('Соединение разрывается.', function() {
+                                                tester.disconnectEventsWebSocket();
+                                                tester.employeeRow('Шалева Дора').expectToBeDisaled();
+
+                                                tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
+                                            });
+                                            it('Нажимаю на кнопку первой линии. Софтфон свернут.', function() {
+                                                tester.firstLineButton.click();
+                                                tester.softphone.expectToBeCollapsed();
+                                            });
+                                            it('Отображена таблица сотрудников.', function() {
+                                                tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
+                                                tester.softphone.expectToBeExpanded();
+                                            });
+                                        });
                                         describe('Нажимаю на кнопку аккаунта.', function() {
                                             beforeEach(function() {
                                                 tester.userName.putMouseOver();
@@ -942,46 +1003,11 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        describe('Нажимаю на кнопку таблицы сотрудников.', function() {
-                                            beforeEach(function() {
-                                                tester.addressBookButton.click();
-
-                                                tester.usersRequest().receiveResponse();
-                                                tester.usersInGroupsRequest().receiveResponse();
-                                                tester.groupsRequest().receiveResponse();
-                                            });
-
-                                            it('Соединение разрывается.', function() {
-                                                tester.disconnectEventsWebSocket();
-                                                tester.employeeRow('Шалева Дора').expectToBeDisaled();
-
-                                                tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
-                                            });
-                                            it('Отображена таблица сотрудников.', function() {
-                                                tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
-                                                tester.softphone.expectToBeExpanded();
-                                            });
-                                        });
                                         it(
                                             'Соединение разрывается. Отображено сообщение об установке соединения.',
                                         function() {
                                             tester.disconnectEventsWebSocket();
                                             tester.softphone.expectToHaveTextContent('Устанавливается соединение...');
-                                        });
-                                        it(
-                                            'Нажимаю на кнопку открытия диалпада. Кнопка удаления цифры видима.',
-                                        function() {
-                                            tester.dialpadButton.click();
-
-                                            tester.digitRemovingButton.expectToBeVisible();
-                                            tester.softphone.expectToBeExpanded();
-
-                                            if (localStorage.getItem('isSoftphoneHigh') != 'true') {
-                                                throw new Error(
-                                                    'В локальном хранилище должна быть сохранена развернутость ' +
-                                                    'софтфона.'
-                                                );
-                                            }
                                         });
                                         it(
                                             'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
