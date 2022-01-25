@@ -218,18 +218,18 @@ tests.addTest(options => {
                                                         it('Нажимаю на строку в таблице сотрудника.', function() {
                                                             tester.employeeRow('Господинова Николина').click();
 
-                                                            tester.dtmf('#').send();
+                                                            tester.dtmf('#').expectToBeSent();
                                                             spendTime(600);
-                                                            tester.dtmf('2').send();
+                                                            tester.dtmf('2').expectToBeSent();
                                                             spendTime(600);
-                                                            tester.dtmf('9').send();
+                                                            tester.dtmf('9').expectToBeSent();
                                                             spendTime(600);
-                                                            tester.dtmf('5').send();
+                                                            tester.dtmf('5').expectToBeSent();
                                                             spendTime(600);
 
                                                             tester.transferButton.click();
 
-                                                            tester.dtmf('#').send();
+                                                            tester.dtmf('#').expectToBeSent();
                                                         });
                                                         it('Отображена таблица сотрудников.', function() {
                                                             tester.softphone.expectToHaveTextContent(

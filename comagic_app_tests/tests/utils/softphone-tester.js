@@ -2385,6 +2385,9 @@ define(function () {
 
                     return this;
                 },
+                expectToBeSent: function () {
+                    this.send();
+                },
                 send: function () {
                     recentRequest().
                         expectToHaveMethod('INFO').
