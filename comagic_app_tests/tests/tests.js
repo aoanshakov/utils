@@ -1082,7 +1082,10 @@ tests.addTest(options => {
                                                         expectToBeSent();
                                                 });
 
-                                                it('Токен авторизации истек. Отображена форма авторизаци.', function() {
+                                                it(
+                                                    'Токен авторизации истек. Отображена форма авторизации. ' +
+                                                    'Авторизуюсь заново.',
+                                                function() {
                                                     userStateUpdateRequest.accessTokenExpired().receiveResponse();
                                                     tester.refreshRequest().refreshTokenExpired().receiveResponse();
                                                     tester.userLogoutRequest().receiveResponse();
@@ -1093,6 +1096,51 @@ tests.addTest(options => {
 
                                                     spendTime(2000);
                                                     tester.webrtcWebsocket.finishDisconnecting();
+
+                                                    tester.input.withFieldLabel('Логин').fill('botusharova');
+                                                    tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                                                    tester.button('Войти').click();
+
+                                                    tester.loginRequest().receiveResponse();
+                                                    tester.accountRequest().receiveResponse();
+
+                                                    const requests = ajax.inAnyOrder();
+
+                                                    const reportGroupsRequest = tester.reportGroupsRequest().
+                                                        expectToBeSent(requests);
+                                                    const reportsListRequest = tester.reportsListRequest().
+                                                        expectToBeSent(requests);
+                                                    const reportTypesRequest = tester.reportTypesRequest().
+                                                        expectToBeSent(requests);
+                                                    const secondAccountRequest = tester.accountRequest().
+                                                        expectToBeSent(requests);
+
+                                                    requests.expectToBeSent();
+
+                                                    reportsListRequest.receiveResponse();
+                                                    reportTypesRequest.receiveResponse();
+                                                    secondAccountRequest.receiveResponse();
+                                                    reportGroupsRequest.receiveResponse();
+
+                                                    tester.configRequest().softphone().receiveResponse();
+
+                                                    tester.authCheckRequest().receiveResponse();
+                                                    tester.statusesRequest().receiveResponse();
+                                                    tester.settingsRequest().receiveResponse();
+                                                    tester.talkOptionsRequest().receiveResponse();
+                                                    tester.permissionsRequest().receiveResponse();
+
+                                                    tester.connectEventsWebSocket(1);
+                                                    tester.connectSIPWebSocket(1);
+
+                                                    tester.authenticatedUserRequest().receiveResponse();
+                                                    tester.registrationRequest().receiveResponse();
+
+                                                    tester.allowMediaInput();
+
+                                                    tester.phoneField.fill('79161234567');
+                                                    tester.callButton.expectNotToHaveAttribute('disabled');
                                                 });
                                                 it('Другой статус выбран.', function() {
                                                     userStateUpdateRequest.receiveResponse();
