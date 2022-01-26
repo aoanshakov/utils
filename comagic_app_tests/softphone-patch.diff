@@ -28,35 +28,10 @@ index c3966ba..aa2f663 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 374dd8d..c15b600 100644
+index 5bfedcf..c15b600 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -52,6 +52,7 @@ export const RootStore = types
-         const afterCreate = () => {
-             const SET_SOFTPHONE_HOST = 'SET_SOFTPHONE_HOST',
-                 requests = [],
-+                removeAllRequests = () => requests.splice(0, requests.length),
-                 i18n = createI18N(),
-                 isSingleApp = window.rootConfig?.appName == 'softphone';
- 
-@@ -194,7 +195,7 @@ export const RootStore = types
-                                 changeAuthToken(token);
- 
-                             requests.forEach(action => action.request(action.args));
--                            requests.splice(0, requests.length);
-+                            removeAllRequests();
-                         } else {
-                             const {
-                                 sdk,
-@@ -202,6 +203,7 @@ export const RootStore = types
-                             } = getState().webRTC;
-                             
-                             !destroyed && sdk && sdk.destroy();
-+                            removeAllRequests();
-                         }
-                     };
-                 })();
-@@ -272,4 +274,5 @@ export const RootStore = types
+@@ -274,4 +274,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
