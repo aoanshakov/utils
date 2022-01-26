@@ -217,7 +217,7 @@ index 5417d1bc..58ca9cd4 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index a51164f8..cf0b600c 100644
+index ebd8b9ae..cf0b600c 100644
 --- a/package.json
 +++ b/package.json
 @@ -60,7 +60,7 @@
@@ -256,7 +256,7 @@ index a51164f8..cf0b600c 100644
      "highcharts-react-official": "^3.0.0",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.5.3",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.9.3",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
@@ -378,10 +378,18 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 23d1306d..05777b6c 100644
+index 23d1306d..b4ea99f5 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -149,7 +149,7 @@ export const RootStore = types
+@@ -120,7 +120,6 @@ export const RootStore = types
+                     })
+                     .catch(() => {
+                         requestsToRefresh.forEach(cb => cb(false));
+-                        void self.authStore.fetchLogoutUser();
+                     })
+                     .finally(() => {
+                         requestsToRefresh = [];
+@@ -149,7 +148,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -390,7 +398,7 @@ index 23d1306d..05777b6c 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -226,6 +226,7 @@ export const RootStore = types
+@@ -226,6 +225,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -398,7 +406,7 @@ index 23d1306d..05777b6c 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -245,7 +246,8 @@ export type DependencyInjection = {
+@@ -245,7 +245,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -409,7 +417,7 @@ index 23d1306d..05777b6c 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 65e66c9f..1eaf4dda 100644
+index 65e66c9f..70697fde 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -106,7 +106,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -421,7 +429,15 @@ index 65e66c9f..1eaf4dda 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -205,6 +205,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -183,6 +183,7 @@ export const AuthStore = Loader.named('AuthStore')
+                 resolve();
+             } catch (e) {
+                 reject(e);
++                fetchLogoutUser();
+                 return Promise.reject(e);
+             } finally {
+                 setIsTokenRefreshing(false);
+@@ -205,6 +206,8 @@ export const AuthStore = Loader.named('AuthStore')
              isTokenRefreshing = false;
              refreshingCall = null;
  

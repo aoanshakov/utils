@@ -1072,16 +1072,39 @@ tests.addTest(options => {
                                                 tester.userName.putMouseOver();
                                             });
 
-                                            it('Выбираю другой статус. Другой статус выбран.', function() {
-                                                tester.statusesList.item('Нет на месте').click();
+                                            describe('Выбираю другой статус.', function() {
+                                                let userStateUpdateRequest;
 
-                                                tester.userStateUpdateRequest().receiveResponse();
-                                                tester.notificationOfUserStateChanging().anotherStatus().receive();
+                                                beforeEach(function() {
+                                                    tester.statusesList.item('Нет на месте').click();
 
-                                                tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
-                                                tester.statusesList.item('Нет на месте').expectToBeSelected();
+                                                    userStateUpdateRequest = tester.userStateUpdateRequest().
+                                                        expectToBeSent();
+                                                });
 
-                                                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+                                                it('Токен авторизации истек. Отображена форма авторизаци.', function() {
+                                                    userStateUpdateRequest.accessTokenExpired().receiveResponse();
+                                                    tester.refreshRequest().refreshTokenExpired().receiveResponse();
+                                                    tester.userLogoutRequest().receiveResponse();
+
+                                                    tester.authLogoutRequest().receiveResponse();
+                                                    tester.eventsWebSocket.finishDisconnecting();
+                                                    tester.registrationRequest().expired().receiveResponse();
+
+                                                    spendTime(2000);
+                                                    tester.webrtcWebsocket.finishDisconnecting();
+                                                });
+                                                it('Другой статус выбран.', function() {
+                                                    userStateUpdateRequest.receiveResponse();
+                                                    tester.notificationOfUserStateChanging().anotherStatus().receive();
+
+                                                    tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
+                                                    tester.statusesList.item('Нет на месте').expectToBeSelected();
+
+                                                    tester.body.expectTextContentToHaveSubstring(
+                                                        'karadimova Нет на месте'
+                                                    );
+                                                });
                                             });
                                             it('Отображен список статусов.', function() {
                                                 tester.statusesList.item('Не беспокоить').expectToBeSelected();

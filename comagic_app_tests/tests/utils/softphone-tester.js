@@ -4090,8 +4090,8 @@ define(function () {
                 request.respondSuccessfullyWith(response);
             };
 
-            return {
-                tokenExpired: function () {
+            function addResponseModifiers (me) {
+                me.accessTokenExpired = function () {
                     response = {
                         error: {
                             code: 401,
@@ -4105,8 +4105,13 @@ define(function () {
                         request.respondUnsuccessfullyWith(response);
                     };
 
-                    return this;
-                },
+                    return me;
+                };
+
+                return me;
+            }
+
+            return addResponseModifiers({
                 expectToBeSent: function () {
                     const request = ajax.recentRequest().
                         expectPathToContain('sup/api/v1/users/me').
@@ -4115,7 +4120,7 @@ define(function () {
                             status: 4
                         });
 
-                    return {
+                    return addResponseModifiers({
                         send: function () {
                             this.receiveResponse();
                         },
@@ -4123,12 +4128,12 @@ define(function () {
                             respond(request);
                             Promise.runAll();
                         }
-                    };
+                    });
                 },
                 receiveResponse: function () {
                     this.expectToBeSent().receiveResponse();
                 }
-            };
+            });
         };
 
         this.userStateUpdateRequest = this.requestUpdateUserState;
