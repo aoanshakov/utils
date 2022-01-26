@@ -378,18 +378,10 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 23d1306d..b4ea99f5 100644
+index 86dc7177..b4ea99f5 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -120,7 +120,6 @@ export const RootStore = types
-                     })
-                     .catch(() => {
-                         requestsToRefresh.forEach(cb => cb(false));
--                        void self.authStore.fetchLogoutUser();
-                     })
-                     .finally(() => {
-                         requestsToRefresh = [];
-@@ -149,7 +148,7 @@ export const RootStore = types
+@@ -148,7 +148,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -398,7 +390,7 @@ index 23d1306d..b4ea99f5 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -226,6 +225,7 @@ export const RootStore = types
+@@ -225,6 +225,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -406,7 +398,7 @@ index 23d1306d..b4ea99f5 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -245,7 +245,8 @@ export type DependencyInjection = {
+@@ -244,7 +245,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -417,7 +409,7 @@ index 23d1306d..b4ea99f5 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 65e66c9f..70697fde 100644
+index 1c7d41b5..70697fde 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -106,7 +106,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -429,15 +421,7 @@ index 65e66c9f..70697fde 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -183,6 +183,7 @@ export const AuthStore = Loader.named('AuthStore')
-                 resolve();
-             } catch (e) {
-                 reject(e);
-+                fetchLogoutUser();
-                 return Promise.reject(e);
-             } finally {
-                 setIsTokenRefreshing(false);
-@@ -205,6 +206,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -206,6 +206,8 @@ export const AuthStore = Loader.named('AuthStore')
              isTokenRefreshing = false;
              refreshingCall = null;
  
