@@ -253,7 +253,7 @@ tests.addTest(options => {
                                                 });
                                                 it('Отображено направление и номер.', function() {
                                                     tester.firstConnection.expectSinkIdToEqual('default');
-                                                    tester.firstConnection.expectInputDeviceNotToBeSpecified();
+                                                    tester.firstConnection.expectInputDeviceIdToEqual('default');
                                                     tester.incomingIcon.expectToBeVisible();
                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                         'Шалева Дора +7 (916) 123-45-67 00:00:00'
@@ -1026,6 +1026,10 @@ tests.addTest(options => {
                                                     tester.collapsednessToggleButton.click();
                                                     tester.softphone.expectToBeCollapsed();
                                                 });
+                                                it('Нажимаю на кнопку диалпада. Отображен диалпад.', function() {
+                                                    tester.dialpadVisibilityButton.click();
+                                                    tester.dialpadButton(1).expectToBeVisible();;
+                                                });
                                             });
                                             it('Диалпад открыт.', function() {
                                                 tester.dialpadVisibilityButton.
@@ -1061,6 +1065,10 @@ tests.addTest(options => {
                                             it('Нажимаю на кнопку первой линии. Софтфон свернут.', function() {
                                                 tester.firstLineButton.click();
                                                 tester.softphone.expectToBeCollapsed();
+                                            });
+                                            it('Нажимаю на кнопку диалпада. Отображен диалпад.', function() {
+                                                tester.dialpadVisibilityButton.click();
+                                                tester.dialpadButton(1).expectToBeVisible();;
                                             });
                                             it('Отображена таблица сотрудников.', function() {
                                                 tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
