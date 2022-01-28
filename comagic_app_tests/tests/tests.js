@@ -2120,6 +2120,7 @@ tests.addTest(options => {
 
                         tester.phoneField.fill('79161234567');
                         tester.callStartingButton.expectNotToHaveAttribute('disabled');
+                        tester.select.expectNotToExist();
                     });
                     it(
                         'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок. Отображено ' +
