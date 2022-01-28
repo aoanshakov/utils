@@ -214,18 +214,18 @@ tests.addTest(options => {
                                                         it('Нажимаю на строку в таблице сотрудника.', function() {
                                                             tester.employeeRow('Господинова Николина').click();
 
-                                                            tester.dtmf('#').send();
+                                                            tester.dtmf('#').expectToBeSent();
                                                             spendTime(600);
-                                                            tester.dtmf('2').send();
+                                                            tester.dtmf('2').expectToBeSent();
                                                             spendTime(600);
-                                                            tester.dtmf('9').send();
+                                                            tester.dtmf('9').expectToBeSent();
                                                             spendTime(600);
-                                                            tester.dtmf('5').send();
+                                                            tester.dtmf('5').expectToBeSent();
                                                             spendTime(600);
 
                                                             tester.transferButton.click();
 
-                                                            tester.dtmf('#').send();
+                                                            tester.dtmf('#').expectToBeSent();
                                                         });
                                                         it('Отображена таблица сотрудников.', function() {
                                                             tester.softphone.expectToHaveTextContent(
@@ -249,7 +249,7 @@ tests.addTest(options => {
                                                 });
                                                 it('Отображено направление и номер.', function() {
                                                     tester.firstConnection.expectSinkIdToEqual('default');
-                                                    tester.firstConnection.expectInputDeviceNotToBeSpecified();
+                                                    tester.firstConnection.expectInputDeviceIdToEqual('default');
                                                     tester.incomingIcon.expectToBeVisible();
                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                         'Шалева Дора +7 (916) 123-45-67 00:00:00'
@@ -400,7 +400,7 @@ tests.addTest(options => {
                                             });
 
                                             describe('Настраиваю звук.', function() {
-                                                let secondRingtoneRequest;
+                                                let ringtoneRequest;
 
                                                 beforeEach(function() {
                                                     tester.slider.click(25);
@@ -421,17 +421,17 @@ tests.addTest(options => {
 
                                                     tester.fieldRow('Мелодия звонка').select.arrow.click();
                                                     tester.select.option('Мелодия звонка 2').click();
-                                                    tester.settingsUpdatingRequest().secondRington().receiveResponse();
-                                                    tester.settingsRequest().secondRington().isNeedDisconnectSignal().
+                                                    tester.settingsUpdatingRequest().secondRingtone().receiveResponse();
+                                                    tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().
                                                         receiveResponse();
 
-                                                    secondRingtoneRequest = tester.secondRingtoneRequest().
+                                                    ringtoneRequest = tester.ringtoneRequest().
                                                         expectToBeSent();
                                                 });
 
                                                 describe('Мелодия загружена.', function() {
                                                     beforeEach(function() {
-                                                        secondRingtoneRequest.receiveResponse();
+                                                        ringtoneRequest.receiveResponse();
                                                         fileReader.accomplishFileLoading(tester.secondRingtone);
 
                                                         mediaStreamsTester.setIsAbleToPlayThough(
@@ -1017,33 +1017,138 @@ tests.addTest(options => {
                                                 tester.button('Софтфон').expectToBeVisible();
                                             });
                                         });
-                                        describe('Нажимаю на кнопку аккаунта.', function() {
+                                        describe('Нажимаю на кнопку открытия диалпада.', function() {
                                             beforeEach(function() {
-                                                tester.userName.putMouseOver();
+                                                tester.dialpadVisibilityButton.click();
                                             });
 
-                                            it('Выбираю другой статус. Другой статус выбран.', function() {
-                                                tester.statusesList.item('Нет на месте').click();
+                                            describe('Поступил входящий звонок.', function() {
+                                                beforeEach(function() {
+                                                    tester.incomingCall().receive();
+                                                    tester.numaRequest().receiveResponse();
+                                                    tester.outCallEvent().receive();
+                                                });
 
-                                                tester.userStateUpdateRequest().receiveResponse();
-                                                tester.notificationOfUserStateChanging().anotherStatus().receive();
+                                                describe('Принимаю звонок.', function() {
+                                                    beforeEach(function() {
+                                                        tester.callButton.click();
 
-                                                tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
-                                                tester.statusesList.item('Нет на месте').expectToBeSelected();
+                                                        tester.firstConnection.connectWebRTC();
+                                                        tester.firstConnection.callTrackHandler();
 
-                                                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+                                                        tester.allowMediaInput();
+                                                        tester.firstConnection.addCandidate();
+                                                        tester.requestAcceptIncomingCall();
+                                                    });
+
+                                                    describe('Нажимаю на кнопку сворачивания.', function() {
+                                                        beforeEach(function() {
+                                                            tester.collapsednessToggleButton.click();
+                                                        });
+                                                        
+                                                        it(
+                                                            'Нажимаю на кнопку разворачивания. Софтфон развернут.',
+                                                        function() {
+                                                            tester.collapsednessToggleButton.click();
+
+                                                            tester.softphone.
+                                                                expectTextContentToHaveSubstring('Путь лида');
+                                                        });
+                                                        it('Софтфон свернут.', function() {
+                                                            tester.softphone.expectToBeCollapsed();
+                                                        });
+                                                    });
+                                                    describe(
+                                                        'Открываю историю звонков. Нажимаю на кнопку сворачивания ' +
+                                                        'софтфона.',
+                                                    function() {
+                                                        beforeEach(function() {
+                                                            tester.callsHistoryButton.click();
+                                                            tester.callsRequest().receiveResponse();
+
+                                                            tester.collapsednessToggleButton.click();
+                                                        });
+
+                                                        it(
+                                                            'Открываю историю звонков. Нажимаю на кнопку ' +
+                                                            'сворачивания софтфона. Софтфон свернут.',
+                                                        function() {
+                                                            tester.callsHistoryButton.click();
+                                                            tester.callsRequest().receiveResponse();
+
+                                                            tester.collapsednessToggleButton.click();
+                                                            tester.softphone.expectToBeCollapsed();
+                                                        });
+                                                        it('Софтфон свернут.', function() {
+                                                            tester.softphone.expectToBeCollapsed();
+                                                        });
+                                                    });
+                                                    it('Кнопка диалпада нажата.', function() {
+                                                        tester.dialpadButton(1).expectToBeVisible();;
+
+                                                        tester.dialpadVisibilityButton.
+                                                            expectNotToHaveClass('cmg-button-disabled');
+                                                        tester.dialpadVisibilityButton.
+                                                            expectToHaveClass('cmg-button-pressed');
+                                                    });
+                                                });
+                                                it(
+                                                    'Нажимаю на кнопку сворачивания софтфона. Софтфон свернут.',
+                                                function() {
+                                                    tester.collapsednessToggleButton.click();
+                                                    tester.softphone.expectToBeCollapsed();
+                                                });
+                                                it('Отображен путь лида.', function() {
+                                                    tester.dialpadVisibilityButton.
+                                                        expectToHaveClass('cmg-button-disabled');
+                                                    tester.dialpadVisibilityButton.
+                                                        expectNotToHaveClass('cmg-button-pressed');
+                                                    tester.softphone.expectTextContentToHaveSubstring('Путь лида');
+                                                });
                                             });
-                                            it('Отображен список статусов.', function() {
-                                                tester.statusesList.item('Не беспокоить').expectToBeSelected();
-                                                tester.statusesList.item('Нет на месте').expectNotToBeSelected();
+                                            describe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                                beforeEach(function() {
+                                                    tester.addressBookButton.click();
 
-                                                tester.statusesList.expectTextContentToHaveSubstring(
-                                                    'Доступен ' +
-                                                    'Перерыв ' +
-                                                    'Не беспокоить ' +
-                                                    'Нет на месте ' +
-                                                    'Нет на работе'
-                                                );
+                                                    tester.usersRequest().receiveResponse();
+                                                    tester.usersInGroupsRequest().receiveResponse();
+                                                    tester.groupsRequest().receiveResponse();
+                                                });
+
+                                                it('Нажата кнопка таблицы сотрудников.', function() {
+                                                    tester.dialpadVisibilityButton.
+                                                        expectNotToHaveClass('cmg-button-pressed');
+                                                    tester.addressBookButton.expectToHaveClass('cmg-button-pressed');
+                                                });
+                                                it('Нажимаю на кнопку первой линии. Софтфон развернут.', function() {
+                                                    tester.firstLineButton.click();
+                                                    tester.softphone.expectToBeExpanded();
+                                                });
+                                                it(
+                                                    'Нажимаю на кнопку сворачивания софтфона. Софтфон свернут.',
+                                                function() {
+                                                    tester.collapsednessToggleButton.click();
+                                                    tester.softphone.expectToBeCollapsed();
+                                                });
+                                                it('Нажимаю на кнопку диалпада. Отображен диалпад.', function() {
+                                                    tester.dialpadVisibilityButton.click();
+                                                    tester.dialpadButton(1).expectToBeVisible();;
+                                                });
+                                            });
+                                            it('Диалпад открыт.', function() {
+                                                tester.dialpadVisibilityButton.
+                                                    expectNotToHaveClass('cmg-button-disabled');
+                                                tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-pressed');
+                                                tester.addressBookButton.expectNotToHaveClass('cmg-button-pressed');
+                                                tester.digitRemovingButton.expectToBeVisible();
+                                                tester.softphone.expectToBeExpanded();
+
+                                                if (localStorage.getItem('isSoftphoneHigh') != 'true') {
+                                                    throw new Error(
+                                                        'В локальном хранилище должна быть сохранена развернутость ' +
+                                                        'софтфона.'
+                                                    );
+                                                }
                                             });
                                         });
                                         describe('Нажимаю на кнопку таблицы сотрудников.', function() {
@@ -1060,6 +1165,14 @@ tests.addTest(options => {
                                                 tester.employeeRow('Шалева Дора').expectToBeDisaled();
 
                                                 tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
+                                            });
+                                            it('Нажимаю на кнопку первой линии. Софтфон свернут.', function() {
+                                                tester.firstLineButton.click();
+                                                tester.softphone.expectToBeCollapsed();
+                                            });
+                                            it('Нажимаю на кнопку диалпада. Отображен диалпад.', function() {
+                                                tester.dialpadVisibilityButton.click();
+                                                tester.dialpadButton(1).expectToBeVisible();;
                                             });
                                             it('Отображена таблица сотрудников.', function() {
                                                 tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
@@ -1108,19 +1221,111 @@ tests.addTest(options => {
                                                 'Устанавливается соединение...'
                                             );
                                         });
+                                        describe('Нажимаю на кнопку аккаунта.', function() {
+                                            beforeEach(function() {
+                                                tester.userName.putMouseOver();
+                                            });
+
+                                            describe('Выбираю другой статус.', function() {
+                                                let userStateUpdateRequest;
+
+                                                beforeEach(function() {
+                                                    tester.statusesList.item('Нет на месте').click();
+
+                                                    userStateUpdateRequest = tester.userStateUpdateRequest().
+                                                        expectToBeSent();
+                                                });
+
+                                                it(
+                                                    'Токен авторизации истек. Отображена форма авторизации. ' +
+                                                    'Авторизуюсь заново.',
+                                                function() {
+                                                    userStateUpdateRequest.accessTokenExpired().receiveResponse();
+                                                    tester.refreshRequest().refreshTokenExpired().receiveResponse();
+                                                    tester.userLogoutRequest().receiveResponse();
+
+                                                    tester.authLogoutRequest().receiveResponse();
+                                                    tester.eventsWebSocket.finishDisconnecting();
+                                                    tester.registrationRequest().expired().receiveResponse();
+
+                                                    spendTime(2000);
+                                                    tester.webrtcWebsocket.finishDisconnecting();
+
+                                                    tester.input.withFieldLabel('Логин').fill('botusharova');
+                                                    tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                                                    tester.button('Войти').click();
+
+                                                    tester.loginRequest().receiveResponse();
+                                                    tester.accountRequest().receiveResponse();
+
+                                                    const requests = ajax.inAnyOrder();
+
+                                                    const reportGroupsRequest = tester.reportGroupsRequest().
+                                                        expectToBeSent(requests);
+                                                    const reportsListRequest = tester.reportsListRequest().
+                                                        expectToBeSent(requests);
+                                                    const reportTypesRequest = tester.reportTypesRequest().
+                                                        expectToBeSent(requests);
+                                                    const secondAccountRequest = tester.accountRequest().
+                                                        expectToBeSent(requests);
+
+                                                    requests.expectToBeSent();
+
+                                                    reportsListRequest.receiveResponse();
+                                                    reportTypesRequest.receiveResponse();
+                                                    secondAccountRequest.receiveResponse();
+                                                    reportGroupsRequest.receiveResponse();
+
+                                                    tester.configRequest().softphone().receiveResponse();
+
+                                                    tester.authCheckRequest().receiveResponse();
+                                                    tester.statusesRequest().receiveResponse();
+                                                    tester.settingsRequest().receiveResponse();
+                                                    tester.talkOptionsRequest().receiveResponse();
+                                                    tester.permissionsRequest().receiveResponse();
+
+                                                    tester.connectEventsWebSocket(1);
+                                                    tester.connectSIPWebSocket(1);
+
+                                                    tester.authenticatedUserRequest().receiveResponse();
+                                                    tester.registrationRequest().receiveResponse();
+
+                                                    tester.allowMediaInput();
+
+                                                    tester.phoneField.fill('79161234567');
+                                                    tester.callButton.expectNotToHaveAttribute('disabled');
+                                                });
+                                                it('Другой статус выбран.', function() {
+                                                    userStateUpdateRequest.receiveResponse();
+                                                    tester.notificationOfUserStateChanging().anotherStatus().receive();
+
+                                                    tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
+                                                    tester.statusesList.item('Нет на месте').expectToBeSelected();
+
+                                                    tester.body.expectTextContentToHaveSubstring(
+                                                        'karadimova Нет на месте'
+                                                    );
+                                                });
+                                            });
+                                            it('Отображен список статусов.', function() {
+                                                tester.statusesList.item('Не беспокоить').expectToBeSelected();
+                                                tester.statusesList.item('Нет на месте').expectNotToBeSelected();
+
+                                                tester.statusesList.expectTextContentToHaveSubstring(
+                                                    'Доступен ' +
+                                                    'Перерыв ' +
+                                                    'Не беспокоить ' +
+                                                    'Нет на месте ' +
+                                                    'Нет на работе'
+                                                );
+                                            });
+                                        });
                                         it(
                                             'Соединение разрывается. Отображено сообщение об установке соединения.',
                                         function() {
                                             tester.disconnectEventsWebSocket();
                                             tester.softphone.expectToHaveTextContent('Устанавливается соединение...');
-                                        });
-                                        it(
-                                            'Нажимаю на кнопку открытия диалпада. Кнопка удаления цифры видима.',
-                                        function() {
-                                            tester.dialpadButton.click();
-
-                                            tester.digitRemovingButton.expectToBeVisible();
-                                            tester.softphone.expectToBeExpanded();
                                         });
                                         it(
                                             'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
@@ -1134,6 +1339,12 @@ tests.addTest(options => {
                                             tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
                                         });
                                         it('Отображен софтфон.', function() {
+                                            if (localStorage.getItem('isSoftphoneHigh') != 'false') {
+                                                throw new Error(
+                                                    'В локальном хранилище должна быть сохранена свернутость софтфона.'
+                                                );
+                                            }
+
                                             tester.select.expectNotToExist();
 
                                             tester.softphone.expectTextContentNotToHaveSubstring(
@@ -1328,7 +1539,7 @@ tests.addTest(options => {
                                             'Нажимаю на кнопку открытия диалпада. Отображен выбранный номер с ' +
                                             'комментарием.',
                                         function() {
-                                            tester.dialpadButton.click();
+                                            tester.dialpadVisibilityButton.click();
 
                                             tester.softphone.expectTextContentToHaveSubstring(
                                                 '+7 (916) 123-89-29 ' +
@@ -1967,7 +2178,7 @@ tests.addTest(options => {
                             expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
                     });
                     it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
-                        tester.dialpadButton.click();
+                        tester.dialpadVisibilityButton.click();
 
                         tester.userName.putMouseOver();
 
@@ -2144,11 +2355,11 @@ tests.addTest(options => {
 
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
-            tester.settingsRequest().secondRington().isNeedDisconnectSignal().receiveResponse();
+            tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
 
-            tester.secondRingtoneRequest().receiveResponse();
+            tester.ringtoneRequest().receiveResponse();
             fileReader.accomplishFileLoading(tester.secondRingtone);
             mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
 
@@ -2174,6 +2385,49 @@ tests.addTest(options => {
                 tester.outCallEvent().receive();
             });
 
+            describe('Событие canplaythrough вызвано.', function() {
+                beforeEach(function() {
+                    mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
+                });
+                
+                describe('Принимаю звонок.', function() {
+                    beforeEach(function() {
+                        tester.callButton.click();
+
+                        tester.firstConnection.connectWebRTC();
+                        tester.firstConnection.callTrackHandler();
+
+                        tester.allowMediaInput();
+
+                        tester.firstConnection.addCandidate();
+                        tester.requestAcceptIncomingCall();
+                    });
+
+                    it('Выбираю другой рингтон. Звучит больше не звучит.', function() {
+                        tester.fieldRow('Мелодия звонка').select.arrow.click();
+                        tester.select.option('Мелодия звонка 3').click();
+
+                        tester.settingsUpdatingRequest().thirdRingtone().receiveResponse();
+                        tester.settingsRequest().thirdRingtone().isNeedDisconnectSignal().receiveResponse();
+
+                        tester.ringtoneRequest().third().receiveResponse();
+                        fileReader.accomplishFileLoading(tester.thirdRingtone);
+
+                        mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.thirdRingtone);
+                        tester.firstConnection.expectRemoteStreamToPlay();
+                    });
+                    it('Событие canplaythrough вызвано. Рингтон больше не звучит.', function() {
+                        mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
+                        tester.firstConnection.expectRemoteStreamToPlay();
+                    });
+                    it('Рингтон больше не звучит.', function() {
+                        tester.firstConnection.expectRemoteStreamToPlay();
+                    });
+                });
+                it('Звучит рингтон.', function() {
+                    mediaStreamsTester.expectStreamsToPlay('data:audio/wav;base64,' + tester.secondRingtone);
+                });
+            });
             it('Принимаю звонок. Выбранные настройки звука применены.', function() {
                 tester.callStartingButton.click();
 
@@ -2184,6 +2438,8 @@ tests.addTest(options => {
 
                 tester.firstConnection.addCandidate();
                 tester.requestAcceptIncomingCall();
+                    
+                tester.firstConnection.expectRemoteStreamToPlay();
 
                 tester.firstConnection.expectSinkIdToEqual('g8294gjg29guslg82pgj' +
                     '2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab');
@@ -2194,6 +2450,31 @@ tests.addTest(options => {
                     '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a48' +
                     'ghal4'
                 );
+            });
+            it('Выбираю другой рингтон. Звучит рингтон.', function() {
+                tester.fieldRow('Мелодия звонка').select.arrow.click();
+                tester.select.option('Мелодия звонка 3').click();
+
+                tester.settingsUpdatingRequest().thirdRingtone().receiveResponse();
+                tester.settingsRequest().thirdRingtone().isNeedDisconnectSignal().receiveResponse();
+
+                tester.ringtoneRequest().third().receiveResponse();
+                fileReader.accomplishFileLoading(tester.thirdRingtone);
+
+                mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.thirdRingtone);
+
+                tester.softphone.expectTextContentToHaveSubstring('Шалева Дора');
+                mediaStreamsTester.expectStreamsToPlay('data:audio/wav;base64,' + tester.thirdRingtone);
+            });
+            it('Выбираю рингтон по умолчанию. Звучит рингтон.', function() {
+                tester.fieldRow('Мелодия звонка').select.arrow.click();
+                tester.select.option('По умолчанию').click();
+
+                tester.settingsUpdatingRequest().defaultRingtone().receiveResponse();
+                tester.settingsRequest().isNeedDisconnectSignal().receiveResponse();
+
+                mediaStreamsTester.expectStreamsToPlay(soundSources.incomingCall);
+                tester.fieldRow('Мелодия звонка').select.expectToHaveTextContent('По умолчанию');
             });
             it('Выбранные настройки звука применены.', function() {
                 mediaStreamsTester.expectStreamsToPlay('data:audio/wav;base64,' + tester.secondRingtone);
@@ -2271,5 +2552,113 @@ tests.addTest(options => {
         it('Отображен статус сотрудника.', function() {
             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
         });
+    });
+    it('Ранее софтфон был развернут. Софтфон развернут.', function() {
+        localStorage.setItem('isSoftphoneHigh', true);
+            
+        setNow('2019-12-19T12:10:06');
+
+        const tester = new Tester(options);
+
+        tester.input.withFieldLabel('Логин').fill('botusharova');
+        tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+        tester.button('Войти').click();
+
+        tester.loginRequest().receiveResponse();
+        tester.accountRequest().receiveResponse();
+
+        const requests = ajax.inAnyOrder();
+
+        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+            accountRequest = tester.accountRequest().expectToBeSent(requests);
+
+        requests.expectToBeSent();
+
+        reportsListRequest.receiveResponse();
+        reportTypesRequest.receiveResponse();
+        accountRequest.receiveResponse();
+        reportGroupsRequest.receiveResponse();
+
+        tester.configRequest().softphone().receiveResponse();
+
+        tester.authCheckRequest().receiveResponse();
+        tester.statusesRequest().receiveResponse();
+        tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
+        tester.talkOptionsRequest().receiveResponse();
+        tester.permissionsRequest().receiveResponse();
+
+        tester.ringtoneRequest().receiveResponse();
+        fileReader.accomplishFileLoading(tester.secondRingtone);
+        mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
+
+        tester.connectEventsWebSocket();
+        tester.connectSIPWebSocket();
+
+        tester.authenticatedUserRequest().receiveResponse();
+        tester.registrationRequest().receiveResponse();
+
+        tester.allowMediaInput();
+
+        tester.button('Софтфон').click();
+
+        tester.softphone.expectToBeExpanded();
+        tester.phoneField.expectToBeVisible();
+    });
+    it('Ранее софтфон был свернут. Софтфон свернут.', function() {
+        localStorage.setItem('isSoftphoneHigh', false);
+            
+        setNow('2019-12-19T12:10:06');
+
+        const tester = new Tester(options);
+
+        tester.input.withFieldLabel('Логин').fill('botusharova');
+        tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+        tester.button('Войти').click();
+
+        tester.loginRequest().receiveResponse();
+        tester.accountRequest().receiveResponse();
+
+        const requests = ajax.inAnyOrder();
+
+        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+            accountRequest = tester.accountRequest().expectToBeSent(requests);
+
+        requests.expectToBeSent();
+
+        reportsListRequest.receiveResponse();
+        reportTypesRequest.receiveResponse();
+        accountRequest.receiveResponse();
+        reportGroupsRequest.receiveResponse();
+
+        tester.configRequest().softphone().receiveResponse();
+
+        tester.authCheckRequest().receiveResponse();
+        tester.statusesRequest().receiveResponse();
+        tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
+        tester.talkOptionsRequest().receiveResponse();
+        tester.permissionsRequest().receiveResponse();
+
+        tester.ringtoneRequest().receiveResponse();
+        fileReader.accomplishFileLoading(tester.secondRingtone);
+        mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
+
+        tester.connectEventsWebSocket();
+        tester.connectSIPWebSocket();
+
+        tester.authenticatedUserRequest().receiveResponse();
+        tester.registrationRequest().receiveResponse();
+
+        tester.allowMediaInput();
+
+        tester.button('Софтфон').click();
+
+        tester.softphone.expectToBeCollapsed();
+        tester.phoneField.expectToBeVisible();
     });
 });

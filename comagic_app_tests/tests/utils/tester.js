@@ -557,8 +557,18 @@ define(() => function ({
                 return this
             },
 
-            secondRington() {
+            defaultRingtone() {
+                params.ringtone = null;
+                return this;
+            },
+
+            secondRingtone() {
                 params.ringtone = 'softphone_ringtone2';
+                return this;
+            },
+
+            thirdRingtone() {
+                params.ringtone = 'softphone_ringtone3';
                 return this;
             },
 
@@ -667,16 +677,19 @@ define(() => function ({
                 return me
             };
 
-            me.secondRington = () => {
-                response.data.ringtone = 'softphone_ringtone2';
+            const ringtone = number => {
+                response.data.ringtone = `softphone_ringtone${number}`;
 
                 response.data.ringtone_file = {
                     mtime: 1556529288674,
-                    link: 'https://somehost.com/softphone_ringtone2.mp3'
+                    link: `https://somehost.com/softphone_ringtone${number}.mp3`
                 };
 
                 return me;
             };
+
+            me.secondRingtone = () => ringtone('2');
+            me.thirdRingtone = () => ringtone('3');
 
             me.autoSetStatus = () => {
                 response.data.is_need_auto_set_status = true;
@@ -1981,44 +1994,62 @@ define(() => function ({
         });
     };
 
-    me.refreshRequest = () => ({
-        expectToBeSent() {
-            request = ajax.recentRequest().
-                expectPathToContain('/auth/json_rpc').
-                expectToHaveMethod('POST').
-                expectToHaveHeaders({
-                    Authorization: `Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0`,
-                    'X-Auth-Type': 'jwt'
-                }).
-                expectBodyToContain({
-                    method: 'refresh',
-                    params: {
-                        jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                        refresh: '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2'
+    me.refreshRequest = () => {
+        const response = {
+            result: {
+                jwt: '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
+                refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
+            }
+        };
+
+        const addResponseModifiers = me => {
+            me.refreshTokenExpired = () => {
+                response.result = null;
+
+                response.error = {
+                    code: '-33020',
+                    message: 'Expired refresh token'
+                };
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                request = ajax.recentRequest().
+                    expectPathToContain('/auth/json_rpc').
+                    expectToHaveMethod('POST').
+                    expectToHaveHeaders({
+                        Authorization: `Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0`,
+                        'X-Auth-Type': 'jwt'
+                    }).
+                    expectBodyToContain({
+                        method: 'refresh',
+                        params: {
+                            jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                            refresh: '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2'
+                        }
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
                     }
                 });
+            },
 
-            return {
-                receiveResponse() {
-                    request.
-                        respondSuccessfullyWith({
-                            result: {
-                                jwt: '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
-                                refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
-                            }
-                        });
-
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                    Promise.runAll(false, true);
-                }
-            };
-        },
-
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        }
-    });
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.loginRequest = () => {
         const response = {
@@ -2117,7 +2148,7 @@ define(() => function ({
 
     addTesters(me, () => document.body);
 
-    me.dialpadButton = testersFactory.createDomElementTester('#cmg-dialpad-visibility-toggler');
+    me.dialpadVisibilityButton = testersFactory.createDomElementTester('#cmg-dialpad-visibility-toggler');
     me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
     me.addressBookButton = testersFactory.createDomElementTester('#cmg-address-book-button');
     me.contactOpeningButton = testersFactory.createDomElementTester('#cmg-open-contact-button');

@@ -172,6 +172,13 @@ define(function () {
                 matchesSelector('.clct-c-button').textEquals(text).find());
         };
 
+        this.dialpadButton = function (text) {
+            return testersFactory.createDomElementTester(function () {
+                return utils.descendantOfBody().matchesSelector('.clct-adress-book__dialpad-button').textEquals(text).
+                    find();
+            });
+        };
+
         this.removeDigitButton = testersFactory.createDomElementTester(function () {
             return document.querySelector('.clct-adress-book__dialpad-header-clear');
         });
@@ -2383,6 +2390,9 @@ define(function () {
 
                     return this;
                 },
+                expectToBeSent: function () {
+                    this.send();
+                },
                 send: function () {
                     recentRequest().
                         expectToHaveMethod('INFO').
@@ -4098,7 +4108,36 @@ define(function () {
         };
 
         this.requestUpdateUserState = function () {
-            return {
+            var response = {
+                data: true
+            };
+
+            var respond = function (request) {
+                request.respondSuccessfullyWith(response);
+            };
+
+            function addResponseModifiers (me) {
+                me.accessTokenExpired = function () {
+                    response = {
+                        error: {
+                            code: 401,
+                            message: 'Token has been expired',
+                            mnemonic: 'expired_token',
+                            is_smart: false
+                        }
+                    };
+
+                    respond = function (request) {
+                        request.respondUnsuccessfullyWith(response);
+                    };
+
+                    return me;
+                };
+
+                return me;
+            }
+
+            return addResponseModifiers({
                 expectToBeSent: function () {
                     const request = ajax.recentRequest().
                         expectPathToContain('sup/api/v1/users/me').
@@ -4107,32 +4146,31 @@ define(function () {
                             status: 4
                         });
 
-                    return {
+                    return addResponseModifiers({
                         send: function () {
                             this.receiveResponse();
                         },
                         receiveResponse: function () {
-                            request.respondSuccessfullyWith({
-                                data: true
-                            });
-
+                            respond(request);
                             Promise.runAll();
                         }
-                    };
+                    });
                 },
                 receiveResponse: function () {
                     this.expectToBeSent().receiveResponse();
                 }
-            };
+            });
         };
 
         this.userStateUpdateRequest = this.requestUpdateUserState;
 
         this.secondRingtone = 'Eq8ZAtHhtF';
+        this.thirdRingtone = 'I2g0wh2htF';
         this.customHoldMusic = 'UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==';
 
-        this.secondRingtoneRequest = function () {
-            var response = me.secondRingtone;
+        this.ringtoneRequest = function () {
+            var response = me.secondRingtone,
+                number = '2';
 
             function addMethods (me) {
                 me.setModified = function () {
@@ -4144,9 +4182,14 @@ define(function () {
             }
 
             return addMethods({
+                third: function () {
+                    response = me.thirdRingtone;
+                    number = '3';
+                    return this;
+                },
                 expectToBeSent: function () {
                     var request = ajax.recentRequest().
-                        expectToHavePath('https://somehost.com/softphone_ringtone2.mp3').
+                        expectToHavePath('https://somehost.com/softphone_ringtone' + number + '.mp3').
                         expectToHaveMethod('GET');
 
                     return addMethods({
