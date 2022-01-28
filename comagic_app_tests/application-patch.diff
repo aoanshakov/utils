@@ -361,41 +361,19 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 36d31dce..1488bc49 100644
+index 1a9efd94..1488bc49 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -183,6 +183,10 @@ export const RootStore = types
-             response: r,
-             isError
-         }) => {
-+            if (!r) {
-+                return;
-+            }
-+
-             const {
-                 data: response,
-                 config: {
-@@ -207,8 +211,10 @@ export const RootStore = types
+@@ -211,7 +211,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
 -            axios.interceptors.response.use(
 +            window.axiosInterceptors = axios.interceptors.response.use(
                  response => {
-+                    logRequest({response});
-+
-                     if (response.data.error) {
-                         const {
-                             config,
-@@ -232,7 +238,6 @@ export const RootStore = types
-                         }
-                     }
+                     logRequest({response});
  
--                    logRequest({response});
-                     return response;
-                 },
-                 error => {
-@@ -305,6 +310,7 @@ export const RootStore = types
+@@ -310,6 +310,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -403,7 +381,7 @@ index 36d31dce..1488bc49 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -343,7 +349,8 @@ export type DependencyInjection = {
+@@ -348,7 +349,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
