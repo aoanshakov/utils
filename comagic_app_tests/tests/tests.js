@@ -1821,7 +1821,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    describe('Открываю декстопное приложение софтфона.', function() {
+    describe('Открываю дектопное приложение софтфона.', function() {
         let tester;
 
         describe('Софтфон не должен отображаться поверх окон при входящем.', function() {

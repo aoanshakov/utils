@@ -6289,6 +6289,8 @@ function JsTester_Timeout (
         clearer = window[clearerName],
         callbacksRunner = new JsTester_NoTimeoutCallbackRunner();
 
+    window[setterName + 'Actually'] = setter;
+
     this.runCallbacks = function () {
         callbacksRunner.runCallbacks();
     };

@@ -8,6 +8,8 @@ define(function () {
             messageHandlers = {},
             infoLogMessages = [];
 
+        window.printLog = () => console.log(infoLogMessages.join("\n\n"));
+
         function NoMessage () {
             this.expectNotToBeSent = function () {};
 
