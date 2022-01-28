@@ -1,3 +1,16 @@
+diff --git a/authorization/actions.js b/authorization/actions.js
+index f25e3cd..aa3fe16 100644
+--- a/authorization/actions.js
++++ b/authorization/actions.js
+@@ -303,7 +303,7 @@ export const authorization = (authValues, rememberMe) => (dispatch, getState) =>
+ 
+     //UISWebRTC.debug();
+ 
+-    const webRTC = new UISWebRTC({
++    const webRTC = window.webRTC = new UISWebRTC({
+         opaqueIdPrefix,
+         defaultSounds: (incomingRingtone ? {incomingRingtone} : {}),
+         ...getWebRTCConfig(),
 diff --git a/package.json b/package.json
 index 6c908f3..342c4b3 100644
 --- a/package.json
