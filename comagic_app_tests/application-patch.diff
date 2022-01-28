@@ -212,7 +212,7 @@ index 06aa1441..91d618d4 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index 6284d2a2..3de3a252 100644
+index 4da94ea0..3de3a252 100644
 --- a/package.json
 +++ b/package.json
 @@ -73,8 +73,8 @@
@@ -244,7 +244,7 @@ index 6284d2a2..3de3a252 100644
      "highcharts-react-official": "^3.0.0",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.5.3",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.9.3",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
@@ -361,10 +361,10 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d2e9264e..65d0169e 100644
+index 36d31dce..863aff29 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -208,7 +208,7 @@ export const RootStore = types
+@@ -207,7 +207,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -373,7 +373,7 @@ index d2e9264e..65d0169e 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -306,6 +306,7 @@ export const RootStore = types
+@@ -305,6 +305,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -381,7 +381,7 @@ index d2e9264e..65d0169e 100644
              initialState = getSnapshot(self);
  
              setHighchartsOptions();
-@@ -344,7 +345,8 @@ export type DependencyInjection = {
+@@ -343,7 +344,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -392,7 +392,7 @@ index d2e9264e..65d0169e 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index d1e3a087..31b8996e 100644
+index cf0e2810..aca3d446 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -106,7 +106,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -404,7 +404,7 @@ index d1e3a087..31b8996e 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -213,6 +213,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -214,6 +214,8 @@ export const AuthStore = Loader.named('AuthStore')
              isTokenRefreshing = false;
              refreshingCall = null;
  
