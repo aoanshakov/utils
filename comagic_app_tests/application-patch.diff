@@ -12,7 +12,7 @@ index cf35fde4..32dc7c45 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 06aa1441..f2eb22c1 100644
+index 06aa1441..d249a545 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -10,6 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
@@ -116,7 +116,7 @@ index 06aa1441..f2eb22c1 100644
              },
              {
                  test: /\.css$/,
-@@ -266,6 +298,27 @@ module.exports = {
+@@ -266,6 +298,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -135,7 +135,9 @@ index 06aa1441..f2eb22c1 100644
 +                    {
 +                        loader: 'sass-loader',
 +                        options: {
-+                            includePaths: [magicUIDirectory]
++                            sassOptions: {
++                                includePaths: [magicUIDirectory]
++                            }
 +                        }
 +                    },
 +                ],
@@ -144,7 +146,7 @@ index 06aa1441..f2eb22c1 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -281,6 +334,7 @@ module.exports = {
+@@ -281,6 +336,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -152,7 +154,7 @@ index 06aa1441..f2eb22c1 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -296,17 +350,92 @@ module.exports = {
+@@ -296,17 +352,92 @@ module.exports = {
                      },
                  ],
              },
