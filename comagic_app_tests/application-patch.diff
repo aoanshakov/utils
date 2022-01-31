@@ -12,7 +12,7 @@ index cf35fde4..32dc7c45 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 06aa1441..b5bb03dc 100644
+index 06aa1441..446de366 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -10,6 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
@@ -106,6 +106,15 @@ index 06aa1441..b5bb03dc 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
+@@ -255,7 +286,7 @@ module.exports = {
+                         }),
+                     },
+                 },
+-                exclude: /node_modules/,
++                exclude: /node_modules(?!\/(uis-softphone|magic-ui)\/)/,
+             },
+             {
+                 test: /\.css$/,
 @@ -281,6 +312,7 @@ module.exports = {
              },
              {
