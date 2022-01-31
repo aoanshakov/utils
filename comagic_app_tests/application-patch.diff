@@ -12,7 +12,7 @@ index cf35fde4..32dc7c45 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 06aa1441..78af08b6 100644
+index 06aa1441..f2eb22c1 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -10,6 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
@@ -23,11 +23,12 @@ index 06aa1441..78af08b6 100644
  
  const { ModuleFederationPlugin } = webpack.container;
  const deps = require('../package.json').dependencies;
-@@ -18,19 +19,23 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -18,19 +19,24 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
 +const miscDirectory = `${appDirectory}/misc`;
++const magicUIDirectory = `${miscDirectory}/magic_ui`;
  const dotenv = path.resolve(appDirectory, '.env');
  const themeLessFileName = path.resolve(appDirectory, 'theme', 'theme.less');
  const isProductionMode = NODE_ENV !== 'development';
@@ -48,7 +49,7 @@ index 06aa1441..78af08b6 100644
              },
              javascriptEnabled: true,
          },
-@@ -192,7 +197,7 @@ const plugins = () => {
+@@ -192,7 +198,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -57,7 +58,7 @@ index 06aa1441..78af08b6 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -202,7 +207,11 @@ const plugins = () => {
+@@ -202,7 +208,11 @@ const plugins = () => {
                  callTracking: `callTracking@${process.env.REACT_APP_MODULE_CALL_TRACKING}/remoteEntry.js`,
                  softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
              },
@@ -70,7 +71,7 @@ index 06aa1441..78af08b6 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -212,6 +221,13 @@ const plugins = () => {
+@@ -212,6 +222,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -84,7 +85,7 @@ index 06aa1441..78af08b6 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -231,6 +247,21 @@ module.exports = {
+@@ -231,6 +248,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -106,7 +107,7 @@ index 06aa1441..78af08b6 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -255,7 +286,7 @@ module.exports = {
+@@ -255,7 +287,7 @@ module.exports = {
                          }),
                      },
                  },
@@ -115,12 +116,12 @@ index 06aa1441..78af08b6 100644
              },
              {
                  test: /\.css$/,
-@@ -266,6 +297,24 @@ module.exports = {
+@@ -266,6 +298,27 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
 +                test: /\.(sa|sc|c)ss$/,
-+                include: `${miscDirectory}/magic_ui/src`,
++                include: `${magicUIDirectory}/src`,
 +                use: [
 +                    {
 +                        loader: MiniCssExtractPlugin.loader,
@@ -133,6 +134,9 @@ index 06aa1441..78af08b6 100644
 +                    },
 +                    {
 +                        loader: 'sass-loader',
++                        options: {
++                            includePaths: [magicUIDirectory]
++                        }
 +                    },
 +                ],
 +            },
@@ -140,7 +144,7 @@ index 06aa1441..78af08b6 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -281,6 +330,7 @@ module.exports = {
+@@ -281,6 +334,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -148,7 +152,7 @@ index 06aa1441..78af08b6 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -296,17 +346,92 @@ module.exports = {
+@@ -296,17 +350,92 @@ module.exports = {
                      },
                  ],
              },
