@@ -12,7 +12,8 @@ tests.addTest(options => {
         fileReader,
         userMedia,
         audioDecodingTester,
-        blobsTester
+        blobsTester,
+        windowSize
     } = options;
 
     const getPackage = Tester.createPackagesGetter(options);
@@ -2075,6 +2076,23 @@ tests.addTest(options => {
                         });
                         it('Отображен спиннер.', function() {
                             tester.spinner.expectToBeVisible();
+                        });
+                    });
+                    describe('Открываю список номеров.', function() {
+                        beforeEach(function() {
+                            windowSize.setHeight(212);
+                            tester.select.arrow.click();
+                        });
+
+                        it('Список вписан в окно.', function() {
+                            tester.select.popup.expectToHaveTopOffset(4);
+                            tester.select.popup.expectToHaveHeight(204);
+                        });
+                        it('Растягиваю окно. Список меняет положение и размер.', function() {
+                            windowSize.setHeight(568);
+
+                            tester.select.popup.expectToHaveTopOffset(92);
+                            tester.select.popup.expectToHaveHeight(331);
                         });
                     });
                     it(

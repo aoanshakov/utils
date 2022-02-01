@@ -118,6 +118,11 @@ define(() => function ({
                 () => getSelectField().closest('.ui-select-container').querySelector('.ui-icon svg')
             ));
 
+            tester.popup = testersFactory.createDomElementTester(() =>
+                (utils.getVisibleSilently(document.querySelectorAll('.ui-select-popup')) || new JsTester_NoElement()).
+                    closest('div')
+            );
+
             tester.option = text => testersFactory.createDomElementTester(
                 utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find()
             );

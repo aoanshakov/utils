@@ -2898,6 +2898,32 @@ function JsTester_ZipArchive () {
     ]);
 }
 
+function JsTester_WindowSize () {
+    var originalInnerHeight = window.innerHeight,
+        innerHeight = originalInnerHeight;
+
+    var redefineProperty = function () {
+        Object.defineProperty(window, 'innerHeight', {
+            get: function () {
+                return innerHeight;
+            },
+            set: function () {}
+        });
+
+        redefineProperty = () => null;
+    };
+
+    this.setHeight = function (value) {
+        redefineProperty();
+        innerHeight = value;
+        window.dispatchEvent(new Event('resize'));
+    };
+
+    this.reset = function () {
+        innerHeight = originalInnerHeight;
+    };
+}
+
 function JsTester_Tests (factory) {
     Object.defineProperty(window, 'ResizeObserver', {
         get: function () {
@@ -2964,6 +2990,7 @@ function JsTester_Tests (factory) {
     };
 
     var utils = factory.createUtils(debug),
+        windowSize = new JsTester_WindowSize(),
         mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
         mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
         mutationObserverTester =  mutationObserverFactory.createTester(),
@@ -3266,6 +3293,7 @@ function JsTester_Tests (factory) {
                 '</body>' +
             '</html>',
             sdp: sdp,
+            windowSize: windowSize,
             mutationObserverMocker: mutationObserverMocker,
             fileReader: fileReaderTester,
             triggerMutation: mutationObserverTester,
@@ -3380,6 +3408,7 @@ function JsTester_Tests (factory) {
         var exceptions = [];
 
         this.restoreRealDelayedTasks();
+        windowSize.reset();
         mutationObserverMocker.restoreReal();
         fileReaderTester.expectNoFileToBeLoading();
         fileReaderMocker.restoreReal();
@@ -5946,6 +5975,14 @@ function JsTester_DomElement (
         me.expectToBeVisible();
         return getDomElement().getBoundingClientRect();
     }
+    this.expectToHaveTopOffset = function (expectedTopOffset) {
+        var actualTopOffset = getBoundingClientRect().y;
+
+        if (expectedTopOffset != actualTopOffset) {
+            throw new Error('Вертикальная позиция ' + getGenetiveDescription() + ' должна быть равна ' +
+                expectedTopOffset + ', а не ' + actualTopOffset);
+        }
+    };
     this.expectToHaveHeight = function (expectedHeight) {
         var actualHeight = getBoundingClientRect().height;
 
