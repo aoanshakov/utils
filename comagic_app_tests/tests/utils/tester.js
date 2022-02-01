@@ -139,15 +139,19 @@ define(() => function ({
         ).querySelector(selector), null) || new JsTester_NoElement())
 
         {
-            const getInput = () => utils.getVisibleSilently(
-                (getRootElement() || new JsTester_NoElement()).querySelectorAll('input')
-            );
+            const getInputs = () =>
+                Array.prototype.slice.call((getRootElement() || new JsTester_NoElement()).querySelectorAll('input'), 0);
+            const getInput = () => utils.getVisibleSilently(getInputs());
 
             const addMethods = (tester, getInput) => ((tester.clearIcon = testersFactory.createDomElementTester(
                 () => getInput().closest('.ui-input').querySelector('.ui-input-suffix-close')
             )), tester);
 
             me.input = testersFactory.createTextFieldTester(getInput);
+
+            me.input.withPlaceholder = placeholder => testersFactory.createTextFieldTester(
+                utils.getVisibleSilently(getInputs().filter(input => input.placeholder == placeholder))
+            );
 
             me.input.withFieldLabel = label => {
                 const labelEl = utils.descendantOf(getRootElement()).
