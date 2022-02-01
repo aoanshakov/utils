@@ -620,6 +620,28 @@ tests.addTest(options => {
                                                         tester.outCallSessionEvent().receive();
                                                     });
 
+                                                    describe('Поступил входящий звонок.', function() {
+                                                        beforeEach(function() {
+                                                            tester.incomingCall().thirdNumber().receive();
+                                                            tester.numaRequest().thirdNumber().receiveResponse();
+                                                            tester.outCallEvent().anotherPerson().receive();
+                                                        });
+
+                                                        it(
+                                                            'Вызываемый занят. Отображено сообщение о звонке.',
+                                                        function() {
+                                                            outboundCall.receiveBusy();
+
+                                                            tester.softphone.expectTextContentToHaveSubstring(
+                                                                'Гигова Петранка Входящий...'
+                                                            );
+                                                        });
+                                                        it('Отображено сообщение о звонке.', function() {
+                                                            tester.softphone.expectTextContentToHaveSubstring(
+                                                                'Гигова Петранка Входящий...'
+                                                            );
+                                                        });
+                                                    });
                                                     it('Звонок принят. Отображено имя, номер и таймер.', function() {
                                                         outboundCall.setAccepted();
 
@@ -638,17 +660,6 @@ tests.addTest(options => {
                                                         tester.phoneField.fill('79161234567');
 
                                                         tester.phoneField.expectToHaveValue('79161234567');
-                                                    });
-                                                    it(
-                                                        'Поступил входящий звонок. Отображено сообщение о звонке.',
-                                                    function() {
-                                                        tester.incomingCall().thirdNumber().receive();
-                                                        tester.numaRequest().thirdNumber().receiveResponse();
-                                                        tester.outCallEvent().anotherPerson().receive();
-
-                                                        tester.softphone.expectTextContentToHaveSubstring(
-                                                            'Гигова Петранка Входящий...'
-                                                        );
                                                     });
                                                     it('Отображено имя, номер и таймер.', function() {
                                                         tester.outgoingIcon.expectToBeVisible();
