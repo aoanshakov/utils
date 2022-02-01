@@ -123,9 +123,16 @@ define(() => function ({
                     closest('div')
             );
 
-            tester.option = text => testersFactory.createDomElementTester(
-                utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find()
-            );
+            tester.option = text => {
+                const tester = testersFactory.createDomElementTester(
+                    utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find()
+                );
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), Promise.runAll(false, true));
+
+                return tester;
+            };
 
             return tester;
         })(() => [
@@ -281,9 +288,15 @@ define(() => function ({
 
     me.userLogoutRequest = () => ({
         expectToBeSent() {
-            const request = ajax.recentRequest().expectBodyToContain({
-                method: 'logout.user',
-            });
+            const request = ajax.recentRequest().
+                expectPathToContain('/auth/json_rpc').
+                expectToHaveMethod('POST').
+                expectBodyToContain({
+                    method: 'logout',
+                    params: {
+                        jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0'
+                    }
+                });
 
             return {
                 receiveResponse() {

@@ -5903,6 +5903,7 @@ function JsTester_DomElement (
     this.click = function (x, y) {
         this.mousedown(x, y);
         this.mouseup(x, y);
+        Promise.runAll(false, true);
     };
     this.putMouseOver = function () {
         this.expectToBeVisible();
@@ -6843,6 +6844,7 @@ function JsTester_WebSocketTester (mockCore, callStack) {
     };
     this.connect = function () {
         mockCore.connect();
+        Promise.runAll(false, true);
         return this;
     };
     this.finishDisconnecting = function (code) {

@@ -9,7 +9,7 @@ index 3dbc8c6f..fa3b1413 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-va0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 5417d1bc..58ca9cd4 100644
+index 0470e8ab..26b95c63 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -10,6 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
@@ -20,13 +20,12 @@ index 5417d1bc..58ca9cd4 100644
  
  const { ModuleFederationPlugin } = webpack.container;
  const deps = require('../package.json').dependencies;
-@@ -18,21 +19,27 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -18,14 +19,26 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
 +const miscDirectory = `${appDirectory}/misc`;
  const dotenv = path.resolve(appDirectory, '.env');
- const themeLessFileName = path.resolve(appDirectory, 'theme', 'theme.less');
  const isProductionMode = NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
@@ -35,15 +34,10 @@ index 5417d1bc..58ca9cd4 100644
  
  const lessLoader = {
      loader: 'less-loader',
-     options: {
--        modifyVars: {
--            'hack': `true; @import "${themeLessFileName}";`,
--        },
--        javascriptEnabled: true,
--    },
++    options: {
 +        lessOptions: {
 +            modifyVars: {
-+                'hack': `true; @import "${themeLessFileName}"; ${
++                'hack': `true; ${
 +                    subModules.map(module => `@import "${miscDirectory}/${module}/theme/theme.less"`).join('; ')
 +                }`,
 +            },
@@ -53,7 +47,7 @@ index 5417d1bc..58ca9cd4 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -186,7 +193,7 @@ const plugins = () => {
+@@ -179,7 +192,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -62,7 +56,7 @@ index 5417d1bc..58ca9cd4 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -196,7 +203,11 @@ const plugins = () => {
+@@ -189,7 +202,11 @@ const plugins = () => {
                  callTracking: `callTracking@${process.env.REACT_APP_MODULE_CALL_TRACKING}/remoteEntry.js`,
                  softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
              },
@@ -75,7 +69,7 @@ index 5417d1bc..58ca9cd4 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -206,6 +217,13 @@ const plugins = () => {
+@@ -199,6 +216,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -89,7 +83,7 @@ index 5417d1bc..58ca9cd4 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -225,6 +243,21 @@ module.exports = {
+@@ -218,6 +242,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -111,7 +105,7 @@ index 5417d1bc..58ca9cd4 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -275,6 +308,7 @@ module.exports = {
+@@ -263,6 +302,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -119,7 +113,7 @@ index 5417d1bc..58ca9cd4 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -290,17 +324,92 @@ module.exports = {
+@@ -278,16 +318,103 @@ module.exports = {
                      },
                  ],
              },
@@ -159,7 +153,6 @@ index 5417d1bc..58ca9cd4 100644
 -            '@lib': path.resolve(appDirectory, './src/components/lib'),
 -            '@hooks': path.resolve(appDirectory, './src/hooks'),
 +            ...createAliases(appDirectory),
-             '@ant-design/icons/lib/dist$': path.resolve(appDirectory, './src/icons.ts'),
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
@@ -172,7 +165,19 @@ index 5417d1bc..58ca9cd4 100644
 +            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingSubstitutionRules': `${miscDirectory}/Stub.js`,
 +            'callTracking/NumberPools': `${miscDirectory}/Stub.js`,
-+            'callTracking/Sites': `${miscDirectory}/Stub.js`
++            'callTracking/Sites': `${miscDirectory}/Stub.js`,
++            'analytics/CreateDashboardButton': `${miscDirectory}/Stub.js`,
++            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
++            'analytics/CreateReport': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/ChiefDashboard': `${miscDirectory}/Stub.js`,
++            'analytics/Communications': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/Dashboard': `${miscDirectory}/Stub.js`,
++            'analytics/DealsAnalytics': `${miscDirectory}/Stub.js`,
++            'analytics/Deals': `${miscDirectory}/Stub.js`,
++            'analytics/Leads': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/MarketerDashboard': `${miscDirectory}/Stub.js`,
++            'analytics/SharedReport': `${miscDirectory}/Stub.js`,
++            'analytics/cancelPendingRequests': `${miscDirectory}/Stub.js`,
          },
 +        plugins: [{
 +            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
@@ -217,19 +222,19 @@ index 5417d1bc..58ca9cd4 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index ebd8b9ae..cf0b600c 100644
+index 22c477ad..bf7cf4b9 100644
 --- a/package.json
 +++ b/package.json
-@@ -60,7 +60,7 @@
+@@ -51,7 +51,7 @@
      "husky": "^6.0.0",
      "json-server": "^0.16.0",
      "less": "^3.10.3",
 -    "less-loader": "^5.0.0",
 +    "less-loader": "^6.0.0",
      "mini-css-extract-plugin": "^1.3.9",
-     "nanoid": "^2.1.11",
      "prettier": "^1.19.1",
-@@ -69,8 +69,8 @@
+     "serve": "^11.3.2",
+@@ -59,8 +59,8 @@
      "style-loader": "^2.0.0",
      "terser-webpack-plugin": "^5.1.4",
      "ts-import-plugin": "^1.6.7",
@@ -240,41 +245,31 @@ index ebd8b9ae..cf0b600c 100644
      "url-loader": "^3.0.0",
      "webpack": "^5.38.1",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -79,8 +79,10 @@
+@@ -69,6 +69,8 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
 +    "softphone": "./misc/softphone",
 +    "chats": "./misc/chats",
-     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.3.1",
--    "antd": "^3.26.7",
-+    "antd": "3.26.7",
+     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.4.0",
      "axios": "^0.24.0",
      "classnames": "^2.2.6",
-     "dotenv": "^8.2.0",
-@@ -92,7 +94,7 @@
-     "highcharts-react-official": "^3.0.0",
+@@ -77,7 +79,7 @@
+     "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.9.3",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.12.8",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -102,13 +104,15 @@
-     "react-beautiful-dnd": "^13.0.0",
+@@ -85,8 +87,9 @@
+     "nanoid": "^3.2.0",
+     "react": "^17.0.2",
      "react-dom": "^17.0.2",
-     "react-input-mask": "^2.0.4",
 -    "react-intl": "^5.15.8",
 +    "react-intl": "5.15.8",
-     "react-list": "^0.8.13",
-     "react-resizable": "^1.10.1",
--    "react-resize-detector": "^5.2.0",
-+    "react-resize-detector": "^6.0.0",
      "react-router-dom": "^5.1.2",
-+    "react-router": "5.2.1",
-     "react-transition-group": "^4.4.2",
-     "wavesurfer.js": "^4.0.1",
 -    "yup": "^0.28.1"
 +    "yup": "^0.28.1",
 +    "babel-loader": "^8.0.4"
@@ -318,12 +313,12 @@ index 98e0c107..5851e692 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index a8119563..036ee423 100644
+index 363e1064..7ffaa4e9 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -8,7 +8,9 @@ import { observer } from 'mobx-react-lite';
- import { CoreProvider } from '@comagic/core';
- import moment from 'moment';
+@@ -8,7 +8,9 @@ import { CoreProvider } from '@comagic/core';
+ 
+ import { useMountEffect } from '@hooks';
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
@@ -331,8 +326,8 @@ index a8119563..036ee423 100644
 +import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
  
  import history from './history';
- import { getAntdLocale, getIntlLocale, getIntlMessages } from './i18n';
-@@ -68,4 +70,30 @@ const Root: React.FC = observer(() => {
+ import { getIntlLocale, getIntlMessages } from './i18n';
+@@ -58,4 +60,30 @@ const Root: React.FC = observer(() => {
      );
  });
  
@@ -378,10 +373,10 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 86dc7177..b4ea99f5 100644
+index b3865e48..1cf28737 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -148,7 +148,7 @@ export const RootStore = types
+@@ -89,7 +89,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -390,15 +385,15 @@ index 86dc7177..b4ea99f5 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -225,6 +225,7 @@ export const RootStore = types
+@@ -116,6 +116,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
 +            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
              initialState = getSnapshot(self);
  
-             setHighchartsOptions();
-@@ -244,7 +245,8 @@ export type DependencyInjection = {
+             setHttpRequestsDefault();
+@@ -135,7 +136,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -409,10 +404,10 @@ index 86dc7177..b4ea99f5 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 1c7d41b5..70697fde 100644
+index 7c1f918f..531ed15c 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -106,7 +106,7 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -107,7 +107,7 @@ const removeToken = (skipLocalStorage = false) => {
  
  export const AuthStore = Loader.named('AuthStore')
      .props({
@@ -421,7 +416,7 @@ index 1c7d41b5..70697fde 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -206,6 +206,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -213,6 +213,8 @@ export const AuthStore = Loader.named('AuthStore')
              isTokenRefreshing = false;
              refreshingCall = null;
  
@@ -431,7 +426,7 @@ index 1c7d41b5..70697fde 100644
                  const eventWindowId = event.detail;
                  if (eventWindowId !== authStore.windowId) {
 diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
-index 742f44e3..8a47a0d6 100644
+index fbbc243e..2eb5991c 100644
 --- a/src/rpc/httpRpc.ts
 +++ b/src/rpc/httpRpc.ts
 @@ -27,10 +27,11 @@ const buildMode: string = process.env.REACT_APP_BUILD_MODE;
