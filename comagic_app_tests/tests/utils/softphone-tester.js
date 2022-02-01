@@ -2654,10 +2654,13 @@ define(function () {
                     Promise.runAll(false, true);
 
                     return {
-                        expectCancelToBeSent: function () {
+                        expectTemporarilyUnavailableToBeSent: function () {
+                            me.requestDeclineIncomingCall();
+                        },
+                        receiveCancel: function () {
                             this.cancel();
                         },
-                        expectByeToBeSent: function () {
+                        receiveBye: function () {
                             this.finish();
                         },
                         cancel: function () {

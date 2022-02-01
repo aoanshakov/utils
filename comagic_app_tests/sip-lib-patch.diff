@@ -12,7 +12,7 @@ index f25e3cd..aa3fe16 100644
          defaultSounds: (incomingRingtone ? {incomingRingtone} : {}),
          ...getWebRTCConfig(),
 diff --git a/package.json b/package.json
-index a95a591..024f717 100644
+index dbb5524..e429b6a 100644
 --- a/package.json
 +++ b/package.json
 @@ -33,7 +33,6 @@

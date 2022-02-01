@@ -725,7 +725,12 @@ tests.addTest(options => {
                                                                 stopCallButton.
                                                                 click();
 
-                                                            incomingCall.expectCancelToBeSent();
+                                                            incomingCall.expectTemporarilyUnavailableToBeSent();
+
+                                                            tester.softphone.expectToHaveTextContent(
+                                                                'Шалева Дора ' +
+                                                                '+7 (916) 123-45-67 00:00:00'
+                                                            );
                                                         });
                                                         it(
                                                             'Нажимаю на кнопку второй линии. Кнпока принятия звонка ' +
@@ -1576,6 +1581,27 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
+                                    describe('Ввожу номер в поле поиска.', function() {
+                                        beforeEach(function() {
+                                            tester.input.withPlaceholder('Найти').fill('62594');
+                                        });
+
+                                        it(
+                                            'Стираю введенное в поле поиска значение. Отображены все номера.',
+                                        function() {
+                                            tester.input.withPlaceholder('Найти').clear();
+                                            tester.select.popup.expectTextContentToHaveSubstring('+7 (916) 123-89-27');
+                                        });
+                                        it('Номер найден.', function() {
+                                            tester.select.popup.
+                                                expectToHaveTextContent('+7 (916) 259-47-27 Другой номер');
+                                        });
+                                    });
+                                    it('Ввожу комментарий в поле поиска. Номер найден.', function() {
+                                        tester.input.withPlaceholder('Найти').fill('один');
+                                        tester.select.popup.
+                                            expectToHaveTextContent('+7 (916) 123-89-35 Еще один номер');
+                                    });
                                     it('Выбранный номер выделен.', function() {
                                         tester.select.option('+7 (916) 123-89-27').
                                             expectNotToHaveClass('ui-list-option-selected');
@@ -1583,23 +1609,6 @@ tests.addTest(options => {
                                         tester.select.option('+7 (495) 021-68-06').
                                             expectToHaveClass('ui-list-option-selected');
                                     });
-                                });
-                                describe('Ввожу номер в поле поиска.', function() {
-                                    beforeEach(function() {
-                                        tester.input.withPlaceholder('Найти').fill('62594');
-                                    });
-
-                                    it('Стираю введенное в поле поиска значение. Отображены все номера.', function() {
-                                        tester.input.withPlaceholder('Найти').clear();
-                                        tester.select.popup.expectTextContentToHaveSubstring('+7 (916) 123-89-27');
-                                    });
-                                    it('Номер найден.', function() {
-                                        tester.select.popup.expectToHaveTextContent('+7 (916) 259-47-27 Другой номер');
-                                    });
-                                });
-                                it('Ввожу комментарий в поле поиска. Номер найден.', function() {
-                                    tester.input.withPlaceholder('Найти').fill('один');
-                                    tester.select.popup.expectToHaveTextContent('+7 (916) 123-89-35 Еще один номер');
                                 });
                                 it('Отображен выбранный номер телефона.', function() {
                                     tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
