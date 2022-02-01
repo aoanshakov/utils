@@ -10,6 +10,7 @@ define(() => function ({
     webSockets
 }) {
     let history;
+    const mainTester = me;
 
     const jwtToken = {
         jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
@@ -29,6 +30,8 @@ define(() => function ({
             'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
     );
 
+    window.rootConfig = {appName};
+
     window.application.run({
         setHistory: value => (history = value),
         appName
@@ -43,6 +46,9 @@ define(() => function ({
     Promise.runAll(false, true);
 
     const addTesters = (me, getRootElement) => {
+        me.callStartingButton = testersFactory.createDomElementTester(() =>
+            utils.getVisibleSilently(getRootElement().querySelectorAll('.cmg-call-button-start')));
+
         me.slider = (() => {
             const tester = testersFactory.createDomElementTester(() =>
                 (getRootElement() || new JsTester_NoElement()).querySelector('.ant-slider-track'))
@@ -94,6 +100,8 @@ define(() => function ({
 
             tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
             tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
+            tester.expectToBeEnabled = () => fieldTester.expectNotToHaveClass('ui-switch-disabled');
+            tester.expectToBeDisabled = () => fieldTester.expectToHaveClass('ui-switch-disabled');
             
             return tester;
         };
@@ -110,6 +118,11 @@ define(() => function ({
                 () => getSelectField().closest('.ui-select-container').querySelector('.ui-icon svg')
             ));
 
+            tester.popup = testersFactory.createDomElementTester(() =>
+                (utils.getVisibleSilently(document.querySelectorAll('.ui-select-popup')) || new JsTester_NoElement()).
+                    closest('div')
+            );
+
             tester.option = text => testersFactory.createDomElementTester(
                 utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find()
             );
@@ -123,15 +136,19 @@ define(() => function ({
         ).querySelector(selector), null) || new JsTester_NoElement())
 
         {
-            const getInput = () => utils.getVisibleSilently(
-                (getRootElement() || new JsTester_NoElement()).querySelectorAll('input')
-            );
+            const getInputs = () =>
+                Array.prototype.slice.call((getRootElement() || new JsTester_NoElement()).querySelectorAll('input'), 0);
+            const getInput = () => utils.getVisibleSilently(getInputs());
 
             const addMethods = (tester, getInput) => ((tester.clearIcon = testersFactory.createDomElementTester(
                 () => getInput().closest('.ui-input').querySelector('.ui-input-suffix-close')
             )), tester);
 
             me.input = testersFactory.createTextFieldTester(getInput);
+
+            me.input.withPlaceholder = placeholder => testersFactory.createTextFieldTester(
+                utils.getVisibleSilently(getInputs().filter(input => input.placeholder == placeholder))
+            );
 
             me.input.withFieldLabel = label => {
                 const labelEl = utils.descendantOf(getRootElement()).
@@ -151,26 +168,14 @@ define(() => function ({
         return me;
     };
 
-    me.playerButton = testersFactory.createDomElementTester('.clct-audio-button');
+    const createRootTester = selector => {
+        const getRootElement = () => document.querySelector(selector) || new JsTester_NoElement();
 
-    me.popover = (() => {
-        const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),
-            tester = testersFactory.createDomElementTester(getDomElement);
-
-        return addTesters(tester, getDomElement);
-    })();
-
-    me.fieldRow = text => (() => {
-        const labelEl = utils.descendantOfBody().
-            textEquals(text).
-            matchesSelector('.ui-label-content-field-label, .clct-settings-field-label').
-            find();
-
-        const row = labelEl.closest('.ant-row, .clct-settings-field-row'),
-            me = testersFactory.createDomElementTester(row);
-
-        return addTesters(me, () => row);
-    })();
+        return addTesters(
+            testersFactory.createDomElementTester(getRootElement),
+            getRootElement
+        );
+    };
 
     const addAuthErrorResponseModifiers = (me, response) => {
         me.accessTokenExpired = () => {
@@ -551,6 +556,11 @@ define(() => function ({
         const params = {};
 
         return {
+            incomingCallSoundDisabled() {
+                params.is_enable_incoming_call_sound = false;
+                return this
+            },
+
             isNeedDisconnectSignal() {
                 params.is_need_disconnect_signal = true;
                 return this
@@ -654,6 +664,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
+            me.incomingCallSoundDisabled = () => {
+                response.data.is_enable_incoming_call_sound = false;
+                return me;
+            };
+
             me.noTelephony = () => {
                 Object.keys(response.data).forEach(key => ![
                     'ws_url',
@@ -706,7 +721,7 @@ define(() => function ({
                 return me;
             };
 
-            me.setRTU = function () {
+            me.setRTU = () => {
                 response.data.webrtc_urls = ['wss://webrtc.uiscom.ru'];
                 response.data.sip_phone = '076909';
                 response.data.rtu_sip_host = 'pp-rtu.uis.st:443';
@@ -779,6 +794,8 @@ define(() => function ({
                         Promise.runAll(false, true);
                         spendTime(0)
                         Promise.runAll(false, true);
+
+                        me.triggerScrollRecalculation();
                     }
                 }, response);
             },
@@ -1916,7 +1933,7 @@ define(() => function ({
                             'is_insert': true,
                             'is_select': true,
                             'is_update': true,
-                        },
+                        }
                     ],
                     is_agent_app: false
                 }
@@ -2084,6 +2101,15 @@ define(() => function ({
         };
     };
 
+    me.disableTimeout = callback => {
+        const setTimeout = window.setTimeout;
+        window.setTimeout = () => null;
+
+        callback();
+
+        window.setTimeout = setTimeout;
+    };
+
     me.forceUpdate = () => utils.pressKey('k');
     me.body = testersFactory.createDomElementTester('body');
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
@@ -2177,6 +2203,28 @@ define(() => function ({
     me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
     me.settingsButton = testersFactory.createDomElementTester('.cmg-settings-button');
     me.hideButton = testersFactory.createDomElementTester('.cmg-hide-button');
+    me.playerButton = testersFactory.createDomElementTester('.clct-audio-button');
+    me.otherChannelCallNotification = createRootTester('#cmg-another-sip-line-incoming-call-notification');
+    me.bugButton = testersFactory.createDomElementTester('.cmg-bug-icon');
+
+    me.popover = (() => {
+        const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
+
+    me.fieldRow = text => (() => {
+        const labelEl = utils.descendantOfBody().
+            textEquals(text).
+            matchesSelector('.ui-label-content-field-label, .clct-settings-field-label').
+            find();
+
+        const row = labelEl.closest('.ant-row, .clct-settings-field-row'),
+            me = testersFactory.createDomElementTester(row);
+
+        return addTesters(me, () => row);
+    })();
 
     me.userName = (tester => {
         const putMouseOver = tester.putMouseOver.bind(tester);
@@ -2201,14 +2249,30 @@ define(() => function ({
                 isSelected = () => !!domElement.querySelectorAll('.ui-icon')[1];
 
             tester.click = () => (click(), Promise.runAll(false, true));
+
+            const expectToBeVisible = tester.expectToBeVisible.bind(tester);
+
+            tester.expectToBeVisible = () => {
+                expectToBeVisible();
+
+                if ((
+                    domElement.closest('.cm-chats--account-popup') || new JsTester_NoElement()
+                ).parentNode.style.visibility == 'hidden') {
+                    throw new Error('Выпадающий список статусов должен быть видимым.');
+                }
+            };
             
             tester.expectToBeSelected = () => {
+                tester.expectToBeVisible();
+
                 if (!isSelected()) {
                     throw new Error(`Статус "${text}" должен быть выбран.`);
                 }
             };
 
             tester.expectNotToBeSelected = () => {
+                tester.expectToBeVisible();
+
                 if (isSelected()) {
                     throw new Error(`Статус "${text}" не должен быть выбран.`);
                 }

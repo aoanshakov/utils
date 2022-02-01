@@ -262,9 +262,7 @@ define(function () {
 
         this.getCallsGridItem = getCallsGridItem;
 
-        this.spinner = testersFactory.createDomElementTester(function () {
-            return document.querySelector('.clct-spinner');
-        });
+        this.spinner = testersFactory.createDomElementTester('.clct-spinner, .ant-spin');
 
         this.callsGridItemNameContainer = function (name) {
             function createTester (index) {
@@ -963,6 +961,29 @@ define(function () {
             }, {
                 id: 124827,
                 numb: '79161238931'
+            }, {
+                id: 124828,
+                numb: '79161238932'
+            }, {
+                id: 124829,
+                numb: '79161238933'
+            }, {
+                id: 124830,
+                numb: '79162594727',
+                comment: 'Другой номер'
+            }, {
+                id: 124831,
+                numb: '79161238935',
+                comment: 'Еще один номер'
+            }, {
+                id: 124832,
+                numb: '79161238936'
+            }, {
+                id: 124833,
+                numb: '79161238937'
+            }, {
+                id: 124834,
+                numb: '79161238938'
             }];
 
             function addMethods (me) {
@@ -2419,7 +2440,20 @@ define(function () {
                 me = this,
                 checkBody = function () {};
 
+            var checkStarting = function (request) {
+                return request.
+                    expectBodyToHaveSubstringsConsideringOrder('8 9 111', 'PCMA', 'opus').
+                    expectBodyNotToHaveSubstring('103');
+            };
+
             var result = {
+                dontSortCodecs: function () {
+                    checkStarting = function (request) {
+                        return request.expectBodyToHaveSubstringsConsideringOrder('103', 'opus', 'PCMA');
+                    };
+
+                    return this;
+                },
                 setNumberWith8AtBegining: function () {
                     phoneNumber = '89161234567';
                     return this;
@@ -2454,9 +2488,9 @@ define(function () {
                             expectHeaderToContain('To', '<sip:' + phoneNumber + '@voip.uiscom.ru>');
                     }
 
-                    var request = sip.recentRequest().
+                    var request = checkStarting(sip.recentRequest().
                         expectToHaveMethod('INVITE').
-                        expectToHaveServerName('sip:' + phoneNumber + '@voip.uiscom.ru');
+                        expectToHaveServerName('sip:' + phoneNumber + '@voip.uiscom.ru'));
 
                     checkBody(request);
                     checkFromAndToHeaders(request);
@@ -2590,12 +2624,27 @@ define(function () {
                         setSdpType().
                         addHeader('From: <sip:' + phone + '@132.121.82.37:5060;user=phone>').
                         addHeader('Contact: <sip:' + phone + '@132.121.82.37:5060;user=phone>').
-                        setBody(
+                        setBody([
                             'v=0',
-                            'o=bell 53655765 2353687637 IN IР4 12.3.4.5',
-                            'c=IN IP4 kton.bell-tel.com',
-                            'm=audio 3456 RTP/AVP 0345'
-                        ).
+                            'o=- 1638965704 1638965704 IN IP4 195.211.122.90',
+                            's=-',
+                            'c=IN IP4 195.211.122.90',
+                            't=0 0',
+                            'm=audio 14766 UDP/TLS/RTP/SAVP 8 0 3 100',
+                            'a=rtpmap:8 PCMA/8000',
+                            'a=rtpmap:0 PCMU/8000',
+                            'a=rtpmap:3 gsm/8000',
+                            'a=rtpmap:100 telephone-event/8000',
+                            'a=fmtp:100 0-15',
+                            'a=fingerprint:SHA-256 EE:58:77:15:B2:19:86:C9:77:FC:DB:BB:9F:10:CA:84:7C:C9:E2:AE:12:2C:B7:70:2D:F0:14:7C:3A:DB:5E:93',
+                            'a=setup:actpass',
+                            'a=ice-ufrag:dlbqce4u',
+                            'a=ice-pwd:ivtw78mzrtw9kce6rojog0',
+                            'a=candidate:1 1 UDP 2130706431 195.211.122.90 14766 typ host',
+                            'a=rtcp-mux',
+                            'a=sendrecv',
+                            'a=silenceSupp:off - - - -'
+                        ].join("\r\n")).
                         receive();
                     
                     sip.recentResponse().expectTrying();

@@ -1,5 +1,18 @@
 define(function () {
     function SentSipMessage (message, webSocket, uaOptions, lines, headers) {
+        var textExpectations = new JsTester_TextExpectations(function (args) {
+            var substring = args.substring,
+                maybeNot = args.maybeNot,
+                actualContent = args.actualContent;
+
+            throw new Error(
+                'SIP-сообщение ' + maybeNot + 'должно содержать ' +
+                (typeof substring == 'string' ? 'подстроку' : 'подстроки') + ' "' +
+                (typeof substring == 'string' ? substring : substring.join('", "')) + '", тогда, как оно содержит ' +
+                'текст "' + actualContent + '".'
+            );
+        });
+
         message.split("\r\n").forEach(function (line) {
             lines.push(line);
         });
@@ -79,9 +92,35 @@ define(function () {
 
             return this;
         };
+        function getBody () {
+            return (message.split("\r\n\r\n")[1] || '').trim();
+        }
+        this.expectBodyToHaveSubstringsConsideringOrder = function () {
+            textExpectations.expectTextToHaveSubstringsConsideringOrder(
+                getBody(),
+                Array.prototype.slice.call(arguments, 0)
+            );
+
+            return this;
+        };
+        this.expectBodyNotToHaveSubstrings = function () {
+            Array.prototype.slice.call(arguments, 0).forEach(function (expectedSubstring) {
+                this.expectBodyNotToHaveSubstring(expectedSubstring);
+            }.bind(this));
+
+            return this;
+        };
+        this.expectBodyNotToHaveSubstring = function (expectedSubstring) {
+            textExpectations.expectTextNotToHaveSubstring({
+                actualContent: getBody(),
+                substring: expectedSubstring
+            });
+
+            return this;
+        };
         this.expectToHaveBody = function () {
             var expectedBody = Array.prototype.join.call(arguments, "\r\n").trim(),
-                actualBody = (message.split("\r\n\r\n")[1] || '').trim();
+                actualBody = getBody();
 
             if (actualBody != expectedBody) {
                 throw new Error('Сообщение должно иметь такое тело: ' + "\n\n" + expectedBody + "\n\n" +
