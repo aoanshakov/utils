@@ -2652,6 +2652,12 @@ define(function () {
                     Promise.runAll(false, true);
 
                     return {
+                        expectCancelToBeSent: function () {
+                            this.cancel();
+                        },
+                        expectByeToBeSent: function () {
+                            this.finish();
+                        },
                         cancel: function () {
                             response.request().
                                 setServerName('voip.uiscom.ru').

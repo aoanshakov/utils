@@ -700,12 +700,24 @@ tests.addTest(options => {
                                                         });
                                                     });
                                                     describe('Поступил входящий звонок.', function() {
+                                                        let incomingCall;
+
                                                         beforeEach(function() {
-                                                            tester.incomingCall().thirdNumber().receive();
+                                                            incomingCall = tester.incomingCall().thirdNumber().
+                                                                receive();
                                                             tester.numaRequest().thirdNumber().receiveResponse();
                                                             tester.outCallEvent().anotherPerson().receive();
                                                         });
 
+                                                        it(
+                                                            'Нажимаю на кнопку отклонения звонка на второй линии.',
+                                                        function() {
+                                                            tester.otherChannelCallNotification.
+                                                                stopCallButton.
+                                                                click();
+
+                                                            incomingCall.expectCancelToBeSent();
+                                                        });
                                                         it(
                                                             'Нажимаю на кнопку второй линии. Кнпока принятия звонка ' +
                                                             'заблокирована.',
