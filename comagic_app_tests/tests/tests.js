@@ -1657,7 +1657,7 @@ tests.addTest(options => {
                     tester.statusesList.item('Доступен').expectNotToBeSelected();
                     tester.statusesList.item('Перерыв').expectToBeSelected();
 
-                   tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
+                    tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
                 });
                 it('Отображен список статусов.', function() {
                     tester.statusesList.item('Доступен').expectToBeSelected();
