@@ -389,7 +389,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    describe('Нажимаю на кнопку "Настройки".', function() {
+                                    describe('Нажимаю на кнопку "Настройки". Нажимаю на кнопку "Софтфон".', function() {
                                         beforeEach(function() {
                                             tester.button('Настройки').click();
                                             tester.popover.button('Софтфон').click();
@@ -562,9 +562,7 @@ tests.addTest(options => {
                                                 tester.playerButton.findElement('svg').expectToExist();
                                             });
                                         });
-                                        it(
-                                            'Нажимаю на кнопку "Общие настройки". Форма настроек заполнена правильно.',
-                                        function() {
+                                        it('Выбираю режим IP-телефон. Измнения применены.', function() {
                                             tester.button('IP-телефон').click();
                                             tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().
                                                 receiveResponse();
@@ -577,6 +575,10 @@ tests.addTest(options => {
 
                                             tester.button('Текущее устройство').expectNotToBeChecked();
                                             tester.button('IP-телефон').expectToBeChecked();
+                                        });
+                                        it('Установлены настройки по умолчанию.', function() {
+                                            tester.button('Текущее устройство').expectToBeChecked();
+                                            tester.button('IP-телефон').expectNotToBeChecked();
                                         });
                                     });
                                 });
