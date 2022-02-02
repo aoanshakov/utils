@@ -616,55 +616,74 @@ tests.addTest(options => {
                                                 });
 
                                                 describe('Получены данные контакта.', function() {
+                                                    let outCallSessionEvent;
+
                                                     beforeEach(function() {
-                                                        tester.outCallSessionEvent().receive();
+                                                        outCallSessionEvent = tester.outCallSessionEvent();
                                                     });
 
-                                                    describe('Поступил входящий звонок.', function() {
+                                                    describe('Нет активных сделок.', function() {
                                                         beforeEach(function() {
-                                                            tester.incomingCall().thirdNumber().receive();
-                                                            tester.numaRequest().thirdNumber().receiveResponse();
-                                                            tester.outCallEvent().anotherPerson().receive();
+                                                            outCallSessionEvent.receive();
                                                         });
 
+                                                        describe('Поступил входящий звонок.', function() {
+                                                            beforeEach(function() {
+                                                                tester.incomingCall().thirdNumber().receive();
+                                                                tester.numaRequest().thirdNumber().receiveResponse();
+                                                                tester.outCallEvent().anotherPerson().receive();
+                                                            });
+
+                                                            it(
+                                                                'Вызываемый занят. Отображено сообщение о звонке.',
+                                                            function() {
+                                                                outboundCall.receiveBusy();
+
+                                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                                    'Гигова Петранка Входящий...'
+                                                                );
+                                                            });
+                                                            it('Отображено сообщение о звонке.', function() {
+                                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                                    'Гигова Петранка Входящий...'
+                                                                );
+                                                            });
+                                                        });
                                                         it(
-                                                            'Вызываемый занят. Отображено сообщение о звонке.',
+                                                            'Звонок принят. Отображено имя, номер и таймер.',
                                                         function() {
-                                                            outboundCall.receiveBusy();
+                                                            outboundCall.setAccepted();
 
+                                                            tester.outgoingIcon.expectToBeVisible();
                                                             tester.softphone.expectTextContentToHaveSubstring(
-                                                                'Гигова Петранка Входящий...'
+                                                                'Шалева Дора +7 (916) 123-45-67 00:00:00'
                                                             );
                                                         });
-                                                        it('Отображено сообщение о звонке.', function() {
+                                                        it(
+                                                            'Нажимаю на кнопку остановки звонка. Ввожу тот же самый ' +
+                                                            'номер. Отображается поле номера.',
+                                                        function() {
+                                                            tester.stopCallButton.click();
+                                                            tester.requestCancelOutgoingCall();
+
+                                                            tester.phoneField.fill('79161234567');
+
+                                                            tester.phoneField.expectToHaveValue('79161234567');
+                                                        });
+                                                        it('Отображено имя, номер и таймер.', function() {
+                                                            tester.softphone.expectToBeCollapsed();
+                                                            tester.outgoingIcon.expectToBeVisible();
                                                             tester.softphone.expectTextContentToHaveSubstring(
-                                                                'Гигова Петранка Входящий...'
+                                                                'Шалева Дора +7 (916) 123-45-67 00:00:00'
                                                             );
                                                         });
                                                     });
-                                                    it('Звонок принят. Отображено имя, номер и таймер.', function() {
-                                                        outboundCall.setAccepted();
+                                                    it('Есть активные сделки. Отображены активные сделки.', function() {
+                                                        outCallSessionEvent.activeLeads().receive();
 
-                                                        tester.outgoingIcon.expectToBeVisible();
-                                                        tester.softphone.expectTextContentToHaveSubstring(
-                                                            'Шалева Дора +7 (916) 123-45-67 00:00:00'
-                                                        );
-                                                    });
-                                                    it(
-                                                        'Нажимаю на кнопку остановки звонка. Ввожу тот же самый ' +
-                                                        'номер. Отображается поле номера.',
-                                                    function() {
-                                                        tester.stopCallButton.click();
-                                                        tester.requestCancelOutgoingCall();
-
-                                                        tester.phoneField.fill('79161234567');
-
-                                                        tester.phoneField.expectToHaveValue('79161234567');
-                                                    });
-                                                    it('Отображено имя, номер и таймер.', function() {
-                                                        tester.outgoingIcon.expectToBeVisible();
-                                                        tester.softphone.expectTextContentToHaveSubstring(
-                                                            'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                        tester.softphone.expectToBeExpanded();
+                                                        tester.anchor('По звонку с 79154394340').expectHrefToHavePath(
+                                                            'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
                                                         );
                                                     });
                                                 });
@@ -1040,6 +1059,72 @@ tests.addTest(options => {
                                                 it('Нажимаю на кнопку диалпада. Отображен диалпад.', function() {
                                                     tester.dialpadVisibilityButton.click();
                                                     tester.dialpadButton(1).expectToBeVisible();;
+                                                });
+                                            });
+                                            describe('Совершаю исходящий звонок.', function() {
+                                                let outboundCall,
+                                                    outCallSessionEvent;
+
+                                                beforeEach(function() {
+                                                    tester.phoneField.fill('79161234567');
+                                                    tester.callButton.click();
+
+                                                    tester.firstConnection.connectWebRTC();
+                                                    tester.allowMediaInput();
+
+                                                    outboundCall = tester.outboundCall().start().setRinging();
+                                                    tester.firstConnection.callTrackHandler();
+
+                                                    tester.numaRequest().receiveResponse();
+                                                    outCallSessionEvent = tester.outCallSessionEvent();
+                                                });
+
+                                                describe('Есть открытые сделки.', function() {
+                                                    beforeEach(function() {
+                                                        outCallSessionEvent.activeLeads().receive();
+                                                    });
+
+                                                    describe('Нажимаю на кнопку сворачивания.', function() {
+                                                        beforeEach(function() {
+                                                            tester.collapsednessToggleButton.click();
+                                                        });
+
+                                                        it(
+                                                            'Нажимаю на кнопку разворачивания. Отображены открытые ' +
+                                                            'сделки.',
+                                                        function() {
+                                                            tester.collapsednessToggleButton.click();
+
+                                                            tester.anchor('По звонку с 79154394340').
+                                                                expectHrefToHavePath(
+                                                                    'https://comagicwidgets.amocrm.ru/leads/detail/' +
+                                                                    '3003651'
+                                                                );
+                                                        });
+                                                        it('Софтфон свернут.', function() {
+                                                            tester.softphone.expectToBeCollapsed();
+                                                        });
+                                                    });
+                                                    it('Отображены открытые сделки.', function() {
+                                                        tester.softphone.expectToBeExpanded();
+                                                        tester.anchor('По звонку с 79154394340').expectHrefToHavePath(
+                                                            'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
+                                                        );
+
+                                                        tester.dialpadVisibilityButton.
+                                                            expectToHaveClass('cmg-button-disabled');
+                                                        tester.dialpadVisibilityButton.
+                                                            expectNotToHaveClass('cmg-button-pressed');
+                                                    });
+                                                });
+                                                it('Нет открытых сделки. Отображен диалпад.', function() {
+                                                    outCallSessionEvent.receive();
+                                                    tester.dialpadButton(1).expectToBeVisible();;
+
+                                                    tester.dialpadVisibilityButton.
+                                                        expectNotToHaveClass('cmg-button-disabled');
+                                                    tester.dialpadVisibilityButton.
+                                                        expectToHaveClass('cmg-button-pressed');
                                                 });
                                             });
                                             it('Диалпад открыт.', function() {
