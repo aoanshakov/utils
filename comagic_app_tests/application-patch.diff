@@ -12,7 +12,7 @@ index cf35fde4..32dc7c45 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index e5bbea52..eda5d630 100644
+index e5bbea52..cd8a1f86 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -10,6 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
@@ -156,7 +156,7 @@ index e5bbea52..eda5d630 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -282,16 +346,91 @@ module.exports = {
+@@ -282,16 +346,103 @@ module.exports = {
                      },
                  ],
              },
@@ -208,7 +208,19 @@ index e5bbea52..eda5d630 100644
 +            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingSubstitutionRules': `${miscDirectory}/Stub.js`,
 +            'callTracking/NumberPools': `${miscDirectory}/Stub.js`,
-+            'callTracking/Sites': `${miscDirectory}/Stub.js`
++            'callTracking/Sites': `${miscDirectory}/Stub.js`,
++            'analytics/CreateDashboardButton': `${miscDirectory}/Stub.js`,
++            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
++            'analytics/CreateReport': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/ChiefDashboard': `${miscDirectory}/Stub.js`,
++            'analytics/Communications': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/Dashboard': `${miscDirectory}/Stub.js`,
++            'analytics/DealsAnalytics': `${miscDirectory}/Stub.js`,
++            'analytics/Deals': `${miscDirectory}/Stub.js`,
++            'analytics/Leads': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/MarketerDashboard': `${miscDirectory}/Stub.js`,
++            'analytics/SharedReport': `${miscDirectory}/Stub.js`,
++            'analytics/cancelPendingRequests': `${miscDirectory}/Stub.js`,
          },
 +        plugins: [{
 +            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
