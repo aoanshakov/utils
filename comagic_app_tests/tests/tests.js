@@ -404,7 +404,7 @@ tests.addTest(options => {
                                                 let ringtoneRequest;
 
                                                 beforeEach(function() {
-                                                    tester.slider.click(25);
+                                                    tester.slider.click(26);
 
                                                     tester.fieldRow('Микрофон').select.arrow.click();
                                                     tester.select.option('Микрофон SURE').click();
@@ -1817,6 +1817,17 @@ tests.addTest(options => {
 
                 operatorOfflineMessageListRequest.receiveResponse();
                 chatListRequest.receiveResponse();
+
+                requests = ajax.inAnyOrder();
+
+                const operatorOfflineMessageList2Request =
+                    tester.operatorOfflineMessageListRequest().expectToBeSent(requests);
+                const chatList2Request = tester.chatListRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                operatorOfflineMessageList2Request.receiveResponse();
+                chatList2Request.receiveResponse();
             });
 
             describe('Нажимаю на кнопку аккаунта.', function() {
