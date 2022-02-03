@@ -663,8 +663,8 @@ tests.addTest(options => {
                                                                     );
                                                                 });
                                                                 it(
-                                                                    'Нажимаю на кнопку второй линии. Принимаю звонок на ' +
-                                                                    'второй линии. Отображаются данные о звонке.',
+                                                                    'Нажимаю на кнопку второй линии. Принимаю звонок ' +
+                                                                    'на второй линии. Отображаются данные о звонке.',
                                                                 function() {
                                                                     tester.secondLineButton.click();
                                                                     tester.callStartingButton.click();
@@ -1106,8 +1106,8 @@ tests.addTest(options => {
                                                         });
                                                     });
                                                     describe(
-                                                        'Открываю историю звонков. Нажимаю на кнопку сворачивания ' +
-                                                        'софтфона.',
+                                                        'Открываю историю звонков. Нажимаю на кнопку ' +
+                                                        'сворачивания софтфона.',
                                                     function() {
                                                         beforeEach(function() {
                                                             tester.callsHistoryButton.click();
@@ -1447,6 +1447,67 @@ tests.addTest(options => {
                                             spendTime(5000);
                                             tester.expectPingToBeSent();
                                             spendTime(2000);
+
+                                            tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
+                                            tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
+                                        });
+                                        it(
+                                            'Перехожу на вторую линию. Выхожу и вхожу в софтфон заново. Активна ' +
+                                            'первая линия.',
+                                        function() {
+                                            tester.secondLineButton.click();
+
+                                            tester.userName.putMouseOver();
+                                            tester.logoutButton.click();
+
+                                            tester.userLogoutRequest().receiveResponse();
+
+                                            Promise.runAll(false, true);
+                                            spendTime(0);
+                                            Promise.runAll(false, true);
+                                            spendTime(0);
+                                            Promise.runAll(false, true);
+                                            spendTime(0);
+
+                                            tester.authLogoutRequest().receiveResponse();
+                                            tester.eventsWebSocket.finishDisconnecting();
+                                            tester.registrationRequest().expired().receiveResponse();
+
+                                            spendTime(2000);
+                                            tester.webrtcWebsocket.finishDisconnecting();
+
+                                            tester.input.withFieldLabel('Логин').fill('botusharova');
+                                            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                                            tester.button('Войти').click();
+
+                                            tester.loginRequest().anotherAuthorizationToken().receiveResponse();
+                                            accountRequest = tester.accountRequest().anotherAuthorizationToken().
+                                                expectToBeSent();
+                                            accountRequest.receiveResponse();
+                                            tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+
+                                            tester.reportGroupsRequest().anotherAuthorizationToken().
+                                                receiveResponse();
+                                            tester.reportsListRequest().receiveResponse();
+                                            tester.reportTypesRequest().receiveResponse();
+
+                                            tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
+                                            tester.configRequest().softphone().receiveResponse();
+
+                                            tester.statusesRequest().createExpectation().
+                                                anotherAuthorizationToken().checkCompliance().receiveResponse();
+
+                                            tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
+                                            tester.talkOptionsRequest().receiveResponse();
+                                            tester.permissionsRequest().receiveResponse();
+
+                                            tester.connectEventsWebSocket(1);
+                                            tester.connectSIPWebSocket(1);
+
+                                            tester.authenticatedUserRequest().receiveResponse();
+                                            tester.registrationRequest().receiveResponse();
+                                            tester.allowMediaInput();
 
                                             tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
                                             tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
