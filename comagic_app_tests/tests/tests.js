@@ -635,7 +635,8 @@ tests.addTest(options => {
                                                             describe('Поступил входящий звонок.', function() {
                                                                 beforeEach(function() {
                                                                     tester.incomingCall().thirdNumber().receive();
-                                                                    tester.numaRequest().thirdNumber().receiveResponse();
+                                                                    tester.numaRequest().thirdNumber().
+                                                                        receiveResponse();
                                                                     tester.outCallEvent().anotherPerson().receive();
                                                                 });
 
@@ -683,6 +684,17 @@ tests.addTest(options => {
                                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                                         'Гигова Петранка ' +
                                                                         '+7 (916) 123-45-10 00:00:00'
+                                                                    );
+                                                                });
+                                                                it(
+                                                                    'Нажимаю на сообщение о звонке. Открыта вторая ' +
+                                                                    'линия.',
+                                                                function() {
+                                                                    tester.otherChannelCallNotification.click();
+
+                                                                    tester.softphone.expectTextContentToHaveSubstring(
+                                                                        'Гигова Петранка ' +
+                                                                        '+7 (916) 123-45-10'
                                                                     );
                                                                 });
                                                                 it('Отображено сообщение о звонке.', function() {
