@@ -385,6 +385,8 @@ function JsTester_AudioTrack (options) {
         } : {};
     };
 
+    this.stop = function () {};
+
     Object.defineProperty(this, 'kind', {
         set: function () {},
         get: function () {
