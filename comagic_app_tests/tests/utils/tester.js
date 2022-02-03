@@ -421,6 +421,11 @@ define(() => function ({
         };
 
         return {
+            activeLeads() {
+                addActiveLeads(params);
+                return this;
+            },
+
             noName() {
                 params.crm_contact_link = null;
                 params.contact_full_name = null;
@@ -436,6 +441,18 @@ define(() => function ({
             }
         };
     };
+    
+    const addActiveLeads = params => (params.active_leads = [{
+        url: 'https://comagicwidgets.amocrm.ru/leads/detail/3003649',
+        name: 'По звонку на 79154394339',
+        status: 'Открыт',
+        pipeline: 'Переговоры'
+    }, {
+        url: 'https://comagicwidgets.amocrm.ru/leads/detail/3003651',
+        name: 'По звонку с 79154394340',
+        status: 'Закрыт',
+        pipeline: 'Согласование договора'
+    }]);
 
     me.outCallEvent = () => {
         const params = {
@@ -471,18 +488,7 @@ define(() => function ({
             },
 
             activeLeads() {
-                params.active_leads = [{
-                    url: 'https://comagicwidgets.amocrm.ru/leads/detail/3003649',
-                    name: 'По звонку на 79154394339',
-                    status: 'Открыт',
-                    pipeline: 'Переговоры'
-                }, {
-                    url: 'https://comagicwidgets.amocrm.ru/leads/detail/3003651',
-                    name: 'По звонку с 79154394340',
-                    status: 'Закрыт',
-                    pipeline: 'Согласование договора'
-                }];
-
+                addActiveLeads(params);
                 return this;
             },
 

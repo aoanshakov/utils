@@ -12,7 +12,7 @@ index f25e3cd..aa3fe16 100644
          defaultSounds: (incomingRingtone ? {incomingRingtone} : {}),
          ...getWebRTCConfig(),
 diff --git a/package.json b/package.json
-index b9188dd..5aac179 100644
+index 2ef02ea..6e76cbb 100644
 --- a/package.json
 +++ b/package.json
 @@ -33,7 +33,6 @@
@@ -20,7 +20,7 @@ index b9188dd..5aac179 100644
      "webpack-cli": "^4.2.0",
      "babel-loader": "^8.0.4",
 -    "@uiscom/uis_webrtc": "1.3.20",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#e00377aa5868ad9dc4aa29d3fc159a27f5db02c6"
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#9047b50715ff07b2e533e33d876bb28a2c7333be"
 +    "@uiscom/uis_webrtc": "./uis_webrtc"
    }
  }
