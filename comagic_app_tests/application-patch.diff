@@ -9,7 +9,7 @@ index 3dbc8c6f..fa3b1413 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-va0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 1f1b2be3..38b017b7 100644
+index 1f1b2be3..581f16b5 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,9 +8,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -24,11 +24,12 @@ index 1f1b2be3..38b017b7 100644
  
  const { ModuleFederationPlugin } = webpack.container;
  const deps = require('../package.json').dependencies;
-@@ -19,14 +20,26 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -19,14 +20,27 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
 +const miscDirectory = `${appDirectory}/misc`;
++const magicUIDirectory = `${miscDirectory}/magic_ui`;
  const dotenv = path.resolve(appDirectory, '.env');
  const isProductionMode = NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
@@ -46,12 +47,12 @@ index 1f1b2be3..38b017b7 100644
 +                }`,
 +            },
 +            javascriptEnabled: true,
-+        }
-+    }
++        },
++    },
  };
  
  const fontsOptions = isProductionMode
-@@ -180,7 +193,7 @@ const plugins = () => {
+@@ -180,7 +194,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -60,7 +61,7 @@ index 1f1b2be3..38b017b7 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -191,7 +204,11 @@ const plugins = () => {
+@@ -191,7 +205,11 @@ const plugins = () => {
                  softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js?[getRandomHash()]`,
              },
          }),
@@ -73,7 +74,7 @@ index 1f1b2be3..38b017b7 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -201,6 +218,13 @@ const plugins = () => {
+@@ -201,6 +219,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -87,12 +88,12 @@ index 1f1b2be3..38b017b7 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -220,6 +244,21 @@ module.exports = {
+@@ -220,6 +245,21 @@ module.exports = {
      module: {
          rules: [
              {
 +                test: /\.js$/,
-+                exclude: /node_modules(?!\/uis-softphone\/)/,
++                exclude: /node_modules(?!\/(uis-softphone|magic-ui)\/)/,
 +                use: [{
 +                    loader: 'babel-loader',
 +                    options: {
@@ -109,7 +110,46 @@ index 1f1b2be3..38b017b7 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -265,6 +304,7 @@ module.exports = {
+@@ -239,7 +279,7 @@ module.exports = {
+                         }),
+                     },
+                 },
+-                exclude: /node_modules/,
++                exclude: /node_modules(?!\/(uis-softphone|magic-ui)\/)/,
+             },
+             {
+                 test: /\.css$/,
+@@ -250,6 +290,29 @@ module.exports = {
+                 use: cssLoaders(lessLoader),
+             },
+             {
++                test: /\.(sa|sc|c)ss$/,
++                include: `${magicUIDirectory}/src`,
++                use: [
++                    {
++                        loader: MiniCssExtractPlugin.loader,
++                    },
++                    {
++                        loader: 'css-loader',
++                    },
++                    {
++                        loader: 'resolve-url-loader',
++                    },
++                    {
++                        loader: 'sass-loader',
++                        options: {
++                            sassOptions: {
++                                includePaths: [magicUIDirectory]
++                            }
++                        }
++                    },
++                ],
++            },
++            {
+                 test: /\.(png|jpg)$/,
+                 loader: 'url-loader',
+                 options: {
+@@ -265,6 +328,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -117,7 +157,7 @@ index 1f1b2be3..38b017b7 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -280,16 +320,103 @@ module.exports = {
+@@ -280,16 +344,103 @@ module.exports = {
                      },
                  ],
              },
