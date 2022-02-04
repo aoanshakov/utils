@@ -9,18 +9,18 @@ index 3dbc8c6f..fa3b1413 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-va0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0470e8ab..26b95c63 100644
+index 1f1b2be3..357291a2 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
-@@ -10,6 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
- const TerserPlugin = require('terser-webpack-plugin');
+@@ -11,6 +11,7 @@ const TerserPlugin = require('terser-webpack-plugin');
+ const ExternalRemotesPlugin = require('external-remotes-plugin');
  const comagicCoreDeps = require('@comagic/core/package.json');
  const magicUIDeps = require('magic-ui/package.json');
 +const hash = require('string-hash');
  
  const { ModuleFederationPlugin } = webpack.container;
  const deps = require('../package.json').dependencies;
-@@ -18,14 +19,26 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -19,14 +20,26 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
@@ -47,7 +47,7 @@ index 0470e8ab..26b95c63 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -179,7 +192,7 @@ const plugins = () => {
+@@ -180,7 +193,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -56,12 +56,12 @@ index 0470e8ab..26b95c63 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -189,7 +202,11 @@ const plugins = () => {
-                 callTracking: `callTracking@${process.env.REACT_APP_MODULE_CALL_TRACKING}/remoteEntry.js`,
-                 softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
+@@ -191,7 +204,11 @@ const plugins = () => {
+                 softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js?[getRandomHash()]`,
              },
--        }),
-+        }),*/
+         }),
+-        new ExternalRemotesPlugin(),
++        new ExternalRemotesPlugin(),*/
 +
 +        new webpack.optimize.LimitChunkCountPlugin({
 +            maxChunks: 1
@@ -69,7 +69,7 @@ index 0470e8ab..26b95c63 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -199,6 +216,13 @@ const plugins = () => {
+@@ -201,6 +218,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -83,7 +83,7 @@ index 0470e8ab..26b95c63 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -218,6 +242,21 @@ module.exports = {
+@@ -220,6 +244,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -105,7 +105,7 @@ index 0470e8ab..26b95c63 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -263,6 +302,7 @@ module.exports = {
+@@ -265,6 +304,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -113,7 +113,7 @@ index 0470e8ab..26b95c63 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -278,16 +318,103 @@ module.exports = {
+@@ -280,16 +320,103 @@ module.exports = {
                      },
                  ],
              },
@@ -222,10 +222,10 @@ index 0470e8ab..26b95c63 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index 22c477ad..bf7cf4b9 100644
+index 43323102..f74de2c9 100644
 --- a/package.json
 +++ b/package.json
-@@ -51,7 +51,7 @@
+@@ -52,7 +52,7 @@
      "husky": "^6.0.0",
      "json-server": "^0.16.0",
      "less": "^3.10.3",
@@ -234,7 +234,7 @@ index 22c477ad..bf7cf4b9 100644
      "mini-css-extract-plugin": "^1.3.9",
      "prettier": "^1.19.1",
      "serve": "^11.3.2",
-@@ -59,8 +59,8 @@
+@@ -60,8 +60,8 @@
      "style-loader": "^2.0.0",
      "terser-webpack-plugin": "^5.1.4",
      "ts-import-plugin": "^1.6.7",
@@ -245,7 +245,7 @@ index 22c477ad..bf7cf4b9 100644
      "url-loader": "^3.0.0",
      "webpack": "^5.38.1",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -69,6 +69,8 @@
+@@ -70,6 +70,8 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -254,7 +254,7 @@ index 22c477ad..bf7cf4b9 100644
      "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.4.0",
      "axios": "^0.24.0",
      "classnames": "^2.2.6",
-@@ -77,7 +79,7 @@
+@@ -78,7 +80,7 @@
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
@@ -263,7 +263,7 @@ index 22c477ad..bf7cf4b9 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -85,8 +87,9 @@
+@@ -86,8 +88,9 @@
      "nanoid": "^3.2.0",
      "react": "^17.0.2",
      "react-dom": "^17.0.2",
