@@ -9,11 +9,15 @@ index 3dbc8c6f..fa3b1413 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-va0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 1f1b2be3..357291a2 100644
+index 1f1b2be3..38b017b7 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
-@@ -11,6 +11,7 @@ const TerserPlugin = require('terser-webpack-plugin');
- const ExternalRemotesPlugin = require('external-remotes-plugin');
+@@ -8,9 +8,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+ const TerserPlugin = require('terser-webpack-plugin');
+-const ExternalRemotesPlugin = require('external-remotes-plugin');
++//const ExternalRemotesPlugin = require('external-remotes-plugin');
  const comagicCoreDeps = require('@comagic/core/package.json');
  const magicUIDeps = require('magic-ui/package.json');
 +const hash = require('string-hash');
