@@ -46,6 +46,9 @@ define(() => function ({
     Promise.runAll(false, true);
 
     const addTesters = (me, getRootElement) => {
+        me.stopCallButton = testersFactory.createDomElementTester(() =>
+            utils.getVisibleSilently(getRootElement().querySelectorAll('.cmg-call-button-stop')));
+
         me.callStartingButton = testersFactory.createDomElementTester(() =>
             utils.getVisibleSilently(getRootElement().querySelectorAll('.cmg-call-button-start')));
 
@@ -2180,7 +2183,6 @@ define(() => function ({
     me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
     me.addressBookButton = testersFactory.createDomElementTester('#cmg-address-book-button');
     me.contactOpeningButton = testersFactory.createDomElementTester('#cmg-open-contact-button');
-    me.stopCallButton = testersFactory.createDomElementTester('.cmg-call-button-stop');
 
     me.anchor = text => testersFactory.createAnchorTester(() =>
         utils.descendantOfBody().matchesSelector('a').textEquals(text).find());

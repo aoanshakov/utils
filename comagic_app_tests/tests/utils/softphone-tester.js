@@ -262,7 +262,7 @@ define(function () {
 
         this.getCallsGridItem = getCallsGridItem;
 
-        this.spinner = testersFactory.createDomElementTester('.clct-spinner, .ant-spin');
+        this.spinner = testersFactory.createDomElementTester('.clct-spinner, .ant-spin, .ui-spin-icon');
 
         this.callsGridItemNameContainer = function (name) {
             function createTester (index) {
@@ -2654,6 +2654,15 @@ define(function () {
                     Promise.runAll(false, true);
 
                     return {
+                        expectTemporarilyUnavailableToBeSent: function () {
+                            me.requestDeclineIncomingCall();
+                        },
+                        receiveCancel: function () {
+                            this.cancel();
+                        },
+                        receiveBye: function () {
+                            this.finish();
+                        },
                         cancel: function () {
                             response.request().
                                 setServerName('voip.uiscom.ru').
