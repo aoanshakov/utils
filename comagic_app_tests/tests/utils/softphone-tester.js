@@ -989,12 +989,14 @@ define(function () {
             function addMethods (me) {
                 me.setOnlyOneNumber = function () {
                     data = [{
-                        id: 124823,
-                        numb: '79161238927'
+                        id: 124824,
+                        numb: '74950216806'
                     }];
 
                     return me;
                 };
+
+                me.onlyOneNumber = me.setOnlyOneNumber;
 
                 me.withoutFourthNumber = function () {
                     data.splice(3, 1);
@@ -1011,13 +1013,14 @@ define(function () {
 
             return addMethods({
                 expectToBeSent: function () {
+                    var request = ajax.recentRequest().
+                        expectPathToContain('/sup/api/v1/number_capacity/077368');
+
                     return addMethods({
                         receiveResponse: function () {
-                            ajax.recentRequest().
-                                expectPathToContain('/sup/api/v1/number_capacity/077368').
-                                respondSuccessfullyWith({
-                                    data: data 
-                                });
+                            request.respondSuccessfullyWith({
+                                data: data 
+                            });
 
                             Promise.runAll();
                         }
