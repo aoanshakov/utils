@@ -2062,7 +2062,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-    describe('Открываю дектопное приложение софтфона.', function() {
+    describe('Открываю десктопное приложение софтфона.', function() {
         let tester;
 
         describe('Софтфон не должен отображаться поверх окон при входящем.', function() {
@@ -2249,7 +2249,7 @@ tests.addTest(options => {
                     });
                     describe('Раскрываю список статусов.', function() {
                         beforeEach(function() {
-                            tester.userName.putMouseOver();
+                            tester.userName.click();
                         });
 
                         it('Нажимаю на кнопку "Выход". Вхожу в софтфон заново. Удалось войти.', function() {
@@ -2346,7 +2346,7 @@ tests.addTest(options => {
                         spendTime(2000);
                         tester.webrtcWebsocket.finishDisconnecting();
 
-                        tester.userName.putMouseOver();
+                        tester.userName.click();
                         tester.statusesList.item('Выход').click();
 
                         tester.userLogoutRequest().receiveResponse();
@@ -2439,10 +2439,14 @@ tests.addTest(options => {
                     it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
                         tester.dialpadVisibilityButton.click();
 
-                        tester.userName.putMouseOver();
+                        tester.userName.click();
 
                         tester.statusesList.item('Не беспокоить').expectToBeSelected();
                         tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
+                    });
+                    it('Помещаю курсор над иконкой аккаунта. Список статусов не открывается.', function() {
+                        tester.userName.putMouseOver();
+                        tester.statusesList.item('Не беспокоить').expectNotToExist();
                     });
                     it('Некие сообщения выведены в лог.', function() {
                         getPackage('electron-log').expectToContain('State changed');
@@ -2451,7 +2455,7 @@ tests.addTest(options => {
                 });
                 it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
                     authenticatedUserRequest.sipIsOffline().receiveResponse();
-                    tester.userName.putMouseOver();
+                    tester.userName.click();
 
                     tester.statusesList.item('Не беспокоить').expectToBeSelected();
                 });
