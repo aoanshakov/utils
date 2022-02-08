@@ -2293,6 +2293,47 @@ tests.addTest(options => {
                             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                         });
                     });
+                    describe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
+                        let incomingCall;
+
+                        beforeEach(function() {
+                            incomingCall = tester.incomingCall().receive();
+                            tester.numaRequest().receiveResponse();
+                            tester.outCallEvent().activeLeads().receive();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('incoming-call').
+                                expectToBeSentWithArguments(false);
+                        });
+
+                        it(
+                            'Нажимаю на цифру. Звонок принят. Нажимаю на решетку. Отправляется DTMF. Звучит тон.',
+                        function() {
+                            utils.pressEnter();
+
+                            tester.firstConnection.connectWebRTC();
+                            tester.firstConnection.callTrackHandler();
+
+                            tester.allowMediaInput();
+                            tester.firstConnection.addCandidate();
+                            tester.requestAcceptIncomingCall();
+
+                            utils.pressKey('7');
+                            tester.dtmf('7').send();
+                            tester.expectToneSevenToPlay();
+                        });
+                        it('Нажимаю на клавишу Esc. Звонок отклоняется.', function() {
+                            utils.pressEscape();
+                            incomingCall.expectTemporarilyUnavailableToBeSent();
+                        });
+                        it('Нажимаю на открытую сделку. Открывается страница сделки.', function() {
+                            tester.anchor('По звонку с 79154394340').click();
+
+                            getPackage('electron').shell.
+                                expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/leads/detail/3003651');
+                        });
+                    });
                     describe('Нажимаю на кнопку дебага.', function() {
                         beforeEach(function() {
                             tester.bugButton.click();
@@ -2409,24 +2450,6 @@ tests.addTest(options => {
                             'Гигова Петранка Входящий...'
                         );
                     });
-                    it(
-                        'Поступает входящий звонок от пользователя имеющего открытые сделки. Нажимаю на открытую ' +
-                        'сделку. Открывается страница сделки.',
-                    function() {
-                        tester.incomingCall().receive();
-                        tester.numaRequest().receiveResponse();
-                        tester.outCallEvent().activeLeads().receive();
-
-                        getPackage('electron').ipcRenderer.
-                            recentlySentMessage().
-                            expectToBeSentToChannel('incoming-call').
-                            expectToBeSentWithArguments(false);
-
-                        tester.anchor('По звонку с 79154394340').click();
-
-                        getPackage('electron').shell.
-                            expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/leads/detail/3003651');
-                    });
                     it('Открываю историю звонков. Открывается страница контакта.', function() {
                         tester.callsHistoryButton.click();
                         tester.callsRequest().receiveResponse();
@@ -2448,7 +2471,13 @@ tests.addTest(options => {
                         tester.userName.putMouseOver();
                         tester.statusesList.item('Не беспокоить').expectNotToExist();
                     });
+                    it('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
+                        utils.pressKey('7');
+                        tester.phoneField.expectToBeFocused();
+                    });
                     it('Некие сообщения выведены в лог.', function() {
+                        tester.phoneField.expectNotToBeFocused();
+
                         getPackage('electron-log').expectToContain('State changed');
                         getPackage('electron-log').expectToContain('/auth/json_rpc');
                     });
