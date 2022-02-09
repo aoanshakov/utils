@@ -1274,76 +1274,6 @@ tests.addTest(options => {
                                                 }
                                             });
                                         });
-                                        describe('Нажимаю на кнопку таблицы сотрудников.', function() {
-                                            beforeEach(function() {
-                                                tester.addressBookButton.click();
-
-                                                tester.usersRequest().receiveResponse();
-                                                tester.usersInGroupsRequest().receiveResponse();
-                                                tester.groupsRequest().receiveResponse();
-                                            });
-
-                                            it('Соединение разрывается.', function() {
-                                                tester.disconnectEventsWebSocket();
-                                                tester.employeeRow('Шалева Дора').expectToBeDisaled();
-
-                                                tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
-                                            });
-                                            it('Нажимаю на кнопку первой линии. Софтфон свернут.', function() {
-                                                tester.firstLineButton.click();
-                                                tester.softphone.expectToBeCollapsed();
-                                            });
-                                            it('Нажимаю на кнопку диалпада. Отображен диалпад.', function() {
-                                                tester.dialpadVisibilityButton.click();
-                                                tester.dialpadButton(1).expectToBeVisible();;
-                                            });
-                                            it('Отображена таблица сотрудников.', function() {
-                                                tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
-                                                tester.softphone.expectToBeExpanded();
-                                            });
-                                        });
-                                        describe('Нажимаю на кнопку разворачивания софтфона.', function() {
-                                            beforeEach(function() {
-                                                tester.collapsednessToggleButton.click();
-                                            });
-
-                                            it(
-                                                'Нажимаю на кнопку сворачивания софтфона. Кнопка удаления цифры ' +
-                                                'скрыта.',
-                                            function() {
-                                                tester.collapsednessToggleButton.click();
-                                                tester.digitRemovingButton.expectNotToExist();
-                                            });
-                                            it('Кнопка удаления цифры видима.', function() {
-                                                tester.digitRemovingButton.expectToBeVisible();
-                                            });
-                                        });
-                                        it(
-                                            'Софтфон открыт в другом окне. Отображено сообщение о том, что софтфон ' +
-                                            'открыт в другом окне.',
-                                        function() {
-                                            tester.eventsWebSocket.disconnect(4429);
-                                            tester.authLogoutRequest().receiveResponse();
-                                            tester.registrationRequest().expired().receiveResponse();
-                                            
-                                            spendTime(2000);
-                                            tester.webrtcWebsocket.finishDisconnecting();
-
-                                            tester.softphone.
-                                                expectTextContentToHaveSubstring('Софтфон открыт в другом окне');
-                                        });
-                                        it(
-                                            'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
-                                            'сообщение об установке соединения.',
-                                        function() {
-                                            spendTime(5000);
-                                            tester.expectPingToBeSent();
-                                            spendTime(2000);
-
-                                            tester.softphone.expectToHaveTextContent(
-                                                'Устанавливается соединение...'
-                                            );
-                                        });
                                         describe('Нажимаю на кнопку аккаунта.', function() {
                                             beforeEach(function() {
                                                 tester.userName.putMouseOver();
@@ -1436,6 +1366,11 @@ tests.addTest(options => {
                                                 tester.statusesList.item('Нет на месте').expectNotToBeSelected();
 
                                                 tester.statusesList.expectTextContentToHaveSubstring(
+                                                    'Ганева Стефка ' +
+                                                    'Внутренний номер: 9119 ' +
+
+                                                    'Статусы ' +
+
                                                     'Доступен ' +
                                                     'Перерыв ' +
                                                     'Не беспокоить ' +
@@ -1443,6 +1378,76 @@ tests.addTest(options => {
                                                     'Нет на работе'
                                                 );
                                             });
+                                        });
+                                        describe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                            beforeEach(function() {
+                                                tester.addressBookButton.click();
+
+                                                tester.usersRequest().receiveResponse();
+                                                tester.usersInGroupsRequest().receiveResponse();
+                                                tester.groupsRequest().receiveResponse();
+                                            });
+
+                                            it('Соединение разрывается.', function() {
+                                                tester.disconnectEventsWebSocket();
+                                                tester.employeeRow('Шалева Дора').expectToBeDisaled();
+
+                                                tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
+                                            });
+                                            it('Нажимаю на кнопку первой линии. Софтфон свернут.', function() {
+                                                tester.firstLineButton.click();
+                                                tester.softphone.expectToBeCollapsed();
+                                            });
+                                            it('Нажимаю на кнопку диалпада. Отображен диалпад.', function() {
+                                                tester.dialpadVisibilityButton.click();
+                                                tester.dialpadButton(1).expectToBeVisible();;
+                                            });
+                                            it('Отображена таблица сотрудников.', function() {
+                                                tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
+                                                tester.softphone.expectToBeExpanded();
+                                            });
+                                        });
+                                        describe('Нажимаю на кнопку разворачивания софтфона.', function() {
+                                            beforeEach(function() {
+                                                tester.collapsednessToggleButton.click();
+                                            });
+
+                                            it(
+                                                'Нажимаю на кнопку сворачивания софтфона. Кнопка удаления цифры ' +
+                                                'скрыта.',
+                                            function() {
+                                                tester.collapsednessToggleButton.click();
+                                                tester.digitRemovingButton.expectNotToExist();
+                                            });
+                                            it('Кнопка удаления цифры видима.', function() {
+                                                tester.digitRemovingButton.expectToBeVisible();
+                                            });
+                                        });
+                                        it(
+                                            'Софтфон открыт в другом окне. Отображено сообщение о том, что софтфон ' +
+                                            'открыт в другом окне.',
+                                        function() {
+                                            tester.eventsWebSocket.disconnect(4429);
+                                            tester.authLogoutRequest().receiveResponse();
+                                            tester.registrationRequest().expired().receiveResponse();
+                                            
+                                            spendTime(2000);
+                                            tester.webrtcWebsocket.finishDisconnecting();
+
+                                            tester.softphone.
+                                                expectTextContentToHaveSubstring('Софтфон открыт в другом окне');
+                                        });
+                                        it(
+                                            'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
+                                            'сообщение об установке соединения.',
+                                        function() {
+                                            spendTime(5000);
+                                            tester.expectPingToBeSent();
+                                            spendTime(2000);
+
+                                            tester.softphone.expectToHaveTextContent(
+                                                'Устанавливается соединение...'
+                                            );
                                         });
                                         it(
                                             'Соединение разрывается. Отображено сообщение об установке соединения.',
