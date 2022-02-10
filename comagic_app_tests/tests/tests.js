@@ -1993,7 +1993,7 @@ tests.addTest(options => {
                         tester.softphone.expectToBeCollapsed();
 
                         tester.softphone.expectTextContentToHaveSubstring(
-                            'Sip-линия не зарегистрирована'
+                            'Нет доступной sip-линии'
                         );
                     });
                 });
