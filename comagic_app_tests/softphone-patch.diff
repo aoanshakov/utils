@@ -28,59 +28,10 @@ index 7a23ca4..0793165 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 2f969a7..92d6b93 100644
+index b0dc696..92d6b93 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -9,13 +9,19 @@ import { setStartApp, setStartMinimize } from 'uis-softphone/settings/actions';
- import createSoftphoneMiddleware from 'uis-softphone/middleware';
- import thunkMiddleware from 'redux-thunk';
- import { combineReducers, createStore, applyMiddleware } from 'redux';
--import { INTERCEPT_REQUEST, SET_STATUSES, JSSIP_INBOUNDING_CALL_INCOMING } from 'uis-softphone/constants';
- import { STATUSES_MANAGER_CREATED } from 'uis-softphone/authorization/constants.js';
- import { AuthStore } from './auth/AuthStore';
- import { EmployeesStore } from './employees/EmployeesStore';
- import { WebsocketStore } from './websocket/WebsocketStore';
- import { StatusesStore } from './statuses/StatusesStore';
- 
-+import {
-+    INTERCEPT_REQUEST,
-+    SET_STATUSES,
-+    JSSIP_INBOUNDING_CALL_INCOMING,
-+    JSSIP_CALL_ENDED 
-+} from 'uis-softphone/constants';
-+
- type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
- 
- export type ConfigProps = {
-@@ -56,7 +62,8 @@ export const RootStore = types
-                 i18n = createI18N(),
-                 isSingleApp = window.rootConfig?.appName == 'softphone';
- 
--            let handleIncomingCall = () => null;
-+            let handleIncomingCall = () => null,
-+                handlerCallEnd = () => null;
- 
-             let fileLogger = {
-                 downloadLog: () => null,
-@@ -97,6 +104,9 @@ export const RootStore = types
-                 createSoftphoneMiddleware(),
-                 store => next => action => {
-                     switch (action.type) {
-+                        case JSSIP_CALL_ENDED:
-+                            handlerCallEnd(store.getState().settings.closeOnCallEnd);
-+                            break;
-                         case JSSIP_INBOUNDING_CALL_INCOMING:
-                             handleIncomingCall(store.getState().settings.toTopOnCall);
-                             break;
-@@ -149,6 +159,7 @@ export const RootStore = types
-             self.statusesStore.setStatusUpdator((statusId: number) => dispatch(setStatus(statusId)));
-             self.setDictonary = i18n.setDictonary;
-             self.setIncomingCallHandler = value => (handleIncomingCall = value);
-+            self.setCallEndHandler = value => (handlerCallEnd = value);
-             window.addEventListener('toggleSoftphoneVisiblity', () => dispatch(toggleWidgetVisiblity));
- 
-             {
-@@ -275,4 +286,5 @@ export const RootStore = types
+@@ -286,4 +286,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
