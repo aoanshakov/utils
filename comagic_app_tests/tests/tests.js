@@ -1631,6 +1631,40 @@ tests.addTest(options => {
                         });
                     });
                 });
+                describe('Номера должны быть скрыты.', function() {
+                    beforeEach(function() {
+                        reportGroupsRequest.receiveResponse();
+                        settingsRequest.shouldHideNumbers().receiveResponse();
+
+                        tester.connectEventsWebSocket();
+                        tester.connectSIPWebSocket();
+
+                        tester.authenticatedUserRequest().receiveResponse();
+                        tester.registrationRequest().receiveResponse();
+                        tester.allowMediaInput();
+                    });
+
+                    it('Открываю историю звонков.', function() {
+                        tester.button('Софтфон').click();
+
+                        tester.callsHistoryButton.click();
+                        tester.callsRequest().noContactName().receiveResponse();
+
+                        tester.softphone.expectTextContentToHaveSubstring(
+                            'Сегодня ' +
+                            'Неизвестный номер 08:03 ' +
+
+                            'Вчера ' +
+                            'Манова Тома 18:08'
+                        );
+                    });
+                    it('Поступает входящий звонок. Поступает входящий звонок.', function() {
+                        tester.incomingCall().receive();
+                        tester.numaRequest().receiveResponse();
+
+                        tester.softphone.expectTextContentToHaveSubstring('Неизвестный номер Поиск контакта...');
+                    });
+                });
                 it(
                     'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
