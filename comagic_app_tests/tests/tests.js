@@ -1758,7 +1758,8 @@ tests.addTest(options => {
                                                 'Стираю введенное в поле поиска значение. Отображены все номера.',
                                             function() {
                                                 tester.input.withPlaceholder('Найти').clear();
-                                                tester.select.popup.expectTextContentToHaveSubstring('+7 (916) 123-89-27');
+                                                tester.select.popup.
+                                                    expectTextContentToHaveSubstring('+7 (916) 123-89-27');
                                             });
                                             it('Номер найден.', function() {
                                                 tester.select.popup.
@@ -2143,7 +2144,7 @@ tests.addTest(options => {
                                     expectToBeSentToChannel('startminimizechange').
                                     expectToBeSentWithArguments(true);
 
-                                tester.button('Поверх окон при входящем').expectNotToBeChecked();
+                                tester.button('Открывать во время звонка').expectNotToBeChecked();
                                 tester.button('Автозапуск приложения').expectToBeChecked();
                                 tester.button('Запускать свернуто').expectToBeChecked();
                             });
@@ -2152,12 +2153,12 @@ tests.addTest(options => {
                                     isStartMinimize: true
                                 });
 
-                                tester.button('Поверх окон при входящем').expectNotToBeChecked();
+                                tester.button('Открывать во время звонка').expectNotToBeChecked();
                                 tester.button('Автозапуск приложения').expectToBeChecked();
                                 tester.button('Запускать свернуто').expectToBeChecked();
                             });
                             it('Форма настроек корректно заполнена.', function() {
-                                tester.button('Поверх окон при входящем').expectNotToBeChecked();
+                                tester.button('Открывать во время звонка').expectNotToBeChecked();
                                 tester.button('Автозапуск приложения').expectToBeChecked();
 
                                 tester.button('Запускать свернуто').expectToBeEnabled();
@@ -2175,19 +2176,21 @@ tests.addTest(options => {
                                 expectToBeSentToChannel('autolauncherchange').
                                 expectToBeSentWithArguments(true);
 
-                            tester.button('Поверх окон при входящем').expectNotToBeChecked();
+                            tester.button('Открывать во время звонка').expectNotToBeChecked();
                             tester.button('Автозапуск приложения').expectToBeChecked();
                             tester.button('Запускать свернуто').expectNotToBeChecked();
                         });
-                        it('Отмечаю свитчбокс "Поверх окон при входящем". Значение параметра сохранено.', function() {
-                            tester.button('Поверх окон при входящем').click();
+                        it('Отмечаю свитчбокс "Открывать во время звонка". Значение параметра сохранено.', function() {
+                            tester.button('Открывать во время звонка').click();
 
-                            tester.button('Поверх окон при входящем').expectToBeChecked();
+                            tester.button('Открывать во время звонка').expectToBeChecked();
                             tester.button('Автозапуск приложения').expectNotToBeChecked();
                             tester.button('Запускать свернуто').expectNotToBeChecked();
 
                             if (localStorage.getItem('clct:to_top_on_call') !== 'true') {
-                                throw new Error('Значение параметра "Поверх окон при входящем" должно быть сохранено.');
+                                throw new Error(
+                                    'Значение параметра "Открывать во время звонка" должно быть сохранено.'
+                                );
                             }
                         });
                         it('Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".', function() {
@@ -2240,7 +2243,8 @@ tests.addTest(options => {
                             tester.button('Текущее устройство').expectToBeChecked();
                             tester.button('IP-телефон').expectNotToBeChecked();
 
-                            tester.button('Поверх окон при входящем').expectNotToBeChecked();
+                            tester.button('Открывать во время звонка').expectNotToBeChecked();
+                            tester.button('Скрывать после звонка').expectToBeChecked();
                             tester.button('Автозапуск приложения').expectNotToBeChecked();
 
                             tester.button('Запускать свернуто').expectNotToBeChecked();
@@ -2326,6 +2330,11 @@ tests.addTest(options => {
                         it('Нажимаю на клавишу Esc. Звонок отклоняется.', function() {
                             utils.pressEscape();
                             incomingCall.expectTemporarilyUnavailableToBeSent();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('call-end').
+                                expectToBeSentWithArguments(true);
                         });
                         it('Нажимаю на открытую сделку. Открывается страница сделки.', function() {
                             tester.anchor('По звонку с 79154394340').click();
@@ -2496,6 +2505,81 @@ tests.addTest(options => {
                 tester.button('Войти').expectToBeVisible();
             });
         });
+        describe(
+            'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
+        function() {
+            beforeEach(function() {
+                tester = new Tester({
+                    ...options,
+                    appName: 'softphone'
+                });
+
+                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
+                
+                tester.input.withFieldLabel('Логин').fill('botusharova');
+                tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                tester.button('Войти').click();
+
+                tester.loginRequest().receiveResponse();
+                tester.configRequest().softphone().receiveResponse();
+
+                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
+
+                tester.accountRequest().receiveResponse();
+                tester.authCheckRequest().receiveResponse();
+                tester.statusesRequest().receiveResponse();
+                tester.settingsRequest().receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                tester.connectEventsWebSocket();
+                tester.connectSIPWebSocket();
+
+                tester.allowMediaInput();
+
+                tester.authenticatedUserRequest().receiveResponse();
+                tester.registrationRequest().receiveResponse();
+            });
+
+            describe('Поступил входящий звонок.', function() {
+                let incomingCall;
+
+                beforeEach(function() {
+                    incomingCall = tester.incomingCall().receive();
+                    tester.numaRequest().receiveResponse();
+                    tester.outCallEvent().receive();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('incoming-call').
+                        expectToBeSentWithArguments(true);
+                });
+
+                it('Звонок завершен. Отправлено сообщение о необходимости закрыть окно софтфона.', function() {
+                    tester.stopCallButton.click();
+                    incomingCall.expectTemporarilyUnavailableToBeSent();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('call-end').
+                        expectToBeSentWithArguments(true);
+                });
+                it('Не одно сообщение не отправлено в бэк электрона.', function() {
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectNotToBeSent();
+                });
+            });
+            it(
+                'Открываю настройки. Свитчбоксы "Открывать во время звонка" и "Скрывать после звонка" отмечены.',
+            function() {
+                tester.settingsButton.click();
+                
+                tester.button('Открывать во время звонка').expectToBeChecked();
+                tester.button('Скрывать после звонка').expectToBeChecked();
+            });
+        });
         describe('Софтфон должен отображаться поверх окон при входящем.', function() {
             beforeEach(function() {
                 localStorage.setItem('clct:to_top_on_call', 'true');
@@ -2543,13 +2627,15 @@ tests.addTest(options => {
                     expectToBeSentToChannel('incoming-call').
                     expectToBeSentWithArguments(true);
             });
-            it('Открываю настройки. Свитчбокс "Поверх окон при входящем" отмечен.', function() {
+            it('Открываю настройки. Свитчбокс "Открывать во время звонка" отмечен.', function() {
                 tester.settingsButton.click();
-                tester.button('Поверх окон при входящем').expectToBeChecked();
+                tester.button('Открывать во время звонка').expectToBeChecked();
             });
         });
-        describe('Настройка отображения поверх окон при входящем не сохранена.', function() {
+        describe('Софтфон не должен скрываться после звонка.', function() {
             beforeEach(function() {
+                localStorage.setItem('clct:close_on_call_end', 'false');
+
                 tester = new Tester({
                     ...options,
                     appName: 'softphone'
@@ -2583,8 +2669,11 @@ tests.addTest(options => {
                 tester.registrationRequest().receiveResponse();
             });
 
-            it('Поступил входящий звонок. Отправлено сообщение о необходимости поднять окно софтфона.', function() {
-                tester.incomingCall().receive();
+            it(
+                'Поступил входящий звонок. Звонок завершен. Отправлено сообщение о том, что скрывать окно софтфона ' +
+                'не нужно.',
+            function() {
+                const incomingCall = tester.incomingCall().receive();
                 tester.numaRequest().receiveResponse();
                 tester.outCallEvent().receive();
 
@@ -2592,10 +2681,82 @@ tests.addTest(options => {
                     recentlySentMessage().
                     expectToBeSentToChannel('incoming-call').
                     expectToBeSentWithArguments(true);
+
+                tester.stopCallButton.click();
+                incomingCall.expectTemporarilyUnavailableToBeSent();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('call-end').
+                    expectToBeSentWithArguments(false);
             });
-            it('Открываю настройки. Свитчбокс "Поверх окон при входящем" отмечен.', function() {
+            it('Открываю настройки. Свитчбокс "Скрывать после звонка" не отмечен.', function() {
                 tester.settingsButton.click();
-                tester.button('Поверх окон при входящем').expectToBeChecked();
+
+                tester.button('Открывать во время звонка').expectToBeChecked();
+                tester.button('Скрывать после звонка').expectNotToBeChecked();
+            });
+        });
+        describe('Софтфон должен скрываться после звонка.', function() {
+            beforeEach(function() {
+                localStorage.setItem('clct:close_on_call_end', 'true');
+
+                tester = new Tester({
+                    ...options,
+                    appName: 'softphone'
+                });
+
+                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
+                
+                tester.input.withFieldLabel('Логин').fill('botusharova');
+                tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                tester.button('Войти').click();
+
+                tester.loginRequest().receiveResponse();
+                tester.configRequest().softphone().receiveResponse();
+
+                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
+
+                tester.accountRequest().receiveResponse();
+                tester.authCheckRequest().receiveResponse();
+                tester.statusesRequest().receiveResponse();
+                tester.settingsRequest().receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                tester.connectEventsWebSocket();
+                tester.connectSIPWebSocket();
+
+                tester.allowMediaInput();
+
+                tester.authenticatedUserRequest().receiveResponse();
+                tester.registrationRequest().receiveResponse();
+            });
+
+            it(
+                'Поступил входящий звонок. Звонок завершен. Отправлено сообщение о необходимости скрыть окно софтфона.',
+            function() {
+                const incomingCall = tester.incomingCall().receive();
+                tester.numaRequest().receiveResponse();
+                tester.outCallEvent().receive();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('incoming-call').
+                    expectToBeSentWithArguments(true);
+
+                tester.stopCallButton.click();
+                incomingCall.expectTemporarilyUnavailableToBeSent();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('call-end').
+                    expectToBeSentWithArguments(true);
+            });
+            it('Открываю настройки. Свитчбокс "Скрывать после звонка" отмечен.', function() {
+                tester.settingsButton.click();
+                tester.button('Скрывать после звонка').expectToBeChecked();
             });
         });
     });

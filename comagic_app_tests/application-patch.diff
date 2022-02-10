@@ -12,18 +12,22 @@ index cf35fde4..32dc7c45 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index e5bbea52..cd8a1f86 100644
+index af3bdacc..8037f5b2 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
-@@ -10,6 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+@@ -8,9 +8,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
  const TerserPlugin = require('terser-webpack-plugin');
+-const ExternalRemotesPlugin = require('external-remotes-plugin');
++//const ExternalRemotesPlugin = require('external-remotes-plugin');
  const comagicCoreDeps = require('@comagic/core/package.json');
  const magicUIDeps = require('magic-ui/package.json');
 +const hash = require('string-hash');
  
  const { ModuleFederationPlugin } = webpack.container;
  const deps = require('../package.json').dependencies;
-@@ -18,14 +19,27 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -19,14 +20,27 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
@@ -51,7 +55,7 @@ index e5bbea52..cd8a1f86 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -183,7 +197,7 @@ const plugins = () => {
+@@ -184,7 +198,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -60,11 +64,10 @@ index e5bbea52..cd8a1f86 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -193,7 +207,11 @@ const plugins = () => {
-                 callTracking: `callTracking@${process.env.REACT_APP_MODULE_CALL_TRACKING}/remoteEntry.js`,
-                 softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
+@@ -196,6 +210,11 @@ const plugins = () => {
              },
--        }),
+         }),
+         new ExternalRemotesPlugin(),
 +        }),*/
 +
 +        new webpack.optimize.LimitChunkCountPlugin({
@@ -73,7 +76,7 @@ index e5bbea52..cd8a1f86 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -203,6 +221,13 @@ const plugins = () => {
+@@ -205,6 +224,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -87,7 +90,7 @@ index e5bbea52..cd8a1f86 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -222,6 +247,21 @@ module.exports = {
+@@ -224,6 +250,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -109,7 +112,7 @@ index e5bbea52..cd8a1f86 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -241,7 +281,7 @@ module.exports = {
+@@ -243,7 +284,7 @@ module.exports = {
                          }),
                      },
                  },
@@ -118,7 +121,7 @@ index e5bbea52..cd8a1f86 100644
              },
              {
                  test: /\.css$/,
-@@ -252,6 +292,29 @@ module.exports = {
+@@ -254,6 +295,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -148,7 +151,7 @@ index e5bbea52..cd8a1f86 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -267,6 +330,7 @@ module.exports = {
+@@ -269,6 +333,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -156,7 +159,7 @@ index e5bbea52..cd8a1f86 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -282,16 +346,103 @@ module.exports = {
+@@ -284,16 +349,103 @@ module.exports = {
                      },
                  ],
              },
@@ -265,10 +268,10 @@ index e5bbea52..cd8a1f86 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index 96375af4..0dacf825 100644
+index a8141602..c95834f2 100644
 --- a/package.json
 +++ b/package.json
-@@ -63,8 +63,8 @@
+@@ -64,8 +64,8 @@
      "style-loader": "^2.0.0",
      "terser-webpack-plugin": "^5.1.4",
      "ts-import-plugin": "^1.6.7",
@@ -279,7 +282,7 @@ index 96375af4..0dacf825 100644
      "url-loader": "^3.0.0",
      "webpack": "^5.38.1",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -77,6 +77,8 @@
+@@ -78,6 +78,8 @@
      "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
      "axios": "^0.24.0",
@@ -288,7 +291,7 @@ index 96375af4..0dacf825 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -86,7 +88,7 @@
+@@ -87,7 +89,7 @@
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
@@ -297,7 +300,7 @@ index 96375af4..0dacf825 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -96,6 +98,8 @@
+@@ -97,6 +99,8 @@
      "react-dom": "^17.0.2",
      "react-intl": "5.15.8",
      "react-router-dom": "^5.1.2",
