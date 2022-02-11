@@ -372,6 +372,7 @@ tests.addTest(options => {
                                             tester.outCallEvent().longName().receive();
                                         });
                                         it('Отображено сообщение о поиске контакта.', function() {
+                                            tester.interceptButton.expectNotToExist();
                                             tester.contactOpeningButton.expectNotToExist();
                                             tester.incomingIcon.expectToBeVisible();
                                             tester.softphone.expectTextContentToHaveSubstring(
@@ -1531,6 +1532,19 @@ tests.addTest(options => {
                                             tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
                                             tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
                                         });
+                                        it(
+                                            'Нажимаю на кнопку перехвата. Совершается исходящий звонок на номер 88.',
+                                        function() {
+                                            tester.interceptButton.click();
+
+                                            tester.firstConnection.connectWebRTC();
+                                            tester.allowMediaInput();
+
+                                            tester.outboundCall().intercept().start().setRinging();
+                                            tester.firstConnection.callTrackHandler();
+
+                                            tester.numaRequest().intercept().receiveResponse();
+                                        });
                                         it('Отображен софтфон.', function() {
                                             if (localStorage.getItem('isSoftphoneHigh') != 'false') {
                                                 throw new Error(
@@ -1548,6 +1562,7 @@ tests.addTest(options => {
                                             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
                                             tester.softphone.expectToBeCollapsed();
                                             tester.settingsButton.expectNotToExist();
+                                            tester.callStartingButton.expectToHaveAttribute('disabled');
                                         });
                                     });
                                     it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {

@@ -539,6 +539,11 @@ define(() => function ({
             respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
 
         return {
+            intercept: function () {
+                numa = 88;
+                return this;
+            },
+
             thirdNumber: function () {
                 numa = 79161234510;
                 return this;
@@ -2328,6 +2333,8 @@ define(() => function ({
 
         return tester;
     })();
+
+    me.interceptButton = testersFactory.createDomElementTester('.cmg-intercept-button');
 
     return me;
 });

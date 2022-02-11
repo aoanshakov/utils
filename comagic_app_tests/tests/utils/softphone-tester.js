@@ -2457,6 +2457,10 @@ define(function () {
 
                     return this;
                 },
+                intercept: function () {
+                    phoneNumber = '88';
+                    return this;
+                },
                 setNumberWith8AtBegining: function () {
                     phoneNumber = '89161234567';
                     return this;
