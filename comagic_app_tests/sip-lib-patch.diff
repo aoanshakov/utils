@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index db6d1f0..ddf4021 100644
+index 6e9b05a..50445ed 100644
 --- a/package.json
 +++ b/package.json
-@@ -33,7 +33,6 @@
+@@ -37,7 +37,6 @@
      "webpack": "5.28.0",
      "webpack-cli": "^4.2.0",
      "babel-loader": "^8.0.4",
@@ -11,4 +11,3 @@ index db6d1f0..ddf4021 100644
 +    "@uiscom/uis_webrtc": "./uis_webrtc"
    }
  }
-\ No newline at end of file

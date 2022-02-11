@@ -11,7 +11,10 @@ tests.addTest(options => {
         setNow,
         fileReader,
         userMedia,
-        audioDecodingTester
+        audioDecodingTester,
+        notificationTester,
+        setFocus,
+        setBrowserHidden
     } = options;
 
     afterEach(function() {
@@ -76,6 +79,7 @@ tests.addTest(options => {
 
                     beforeEach(function() {
                         settingsRequest.receiveResponse();
+                        notificationTester.grantPermission();
 
                         tester.connectEventsWebSocket();
                         tester.connectSIPWebSocket();
@@ -579,6 +583,22 @@ tests.addTest(options => {
                                             tester.button('Текущее устройство').expectToBeChecked();
                                             tester.button('IP-телефон').expectNotToBeChecked();
                                         });
+                                    });
+                                    it(
+                                        'Браузер скрыт. Поступил входящий звонок. Отображено браузерное уведомление.',
+                                    function() {
+                                        setFocus(false);
+                                        setBrowserHidden(true);
+
+                                        tester.incomingCall().receive();
+                                        tester.numaRequest().receiveResponse();
+                                        tester.outCallEvent().receive();
+
+                                        notificationTester.grantPermission().
+                                            recentNotification().
+                                            expectToHaveTitle('Входящий звонок').
+                                            expectToHaveBody('Шалева Дора +7 (916) 123-45-67').
+                                            expectToBeOpened();
                                     });
                                 });
                                 describe('Нажимаю на иконку с телефоном.', function() {
@@ -1650,6 +1670,7 @@ tests.addTest(options => {
                     beforeEach(function() {
                         reportGroupsRequest.receiveResponse();
                         settingsRequest.shouldHideNumbers().receiveResponse();
+                        notificationTester.grantPermission();
 
                         tester.connectEventsWebSocket();
                         tester.connectSIPWebSocket();
@@ -1710,6 +1731,7 @@ tests.addTest(options => {
                     settingsRequest.accessTokenExpired().receiveResponse();
                     tester.refreshRequest().receiveResponse();
                     tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
+                    notificationTester.grantPermission();
 
                     tester.connectEventsWebSocket();
                     tester.connectSIPWebSocket();
@@ -1721,6 +1743,7 @@ tests.addTest(options => {
                 });
                 it('Токен невалиден. Отображена форма аутентификации.', function() {
                     settingsRequest.accessTokenInvalid().receiveResponse();
+                    notificationTester.grantPermission();
                     tester.authLogoutRequest().receiveResponse();
 
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
@@ -1741,6 +1764,7 @@ tests.addTest(options => {
                     describe('У выбранного номера нет комментария.', function() {
                         beforeEach(function() {
                             settingsRequest.receiveResponse();
+                            notificationTester.grantPermission();
                         });
 
                         describe('Пользователь имеет права на выбор номера.', function() {
@@ -1896,6 +1920,7 @@ tests.addTest(options => {
 
                         beforeEach(function() {
                             settingsRequest.numberCapacityComment().receiveResponse();
+                            notificationTester.grantPermission();
                             permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
 
                             tester.connectEventsWebSocket();
@@ -1935,6 +1960,7 @@ tests.addTest(options => {
                     describe('Включено управление звонками на другом устройстве.', function() {
                         beforeEach(function() {
                             settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+                            notificationTester.grantPermission();
                         });
 
                         describe('Соединение установлено.', function() {
@@ -1979,6 +2005,7 @@ tests.addTest(options => {
                     it('Необходимо подключиться к РТУ напрямую. Подключаюсь.', function() {
                         tester.setJsSIPRTUUrl();
                         settingsRequest.setRTU().receiveResponse();
+                        notificationTester.grantPermission();
 
                         tester.connectEventsWebSocket();
                         tester.connectSIPWebSocket();
@@ -1990,6 +2017,7 @@ tests.addTest(options => {
                     });
                     it('Получена некорректная конфигурация прямого подключения к РТУ. Подключаюсь к каме.', function() {
                         settingsRequest.setInvalidRTUConfig().receiveResponse();
+                        notificationTester.grantPermission();
 
                         tester.connectEventsWebSocket();
                         tester.connectSIPWebSocket();
@@ -2001,6 +2029,7 @@ tests.addTest(options => {
                     });
                     it('Телефония недоступна. Отображено сообщение "Sip-линия не зарегистрирована".', function() {
                         settingsRequest.noTelephony().receiveResponse();
+                        notificationTester.grantPermission();
 
                         tester.connectEventsWebSocket();
                         tester.authenticatedUserRequest().receiveResponse();
@@ -2163,6 +2192,7 @@ tests.addTest(options => {
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
+            notificationTester.grantPermission();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
 
@@ -2339,6 +2369,7 @@ tests.addTest(options => {
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
+            notificationTester.grantPermission();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
 
@@ -2394,6 +2425,7 @@ tests.addTest(options => {
         tester.authCheckRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();
         tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
+        notificationTester.grantPermission();
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
 
@@ -2448,6 +2480,7 @@ tests.addTest(options => {
         tester.authCheckRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();
         tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
+        notificationTester.grantPermission();
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
 

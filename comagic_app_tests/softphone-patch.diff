@@ -28,10 +28,29 @@ index ce7b203..0793165 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index b0dc696..92d6b93 100644
+index b0dc696..6597d40 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -286,4 +286,5 @@ export const RootStore = types
+@@ -44,6 +44,8 @@ export const ConfigStore = types
+         return { setConfig };
+     });
+ 
++const returnTrue = () => true;
++
+ export const RootStore = types
+     .model('RootStore', {
+         authStore: types.optional(AuthStore, {}),
+@@ -84,7 +86,8 @@ export const RootStore = types
+ 
+                     return state;
+                 },
+-                mayHideSoftphone: () => () => true,
++                mayHideSoftphone: () => returnTrue,
++                shouldDisplayCallNotification: () => returnTrue,
+                 getPhoneNumber: () => () => '',
+                 createSlavesNotification: () => state => ({}),
+                 getWebRTCConfig: () => () => isSingleApp ? {
+@@ -286,4 +289,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
