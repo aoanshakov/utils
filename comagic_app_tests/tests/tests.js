@@ -109,8 +109,10 @@ tests.addTest(options => {
                                     });
 
                                     describe('Поступил входящий звонок.', function() {
+                                        let incomingCall;
+
                                         beforeEach(function() {
-                                            tester.incomingCall().receive();
+                                            incomingCall = tester.incomingCall().receive();
                                             tester.numaRequest().receiveResponse();
                                         });
 
@@ -371,6 +373,18 @@ tests.addTest(options => {
                                             tester.anchor('По звонку с 79154394340').expectHrefToHavePath(
                                                 'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
                                             );
+                                        });
+                                        it(
+                                            'Потеряно соединение с сервером. Звонок отменен. Рингтон не звучит.',
+                                        function() {
+                                            tester.eventsWebSocket.disconnectAbnormally(1006);
+                                            incomingCall.receiveCancel();
+
+                                            tester.expectNoSoundToPlay();
+                                        });
+                                        it('Звонок отменен. Рингтон не звучит.', function() {
+                                            incomingCall.receiveCancel();
+                                            tester.expectNoSoundToPlay();
                                         });
                                         it('У контакта длинное имя.', function() {
                                             tester.outCallEvent().longName().receive();
