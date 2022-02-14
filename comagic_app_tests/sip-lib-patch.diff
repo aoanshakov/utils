@@ -1,21 +1,8 @@
-diff --git a/authorization/actions.js b/authorization/actions.js
-index f25e3cd..aa3fe16 100644
---- a/authorization/actions.js
-+++ b/authorization/actions.js
-@@ -303,7 +303,7 @@ export const authorization = (authValues, rememberMe) => (dispatch, getState) =>
- 
-     //UISWebRTC.debug();
- 
--    const webRTC = new UISWebRTC({
-+    const webRTC = window.webRTC = new UISWebRTC({
-         opaqueIdPrefix,
-         defaultSounds: (incomingRingtone ? {incomingRingtone} : {}),
-         ...getWebRTCConfig(),
 diff --git a/package.json b/package.json
-index 457f18c..0d9f359 100644
+index 6e9b05a..50445ed 100644
 --- a/package.json
 +++ b/package.json
-@@ -33,7 +33,6 @@
+@@ -37,7 +37,6 @@
      "webpack": "5.28.0",
      "webpack-cli": "^4.2.0",
      "babel-loader": "^8.0.4",
@@ -24,4 +11,3 @@ index 457f18c..0d9f359 100644
 +    "@uiscom/uis_webrtc": "./uis_webrtc"
    }
  }
-\ No newline at end of file

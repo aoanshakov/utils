@@ -2094,9 +2094,27 @@ function JsTester_NotificationMessage (args) {
 
         return this;
     };
+
     this.expectToExist = function () {};
+
     this.expectNotToExist = function (exceptions) {
-        var error = new Error("Ни одно уведомление не должно быть отображено.\n\n" + callStack + "\n\n\n\n");
+        var parts = [
+            ['заголовком', actualTitle],
+            ['тэгом', actualTag],
+            ['телом', actualBody]
+        ].filter(item => !!item[1]).map(item => item[0] + ' "' + item[1] + '"');
+
+        var description = '',
+            length = parts.length;
+
+        if (length) {
+            length > 1 && parts.splice(length - 1, 0, 'и');
+            description = 'Отображено уведомление с ' + parts.join(' ');
+        }
+
+        var error = new Error(
+            description + ". Ни одно уведомление не должно быть отображено.\n\n" + callStack + "\n\n\n\n"
+        );
 
         if (exceptions) {
             exceptions.push(error);

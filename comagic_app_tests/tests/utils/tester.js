@@ -365,6 +365,11 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.noContactName = () => {
+                processors.push(data => (data[0].contact_name = null));
+                return me;
+            };
+
             me.transfer = () => {
                 processors.push(data => (data[0].cdr_type = 'transfer_call'));
                 return me;
@@ -534,6 +539,11 @@ define(() => function ({
             respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
 
         return {
+            intercept: function () {
+                numa = 88;
+                return this;
+            },
+
             thirdNumber: function () {
                 numa = 79161234510;
                 return this;
@@ -686,10 +696,8 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
-            me.incomingCallSoundDisabled = () => {
-                response.data.is_enable_incoming_call_sound = false;
-                return me;
-            };
+            me.shouldHideNumbers = () => ((response.data.is_need_hide_numbers = true), me);
+            me.incomingCallSoundDisabled = () => ((response.data.is_enable_incoming_call_sound = false), me);;
 
             me.noTelephony = () => {
                 Object.keys(response.data).forEach(key => ![
@@ -2325,6 +2333,8 @@ define(() => function ({
 
         return tester;
     })();
+
+    me.interceptButton = testersFactory.createDomElementTester('.cmg-intercept-button');
 
     return me;
 });

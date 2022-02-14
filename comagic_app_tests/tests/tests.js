@@ -13,7 +13,10 @@ tests.addTest(options => {
         userMedia,
         audioDecodingTester,
         blobsTester,
-        windowSize
+        windowSize,
+        notificationTester,
+        setFocus,
+        setBrowserHidden
     } = options;
 
     const getPackage = Tester.createPackagesGetter(options);
@@ -76,6 +79,7 @@ tests.addTest(options => {
 
                     beforeEach(function() {
                         settingsRequest.receiveResponse();
+                        notificationTester.grantPermission();
 
                         tester.connectEventsWebSocket();
                         tester.connectSIPWebSocket();
@@ -374,6 +378,7 @@ tests.addTest(options => {
                                             tester.outCallEvent().longName().receive();
                                         });
                                         it('Отображено сообщение о поиске контакта.', function() {
+                                            tester.interceptButton.expectNotToExist();
                                             tester.contactOpeningButton.expectNotToExist();
                                             tester.incomingIcon.expectToBeVisible();
                                             tester.softphone.expectTextContentToHaveSubstring(
@@ -580,6 +585,22 @@ tests.addTest(options => {
                                             tester.button('Текущее устройство').expectToBeChecked();
                                             tester.button('IP-телефон').expectNotToBeChecked();
                                         });
+                                    });
+                                    it(
+                                        'Браузер скрыт. Поступил входящий звонок. Отображено браузерное уведомление.',
+                                    function() {
+                                        setFocus(false);
+                                        setBrowserHidden(true);
+
+                                        tester.incomingCall().receive();
+                                        tester.numaRequest().receiveResponse();
+                                        tester.outCallEvent().receive();
+
+                                        notificationTester.grantPermission().
+                                            recentNotification().
+                                            expectToHaveTitle('Входящий звонок').
+                                            expectToHaveBody('Шалева Дора +7 (916) 123-45-67').
+                                            expectToBeOpened();
                                     });
                                 });
                                 describe('Нажимаю на иконку с телефоном.', function() {
@@ -1276,76 +1297,6 @@ tests.addTest(options => {
                                                 }
                                             });
                                         });
-                                        describe('Нажимаю на кнопку таблицы сотрудников.', function() {
-                                            beforeEach(function() {
-                                                tester.addressBookButton.click();
-
-                                                tester.usersRequest().receiveResponse();
-                                                tester.usersInGroupsRequest().receiveResponse();
-                                                tester.groupsRequest().receiveResponse();
-                                            });
-
-                                            it('Соединение разрывается.', function() {
-                                                tester.disconnectEventsWebSocket();
-                                                tester.employeeRow('Шалева Дора').expectToBeDisaled();
-
-                                                tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
-                                            });
-                                            it('Нажимаю на кнопку первой линии. Софтфон свернут.', function() {
-                                                tester.firstLineButton.click();
-                                                tester.softphone.expectToBeCollapsed();
-                                            });
-                                            it('Нажимаю на кнопку диалпада. Отображен диалпад.', function() {
-                                                tester.dialpadVisibilityButton.click();
-                                                tester.dialpadButton(1).expectToBeVisible();;
-                                            });
-                                            it('Отображена таблица сотрудников.', function() {
-                                                tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
-                                                tester.softphone.expectToBeExpanded();
-                                            });
-                                        });
-                                        describe('Нажимаю на кнопку разворачивания софтфона.', function() {
-                                            beforeEach(function() {
-                                                tester.collapsednessToggleButton.click();
-                                            });
-
-                                            it(
-                                                'Нажимаю на кнопку сворачивания софтфона. Кнопка удаления цифры ' +
-                                                'скрыта.',
-                                            function() {
-                                                tester.collapsednessToggleButton.click();
-                                                tester.digitRemovingButton.expectNotToExist();
-                                            });
-                                            it('Кнопка удаления цифры видима.', function() {
-                                                tester.digitRemovingButton.expectToBeVisible();
-                                            });
-                                        });
-                                        it(
-                                            'Софтфон открыт в другом окне. Отображено сообщение о том, что софтфон ' +
-                                            'открыт в другом окне.',
-                                        function() {
-                                            tester.eventsWebSocket.disconnect(4429);
-                                            tester.authLogoutRequest().receiveResponse();
-                                            tester.registrationRequest().expired().receiveResponse();
-                                            
-                                            spendTime(2000);
-                                            tester.webrtcWebsocket.finishDisconnecting();
-
-                                            tester.softphone.
-                                                expectTextContentToHaveSubstring('Софтфон открыт в другом окне');
-                                        });
-                                        it(
-                                            'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
-                                            'сообщение об установке соединения.',
-                                        function() {
-                                            spendTime(5000);
-                                            tester.expectPingToBeSent();
-                                            spendTime(2000);
-
-                                            tester.softphone.expectToHaveTextContent(
-                                                'Устанавливается соединение...'
-                                            );
-                                        });
                                         describe('Нажимаю на кнопку аккаунта.', function() {
                                             beforeEach(function() {
                                                 tester.userName.putMouseOver();
@@ -1438,6 +1389,11 @@ tests.addTest(options => {
                                                 tester.statusesList.item('Нет на месте').expectNotToBeSelected();
 
                                                 tester.statusesList.expectTextContentToHaveSubstring(
+                                                    'Ганева Стефка ' +
+                                                    'Внутренний номер: 9119 ' +
+
+                                                    'Статусы ' +
+
                                                     'Доступен ' +
                                                     'Перерыв ' +
                                                     'Не беспокоить ' +
@@ -1445,6 +1401,76 @@ tests.addTest(options => {
                                                     'Нет на работе'
                                                 );
                                             });
+                                        });
+                                        describe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                            beforeEach(function() {
+                                                tester.addressBookButton.click();
+
+                                                tester.usersRequest().receiveResponse();
+                                                tester.usersInGroupsRequest().receiveResponse();
+                                                tester.groupsRequest().receiveResponse();
+                                            });
+
+                                            it('Соединение разрывается.', function() {
+                                                tester.disconnectEventsWebSocket();
+                                                tester.employeeRow('Шалева Дора').expectToBeDisaled();
+
+                                                tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
+                                            });
+                                            it('Нажимаю на кнопку первой линии. Софтфон свернут.', function() {
+                                                tester.firstLineButton.click();
+                                                tester.softphone.expectToBeCollapsed();
+                                            });
+                                            it('Нажимаю на кнопку диалпада. Отображен диалпад.', function() {
+                                                tester.dialpadVisibilityButton.click();
+                                                tester.dialpadButton(1).expectToBeVisible();;
+                                            });
+                                            it('Отображена таблица сотрудников.', function() {
+                                                tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
+                                                tester.softphone.expectToBeExpanded();
+                                            });
+                                        });
+                                        describe('Нажимаю на кнопку разворачивания софтфона.', function() {
+                                            beforeEach(function() {
+                                                tester.collapsednessToggleButton.click();
+                                            });
+
+                                            it(
+                                                'Нажимаю на кнопку сворачивания софтфона. Кнопка удаления цифры ' +
+                                                'скрыта.',
+                                            function() {
+                                                tester.collapsednessToggleButton.click();
+                                                tester.digitRemovingButton.expectNotToExist();
+                                            });
+                                            it('Кнопка удаления цифры видима.', function() {
+                                                tester.digitRemovingButton.expectToBeVisible();
+                                            });
+                                        });
+                                        it(
+                                            'Софтфон открыт в другом окне. Отображено сообщение о том, что софтфон ' +
+                                            'открыт в другом окне.',
+                                        function() {
+                                            tester.eventsWebSocket.disconnect(4429);
+                                            tester.authLogoutRequest().receiveResponse();
+                                            tester.registrationRequest().expired().receiveResponse();
+                                            
+                                            spendTime(2000);
+                                            tester.webrtcWebsocket.finishDisconnecting();
+
+                                            tester.softphone.
+                                                expectTextContentToHaveSubstring('Софтфон открыт в другом окне');
+                                        });
+                                        it(
+                                            'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
+                                            'сообщение об установке соединения.',
+                                        function() {
+                                            spendTime(5000);
+                                            tester.expectPingToBeSent();
+                                            spendTime(2000);
+
+                                            tester.softphone.expectToHaveTextContent(
+                                                'Устанавливается соединение...'
+                                            );
                                         });
                                         it(
                                             'Соединение разрывается. Отображено сообщение об установке соединения.',
@@ -1528,6 +1554,19 @@ tests.addTest(options => {
                                             tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
                                             tester.secondLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
                                         });
+                                        it(
+                                            'Нажимаю на кнопку перехвата. Совершается исходящий звонок на номер 88.',
+                                        function() {
+                                            tester.interceptButton.click();
+
+                                            tester.firstConnection.connectWebRTC();
+                                            tester.allowMediaInput();
+
+                                            tester.outboundCall().intercept().start().setRinging();
+                                            tester.firstConnection.callTrackHandler();
+
+                                            tester.numaRequest().intercept().receiveResponse();
+                                        });
                                         it('Отображен софтфон.', function() {
                                             if (localStorage.getItem('isSoftphoneHigh') != 'false') {
                                                 throw new Error(
@@ -1545,6 +1584,7 @@ tests.addTest(options => {
                                             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
                                             tester.softphone.expectToBeCollapsed();
                                             tester.settingsButton.expectNotToExist();
+                                            tester.callStartingButton.expectToHaveAttribute('disabled');
                                         });
                                     });
                                     it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
@@ -1628,6 +1668,41 @@ tests.addTest(options => {
                         });
                     });
                 });
+                describe('Номера должны быть скрыты.', function() {
+                    beforeEach(function() {
+                        reportGroupsRequest.receiveResponse();
+                        settingsRequest.shouldHideNumbers().receiveResponse();
+                        notificationTester.grantPermission();
+
+                        tester.connectEventsWebSocket();
+                        tester.connectSIPWebSocket();
+
+                        tester.authenticatedUserRequest().receiveResponse();
+                        tester.registrationRequest().receiveResponse();
+                        tester.allowMediaInput();
+                    });
+
+                    it('Открываю историю звонков.', function() {
+                        tester.button('Софтфон').click();
+
+                        tester.callsHistoryButton.click();
+                        tester.callsRequest().noContactName().receiveResponse();
+
+                        tester.softphone.expectTextContentToHaveSubstring(
+                            'Сегодня ' +
+                            'Неизвестный номер 08:03 ' +
+
+                            'Вчера ' +
+                            'Манова Тома 18:08'
+                        );
+                    });
+                    it('Поступает входящий звонок. Поступает входящий звонок.', function() {
+                        tester.incomingCall().receive();
+                        tester.numaRequest().receiveResponse();
+
+                        tester.softphone.expectTextContentToHaveSubstring('Неизвестный номер Поиск контакта...');
+                    });
+                });
                 it(
                     'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
@@ -1658,6 +1733,7 @@ tests.addTest(options => {
                     settingsRequest.accessTokenExpired().receiveResponse();
                     tester.refreshRequest().receiveResponse();
                     tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
+                    notificationTester.grantPermission();
 
                     tester.connectEventsWebSocket();
                     tester.connectSIPWebSocket();
@@ -1669,6 +1745,7 @@ tests.addTest(options => {
                 });
                 it('Токен невалиден. Отображена форма аутентификации.', function() {
                     settingsRequest.accessTokenInvalid().receiveResponse();
+                    notificationTester.grantPermission();
                     tester.authLogoutRequest().receiveResponse();
 
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
@@ -1689,6 +1766,7 @@ tests.addTest(options => {
                     describe('У выбранного номера нет комментария.', function() {
                         beforeEach(function() {
                             settingsRequest.receiveResponse();
+                            notificationTester.grantPermission();
                         });
 
                         describe('Пользователь имеет права на выбор номера.', function() {
@@ -1845,6 +1923,7 @@ tests.addTest(options => {
 
                         beforeEach(function() {
                             settingsRequest.numberCapacityComment().receiveResponse();
+                            notificationTester.grantPermission();
                             permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
 
                             tester.connectEventsWebSocket();
@@ -1884,6 +1963,7 @@ tests.addTest(options => {
                     describe('Включено управление звонками на другом устройстве.', function() {
                         beforeEach(function() {
                             settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+                            notificationTester.grantPermission();
                         });
 
                         describe('Соединение установлено.', function() {
@@ -1928,6 +2008,7 @@ tests.addTest(options => {
                     it('Необходимо подключиться к РТУ напрямую. Подключаюсь.', function() {
                         tester.setJsSIPRTUUrl();
                         settingsRequest.setRTU().receiveResponse();
+                        notificationTester.grantPermission();
 
                         tester.connectEventsWebSocket();
                         tester.connectSIPWebSocket();
@@ -1939,6 +2020,7 @@ tests.addTest(options => {
                     });
                     it('Получена некорректная конфигурация прямого подключения к РТУ. Подключаюсь к каме.', function() {
                         settingsRequest.setInvalidRTUConfig().receiveResponse();
+                        notificationTester.grantPermission();
 
                         tester.connectEventsWebSocket();
                         tester.connectSIPWebSocket();
@@ -1950,6 +2032,7 @@ tests.addTest(options => {
                     });
                     it('Телефония недоступна. Отображено сообщение "Sip-линия не зарегистрирована".', function() {
                         settingsRequest.noTelephony().receiveResponse();
+                        notificationTester.grantPermission();
 
                         tester.connectEventsWebSocket();
                         tester.authenticatedUserRequest().receiveResponse();
@@ -1957,7 +2040,7 @@ tests.addTest(options => {
                         tester.softphone.expectToBeCollapsed();
 
                         tester.softphone.expectTextContentToHaveSubstring(
-                            'Sip-линия не зарегистрирована'
+                            'Нет доступной sip-линии'
                         );
                     });
                 });
@@ -2809,6 +2892,7 @@ tests.addTest(options => {
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
+            notificationTester.grantPermission();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
 
@@ -2985,6 +3069,7 @@ tests.addTest(options => {
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
+            notificationTester.grantPermission();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
 
@@ -3040,6 +3125,7 @@ tests.addTest(options => {
         tester.authCheckRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();
         tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
+        notificationTester.grantPermission();
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
 
@@ -3094,6 +3180,7 @@ tests.addTest(options => {
         tester.authCheckRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();
         tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
+        notificationTester.grantPermission();
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
 
