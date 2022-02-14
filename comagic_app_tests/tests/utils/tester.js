@@ -659,6 +659,8 @@ define(() => function ({
     };
 
     me.settingsRequest = () => {
+        let shouldTriggerScrollRecalculation = true;
+
         const response = {
             data: {
                 application_version: '1.3.2',
@@ -696,6 +698,7 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
+            me.dontTriggerScrollRecalculation = () => ((shouldTriggerScrollRecalculation = false), me);
             me.shouldHideNumbers = () => ((response.data.is_need_hide_numbers = true), me);
             me.incomingCallSoundDisabled = () => ((response.data.is_enable_incoming_call_sound = false), me);;
 
@@ -825,7 +828,7 @@ define(() => function ({
                         spendTime(0)
                         Promise.runAll(false, true);
 
-                        me.triggerScrollRecalculation();
+                        shouldTriggerScrollRecalculation && me.triggerScrollRecalculation();
                     }
                 }, response);
             },

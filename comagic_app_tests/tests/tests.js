@@ -579,19 +579,47 @@ tests.addTest(options => {
                                                 tester.playerButton.findElement('svg').expectToExist();
                                             });
                                         });
-                                        it('Выбираю режим IP-телефон. Измнения применены.', function() {
-                                            tester.button('IP-телефон').click();
-                                            tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().
-                                                receiveResponse();
-                                            tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
+                                        describe('Выбираю режим IP-телефон.', function() {
+                                            beforeEach(function() {
+                                                tester.button('IP-телефон').click();
+                                                tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().
+                                                    receiveResponse();
+                                                tester.settingsRequest().callsAreManagedByAnotherDevice().
+                                                    receiveResponse();
 
-                                            tester.registrationRequest().expired().receiveResponse();
-                                            
-                                            spendTime(2000);
-                                            tester.webrtcWebsocket.finishDisconnecting();
+                                                tester.registrationRequest().expired().receiveResponse();
+                                            });
 
-                                            tester.button('Текущее устройство').expectNotToBeChecked();
-                                            tester.button('IP-телефон').expectToBeChecked();
+                                            it(
+                                                'Выбираю текущее устройство. Новый вебсокет открыт. Старый Вебсокет ' +
+                                                'закрыт. Сообщение "Устанавливается соединение..." скрыто.',
+                                            function() {
+                                                tester.button('Текущее устройство').click();
+                                                
+                                                tester.settingsUpdatingRequest().receiveResponse();
+                                                tester.settingsRequest().dontTriggerScrollRecalculation().
+                                                    receiveResponse();
+
+                                                tester.connectSIPWebSocket(1);
+                                                tester.registrationRequest().receiveResponse();
+
+                                                tester.button('Софтфон').click();
+
+                                                spendTime(1000);
+                                                tester.getWebRtcSocket(0).finishDisconnecting();
+
+                                                tester.softphone.expectTextContentNotToHaveSubstring(
+                                                    'Устанавливается соединение...'
+                                                );
+                                            });
+                                            it('Вебсокет закрыт.', function() {
+                                                spendTime(1000);
+                                                tester.webrtcWebsocket.finishDisconnecting();
+                                            });
+                                            it('Свитчбокс "IP-телефон" отмечен.', function() {
+                                                tester.button('Текущее устройство').expectNotToBeChecked();
+                                                tester.button('IP-телефон').expectToBeChecked();
+                                            });
                                         });
                                         it('Установлены настройки по умолчанию.', function() {
                                             tester.button('Текущее устройство').expectToBeChecked();
