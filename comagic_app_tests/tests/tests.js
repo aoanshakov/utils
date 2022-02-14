@@ -2184,6 +2184,7 @@ tests.addTest(options => {
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
                     tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                    notificationTester.grantPermission();
                     tester.talkOptionsRequest().receiveResponse();
 
                     tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().
@@ -2613,6 +2614,7 @@ tests.addTest(options => {
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
+                notificationTester.grantPermission();
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
 
@@ -2654,13 +2656,24 @@ tests.addTest(options => {
                         expectNotToBeSent();
                 });
             });
-            it(
-                'Открываю настройки. Свитчбоксы "Открывать во время звонка" и "Скрывать после звонка" отмечены.',
-            function() {
-                tester.settingsButton.click();
-                
-                tester.button('Открывать во время звонка').expectToBeChecked();
-                tester.button('Скрывать после звонка').expectToBeChecked();
+            describe('Открываю настройки.', function() {
+                beforeEach(function() {
+                    tester.settingsButton.click();
+                });
+
+                it('Снимаю отметку со свитчбокса "Скрывать после звонка". Отметка снята.', function() {
+                    tester.button('Скрывать после звонка').click();
+
+                    if (localStorage.getItem('clct:close_on_call_end') !== 'false') {
+                        throw new Error('Значение свитчбокса должно быть сохранено.');
+                    }
+
+                    tester.button('Скрывать после звонка').expectNotToBeChecked();
+                });
+                it('Свитчбоксы "Открывать во время звонка" и "Скрывать после звонка" отмечены.', function() {
+                    tester.button('Открывать во время звонка').expectToBeChecked();
+                    tester.button('Скрывать после звонка').expectToBeChecked();
+                });
             });
         });
         describe('Софтфон должен отображаться поверх окон при входящем.', function() {
@@ -2688,6 +2701,7 @@ tests.addTest(options => {
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
+                notificationTester.grantPermission();
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
 
@@ -2740,6 +2754,7 @@ tests.addTest(options => {
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
+                notificationTester.grantPermission();
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
 
@@ -2805,6 +2820,7 @@ tests.addTest(options => {
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
+                notificationTester.grantPermission();
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
 

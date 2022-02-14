@@ -35,7 +35,7 @@ const cda = `cd ${application} &&`,
     magicUiOverridenFiles = 'package.json',
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
-    sipLibOverridenFiles = 'package.json authorization/actions.js',
+    sipLibOverridenFiles = magicUiOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js .env';
 
 const overridenFiles = [
