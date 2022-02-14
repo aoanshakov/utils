@@ -2433,6 +2433,58 @@ tests.addTest(options => {
             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
         });
     });
+    it('Открываю настройки софтфона.', function() {
+        let authenticatedUserRequest,
+            tester;
+
+        tester = new Tester({
+            ...options,
+            path: '/settings/softphone',
+            isAlreadyAuthenticated: true
+        });
+
+        tester.accountRequest().receiveResponse();
+
+        const requests = ajax.inAnyOrder();
+
+        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+            secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+        requests.expectToBeSent();
+
+        reportGroupsRequest.receiveResponse();
+        reportsListRequest.receiveResponse();
+        reportTypesRequest.receiveResponse();
+        secondAccountRequest.receiveResponse();
+
+        tester.configRequest().softphone().receiveResponse();
+
+        tester.authCheckRequest().receiveResponse();
+        tester.statusesRequest().receiveResponse();
+        tester.settingsRequest().receiveResponse();
+        notificationTester.grantPermission();
+        tester.talkOptionsRequest().receiveResponse();
+        tester.permissionsRequest().receiveResponse();
+
+        tester.connectEventsWebSocket();
+        tester.connectSIPWebSocket();
+
+        tester.authenticatedUserRequest().receiveResponse();
+        tester.registrationRequest().receiveResponse();
+        tester.allowMediaInput();
+
+        tester.body.expectTextContentToHaveSubstring(
+            'Настройки ' +
+            'Общие Звук'
+        );
+
+        tester.body.expectTextContentNotToHaveSubstring(
+            'Settings ' +
+            'Common Sound'
+        );
+    });
     it('Ранее софтфон был развернут. Софтфон развернут.', function() {
         localStorage.setItem('isSoftphoneHigh', true);
             

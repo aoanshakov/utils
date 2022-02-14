@@ -7,7 +7,8 @@ define(() => function ({
     softphoneTester: me,
     isAlreadyAuthenticated = false,
     appName = '',
-    webSockets
+    webSockets,
+    path = '/'
 }) {
     let history;
     const mainTester = me;
@@ -37,7 +38,7 @@ define(() => function ({
         appName
     });
 
-    history.replace('/');
+    history.replace(path);
 
     Promise.runAll(false, true);
     spendTime(0);
