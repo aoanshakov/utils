@@ -320,10 +320,10 @@ index 43323102..f74de2c9 100644
    }
  }
 diff --git a/public/index.html b/public/index.html
-index 98e0c107..5851e692 100644
+index 98e0c107..ad90b8a2 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -22,6 +22,24 @@
+@@ -22,6 +22,29 @@
      })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
      <!-- End Google Tag Manager -->
      <% } %>
@@ -345,10 +345,15 @@ index 98e0c107..5851e692 100644
 +    </script>
 +    <script src="/tests/utils/require.js"></script>
 +    <script src="/tests/tests.js"></script>
++    <style>
++        #root {
++            position: static !important;
++        }
++    </style>
  </head>
  <body>
      <% if (htmlWebpackPlugin.options.env.production) { %>
-@@ -33,5 +51,6 @@
+@@ -33,5 +56,6 @@
      <% } %>
      <noscript>You need to enable JavaScript to run this app.</noscript>
      <div id="root"></div>
