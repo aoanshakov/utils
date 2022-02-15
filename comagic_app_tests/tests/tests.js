@@ -1993,6 +1993,27 @@ tests.addTest(options => {
                             tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
                         });
                     });
+                    it('У выбранного номера есть длинный комментарий.', function() {
+                        settingsRequest.longNumberCapacityComment().receiveResponse();
+                        notificationTester.grantPermission();
+                        permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
+
+                        tester.connectEventsWebSocket();
+                        tester.connectSIPWebSocket();
+
+                        tester.allowMediaInput();
+
+                        tester.numberCapacityRequest().receiveResponse();
+                        tester.registrationRequest().receiveResponse();
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.dialpadVisibilityButton.click();
+
+                        tester.softphone.expectTextContentToHaveSubstring(
+                            '+7 (495) 021-68-06 ' +
+                            'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна'
+                        );
+                    });
                     it(
                         'В качестве устройства для приема звонков исползуется IP-телефон. Отбражен выпадающий список ' +
                         'номеров.',

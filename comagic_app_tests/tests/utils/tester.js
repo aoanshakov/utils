@@ -808,6 +808,12 @@ define(() => function ({
                 return me;
             };
 
+            me.longNumberCapacityComment = () => {
+                response.data.number_capacity_comment = new Array(8).fill(null).map(() =>
+                    'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна.').join(' ');
+                return me;
+            };
+
             return me;
         };
 
