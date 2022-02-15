@@ -310,10 +310,10 @@ index a8141602..c95834f2 100644
      "yup": "^0.28.1"
    }
 diff --git a/public/index.html b/public/index.html
-index 98e0c107..ad90b8a2 100644
+index 6143f5e1..7ff73d45 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -22,6 +22,29 @@
+@@ -22,7 +22,29 @@
      })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
      <!-- End Google Tag Manager -->
      <% } %>
@@ -344,7 +344,7 @@ index 98e0c107..ad90b8a2 100644
  </head>
  <body>
      <% if (htmlWebpackPlugin.options.env.production) { %>
-@@ -34,5 +51,6 @@
+@@ -34,5 +56,6 @@
      <% } %>
      <noscript>You need to enable JavaScript to run this app.</noscript>
      <div id="root"></div>
@@ -447,7 +447,7 @@ index 3e6598b9..545f0e4e 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index b613ab13..e3343269 100644
+index 9cddc0fd..a5e5128b 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -107,7 +107,7 @@ const removeToken = (skipLocalStorage = false) => {
