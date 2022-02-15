@@ -109,8 +109,10 @@ tests.addTest(options => {
                                     });
 
                                     describe('Поступил входящий звонок.', function() {
+                                        let incomingCall;
+
                                         beforeEach(function() {
-                                            tester.incomingCall().receive();
+                                            incomingCall = tester.incomingCall().receive();
                                             tester.numaRequest().receiveResponse();
                                         });
 
@@ -374,6 +376,18 @@ tests.addTest(options => {
                                                 'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
                                             );
                                         });
+                                        it(
+                                            'Потеряно соединение с сервером. Звонок отменен. Рингтон не звучит.',
+                                        function() {
+                                            tester.eventsWebSocket.disconnectAbnormally(1006);
+                                            incomingCall.receiveCancel();
+
+                                            tester.expectNoSoundToPlay();
+                                        });
+                                        it('Звонок отменен. Рингтон не звучит.', function() {
+                                            incomingCall.receiveCancel();
+                                            tester.expectNoSoundToPlay();
+                                        });
                                         it('У контакта длинное имя.', function() {
                                             tester.outCallEvent().longName().receive();
                                         });
@@ -567,19 +581,47 @@ tests.addTest(options => {
                                                 tester.playerButton.findElement('svg').expectToExist();
                                             });
                                         });
-                                        it('Выбираю режим IP-телефон. Измнения применены.', function() {
-                                            tester.button('IP-телефон').click();
-                                            tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().
-                                                receiveResponse();
-                                            tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
+                                        describe('Выбираю режим IP-телефон.', function() {
+                                            beforeEach(function() {
+                                                tester.button('IP-телефон').click();
+                                                tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().
+                                                    receiveResponse();
+                                                tester.settingsRequest().callsAreManagedByAnotherDevice().
+                                                    receiveResponse();
 
-                                            tester.registrationRequest().expired().receiveResponse();
-                                            
-                                            spendTime(2000);
-                                            tester.webrtcWebsocket.finishDisconnecting();
+                                                tester.registrationRequest().expired().receiveResponse();
+                                            });
 
-                                            tester.button('Текущее устройство').expectNotToBeChecked();
-                                            tester.button('IP-телефон').expectToBeChecked();
+                                            it(
+                                                'Выбираю текущее устройство. Новый вебсокет открыт. Старый Вебсокет ' +
+                                                'закрыт. Сообщение "Устанавливается соединение..." скрыто.',
+                                            function() {
+                                                tester.button('Текущее устройство').click();
+                                                
+                                                tester.settingsUpdatingRequest().receiveResponse();
+                                                tester.settingsRequest().dontTriggerScrollRecalculation().
+                                                    receiveResponse();
+
+                                                tester.connectSIPWebSocket(1);
+                                                tester.registrationRequest().receiveResponse();
+
+                                                tester.button('Софтфон').click();
+
+                                                spendTime(1000);
+                                                tester.getWebRtcSocket(0).finishDisconnecting();
+
+                                                tester.softphone.expectTextContentNotToHaveSubstring(
+                                                    'Устанавливается соединение...'
+                                                );
+                                            });
+                                            it('Вебсокет закрыт.', function() {
+                                                spendTime(1000);
+                                                tester.webrtcWebsocket.finishDisconnecting();
+                                            });
+                                            it('Свитчбокс "IP-телефон" отмечен.', function() {
+                                                tester.button('Текущее устройство').expectNotToBeChecked();
+                                                tester.button('IP-телефон').expectToBeChecked();
+                                            });
                                         });
                                         it('Установлены настройки по умолчанию.', function() {
                                             tester.button('Текущее устройство').expectToBeChecked();
@@ -1954,6 +1996,42 @@ tests.addTest(options => {
                             tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
                         });
                     });
+                    it('У выбранного номера есть длинный комментарий.', function() {
+                        settingsRequest.longNumberCapacityComment().receiveResponse();
+                        notificationTester.grantPermission();
+                        permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
+
+                        tester.connectEventsWebSocket();
+                        tester.connectSIPWebSocket();
+
+                        tester.allowMediaInput();
+
+                        tester.numberCapacityRequest().receiveResponse();
+                        tester.registrationRequest().receiveResponse();
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.dialpadVisibilityButton.click();
+
+                        tester.softphone.expectTextContentToHaveSubstring(
+                            '+7 (495) 021-68-06 ' +
+                            'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна'
+                        );
+                    });
+                    it(
+                        'В качестве устройства для приема звонков исползуется IP-телефон. Отбражен выпадающий список ' +
+                        'номеров.',
+                    function() {
+                        settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+                        notificationTester.grantPermission();
+                        permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
+
+                        tester.connectEventsWebSocket();
+
+                        tester.numberCapacityRequest().receiveResponse();
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
+                    });
                 });
                 describe('Пользователь не имеет права на список номеров.', function() {
                     beforeEach(function() {
@@ -3106,6 +3184,58 @@ tests.addTest(options => {
         it('Отображен статус сотрудника.', function() {
             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
         });
+    });
+    it('Открываю настройки софтфона.', function() {
+        let authenticatedUserRequest,
+            tester;
+
+        tester = new Tester({
+            ...options,
+            path: '/settings/softphone',
+            isAlreadyAuthenticated: true
+        });
+
+        tester.accountRequest().receiveResponse();
+
+        const requests = ajax.inAnyOrder();
+
+        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+            secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+        requests.expectToBeSent();
+
+        reportGroupsRequest.receiveResponse();
+        reportsListRequest.receiveResponse();
+        reportTypesRequest.receiveResponse();
+        secondAccountRequest.receiveResponse();
+
+        tester.configRequest().softphone().receiveResponse();
+
+        tester.authCheckRequest().receiveResponse();
+        tester.statusesRequest().receiveResponse();
+        tester.settingsRequest().receiveResponse();
+        notificationTester.grantPermission();
+        tester.talkOptionsRequest().receiveResponse();
+        tester.permissionsRequest().receiveResponse();
+
+        tester.connectEventsWebSocket();
+        tester.connectSIPWebSocket();
+
+        tester.authenticatedUserRequest().receiveResponse();
+        tester.registrationRequest().receiveResponse();
+        tester.allowMediaInput();
+
+        tester.body.expectTextContentToHaveSubstring(
+            'Настройки ' +
+            'Общие Звук'
+        );
+
+        tester.body.expectTextContentNotToHaveSubstring(
+            'Settings ' +
+            'Common Sound'
+        );
     });
     it('Ранее софтфон был развернут. Софтфон развернут.', function() {
         localStorage.setItem('isSoftphoneHigh', true);

@@ -310,10 +310,10 @@ index a8141602..c95834f2 100644
      "yup": "^0.28.1"
    }
 diff --git a/public/index.html b/public/index.html
-index 6143f5e1..1ad2c181 100644
+index 98e0c107..ad90b8a2 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -22,7 +22,24 @@
+@@ -22,6 +22,29 @@
      })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
      <!-- End Google Tag Manager -->
      <% } %>
@@ -336,6 +336,11 @@ index 6143f5e1..1ad2c181 100644
 +    </script>
 +    <script src="/tests/utils/require.js"></script>
 +    <script src="/tests/tests.js"></script>
++    <style>
++        #root {
++            position: static !important;
++        }
++    </style>
  </head>
  <body>
      <% if (htmlWebpackPlugin.options.env.production) { %>
@@ -442,7 +447,7 @@ index 3e6598b9..545f0e4e 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index a4761816..41f6ec23 100644
+index b613ab13..e3343269 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -107,7 +107,7 @@ const removeToken = (skipLocalStorage = false) => {

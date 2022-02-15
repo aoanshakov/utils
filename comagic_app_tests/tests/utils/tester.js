@@ -7,7 +7,8 @@ define(() => function ({
     softphoneTester: me,
     isAlreadyAuthenticated = false,
     appName = '',
-    webSockets
+    webSockets,
+    path = '/'
 }) {
     let history;
     const mainTester = me;
@@ -37,7 +38,7 @@ define(() => function ({
         appName
     });
 
-    history.replace('/');
+    history.replace(path);
 
     Promise.runAll(false, true);
     spendTime(0);
@@ -659,6 +660,8 @@ define(() => function ({
     };
 
     me.settingsRequest = () => {
+        let shouldTriggerScrollRecalculation = true;
+
         const response = {
             data: {
                 application_version: '1.3.2',
@@ -696,6 +699,7 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
+            me.dontTriggerScrollRecalculation = () => ((shouldTriggerScrollRecalculation = false), me);
             me.shouldHideNumbers = () => ((response.data.is_need_hide_numbers = true), me);
             me.incomingCallSoundDisabled = () => ((response.data.is_enable_incoming_call_sound = false), me);;
 
@@ -804,6 +808,12 @@ define(() => function ({
                 return me;
             };
 
+            me.longNumberCapacityComment = () => {
+                response.data.number_capacity_comment = new Array(8).fill(null).map(() =>
+                    'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна.').join(' ');
+                return me;
+            };
+
             return me;
         };
 
@@ -825,7 +835,7 @@ define(() => function ({
                         spendTime(0)
                         Promise.runAll(false, true);
 
-                        me.triggerScrollRecalculation();
+                        shouldTriggerScrollRecalculation && me.triggerScrollRecalculation();
                     }
                 }, response);
             },
