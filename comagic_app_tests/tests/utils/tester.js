@@ -23,13 +23,15 @@ define(() => function ({
         refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
     };
 
-    isAlreadyAuthenticated && (
+    isAlreadyAuthenticated && (appName ? localStorage.setItem('electronCookies', JSON.stringify({
+        auth: JSON.stringify(jwtToken)
+    })) : (
         document.cookie =
-            'auth=%7B%22' +
-            'jwt%22%3A%22XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0%22%2C%22' +
-            'refresh%22%3A%222982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2%22%7D; ' +
-            'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
-    );
+        'auth=%7B%22' +
+        'jwt%22%3A%22XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0%22%2C%22' +
+        'refresh%22%3A%222982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2%22%7D; ' +
+        'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
+    ));
 
     window.rootConfig = {appName};
 
@@ -45,6 +47,8 @@ define(() => function ({
     Promise.runAll(false, true);
     spendTime(0);
     Promise.runAll(false, true);
+
+    me.history = history;
 
     const addTesters = (me, getRootElement) => {
         me.stopCallButton = testersFactory.createDomElementTester(() =>

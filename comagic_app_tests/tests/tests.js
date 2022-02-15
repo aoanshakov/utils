@@ -2936,6 +2936,35 @@ tests.addTest(options => {
                 tester.button('Скрывать после звонка').expectToBeChecked();
             });
         });
+        it('Я уже аутентифицирован. Плейсхолдер поля для ввода номера локализован.', function() {
+            tester = new Tester({
+                ...options,
+                isAlreadyAuthenticated: true,
+                appName: 'softphone'
+            });
+
+            getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
+            tester.configRequest().softphone().receiveResponse();
+            getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
+
+            tester.accountRequest().receiveResponse();
+            tester.authCheckRequest().receiveResponse();
+            tester.statusesRequest().receiveResponse();
+            tester.settingsRequest().receiveResponse();
+            notificationTester.grantPermission();
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+
+            tester.connectEventsWebSocket();
+            tester.connectSIPWebSocket();
+
+            tester.allowMediaInput();
+
+            tester.authenticatedUserRequest().receiveResponse();
+            tester.registrationRequest().receiveResponse();
+
+            tester.phoneField.expectToHaveValue('Введите номер');
+        });
     });
     describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
         let tester;
