@@ -1993,6 +1993,21 @@ tests.addTest(options => {
                             tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
                         });
                     });
+                    it(
+                        'В качестве устройства для приема звонков исползуется IP-телефон. Отбражен выпадающий список ' +
+                        'номеров.',
+                    function() {
+                        settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+                        notificationTester.grantPermission();
+                        permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
+
+                        tester.connectEventsWebSocket();
+
+                        tester.numberCapacityRequest().receiveResponse();
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
+                    });
                 });
                 describe('Пользователь не имеет права на список номеров.', function() {
                     beforeEach(function() {
