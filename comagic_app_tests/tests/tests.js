@@ -269,6 +269,39 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
+                                            describe(
+                                                'Сворачиваю софтфон. Звонок отменен. Разворачиваю софтфон. Поступает ' +
+                                                'входящий звонок.',
+                                            function() {
+                                                beforeEach(function() {
+                                                    tester.collapsednessToggleButton.click();
+                                                    incomingCall.receiveCancel();
+                                                    tester.collapsednessToggleButton.click();
+
+                                                    tester.incomingCall().receive();
+                                                    tester.numaRequest().receiveResponse();
+                                                    tester.outCallEvent().receive();
+                                                });
+
+                                                it('Принимаю звонок. Отображен диалпад.', function() {
+                                                    tester.callStartingButton.click();
+
+                                                    tester.firstConnection.connectWebRTC();
+                                                    tester.firstConnection.callTrackHandler();
+
+                                                    tester.allowMediaInput();
+                                                    tester.firstConnection.addCandidate();
+                                                    tester.requestAcceptIncomingCall();
+
+                                                    tester.dialpadButton(1).expectToBeVisible();;
+                                                });
+                                                it('Отображена информация о контакте.', function() {
+                                                    tester.softphone.expectTextContentToHaveSubstring(
+                                                        'Шалева Дора +7 (916) 123-45-67 ' +
+                                                        'Путь лида'
+                                                    );
+                                                });
+                                            });
                                             it('Нажимаю на кнопку открытия контакта.', function() {
                                                 tester.contactOpeningButton.click();
 
