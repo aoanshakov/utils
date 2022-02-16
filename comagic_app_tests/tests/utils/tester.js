@@ -2156,6 +2156,7 @@ define(() => function ({
     me.incomingIcon = testersFactory.createDomElementTester('.incoming_svg__cmg-direction-icon');
     me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
     me.transferIncomingIcon = testersFactory.createDomElementTester('.transfer_incoming_svg__cmg-direction-icon');
+    me.holdButton = testersFactory.createDomElementTester('.cmg-hold-button');
 
     me.transferButton = (tester => {
         const click = tester.click.bind(tester);

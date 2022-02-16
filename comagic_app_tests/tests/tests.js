@@ -171,15 +171,15 @@ tests.addTest(options => {
                                                                     tester.softphone.expectToHaveTextContent(
                                                                         'Сотрудники Группы ' +
 
-                                                                        'ЙБ Божилова Йовка 296 ' +
-                                                                        'НГ Господинова Николина 295 ' +
+                                                                        'Божилова Йовка 296 ' +
+                                                                        'Господинова Николина 295 ' +
                                                                         'Шалева Дора 8258'
                                                                     );
                                                                 });
                                                                 it('Отображены найденные сотрудники.', function() {
                                                                     tester.softphone.expectToHaveTextContent(
-                                                                        'ЙБ Божил ова Йовка 296 ' +
-                                                                        'НГ Господин ова Николина 295'
+                                                                        'Божил ова Йовка 296 ' +
+                                                                        'Господин ова Николина 295'
                                                                     );
                                                                 });
                                                             });
@@ -238,8 +238,8 @@ tests.addTest(options => {
                                                             tester.softphone.expectToHaveTextContent(
                                                                 'Сотрудники Группы ' +
 
-                                                                'ЙБ Божилова Йовка 296 ' +
-                                                                'НГ Господинова Николина 295 ' +
+                                                                'Божилова Йовка 296 ' +
+                                                                'Господинова Николина 295 ' +
                                                                 'Шалева Дора 8258'
                                                             );
 
@@ -253,6 +253,12 @@ tests.addTest(options => {
                                                         usersRequest.addMore().receiveResponse();
                                                         usersInGroupsRequest.addMore().receiveResponse();
                                                     });
+                                                });
+                                                it('Нажимаю на кнопку удержания. Звонок удерживается.', function() {
+                                                    tester.holdButton.click();
+                                                    audioDecodingTester.accomplishAudioDecoding();
+
+                                                    tester.firstConnection.expectHoldMusicToPlay();
                                                 });
                                                 it('Отображено направление и номер.', function() {
                                                     tester.firstConnection.expectSinkIdToEqual('default');
@@ -392,6 +398,9 @@ tests.addTest(options => {
                                         it('Отображено сообщение о поиске контакта.', function() {
                                             tester.interceptButton.expectNotToExist();
                                             tester.contactOpeningButton.expectNotToExist();
+                                            tester.dialpadVisibilityButton.expectNotToExist();
+                                            tester.microphoneButton.expectNotToExist();
+                                            tester.transferButton.expectNotToExist();
                                             tester.incomingIcon.expectToBeVisible();
                                             tester.softphone.expectTextContentToHaveSubstring(
                                                 '+7 (916) 123-45-67 Поиск контакта...'
@@ -1146,84 +1155,100 @@ tests.addTest(options => {
                                                 beforeEach(function() {
                                                     tester.incomingCall().receive();
                                                     tester.numaRequest().receiveResponse();
-                                                    tester.outCallEvent().receive();
                                                 });
 
-                                                describe('Принимаю звонок.', function() {
+                                                describe('Поступили данные о звонке.', function() {
                                                     beforeEach(function() {
-                                                        tester.callButton.click();
-
-                                                        tester.firstConnection.connectWebRTC();
-                                                        tester.firstConnection.callTrackHandler();
-
-                                                        tester.allowMediaInput();
-                                                        tester.firstConnection.addCandidate();
-                                                        tester.requestAcceptIncomingCall();
+                                                        tester.outCallEvent().receive();
                                                     });
 
-                                                    describe('Нажимаю на кнопку сворачивания.', function() {
+                                                    describe('Принимаю звонок.', function() {
                                                         beforeEach(function() {
-                                                            tester.collapsednessToggleButton.click();
-                                                        });
-                                                        
-                                                        it(
-                                                            'Нажимаю на кнопку разворачивания. Софтфон развернут.',
-                                                        function() {
-                                                            tester.collapsednessToggleButton.click();
+                                                            tester.callButton.click();
 
-                                                            tester.softphone.
-                                                                expectTextContentToHaveSubstring('Путь лида');
-                                                        });
-                                                        it('Софтфон свернут.', function() {
-                                                            tester.softphone.expectToBeCollapsed();
-                                                        });
-                                                    });
-                                                    describe(
-                                                        'Открываю историю звонков. Нажимаю на кнопку ' +
-                                                        'сворачивания софтфона.',
-                                                    function() {
-                                                        beforeEach(function() {
-                                                            tester.callsHistoryButton.click();
-                                                            tester.callsRequest().receiveResponse();
+                                                            tester.firstConnection.connectWebRTC();
+                                                            tester.firstConnection.callTrackHandler();
 
-                                                            tester.collapsednessToggleButton.click();
+                                                            tester.allowMediaInput();
+                                                            tester.firstConnection.addCandidate();
+                                                            tester.requestAcceptIncomingCall();
                                                         });
 
-                                                        it(
+                                                        describe('Нажимаю на кнопку сворачивания.', function() {
+                                                            beforeEach(function() {
+                                                                tester.collapsednessToggleButton.click();
+                                                            });
+                                                            
+                                                            it(
+                                                                'Нажимаю на кнопку разворачивания. Софтфон развернут.',
+                                                            function() {
+                                                                tester.collapsednessToggleButton.click();
+
+                                                                tester.softphone.
+                                                                    expectTextContentToHaveSubstring('Путь лида');
+                                                            });
+                                                            it('Софтфон свернут.', function() {
+                                                                tester.softphone.expectToBeCollapsed();
+                                                            });
+                                                        });
+                                                        describe(
                                                             'Открываю историю звонков. Нажимаю на кнопку ' +
-                                                            'сворачивания софтфона. Софтфон свернут.',
+                                                            'сворачивания софтфона.',
                                                         function() {
-                                                            tester.callsHistoryButton.click();
-                                                            tester.callsRequest().receiveResponse();
+                                                            beforeEach(function() {
+                                                                tester.callsHistoryButton.click();
+                                                                tester.callsRequest().receiveResponse();
 
-                                                            tester.collapsednessToggleButton.click();
-                                                            tester.softphone.expectToBeCollapsed();
+                                                                tester.collapsednessToggleButton.click();
+                                                            });
+
+                                                            it(
+                                                                'Открываю историю звонков. Нажимаю на кнопку ' +
+                                                                'сворачивания софтфона. Софтфон свернут.',
+                                                            function() {
+                                                                tester.callsHistoryButton.click();
+                                                                tester.callsRequest().receiveResponse();
+
+                                                                tester.collapsednessToggleButton.click();
+                                                                tester.softphone.expectToBeCollapsed();
+                                                            });
+                                                            it('Софтфон свернут.', function() {
+                                                                tester.softphone.expectToBeCollapsed();
+                                                            });
                                                         });
-                                                        it('Софтфон свернут.', function() {
-                                                            tester.softphone.expectToBeCollapsed();
+                                                        it('Кнопка диалпада нажата.', function() {
+                                                            tester.dialpadButton(1).expectToBeVisible();;
+
+                                                            tester.dialpadVisibilityButton.
+                                                                expectNotToHaveClass('cmg-button-disabled');
+                                                            tester.dialpadVisibilityButton.
+                                                                expectToHaveClass('cmg-button-pressed');
                                                         });
                                                     });
-                                                    it('Кнопка диалпада нажата.', function() {
-                                                        tester.dialpadButton(1).expectToBeVisible();;
-
-                                                        tester.dialpadVisibilityButton.
-                                                            expectNotToHaveClass('cmg-button-disabled');
-                                                        tester.dialpadVisibilityButton.
-                                                            expectToHaveClass('cmg-button-pressed');
+                                                    it(
+                                                        'Нажимаю на кнопку сворачивания софтфона. Софтфон свернут.',
+                                                    function() {
+                                                        tester.collapsednessToggleButton.click();
+                                                        tester.softphone.expectToBeCollapsed();
+                                                    });
+                                                    it('Отображен путь лида.', function() {
+                                                        tester.softphone.expectTextContentToHaveSubstring('Путь лида');
                                                     });
                                                 });
-                                                it(
-                                                    'Нажимаю на кнопку сворачивания софтфона. Софтфон свернут.',
-                                                function() {
-                                                    tester.collapsednessToggleButton.click();
-                                                    tester.softphone.expectToBeCollapsed();
+                                                it('Принимаю звонок. Диалпад разблокирован.', function() {
+                                                    tester.callButton.click();
+
+                                                    tester.firstConnection.connectWebRTC();
+                                                    tester.firstConnection.callTrackHandler();
+
+                                                    tester.allowMediaInput();
+                                                    tester.firstConnection.addCandidate();
+                                                    tester.requestAcceptIncomingCall();
+
+                                                    tester.dialpadButton(1).expectNotToHaveAttribute('disabled');;
                                                 });
-                                                it('Отображен путь лида.', function() {
-                                                    tester.dialpadVisibilityButton.
-                                                        expectToHaveClass('cmg-button-disabled');
-                                                    tester.dialpadVisibilityButton.
-                                                        expectNotToHaveClass('cmg-button-pressed');
-                                                    tester.softphone.expectTextContentToHaveSubstring('Путь лида');
+                                                it('Диалпад заблокирован.', function() {
+                                                    tester.dialpadButton(1).expectToHaveAttribute('disabled');;
                                                 });
                                             });
                                             describe('Нажимаю на кнопку таблицы сотрудников.', function() {
@@ -1607,6 +1632,9 @@ tests.addTest(options => {
 
                                             tester.numaRequest().intercept().receiveResponse();
                                         });
+                                        it('Нажимаю на кнпоку вызова. Ничего не проиcходит.', function() {
+                                            tester.callStartingButton.click();
+                                        });
                                         it('Отображен софтфон.', function() {
                                             if (localStorage.getItem('isSoftphoneHigh') != 'false') {
                                                 throw new Error(
@@ -1624,7 +1652,7 @@ tests.addTest(options => {
                                             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
                                             tester.softphone.expectToBeCollapsed();
                                             tester.settingsButton.expectNotToExist();
-                                            tester.callStartingButton.expectToHaveAttribute('disabled');
+                                            tester.callStartingButton.expectNotToHaveAttribute('disabled');
                                         });
                                     });
                                     it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
@@ -1876,7 +1904,10 @@ tests.addTest(options => {
                                                 'Стираю введенное в поле поиска значение. Отображены все номера.',
                                             function() {
                                                 tester.input.withPlaceholder('Найти').clear();
-                                                tester.select.popup.expectTextContentToHaveSubstring('+7 (916) 123-89-27');
+
+                                                tester.select.popup.expectTextContentToHaveSubstring(
+                                                    '+7 (916) 123-89-27'
+                                                );
                                             });
                                             it('Номер найден.', function() {
                                                 tester.select.popup.
