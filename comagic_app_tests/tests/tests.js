@@ -2454,6 +2454,12 @@ tests.addTest(options => {
 
                             tester.allowMediaInput();
                         });
+                        it('Выбираю статус. Список статусов скрыт.', function() {
+                            tester.statusesList.item('Нет на месте').click();
+                            tester.userStateUpdateRequest().receiveResponse();
+
+                            tester.statusesList.expectNotToExist();
+                        });
                         it('Отображены статусы.', function() {
                             tester.statusesList.item('Не беспокоить').expectToBeSelected();
                             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');

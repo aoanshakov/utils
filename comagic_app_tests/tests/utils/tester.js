@@ -2270,8 +2270,12 @@ define(() => function ({
     })();
 
     me.userName = (tester => {
-        const putMouseOver = tester.putMouseOver.bind(tester);
+        const putMouseOver = tester.putMouseOver.bind(tester),
+            click = tester.click.bind(tester);
+
         tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
+        tester.click = () => (click(), spendTime(0));
+
         return tester;
     })(testersFactory.createDomElementTester(
         '.cm-user-only-account--username, .cm-chats--account-icon, .cm-chats--account--username'
