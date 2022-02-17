@@ -2553,6 +2553,89 @@ tests.addTest(options => {
                             tester.select.popup.expectToHaveHeight(331);
                         });
                     });
+                    describe('Открываю таблицу сотрудников. Токен истек.', function() {
+                        let refreshRequest;
+
+                        beforeEach(function() {
+                            tester.addressBookButton.click();
+
+                            const usersRequest = tester.usersRequest().expectToBeSent(),
+                                usersInGroupsRequest = tester.usersInGroupsRequest().expectToBeSent(),
+                                groupsRequest = tester.groupsRequest().expectToBeSent();
+
+                            usersRequest.accessTokenExpired().receiveResponse();
+
+                            refreshRequest = tester.refreshRequest().expectToBeSent();
+
+                            usersInGroupsRequest.accessTokenExpired().receiveResponse();
+                            groupsRequest.accessTokenExpired().receiveResponse();
+                        });
+
+                        it(
+                            'Не удалось обновить токен. Авторизуюсь заново. Пытаюсь поменять статус, но токен истек.',
+                        function() {
+                            refreshRequest.refreshTokenExpired().receiveResponse();
+                            tester.userLogoutRequest().receiveResponse();
+
+                            tester.authLogoutRequest().receiveResponse();
+                            tester.eventsWebSocket.finishDisconnecting();
+                            tester.registrationRequest().expired().receiveResponse();
+
+                            spendTime(2000);
+                            tester.webrtcWebsocket.finishDisconnecting();
+
+                            tester.input.withFieldLabel('Логин').fill('botusharova');
+                            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                            tester.button('Войти').click();
+
+                            tester.loginRequest().receiveResponse();
+                            tester.configRequest().softphone().receiveResponse();
+
+                            tester.usersRequest().receiveResponse(),
+                            tester.usersInGroupsRequest().receiveResponse(),
+                            tester.groupsRequest().receiveResponse();
+
+                            tester.accountRequest().receiveResponse();
+                            tester.authCheckRequest().receiveResponse();
+                            tester.statusesRequest().receiveResponse();
+                                
+                            tester.settingsRequest().receiveResponse();
+                            tester.talkOptionsRequest().receiveResponse();
+                            tester.permissionsRequest().receiveResponse();
+
+                            tester.connectEventsWebSocket(1);
+                            tester.connectSIPWebSocket(1);
+
+                            tester.authenticatedUserRequest().receiveResponse();
+                            tester.registrationRequest().receiveResponse();
+
+                            tester.allowMediaInput();
+
+                            tester.userName.click();
+
+                            tester.statusesList.item('Нет на месте').click();
+                            tester.userStateUpdateRequest().accessTokenExpired().receiveResponse();
+
+                            tester.refreshRequest().receiveResponse();
+                            tester.userStateUpdateRequest().receiveResponse();
+                        });
+                        it('Токен обновлен. Запросы переотправлены.', function() {
+                            refreshRequest.receiveResponse();
+
+                            tester.usersRequest().receiveResponse(),
+                            tester.usersInGroupsRequest().receiveResponse(),
+                            tester.groupsRequest().receiveResponse();
+
+                            tester.softphone.expectToHaveTextContent(
+                                'Сотрудники Группы ' +
+
+                                'Божилова Йовка 296 ' +
+                                'Господинова Николина 295 ' +
+                                'Шалева Дора 8258'
+                            );
+                        });
+                    });
                     it(
                         'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку "Выход". Вхожу в ' +
                         'софтфон заново. Удалось войти. Софтфон готов к работе.',

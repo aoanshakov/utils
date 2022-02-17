@@ -64,6 +64,7 @@ define(function () {
 
         return {
             'electron-log': {
+                print: () => console.log(infoLogMessages.join("\n\n")),
                 expectToContain: expectedSubstring => {
                     if (!infoLogMessages.some(message => message.includes(expectedSubstring))) {
                         console.log(infoLogMessages);
