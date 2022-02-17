@@ -28,10 +28,22 @@ index 7db2045..0793165 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 7539a4c..eec3d5d 100644
+index 7539a4c..e1bf2e8 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -289,4 +289,5 @@ export const RootStore = types
+@@ -97,6 +97,11 @@ export const RootStore = types
+                     })
+                 } : {},
+                 ...createSoftphoneReducer({
++                    defaultSoftphoneState: {
++                        leftPadding: 90,
++                        topPadding: 65,
++                        bottomPadding: 5
++                    },
+                     i18n: i18n.getTranslator,
+                     appProject: '',
+                     soundOverrides: {},
+@@ -289,4 +294,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
