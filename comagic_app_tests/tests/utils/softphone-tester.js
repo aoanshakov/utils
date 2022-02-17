@@ -36,6 +36,7 @@ define(function () {
         }
 
         this.innerContainer = testersFactory.createDomElementTester('#cmg-inner-container');
+        this.microphoneButton = testersFactory.createDomElementTester('.cmg-microphone-button');
 
         this.firstLineButton = testersFactory.createDomElementTester(function () {
             return getSipLineButton(0);
