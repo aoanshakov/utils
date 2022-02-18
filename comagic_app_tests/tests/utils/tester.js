@@ -40,6 +40,7 @@ define(() => function ({
         appName
     });
 
+    me.history = history;
     history.replace(path);
 
     Promise.runAll(false, true);
@@ -76,7 +77,8 @@ define(() => function ({
                     '.ui-radio-content, ' +
                     '.cmg-switch-label, ' +
                     '.src-components-main-menu-nav-item-styles-module__label, ' +
-                    '.src-components-main-menu-settings-styles-module__label'
+                    '.src-components-main-menu-settings-styles-module__label, ' +
+                    '.src-components-main-menu-menu-link-styles-module__item a'
                 ).
                 find();
 
@@ -1725,73 +1727,96 @@ define(() => function ({
         }
     });
 
-    me.reportTypesRequest = () => ({
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        },
+    me.reportTypesRequest = () => {
+        const data = [{
+            id: 'marketer_dashboard',
+            name: 'Некий тип отчета',
+            configuration: 'dashboard'
+        }, {
+            id: 'communications',
+            name: 'Обращения',
+            configuration: 'flat'
+        }];
 
-        expectToBeSent: requests => {
-            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectBodyToContain({
-                    method: 'get.report_types',
-                    params: {}
-                });
+        return {
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
 
-            return {
-                receiveResponse() {
-                    request.respondSuccessfullyWith({
-                        result: {
-                            data: [{
-                                id: 'marketer_dashboard',
-                                name: 'Некий тип отчета',
-                                configuration: 'dashboard'
-                            }]
-                        }
+            expectToBeSent: requests => {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectBodyToContain({
+                        method: 'get.report_types',
+                        params: {}
                     });
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                    Promise.runAll(false, true);
-                }
-            };
-        }
-    });
+                return {
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: {data}
+                        });
 
-    me.reportsListRequest = () => ({
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        },
-
-        expectToBeSent: requests => {
-            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectBodyToContain({
-                    method: 'get.reports_list',
-                    params: {}
-                });
-
-            return {
-                receiveResponse() {
-                    request.respondSuccessfullyWith({
-                        result: {
-                            data: [{
-                                id: 582729,
-                                group_id: 1,
-                                type: 'marketer_dashboard',
-                                name: 'Некий отчет',
-                                description: 'Описание некого отчета',
-                                folder: null,
-                                sort: 0
-                            }]
-                        }
-                    });
-
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                    Promise.runAll(false, true);
-                }
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                };
             }
-        }
-    });
+        };
+    };
+
+    me.reportsListRequest = () => {
+        const data = [{
+            id: 582729,
+            group_id: 1,
+            type: 'marketer_dashboard',
+            name: 'Некий отчет',
+            description: 'Описание некого отчета',
+            folder: null,
+            sort: 0
+        }];
+
+        const addResponseModifiers = me => {
+            me.allRequests = () => (data.push({
+                id: 48427,
+                name: 'Все обращения',
+                sort: 1000,
+                type: 'communications',
+                group_id: 9,
+                is_system: false,
+                description: 'Показывает информацию по всем видам обращений (звонкам, заявкам, чатам) в едином окне. Отчет ' +
+                    'строится по дате обращения.'
+            }), me);
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
+
+            expectToBeSent: requests => {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectBodyToContain({
+                        method: 'get.reports_list',
+                        params: {}
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: {data}
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                });
+            }
+        });
+    };
 
     me.reportGroupsRequest = () => {
         const response = {
@@ -1801,6 +1826,11 @@ define(() => function ({
                     name: 'Дашборды',
                     parent_id: null,
                     sort: 0
+                }, {
+                    id: 9,
+                    name: 'Сырые данные',
+                    sort: 80,
+                    parent_id: null
                 }]
             }
         };
@@ -1985,6 +2015,18 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.webAccountLoginAvailable = () => {
+                response.result.data.permissions.push({
+                    'unit_id': 'web_account_login',
+                    'is_delete': true,
+                    'is_insert': true,
+                    'is_select': true,
+                    'is_update': true,
+                });
+
+                return me;
+            };
+
             me.operatorWorkplaceAvailable = () => {
                 response.result.data.components.push('operator_workplace');
 

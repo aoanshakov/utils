@@ -14,11 +14,14 @@ const {
     magicUiPatch,
     huskyPatch,
     softphonePatch,
+    analyticsPatch,
     devSoftphonePatch,
     preCommitHook,
     chats,
     magicUi,
     softphone,
+    analytics,
+    analyticsDir,
     misc,
     softphoneMisc,
     sipLib,
@@ -35,7 +38,8 @@ const cda = `cd ${application} &&`,
     magicUiOverridenFiles = 'package.json',
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
-    sipLibOverridenFiles = magicUiOverridenFiles,
+    analyticsOverridenFiles = 'package.json',
+    sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js .env';
 
 const overridenFiles = [
@@ -103,6 +107,16 @@ const overriding = [{
         overridenFiles: sipLibOverridenFiles,
         applicationPatch: sipLibPatch
     }
+}, {
+    application: analytics,
+    dev: {
+        overridenFiles: analyticsOverridenFiles,
+        applicationPatch: analyticsPatch
+    },
+    test: {
+        overridenFiles: analyticsOverridenFiles,
+        applicationPatch: analyticsPatch
+    }
 }];
 
 const getOverriding = ({dev}) => overriding.map(overriding => ({
@@ -142,17 +156,18 @@ actions['modify-code'] = params => actions['restore-code']({}).
         actions['fix-permissions']
     );
 
-const appModule = ([module, path, args]) => [`comagic_app_modules/${module}`, path, args, misc];
+const appModule = ([module, path, args]) => [`web/comagic_app_modules/${module}`, path, args, misc];
 
 actions['initialize'] = params => [
     appModule(['chats', chats, '']),
     appModule(['softphone', softphone, '']),
-    ['magic_ui', magicUi, '', misc],
-    ['sip_lib', sipLib, '', softphoneMisc],
-    ['uis_webrtc', uisWebRTC, '', sipLib]
+    ['web/magic_ui', magicUi, '', misc],
+    ['analytics/frontend', analytics, '', analyticsDir],
+    ['web/sip_lib', sipLib, '', softphoneMisc],
+    ['web/uis_webrtc', uisWebRTC, '', sipLib]
 ].map(([module, path, args, misc]) => (!fs.existsSync(path) ? [
     () => mkdir(misc),
-    `cd ${misc} && git clone${args} git@gitlab.uis.dev:web/${module}.git`
+    `cd ${misc} && git clone${args} git@gitlab.uis.dev:${module}.git`
 ] : [])).reduce((result, item) => result.concat(item), []).concat(
     actions['modify-code'](params)
 ).concat(!fs.existsSync(nodeModules) ?

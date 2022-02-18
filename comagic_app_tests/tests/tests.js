@@ -2059,6 +2059,36 @@ tests.addTest(options => {
                             tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
                         });
                     });
+                    describe('В качестве устройства для приема звонков исползуется IP-телефон.', function() {
+                        beforeEach(function() {
+                            settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+                            notificationTester.grantPermission();
+                            permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
+
+                            tester.connectEventsWebSocket();
+
+                            tester.numberCapacityRequest().receiveResponse();
+                            tester.authenticatedUserRequest().receiveResponse();
+                        });
+
+                        it('Совершается исходящий звонок. Отображена информация о звонке.', function() {
+                            tester.outCallSessionEvent().receive();
+
+                            tester.outgoingIcon.expectToBeVisible();
+                            tester.softphone.
+                                expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67');
+                        });
+                        it('Поступил входящий звонок. Отображена информация о звонке.', function() {
+                            tester.outCallEvent().receive();
+
+                            tester.incomingIcon.expectToBeVisible();
+                            tester.softphone.
+                                expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67 Путь лида');
+                        });
+                        it('Отбражен выпадающий список номеров.', function() {
+                            tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
+                        });
+                    });
                     it('У выбранного номера есть длинный комментарий.', function() {
                         settingsRequest.longNumberCapacityComment().receiveResponse();
                         notificationTester.grantPermission();
@@ -2079,21 +2109,6 @@ tests.addTest(options => {
                             '+7 (495) 021-68-06 ' +
                             'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна'
                         );
-                    });
-                    it(
-                        'В качестве устройства для приема звонков исползуется IP-телефон. Отбражен выпадающий список ' +
-                        'номеров.',
-                    function() {
-                        settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
-                        notificationTester.grantPermission();
-                        permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
-
-                        tester.connectEventsWebSocket();
-
-                        tester.numberCapacityRequest().receiveResponse();
-                        tester.authenticatedUserRequest().receiveResponse();
-
-                        tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
                     });
                 });
                 describe('Пользователь не имеет права на список номеров.', function() {
@@ -2189,83 +2204,102 @@ tests.addTest(options => {
         });
         describe('Чаты доступны. Софтфон недоступен.', function() {
             beforeEach(function() {
-                accountRequest.operatorWorkplaceAvailable().softphoneUnavailable().receiveResponse();
+                accountRequest.operatorWorkplaceAvailable().softphoneUnavailable();
+            });
+
+            describe('Аналитика недоступна.', function() {
+                beforeEach(function() {
+                    accountRequest.receiveResponse();
+
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
+
+                    let requests = fetch.inAnyOrder();
+
+                    const configRequest1 = tester.configRequest().expectToBeSent(requests),
+                        configRequest2 = tester.configRequest().expectToBeSent(requests),
+                        configRequest3 = tester.configRequest().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    configRequest1.receiveResponse();
+                    configRequest2.receiveResponse();
+                    configRequest3.receiveResponse();
+
+                    requests = ajax.inAnyOrder();
+
+                    const secondOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests),
+                        chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
+                        operatorStatusListRequest = tester.operatorStatusListRequest().expectToBeSent(requests),
+                        operatorListRequest = tester.operatorListRequest().expectToBeSent(requests),
+                        operatorSiteListRequest = tester.operatorSiteListRequest().expectToBeSent(requests),
+                        thirdOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests);
+                        operatorOfflineMessageListRequest =
+                            tester.operatorOfflineMessageListRequest().expectToBeSent(requests);
+                        chatListRequest = tester.chatListRequest().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    secondOperatorAccountRequest.receiveResponse();
+                    chatChannelListRequest.receiveResponse();
+                    operatorStatusListRequest.receiveResponse();
+                    operatorListRequest.receiveResponse();
+                    operatorSiteListRequest.receiveResponse();
+                    thirdOperatorAccountRequest.receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+                    tester.chatsInitMessage().expectToBeSent();
+
+                    operatorOfflineMessageListRequest.receiveResponse();
+                    chatListRequest.receiveResponse();
+                });
+
+                describe('Нажимаю на кнопку аккаунта.', function() {
+                    beforeEach(function() {
+                        tester.userName.putMouseOver();
+                    });
+
+                    it('Выбираю другой статус. Другой статус выбран.', function() {
+                        tester.statusesList.item('Перерыв').click();
+
+                        tester.operatorStatusUpdateRequest().receiveResponse();
+                        tester.chatsEmployeeChangeMessage().receive();
+
+                        tester.statusesList.item('Доступен').expectNotToBeSelected();
+                        tester.statusesList.item('Перерыв').expectToBeSelected();
+
+                        tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
+                    });
+                    it('Отображен список статусов.', function() {
+                        tester.statusesList.item('Доступен').expectToBeSelected();
+                        tester.statusesList.item('Перерыв').expectNotToBeSelected();
+
+                        tester.statusesList.expectTextContentToHaveSubstring(
+                            'Доступен ' +
+                            'Перерыв ' +
+                            'Не беспокоить ' +
+                            'Нет на месте ' +
+                            'Нет на работе'
+                        );
+                    });
+                });
+                it('Отображается статус сотрудника.', function() {
+                    tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+                });
+            });
+            it('Аналитика доступна.', function() {
+                accountRequest.webAccountLoginAvailable().receiveResponse();
 
                 tester.reportGroupsRequest().receiveResponse();
-                tester.reportsListRequest().receiveResponse();
+                tester.reportsListRequest().allRequests().receiveResponse();
                 tester.reportTypesRequest().receiveResponse();
 
-                let requests = fetch.inAnyOrder();
+                tester.configRequest().receiveResponse();
+                tester.operatorAccountRequest().receiveResponse();
 
-                const configRequest1 = tester.configRequest().expectToBeSent(requests),
-                    configRequest2 = tester.configRequest().expectToBeSent(requests),
-                    configRequest3 = tester.configRequest().expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                configRequest1.receiveResponse();
-                configRequest2.receiveResponse();
-                configRequest3.receiveResponse();
-
-                requests = ajax.inAnyOrder();
-
-                const secondOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests),
-                    chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
-                    operatorStatusListRequest = tester.operatorStatusListRequest().expectToBeSent(requests),
-                    operatorListRequest = tester.operatorListRequest().expectToBeSent(requests),
-                    operatorSiteListRequest = tester.operatorSiteListRequest().expectToBeSent(requests),
-                    thirdOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests);
-                    operatorOfflineMessageListRequest =
-                        tester.operatorOfflineMessageListRequest().expectToBeSent(requests);
-                    chatListRequest = tester.chatListRequest().expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                secondOperatorAccountRequest.receiveResponse();
-                chatChannelListRequest.receiveResponse();
-                operatorStatusListRequest.receiveResponse();
-                operatorListRequest.receiveResponse();
-                operatorSiteListRequest.receiveResponse();
-                thirdOperatorAccountRequest.receiveResponse();
-
-                tester.chatsWebSocket.connect();
-                tester.chatsInitMessage().expectToBeSent();
-
-                operatorOfflineMessageListRequest.receiveResponse();
-                chatListRequest.receiveResponse();
-            });
-
-            describe('Нажимаю на кнопку аккаунта.', function() {
-                beforeEach(function() {
-                    tester.userName.putMouseOver();
-                });
-
-                it('Выбираю другой статус. Другой статус выбран.', function() {
-                    tester.statusesList.item('Перерыв').click();
-
-                    tester.operatorStatusUpdateRequest().receiveResponse();
-                    tester.chatsEmployeeChangeMessage().receive();
-
-                    tester.statusesList.item('Доступен').expectNotToBeSelected();
-                    tester.statusesList.item('Перерыв').expectToBeSelected();
-
-                    tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
-                });
-                it('Отображен список статусов.', function() {
-                    tester.statusesList.item('Доступен').expectToBeSelected();
-                    tester.statusesList.item('Перерыв').expectNotToBeSelected();
-
-                    tester.statusesList.expectTextContentToHaveSubstring(
-                        'Доступен ' +
-                        'Перерыв ' +
-                        'Не беспокоить ' +
-                        'Нет на месте ' +
-                        'Нет на работе'
-                    );
-                });
-            });
-            it('Отображается статус сотрудника.', function() {
-                tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+                tester.button('Сырые данные').click();
+                tester.button('Все обращения').click();
             });
         });
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
