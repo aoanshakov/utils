@@ -7,6 +7,7 @@ const src = '/usr/local/src',
     preCommitHook = `${application}/.husky/pre-commit`,
     misc = `${application}/misc`,
     softphoneMisc = `${misc}/softphone/misc`,
+    analyticsDir = `${misc}/analytics`,
     sipLib = `${softphoneMisc}/sip_lib`;
 
 module.exports = {
@@ -24,6 +25,7 @@ module.exports = {
     chatsPatch: `${tests}/chats-patch.diff`,
     magicUiPatch: `${tests}/magic-ui-patch.diff`,
     softphonePatch: `${tests}/softphone-patch.diff`,
+    analyticsPatch: `${tests}/analytics-patch.diff`,
     devSoftphonePatch: `${tests}/dev-softphone-patch.diff`,
     sipLibPatch: `${tests}/sip-lib-patch.diff`,
     huskyPatch: `${tests}/husky-patch.diff`,
@@ -31,6 +33,8 @@ module.exports = {
     chats: `${misc}/chats`,
     magicUi: `${misc}/magic_ui`,
     softphone: `${misc}/softphone`,
+    analyticsDir,
+    analytics: `${analyticsDir}/frontend`,
     softphoneMisc,
     sipLib,
     uisWebRTC: `${sipLib}/uis_webrtc`

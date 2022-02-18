@@ -42,7 +42,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        describe('Фичафлаг софтфона включен.', function() {
+        xdescribe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -2202,85 +2202,105 @@ tests.addTest(options => {
         });
         describe('Чаты доступны. Софтфон недоступен.', function() {
             beforeEach(function() {
-                accountRequest.operatorWorkplaceAvailable().softphoneUnavailable().receiveResponse();
+                accountRequest.operatorWorkplaceAvailable().softphoneUnavailable();
+            });
+
+            xdescribe('Аналитика недоступна.', function() {
+                beforeEach(function() {
+                    accountRequest.receiveResponse();
+
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
+
+                    let requests = fetch.inAnyOrder();
+
+                    const configRequest1 = tester.configRequest().expectToBeSent(requests),
+                        configRequest2 = tester.configRequest().expectToBeSent(requests),
+                        configRequest3 = tester.configRequest().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    configRequest1.receiveResponse();
+                    configRequest2.receiveResponse();
+                    configRequest3.receiveResponse();
+
+                    requests = ajax.inAnyOrder();
+
+                    const secondOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests),
+                        chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
+                        operatorStatusListRequest = tester.operatorStatusListRequest().expectToBeSent(requests),
+                        operatorListRequest = tester.operatorListRequest().expectToBeSent(requests),
+                        operatorSiteListRequest = tester.operatorSiteListRequest().expectToBeSent(requests),
+                        thirdOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests);
+                        operatorOfflineMessageListRequest =
+                            tester.operatorOfflineMessageListRequest().expectToBeSent(requests);
+                        chatListRequest = tester.chatListRequest().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    secondOperatorAccountRequest.receiveResponse();
+                    chatChannelListRequest.receiveResponse();
+                    operatorStatusListRequest.receiveResponse();
+                    operatorListRequest.receiveResponse();
+                    operatorSiteListRequest.receiveResponse();
+                    thirdOperatorAccountRequest.receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+                    tester.chatsInitMessage().expectToBeSent();
+
+                    operatorOfflineMessageListRequest.receiveResponse();
+                    chatListRequest.receiveResponse();
+                });
+
+                xdescribe('Нажимаю на кнопку аккаунта.', function() {
+                    beforeEach(function() {
+                        tester.userName.putMouseOver();
+                    });
+
+                    it('Выбираю другой статус. Другой статус выбран.', function() {
+                        tester.statusesList.item('Перерыв').click();
+
+                        tester.operatorStatusUpdateRequest().receiveResponse();
+                        tester.chatsEmployeeChangeMessage().receive();
+
+                        tester.statusesList.item('Доступен').expectNotToBeSelected();
+                        tester.statusesList.item('Перерыв').expectToBeSelected();
+
+                        tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
+                    });
+                    it('Отображен список статусов.', function() {
+                        tester.statusesList.item('Доступен').expectToBeSelected();
+                        tester.statusesList.item('Перерыв').expectNotToBeSelected();
+
+                        tester.statusesList.expectTextContentToHaveSubstring(
+                            'Доступен ' +
+                            'Перерыв ' +
+                            'Не беспокоить ' +
+                            'Нет на месте ' +
+                            'Нет на работе'
+                        );
+                    });
+                });
+                it('Отображается статус сотрудника.', function() {
+                    tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+                });
+            });
+            it('Аналитика доступна.', function() {
+                accountRequest.webAccountLoginAvailable().receiveResponse();
 
                 tester.reportGroupsRequest().receiveResponse();
-                tester.reportsListRequest().receiveResponse();
+                tester.reportsListRequest().allRequests().receiveResponse();
                 tester.reportTypesRequest().receiveResponse();
 
-                let requests = fetch.inAnyOrder();
+                tester.configRequest().receiveResponse();
+                tester.operatorAccountRequest().receiveResponse();
 
-                const configRequest1 = tester.configRequest().expectToBeSent(requests),
-                    configRequest2 = tester.configRequest().expectToBeSent(requests),
-                    configRequest3 = tester.configRequest().expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                configRequest1.receiveResponse();
-                configRequest2.receiveResponse();
-                configRequest3.receiveResponse();
-
-                requests = ajax.inAnyOrder();
-
-                const secondOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests),
-                    chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
-                    operatorStatusListRequest = tester.operatorStatusListRequest().expectToBeSent(requests),
-                    operatorListRequest = tester.operatorListRequest().expectToBeSent(requests),
-                    operatorSiteListRequest = tester.operatorSiteListRequest().expectToBeSent(requests),
-                    thirdOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests);
-                    operatorOfflineMessageListRequest =
-                        tester.operatorOfflineMessageListRequest().expectToBeSent(requests);
-                    chatListRequest = tester.chatListRequest().expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                secondOperatorAccountRequest.receiveResponse();
-                chatChannelListRequest.receiveResponse();
-                operatorStatusListRequest.receiveResponse();
-                operatorListRequest.receiveResponse();
-                operatorSiteListRequest.receiveResponse();
-                thirdOperatorAccountRequest.receiveResponse();
-
-                tester.chatsWebSocket.connect();
-                tester.chatsInitMessage().expectToBeSent();
-
-                operatorOfflineMessageListRequest.receiveResponse();
-                chatListRequest.receiveResponse();
-            });
-
-            describe('Нажимаю на кнопку аккаунта.', function() {
-                beforeEach(function() {
-                    tester.userName.putMouseOver();
-                });
-
-                it('Выбираю другой статус. Другой статус выбран.', function() {
-                    tester.statusesList.item('Перерыв').click();
-
-                    tester.operatorStatusUpdateRequest().receiveResponse();
-                    tester.chatsEmployeeChangeMessage().receive();
-
-                    tester.statusesList.item('Доступен').expectNotToBeSelected();
-                    tester.statusesList.item('Перерыв').expectToBeSelected();
-
-                    tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
-                });
-                it('Отображен список статусов.', function() {
-                    tester.statusesList.item('Доступен').expectToBeSelected();
-                    tester.statusesList.item('Перерыв').expectNotToBeSelected();
-
-                    tester.statusesList.expectTextContentToHaveSubstring(
-                        'Доступен ' +
-                        'Перерыв ' +
-                        'Не беспокоить ' +
-                        'Нет на месте ' +
-                        'Нет на работе'
-                    );
-                });
-            });
-            it('Отображается статус сотрудника.', function() {
-                tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+                tester.button('Сырые данные').click();
+                tester.button('Все обращения').click();
             });
         });
+        return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -2300,6 +2320,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
+return;
     describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
         let tester;
 
