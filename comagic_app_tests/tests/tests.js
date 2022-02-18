@@ -42,7 +42,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        xdescribe('Фичафлаг софтфона включен.', function() {
+        describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -2205,7 +2205,7 @@ tests.addTest(options => {
                 accountRequest.operatorWorkplaceAvailable().softphoneUnavailable();
             });
 
-            xdescribe('Аналитика недоступна.', function() {
+            describe('Аналитика недоступна.', function() {
                 beforeEach(function() {
                     accountRequest.receiveResponse();
 
@@ -2253,7 +2253,7 @@ tests.addTest(options => {
                     chatListRequest.receiveResponse();
                 });
 
-                xdescribe('Нажимаю на кнопку аккаунта.', function() {
+                describe('Нажимаю на кнопку аккаунта.', function() {
                     beforeEach(function() {
                         tester.userName.putMouseOver();
                     });
@@ -2300,7 +2300,6 @@ tests.addTest(options => {
                 tester.button('Все обращения').click();
             });
         });
-        return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -2320,7 +2319,6 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-return;
     describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
         let tester;
 
