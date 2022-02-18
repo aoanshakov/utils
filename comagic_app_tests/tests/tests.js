@@ -2057,6 +2057,36 @@ tests.addTest(options => {
                             tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
                         });
                     });
+                    describe('В качестве устройства для приема звонков исползуется IP-телефон.', function() {
+                        beforeEach(function() {
+                            settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+                            notificationTester.grantPermission();
+                            permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
+
+                            tester.connectEventsWebSocket();
+
+                            tester.numberCapacityRequest().receiveResponse();
+                            tester.authenticatedUserRequest().receiveResponse();
+                        });
+
+                        it('Совершается исходящий звонок. Отображена информация о звонке.', function() {
+                            tester.outCallSessionEvent().receive();
+
+                            tester.outgoingIcon.expectToBeVisible();
+                            tester.softphone.
+                                expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67');
+                        });
+                        it('Поступил входящий звонок. Отображена информация о звонке.', function() {
+                            tester.outCallEvent().receive();
+
+                            tester.incomingIcon.expectToBeVisible();
+                            tester.softphone.
+                                expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67 Путь лида');
+                        });
+                        it('Отбражен выпадающий список номеров.', function() {
+                            tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
+                        });
+                    });
                     it('У выбранного номера есть длинный комментарий.', function() {
                         settingsRequest.longNumberCapacityComment().receiveResponse();
                         notificationTester.grantPermission();
@@ -2077,21 +2107,6 @@ tests.addTest(options => {
                             '+7 (495) 021-68-06 ' +
                             'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна'
                         );
-                    });
-                    it(
-                        'В качестве устройства для приема звонков исползуется IP-телефон. Отбражен выпадающий список ' +
-                        'номеров.',
-                    function() {
-                        settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
-                        notificationTester.grantPermission();
-                        permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
-
-                        tester.connectEventsWebSocket();
-
-                        tester.numberCapacityRequest().receiveResponse();
-                        tester.authenticatedUserRequest().receiveResponse();
-
-                        tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
                     });
                 });
                 describe('Пользователь не имеет права на список номеров.', function() {
