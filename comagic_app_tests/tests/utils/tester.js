@@ -1407,38 +1407,29 @@ define(() => function ({
 
     me.communicationsRequest = () => {
         const params = {
-            date_from: '2020-10-01 15:23:05',
-            date_till: '2020-11-02 14:26:02',
-            report_id: 0,
-            limit: 1,
+            date_from: '2022-01-01 00:00:00',
+            date_till: '2022-02-14 23:59:59',
+            report_id: 48427,
+            limit: 50,
             offset: 0,
-            filter: {
-                filters: [{
-                    field: 'name',
-                    operator: '==',
-                    value: 'Некое имя'
-                }, {
-                    field: 'description',
-                    operator: '==',
-                    value: 'Некое описание'
-                }, {
-                    filters: [{
-                        field: 'communication_type',
-                        operator: '=',
-                        value: 'Звонки',
-                    }, {
-                        field: 'communication_type',
-                        operator: '=',
-                        value: 'Заявки',
-                    }, {
-                        field: 'communication_type',
-                        operator: '=',
-                        value: 'Чаты',
-                    }],
-                    condition: 'or'
-                }],
-                condition: 'and'
-            }
+            fields: [
+                'cc_72',
+                'cc_71',
+                'cc_59',
+                'cc_99',
+                'cf_82',
+                'cc_64',
+                'cc_103',
+                'cc_55',
+                'cc_104',
+                'cc_81',
+                'cc_105',
+                'communication_id',
+            ],
+            sort: [{
+                field: 'cc_71',
+                order: 'desc'
+            }]
         };
 
         const request = {
@@ -1456,84 +1447,82 @@ define(() => function ({
                     }).
                     respondSuccessfullyWith({
                         result: {
-                            data: {
-                                data: [{
-                                    site_domain_name: null,
-                                    communication_id: null,
-                                    communication_date_time: null,
-                                    communication_kinds: null,
-                                    communication_page_url: null,
-                                    communication_number: null,
-                                    contact_full_name: null,
-                                    total_duration: null,
-                                    employees: null,
-                                    campaign_name: null,
-                                    channel: null,
-                                    source: null,
-                                    referrer: null,
-                                    referrer_domain: null,
-                                    search_query: null,
-                                    eq_utm_source: null,
-                                    eq_utm_medium: null,
-                                    eq_utm_term: null,
-                                    eq_utm_content: null,
-                                    eq_utm_campaign: null,
-                                    eq_utm_referrer: null,
-                                    eq_utm_expid: null,
-                                    utm_source: null,
-                                    utm_medium: null,
-                                    utm_term: null,
-                                    utm_content: null,
-                                    utm_campaign: null,
-                                    utm_referrer: null,
-                                    utm_expid: null,
-                                    openstat_ad: null,
-                                    openstat_campaign: null,
-                                    openstat_service: null,
-                                    openstat_source: null,
-                                    ef_id: null,
-                                    yclid: null,
-                                    gclid: null,
-                                    cm_id: null,
-                                    ymclid: null,
-                                    tag_from: null,
-                                    visitor_country: null,
-                                    visitor_region: null,
-                                    visitor_city: null,
-                                    visitor_provider: null,
-                                    visitor_ip_address: null,
-                                    visitor_browser_name: null,
-                                    visitor_browser_version: null,
-                                    visitor_os_name: null,
-                                    visitor_os_version: null,
-                                    visitor_language: null,
-                                    visitor_screen: null,
-                                    visitor_session_id: null,
-                                    entrance_page: null,
-                                    visitor_id: null,
-                                    ua_client_id: null,
-                                    ym_client_id: null,
-                                    segments: null,
-                                    visit_date: null,
-                                    visit_year: null,
-                                    call_region_name: null,
-                                    call_records: null,
-                                    offline_message_email: null,
-                                    offline_message_text: null,
-                                    chat_messages_count: null,
-                                    goal_name: null,
-                                    deals: null,
-                                    visitor_phone_numbers: null,
-                                    visitor_emails: null,
-                                    virtual_phone_number: null,
-                                    chat_status: null,
-                                    site_name: null,
-                                    number_pool_name: null,
-                                    offline_message_form_name: null
-                                }],
-                                metadata: {
-                                    total_items: 1
-                                }
+                            data: [{
+                                site_domain_name: null,
+                                communication_id: null,
+                                communication_date_time: null,
+                                communication_kinds: null,
+                                communication_page_url: null,
+                                communication_number: null,
+                                contact_full_name: null,
+                                total_duration: null,
+                                employees: null,
+                                campaign_name: null,
+                                channel: null,
+                                source: null,
+                                referrer: null,
+                                referrer_domain: null,
+                                search_query: null,
+                                eq_utm_source: null,
+                                eq_utm_medium: null,
+                                eq_utm_term: null,
+                                eq_utm_content: null,
+                                eq_utm_campaign: null,
+                                eq_utm_referrer: null,
+                                eq_utm_expid: null,
+                                utm_source: null,
+                                utm_medium: null,
+                                utm_term: null,
+                                utm_content: null,
+                                utm_campaign: null,
+                                utm_referrer: null,
+                                utm_expid: null,
+                                openstat_ad: null,
+                                openstat_campaign: null,
+                                openstat_service: null,
+                                openstat_source: null,
+                                ef_id: null,
+                                yclid: null,
+                                gclid: null,
+                                cm_id: null,
+                                ymclid: null,
+                                tag_from: null,
+                                visitor_country: null,
+                                visitor_region: null,
+                                visitor_city: null,
+                                visitor_provider: null,
+                                visitor_ip_address: null,
+                                visitor_browser_name: null,
+                                visitor_browser_version: null,
+                                visitor_os_name: null,
+                                visitor_os_version: null,
+                                visitor_language: null,
+                                visitor_screen: null,
+                                visitor_session_id: null,
+                                entrance_page: null,
+                                visitor_id: null,
+                                ua_client_id: null,
+                                ym_client_id: null,
+                                segments: null,
+                                visit_date: null,
+                                visit_year: null,
+                                call_region_name: null,
+                                call_records: null,
+                                offline_message_email: null,
+                                offline_message_text: null,
+                                chat_messages_count: null,
+                                goal_name: null,
+                                deals: null,
+                                visitor_phone_numbers: null,
+                                visitor_emails: null,
+                                virtual_phone_number: null,
+                                chat_status: null,
+                                site_name: null,
+                                number_pool_name: null,
+                                offline_message_form_name: null
+                            }],
+                            metadata: {
+                                total_items: 1
                             }
                         }
                     });
@@ -1616,112 +1605,367 @@ define(() => function ({
         return request;
     };
 
-    me.reportRapidFiltersRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
-                expectBodyToContain({
-                    method: 'get.report_rapid_filters',
-                    params: {
-                        report_type: 'marketer_dashboard'
-                    }
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        data: [{
-                            id: 'some_filter',
-                            name: 'Некий фильтр',
-                            description: 'Описание некого фильтра',
-                            format: 'some_format',
-                            operators: [{
-                                id: 'some_operator',
-                                name: 'Некий оператор',
-                                is_default: false
-                            }],
-                            values: []
-                        }]
-                    }
-                });
-
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
-        }
-    });
-
-    me.reportStateRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
-                expectBodyToContain({
-                    method: 'getobj.report_state',
-                    params: {
-                        report_id: 582729
-                    }
-                }).
-                respondSuccessfullyWith({
-                    result: {
-                        data: {
-                            limit: 50,
-                            offset: 0,
-                            date_from: '2020-10-01 15:23:05',
-                            date_till: '2020-11-02 14:26:02',
-                            compared_date_from: '2020-12-03 13:24:53',
-                            compared_date_till: '2020-13-04 12:22:52',
-                            perspective_window: 180,
-                            dimensions: [],
-                            columns: [],
-                            filter: {
-                                field: 'name',
-                                operator: '==',
-                                value: 'Некое имя',
-                                filters: [],
-                                condition: 'and',
-                            },
-                            rapid_filter: {
-                                field: 'description',
-                                operator: '==',
-                                value: 'Некое описание',
-                                filters: [],
-                                condition: 'and',
-                            },
-                            sort: [{
-                                field: 'name',
-                                order: 'asc'
-                            }],
-                            column_params: {
-                                name: {
-                                    width: 200,
-                                    filter: {
-                                        field: 'name',
-                                        operator: '==',
-                                        value: 'Некое имя',
-                                        filters: [],
-                                        condition: 'and',
-                                    }
-                                }
-                            },
-                            main_column: 'name',
-                            additional_column: 'description',
-                            checked_dimensions: [{
-                                key: 'some_key',
-                                dimension_id: 'some_dimension',
-                                dimension_value: 'some_dimension_value',
-                                dimension_value_id: 'some_dimension_id',
-                                pos: 0,
-                            }],
-                            is_chart_visible: true,
-                            isGrouping: false,
-                            goal_ids: [282572],
-                            chart_id: 'line',
-                            datetime_dimension: 'day'
+    me.customFiltersRequest = () => {
+        return {
+            receiveResponse() {
+                ajax.recentRequest().
+                    expectBodyToContain({
+                        method: 'get.custom_filters',
+                        params: {
+                            report_type: 'communications'
                         }
-                    }
+                    }).
+                    respondSuccessfullyWith({
+                        result: {
+                            data: []
+                        }
+                    });
+
+                Promise.runAll(false, true);
+                spendTime(0)
+                Promise.runAll(false, true);
+            }
+        };
+    };
+
+    me.tagsRequest = () => {
+        return {
+            receiveResponse() {
+                ajax.recentRequest().
+                    expectBodyToContain({
+                        method: 'get.tags',
+                        params: {
+                            is_include_rating: true
+                        }
+                    }).
+                    respondSuccessfullyWith({
+                        result: {
+                            data: [{
+                                id: 288,
+                                name: 'Продажа',
+                                rating: 0,
+                                is_system: false
+                            }]
+                        }
+                    });
+
+                Promise.runAll(false, true);
+                spendTime(0)
+                Promise.runAll(false, true);
+            }
+        };
+    };
+
+    me.columnsTreeRequest = () => {
+        return {
+            receiveResponse() {
+                ajax.recentRequest().
+                    expectBodyToContain({
+                        method: 'getobj.columns_tree',
+                        params: {
+                            report_type: 'communications'
+                        }
+                    }).
+                    respondSuccessfullyWith({
+                        result: {
+                            data: {
+                                columns: [{
+                                    id: 'communication_type',
+                                    name: 'Тип обращения',
+                                    sort: 200,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Типы обращений: Звонки, заявки, чаты, цели.',
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }],
+                                columns_groups: [{
+                                    id: 4,
+                                    name: 'Обращения',
+                                    sort: 400,
+                                    description: null,
+                                    parent_group_id: null
+                                }]
+                            }
+                        }
+                    });
+
+                Promise.runAll(false, true);
+                spendTime(0)
+                Promise.runAll(false, true);
+            }
+        };
+    };
+
+    me.reportFiltersRequest = () => {
+        const params = {
+            method: 'get.report_filters',
+            params: {
+                report_type: 'communications'
+            }
+        };
+
+        data = [{
+            id: 'ua_client_id',
+            name: 'Client ID Google Analytics',
+            format: 'text',
+            values: [],
+            operators: [{
+                id: '=',
+                name: 'равно',
+                is_default: false
+            }, {
+                id: '!=',
+                name: 'не равно',
+                is_default: false
+            }, {
+                id: 'ilike',
+                name: 'включает',
+                is_default: true
+            }, {
+                id: 'not_ilike',
+                name: 'исключает',
+                is_default: false
+            }, {
+                id: 'is_null',
+                name: 'не содержит данные',
+                is_default: false
+            }, {
+                id: 'is_not_null',
+                name: 'содержит данные',
+                is_default: false
+            }],
+            description: 'Информация получена от аналитической системы Universal Analytics.',
+            is_custom_dimension: false
+        }];
+
+        return {
+            receiveResponse() {
+                ajax.recentRequest().
+                    expectBodyToContain(params).
+                    respondSuccessfullyWith({
+                        result: {data}
+                    });
+
+                Promise.runAll(false, true);
+                spendTime(0)
+                Promise.runAll(false, true);
+            }
+        };
+    };
+
+    me.reportRapidFiltersRequest = () => {
+        const params = {
+            method: 'get.report_rapid_filters',
+            params: {
+                report_type: 'marketer_dashboard'
+            }
+        };
+
+        const data = [{
+            id: 'some_filter',
+            name: 'Некий фильтр',
+            description: 'Описание некого фильтра',
+            format: 'some_format',
+            operators: [{
+                id: 'some_operator',
+                name: 'Некий оператор',
+                is_default: false
+            }],
+            values: []
+        }];
+
+        return {
+            communications() {
+                params.params.report_type = 'communications';
+
+                data.splice(0, data.length);
+
+                data.push({
+                    id: 'communication_type',
+                    name: 'Тип обращения',
+                    format: 'system_list',
+                    values: [
+                        'Заявки',
+                        'Звонки',
+                        'Цели',
+                        'Чаты'
+                    ],
+                    operators: [{
+                        id: '=',
+                        name: 'равно',
+                        is_default: true
+                    }],
+                    description: 'Типы обращений: Звонки, заявки, чаты, цели.'
                 });
 
-            Promise.runAll(false, true);
-            spendTime(0)
-            Promise.runAll(false, true);
-        }
-    });
+                return this;
+            },
+
+            receiveResponse() {
+                ajax.recentRequest().
+                    expectBodyToContain(params).
+                    respondSuccessfullyWith({
+                        result: {data}
+                    });
+
+                Promise.runAll(false, true);
+                spendTime(0)
+                Promise.runAll(false, true);
+            }
+        };
+    };
+
+    me.reportStateRequest = () => {
+        let report_id = 582729;
+
+        let data = {
+            limit: 50,
+            offset: 0,
+            date_from: '2020-10-01 15:23:05',
+            date_till: '2020-11-02 14:26:02',
+            compared_date_from: '2020-12-03 13:24:53',
+            compared_date_till: '2020-13-04 12:22:52',
+            perspective_window: 180,
+            dimensions: [],
+            columns: [],
+            filter: {
+                field: 'name',
+                operator: '==',
+                value: 'Некое имя',
+                filters: [],
+                condition: 'and',
+            },
+            rapid_filter: {
+                field: 'description',
+                operator: '==',
+                value: 'Некое описание',
+                filters: [],
+                condition: 'and',
+            },
+            sort: [{
+                field: 'name',
+                order: 'asc'
+            }],
+            column_params: {
+                name: {
+                    width: 200,
+                    filter: {
+                        field: 'name',
+                        operator: '==',
+                        value: 'Некое имя',
+                        filters: [],
+                        condition: 'and',
+                    }
+                }
+            },
+            main_column: 'name',
+            additional_column: 'description',
+            checked_dimensions: [{
+                key: 'some_key',
+                dimension_id: 'some_dimension',
+                dimension_value: 'some_dimension_value',
+                dimension_value_id: 'some_dimension_id',
+                pos: 0,
+            }],
+            is_chart_visible: true,
+            isGrouping: false,
+            goal_ids: [282572],
+            chart_id: 'line',
+            datetime_dimension: 'day'
+        };
+
+        return {
+            allRequests() {
+                report_id = 48427;
+
+                data = {
+                    sort: [{
+                        field: 'cc_71',
+                        order: 'desc'
+                    }],
+                    limit: 50,
+                    offset: 0,
+                    columns: [
+                        'cc_72',
+                        'cc_71',
+                        'cc_59',
+                        'cc_99',
+                        'cf_82',
+                        'cc_64',
+                        'cc_103',
+                        'cc_55',
+                        'cc_104',
+                        'cc_81',
+                        'cc_105'
+                    ],
+                    date_from: '2022-01-01 00:00:00',
+                    date_till: '2022-02-14 23:59:59',
+                    dimensions: [
+                        'pc',
+                        'gr',
+                        'ad',
+                        'kw'
+                    ],
+                    isGrouping: false,
+                    main_column: 'cc_72',
+                    is_chart_visible: false,
+                    checked_dimensions: [{
+                        key: '[null]',
+                        pos: 0,
+                        dimension_id: 'pc',
+                        dimension_value: 'Не определено',
+                        dimension_value_id: null
+                    }],
+                    datetime_dimension: 'day',
+                    global_calendar_on: true,
+                    perspective_window: 60
+                };
+
+                return this;
+            },
+
+            receiveResponse() {
+                ajax.recentRequest().
+                    expectBodyToContain({
+                        method: 'getobj.report_state',
+                        params: {report_id}
+                    }).
+                    respondSuccessfullyWith({
+                        result: {data}
+                    });
+
+                Promise.runAll(false, true);
+                spendTime(0)
+                Promise.runAll(false, true);
+            }
+        };
+    };
 
     me.reportTypesRequest = () => {
         const data = [{

@@ -10,3 +10,31 @@ index 31f2de4..1636533 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
+diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
+index 05fcfcd..33fda59 100644
+--- a/src/models/RootStore.ts
++++ b/src/models/RootStore.ts
+@@ -93,7 +93,9 @@ export type DependencyInjection = {
+ export type RootInstance = Instance<typeof RootStore>;
+ export const RootStoreContext = React.createContext<null | RootInstance>(null);
+ export const Provider = RootStoreContext.Provider;
+-export const rootStore = RootStore.create({}, { httpRpc });
++
++export let rootStore;
++export const createRootStore = () => (rootStore = RootStore.create({}, { httpRpc }));
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+ 
+diff --git a/src/models/reports/RootReportStore.ts b/src/models/reports/RootReportStore.ts
+index 2a07782..7a34ed9 100644
+--- a/src/models/reports/RootReportStore.ts
++++ b/src/models/reports/RootReportStore.ts
+@@ -48,7 +48,7 @@ export const RootReportStore = types
+         customerHistoryStore: types.optional(CustomerHistoryStore, {}),
+     })
+     .views(self => {
+-        const getReportRouterParams = (pathname = window.location.pathname) => {
++        const getReportRouterParams = (pathname = window.memoryHistory.location.pathname) => {
+             const match = matchPath<RouterParams>(pathname, {
+                 path: REPORT_PATH,
+             });
