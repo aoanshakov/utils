@@ -1,3 +1,16 @@
+diff --git a/.env b/.env
+index cf35fde4..32dc7c45 100644
+--- a/.env
++++ b/.env
+@@ -10,6 +10,6 @@ REACT_APP_COMAGIC_WEB_URL=https://int0.dev.uis.st
+ REACT_APP_PROJECT=
+ REACT_APP_MODULE_ANALYTICS=http://localhost:8081
+ REACT_APP_MODULE_CALL_TRACKING=http://localhost:8082
+-REACT_APP_MODULE_CHATS=https://chats-int0-chats.uis.st
++REACT_APP_MODULE_CHATS=http://localhost:8083
+ REACT_APP_LEADGEN_MODULE=
+-REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
++REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
 index af3bdacc..645c6549 100644
 --- a/config/webpack.config.js
