@@ -10,6 +10,22 @@ index 31f2de4..1636533 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
+diff --git a/src/components/ShadowContent.ts b/src/components/ShadowContent.ts
+index dc4e8eb..43d205f 100644
+--- a/src/components/ShadowContent.ts
++++ b/src/components/ShadowContent.ts
+@@ -14,9 +14,10 @@ export const getShadowRoot = (): HTMLElement => {
+ 
+         parentEl.appendChild(moduleEl);
+ 
+-        moduleEl.attachShadow({ mode: 'open' });
++        //moduleEl.attachShadow({ mode: 'open' });
+     }
+ 
++    return moduleEl;
+     return (moduleEl.shadowRoot as unknown) as HTMLElement;
+ };
+ 
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
 index 05fcfcd..33fda59 100644
 --- a/src/models/RootStore.ts
