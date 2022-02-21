@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index af3bdacc..bf84a2ef 100644
+index af3bdacc..645c6549 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,9 +8,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -76,7 +76,7 @@ index af3bdacc..bf84a2ef 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -205,6 +225,43 @@ const plugins = () => {
+@@ -205,6 +225,71 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -95,8 +95,6 @@ index af3bdacc..bf84a2ef 100644
 +    var moduleEl = parentEl.querySelector('#analytics'),
 +        magicUIRegExp = new RegExp('magic_ui.*.css'),
 +        magicUIStylePath = 'magic-ui/lib/styles.css';
-+
-+    console.log('MODULE EL', moduleEl);
 +
 +    if (!moduleEl) {
 +        moduleEl = document.createElement('div');
@@ -117,10 +115,40 @@ index af3bdacc..bf84a2ef 100644
 +    }
 +}
 +
++const insertMagicUI = element => {
++    document.head.appendChild(element);
++
++    var parentEl = document.querySelector('#rootMain');
++
++    if (!parentEl) return;
++
++    var moduleEl = parentEl.querySelector('#analytics'),
++        magicUIRegExp = new RegExp('magic_ui.*.css'),
++        magicUIStylePath = 'magic-ui/lib/styles.css';
++
++    if (!moduleEl) {
++        moduleEl = document.createElement('div');
++        moduleEl.setAttribute('id', 'analytics');
++
++        parentEl.appendChild(moduleEl);
++
++        moduleEl.attachShadow({ mode: 'open' });
++    }
++
++    var shadowRoot = moduleEl.shadowRoot;
++
++    if (shadowRoot) {
++        const isInsertFirst =
++            element.tagName === 'LINK' && (magicUIRegExp.test(element.href) || element.href.includes(magicUIStylePath));
++
++        isInsertFirst ? shadowRoot.insertBefore(element, shadowRoot.firstChild) : shadowRoot.appendChild(element);
++    }
++};
++
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -224,6 +281,21 @@ module.exports = {
+@@ -224,6 +309,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -142,7 +170,7 @@ index af3bdacc..bf84a2ef 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -243,15 +315,69 @@ module.exports = {
+@@ -243,15 +343,66 @@ module.exports = {
                          }),
                      },
                  },
@@ -189,10 +217,7 @@ index af3bdacc..bf84a2ef 100644
 +                    {
 +                        loader: 'style-loader',
 +                        options: {
-+                            insert: element => {
-+                                insertStylesToShadowDom(element);
-+                                document.head.appendChild(element);
-+                            },
++                            insert: insertMagicUI,
 +                        },
 +                    },
 +                    {
@@ -213,7 +238,7 @@ index af3bdacc..bf84a2ef 100644
              },
              {
                  test: /\.(png|jpg)$/,
-@@ -269,6 +395,7 @@ module.exports = {
+@@ -269,6 +420,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -221,7 +246,7 @@ index af3bdacc..bf84a2ef 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -284,16 +411,104 @@ module.exports = {
+@@ -284,16 +436,104 @@ module.exports = {
                      },
                  ],
              },
