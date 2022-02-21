@@ -12,7 +12,7 @@ index cf35fde4..32dc7c45 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index af3bdacc..645c6549 100644
+index af3bdacc..f8484f30 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,9 +8,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -89,7 +89,7 @@ index af3bdacc..645c6549 100644
      ];
  
      if (isBundleAnalyzerPlugin) {
-@@ -205,6 +225,71 @@ const plugins = () => {
+@@ -205,6 +225,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -100,68 +100,10 @@ index af3bdacc..645c6549 100644
 +    '@hooks': path.resolve(appDirectory, './src/hooks'),
 +});
 +
-+function insertStylesToShadowDom(element) {
-+    var parentEl = document.querySelector('#rootMain');
-+
-+    if (!parentEl) return;
-+
-+    var moduleEl = parentEl.querySelector('#analytics'),
-+        magicUIRegExp = new RegExp('magic_ui.*.css'),
-+        magicUIStylePath = 'magic-ui/lib/styles.css';
-+
-+    if (!moduleEl) {
-+        moduleEl = document.createElement('div');
-+        moduleEl.setAttribute('id', 'analytics');
-+
-+        parentEl.appendChild(moduleEl);
-+
-+        moduleEl.attachShadow({ mode: 'open' });
-+    }
-+
-+    var shadowRoot = moduleEl.shadowRoot;
-+
-+    if (shadowRoot) {
-+        const isInsertFirst =
-+            element.tagName === 'LINK' && (magicUIRegExp.test(element.href) || element.href.includes(magicUIStylePath));
-+
-+        isInsertFirst ? shadowRoot.insertBefore(element, shadowRoot.firstChild) : shadowRoot.appendChild(element);
-+    }
-+}
-+
-+const insertMagicUI = element => {
-+    document.head.appendChild(element);
-+
-+    var parentEl = document.querySelector('#rootMain');
-+
-+    if (!parentEl) return;
-+
-+    var moduleEl = parentEl.querySelector('#analytics'),
-+        magicUIRegExp = new RegExp('magic_ui.*.css'),
-+        magicUIStylePath = 'magic-ui/lib/styles.css';
-+
-+    if (!moduleEl) {
-+        moduleEl = document.createElement('div');
-+        moduleEl.setAttribute('id', 'analytics');
-+
-+        parentEl.appendChild(moduleEl);
-+
-+        moduleEl.attachShadow({ mode: 'open' });
-+    }
-+
-+    var shadowRoot = moduleEl.shadowRoot;
-+
-+    if (shadowRoot) {
-+        const isInsertFirst =
-+            element.tagName === 'LINK' && (magicUIRegExp.test(element.href) || element.href.includes(magicUIStylePath));
-+
-+        isInsertFirst ? shadowRoot.insertBefore(element, shadowRoot.firstChild) : shadowRoot.appendChild(element);
-+    }
-+};
-+
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -224,6 +309,21 @@ module.exports = {
+@@ -224,6 +251,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -183,7 +125,7 @@ index af3bdacc..645c6549 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -243,15 +343,66 @@ module.exports = {
+@@ -243,7 +285,7 @@ module.exports = {
                          }),
                      },
                  },
@@ -192,46 +134,15 @@ index af3bdacc..645c6549 100644
              },
              {
                  test: /\.css$/,
-                 use: cssLoaders(),
-+                exclude: /analytics\/frontend/
+@@ -254,6 +296,29 @@ module.exports = {
+                 use: cssLoaders(lessLoader),
              },
              {
-                 test: /\.less$/,
-                 use: cssLoaders(lessLoader),
-+                exclude: /analytics\/frontend/
-+            },
-+            {
-+                test: /analytics\/frontend\/.*\.css$/,
-+                use: [{
-+                    loader: 'style-loader',
-+                    options: {
-+                        injectType: 'linkTag',
-+                        insert: insertStylesToShadowDom,
-+                    },
-+                }, {
-+                    loader: 'file-loader',
-+                    options: {
-+                        name: '[path][name].[ext]',
-+                    },
-+                }]
-+            },
-+            {
-+                test: /analytics\/frontend\/.*\.less$/,
-+                use: cssLoaders(lessLoader, {
-+                    options: {
-+                        insert: insertStylesToShadowDom,
-+                    }
-+                })
-+            },
-+            {
 +                test: /\.(sa|sc|c)ss$/,
 +                include: `${magicUIDirectory}/src`,
 +                use: [
 +                    {
 +                        loader: 'style-loader',
-+                        options: {
-+                            insert: insertMagicUI,
-+                        },
 +                    },
 +                    {
 +                        loader: 'css-loader',
@@ -248,10 +159,12 @@ index af3bdacc..645c6549 100644
 +                        }
 +                    },
 +                ],
-             },
-             {
++            },
++            {
                  test: /\.(png|jpg)$/,
-@@ -269,6 +420,7 @@ module.exports = {
+                 loader: 'url-loader',
+                 options: {
+@@ -269,6 +334,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -259,7 +172,7 @@ index af3bdacc..645c6549 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -284,16 +436,104 @@ module.exports = {
+@@ -284,16 +350,104 @@ module.exports = {
                      },
                  ],
              },
