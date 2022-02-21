@@ -38,7 +38,7 @@ const cda = `cd ${application} &&`,
     magicUiOverridenFiles = 'package.json',
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
-    analyticsOverridenFiles = 'package.json',
+    analyticsOverridenFiles = 'src/models/RootStore.ts src/models/reports/RootReportStore.ts package.json',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js .env';
 
@@ -175,11 +175,10 @@ actions['initialize'] = params => [
 
 const rmVerbose = target => `if [ -e ${target} ]; then rm -rvf ${target}; fi`;
 
-actions['reset'] = [
-    rmVerbose(nodeModules),
-    rmVerbose(misc),
-    rmVerbose(packageLockJson)
-].concat(actions['restore-code']({}));
+actions['remove-node-modules'] = overriding.map(({application}) => [
+    rmVerbose(`${application}/node_modules`),
+    rmVerbose(`${application}/package-lock.json`)
+]).reduce((allCommands, commands) => allCommands.concat(commands), []);
 
 actions['bash'] = [];
 actions['disable-hook'] = [`chmod +x ${preCommitHook}`, `${cda} patch -p1 < ${huskyPatch}`];
