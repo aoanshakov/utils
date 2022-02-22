@@ -42,7 +42,7 @@ const cda = `cd ${application} &&`,
     devOverridenFiles = 'config/webpack.config.js .env';
 
 const analyticsOverridenFiles = 'src/models/RootStore.ts src/models/reports/RootReportStore.ts ' +
-    'src/components/ShadowContent.ts package.json';
+    'src/components/ShadowContent.ts src/components/ShadowContent.tsx package.json';
 
 const overridenFiles = [
     '.env',
