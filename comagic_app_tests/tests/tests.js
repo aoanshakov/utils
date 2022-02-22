@@ -2316,6 +2316,11 @@ tests.addTest(options => {
                 tester.tagsRequest().receiveResponse();
                 tester.customFiltersRequest().receiveResponse();
                 tester.communicationsRequest().receiveResponse()
+
+                tester.table.row.first().column.withHeader('Сообщений').button('4').click();
+                
+                tester.messageListRequest().receiveResponse();
+                tester.chatListRequest().receiveResponse();
             });
         });
         return;

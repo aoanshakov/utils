@@ -48,6 +48,57 @@ define(() => function ({
     Promise.runAll(false, true);
 
     const addTesters = (me, getRootElement) => {
+        me.table = (() => {
+            const tester = testersFactory.createDomElementTester('.ant-table');
+
+            const getHeaderColumnIndex = text => {
+                let i;
+                const columns = document.querySelectorAll('.ant-table-thead th'),
+                    {length} = columns;
+
+                for (i = 0; i < length; i ++) {
+                    const column = columns[i];
+
+                    if (text == utils.getTextContent(column)) {
+                        return i;
+                    }
+                }
+
+                return -1;
+            };
+
+            tester.row = {
+                first() {
+                    return this.atIndex(0);
+                },
+
+                atIndex: index => {
+                    const getRow = () => (
+                        getRootElement().querySelectorAll('.ant-table-row ') || []
+                    )[index] || new JsTester_NoElement();
+
+                    const tester = testersFactory.createDomElementTester(getRow);
+
+                    tester.column = {
+                        withHeader: text => {
+                            const getColumn = () => (
+                                getRow().querySelectorAll('td') || []
+                            )[getHeaderColumnIndex(text)] || new JsTester_NoElement();
+
+                            const tester = testersFactory.createDomElementTester(getColumn);
+                            addTesters(tester, getColumn);
+
+                            return tester;
+                        }
+                    };
+
+                    return tester;
+                } 
+            };
+
+            return tester;
+        })();
+
         me.stopCallButton = testersFactory.createDomElementTester(() =>
             utils.getVisibleSilently(getRootElement().querySelectorAll('.cmg-call-button-stop')));
 
@@ -100,6 +151,7 @@ define(() => function ({
 
                 Promise.runAll(false, true);
                 spendTime(0);
+                Promise.runAll(false, true);
             };
 
             const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked';
@@ -210,6 +262,43 @@ define(() => function ({
         };
 
         return me;
+    };
+
+    me.messageListRequest = () => {
+        return {
+            receiveResponse() {
+                ajax.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectPathToContain('logic/operator').
+                    expectBodyToContain({
+                        method: 'get_message_list',
+                        params: {
+                            chat_id: 141419755
+                        }
+                    }).respondSuccessfullyWith({
+                        data: [{
+                            id: 482058,
+                            source: 'operator',
+                            text: 'Привет',
+                            date: '2020-02-10 12:13:14',
+                            status: 'delivered',
+                            chat_id: 141419755,
+                            reply_to: null,
+                            resource: null,
+                            resourceName: null,
+                            employee_id: 20816,
+                            employee_name: 'Карадимова Веска Анастасовна',
+                            visitor_name: 'Помакова Бисерка Драгановна',
+                            front_message_uuid: '228gj24og824jgo8d',
+                            error_mnemonic: null
+                        }]
+                    });
+
+                Promise.runAll(false, true);
+                spendTime(0)
+                Promise.runAll(false, true);
+            }
+        };
     };
 
     me.operatorStatusUpdateRequest = () => ({
@@ -934,39 +1023,71 @@ define(() => function ({
         }
     });
 
-    me.chatListRequest = () => ({
-        expectToBeSent(requests) {
-            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('/logic/operator').
-                expectToHaveMethod('POST').
-                expectBodyToContain({
-                    method: 'get_chat_list',
-                    params: {
-                        statuses: ['new', 'active'],
-                        limit: 1000,
-                        offset: 0
-                    }
-                });
-
-            return {
-                receiveResponse() {
-                    request.respondSuccessfullyWith({
-                        result: {
-                            data: []
-                        }
+    me.chatListRequest = () => {
+                ajax.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectPathToContain('logic/operator').
+                    expectBodyToContain({
+                        method: 'get_chat_list',
+                        params: 
+                    }).respondSuccessfullyWith({
+                        data: [{
+                            visitor_id: 8529294,
+                            visitor_name: 'Помакова Бисерка Драгановна'
+                        }]
                     });
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                    Promise.runAll(false, true);
-                }
-            };
-        },
+        let params = {
+            statuses: ['new', 'active'],
+            limit: 1000,
+            offset: 0
+        };
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        }
-    });
+        return {
+            visitor() {
+                params = {
+                    chat_id: 141419755,
+                    limit: 12,
+                    offset: 0,
+                    statuses: [
+                        'new',
+                        'active',
+                        'closed'
+                    ]
+                };
+
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('/logic/operator').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'get_chat_list',
+                        params
+                    });
+
+                return {
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: {
+                                data: []
+                            }
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                };
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        };
+    };
 
     me.operatorAccountRequest = () => ({
         expectToBeSent(requests) {
@@ -1413,21 +1534,24 @@ define(() => function ({
             limit: 50,
             offset: 0,
             fields: [
-                'cc_72',
-                'cc_71',
-                'cc_59',
-                'cc_99',
-                'cf_82',
-                'cc_64',
-                'cc_103',
-                'cc_55',
-                'cc_104',
-                'cc_81',
-                'cc_105',
-                'communication_id',
+                'communication_type',
+                'communication_date_time',
+                'communication_number',
+                'visitor_id',
+                'virtual_phone_number',
+                'tags',
+                'call_records',
+                'total_duration',
+                'call_type',
+                'call_status',
+                'call_direction',
+                'employees',
+                'chat_initiator',
+                'chat_messages_count',
+                'offline_message_type'
             ],
             sort: [{
-                field: 'cc_71',
+                field: 'communication_date_time',
                 order: 'desc'
             }]
         };
@@ -1448,78 +1572,49 @@ define(() => function ({
                     respondSuccessfullyWith({
                         result: {
                             data: [{
-                                site_domain_name: null,
-                                communication_id: null,
-                                communication_date_time: null,
-                                communication_kinds: null,
-                                communication_page_url: null,
-                                communication_number: null,
-                                contact_full_name: null,
-                                total_duration: null,
-                                employees: null,
-                                campaign_name: null,
-                                channel: null,
-                                source: null,
-                                referrer: null,
-                                referrer_domain: null,
-                                search_query: null,
-                                eq_utm_source: null,
-                                eq_utm_medium: null,
-                                eq_utm_term: null,
-                                eq_utm_content: null,
-                                eq_utm_campaign: null,
-                                eq_utm_referrer: null,
-                                eq_utm_expid: null,
-                                utm_source: null,
-                                utm_medium: null,
-                                utm_term: null,
-                                utm_content: null,
-                                utm_campaign: null,
-                                utm_referrer: null,
-                                utm_expid: null,
-                                openstat_ad: null,
-                                openstat_campaign: null,
-                                openstat_service: null,
-                                openstat_source: null,
-                                ef_id: null,
-                                yclid: null,
-                                gclid: null,
-                                cm_id: null,
-                                ymclid: null,
-                                tag_from: null,
-                                visitor_country: null,
-                                visitor_region: null,
-                                visitor_city: null,
-                                visitor_provider: null,
-                                visitor_ip_address: null,
-                                visitor_browser_name: null,
-                                visitor_browser_version: null,
-                                visitor_os_name: null,
-                                visitor_os_version: null,
-                                visitor_language: null,
-                                visitor_screen: null,
-                                visitor_session_id: null,
-                                entrance_page: null,
-                                visitor_id: null,
-                                ua_client_id: null,
-                                ym_client_id: null,
-                                segments: null,
-                                visit_date: null,
-                                visit_year: null,
-                                call_region_name: null,
+                                tags: {
+                                    items: [{
+                                        id: 45151,
+                                        name: ':)'
+                                    }],
+                                    communication_id: 141419755,
+                                    communication_type: 'chat'
+                                },
+                                call_type: {
+                                    value: null,
+                                    value_id: null
+                                },
+                                employees: [{
+                                    employee_full_name: 'SP_TEST Олег Оловянный'
+                                }],
+                                visitor_id: 5059668393,
+                                call_status: {
+                                    value: null,
+                                    value_id: null
+                                },
                                 call_records: null,
-                                offline_message_email: null,
-                                offline_message_text: null,
-                                chat_messages_count: null,
-                                goal_name: null,
-                                deals: null,
-                                visitor_phone_numbers: null,
-                                visitor_emails: null,
+                                call_direction: {
+                                    value: null,
+                                    value_id: null
+                                },
+                                chat_initiator: {
+                                    value: 'Посетитель',
+                                    value_id: 'visitor'
+                                },
+                                total_duration: null,
+                                communication_id: 141419755,
+                                communication_type: {
+                                    value: 'Чаты',
+                                    value_id: 'chat'
+                                },
+                                chat_messages_count: 4,
+                                communication_number: 1,
+                                offline_message_type: {
+                                    value: null,
+                                    value_id: null
+                                },
                                 virtual_phone_number: null,
-                                chat_status: null,
-                                site_name: null,
-                                number_pool_name: null,
-                                offline_message_form_name: null
+                                communication_date_time: '2022-02-18 13:20:28'
                             }],
                             metadata: {
                                 total_items: 1
@@ -1670,6 +1765,132 @@ define(() => function ({
                         result: {
                             data: {
                                 columns: [{
+                                    id: 'site_domain_name',
+                                    name: 'Сайт',
+                                    sort: 100,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: null,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'site_name',
+                                    name: 'Название сайта',
+                                    sort: 110,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: null,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Название сайта, указанное в настройках сервиса.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'campaign_name',
+                                    name: 'Рекламная кампания обращения',
+                                    sort: 150,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Рекламная кампания, с которой поступило обращения, определена алгоритмом нашего сервиса.',
+                                    default_width: 180,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
                                     id: 'communication_type',
                                     name: 'Тип обращения',
                                     sort: 200,
@@ -1703,11 +1924,3385 @@ define(() => function ({
                                     is_transferable: false,
                                     multichannel_model: null,
                                     is_pie_chart_available: null
+                                }, {
+                                    id: 'communication_id',
+                                    name: 'Идентификатор обращения',
+                                    sort: 300,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'numeric',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: '<',
+                                            name: 'меньше',
+                                            is_default: false
+                                        }, {
+                                            id: '>',
+                                            name: 'больше',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'communication_date_time',
+                                    name: 'Дата / время обращения',
+                                    sort: 400,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'timestamptz',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: '<',
+                                            name: 'меньше',
+                                            is_default: false
+                                        }, {
+                                            id: '>',
+                                            name: 'больше',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'datetime',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 126,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'communication_kinds',
+                                    name: 'Вид обращения',
+                                    sort: 500,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'list',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'communication_page_url',
+                                    name: 'URL страницы обращения',
+                                    sort: 600,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'URL страницы, на которой находился посетитель в момент обращения или страница последнего взаимодействия посетителя перед обращением.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'is_communication_with_visit',
+                                    name: 'Есть прямая связь обращения с сессией',
+                                    sort: 700,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'communication_number',
+                                    name: 'Номер обращения',
+                                    sort: 800,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'numeric',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: '<',
+                                            name: 'меньше',
+                                            is_default: false
+                                        }, {
+                                            id: '>',
+                                            name: 'больше',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'integer',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'total_duration',
+                                    name: 'Длительность обращения',
+                                    sort: 1100,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'duration',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: '<',
+                                            name: 'меньше',
+                                            is_default: false
+                                        }, {
+                                            id: '>',
+                                            name: 'больше',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'time',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 133,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'tags',
+                                    name: 'Теги',
+                                    sort: 1200,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'tag_json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 188,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'employees',
+                                    name: 'Сотрудник',
+                                    sort: 1300,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'employee_list',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'source',
+                                    name: 'Источник',
+                                    sort: 1400,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 8,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Тип трафика, который приводит посетителей на ваш сайт, более детализированная информация по каждому каналу.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'communication_hour',
+                                    name: 'Час обращения',
+                                    sort: 1400,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'channel',
+                                    name: 'Канал',
+                                    sort: 1500,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 8,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'communication_weekday',
+                                    name: 'День недели обращения',
+                                    sort: 1500,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'communication_month',
+                                    name: 'Месяц обращения',
+                                    sort: 1600,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'eq_utm_source',
+                                    name: 'Расширенная UTM-метка Source',
+                                    sort: 1700,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 9,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'communication_year',
+                                    name: 'Год обращения',
+                                    sort: 1700,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'eq_utm_medium',
+                                    name: 'Расширенная UTM-метка Medium',
+                                    sort: 1800,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 9,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'person_id',
+                                    name: 'Карточка клиента',
+                                    sort: 1800,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 4,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'eq_utm_campaign',
+                                    name: 'Расширенная UTM-метка Campaign',
+                                    sort: 1900,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 9,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'eq_utm_term',
+                                    name: 'Расширенная UTM-метка Term',
+                                    sort: 2000,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 9,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'eq_utm_content',
+                                    name: 'Расширенная UTM-метка Content',
+                                    sort: 2100,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 9,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'eq_utm_referrer',
+                                    name: 'Расширенная UTM-метка Referrer',
+                                    sort: 2200,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 9,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'eq_utm_expid',
+                                    name: 'Расширенная UTM-метка Expid',
+                                    sort: 2300,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 9,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'referrer',
+                                    name: 'Реферер',
+                                    sort: 2400,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 8,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'referrer_domain',
+                                    name: 'Домен реферера',
+                                    sort: 2500,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 8,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Домен, с которого был сделан переход',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'search_query',
+                                    name: 'Поисковый запрос',
+                                    sort: 2600,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 8,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Поисковый запрос, по которому посетитель перешел на ваш сайт из поисковых систем Yandex, Google и др. Показатель будет заполнен только в случае, когда поисковая система передала в наш сервис информацию о поисковом запросе.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'utm_source',
+                                    name: 'UTM-метка Source',
+                                    sort: 2700,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 11,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Для идентификации поисковой системы, источника перехода (прописать обязательно).\nПример: utm_source=YandexDirect.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'utm_medium',
+                                    name: 'UTM-метка Medium',
+                                    sort: 2800,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 11,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Определяет тип рекламной кампании (для контекстной рекламы в Яндекс можно указать cpc или идентификатор электронной рассылки), прописать обязательно.\nПример: utm_medium=cpc',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'utm_campaign',
+                                    name: 'UTM-метка Campaign',
+                                    sort: 2900,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 11,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Для идентификации и анализа ключевых слов, обозначения рекламы определенного товара или стратегической кампании.\nПример: utm_campaign=путевка_турция',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'utm_term',
+                                    name: 'UTM-метка Term',
+                                    sort: 3000,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 11,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Для идентификации ключевых слов объявления.\nПример: utm_term=теннисная+ракетка',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'utm_content',
+                                    name: 'UTM-метка Content',
+                                    sort: 3100,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 11,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Помогает различать объявления, ссылающиеся на один и тот же URL (можно также использовать и при A/B тестировании страниц. Примеры: utm_content=logolink или utm_content=textlink',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'utm_referrer',
+                                    name: 'UTM-метка Referrer',
+                                    sort: 3200,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 11,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Источник перехода на сайт при JavaScript-редиректе или при переходе на ваш сайт с протоколом HTTP с сайта, доступного по протоколу HTTPS',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'utm_expid',
+                                    name: 'UTM-метка Expid',
+                                    sort: 3300,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 11,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Идентификатор эксперимента',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'openstat_service',
+                                    name: 'Os-метка service-name',
+                                    sort: 3400,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 12,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Идентификатор сервиса, предоставляющего услуги (прописать обязательно).\nПример: source-name=direct.yandex.ru',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'openstat_campaign',
+                                    name: 'Os-метка campaign-id',
+                                    sort: 3500,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 12,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Идентификатор рекламной кампании. Пример: showCamp&cid=123456 <--идентификатор.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'openstat_ad',
+                                    name: 'Os-метка ad-id',
+                                    sort: 3600,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 12,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Идентификатор рекламного объявления (прописать обязательно).\nПример: в Яндекс Директ № объявления: № M-12345678<--идентификатор.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'openstat_source',
+                                    name: 'Os-метка source-id',
+                                    sort: 3700,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 12,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Идентификатор площадки, раздела, страницы, места на странице, на котором было показано соответствующее рекламное объявление.\nПример: URL страницы: www.example.com/features',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'ef_id',
+                                    name: 'Метка ef_id',
+                                    sort: 3800,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 13,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Параметр используется для разметки ссылок в системе управления контекстной рекламой AdLense.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'yclid',
+                                    name: 'Метка yclid',
+                                    sort: 3900,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 13,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Параметр передается автоматически для всех рекламных объявлений Яндекс.Директ (если в аккаунте Яндекс.Директ в настройках рекламной кампании активирована опция \'Разметка ссылок для Метрики\').',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'gclid',
+                                    name: 'Метка gclid',
+                                    sort: 4000,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 13,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Параметр передается автоматически для всех рекламных объявлений Google Ads (если в аккаунте Google Ads активирована соответствующая опция).',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'cm_id',
+                                    name: 'Метка cm_id',
+                                    sort: 4100,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 13,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Метка, проставленная нашим сервисом в url объявлений рекламной системы Яндекс Директ, Google Ads, Facebook Ads, VK Ads, myTarget при интеграции.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'ymclid',
+                                    name: 'Метка ymclid',
+                                    sort: 4200,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 13,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Параметр передается автоматически для всех товарных предложений Яндекс.Маркет.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'tag_from',
+                                    name: 'Метка from',
+                                    sort: 4300,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 13,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_country',
+                                    name: 'Страна',
+                                    sort: 4400,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 15,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Страна посещения.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_region',
+                                    name: 'Область',
+                                    sort: 4500,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 15,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Область, регион посещения.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_city',
+                                    name: 'Город',
+                                    sort: 4600,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 15,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Город посещения.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_provider',
+                                    name: 'Провайдер',
+                                    sort: 4700,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 15,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Поставщик интернет-услуг, которому принадлежит IP-адрес посещения.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_ip_address',
+                                    name: 'IP',
+                                    sort: 4800,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 15,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'IP адрес посещения.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_browser_name',
+                                    name: 'Браузер',
+                                    sort: 4900,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 16,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_browser_version',
+                                    name: 'Версия браузера',
+                                    sort: 5000,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 16,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_os_name',
+                                    name: 'ОС',
+                                    sort: 5100,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 16,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Операционная система устройства.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_os_version',
+                                    name: 'Версия ОС',
+                                    sort: 5200,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 16,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Версия операционной системы устройства.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_language',
+                                    name: 'Язык локализации',
+                                    sort: 5300,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 16,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Языковая версия браузера.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_screen',
+                                    name: 'Разрешение экрана',
+                                    sort: 5400,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 16,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_device',
+                                    name: 'Тип устройства',
+                                    sort: 5500,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 16,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Тип устройства посещения.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_session_id',
+                                    name: 'ID посещения',
+                                    sort: 5600,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 17,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'entrance_page',
+                                    name: 'Страница входа',
+                                    sort: 5700,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 17,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'URL (адрес) страницы вашего сайта, через которую посетители заходят на ваш сайт (“посадочная страница”).',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_type',
+                                    name: 'Тип посетителя',
+                                    sort: 5800,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 17,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Новый - для первой сессии посетителя / Вернувшийся - для любой повторной сессии посетителя.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visitor_id',
+                                    name: 'ID посетителя',
+                                    sort: 5900,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 17,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Уникальный идентификатор посетителя, присвоен нашим сервисом на сайте.',
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'ua_client_id',
+                                    name: 'Client ID Google Analytics',
+                                    sort: 6000,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 17,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Информация получена от аналитической системы Universal Analytics.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'ym_client_id',
+                                    name: 'Client ID Яндекс.Метрика',
+                                    sort: 6100,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 17,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Информация получена от аналитической системы Яндекс.Метрика.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'segments',
+                                    name: 'Сегменты',
+                                    sort: 6200,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 17,
+                                    data_type: 'segment_list',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visit_date',
+                                    name: 'Дата посещения',
+                                    sort: 6300,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'date',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: '<',
+                                            name: 'меньше',
+                                            is_default: false
+                                        }, {
+                                            id: '>',
+                                            name: 'больше',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 18,
+                                    data_type: 'date',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visit_hour',
+                                    name: 'Час посещения',
+                                    sort: 6400,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 18,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visit_weekday',
+                                    name: 'День недели посещения',
+                                    sort: 6500,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 18,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visit_month',
+                                    name: 'Месяц посещения',
+                                    sort: 6600,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 18,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'visit_year',
+                                    name: 'Год посещения',
+                                    sort: 6700,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 18,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'call_type',
+                                    name: 'Тип звонка',
+                                    sort: 6800,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 19,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'call_status',
+                                    name: 'Статус звонка',
+                                    sort: 6900,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 19,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'call_direction',
+                                    name: 'Направление звонка',
+                                    sort: 7000,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 19,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'phone_tracking_type',
+                                    name: 'Тип номера коллтрекинга',
+                                    sort: 7100,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 19,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Тип номера коллтрекинга: Динамический номер, Статический номер, Номер по умолчанию.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'call_region_name',
+                                    name: 'Регион номера абонента',
+                                    sort: 7200,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 19,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'call_records',
+                                    name: 'Запись разговоров',
+                                    sort: 7300,
+                                    type: 'base',
+                                    filter: {
+                                        format: null,
+                                        operators: null
+                                    },
+                                    group_id: 19,
+                                    data_type: 'list',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'offline_message_type',
+                                    name: 'Тип заявки',
+                                    sort: 7400,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 20,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'offline_message_form_name',
+                                    name: 'Форма заявки',
+                                    sort: 7650,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 20,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Название формы заявки, если заполнен параметр form_name при передачи заявки в наш сервис: https://www.comagic.ru/support/api/javascript-api/.',
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'chat_initiator',
+                                    name: 'Инициатор',
+                                    sort: 7700,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 21,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'chat_messages_count',
+                                    name: 'Сообщений',
+                                    sort: 7800,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'numeric',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: '<',
+                                            name: 'меньше',
+                                            is_default: false
+                                        }, {
+                                            id: '>',
+                                            name: 'больше',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 21,
+                                    data_type: 'integer',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'goal_type',
+                                    name: 'Тип цели',
+                                    sort: 7900,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 22,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'goal_name',
+                                    name: 'Название цели',
+                                    sort: 8000,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: false
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 22,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'deals',
+                                    name: 'Связанные сделки',
+                                    sort: 8100,
+                                    type: 'base',
+                                    filter: {
+                                        format: null,
+                                        operators: null
+                                    },
+                                    group_id: 24,
+                                    data_type: 'deal_list',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: null,
+                                    is_transferable: true,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'virtual_phone_number',
+                                    name: 'Виртуальный номер',
+                                    sort: 8200,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'text',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: false
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'ilike',
+                                            name: 'включает',
+                                            is_default: true
+                                        }, {
+                                            id: 'not_ilike',
+                                            name: 'исключает',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 19,
+                                    data_type: 'string',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 129,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'chat_status',
+                                    name: 'Статус чата',
+                                    sort: 8300,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 21,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: 'Статусы чата: Отклоненные, Потерянные, Системные, Состоявшиеся.',
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
+                                }, {
+                                    id: 'chat_type',
+                                    name: 'Тип чата',
+                                    sort: 8400,
+                                    type: 'base',
+                                    filter: {
+                                        format: 'system_list',
+                                        operators: [{
+                                            id: '=',
+                                            name: 'равно',
+                                            is_default: true
+                                        }, {
+                                            id: '!=',
+                                            name: 'не равно',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_null',
+                                            name: 'не содержит данные',
+                                            is_default: false
+                                        }, {
+                                            id: 'is_not_null',
+                                            name: 'содержит данные',
+                                            is_default: false
+                                        }]
+                                    },
+                                    group_id: 21,
+                                    data_type: 'json_object',
+                                    is_custom: false,
+                                    expression: null,
+                                    description: null,
+                                    default_width: 116,
+                                    is_transferable: false,
+                                    multichannel_model: null,
+                                    is_pie_chart_available: null
                                 }],
                                 columns_groups: [{
                                     id: 4,
                                     name: 'Обращения',
                                     sort: 400,
+                                    description: null,
+                                    parent_group_id: null
+                                }, {
+                                    id: 8,
+                                    name: 'Источник трафика',
+                                    sort: 800,
+                                    description: null,
+                                    parent_group_id: null
+                                }, {
+                                    id: 9,
+                                    name: 'Параметры рекламной кампании',
+                                    sort: 900,
+                                    description: null,
+                                    parent_group_id: 8
+                                }, {
+                                    id: 10,
+                                    name: 'Метки URL перехода',
+                                    sort: 1000,
+                                    description: null,
+                                    parent_group_id: null
+                                }, {
+                                    id: 11,
+                                    name: 'Метки UTM',
+                                    sort: 1100,
+                                    description: null,
+                                    parent_group_id: 10
+                                }, {
+                                    id: 12,
+                                    name: 'Метки Openstat',
+                                    sort: 1200,
+                                    description: null,
+                                    parent_group_id: 10
+                                }, {
+                                    id: 13,
+                                    name: 'Другие URL-метки',
+                                    sort: 1300,
+                                    description: null,
+                                    parent_group_id: 10
+                                }, {
+                                    id: 14,
+                                    name: 'Посетитель',
+                                    sort: 1400,
+                                    description: null,
+                                    parent_group_id: null
+                                }, {
+                                    id: 15,
+                                    name: 'География',
+                                    sort: 1500,
+                                    description: null,
+                                    parent_group_id: 14
+                                }, {
+                                    id: 16,
+                                    name: 'Компьютер',
+                                    sort: 1600,
+                                    description: null,
+                                    parent_group_id: 14
+                                }, {
+                                    id: 17,
+                                    name: 'История посетителя',
+                                    sort: 1700,
+                                    description: null,
+                                    parent_group_id: null
+                                }, {
+                                    id: 18,
+                                    name: 'Время посещения',
+                                    sort: 1800,
+                                    description: null,
+                                    parent_group_id: null
+                                }, {
+                                    id: 19,
+                                    name: 'Звонки',
+                                    sort: 1900,
+                                    description: null,
+                                    parent_group_id: null
+                                }, {
+                                    id: 20,
+                                    name: 'Заявки',
+                                    sort: 2000,
+                                    description: null,
+                                    parent_group_id: null
+                                }, {
+                                    id: 21,
+                                    name: 'Чаты',
+                                    sort: 2100,
+                                    description: null,
+                                    parent_group_id: null
+                                }, {
+                                    id: 22,
+                                    name: 'Цели',
+                                    sort: 2200,
+                                    description: null,
+                                    parent_group_id: null
+                                }, {
+                                    id: 24,
+                                    name: 'Сделки',
+                                    sort: 2300,
                                     description: null,
                                     parent_group_id: null
                                 }]
@@ -1906,45 +5501,48 @@ define(() => function ({
 
                 data = {
                     sort: [{
-                        field: 'cc_71',
+                        field: 'communication_date_time',
                         order: 'desc'
                     }],
                     limit: 50,
                     offset: 0,
                     columns: [
-                        'cc_72',
-                        'cc_71',
-                        'cc_59',
-                        'cc_99',
-                        'cf_82',
-                        'cc_64',
-                        'cc_103',
-                        'cc_55',
-                        'cc_104',
-                        'cc_81',
-                        'cc_105'
+                        'communication_type',
+                        'communication_date_time',
+                        'communication_number',
+                        'visitor_id',
+                        'virtual_phone_number',
+                        'tags',
+                        'call_records',
+                        'total_duration',
+                        'call_type',
+                        'call_status',
+                        'call_direction',
+                        'employees',
+                        'chat_initiator',
+                        'chat_messages_count',
+                        'offline_message_type'
                     ],
                     date_from: '2022-01-01 00:00:00',
                     date_till: '2022-02-14 23:59:59',
-                    dimensions: [
-                        'pc',
-                        'gr',
-                        'ad',
-                        'kw'
-                    ],
+                    dimensions: [],
                     isGrouping: false,
-                    main_column: 'cc_72',
-                    is_chart_visible: false,
-                    checked_dimensions: [{
-                        key: '[null]',
-                        pos: 0,
-                        dimension_id: 'pc',
-                        dimension_value: 'Не определено',
-                        dimension_value_id: null
-                    }],
+                    rapid_filter: {
+                        filters: [{
+                            field: 'communication_type',
+                            value: 'Заявки',
+                            operator: '='
+                        }, {
+                            field: 'communication_type',
+                            value: 'Чаты',
+                            operator: '='
+                        }],
+                        condition: 'or'
+                    },
+                    is_chart_visible: true,
                     datetime_dimension: 'day',
                     global_calendar_on: true,
-                    perspective_window: 60
+                    perspective_window: 30
                 };
 
                 return this;
