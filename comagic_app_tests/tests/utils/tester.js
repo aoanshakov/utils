@@ -276,22 +276,24 @@ define(() => function ({
                             chat_id: 141419755
                         }
                     }).respondSuccessfullyWith({
-                        data: [{
-                            id: 482058,
-                            source: 'operator',
-                            text: 'Привет',
-                            date: '2020-02-10 12:13:14',
-                            status: 'delivered',
-                            chat_id: 141419755,
-                            reply_to: null,
-                            resource: null,
-                            resourceName: null,
-                            employee_id: 20816,
-                            employee_name: 'Карадимова Веска Анастасовна',
-                            visitor_name: 'Помакова Бисерка Драгановна',
-                            front_message_uuid: '228gj24og824jgo8d',
-                            error_mnemonic: null
-                        }]
+                        result: {
+                            data: [{
+                                id: 482058,
+                                source: 'operator',
+                                text: 'Привет',
+                                date: '2020-02-10 12:13:14',
+                                status: 'delivered',
+                                chat_id: 141419755,
+                                reply_to: null,
+                                resource: null,
+                                resourceName: null,
+                                employee_id: 20816,
+                                employee_name: 'Карадимова Веска Анастасовна',
+                                visitor_name: 'Помакова Бисерка Драгановна',
+                                front_message_uuid: '228gj24og824jgo8d',
+                                error_mnemonic: null
+                            }]
+                        }
                     });
 
                 Promise.runAll(false, true);
@@ -964,9 +966,30 @@ define(() => function ({
     });
 
     me.authCheckRequest = () => {
-        let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+        let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            response = '',
+            respond = request => request.respondSuccessfullyWith(response);
 
-        return {
+        const addResponseModifiers = me => {
+            me.invalidToken = () => {
+                response = {
+                    error: {
+                        code: 401,
+                        message: 'Token is not active or invalid',
+                        mnemonic: 'invalid_token',
+                        is_smart: false
+                    }
+                };
+
+                respond = request => request.respondUnauthorizedWith(response);
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
             anotherAuthorizationToken() {
                 token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 return this;
@@ -980,21 +1003,21 @@ define(() => function ({
                         'X-Auth-Type': 'jwt'
                     });
 
-                return {
+                return addResponseModifiers({
                     receiveResponse: () => {
-                        request.respondSuccessfullyWith('');
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)
                         Promise.runAll(false, true);
                     }
-                };
+                });
             },
 
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
             }
-        };
+        });
     };
 
     me.chatChannelListRequest = () => ({
@@ -1024,30 +1047,19 @@ define(() => function ({
     });
 
     me.chatListRequest = () => {
-                ajax.recentRequest().
-                    expectToHaveMethod('POST').
-                    expectPathToContain('logic/operator').
-                    expectBodyToContain({
-                        method: 'get_chat_list',
-                        params: 
-                    }).respondSuccessfullyWith({
-                        data: [{
-                            visitor_id: 8529294,
-                            visitor_name: 'Помакова Бисерка Драгановна'
-                        }]
-                    });
-
         let params = {
             statuses: ['new', 'active'],
             limit: 1000,
             offset: 0
         };
 
+        let data = [];
+
         return {
             visitor() {
                 params = {
                     chat_id: 141419755,
-                    limit: 12,
+                    limit: 1,
                     offset: 0,
                     statuses: [
                         'new',
@@ -1055,6 +1067,11 @@ define(() => function ({
                         'closed'
                     ]
                 };
+
+                data = [{
+                    visitor_id: 8529294,
+                    visitor_name: 'Помакова Бисерка Драгановна'
+                }];
 
                 return this;
             },
@@ -1071,9 +1088,7 @@ define(() => function ({
                 return {
                     receiveResponse() {
                         request.respondSuccessfullyWith({
-                            result: {
-                                data: []
-                            }
+                            result: {data}
                         });
 
                         Promise.runAll(false, true);

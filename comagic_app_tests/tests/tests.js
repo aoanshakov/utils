@@ -42,7 +42,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        xdescribe('Фичафлаг софтфона включен.', function() {
+        describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -1847,6 +1847,7 @@ tests.addTest(options => {
                 it('Токен невалиден. Отображена форма аутентификации.', function() {
                     settingsRequest.accessTokenInvalid().receiveResponse();
                     notificationTester.grantPermission();
+                    tester.userLogoutRequest().receiveResponse();
                     tester.authLogoutRequest().receiveResponse();
 
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
@@ -2200,101 +2201,175 @@ tests.addTest(options => {
                 });
             });
         });
-        describe('Чаты доступны. Софтфон недоступен.', function() {
+        describe('Чаты доступны.', function() {
             beforeEach(function() {
-                accountRequest.operatorWorkplaceAvailable().softphoneUnavailable();
+                accountRequest.operatorWorkplaceAvailable();
             });
 
-            xdescribe('Аналитика недоступна.', function() {
+            describe('Софтфон недоступен.', function() {
                 beforeEach(function() {
-                    accountRequest.receiveResponse();
+                    accountRequest.softphoneUnavailable();
+                });
+
+                describe('Аналитика недоступна.', function() {
+                    beforeEach(function() {
+                        accountRequest.receiveResponse();
+
+                        tester.reportGroupsRequest().receiveResponse();
+                        tester.reportsListRequest().receiveResponse();
+                        tester.reportTypesRequest().receiveResponse();
+
+                        let requests = fetch.inAnyOrder();
+
+                        const configRequest1 = tester.configRequest().expectToBeSent(requests),
+                            configRequest2 = tester.configRequest().expectToBeSent(requests),
+                            configRequest3 = tester.configRequest().expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+
+                        configRequest1.receiveResponse();
+                        configRequest2.receiveResponse();
+                        configRequest3.receiveResponse();
+
+                        requests = ajax.inAnyOrder();
+
+                        const secondOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests),
+                            chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
+                            operatorStatusListRequest = tester.operatorStatusListRequest().expectToBeSent(requests),
+                            operatorListRequest = tester.operatorListRequest().expectToBeSent(requests),
+                            operatorSiteListRequest = tester.operatorSiteListRequest().expectToBeSent(requests),
+                            thirdOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests);
+                            operatorOfflineMessageListRequest =
+                                tester.operatorOfflineMessageListRequest().expectToBeSent(requests);
+                            chatListRequest = tester.chatListRequest().expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+
+                        secondOperatorAccountRequest.receiveResponse();
+                        chatChannelListRequest.receiveResponse();
+                        operatorStatusListRequest.receiveResponse();
+                        operatorListRequest.receiveResponse();
+                        operatorSiteListRequest.receiveResponse();
+                        thirdOperatorAccountRequest.receiveResponse();
+
+                        tester.chatsWebSocket.connect();
+                        tester.chatsInitMessage().expectToBeSent();
+
+                        operatorOfflineMessageListRequest.receiveResponse();
+                        chatListRequest.receiveResponse();
+                    });
+
+                    describe('Нажимаю на кнопку аккаунта.', function() {
+                        beforeEach(function() {
+                            tester.userName.putMouseOver();
+                        });
+
+                        it('Выбираю другой статус. Другой статус выбран.', function() {
+                            tester.statusesList.item('Перерыв').click();
+
+                            tester.operatorStatusUpdateRequest().receiveResponse();
+                            tester.chatsEmployeeChangeMessage().receive();
+
+                            tester.statusesList.item('Доступен').expectNotToBeSelected();
+                            tester.statusesList.item('Перерыв').expectToBeSelected();
+
+                            tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
+                        });
+                        it('Отображен список статусов.', function() {
+                            tester.statusesList.item('Доступен').expectToBeSelected();
+                            tester.statusesList.item('Перерыв').expectNotToBeSelected();
+
+                            tester.statusesList.expectTextContentToHaveSubstring(
+                                'Доступен ' +
+                                'Перерыв ' +
+                                'Не беспокоить ' +
+                                'Нет на месте ' +
+                                'Нет на работе'
+                            );
+                        });
+                    });
+                    it('Отображается статус сотрудника.', function() {
+                        tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+                    });
+                });
+                it('Аналитика доступна.', function() {
+                    accountRequest.webAccountLoginAvailable().receiveResponse();
 
                     tester.reportGroupsRequest().receiveResponse();
-                    tester.reportsListRequest().receiveResponse();
+                    tester.reportsListRequest().allRequests().receiveResponse();
                     tester.reportTypesRequest().receiveResponse();
 
-                    let requests = fetch.inAnyOrder();
+                    tester.configRequest().receiveResponse();
+                    tester.operatorAccountRequest().receiveResponse();
 
-                    const configRequest1 = tester.configRequest().expectToBeSent(requests),
-                        configRequest2 = tester.configRequest().expectToBeSent(requests),
-                        configRequest3 = tester.configRequest().expectToBeSent(requests);
+                    tester.button('Сырые данные').click();
+                    tester.button('Все обращения').click();
+                        
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().allRequests().receiveResponse();
+                    tester.reportsListRequest().allRequests().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
 
-                    requests.expectToBeSent();
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().allRequests().receiveResponse();
+                    tester.reportsListRequest().allRequests().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
 
-                    configRequest1.receiveResponse();
-                    configRequest2.receiveResponse();
-                    configRequest3.receiveResponse();
+                    tester.reportStateRequest().allRequests().receiveResponse();
+                    tester.reportRapidFiltersRequest().communications().receiveResponse();
+                    tester.reportFiltersRequest().receiveResponse();
+                    tester.columnsTreeRequest().receiveResponse();
+                    tester.tagsRequest().receiveResponse();
+                    tester.customFiltersRequest().receiveResponse();
+                    tester.communicationsRequest().receiveResponse()
 
-                    requests = ajax.inAnyOrder();
+                    tester.table.row.first().column.withHeader('Сообщений').button('4').click();
 
-                    const secondOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests),
-                        chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
-                        operatorStatusListRequest = tester.operatorStatusListRequest().expectToBeSent(requests),
-                        operatorListRequest = tester.operatorListRequest().expectToBeSent(requests),
-                        operatorSiteListRequest = tester.operatorSiteListRequest().expectToBeSent(requests),
-                        thirdOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests);
-                        operatorOfflineMessageListRequest =
-                            tester.operatorOfflineMessageListRequest().expectToBeSent(requests);
-                        chatListRequest = tester.chatListRequest().expectToBeSent(requests);
+                    tester.configRequest().receiveResponse();
+                    tester.messageListRequest().receiveResponse();
+                    tester.chatListRequest().visitor().receiveResponse();
 
-                    requests.expectToBeSent();
-
-                    secondOperatorAccountRequest.receiveResponse();
-                    chatChannelListRequest.receiveResponse();
-                    operatorStatusListRequest.receiveResponse();
-                    operatorListRequest.receiveResponse();
-                    operatorSiteListRequest.receiveResponse();
-                    thirdOperatorAccountRequest.receiveResponse();
-
-                    tester.chatsWebSocket.connect();
-                    tester.chatsInitMessage().expectToBeSent();
-
-                    operatorOfflineMessageListRequest.receiveResponse();
-                    chatListRequest.receiveResponse();
-                });
-
-                describe('Нажимаю на кнопку аккаунта.', function() {
-                    beforeEach(function() {
-                        tester.userName.putMouseOver();
-                    });
-
-                    it('Выбираю другой статус. Другой статус выбран.', function() {
-                        tester.statusesList.item('Перерыв').click();
-
-                        tester.operatorStatusUpdateRequest().receiveResponse();
-                        tester.chatsEmployeeChangeMessage().receive();
-
-                        tester.statusesList.item('Доступен').expectNotToBeSelected();
-                        tester.statusesList.item('Перерыв').expectToBeSelected();
-
-                        tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
-                    });
-                    it('Отображен список статусов.', function() {
-                        tester.statusesList.item('Доступен').expectToBeSelected();
-                        tester.statusesList.item('Перерыв').expectNotToBeSelected();
-
-                        tester.statusesList.expectTextContentToHaveSubstring(
-                            'Доступен ' +
-                            'Перерыв ' +
-                            'Не беспокоить ' +
-                            'Нет на месте ' +
-                            'Нет на работе'
-                        );
-                    });
-                });
-                it('Отображается статус сотрудника.', function() {
-                    tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+                    tester.body.expectTextContentToHaveSubstring('Привет 12:13');
                 });
             });
             it('Аналитика доступна.', function() {
                 accountRequest.webAccountLoginAvailable().receiveResponse();
 
-                tester.reportGroupsRequest().receiveResponse();
-                tester.reportsListRequest().allRequests().receiveResponse();
-                tester.reportTypesRequest().receiveResponse();
+                const requests = ajax.inAnyOrder();
 
-                tester.configRequest().receiveResponse();
-                tester.operatorAccountRequest().receiveResponse();
+                const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                    reportsListRequest = tester.reportsListRequest().allRequests().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
+
+                const secondAccountRequest = tester.accountRequest().
+                    operatorWorkplaceAvailable().
+                    webAccountLoginAvailable().
+                    expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+                secondAccountRequest.receiveResponse();
+                reportGroupsRequest.receiveResponse();
+
+                tester.configRequest().softphone().receiveResponse();
+
+                tester.authCheckRequest().receiveResponse();
+                tester.statusesRequest().receiveResponse();
+                tester.settingsRequest().receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                notificationTester.grantPermission();
+
+                tester.connectEventsWebSocket();
+                tester.connectSIPWebSocket();
+
+                tester.authenticatedUserRequest().receiveResponse();
+                tester.registrationRequest().receiveResponse();
+
+                tester.allowMediaInput();
 
                 tester.button('Сырые данные').click();
                 tester.button('Все обращения').click();
@@ -2318,12 +2393,14 @@ tests.addTest(options => {
                 tester.communicationsRequest().receiveResponse()
 
                 tester.table.row.first().column.withHeader('Сообщений').button('4').click();
-                
+
+                tester.configRequest().receiveResponse();
                 tester.messageListRequest().receiveResponse();
-                tester.chatListRequest().receiveResponse();
+                tester.chatListRequest().visitor().receiveResponse();
+
+                tester.body.expectTextContentToHaveSubstring('Привет 12:13');
             });
         });
-        return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 

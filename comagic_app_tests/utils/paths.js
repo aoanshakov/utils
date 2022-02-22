@@ -8,6 +8,7 @@ const src = '/usr/local/src',
     misc = `${application}/misc`,
     softphoneMisc = `${misc}/softphone/misc`,
     analyticsDir = `${misc}/analytics`,
+    analytics = `${analyticsDir}/frontend`,
     sipLib = `${softphoneMisc}/sip_lib`;
 
 module.exports = {
@@ -20,6 +21,8 @@ module.exports = {
     indexHtml: `${application}/build/index.html`,
     testsHtml: `${tests}/tests/tests.html`,
     stub: `${tests}/Stub.js`,
+    shadowContentTsxSource: `${tests}/ShadowContent.tsx`,
+    shadowContentTsxTarget: `${analytics}/src/components/ShadowContent.tsx`,
     applicationPatch: `${tests}/application-patch.diff`,
     devApplicationPatch: `${tests}/dev-application-patch.diff`,
     chatsPatch: `${tests}/chats-patch.diff`,
@@ -34,7 +37,7 @@ module.exports = {
     magicUi: `${misc}/magic_ui`,
     softphone: `${misc}/softphone`,
     analyticsDir,
-    analytics: `${analyticsDir}/frontend`,
+    analytics,
     softphoneMisc,
     sipLib,
     uisWebRTC: `${sipLib}/uis_webrtc`
