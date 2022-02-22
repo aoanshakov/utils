@@ -2957,7 +2957,7 @@ tests.addTest(options => {
                 it('Не удалось авторизоваться в софтфоне.', function() {
                     authCheckRequest.invalidToken().receiveResponse();
                     tester.userLogoutRequest().receiveResponse();
-                    tester.authLogoutRequest().receiveResponse();
+                    tester.authLogoutRequest().invalidToken().receiveResponse();
 
                     tester.button('Войти').expectToBeVisible();
                 });

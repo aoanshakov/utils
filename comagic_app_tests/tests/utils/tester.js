@@ -942,32 +942,56 @@ define(() => function ({
         return request;
     };
     
-    me.authLogoutRequest = () => ({
-        expectToBeSent() {
-            let request = ajax.recentRequest().
-                expectPathToContain('/sup/auth/logout').
-                expectToHaveHeaders({
-                    Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                    'X-Auth-Type': 'jwt'
-                });
+    me.authLogoutRequest = () => {
+        let response = {
+            result: true
+        };
 
-            return {
-                receiveResponse: () => {
-                    request.respondSuccessfullyWith({
-                        result: true
+        let respond = request => request.respondSuccessfullyWith(response);
+
+        const addResponseModifiers = me => {
+            me.invalidToken = () => {
+                response = {
+                    error: {
+                        code: 401,
+                        message: 'Token is not active or invalid',
+                        mnemonic: 'invalid_token',
+                        is_smart: false
+                    }
+                };
+
+                respond = request => request.respondUnauthorizedWith(response);
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                let request = ajax.recentRequest().
+                    expectPathToContain('/sup/auth/logout').
+                    expectToHaveHeaders({
+                        Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                        'X-Auth-Type': 'jwt'
                     });
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                    Promise.runAll(false, true);
-                }
-            };
-        },
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        respond(request);
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        }
-    });
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        Promise.runAll(false, true);
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.authCheckRequest = () => {
         let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
