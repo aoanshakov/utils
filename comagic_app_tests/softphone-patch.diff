@@ -28,49 +28,10 @@ index 7db2045..0793165 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3506ca8..6e8c238 100644
+index 0074cdc..6e8c238 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -62,7 +62,8 @@ export const RootStore = types
-                 requests = [],
-                 removeAllRequests = () => requests.splice(0, requests.length),
-                 i18n = createI18N(),
--                isSingleApp = window.rootConfig?.appName == 'softphone';
-+                isSingleApp = window.rootConfig?.appName == 'softphone',
-+                authStore;
- 
-             let handleIncomingCall = () => null,
-                 handlerCallEnd = () => null;
-@@ -144,7 +145,7 @@ export const RootStore = types
-                                             self.authStore.doShellRefreshToken();
-                                             break;
-                                         case 'invalid_token':
--                                            self.authStore.doShellLogout();
-+                                            authStore ? authStore.fetchLogoutUser() : self.authStore.doShellLogout();
-                                             break;
-                                         default:
-                                             callback(response);
-@@ -233,15 +234,17 @@ export const RootStore = types
-                 });
- 
-                 self.handleAccountFetched = ({
--                    authStore,
-                     accountStore: {
-                         account: {
-                             app_id,
-                             permissions
-                         },
-                         hasFeatureFlag
--                    }
-+                    },
-+                    ...args
-                 }) => {
-+                    authStore = args.authStore;
-+
-                     const accessGranted = !!(
-                         permissions.get('softphone_login')?.is_select &&
-                         hasFeatureFlag('softphone')
-@@ -294,4 +297,5 @@ export const RootStore = types
+@@ -297,4 +297,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
