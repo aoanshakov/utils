@@ -42,7 +42,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        xdescribe('Фичафлаг софтфона включен.', function() {
+        describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -1849,6 +1849,7 @@ tests.addTest(options => {
                 it('Токен невалиден. Отображена форма аутентификации.', function() {
                     settingsRequest.accessTokenInvalid().receiveResponse();
                     notificationTester.grantPermission();
+                    tester.userLogoutRequest().receiveResponse();
                     tester.authLogoutRequest().receiveResponse();
 
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
@@ -2202,101 +2203,175 @@ tests.addTest(options => {
                 });
             });
         });
-        describe('Чаты доступны. Софтфон недоступен.', function() {
+        describe('Чаты доступны.', function() {
             beforeEach(function() {
-                accountRequest.operatorWorkplaceAvailable().softphoneUnavailable();
+                accountRequest.operatorWorkplaceAvailable();
             });
 
-            xdescribe('Аналитика недоступна.', function() {
+            describe('Софтфон недоступен.', function() {
                 beforeEach(function() {
-                    accountRequest.receiveResponse();
+                    accountRequest.softphoneUnavailable();
+                });
+
+                describe('Аналитика недоступна.', function() {
+                    beforeEach(function() {
+                        accountRequest.receiveResponse();
+
+                        tester.reportGroupsRequest().receiveResponse();
+                        tester.reportsListRequest().receiveResponse();
+                        tester.reportTypesRequest().receiveResponse();
+
+                        let requests = fetch.inAnyOrder();
+
+                        const configRequest1 = tester.configRequest().expectToBeSent(requests),
+                            configRequest2 = tester.configRequest().expectToBeSent(requests),
+                            configRequest3 = tester.configRequest().expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+
+                        configRequest1.receiveResponse();
+                        configRequest2.receiveResponse();
+                        configRequest3.receiveResponse();
+
+                        requests = ajax.inAnyOrder();
+
+                        const secondOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests),
+                            chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
+                            operatorStatusListRequest = tester.operatorStatusListRequest().expectToBeSent(requests),
+                            operatorListRequest = tester.operatorListRequest().expectToBeSent(requests),
+                            operatorSiteListRequest = tester.operatorSiteListRequest().expectToBeSent(requests),
+                            thirdOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests);
+                            operatorOfflineMessageListRequest =
+                                tester.operatorOfflineMessageListRequest().expectToBeSent(requests);
+                            chatListRequest = tester.chatListRequest().expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+
+                        secondOperatorAccountRequest.receiveResponse();
+                        chatChannelListRequest.receiveResponse();
+                        operatorStatusListRequest.receiveResponse();
+                        operatorListRequest.receiveResponse();
+                        operatorSiteListRequest.receiveResponse();
+                        thirdOperatorAccountRequest.receiveResponse();
+
+                        tester.chatsWebSocket.connect();
+                        tester.chatsInitMessage().expectToBeSent();
+
+                        operatorOfflineMessageListRequest.receiveResponse();
+                        chatListRequest.receiveResponse();
+                    });
+
+                    describe('Нажимаю на кнопку аккаунта.', function() {
+                        beforeEach(function() {
+                            tester.userName.putMouseOver();
+                        });
+
+                        it('Выбираю другой статус. Другой статус выбран.', function() {
+                            tester.statusesList.item('Перерыв').click();
+
+                            tester.operatorStatusUpdateRequest().receiveResponse();
+                            tester.chatsEmployeeChangeMessage().receive();
+
+                            tester.statusesList.item('Доступен').expectNotToBeSelected();
+                            tester.statusesList.item('Перерыв').expectToBeSelected();
+
+                            tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
+                        });
+                        it('Отображен список статусов.', function() {
+                            tester.statusesList.item('Доступен').expectToBeSelected();
+                            tester.statusesList.item('Перерыв').expectNotToBeSelected();
+
+                            tester.statusesList.expectTextContentToHaveSubstring(
+                                'Доступен ' +
+                                'Перерыв ' +
+                                'Не беспокоить ' +
+                                'Нет на месте ' +
+                                'Нет на работе'
+                            );
+                        });
+                    });
+                    it('Отображается статус сотрудника.', function() {
+                        tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+                    });
+                });
+                it('Аналитика доступна.', function() {
+                    accountRequest.webAccountLoginAvailable().receiveResponse();
 
                     tester.reportGroupsRequest().receiveResponse();
-                    tester.reportsListRequest().receiveResponse();
+                    tester.reportsListRequest().allRequests().receiveResponse();
                     tester.reportTypesRequest().receiveResponse();
 
-                    let requests = fetch.inAnyOrder();
+                    tester.configRequest().receiveResponse();
+                    tester.operatorAccountRequest().receiveResponse();
 
-                    const configRequest1 = tester.configRequest().expectToBeSent(requests),
-                        configRequest2 = tester.configRequest().expectToBeSent(requests),
-                        configRequest3 = tester.configRequest().expectToBeSent(requests);
+                    tester.button('Сырые данные').click();
+                    tester.button('Все обращения').click();
+                        
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().allRequests().receiveResponse();
+                    tester.reportsListRequest().allRequests().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
 
-                    requests.expectToBeSent();
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().allRequests().receiveResponse();
+                    tester.reportsListRequest().allRequests().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
 
-                    configRequest1.receiveResponse();
-                    configRequest2.receiveResponse();
-                    configRequest3.receiveResponse();
+                    tester.reportStateRequest().allRequests().receiveResponse();
+                    tester.reportRapidFiltersRequest().communications().receiveResponse();
+                    tester.reportFiltersRequest().receiveResponse();
+                    tester.columnsTreeRequest().receiveResponse();
+                    tester.tagsRequest().receiveResponse();
+                    tester.customFiltersRequest().receiveResponse();
+                    tester.communicationsRequest().receiveResponse()
 
-                    requests = ajax.inAnyOrder();
+                    tester.table.row.first().column.withHeader('Сообщений').button('4').click();
 
-                    const secondOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests),
-                        chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
-                        operatorStatusListRequest = tester.operatorStatusListRequest().expectToBeSent(requests),
-                        operatorListRequest = tester.operatorListRequest().expectToBeSent(requests),
-                        operatorSiteListRequest = tester.operatorSiteListRequest().expectToBeSent(requests),
-                        thirdOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests);
-                        operatorOfflineMessageListRequest =
-                            tester.operatorOfflineMessageListRequest().expectToBeSent(requests);
-                        chatListRequest = tester.chatListRequest().expectToBeSent(requests);
+                    tester.configRequest().receiveResponse();
+                    tester.messageListRequest().receiveResponse();
+                    tester.chatListRequest().visitor().receiveResponse();
 
-                    requests.expectToBeSent();
-
-                    secondOperatorAccountRequest.receiveResponse();
-                    chatChannelListRequest.receiveResponse();
-                    operatorStatusListRequest.receiveResponse();
-                    operatorListRequest.receiveResponse();
-                    operatorSiteListRequest.receiveResponse();
-                    thirdOperatorAccountRequest.receiveResponse();
-
-                    tester.chatsWebSocket.connect();
-                    tester.chatsInitMessage().expectToBeSent();
-
-                    operatorOfflineMessageListRequest.receiveResponse();
-                    chatListRequest.receiveResponse();
-                });
-
-                describe('Нажимаю на кнопку аккаунта.', function() {
-                    beforeEach(function() {
-                        tester.userName.putMouseOver();
-                    });
-
-                    it('Выбираю другой статус. Другой статус выбран.', function() {
-                        tester.statusesList.item('Перерыв').click();
-
-                        tester.operatorStatusUpdateRequest().receiveResponse();
-                        tester.chatsEmployeeChangeMessage().receive();
-
-                        tester.statusesList.item('Доступен').expectNotToBeSelected();
-                        tester.statusesList.item('Перерыв').expectToBeSelected();
-
-                        tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
-                    });
-                    it('Отображен список статусов.', function() {
-                        tester.statusesList.item('Доступен').expectToBeSelected();
-                        tester.statusesList.item('Перерыв').expectNotToBeSelected();
-
-                        tester.statusesList.expectTextContentToHaveSubstring(
-                            'Доступен ' +
-                            'Перерыв ' +
-                            'Не беспокоить ' +
-                            'Нет на месте ' +
-                            'Нет на работе'
-                        );
-                    });
-                });
-                it('Отображается статус сотрудника.', function() {
-                    tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+                    tester.body.expectTextContentToHaveSubstring('Привет 12:13');
                 });
             });
             it('Аналитика доступна.', function() {
                 accountRequest.webAccountLoginAvailable().receiveResponse();
 
-                tester.reportGroupsRequest().receiveResponse();
-                tester.reportsListRequest().allRequests().receiveResponse();
-                tester.reportTypesRequest().receiveResponse();
+                const requests = ajax.inAnyOrder();
 
-                tester.configRequest().receiveResponse();
-                tester.operatorAccountRequest().receiveResponse();
+                const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                    reportsListRequest = tester.reportsListRequest().allRequests().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
+
+                const secondAccountRequest = tester.accountRequest().
+                    operatorWorkplaceAvailable().
+                    webAccountLoginAvailable().
+                    expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+                secondAccountRequest.receiveResponse();
+                reportGroupsRequest.receiveResponse();
+
+                tester.configRequest().softphone().receiveResponse();
+
+                tester.authCheckRequest().receiveResponse();
+                tester.statusesRequest().receiveResponse();
+                tester.settingsRequest().receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                notificationTester.grantPermission();
+
+                tester.connectEventsWebSocket();
+                tester.connectSIPWebSocket();
+
+                tester.authenticatedUserRequest().receiveResponse();
+                tester.registrationRequest().receiveResponse();
+
+                tester.allowMediaInput();
 
                 tester.button('Сырые данные').click();
                 tester.button('Все обращения').click();
@@ -2320,12 +2395,14 @@ tests.addTest(options => {
                 tester.communicationsRequest().receiveResponse()
 
                 tester.table.row.first().column.withHeader('Сообщений').button('4').click();
-                
+
+                tester.configRequest().receiveResponse();
                 tester.messageListRequest().receiveResponse();
-                tester.chatListRequest().receiveResponse();
+                tester.chatListRequest().visitor().receiveResponse();
+
+                tester.body.expectTextContentToHaveSubstring('Привет 12:13');
             });
         });
-        return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -2345,7 +2422,6 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
-return;
     describe('Открываю десктопное приложение софтфона.', function() {
         let tester;
 
@@ -2379,178 +2455,407 @@ return;
             });
 
             describe('Софтфон доступен.', function() {
+                let authCheckRequest;
+
                 beforeEach(function() {
                     accountRequest.receiveResponse();
-                    tester.authCheckRequest().receiveResponse();
-                    tester.statusesRequest().receiveResponse();
-                    tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
-                    notificationTester.grantPermission();
-                    tester.talkOptionsRequest().receiveResponse();
-
-                    tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().
-                        receiveResponse();
-
-                    tester.connectEventsWebSocket();
-                    tester.connectSIPWebSocket();
-
-                    tester.allowMediaInput();
-
-                    tester.numberCapacityRequest().receiveResponse();
-                    authenticatedUserRequest =  tester.authenticatedUserRequest().expectToBeSent();
-                    tester.registrationRequest().receiveResponse();
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent();
                 });
 
-                describe('SIP-линия зарегистрирована.', function() {
+                describe('Софтфон авторизован.', function() {
                     beforeEach(function() {
-                        authenticatedUserRequest.receiveResponse();
+                        authCheckRequest.receiveResponse();
+                        tester.statusesRequest().receiveResponse();
+                        tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                        notificationTester.grantPermission();
+                        tester.talkOptionsRequest().receiveResponse();
+
+                        tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().
+                            receiveResponse();
+
+                        tester.connectEventsWebSocket();
+                        tester.connectSIPWebSocket();
+
+                        tester.allowMediaInput();
+
+                        tester.numberCapacityRequest().receiveResponse();
+                        authenticatedUserRequest =  tester.authenticatedUserRequest().expectToBeSent();
+                        tester.registrationRequest().receiveResponse();
                     });
 
-                    describe('Нажимаю на кнопку настроек.', function() {
+                    describe('SIP-линия зарегистрирована.', function() {
                         beforeEach(function() {
-                            tester.settingsButton.click();
+                            authenticatedUserRequest.receiveResponse();
                         });
-                        
-                        describe('Софтфон должен запускаться автоматически.', function() {
+
+                        describe('Нажимаю на кнопку настроек.', function() {
                             beforeEach(function() {
-                                getPackage('electron').ipcRenderer.receiveMessage('checkautolauncher', {
-                                    isStartApp: true
+                                tester.settingsButton.click();
+                            });
+                            
+                            describe('Софтфон должен запускаться автоматически.', function() {
+                                beforeEach(function() {
+                                    getPackage('electron').ipcRenderer.receiveMessage('checkautolauncher', {
+                                        isStartApp: true
+                                    });
+                                });
+
+                                it(
+                                    'Отмечаю переключатель "Запускать свернуто". Отправлено событие о необходимости ' +
+                                    'запускать софтфон свернуто.',
+                                function() {
+                                    tester.button('Запускать свернуто').click();
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
+                                        expectToBeSentToChannel('startminimizechange').
+                                        expectToBeSentWithArguments(true);
+
+                                    tester.button('Открывать во время звонка').expectNotToBeChecked();
+                                    tester.button('Автозапуск приложения').expectToBeChecked();
+                                    tester.button('Запускать свернуто').expectToBeChecked();
+                                });
+                                it('Приложение должно запускаться свернутым.', function() {
+                                    getPackage('electron').ipcRenderer.receiveMessage('checkstartminimize', {
+                                        isStartMinimize: true
+                                    });
+
+                                    tester.button('Открывать во время звонка').expectNotToBeChecked();
+                                    tester.button('Автозапуск приложения').expectToBeChecked();
+                                    tester.button('Запускать свернуто').expectToBeChecked();
+                                });
+                                it('Форма настроек корректно заполнена.', function() {
+                                    tester.button('Открывать во время звонка').expectNotToBeChecked();
+                                    tester.button('Автозапуск приложения').expectToBeChecked();
+
+                                    tester.button('Запускать свернуто').expectToBeEnabled();
+                                    tester.button('Запускать свернуто').expectNotToBeChecked();
                                 });
                             });
-
                             it(
-                                'Отмечаю переключатель "Запускать свернуто". Отправлено событие о необходимости ' +
-                                'запускать софтфон свернуто.',
+                                'Отмечаю свитчбокс "Автозапуск приложения". Отправлено сообщение о ' +
+                                'необходимости запускать приложение автоматически.',
                             function() {
-                                tester.button('Запускать свернуто').click();
+                                tester.button('Автозапуск приложения').click();
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
-                                    expectToBeSentToChannel('startminimizechange').
+                                    expectToBeSentToChannel('autolauncherchange').
                                     expectToBeSentWithArguments(true);
 
                                 tester.button('Открывать во время звонка').expectNotToBeChecked();
                                 tester.button('Автозапуск приложения').expectToBeChecked();
-                                tester.button('Запускать свернуто').expectToBeChecked();
-                            });
-                            it('Приложение должно запускаться свернутым.', function() {
-                                getPackage('electron').ipcRenderer.receiveMessage('checkstartminimize', {
-                                    isStartMinimize: true
-                                });
-
-                                tester.button('Открывать во время звонка').expectNotToBeChecked();
-                                tester.button('Автозапуск приложения').expectToBeChecked();
-                                tester.button('Запускать свернуто').expectToBeChecked();
-                            });
-                            it('Форма настроек корректно заполнена.', function() {
-                                tester.button('Открывать во время звонка').expectNotToBeChecked();
-                                tester.button('Автозапуск приложения').expectToBeChecked();
-
-                                tester.button('Запускать свернуто').expectToBeEnabled();
                                 tester.button('Запускать свернуто').expectNotToBeChecked();
                             });
+                            it('Отмечаю свитчбокс "Открывать во время звонка". Значение параметра сохранено.', function() {
+                                tester.button('Открывать во время звонка').click();
+
+                                tester.button('Открывать во время звонка').expectToBeChecked();
+                                tester.button('Автозапуск приложения').expectNotToBeChecked();
+                                tester.button('Запускать свернуто').expectNotToBeChecked();
+
+                                if (localStorage.getItem('clct:to_top_on_call') !== 'true') {
+                                    throw new Error(
+                                        'Значение параметра "Открывать во время звонка" должно быть сохранено.'
+                                    );
+                                }
+                            });
+                            it('Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".', function() {
+                                tester.button('Автоматически').click();
+                                tester.settingsUpdatingRequest().autoSetStatus().receiveResponse();
+                                tester.settingsRequest().autoSetStatus().receiveResponse();
+
+                                tester.fieldRow('При входе').select.arrow.click();
+                                tester.select.option('Перерыв').click();
+                                tester.settingsUpdatingRequest().pauseOnLogin().receiveResponse();
+                                tester.settingsRequest().autoSetStatus().pauseOnLogin().receiveResponse();
+
+                                tester.fieldRow('При выходе').select.arrow.click();
+                                tester.select.option('Не беспокоить').click();
+                                tester.settingsUpdatingRequest().dontDisturbOnLogout().receiveResponse();
+                                tester.settingsRequest().autoSetStatus().pauseOnLogin().dontDisturbOnLogout().
+                                    receiveResponse();
+                            });
+                            it(
+                                'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или IP-телефон". ' +
+                                'Отмечена кнопка "IP-телефон".',
+                            function() {
+                                tester.button('IP-телефон').click();
+                                tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().receiveResponse();
+                                tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
+
+                                tester.registrationRequest().expired().receiveResponse();
+                                
+                                spendTime(2000);
+                                tester.webrtcWebsocket.finishDisconnecting();
+
+                                tester.button('Текущее устройство').expectNotToBeChecked();
+                                tester.button('IP-телефон').expectToBeChecked();
+                            });
+                            it(
+                                'Прошло некоторое время. Сервер событий не отвечает. Отображено сообщение об установке ' +
+                                'соединения.',
+                            function() {
+                                spendTime(5000);
+                                tester.expectPingToBeSent();
+                                spendTime(2000);
+
+                                tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
+                            });
+                            it('Открываю вкладку "Звук". Отображены настройки звука.', function() {
+                                tester.button('Звук').click();
+                                tester.body.expectTextContentToHaveSubstring('Громкость звонка 100%');
+                            });
+                            it('Форма настроек заполнена правильно.', function() {
+                                tester.button('Текущее устройство').expectToBeChecked();
+                                tester.button('IP-телефон').expectNotToBeChecked();
+
+                                tester.button('Открывать во время звонка').expectNotToBeChecked();
+                                tester.button('Скрывать после звонка').expectToBeChecked();
+                                tester.button('Автозапуск приложения').expectNotToBeChecked();
+
+                                tester.button('Запускать свернуто').expectNotToBeChecked();
+                                tester.button('Запускать свернуто').expectToBeDisabled();
+                            });
                         });
-                        it(
-                            'Отмечаю свитчбокс "Автозапуск приложения". Отправлено сообщение о ' +
-                            'необходимости запускать приложение автоматически.',
-                        function() {
-                            tester.button('Автозапуск приложения').click();
+                        describe('Раскрываю список статусов.', function() {
+                            beforeEach(function() {
+                                tester.userName.click();
+                            });
 
-                            getPackage('electron').ipcRenderer.
-                                recentlySentMessage().
-                                expectToBeSentToChannel('autolauncherchange').
-                                expectToBeSentWithArguments(true);
+                            it('Нажимаю на кнопку "Выход". Вхожу в софтфон заново. Удалось войти.', function() {
+                                tester.statusesList.item('Выход').click();
 
-                            tester.button('Открывать во время звонка').expectNotToBeChecked();
-                            tester.button('Автозапуск приложения').expectToBeChecked();
-                            tester.button('Запускать свернуто').expectNotToBeChecked();
+                                tester.userLogoutRequest().receiveResponse();
+
+                                tester.eventsWebSocket.finishDisconnecting();
+                                tester.authLogoutRequest().receiveResponse();
+                                tester.registrationRequest().expired().receiveResponse();
+
+                                spendTime(2000);
+                                tester.webrtcWebsocket.finishDisconnecting();
+
+                                tester.input.withFieldLabel('Логин').fill('botusharova');
+                                tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                                tester.button('Войти').click();
+
+                                tester.loginRequest().anotherAuthorizationToken().receiveResponse();
+                                tester.configRequest().softphone().receiveResponse();
+
+                                tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+                                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
+                                tester.statusesRequest().createExpectation().
+                                    anotherAuthorizationToken().checkCompliance().receiveResponse();
+                                tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
+                                tester.talkOptionsRequest().receiveResponse();
+                                tester.permissionsRequest().receiveResponse();
+
+                                tester.connectEventsWebSocket(1);
+                                tester.connectSIPWebSocket(1);
+
+                                tester.authenticatedUserRequest().receiveResponse();
+                                tester.registrationRequest().receiveResponse();
+
+                                tester.allowMediaInput();
+                            });
+                            it('Выбираю статус. Список статусов скрыт.', function() {
+                                tester.statusesList.item('Нет на месте').click();
+                                tester.userStateUpdateRequest().receiveResponse();
+
+                                tester.statusesList.expectNotToExist();
+                            });
+                            it('Отображены статусы.', function() {
+                                tester.statusesList.item('Не беспокоить').expectToBeSelected();
+                                tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
+                            });
                         });
-                        it('Отмечаю свитчбокс "Открывать во время звонка". Значение параметра сохранено.', function() {
-                            tester.button('Открывать во время звонка').click();
+                        describe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
+                            let incomingCall;
 
-                            tester.button('Открывать во время звонка').expectToBeChecked();
-                            tester.button('Автозапуск приложения').expectNotToBeChecked();
-                            tester.button('Запускать свернуто').expectNotToBeChecked();
+                            beforeEach(function() {
+                                incomingCall = tester.incomingCall().receive();
+                                tester.numaRequest().receiveResponse();
+                                tester.outCallEvent().activeLeads().receive();
 
-                            if (localStorage.getItem('clct:to_top_on_call') !== 'true') {
-                                throw new Error(
-                                    'Значение параметра "Открывать во время звонка" должно быть сохранено.'
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('incoming-call').
+                                    expectToBeSentWithArguments(false);
+                            });
+
+                            it(
+                                'Нажимаю на цифру. Звонок принят. Нажимаю на решетку. Отправляется DTMF. Звучит тон.',
+                            function() {
+                                utils.pressEnter();
+
+                                tester.firstConnection.connectWebRTC();
+                                tester.firstConnection.callTrackHandler();
+
+                                tester.allowMediaInput();
+                                tester.firstConnection.addCandidate();
+                                tester.requestAcceptIncomingCall();
+
+                                utils.pressKey('7');
+                                tester.dtmf('7').send();
+                                tester.expectToneSevenToPlay();
+                            });
+                            it('Нажимаю на клавишу Esc. Звонок отклоняется.', function() {
+                                utils.pressEscape();
+                                incomingCall.expectTemporarilyUnavailableToBeSent();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('call-end').
+                                    expectToBeSentWithArguments(true);
+                            });
+                            it('Нажимаю на открытую сделку. Открывается страница сделки.', function() {
+                                tester.anchor('По звонку с 79154394340').click();
+
+                                getPackage('electron').shell.
+                                    expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/leads/detail/3003651');
+                            });
+                        });
+                        describe('Нажимаю на кнопку дебага.', function() {
+                            beforeEach(function() {
+                                tester.bugButton.click();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('collect_logs');
+                            });
+
+                            it('Логи собраны. Загружается архив с логами. Спиннер скрыт.', function() {
+                                tester.disableTimeout(() => getPackage('electron').ipcRenderer.receiveMessage(
+                                    'logs_collected',
+                                    new JsTester_ZipArchive()
+                                ));
+
+                                blobsTester.getLast().
+                                    expectToHaveType('application/zip').
+                                    expectToBeCreatedFromArray(new JsTester_ZipArchive());
+
+                                tester.spinner.expectNotToExist();
+                            });
+                            it('Отображен спиннер.', function() {
+                                tester.spinner.expectToBeVisible();
+                            });
+                        });
+                        describe('Открываю список номеров.', function() {
+                            beforeEach(function() {
+                                windowSize.setHeight(212);
+                                tester.select.arrow.click();
+                            });
+
+                            it('Список вписан в окно.', function() {
+                                tester.select.popup.expectToHaveTopOffset(4);
+                                tester.select.popup.expectToHaveHeight(204);
+                            });
+                            it('Растягиваю окно. Список меняет положение и размер.', function() {
+                                windowSize.setHeight(568);
+
+                                tester.select.popup.expectToHaveTopOffset(92);
+                                tester.select.popup.expectToHaveHeight(331);
+                            });
+                        });
+                        describe('Открываю таблицу сотрудников. Токен истек.', function() {
+                            let refreshRequest;
+
+                            beforeEach(function() {
+                                tester.addressBookButton.click();
+
+                                const usersRequest = tester.usersRequest().expectToBeSent(),
+                                    usersInGroupsRequest = tester.usersInGroupsRequest().expectToBeSent(),
+                                    groupsRequest = tester.groupsRequest().expectToBeSent();
+
+                                usersRequest.accessTokenExpired().receiveResponse();
+
+                                refreshRequest = tester.refreshRequest().expectToBeSent();
+
+                                usersInGroupsRequest.accessTokenExpired().receiveResponse();
+                                groupsRequest.accessTokenExpired().receiveResponse();
+                            });
+
+                            it(
+                                'Не удалось обновить токен. Авторизуюсь заново. Пытаюсь поменять статус, но токен истек.',
+                            function() {
+                                refreshRequest.refreshTokenExpired().receiveResponse();
+                                tester.userLogoutRequest().receiveResponse();
+
+                                tester.authLogoutRequest().receiveResponse();
+                                tester.eventsWebSocket.finishDisconnecting();
+                                tester.registrationRequest().expired().receiveResponse();
+
+                                spendTime(2000);
+                                tester.webrtcWebsocket.finishDisconnecting();
+
+                                tester.input.withFieldLabel('Логин').fill('botusharova');
+                                tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                                tester.button('Войти').click();
+
+                                tester.loginRequest().receiveResponse();
+                                tester.configRequest().softphone().receiveResponse();
+
+                                tester.usersRequest().receiveResponse(),
+                                tester.usersInGroupsRequest().receiveResponse(),
+                                tester.groupsRequest().receiveResponse();
+
+                                tester.accountRequest().receiveResponse();
+                                tester.authCheckRequest().receiveResponse();
+                                tester.statusesRequest().receiveResponse();
+                                    
+                                tester.settingsRequest().receiveResponse();
+                                tester.talkOptionsRequest().receiveResponse();
+                                tester.permissionsRequest().receiveResponse();
+
+                                tester.connectEventsWebSocket(1);
+                                tester.connectSIPWebSocket(1);
+
+                                tester.authenticatedUserRequest().receiveResponse();
+                                tester.registrationRequest().receiveResponse();
+
+                                tester.allowMediaInput();
+
+                                tester.userName.click();
+
+                                tester.statusesList.item('Нет на месте').click();
+                                tester.userStateUpdateRequest().accessTokenExpired().receiveResponse();
+
+                                tester.refreshRequest().receiveResponse();
+                                tester.userStateUpdateRequest().receiveResponse();
+                            });
+                            it('Токен обновлен. Запросы переотправлены.', function() {
+                                refreshRequest.receiveResponse();
+
+                                tester.usersRequest().receiveResponse(),
+                                tester.usersInGroupsRequest().receiveResponse(),
+                                tester.groupsRequest().receiveResponse();
+
+                                tester.softphone.expectToHaveTextContent(
+                                    'Сотрудники Группы ' +
+
+                                    'Божилова Йовка 296 ' +
+                                    'Господинова Николина 295 ' +
+                                    'Шалева Дора 8258'
                                 );
-                            }
-                        });
-                        it('Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".', function() {
-                            tester.button('Автоматически').click();
-                            tester.settingsUpdatingRequest().autoSetStatus().receiveResponse();
-                            tester.settingsRequest().autoSetStatus().receiveResponse();
-
-                            tester.fieldRow('При входе').select.arrow.click();
-                            tester.select.option('Перерыв').click();
-                            tester.settingsUpdatingRequest().pauseOnLogin().receiveResponse();
-                            tester.settingsRequest().autoSetStatus().pauseOnLogin().receiveResponse();
-
-                            tester.fieldRow('При выходе').select.arrow.click();
-                            tester.select.option('Не беспокоить').click();
-                            tester.settingsUpdatingRequest().dontDisturbOnLogout().receiveResponse();
-                            tester.settingsRequest().autoSetStatus().pauseOnLogin().dontDisturbOnLogout().
-                                receiveResponse();
+                            });
                         });
                         it(
-                            'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или IP-телефон". ' +
-                            'Отмечена кнопка "IP-телефон".',
+                            'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку "Выход". Вхожу в ' +
+                            'софтфон заново. Удалось войти. Софтфон готов к работе.',
                         function() {
-                            tester.button('IP-телефон').click();
-                            tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().receiveResponse();
-                            tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
-
+                            tester.eventsWebSocket.disconnect(4429);
+                            tester.authLogoutRequest().receiveResponse();
                             tester.registrationRequest().expired().receiveResponse();
                             
                             spendTime(2000);
                             tester.webrtcWebsocket.finishDisconnecting();
 
-                            tester.button('Текущее устройство').expectNotToBeChecked();
-                            tester.button('IP-телефон').expectToBeChecked();
-                        });
-                        it(
-                            'Прошло некоторое время. Сервер событий не отвечает. Отображено сообщение об установке ' +
-                            'соединения.',
-                        function() {
-                            spendTime(5000);
-                            tester.expectPingToBeSent();
-                            spendTime(2000);
-
-                            tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
-                        });
-                        it('Открываю вкладку "Звук". Отображены настройки звука.', function() {
-                            tester.button('Звук').click();
-                            tester.body.expectTextContentToHaveSubstring('Громкость звонка 100%');
-                        });
-                        it('Форма настроек заполнена правильно.', function() {
-                            tester.button('Текущее устройство').expectToBeChecked();
-                            tester.button('IP-телефон').expectNotToBeChecked();
-
-                            tester.button('Открывать во время звонка').expectNotToBeChecked();
-                            tester.button('Скрывать после звонка').expectToBeChecked();
-                            tester.button('Автозапуск приложения').expectNotToBeChecked();
-
-                            tester.button('Запускать свернуто').expectNotToBeChecked();
-                            tester.button('Запускать свернуто').expectToBeDisabled();
-                        });
-                    });
-                    describe('Раскрываю список статусов.', function() {
-                        beforeEach(function() {
                             tester.userName.click();
-                        });
-
-                        it('Нажимаю на кнопку "Выход". Вхожу в софтфон заново. Удалось войти.', function() {
                             tester.statusesList.item('Выход').click();
 
                             tester.userLogoutRequest().receiveResponse();
-
-                            tester.eventsWebSocket.finishDisconnecting();
-                            tester.authLogoutRequest().receiveResponse();
-                            tester.registrationRequest().expired().receiveResponse();
-
-                            spendTime(2000);
-                            tester.webrtcWebsocket.finishDisconnecting();
 
                             tester.input.withFieldLabel('Логин').fill('botusharova');
                             tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -2561,6 +2866,7 @@ return;
                             tester.configRequest().softphone().receiveResponse();
 
                             tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+
                             tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
                             tester.statusesRequest().createExpectation().
                                 anotherAuthorizationToken().checkCompliance().receiveResponse();
@@ -2575,300 +2881,85 @@ return;
                             tester.registrationRequest().receiveResponse();
 
                             tester.allowMediaInput();
-                        });
-                        it('Выбираю статус. Список статусов скрыт.', function() {
-                            tester.statusesList.item('Нет на месте').click();
-                            tester.userStateUpdateRequest().receiveResponse();
 
-                            tester.statusesList.expectNotToExist();
+                            tester.phoneField.fill('79161234567');
+                            tester.callStartingButton.expectNotToHaveAttribute('disabled');
+                            tester.select.expectNotToExist();
                         });
-                        it('Отображены статусы.', function() {
-                            tester.statusesList.item('Не беспокоить').expectToBeSelected();
-                            tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
-                        });
-                    });
-                    describe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
-                        let incomingCall;
+                        it(
+                            'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок. Отображено ' +
+                            'сообщение о звонке.',
+                        function() {
+                            tester.phoneField.fill('79161234567');
+                            tester.callStartingButton.click();
 
-                        beforeEach(function() {
-                            incomingCall = tester.incomingCall().receive();
+                            tester.firstConnection.connectWebRTC();
+                            tester.allowMediaInput();
+
+                            tester.outboundCall().start().setRinging().setAccepted();
+                            tester.firstConnection.callTrackHandler();
+
                             tester.numaRequest().receiveResponse();
-                            tester.outCallEvent().activeLeads().receive();
+                            tester.outCallSessionEvent().receive();
+
+                            tester.incomingCall().thirdNumber().receive();
+                            tester.numaRequest().thirdNumber().receiveResponse();
+                            tester.outCallEvent().anotherPerson().receive();
 
                             getPackage('electron').ipcRenderer.
                                 recentlySentMessage().
                                 expectToBeSentToChannel('incoming-call').
                                 expectToBeSentWithArguments(false);
+
+                            tester.softphone.expectTextContentToHaveSubstring(
+                                'Гигова Петранка Входящий...'
+                            );
                         });
+                        it('Открываю историю звонков. Открывается страница контакта.', function() {
+                            tester.callsHistoryButton.click();
+                            tester.callsRequest().receiveResponse();
 
-                        it(
-                            'Нажимаю на цифру. Звонок принят. Нажимаю на решетку. Отправляется DTMF. Звучит тон.',
-                        function() {
-                            utils.pressEnter();
-
-                            tester.firstConnection.connectWebRTC();
-                            tester.firstConnection.callTrackHandler();
-
-                            tester.allowMediaInput();
-                            tester.firstConnection.addCandidate();
-                            tester.requestAcceptIncomingCall();
-
-                            utils.pressKey('7');
-                            tester.dtmf('7').send();
-                            tester.expectToneSevenToPlay();
-                        });
-                        it('Нажимаю на клавишу Esc. Звонок отклоняется.', function() {
-                            utils.pressEscape();
-                            incomingCall.expectTemporarilyUnavailableToBeSent();
-
-                            getPackage('electron').ipcRenderer.
-                                recentlySentMessage().
-                                expectToBeSentToChannel('call-end').
-                                expectToBeSentWithArguments(true);
-                        });
-                        it('Нажимаю на открытую сделку. Открывается страница сделки.', function() {
-                            tester.anchor('По звонку с 79154394340').click();
+                            tester.callsHistoryRow.withText('Гяурова Марийка').name.click();
 
                             getPackage('electron').shell.
-                                expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/leads/detail/3003651');
+                                expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
                         });
-                    });
-                    describe('Нажимаю на кнопку дебага.', function() {
-                        beforeEach(function() {
-                            tester.bugButton.click();
-
-                            getPackage('electron').ipcRenderer.
-                                recentlySentMessage().
-                                expectToBeSentToChannel('collect_logs');
-                        });
-
-                        it('Логи собраны. Загружается архив с логами. Спиннер скрыт.', function() {
-                            tester.disableTimeout(() => getPackage('electron').ipcRenderer.receiveMessage(
-                                'logs_collected',
-                                new JsTester_ZipArchive()
-                            ));
-
-                            blobsTester.getLast().
-                                expectToHaveType('application/zip').
-                                expectToBeCreatedFromArray(new JsTester_ZipArchive());
-
-                            tester.spinner.expectNotToExist();
-                        });
-                        it('Отображен спиннер.', function() {
-                            tester.spinner.expectToBeVisible();
-                        });
-                    });
-                    describe('Открываю список номеров.', function() {
-                        beforeEach(function() {
-                            windowSize.setHeight(212);
-                            tester.select.arrow.click();
-                        });
-
-                        it('Список вписан в окно.', function() {
-                            tester.select.popup.expectToHaveTopOffset(4);
-                            tester.select.popup.expectToHaveHeight(204);
-                        });
-                        it('Растягиваю окно. Список меняет положение и размер.', function() {
-                            windowSize.setHeight(568);
-
-                            tester.select.popup.expectToHaveTopOffset(92);
-                            tester.select.popup.expectToHaveHeight(331);
-                        });
-                    });
-                    describe('Открываю таблицу сотрудников. Токен истек.', function() {
-                        let refreshRequest;
-
-                        beforeEach(function() {
-                            tester.addressBookButton.click();
-
-                            const usersRequest = tester.usersRequest().expectToBeSent(),
-                                usersInGroupsRequest = tester.usersInGroupsRequest().expectToBeSent(),
-                                groupsRequest = tester.groupsRequest().expectToBeSent();
-
-                            usersRequest.accessTokenExpired().receiveResponse();
-
-                            refreshRequest = tester.refreshRequest().expectToBeSent();
-
-                            usersInGroupsRequest.accessTokenExpired().receiveResponse();
-                            groupsRequest.accessTokenExpired().receiveResponse();
-                        });
-
-                        it(
-                            'Не удалось обновить токен. Авторизуюсь заново. Пытаюсь поменять статус, но токен истек.',
-                        function() {
-                            refreshRequest.refreshTokenExpired().receiveResponse();
-                            tester.userLogoutRequest().receiveResponse();
-
-                            tester.authLogoutRequest().receiveResponse();
-                            tester.eventsWebSocket.finishDisconnecting();
-                            tester.registrationRequest().expired().receiveResponse();
-
-                            spendTime(2000);
-                            tester.webrtcWebsocket.finishDisconnecting();
-
-                            tester.input.withFieldLabel('Логин').fill('botusharova');
-                            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
-
-                            tester.button('Войти').click();
-
-                            tester.loginRequest().receiveResponse();
-                            tester.configRequest().softphone().receiveResponse();
-
-                            tester.usersRequest().receiveResponse(),
-                            tester.usersInGroupsRequest().receiveResponse(),
-                            tester.groupsRequest().receiveResponse();
-
-                            tester.accountRequest().receiveResponse();
-                            tester.authCheckRequest().receiveResponse();
-                            tester.statusesRequest().receiveResponse();
-                                
-                            tester.settingsRequest().receiveResponse();
-                            tester.talkOptionsRequest().receiveResponse();
-                            tester.permissionsRequest().receiveResponse();
-
-                            tester.connectEventsWebSocket(1);
-                            tester.connectSIPWebSocket(1);
-
-                            tester.authenticatedUserRequest().receiveResponse();
-                            tester.registrationRequest().receiveResponse();
-
-                            tester.allowMediaInput();
+                        it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
+                            tester.dialpadVisibilityButton.click();
 
                             tester.userName.click();
 
-                            tester.statusesList.item('Нет на месте').click();
-                            tester.userStateUpdateRequest().accessTokenExpired().receiveResponse();
-
-                            tester.refreshRequest().receiveResponse();
-                            tester.userStateUpdateRequest().receiveResponse();
+                            tester.statusesList.item('Не беспокоить').expectToBeSelected();
+                            tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                         });
-                        it('Токен обновлен. Запросы переотправлены.', function() {
-                            refreshRequest.receiveResponse();
+                        it('Помещаю курсор над иконкой аккаунта. Список статусов не открывается.', function() {
+                            tester.userName.putMouseOver();
+                            tester.statusesList.item('Не беспокоить').expectNotToExist();
+                        });
+                        it('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
+                            utils.pressKey('7');
+                            tester.phoneField.expectToBeFocused();
+                        });
+                        it('Некие сообщения выведены в лог.', function() {
+                            tester.phoneField.expectNotToBeFocused();
 
-                            tester.usersRequest().receiveResponse(),
-                            tester.usersInGroupsRequest().receiveResponse(),
-                            tester.groupsRequest().receiveResponse();
-
-                            tester.softphone.expectToHaveTextContent(
-                                'Сотрудники Группы ' +
-
-                                'Божилова Йовка 296 ' +
-                                'Господинова Николина 295 ' +
-                                'Шалева Дора 8258'
-                            );
+                            getPackage('electron-log').expectToContain('State changed');
+                            getPackage('electron-log').expectToContain('/auth/json_rpc');
                         });
                     });
-                    it(
-                        'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку "Выход". Вхожу в ' +
-                        'софтфон заново. Удалось войти. Софтфон готов к работе.',
-                    function() {
-                        tester.eventsWebSocket.disconnect(4429);
-                        tester.authLogoutRequest().receiveResponse();
-                        tester.registrationRequest().expired().receiveResponse();
-                        
-                        spendTime(2000);
-                        tester.webrtcWebsocket.finishDisconnecting();
-
-                        tester.userName.click();
-                        tester.statusesList.item('Выход').click();
-
-                        tester.userLogoutRequest().receiveResponse();
-
-                        tester.input.withFieldLabel('Логин').fill('botusharova');
-                        tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
-
-                        tester.button('Войти').click();
-
-                        tester.loginRequest().anotherAuthorizationToken().receiveResponse();
-                        tester.configRequest().softphone().receiveResponse();
-
-                        tester.accountRequest().anotherAuthorizationToken().receiveResponse();
-
-                        tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
-                        tester.statusesRequest().createExpectation().
-                            anotherAuthorizationToken().checkCompliance().receiveResponse();
-                        tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
-                        tester.talkOptionsRequest().receiveResponse();
-                        tester.permissionsRequest().receiveResponse();
-
-                        tester.connectEventsWebSocket(1);
-                        tester.connectSIPWebSocket(1);
-
-                        tester.authenticatedUserRequest().receiveResponse();
-                        tester.registrationRequest().receiveResponse();
-
-                        tester.allowMediaInput();
-
-                        tester.phoneField.fill('79161234567');
-                        tester.callStartingButton.expectNotToHaveAttribute('disabled');
-                        tester.select.expectNotToExist();
-                    });
-                    it(
-                        'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок. Отображено ' +
-                        'сообщение о звонке.',
-                    function() {
-                        tester.phoneField.fill('79161234567');
-                        tester.callStartingButton.click();
-
-                        tester.firstConnection.connectWebRTC();
-                        tester.allowMediaInput();
-
-                        tester.outboundCall().start().setRinging().setAccepted();
-                        tester.firstConnection.callTrackHandler();
-
-                        tester.numaRequest().receiveResponse();
-                        tester.outCallSessionEvent().receive();
-
-                        tester.incomingCall().thirdNumber().receive();
-                        tester.numaRequest().thirdNumber().receiveResponse();
-                        tester.outCallEvent().anotherPerson().receive();
-
-                        getPackage('electron').ipcRenderer.
-                            recentlySentMessage().
-                            expectToBeSentToChannel('incoming-call').
-                            expectToBeSentWithArguments(false);
-
-                        tester.softphone.expectTextContentToHaveSubstring(
-                            'Гигова Петранка Входящий...'
-                        );
-                    });
-                    it('Открываю историю звонков. Открывается страница контакта.', function() {
-                        tester.callsHistoryButton.click();
-                        tester.callsRequest().receiveResponse();
-
-                        tester.callsHistoryRow.withText('Гяурова Марийка').name.click();
-
-                        getPackage('electron').shell.
-                            expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
-                    });
-                    it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
-                        tester.dialpadVisibilityButton.click();
-
+                    it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
+                        authenticatedUserRequest.sipIsOffline().receiveResponse();
                         tester.userName.click();
 
                         tester.statusesList.item('Не беспокоить').expectToBeSelected();
-                        tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
-                    });
-                    it('Помещаю курсор над иконкой аккаунта. Список статусов не открывается.', function() {
-                        tester.userName.putMouseOver();
-                        tester.statusesList.item('Не беспокоить').expectNotToExist();
-                    });
-                    it('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
-                        utils.pressKey('7');
-                        tester.phoneField.expectToBeFocused();
-                    });
-                    it('Некие сообщения выведены в лог.', function() {
-                        tester.phoneField.expectNotToBeFocused();
-
-                        getPackage('electron-log').expectToContain('State changed');
-                        getPackage('electron-log').expectToContain('/auth/json_rpc');
                     });
                 });
-                it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
-                    authenticatedUserRequest.sipIsOffline().receiveResponse();
-                    tester.userName.click();
+                it('Не удалось авторизоваться в софтфоне.', function() {
+                    authCheckRequest.invalidToken().receiveResponse();
+                    tester.userLogoutRequest().receiveResponse();
+                    tester.authLogoutRequest().receiveResponse();
 
-                    tester.statusesList.item('Не беспокоить').expectToBeSelected();
+                    tester.button('Войти').expectToBeVisible();
                 });
             });
             it('Софтфон недоступен. Отображена форма аутентификации.', function() {

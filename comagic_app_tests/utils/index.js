@@ -28,7 +28,9 @@ const {
     sipLibPatch,
     uisWebRTC,
     packageLockJson,
-    stub
+    stub,
+    shadowContentTsxSource,
+    shadowContentTsxTarget
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -42,7 +44,7 @@ const cda = `cd ${application} &&`,
     devOverridenFiles = 'config/webpack.config.js .env';
 
 const analyticsOverridenFiles = 'src/models/RootStore.ts src/models/reports/RootReportStore.ts ' +
-    'src/components/ShadowContent.ts src/components/ShadowContent.tsx package.json';
+    'src/components/ShadowContent.ts package.json';
 
 const overridenFiles = [
     '.env',
@@ -132,7 +134,9 @@ actions['create-patch'] = params => getOverriding(params).reduce((result, {
     applicationPatch
 }) => result.concat(fs.existsSync(application) ? [
     `cd ${application} && git diff -- ${overridenFiles} > ${applicationPatch}`
-] : []), []);
+] : []), []).concat([
+    `cp ${shadowContentTsxTarget} ${shadowContentTsxSource}`
+]);
 
 actions['restore-code'] = params => getOverriding(params).reduce((result, {
     application,
@@ -140,7 +144,9 @@ actions['restore-code'] = params => getOverriding(params).reduce((result, {
 }) => result.concat([
     `if [ -d ${application} ]; ` +
         `then cd ${application} && git checkout ${overridenFiles}; ` +
-    `fi`
+    `fi`,
+
+    rmVerbose(shadowContentTsxTarget)
 ]), []);
 
 actions['modify-code'] = params => actions['restore-code']({}).
@@ -153,10 +159,10 @@ actions['modify-code'] = params => actions['restore-code']({}).
             `then cd ${application} && patch -p1 < ${applicationPatch}; ` +
         `fi`
     ]), [])).
-    concat(`cp ${stub} ${misc}`).
-    concat(
-        actions['fix-permissions']
-    );
+    concat([
+        `cp ${stub} ${misc}`,
+        `cp ${shadowContentTsxSource} ${shadowContentTsxTarget}`
+    ]).concat(actions['fix-permissions']);
 
 const appModule = ([module, path, args]) => [`web/comagic_app_modules/${module}`, path, args, misc];
 
