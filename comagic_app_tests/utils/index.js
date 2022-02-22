@@ -135,7 +135,7 @@ actions['create-patch'] = params => getOverriding(params).reduce((result, {
 }) => result.concat(fs.existsSync(application) ? [
     `cd ${application} && git diff -- ${overridenFiles} > ${applicationPatch}`
 ] : []), []).concat([
-    `cp ${shadowContentTsxTarget} ${shadowContentTsxSource}`
+    `if [ -e ${shadowContentTsxTarget} ]; then cp ${shadowContentTsxTarget} ${shadowContentTsxSource}; fi`
 ]);
 
 actions['restore-code'] = params => getOverriding(params).reduce((result, {
