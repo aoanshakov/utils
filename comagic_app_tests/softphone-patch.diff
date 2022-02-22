@@ -28,46 +28,10 @@ index 7db2045..0793165 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 0074cdc..9baeffa 100644
+index b05b412..9baeffa 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -62,12 +62,14 @@ export const RootStore = types
-                 requests = [],
-                 removeAllRequests = () => requests.splice(0, requests.length),
-                 i18n = createI18N(),
--                isSingleApp = window.rootConfig?.appName == 'softphone',
--                authStore;
-+                isSingleApp = window.rootConfig?.appName == 'softphone';
- 
--            let handleIncomingCall = () => null,
-+            let authStore,
-+                handleIncomingCall = () => null,
-                 handlerCallEnd = () => null;
- 
-+            const logout = () => self.authStore.getToken()?.jwt && authStore && authStore.fetchLogoutUser();
-+
-             let fileLogger = {
-                 downloadLog: () => null,
-                 log: () => null
-@@ -145,7 +147,7 @@ export const RootStore = types
-                                             self.authStore.doShellRefreshToken();
-                                             break;
-                                         case 'invalid_token':
--                                            authStore ? authStore.fetchLogoutUser() : self.authStore.doShellLogout();
-+                                            authStore ? logout() : self.authStore.doShellLogout();
-                                             break;
-                                         default:
-                                             callback(response);
-@@ -251,7 +253,7 @@ export const RootStore = types
-                     );
- 
-                     updateState({accessGranted});
--                    app_id && isSingleApp && !accessGranted && authStore && authStore.fetchLogoutUser();
-+                    app_id && isSingleApp && !accessGranted && logout();
-                 };
- 
-                 window.addEventListener('tokenChange', () => updateState(getTokenParams()));
-@@ -297,4 +299,5 @@ export const RootStore = types
+@@ -299,4 +299,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
