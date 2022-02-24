@@ -277,7 +277,7 @@ define(() => function ({
                     expectBodyToContain({
                         method: 'get_message_list',
                         params: {
-                            chat_id: 141419755
+                            visitor_id: 16479303
                         }
                     }).respondSuccessfullyWith({
                         result: {
@@ -287,7 +287,7 @@ define(() => function ({
                                 text: 'Привет',
                                 date: '2020-02-10 12:13:14',
                                 status: 'delivered',
-                                chat_id: 141419755,
+                                chat_id: 2718935,
                                 reply_to: null,
                                 resource: null,
                                 resourceName: null,
@@ -337,7 +337,19 @@ define(() => function ({
             return {
                 receiveResponse() {
                     request.respondSuccessfullyWith({
-                        data: []
+                        data: [{
+                            date_time: '2022-01-20T21:37:14',
+                            email: '',
+                            id: 178073,
+                            mark_ids: [],
+                            message: 'Привет.',
+                            phone: '71231212122',
+                            site_id: 2157,
+                            status: 'not_processed',
+                            visitor_id: 16479303,
+                            visitor_name: 'Помакова Бисерка Драгановна',
+                            visitor_type: 'omni'
+                        }]
                     });
 
                     Promise.runAll(false, true);
@@ -1058,7 +1070,14 @@ define(() => function ({
                 receiveResponse() {
                     request.respondSuccessfullyWith({
                         result: {
-                            data: []
+                            data: [{
+                                id: 101,
+                                is_removed: true,
+                                name: 'mrDDosT',
+                                status: 'deleted',
+                                status_reason: 'omni_request',
+                                type: 'telegram'
+                            }]
                         }
                     });
 
@@ -1081,12 +1100,25 @@ define(() => function ({
             offset: 0
         };
 
-        let data = [];
+        let data = [{
+            chat_channel_id: 101,
+            chat_channel_type: 'telegram',
+            date_time: '2022-01-21T16:24:21.098210',
+            id: 2718935,
+            last_message: '432',
+            mark_ids: ['316', '579'],
+            phone: null,
+            site_id: 4663,
+            status: 'active',
+            visitor_id: 16479303,
+            visitor_name: 'Помакова Бисерка Драгановна',
+            visitor_type: 'omni'
+        }];
 
         return {
             visitor() {
                 params = {
-                    chat_id: 141419755,
+                    chat_id: 2718935,
                     limit: 1,
                     offset: 0,
                     statuses: [
@@ -1095,11 +1127,6 @@ define(() => function ({
                         'closed'
                     ]
                 };
-
-                data = [{
-                    visitor_id: 8529294,
-                    visitor_name: 'Помакова Бисерка Драгановна'
-                }];
 
                 return this;
             },
@@ -6084,6 +6111,9 @@ define(() => function ({
     me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
     me.transferIncomingIcon = testersFactory.createDomElementTester('.transfer_incoming_svg__cmg-direction-icon');
     me.holdButton = testersFactory.createDomElementTester('.cmg-hold-button');
+
+    me.productsButton = testersFactory.
+        createDomElementTester('.src-components-main-menu-products-styles-module__icon-container');
 
     me.transferButton = (tester => {
         const click = tester.click.bind(tester);
