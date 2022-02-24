@@ -2259,6 +2259,7 @@ tests.addTest(options => {
 
                         operatorOfflineMessageListRequest.receiveResponse();
                         chatListRequest.receiveResponse();
+                        tester.messageListRequest().receiveResponse();
                     });
 
                     describe('Нажимаю на кнопку аккаунта.', function() {
@@ -2334,7 +2335,7 @@ tests.addTest(options => {
                         tester.table.row.first().column.withHeader('Сообщений').button('4').click();
 
                         tester.configRequest().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
+                        tester.messageListRequest().chat().receiveResponse();
                         tester.chatListRequest().visitor().receiveResponse();
 
                         tester.body.expectTextContentToHaveSubstring('Привет 12:13');
@@ -2422,9 +2423,8 @@ tests.addTest(options => {
                 tester.table.row.first().column.withHeader('Сообщений').button('4').click();
 
                 tester.configRequest().receiveResponse();
-                tester.messageListRequest().receiveResponse();
+                tester.messageListRequest().chat().receiveResponse();
                 tester.chatListRequest().visitor().receiveResponse();
-                tester.messageListRequest().receiveResponse();
 
                 tester.body.expectTextContentToHaveSubstring('Привет 12:13');
             });

@@ -12,7 +12,7 @@ index cf35fde4..32dc7c45 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index af3bdacc..f8484f30 100644
+index 23bbaef3..957ca82e 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,9 +8,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -26,8 +26,8 @@ index af3bdacc..f8484f30 100644
 +const hash = require('string-hash');
  
  const { ModuleFederationPlugin } = webpack.container;
- const deps = require('../package.json').dependencies;
-@@ -19,14 +20,27 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+ const pkgJson = require('../package.json');
+@@ -20,14 +21,27 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
@@ -55,7 +55,7 @@ index af3bdacc..f8484f30 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -98,10 +112,11 @@ const webpackDefinePlugin = () => {
+@@ -104,10 +118,11 @@ const webpackDefinePlugin = () => {
      return opts;
  };
  
@@ -68,7 +68,7 @@ index af3bdacc..f8484f30 100644
          },
          {
              loader: 'css-loader',
-@@ -184,7 +199,7 @@ const plugins = () => {
+@@ -193,7 +208,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -77,7 +77,7 @@ index af3bdacc..f8484f30 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -196,6 +211,11 @@ const plugins = () => {
+@@ -213,6 +228,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -88,8 +88,8 @@ index af3bdacc..f8484f30 100644
 +        })
      ];
  
-     if (isBundleAnalyzerPlugin) {
-@@ -205,6 +225,13 @@ const plugins = () => {
+     if (isProductionMode) {
+@@ -236,6 +256,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -103,7 +103,7 @@ index af3bdacc..f8484f30 100644
  module.exports = {
      entry: './src/index.tsx',
      target: 'web',
-@@ -224,6 +251,21 @@ module.exports = {
+@@ -255,6 +282,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -125,7 +125,7 @@ index af3bdacc..f8484f30 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -243,7 +285,7 @@ module.exports = {
+@@ -274,7 +316,7 @@ module.exports = {
                          }),
                      },
                  },
@@ -134,7 +134,7 @@ index af3bdacc..f8484f30 100644
              },
              {
                  test: /\.css$/,
-@@ -254,6 +296,29 @@ module.exports = {
+@@ -285,6 +327,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -164,7 +164,7 @@ index af3bdacc..f8484f30 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -269,6 +334,7 @@ module.exports = {
+@@ -300,6 +365,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -172,7 +172,7 @@ index af3bdacc..f8484f30 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -284,16 +350,104 @@ module.exports = {
+@@ -315,16 +381,104 @@ module.exports = {
                      },
                  ],
              },
@@ -282,10 +282,10 @@ index af3bdacc..f8484f30 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index a8141602..4f7d203b 100644
+index 4732756f..5f2d648a 100644
 --- a/package.json
 +++ b/package.json
-@@ -64,8 +64,8 @@
+@@ -58,8 +58,8 @@
      "style-loader": "^2.0.0",
      "terser-webpack-plugin": "^5.1.4",
      "ts-import-plugin": "^1.6.7",
@@ -296,20 +296,22 @@ index a8141602..4f7d203b 100644
      "url-loader": "^3.0.0",
      "webpack": "^5.38.1",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -75,9 +75,12 @@
+@@ -69,11 +69,14 @@
    },
    "dependencies": {
-     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.4.0",
+     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.2",
 +    "analytics": "./misc/analytics/frontend",
      "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
+     "@sentry/react": "^6.17.6",
+     "@sentry/tracing": "^6.17.6",
      "axios": "^0.24.0",
 +    "babel-loader": "^8.0.4",
 +    "chats": "./misc/chats",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -87,7 +90,7 @@
+@@ -83,7 +86,7 @@
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
@@ -318,7 +320,7 @@ index a8141602..4f7d203b 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -97,6 +100,8 @@
+@@ -93,6 +96,8 @@
      "react-dom": "^17.0.2",
      "react-intl": "5.15.8",
      "react-router-dom": "^5.1.2",
@@ -371,10 +373,10 @@ index 6143f5e1..7ff73d45 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 187cf5fc..c1f78961 100644
+index f5c03679..723b4c6e 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -8,7 +8,10 @@ import { CoreProvider } from '@comagic/core';
+@@ -10,7 +10,10 @@ import { Integrations } from '@sentry/tracing';
  
  import { useMountEffect } from '@hooks';
  
@@ -386,7 +388,7 @@ index 187cf5fc..c1f78961 100644
  
  import history from './history';
  import { getIntlLocale, getIntlMessages } from './i18n';
-@@ -58,4 +61,34 @@ const Root: React.FC = observer(props => {
+@@ -74,4 +77,34 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -467,10 +469,10 @@ index 3e6598b9..545f0e4e 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 9cddc0fd..a5e5128b 100644
+index e0fbd837..a478b746 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -107,7 +107,7 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -109,7 +109,7 @@ const removeToken = (skipLocalStorage = false) => {
  
  export const AuthStore = Loader.named('AuthStore')
      .props({
@@ -479,7 +481,7 @@ index 9cddc0fd..a5e5128b 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -221,6 +221,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -223,6 +223,8 @@ export const AuthStore = Loader.named('AuthStore')
              isTokenRefreshing = false;
              refreshingCall = null;
  
@@ -489,12 +491,12 @@ index 9cddc0fd..a5e5128b 100644
                  const eventWindowId = event.detail;
                  if (eventWindowId !== authStore.windowId) {
 diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
-index fbbc243e..2eb5991c 100644
+index 8c0a28d7..ce190fe9 100644
 --- a/src/rpc/httpRpc.ts
 +++ b/src/rpc/httpRpc.ts
-@@ -27,10 +27,11 @@ const buildMode: string = process.env.REACT_APP_BUILD_MODE;
- const baseUrl: string =
-     buildMode === 'e2e_test' ? process.env.REACT_APP_BASE_URL_FOR_E2E : process.env.REACT_APP_BASE_URL;
+@@ -25,10 +25,11 @@ export type HttpRpc = <T>(
+ 
+ const baseUrl: string = process.env.REACT_APP_BASE_URL || '$REACT_APP_BASE_URL';
  
 -let cancelTokenSource: CancelTokenSource = axios.CancelToken.source();
 +let cancelTokenSource: CancelTokenSource = null;
@@ -506,7 +508,7 @@ index fbbc243e..2eb5991c 100644
      cancelTokenSource = axios.CancelToken.source();
  };
  
-@@ -47,7 +48,7 @@ const httpRpc: HttpRpc = async <T>(method: string, params = {}, headers = {}, ur
+@@ -45,7 +46,7 @@ const httpRpc: HttpRpc = async <T>(method: string, params = {}, headers = {}, ur
          data: rpcParams,
          url: `${url}?method=${method}`,
          headers,
