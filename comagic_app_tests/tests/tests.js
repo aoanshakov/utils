@@ -2292,44 +2292,69 @@ tests.addTest(options => {
                         tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
                     });
                 });
-                it('Аналитика доступна.', function() {
-                    accountRequest.webAccountLoginAvailable().receiveResponse();
+                describe('Аналитика доступна.', function() {
+                    beforeEach(function() {
+                        accountRequest.webAccountLoginAvailable().receiveResponse();
 
-                    tester.reportGroupsRequest().receiveResponse();
-                    tester.reportsListRequest().allRequests().receiveResponse();
-                    tester.reportTypesRequest().receiveResponse();
+                        tester.reportGroupsRequest().receiveResponse();
+                        tester.reportsListRequest().allRequests().receiveResponse();
+                        tester.reportTypesRequest().receiveResponse();
 
-                    tester.configRequest().receiveResponse();
-                    tester.operatorAccountRequest().receiveResponse();
+                        tester.configRequest().receiveResponse();
+                        tester.operatorAccountRequest().receiveResponse();
+                    });
 
-                    tester.button('Сырые данные').click();
-                    tester.button('Все обращения').click();
-                        
-                    tester.reportGroupsRequest().receiveResponse();
-                    tester.reportsListRequest().allRequests().receiveResponse();
-                    tester.reportsListRequest().allRequests().receiveResponse();
-                    tester.reportTypesRequest().receiveResponse();
+                    it(
+                        'Открываю раздел "Все обращения". Нажимаю на ссылку с количеством сообщение. Отображены ' +
+                        'сообщения.',
+                    function() {
+                        tester.button('Сырые данные').click();
+                        tester.button('Все обращения').click();
+                            
+                        tester.reportGroupsRequest().receiveResponse();
+                        tester.reportsListRequest().allRequests().receiveResponse();
+                        tester.reportsListRequest().allRequests().receiveResponse();
+                        tester.reportTypesRequest().receiveResponse();
 
-                    tester.reportGroupsRequest().receiveResponse();
-                    tester.reportsListRequest().allRequests().receiveResponse();
-                    tester.reportsListRequest().allRequests().receiveResponse();
-                    tester.reportTypesRequest().receiveResponse();
+                        tester.reportGroupsRequest().receiveResponse();
+                        tester.reportsListRequest().allRequests().receiveResponse();
+                        tester.reportsListRequest().allRequests().receiveResponse();
+                        tester.reportTypesRequest().receiveResponse();
 
-                    tester.reportStateRequest().allRequests().receiveResponse();
-                    tester.reportRapidFiltersRequest().communications().receiveResponse();
-                    tester.reportFiltersRequest().receiveResponse();
-                    tester.columnsTreeRequest().receiveResponse();
-                    tester.tagsRequest().receiveResponse();
-                    tester.customFiltersRequest().receiveResponse();
-                    tester.communicationsRequest().receiveResponse()
+                        tester.reportStateRequest().allRequests().receiveResponse();
+                        tester.reportRapidFiltersRequest().communications().receiveResponse();
+                        tester.reportFiltersRequest().receiveResponse();
+                        tester.columnsTreeRequest().receiveResponse();
+                        tester.tagsRequest().receiveResponse();
+                        tester.customFiltersRequest().receiveResponse();
+                        tester.communicationsRequest().receiveResponse()
 
-                    tester.table.row.first().column.withHeader('Сообщений').button('4').click();
+                        tester.table.row.first().column.withHeader('Сообщений').button('4').click();
 
-                    tester.configRequest().receiveResponse();
-                    tester.messageListRequest().receiveResponse();
-                    tester.chatListRequest().visitor().receiveResponse();
+                        tester.configRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+                        tester.chatListRequest().visitor().receiveResponse();
 
-                    tester.body.expectTextContentToHaveSubstring('Привет 12:13');
+                        tester.body.expectTextContentToHaveSubstring('Привет 12:13');
+                    });
+                    it('Открываю РМО.', function() {
+                        tester.productsButton.click();
+                        tester.button('Рабочее место оператора').click();
+                            
+                        tester.configRequest().receiveResponse();
+                        tester.configRequest().receiveResponse();
+                        tester.operatorOfflineMessageListRequest().receiveResponse();
+                        tester.chatListRequest().receiveResponse();
+                        tester.chatChannelListRequest().receiveResponse();
+                        tester.operatorStatusListRequest().receiveResponse();
+                        tester.operatorListRequest().receiveResponse();
+                        tester.operatorSiteListRequest().receiveResponse();
+
+                        tester.chatsWebSocket.connect();
+                        tester.chatsInitMessage().expectToBeSent();
+                        tester.operatorAccountRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+                    });
                 });
             });
             it('Аналитика доступна.', function() {
@@ -2397,6 +2422,7 @@ tests.addTest(options => {
                 tester.configRequest().receiveResponse();
                 tester.messageListRequest().receiveResponse();
                 tester.chatListRequest().visitor().receiveResponse();
+                tester.messageListRequest().receiveResponse();
 
                 tester.body.expectTextContentToHaveSubstring('Привет 12:13');
             });
