@@ -265,16 +265,26 @@ define(() => function ({
     };
 
     me.messageListRequest = () => {
+        let params = {
+            visitor_id: 16479303
+        };
+
         return {
+            chat() {
+                params = {
+                    chat_id: 2718935,
+                };
+
+                return this;
+            },
+
             receiveResponse() {
                 ajax.recentRequest().
                     expectToHaveMethod('POST').
                     expectPathToContain('logic/operator').
                     expectBodyToContain({
                         method: 'get_message_list',
-                        params: {
-                            visitor_id: 16479303
-                        }
+                        params
                     }).respondSuccessfullyWith({
                         result: {
                             data: [{
@@ -1643,7 +1653,7 @@ define(() => function ({
                                         id: 45151,
                                         name: ':)'
                                     }],
-                                    communication_id: 141419755,
+                                    communication_id: 2718935,
                                     communication_type: 'chat'
                                 },
                                 call_type: {
@@ -1668,7 +1678,7 @@ define(() => function ({
                                     value_id: 'visitor'
                                 },
                                 total_duration: null,
-                                communication_id: 141419755,
+                                communication_id: 2718935,
                                 communication_type: {
                                     value: 'Чаты',
                                     value_id: 'chat'
