@@ -1,11 +1,11 @@
 diff --git a/package.json b/package.json
-index cf4c6c0..20fdef0 100644
+index 94b71d5..19e2d1d 100644
 --- a/package.json
 +++ b/package.json
 @@ -55,7 +55,7 @@
    "dependencies": {
      "@babel/runtime": "^7.13.9",
-     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.4.0",
+     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.2",
 -    "antd": "^4.13.0",
 +    "antd": "3.26.7",
      "async-mutex": "^0.3.2",
