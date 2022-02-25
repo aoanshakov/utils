@@ -364,10 +364,10 @@ index 98e0c107..ad90b8a2 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 53c7120d..09e2780a 100644
+index 53c7120d..e442e03e 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -10,7 +10,9 @@ import { Integrations } from '@sentry/tracing';
+@@ -10,7 +10,10 @@ import { Integrations } from '@sentry/tracing';
  
  import { useMountEffect } from '@hooks';
  
@@ -375,10 +375,11 @@ index 53c7120d..09e2780a 100644
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
 +import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
 +import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
++import { createRootStore as createAnalyticsRootStore } from 'analytics/src/models/RootStore';
  
  import history from './history';
  import { getIntlLocale, getIntlMessages } from './i18n';
-@@ -74,4 +76,30 @@ const Root: React.FC = observer(() => {
+@@ -74,4 +77,31 @@ const Root: React.FC = observer(() => {
      );
  });
  
@@ -388,6 +389,7 @@ index 53c7120d..09e2780a 100644
 +        createRootStore();
 +        createChatsRootStore();
 +        createSoftphoneRootStore();
++        createAnalyticsRootStore();
 +        setHistory(history);
 +
 +        this.exit();
