@@ -598,10 +598,16 @@ define(() => function ({
             is_transfer: false,
             transferred_by_employee_full_name: '',
             active_leads: [],
+            is_need_auto_answer: false,
             is_final: true
         };
 
         return {
+            needAutoAnswer: function () {
+                params.is_need_auto_answer = true;
+                return this;
+            },
+
             anotherPerson: function () {
                 params.calling_phone_number = params.contact_phone_number = '79161234510';
                 params.contact_full_name = 'Гигова Петранка';

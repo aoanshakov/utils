@@ -337,32 +337,43 @@ tests.addTest(options => {
                                             });
                                         });
                                         describe('Звонок переведен от другого сотрудника.', function() {
+                                            let outCallEvent;
+
                                             beforeEach(function() {
-                                                tester.outCallEvent().isTransfer().receive();
+                                                outCallEvent = tester.outCallEvent().isTransfer();
                                             });
 
-                                            it('Принимаю звонок. Отображен знак трансфера номер и таймер.', function() {
-                                                tester.callStartingButton.click();
+                                            describe('Автоответ отключен.', function() {
+                                                beforeEach(function() {
+                                                    outCallEvent.receive();
+                                                });
 
-                                                tester.firstConnection.connectWebRTC();
-                                                tester.firstConnection.callTrackHandler();
+                                                it('Принимаю звонок. Отображен знак трансфера номер и таймер.', function() {
+                                                    tester.callStartingButton.click();
 
-                                                tester.allowMediaInput();
-                                                tester.firstConnection.addCandidate();
-                                                tester.requestAcceptIncomingCall();
+                                                    tester.firstConnection.connectWebRTC();
+                                                    tester.firstConnection.callTrackHandler();
 
-                                                tester.transferIncomingIcon.expectToBeVisible();
-                                                tester.softphone.expectTextContentToHaveSubstring(
-                                                    'Шалева Дора +7 (916) 123-45-67 00:00:00'
-                                                );
+                                                    tester.allowMediaInput();
+                                                    tester.firstConnection.addCandidate();
+                                                    tester.requestAcceptIncomingCall();
+
+                                                    tester.transferIncomingIcon.expectToBeVisible();
+                                                    tester.softphone.expectTextContentToHaveSubstring(
+                                                        'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                    );
+                                                });
+                                                it('Отображено сообщение о переводе звонка.', function() {
+                                                    tester.incomingIcon.expectNotToExist();
+                                                    tester.outgoingIcon.expectNotToExist();
+
+                                                    tester.softphone.expectTextContentToHaveSubstring(
+                                                        'Шалева Дора +7 (916) 123-45-67 Трансфер от Бисерка Макавеева'
+                                                    );
+                                                });
                                             });
-                                            it('Отображено сообщение о переводе звонка.', function() {
-                                                tester.incomingIcon.expectNotToExist();
-                                                tester.outgoingIcon.expectNotToExist();
-
-                                                tester.softphone.expectTextContentToHaveSubstring(
-                                                    'Шалева Дора +7 (916) 123-45-67 Трансфер от Бисерка Макавеева'
-                                                );
+                                            it('Автоответ включен. Звонок не принимается автоматически.', function() {
+                                                outCallEvent.needAutoAnswer().receive();
                                             });
                                         });
                                         describe('Звонок производится в рамках исходящего обзвона.', function() {
@@ -372,6 +383,20 @@ tests.addTest(options => {
                                                 outCallEvent = tester.outCallEvent().autoCallCampaignName();
                                             });
 
+                                            it('Автоответ включен. Звонок принимается.', function() {
+                                                outCallEvent.needAutoAnswer().receive();
+
+                                                tester.firstConnection.connectWebRTC();
+                                                tester.firstConnection.callTrackHandler();
+
+                                                tester.allowMediaInput();
+                                                tester.firstConnection.addCandidate();
+                                                tester.requestAcceptIncomingCall();
+
+                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                    'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                );
+                                            });
                                             it(
                                                 'Имя контакта отсутствует. Звонок обозначен, как исходящий обзвон.',
                                             function() {
