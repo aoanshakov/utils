@@ -9,7 +9,7 @@ index 34c2f302..5b44ba5c 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-va0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0d50e45e..4020fd2d 100644
+index 0d50e45e..79c6c1d2 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,9 +8,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -35,7 +35,7 @@ index 0d50e45e..4020fd2d 100644
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
-+const subModules = ['chats'];
++const subModules = ['chats', 'analytics/frontend'];
  
  const lessLoader = {
      loader: 'less-loader',
@@ -157,7 +157,7 @@ index 0d50e45e..4020fd2d 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -311,16 +375,103 @@ module.exports = {
+@@ -311,16 +375,104 @@ module.exports = {
                      },
                  ],
              },
@@ -214,7 +214,8 @@ index 0d50e45e..4020fd2d 100644
 +            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
 +            'analytics/CreateReport': `${miscDirectory}/Stub.js`,
 +            'analytics/Dashboards/ChiefDashboard': `${miscDirectory}/Stub.js`,
-+            'analytics/Communications': `${miscDirectory}/Stub.js`,
++            'analytics/Communications':
++                `${miscDirectory}/analytics/frontend/src/components/reports/communications/index.tsx`,
 +            'analytics/Dashboards/Dashboard': `${miscDirectory}/Stub.js`,
 +            'analytics/DealsAnalytics': `${miscDirectory}/Stub.js`,
 +            'analytics/Deals': `${miscDirectory}/Stub.js`,
@@ -266,7 +267,7 @@ index 0d50e45e..4020fd2d 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index a3cfdcd6..1bb63859 100644
+index a3cfdcd6..1347e1ab 100644
 --- a/package.json
 +++ b/package.json
 @@ -46,7 +46,7 @@
@@ -289,16 +290,17 @@ index a3cfdcd6..1bb63859 100644
      "url-loader": "^3.0.0",
      "webpack": "^5.38.1",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -64,6 +64,8 @@
+@@ -64,6 +64,9 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
++    "analytics": ".misc/analytics/frontend",
 +    "softphone": "./misc/softphone",
 +    "chats": "./misc/chats",
      "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.2",
      "@sentry/react": "^6.17.6",
      "@sentry/tracing": "^6.17.6",
-@@ -74,7 +76,7 @@
+@@ -74,7 +77,7 @@
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
@@ -307,7 +309,7 @@ index a3cfdcd6..1bb63859 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -82,8 +84,9 @@
+@@ -82,8 +85,9 @@
      "nanoid": "^3.2.0",
      "react": "^17.0.2",
      "react-dom": "^17.0.2",
