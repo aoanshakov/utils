@@ -2095,19 +2095,47 @@ tests.addTest(options => {
                             tester.authenticatedUserRequest().receiveResponse();
                         });
 
+                        describe('Получена неокончательная информация о звонке. Автоответ включен.', function() {
+                            beforeEach(function() {
+                                tester.outCallEvent().needAutoAnswer().notFinal().receive();
+                            });
+
+                            it(
+                                'Получена окончательная информация о звонке. Отображена информация о звонке.',
+                            function() {
+                                tester.outCallEvent().needAutoAnswer().receive();
+
+                                tester.incomingIcon.expectToBeVisible();
+
+                                tester.softphone.expectTextContentToHaveSubstring(
+                                    'Шалева Дора ' +
+                                    '+7 (916) 123-45-67 ' +
+
+                                    'Путь лида'
+                                );
+                            });
+                            it('Отображено сообщение о поиске контакта.', function() {
+                                tester.softphone.expectTextContentToHaveSubstring(
+                                    '+7 (916) 123-45-67 ' +
+                                    'Поиск контакта... ' +
+
+                                    'Путь лида'
+                                );
+                            });
+                        });
+                        it('Получена окончательная информация о звонке. Отображена информация о звонке.', function() {
+                            tester.outCallEvent().receive();
+
+                            tester.incomingIcon.expectToBeVisible();
+                            tester.softphone.
+                                expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67 Путь лида');
+                        });
                         it('Совершается исходящий звонок. Отображена информация о звонке.', function() {
                             tester.outCallSessionEvent().receive();
 
                             tester.outgoingIcon.expectToBeVisible();
                             tester.softphone.
                                 expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67');
-                        });
-                        it('Поступил входящий звонок. Отображена информация о звонке.', function() {
-                            tester.outCallEvent().receive();
-
-                            tester.incomingIcon.expectToBeVisible();
-                            tester.softphone.
-                                expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67 Путь лида');
                         });
                         it('Отбражен выпадающий список номеров.', function() {
                             tester.select.expectToHaveTextContent('+7 (495) 021-68-06');

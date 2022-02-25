@@ -603,6 +603,13 @@ define(() => function ({
         };
 
         return {
+            notFinal: function () {
+                params.crm_contact_link = null;
+                params.contact_full_name = null;
+                params.is_final = false;
+                return this;
+            },
+
             needAutoAnswer: function () {
                 params.is_need_auto_answer = true;
                 return this;
