@@ -58,6 +58,16 @@ const overridenFiles = [
     'src/rpc/httpRpc.ts'
 ].join(' ');
 
+const executePsql = (...commands) => commands.map(command => `psql postgres -c "${command}"`);
+
+actions['run-update-server'] = [
+    executePsql(
+        'CREATE ROLE electron_release_server_user ENCRYPTED PASSWORD \'Gj8sd4829fjsd8l4k\' LOGIN;',
+        'CREATE DATABASE electron_release_server OWNER "electron_release_server_user";',
+        'CREATE DATABASE electron_release_server_sessions OWNER "electron_release_server_user";'
+    )
+];
+
 actions['fix-permissions'] =
     [`if [ -n "$APPLICATION_OWNER" ]; then chown -R $APPLICATION_OWNER:$APPLICATION_OWNER $1 ${application}; fi`];
 

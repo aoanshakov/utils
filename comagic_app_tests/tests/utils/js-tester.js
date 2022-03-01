@@ -359,6 +359,7 @@ function JsTester_NavigatorMock (args) {
 function JsTester_RTCConnectionSender (track) {
     this.replaceTrack = function (value) {
         track = value;
+        return Promise.resolve();
     };
 
     Object.defineProperty(this, 'track', {

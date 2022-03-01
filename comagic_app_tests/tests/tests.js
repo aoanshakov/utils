@@ -254,6 +254,42 @@ tests.addTest(options => {
                                                         usersInGroupsRequest.addMore().receiveResponse();
                                                     });
                                                 });
+                                                describe('Нажимаю на кнопку выключения микрофона.', function() {
+                                                    beforeEach(function() {
+                                                        tester.microphoneButton.click();
+                                                    });
+
+                                                    it(
+                                                        'Собеседник повесил трубку. Поступил входящий звонок. ' +
+                                                        'Микрофон включен.',
+                                                    function() {
+                                                        incomingCall.receiveBye();
+
+                                                        tester.incomingCall().receive();
+                                                        tester.numaRequest().receiveResponse();
+                                                        tester.outCallEvent().receive();
+
+                                                        tester.callStartingButton.click();
+
+                                                        tester.secondConnection.connectWebRTC();
+                                                        tester.secondConnection.callTrackHandler();
+
+                                                        tester.allowMediaInput();
+                                                        tester.secondConnection.addCandidate();
+                                                        tester.requestAcceptIncomingCall();
+
+                                                        tester.microphoneButton.
+                                                            expectNotToHaveClass('clct-call-option--pressed');
+                                                            
+                                                        tester.secondConnection.expectNotToBeMute();
+                                                    });
+                                                    it('Микрофон выключен.', function() {
+                                                        tester.firstConnection.expectToBeMute();
+
+                                                        tester.microphoneButton.
+                                                            expectToHaveClass('clct-call-option--pressed');
+                                                    });
+                                                });
                                                 it('Нажимаю на кнопку удержания. Звонок удерживается.', function() {
                                                     tester.holdButton.click();
                                                     audioDecodingTester.accomplishAudioDecoding();
@@ -261,8 +297,13 @@ tests.addTest(options => {
                                                     tester.firstConnection.expectHoldMusicToPlay();
                                                 });
                                                 it('Отображено направление и номер.', function() {
+                                                    tester.microphoneButton.
+                                                        expectNotToHaveClass('clct-call-option--pressed');
+
                                                     tester.firstConnection.expectSinkIdToEqual('default');
                                                     tester.firstConnection.expectInputDeviceIdToEqual('default');
+                                                    tester.firstConnection.expectNotToBeMute();
+
                                                     tester.incomingIcon.expectToBeVisible();
                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                         'Шалева Дора +7 (916) 123-45-67 00:00:00'

@@ -8,6 +8,7 @@ RUN apt-get install -y \
     ca-certificates \
     lsb-release \
     git \
+    postgresql \
     curl
 
 RUN echo "deb http://nginx.org/packages/debian `lsb_release -cs` nginx" \
@@ -17,7 +18,7 @@ RUN curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
 RUN apt-get update -y
 RUN apt-get install nginx
 
-RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs
 RUN curl -L https://npmjs.org/install.sh | sh
 
