@@ -54,5 +54,6 @@ module.exports = {
     sailsPgSessionSql: `${sailsPgSession}/sql/sails-pg-session-support.sql`,
     updaterLog: `${tests}/updater.log`,
     publisherDir,
+    assets: `${tests}/assets`,
     publisher: `${publisherDir}/index.js`
 };

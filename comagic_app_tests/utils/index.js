@@ -32,6 +32,7 @@ const {
     shadowContentTsxSource,
     shadowContentTsxTarget,
     updater,
+    assets,
     pgHbaConf,
     localJsSource,
     localJsTarget,
@@ -71,7 +72,8 @@ const overridenFiles = [
 action['install-publisher'] = [`cd ${publisherDir} && npm install --verbose`];
 
 actions['install-updater'] = [
-    () => mkdir(${updater}),
+    () => mkdir(assets),
+    () => mkdir(updater),
     `cd ${updater} && git clone https://github.com/ArekSredzki/electron-release-server.git .`,
     `cd ${updater} && patch -p1 < ${updaterPatch}`,
     `cd ${updater} && npm install --verbose`,
