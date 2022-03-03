@@ -1124,7 +1124,20 @@ define(() => function ({
             chat_channel_type: 'telegram',
             date_time: '2022-01-21T16:24:21.098210',
             id: 2718935,
-            last_message: '432',
+            last_message: 'Привет',
+            mark_ids: ['316', '579'],
+            phone: null,
+            site_id: 4663,
+            status: 'new',
+            visitor_id: 16479303,
+            visitor_name: 'Помакова Бисерка Драгановна',
+            visitor_type: 'omni'
+        }, {
+            chat_channel_id: 101,
+            chat_channel_type: 'telegram',
+            date_time: '2022-01-22T17:25:22.098210',
+            id: 2718936,
+            last_message: 'Здравствуй',
             mark_ids: ['316', '579'],
             phone: null,
             site_id: 4663,
@@ -1134,7 +1147,22 @@ define(() => function ({
             visitor_type: 'omni'
         }];
 
-        return {
+        function addResponseModifiers (me) {
+            me.extendedLastMessage = () => {
+                data[0].last_message = {
+                    message : 'Привет',
+                    date : '2022-02-22T13:07:22.133545+03:00',
+                    is_operator : false,
+                    resource_type : 'document'
+                };
+
+                return me;
+            };
+
+            return me;
+        }
+
+        return addResponseModifiers({
             visitor() {
                 params = {
                     chat_id: 2718935,
@@ -1159,7 +1187,7 @@ define(() => function ({
                         params
                     });
 
-                return {
+                return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
                             result: {data}
@@ -1169,13 +1197,13 @@ define(() => function ({
                         spendTime(0)
                         Promise.runAll(false, true);
                     }
-                };
+                });
             },
 
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
             }
-        };
+        });
     };
 
     me.operatorAccountRequest = () => ({

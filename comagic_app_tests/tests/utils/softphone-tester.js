@@ -1203,8 +1203,13 @@ define(function () {
         };
 
         this.getEventsWebSocket = function (index) {
-            return this.eventsWebSocket = eventsWebSocket =
+            this.eventsWebSocket = eventsWebSocket =
                 webSockets.getSocket(webSocketRegExp, index || 0);
+
+            var disconnect = eventsWebSocket.disconnect.bind(eventsWebSocket);
+            eventsWebSocket.disconnect = (...args) => (disconnect(...args), Promise.runAll(false, true));
+
+            return eventsWebSocket;
         };
 
         this.connectEventsWebSocket = function (index) {

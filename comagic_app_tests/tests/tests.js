@@ -2350,41 +2350,64 @@ tests.addTest(options => {
                         tester.chatsInitMessage().expectToBeSent();
 
                         operatorOfflineMessageListRequest.receiveResponse();
-                        chatListRequest.receiveResponse();
-                        tester.messageListRequest().receiveResponse();
                     });
 
-                    describe('Нажимаю на кнопку аккаунта.', function() {
+                    describe('Использует старый API чатов.', function() {
                         beforeEach(function() {
-                            tester.userName.putMouseOver();
+                            chatListRequest.receiveResponse();
+                            tester.messageListRequest().receiveResponse();
+                            tester.messageListRequest().receiveResponse();
                         });
 
-                        it('Выбираю другой статус. Другой статус выбран.', function() {
-                            tester.statusesList.item('Перерыв').click();
+                        describe('Нажимаю на кнопку аккаунта.', function() {
+                            beforeEach(function() {
+                                tester.userName.putMouseOver();
+                            });
 
-                            tester.operatorStatusUpdateRequest().receiveResponse();
-                            tester.chatsEmployeeChangeMessage().receive();
+                            it('Выбираю другой статус. Другой статус выбран.', function() {
+                                tester.statusesList.item('Перерыв').click();
 
-                            tester.statusesList.item('Доступен').expectNotToBeSelected();
-                            tester.statusesList.item('Перерыв').expectToBeSelected();
+                                tester.operatorStatusUpdateRequest().receiveResponse();
+                                tester.chatsEmployeeChangeMessage().receive();
 
-                            tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
+                                tester.statusesList.item('Доступен').expectNotToBeSelected();
+                                tester.statusesList.item('Перерыв').expectToBeSelected();
+
+                                tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
+                            });
+                            it('Отображен список статусов.', function() {
+                                tester.statusesList.item('Доступен').expectToBeSelected();
+                                tester.statusesList.item('Перерыв').expectNotToBeSelected();
+
+                                tester.statusesList.expectTextContentToHaveSubstring(
+                                    'Доступен ' +
+                                    'Перерыв ' +
+                                    'Не беспокоить ' +
+                                    'Нет на месте ' +
+                                    'Нет на работе'
+                                );
+                            });
                         });
-                        it('Отображен список статусов.', function() {
-                            tester.statusesList.item('Доступен').expectToBeSelected();
-                            tester.statusesList.item('Перерыв').expectNotToBeSelected();
+                        it('Отображается статус сотрудника.', function() {
+                            tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
 
-                            tester.statusesList.expectTextContentToHaveSubstring(
-                                'Доступен ' +
-                                'Перерыв ' +
-                                'Не беспокоить ' +
-                                'Нет на месте ' +
-                                'Нет на работе'
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Помакова Бисерка Драгановна ' +
+                                '16:24 ' +
+                                'Привет'
                             );
                         });
                     });
-                    it('Отображается статус сотрудника.', function() {
-                        tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+                    it('Использует новый API чатов.', function() {
+                        chatListRequest.extendedLastMessage().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+
+                        tester.body.expectTextContentToHaveSubstring(
+                            'Помакова Бисерка Драгановна ' +
+                            '16:24 ' +
+                            'Привет'
+                        );
                     });
                 });
                 describe('Аналитика доступна.', function() {
@@ -2448,6 +2471,7 @@ tests.addTest(options => {
                         tester.chatsWebSocket.connect();
                         tester.chatsInitMessage().expectToBeSent();
                         tester.operatorAccountRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
                         tester.messageListRequest().receiveResponse();
                     });
                 });
