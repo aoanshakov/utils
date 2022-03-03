@@ -69,7 +69,7 @@ const overridenFiles = [
     'src/rpc/httpRpc.ts'
 ].join(' ');
 
-action['install-publisher'] = [`cd ${publisherDir} && npm install --verbose`];
+actions['install-publisher'] = [`cd ${publisherDir} && npm install --verbose`];
 
 actions['install-updater'] = [
     () => mkdir(assets),
@@ -78,7 +78,7 @@ actions['install-updater'] = [
     `cd ${updater} && patch -p1 < ${updaterPatch}`,
     `cd ${updater} && npm install --verbose`,
 
-     () => mkdir(${sailsPgSession}),
+     () => mkdir(sailsPgSession),
     `cd ${sailsPgSession} && git clone https://github.com/ravitej91/sails-pg-session.git .`
 ];
 
