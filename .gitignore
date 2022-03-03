@@ -22,3 +22,8 @@ docker/vim-container/profile/.tmp
 docker/vim-container/profile/.viminfo
 docker/vim-container/profile/patch.diff
 admin-frontend-tests/node_modules
+
+comagic_app_tests/assets
+comagic_app_tests/sails_pg_session
+comagic_app_tests/updater.log
+comagic_app_tests/updater
