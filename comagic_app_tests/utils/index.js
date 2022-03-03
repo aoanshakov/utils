@@ -30,7 +30,17 @@ const {
     packageLockJson,
     stub,
     shadowContentTsxSource,
-    shadowContentTsxTarget
+    shadowContentTsxTarget,
+    updater,
+    pgHbaConf,
+    localJsSource,
+    localJsTarget,
+    sailsPgSession,
+    sailsPgSessionSql,
+    updaterPatch,
+    updaterLog,
+    publisher,
+    publisherDir
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -57,6 +67,55 @@ const overridenFiles = [
     'src/models/auth/AuthStore.ts',
     'src/rpc/httpRpc.ts'
 ].join(' ');
+
+action['install-publisher'] = [`cd ${publisherDir} && npm install --verbose`];
+
+actions['install-updater'] = [
+    () => mkdir(${updater}),
+    `cd ${updater} && git clone https://github.com/ArekSredzki/electron-release-server.git .`,
+    `cd ${updater} && patch -p1 < ${updaterPatch}`,
+    `cd ${updater} && npm install --verbose`,
+
+     () => mkdir(${sailsPgSession}),
+    `cd ${sailsPgSession} && git clone https://github.com/ravitej91/sails-pg-session.git .`
+];
+
+actions['run-updater-db-server'] = [
+    `cp ${localJsSource} ${localJsTarget}`,
+    `cp ${pgHbaConf} /etc/postgresql/9.6/main/pg_hba.conf`,
+    'service postgresql start'
+];
+
+actions['init-updater-db'] = [
+    ...actions['run-updater-db-server'],
+
+    'psql --username=postgres -c "CREATE ROLE electron_release_server_user ENCRYPTED ' +
+        'PASSWORD \'cZSNa6Qc0zdqtljZZ08bMZNJrrTK0ory0De8qlENuqvD31XVGtXIeGadPqmLgHj\' LOGIN;"',
+
+    'psql --username=postgres -c \'CREATE DATABASE electron_release_server OWNER "electron_release_server_user";\'',
+
+    'psql --username=postgres -c \'CREATE DATABASE electron_release_server_sessions OWNER ' +
+        '"electron_release_server_user";\'',
+        
+    `psql electron_release_server_sessions < ${sailsPgSessionSql} postgres`
+];
+
+const rmVerbose = target => `if [ -e ${target} ]; then rm -rvf ${target}; fi`;
+
+actions['publish-update'] = [
+    `cd ${publisherDir} && node ${publisher}`
+];
+
+actions['run-updater-app-js'] = [
+    rmVerbose(updaterLog),
+    `touch ${updaterLog}`,
+    `cd ${updater} && node app.js > ${updaterLog} 2>&1 &`
+];
+
+actions['run-updater'] = [
+    ...actions['init-updater-db'],
+    ...actions['run-updater-app-js']
+];
 
 actions['fix-permissions'] =
     [`if [ -n "$APPLICATION_OWNER" ]; then chown -R $APPLICATION_OWNER:$APPLICATION_OWNER $1 ${application}; fi`];
@@ -180,8 +239,6 @@ actions['initialize'] = params => [
     actions['modify-code'](params)
 ).concat(!fs.existsSync(nodeModules) ?
     [`chown -R root:root ${application}`, `${cda} npm install --verbose`].concat(actions['fix-permissions']) : []);
-
-const rmVerbose = target => `if [ -e ${target} ]; then rm -rvf ${target}; fi`;
 
 actions['remove-node-modules'] = overriding.map(({application}) => [
     rmVerbose(`${application}/node_modules`),

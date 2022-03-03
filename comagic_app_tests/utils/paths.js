@@ -3,13 +3,17 @@ const src = '/usr/local/src',
     nodeModules = `${application}/node_modules`,
     packageLockJson = `${application}/package-lock.json`,
     tests = `${src}/tests`,
+    updater = `${tests}/updater`,
     nginxConfig = `${tests}/utils/nginx.conf`,
     preCommitHook = `${application}/.husky/pre-commit`,
     misc = `${application}/misc`,
     softphoneMisc = `${misc}/softphone/misc`,
     analyticsDir = `${misc}/analytics`,
     analytics = `${analyticsDir}/frontend`,
-    sipLib = `${softphoneMisc}/sip_lib`;
+    sipLib = `${softphoneMisc}/sip_lib`,
+    sailsPgSession = `${tests}/sails_pg_session`,
+    updaterConfig =`${updater}/config`,
+    publisherDir = `${tests}/publisher`;
 
 module.exports = {
     application,
@@ -32,6 +36,7 @@ module.exports = {
     devSoftphonePatch: `${tests}/dev-softphone-patch.diff`,
     sipLibPatch: `${tests}/sip-lib-patch.diff`,
     huskyPatch: `${tests}/husky-patch.diff`,
+    updaterPatch: `${tests}/updater-patch.diff`,
     misc,
     chats: `${misc}/chats`,
     magicUi: `${misc}/magic_ui`,
@@ -40,5 +45,14 @@ module.exports = {
     analytics,
     softphoneMisc,
     sipLib,
-    uisWebRTC: `${sipLib}/uis_webrtc`
+    uisWebRTC: `${sipLib}/uis_webrtc`,
+    updater,
+    pgHbaConf: `${tests}/pg_hba.conf`,
+    localJsSource: `${tests}/local.js`,
+    localJsTarget: `${updaterConfig}/local.js`,
+    sailsPgSession,
+    sailsPgSessionSql: `${sailsPgSession}/sql/sails-pg-session-support.sql`,
+    updaterLog: `${tests}/updater.log`,
+    publisherDir,
+    publisher: `${publisherDir}/index.js`
 };

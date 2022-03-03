@@ -8,7 +8,8 @@ RUN apt-get install -y \
     ca-certificates \
     lsb-release \
     git \
-    curl
+    curl \
+    postgresql
 
 RUN echo "deb http://nginx.org/packages/debian `lsb_release -cs` nginx" \
     | tee /etc/apt/sources.list.d/nginx.list

@@ -42,7 +42,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        describe('Фичафлаг софтфона включен.', function() {
+        xdescribe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -2208,7 +2208,7 @@ tests.addTest(options => {
                 accountRequest.operatorWorkplaceAvailable();
             });
 
-            describe('Софтфон недоступен.', function() {
+            xdescribe('Софтфон недоступен.', function() {
                 beforeEach(function() {
                     accountRequest.softphoneUnavailable();
                 });
@@ -2429,6 +2429,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentToHaveSubstring('Привет 12:13');
             });
         });
+return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -2448,6 +2449,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
+return;
     describe('Открываю десктопное приложение софтфона.', function() {
         let tester;
 
