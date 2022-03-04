@@ -1330,7 +1330,13 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
-                            result: {data}
+                            result: {
+                                data: {
+                                    active_chat_count: 1,
+                                    new_chat_count: 1,
+                                    chats: data
+                                }
+                            } 
                         });
 
                         Promise.runAll(false, true);

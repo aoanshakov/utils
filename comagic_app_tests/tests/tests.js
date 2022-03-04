@@ -2604,7 +2604,7 @@ tests.addTest(options => {
 
                 tester.configRequest().receiveResponse();
                 tester.messageListRequest().chat().receiveResponse();
-                tester.chatListRequest().visitor().receiveResponse();
+                tester.chatListRequest().visitor().extendedLastMessage().receiveResponse();
 
                 tester.body.expectTextContentToHaveSubstring('Привет 12:13');
             });
