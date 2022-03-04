@@ -2408,6 +2408,21 @@ tests.addTest(options => {
                             tester.messageListRequest().receiveResponse();
                         });
 
+                        it('Поступил перевод чата. Отображено оповещие о переводе чата.', function() {
+                            tester.transferCreatingMessage().receive();
+                                
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Перевод чата от оператора ' +
+                                'ЧР Чакърова Райна Илковна ' +
+
+                                'Поговори с ней сама, я уже устала ' +
+
+                                'ВИ Върбанова Илиана Милановна ' +
+                                'uiscom.ru/ ' +
+
+                                'Больше не могу разговаривать с тобой, дай мне Веску!'
+                            );
+                        });
                         it('Поступило новое сообщение от оператора. Отображено оповещение.', function() {
                             tester.newMessage().fromOperator().withAttachment().receive();
 

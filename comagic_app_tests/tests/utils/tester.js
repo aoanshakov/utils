@@ -438,6 +438,39 @@ define(() => function ({
         })
     });
 
+    me.transferCreatingMessage = () => {
+        const params = {
+            chat: {
+                chat_channel_id: 101,
+                chat_channel_type: 'telegram',
+                date_time: '2022-01-23T16:24:21.098210',
+                id: 2718936,
+                last_message: {
+                    message: 'Больше не могу разговаривать с тобой, дай мне Веску!',
+                    date: '2022-03-24T14:08:23.000Z',
+                    is_operator: false,
+                    resource_type: null
+                },
+                mark_ids: ['316', '579'],
+                phone: null,
+                site_id: 4663,
+                status: 'active',
+                visitor_id: 16479304,
+                visitor_name: 'Върбанова Илиана Милановна',
+                visitor_type: 'omni'
+            },
+            comment: 'Поговори с ней сама, я уже устала',
+            from_employee_id: 20817
+        };
+
+        return {
+            receive: () => me.chatsWebSocket.receive(JSON.stringify({
+                method: 'create_transfer',
+                params 
+            }))
+        };
+    };
+
     me.newMessage = () => {
         const params = {
             chat_id: 2718935,
@@ -1411,6 +1444,11 @@ define(() => function ({
                         data: [{
                             id: 20816,
                             full_name: 'Карадимова Веска Анастасовна',
+                            status_id: 1,
+                            photo_link: null
+                        }, {
+                            id: 20817,
+                            full_name: 'Чакърова Райна Илковна',
                             status_id: 1,
                             photo_link: null
                         }]
