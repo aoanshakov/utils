@@ -2471,6 +2471,19 @@ tests.addTest(options => {
                             'heart.png'
                         );
                     });
+                    it(
+                        'Последнее сообщение в чате отправлено оператором. Отображено сообщение с префиксом "Вы: ".',
+                    function() {
+                        chatListRequest.lastMessageFromOperator().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+
+                        tester.body.expectTextContentToHaveSubstring(
+                            'Помакова Бисерка Драгановна ' +
+                            '16:24 ' +
+                            'Вы: Привет'
+                        );
+                    });
                 });
                 describe('Аналитика доступна.', function() {
                     beforeEach(function() {

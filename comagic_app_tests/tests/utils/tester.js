@@ -1290,6 +1290,11 @@ define(() => function ({
         }];
 
         function addResponseModifiers (me) {
+            me.lastMessageFromOperator = () => {
+                data[0].last_message.is_operator = true;
+                return me;
+            };
+
             me.lastMessageWithAttachment = () => {
                 data[0].last_message.resource_type = 'photo';
                 data[0].last_message.resource_name = 'heart.png';
