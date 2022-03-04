@@ -949,6 +949,9 @@ define(() => function ({
             anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
+            thirdAuthorizationToken: () =>
+                ((headers.Authorization = 'Bearer 2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29'), request),
+
             expectToBeSent: () => {
                 const request = ajax.recentRequest().
                     expectPathToContain('/sup/api/v1/settings').
@@ -5799,6 +5802,9 @@ define(() => function ({
             anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
+            thirdAuthorizationToken: () =>
+                ((headers.Authorization = 'Bearer 2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29'), request),
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).expectBodyToContain({
                     method: 'get.report_groups',
@@ -6052,6 +6058,9 @@ define(() => function ({
             }
         };
 
+        let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            refresh = '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2';
+
         const addResponseModifiers = me => {
             me.refreshTokenExpired = () => {
                 response.result = null;
@@ -6060,6 +6069,16 @@ define(() => function ({
                     code: '-33020',
                     message: 'Expired refresh token'
                 };
+
+                return me;
+            };
+
+            me.anotherAuthorizationToken = () => {
+                token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                refresh = '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48';
+
+                response.result.jwt = '2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29';
+                response.result.refresh = '29onc84u2n9u2nlt39g823hglohglhg2o4l8gh2lf2hoj48';
 
                 return me;
             };
@@ -6073,14 +6092,14 @@ define(() => function ({
                     expectPathToContain('/auth/json_rpc').
                     expectToHaveMethod('POST').
                     expectToHaveHeaders({
-                        Authorization: `Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0`,
+                        Authorization: `Bearer ${token}`,
                         'X-Auth-Type': 'jwt'
                     }).
                     expectBodyToContain({
                         method: 'refresh',
                         params: {
-                            jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                            refresh: '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2'
+                            jwt: token,
+                            refresh
                         }
                     });
 

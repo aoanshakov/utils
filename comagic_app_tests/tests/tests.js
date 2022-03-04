@@ -1875,24 +1875,27 @@ tests.addTest(options => {
                     'авторизации. Отправлен только один запрос обновления токена.',
                 function() {
                     reportGroupsRequest.accessTokenExpired().receiveResponse();
-                    settingsRequest.accessTokenExpired().receiveResponse();
 
                     tester.refreshRequest().receiveResponse();
 
-                    tester.settingsRequest().anotherAuthorizationToken().expectToBeSent();
+                    settingsRequest.accessTokenExpired().receiveResponse();
                     tester.reportGroupsRequest().anotherAuthorizationToken().expectToBeSent();
+
+                    tester.refreshRequest().anotherAuthorizationToken().receiveResponse();
+                    tester.settingsRequest().thirdAuthorizationToken().expectToBeSent();
                 });
                 it(
                     'Сначала запрос от софтфона, а потом и запрос от лк завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
                 function() {
                     settingsRequest.accessTokenExpired().receiveResponse();
-                    reportGroupsRequest.accessTokenExpired().receiveResponse();
-
                     tester.refreshRequest().receiveResponse();
 
+                    reportGroupsRequest.accessTokenExpired().receiveResponse();
                     tester.settingsRequest().anotherAuthorizationToken().expectToBeSent();
-                    tester.reportGroupsRequest().anotherAuthorizationToken().expectToBeSent();
+
+                    tester.refreshRequest().anotherAuthorizationToken().receiveResponse();
+                    tester.reportGroupsRequest().thirdAuthorizationToken().expectToBeSent();
                 });
                 it(
                     'Срок действия токена авторизации истек. Токен авторизации обновлен. Софтфон подключен.',
