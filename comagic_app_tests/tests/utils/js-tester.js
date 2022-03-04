@@ -3154,6 +3154,18 @@ function JsTester_Tests (factory) {
             'a=ssrc:3906726496 label:f807f562-5698-4b34-a298-bc3f780934c3',
             ''
         ].join("\r\n"),
+        image = 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAA1dJREFUaEPtmWmoTVEYhp+LhGRI' +
+            'lAyJP6TwQxm6yZwh0iUlQwnhhpIfKKJEhFDGiB+mdJWMGW4yRqSUUFJCpMhc5qFXa9223dlnrz2ce86O78+pc9Z+v/c9a61vr+9dZWQ8' +
+            'yjLOn39SQEOgPvAu5dlrCnwFPkXBDZsB/d4bGAMMA9oDzUyC78B94BpQBZwHfjomrwMMAsYBfYEuQF3z7BvgCXAaOApcB34F4eYT0B9Y' +
+            'DfRyJHUXWAocCRk/FlhhSLtAS8Ai4GKuwbkEaHlsBma4oOcYo9mYBnzw/dYE2ANUxMTdAcwFvnmf9wvQOjwG9IuZxD52GxgKvDRftALO' +
+            'Ad0S4l4CRgHvLY5XgNbgcWB4wiT28RvAAPhT6S4APVPCPQWMBn4IzytgFbA4pSQWZiugDTsrZdyVwBKvgI6momj9pxm2eoRVu6g5v5gi' +
+            '8MgC7wMmRkUp8vi9wBQJaGw2W4MiE4qaXi+8lhKgl4lKXxajQgLWAQuyyB5YKwEHgAkZFbBfAvSCGZxRAdUScBjQ+SSLUSUBm4B5WWQP' +
+            'bJSASmBLRgVUSkAb4KnvWJEFPeo92tk38VXTWGSBuOUozuVWgKqQqlGWQh3iGe8h6yQwIiMKTpi+4K/jdFvT3+qzlEP7tQ/wTCT9x1x1' +
+            'TJcBtX+lGOrEyoE7llyuc7o6JzkCLUpMwVuzxOWC1ERQo9EDOKvjaomIeG1snZt+Pvk6pc6mMhV7T7wwBkHNsnGZATumA1ANdCrSTDw2' +
+            'B82HQfldetXWZia61rKIB4a8qk5guAjQw/J1tCe615KIe8AQ4HlYPlcBwmkOyJORV1rIuGU27CuXJFEECE8GgAzXgS7gMcZcAUZ6nbcw' +
+            'jKgChNfIGLiyDtMMuXeyDT9GAY0jQPgywA4mMGr9HHUOkzvyOQp5jY0rQM/KS90tcylqUt/4Q8Bkv+vsiplEgBWxHZjumtA3To7gVECX' +
+            'JbEiqQA7i+uB+REZbAPmRLjVyQmfhgALvBxY5ihijbl1cRwePCxNAcqy0FxL5SOWGvmkmziI5GxzRaV7AW/IapeFuSHx3+4BSHsGLPQk' +
+            'cx9Wz3whB2EmsCtN8oWaActxPLDTXJGKvMpl6lGoGbBE7QzELpNhigstICx/4t//C0j8FyYE+A2omn8yNA4wuwAAAABJRU5ErkJggg==',
         rtcPeerConnectionMocker = new JsTester_RTCPeerConnectionMocker({
             sdp: sdp,
             connections: rtcConnections,
@@ -3338,6 +3350,7 @@ function JsTester_Tests (factory) {
                 '</body>' +
             '</html>',
             sdp: sdp,
+            image: image,
             windowSize: windowSize,
             mutationObserverMocker: mutationObserverMocker,
             fileReader: fileReaderTester,

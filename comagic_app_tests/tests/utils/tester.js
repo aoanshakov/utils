@@ -8,7 +8,8 @@ define(() => function ({
     isAlreadyAuthenticated = false,
     appName = '',
     webSockets,
-    path = '/'
+    path = '/',
+    image
 }) {
     let history,
         chatsRootStore;
@@ -495,19 +496,6 @@ define(() => function ({
             front_message_uuid: '2go824jglsjgl842d',
         };
 
-        const payload = 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAA1dJREFUaEPtmWmoTVEYhp+LhGRI' +
-            'lAyJP6TwQxm6yZwh0iUlQwnhhpIfKKJEhFDGiB+mdJWMGW4yRqSUUFJCpMhc5qFXa9223dlnrz2ce86O78+pc9Z+v/c9a61vr+9dZWQ8' +
-            'yjLOn39SQEOgPvAu5dlrCnwFPkXBDZsB/d4bGAMMA9oDzUyC78B94BpQBZwHfjomrwMMAsYBfYEuQF3z7BvgCXAaOApcB34F4eYT0B9Y' +
-            'DfRyJHUXWAocCRk/FlhhSLtAS8Ai4GKuwbkEaHlsBma4oOcYo9mYBnzw/dYE2ANUxMTdAcwFvnmf9wvQOjwG9IuZxD52GxgKvDRftALO' +
-            'Ad0S4l4CRgHvLY5XgNbgcWB4wiT28RvAAPhT6S4APVPCPQWMBn4IzytgFbA4pSQWZiugDTsrZdyVwBKvgI6momj9pxm2eoRVu6g5v5gi' +
-            '8MgC7wMmRkUp8vi9wBQJaGw2W4MiE4qaXi+8lhKgl4lKXxajQgLWAQuyyB5YKwEHgAkZFbBfAvSCGZxRAdUScBjQ+SSLUSUBm4B5WWQP' +
-            'bJSASmBLRgVUSkAb4KnvWJEFPeo92tk38VXTWGSBuOUozuVWgKqQqlGWQh3iGe8h6yQwIiMKTpi+4K/jdFvT3+qzlEP7tQ/wTCT9x1x1' +
-            'TJcBtX+lGOrEyoE7llyuc7o6JzkCLUpMwVuzxOWC1ERQo9EDOKvjaomIeG1snZt+Pvk6pc6mMhV7T7wwBkHNsnGZATumA1ANdCrSTDw2' +
-            'B82HQfldetXWZia61rKIB4a8qk5guAjQw/J1tCe615KIe8AQ4HlYPlcBwmkOyJORV1rIuGU27CuXJFEECE8GgAzXgS7gMcZcAUZ6nbcw' +
-            'jKgChNfIGLiyDtMMuXeyDT9GAY0jQPgywA4mMGr9HHUOkzvyOQp5jY0rQM/KS90tcylqUt/4Q8Bkv+vsiplEgBWxHZjumtA3To7gVECX' +
-            'JbEiqQA7i+uB+REZbAPmRLjVyQmfhgALvBxY5ihijbl1cRwePCxNAcqy0FxL5SOWGvmkmziI5GxzRaV7AW/IapeFuSHx3+4BSHsGLPQk' +
-            'cx9Wz3whB2EmsCtN8oWaActxPLDTXJGKvMpl6lGoGbBE7QzELpNhigstICx/4t//C0j8FyYE+A2omn8yNA4wuwAAAABJRU5ErkJggg==';
-
         return {
             fromOperator() {
                 params.message.source = 'operator';
@@ -524,9 +512,11 @@ define(() => function ({
                     width: 48,
                     height: 48,
                     duration: null,
-                    payload: `data:image/png;base64,${payload}`,
+                    payload: `data:image/png;base64,${image}`,
                     thumbs: {
-                        '100x100': {payload}
+                        '100x100': {
+                            payload: image
+                        }
                     }
                 };
 
@@ -1264,7 +1254,13 @@ define(() => function ({
             chat_channel_type: 'telegram',
             date_time: '2022-01-21T16:24:21.098210',
             id: 2718935,
-            last_message: 'Привет',
+            last_message: {
+                message: 'Привет',
+                date: '2022-02-22T13:07:22.000Z',
+                is_operator: false,
+                resource_type: null,
+                resource_name: null
+            },
             mark_ids: ['316', '579'],
             phone: null,
             site_id: 4663,
@@ -1277,7 +1273,13 @@ define(() => function ({
             chat_channel_type: 'telegram',
             date_time: '2022-01-22T17:25:22.098210',
             id: 2718936,
-            last_message: 'Здравствуй',
+            last_message: {
+                message: 'Здравствуй',
+                date: '2022-06-24T16:04:26.000Z',
+                is_operator: false,
+                resource_type: null,
+                resource_name: null
+            },
             mark_ids: ['316', '579'],
             phone: null,
             site_id: 4663,
@@ -1288,13 +1290,10 @@ define(() => function ({
         }];
 
         function addResponseModifiers (me) {
-            me.extendedLastMessage = () => {
-                data[0].last_message = {
-                    message: 'Привет',
-                    date: '2022-02-22T13:07:22.000Z',
-                    is_operator: false,
-                    resource_type: 'document'
-                };
+            me.lastMessageWithAttachment = () => {
+                data[0].last_message.resource_type = 'photo';
+                data[0].last_message.resource_name = 'heart.png';
+                data[0].last_message.message = '';
 
                 return me;
             };

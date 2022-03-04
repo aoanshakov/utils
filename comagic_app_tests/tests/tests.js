@@ -2355,7 +2355,7 @@ tests.addTest(options => {
                         operatorOfflineMessageListRequest.receiveResponse();
                     });
 
-                    describe('Использует старый API чатов.', function() {
+                    describe('Последнее сообщение в чате является текстовым.', function() {
                         beforeEach(function() {
                             chatListRequest.receiveResponse();
                             tester.messageListRequest().receiveResponse();
@@ -2391,23 +2391,6 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        it('Отображается статус сотрудника.', function() {
-                            tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
-
-                            tester.body.expectTextContentToHaveSubstring(
-                                'Помакова Бисерка Драгановна ' +
-                                '16:24 ' +
-                                'Привет'
-                            );
-                        });
-                    });
-                    describe('Использует новый API чатов.', function() {
-                        beforeEach(function() {
-                            chatListRequest.extendedLastMessage().receiveResponse();
-                            tester.messageListRequest().receiveResponse();
-                            tester.messageListRequest().receiveResponse();
-                        });
-
                         it('Поступил перевод чата. Отображено оповещие о переводе чата.', function() {
                             tester.transferCreatingMessage().receive();
                                 
@@ -2434,7 +2417,8 @@ tests.addTest(options => {
                                             message: 'Я люблю тебя',
                                             date: 1613910293000,
                                             is_operator: true,
-                                            resource_type: 'photo'
+                                            resource_type: 'photo',
+                                            resource_name: 'heart.png'
                                         }
                                     }]
                                 }
@@ -2459,19 +2443,33 @@ tests.addTest(options => {
                                             message: 'Я люблю тебя',
                                             date: 1613910293000,
                                             is_operator: false,
-                                            resource_type: null
+                                            resource_type: null,
+                                            resource_name: null
                                         }
                                     }]
                                 }
                             });
                         });
-                        it('Отображено сообщение.', function() {
+                        it('Отображена страница чатов.', function() {
+                            tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+
                             tester.body.expectTextContentToHaveSubstring(
                                 'Помакова Бисерка Драгановна ' +
                                 '16:24 ' +
                                 'Привет'
                             );
                         });
+                    });
+                    it('Последнее сообщение в чате является файлом. Отображено имя файла.', function() {
+                        chatListRequest.lastMessageWithAttachment().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+
+                        tester.body.expectTextContentToHaveSubstring(
+                            'Помакова Бисерка Драгановна ' +
+                            '16:24 ' +
+                            'heart.png'
+                        );
                     });
                 });
                 describe('Аналитика доступна.', function() {
@@ -2604,7 +2602,7 @@ tests.addTest(options => {
 
                 tester.configRequest().receiveResponse();
                 tester.messageListRequest().chat().receiveResponse();
-                tester.chatListRequest().visitor().extendedLastMessage().receiveResponse();
+                tester.chatListRequest().visitor().receiveResponse();
 
                 tester.body.expectTextContentToHaveSubstring('Привет 12:13');
             });
