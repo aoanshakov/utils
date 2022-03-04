@@ -10,7 +10,8 @@ define(() => function ({
     webSockets,
     path = '/'
 }) {
-    let history;
+    let history,
+        chatsRootStore;
     const mainTester = me;
 
     const jwtToken = {
@@ -35,6 +36,7 @@ define(() => function ({
 
     window.application.run({
         setHistory: value => (history = value),
+        setChatsRootStore: value => (chatsRootStore = value),
         appName
     });
 
@@ -264,6 +266,10 @@ define(() => function ({
         return me;
     };
 
+    me.expectChatsStoreToContain = expectedContent => {
+        utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
+    };
+
     me.messageListRequest = () => {
         let params = {
             visitor_id: 16479303
@@ -327,6 +333,37 @@ define(() => function ({
             Promise.runAll(false, true);
             spendTime(0)
             Promise.runAll(false, true);
+        }
+    });
+
+    me.changeMessageStatusRequest = () => ({
+        expectToBeSent() {
+            const request = ajax.recentRequest().
+                expectPathToContain('logic/operator').
+                expectBodyToContain({
+                    method: 'change_message_status',
+                    params: {
+                        chat_id: 2718935,
+                        message_id: 256085,
+                        status: 'delivered'
+                    }
+                });
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        data: true
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
         }
     });
 
@@ -400,6 +437,75 @@ define(() => function ({
             }
         })
     });
+
+    me.newMessage = () => {
+        const params = {
+            chat_id: 2718935,
+            message: {
+                id: 256085,
+                source: 'visitor',
+                text: 'Я люблю тебя',
+                date: '2021-02-21T12:24:53.000Z',
+                status: null,
+                chat_id: 2718935,
+                reply_to: null,
+                resource: null,
+                resourceName: null,
+                employee_id: 20816,
+                employee_name: 'Карадимова Веска Анастасовна',
+                visitor_name: 'Помакова Бисерка Драгановна',
+                front_message_uuid: '2go824jglsjgl842d',
+                error_mnemonic: null
+            },
+            visitor_id: 16479303,
+            employee_id: 20816,
+            front_message_uuid: '2go824jglsjgl842d',
+        };
+
+        const payload = 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAA1dJREFUaEPtmWmoTVEYhp+LhGRI' +
+            'lAyJP6TwQxm6yZwh0iUlQwnhhpIfKKJEhFDGiB+mdJWMGW4yRqSUUFJCpMhc5qFXa9223dlnrz2ce86O78+pc9Z+v/c9a61vr+9dZWQ8' +
+            'yjLOn39SQEOgPvAu5dlrCnwFPkXBDZsB/d4bGAMMA9oDzUyC78B94BpQBZwHfjomrwMMAsYBfYEuQF3z7BvgCXAaOApcB34F4eYT0B9Y' +
+            'DfRyJHUXWAocCRk/FlhhSLtAS8Ai4GKuwbkEaHlsBma4oOcYo9mYBnzw/dYE2ANUxMTdAcwFvnmf9wvQOjwG9IuZxD52GxgKvDRftALO' +
+            'Ad0S4l4CRgHvLY5XgNbgcWB4wiT28RvAAPhT6S4APVPCPQWMBn4IzytgFbA4pSQWZiugDTsrZdyVwBKvgI6momj9pxm2eoRVu6g5v5gi' +
+            '8MgC7wMmRkUp8vi9wBQJaGw2W4MiE4qaXi+8lhKgl4lKXxajQgLWAQuyyB5YKwEHgAkZFbBfAvSCGZxRAdUScBjQ+SSLUSUBm4B5WWQP' +
+            'bJSASmBLRgVUSkAb4KnvWJEFPeo92tk38VXTWGSBuOUozuVWgKqQqlGWQh3iGe8h6yQwIiMKTpi+4K/jdFvT3+qzlEP7tQ/wTCT9x1x1' +
+            'TJcBtX+lGOrEyoE7llyuc7o6JzkCLUpMwVuzxOWC1ERQo9EDOKvjaomIeG1snZt+Pvk6pc6mMhV7T7wwBkHNsnGZATumA1ANdCrSTDw2' +
+            'B82HQfldetXWZia61rKIB4a8qk5guAjQw/J1tCe615KIe8AQ4HlYPlcBwmkOyJORV1rIuGU27CuXJFEECE8GgAzXgS7gMcZcAUZ6nbcw' +
+            'jKgChNfIGLiyDtMMuXeyDT9GAY0jQPgywA4mMGr9HHUOkzvyOQp5jY0rQM/KS90tcylqUt/4Q8Bkv+vsiplEgBWxHZjumtA3To7gVECX' +
+            'JbEiqQA7i+uB+REZbAPmRLjVyQmfhgALvBxY5ihijbl1cRwePCxNAcqy0FxL5SOWGvmkmziI5GxzRaV7AW/IapeFuSHx3+4BSHsGLPQk' +
+            'cx9Wz3whB2EmsCtN8oWaActxPLDTXJGKvMpl6lGoGbBE7QzELpNhigstICx/4t//C0j8FyYE+A2omn8yNA4wuwAAAABJRU5ErkJggg==';
+
+        return {
+            fromOperator() {
+                params.message.source = 'operator';
+                return this;
+            },
+
+            withAttachment() {
+                params.message.resource = {
+                    id: 5829572,
+                    type: 'photo',
+                    mime: 'image/png',
+                    filename: 'heart.png',
+                    size: 925,
+                    width: 48,
+                    height: 48,
+                    duration: null,
+                    payload: `data:image/png;base64,${payload}`,
+                    thumbs: {
+                        '100x100': {payload}
+                    }
+                };
+
+                return this;
+            },
+
+            receive: () => me.chatsWebSocket.receive(JSON.stringify({
+                method: 'new_message',
+                params 
+            }))
+        };
+    };
     
     this.connectEventsWebSocket = function (index) {
         this.getEventsWebSocket(index).connect();
@@ -1091,16 +1197,14 @@ define(() => function ({
             return {
                 receiveResponse() {
                     request.respondSuccessfullyWith({
-                        result: {
-                            data: [{
-                                id: 101,
-                                is_removed: true,
-                                name: 'mrDDosT',
-                                status: 'deleted',
-                                status_reason: 'omni_request',
-                                type: 'telegram'
-                            }]
-                        }
+                        data: [{
+                            id: 101,
+                            is_removed: false,
+                            name: 'mrDDosT',
+                            status: 'active',
+                            status_reason: 'omni_request',
+                            type: 'telegram'
+                        }]
                     });
 
                     Promise.runAll(false, true);
@@ -1153,10 +1257,10 @@ define(() => function ({
         function addResponseModifiers (me) {
             me.extendedLastMessage = () => {
                 data[0].last_message = {
-                    message : 'Привет',
-                    date : '2022-02-22T13:07:22.133545+03:00',
-                    is_operator : false,
-                    resource_type : 'document'
+                    message: 'Привет',
+                    date: '2022-02-22T13:07:22.000Z',
+                    is_operator: false,
+                    resource_type: 'document'
                 };
 
                 return me;

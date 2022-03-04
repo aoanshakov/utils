@@ -364,7 +364,7 @@ index 98e0c107..ad90b8a2 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 4e23dc67..5c813d1a 100644
+index 4e23dc67..619e0ae1 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -10,7 +10,10 @@ import { Integrations } from '@sentry/tracing';
@@ -379,15 +379,18 @@ index 4e23dc67..5c813d1a 100644
  
  import history from './history';
  import { getIntlLocale, getIntlMessages } from './i18n';
-@@ -92,4 +95,31 @@ const Root: React.FC = observer(() => {
+@@ -92,4 +95,34 @@ const Root: React.FC = observer(() => {
      );
  });
  
 -ReactDOM.render(<Root />, document.getElementById('root'));
 +window.application = {
-+    run({setHistory = () => null}) {
++    run({
++        setHistory = () => null,
++        setChatsRootStore = () => null
++    }) {
 +        createRootStore();
-+        createChatsRootStore();
++        setChatsRootStore(createChatsRootStore());
 +        createSoftphoneRootStore();
 +        createAnalyticsRootStore();
 +        setHistory(history);

@@ -2153,17 +2153,29 @@ function JsTester_NotificationMock (args) {
             options: options
         }));
 
-        var onclick;
+        var onclick = function () {},
+            clickHandlers = [];
+
+        notificationClickHandler.setValue(function () {
+            onclick();
+
+            clickHandlers.forEach(function (handle) {
+                handle();
+            });
+        });
 
         Object.defineProperty(this, 'onclick', {
             get: function () {
                 return onclick;
             },
             set: function (value) {
-                onclick = value;
-                notificationClickHandler.setValue(onclick);
+                onclick = value || function () {};
             }
         }); 
+
+        this.addEventListener = function (eventName, handler) {
+            eventName == 'click' && clickHandlers.push(handler);
+        };
 
         this.close = function () {
             assertIsClosed.setValue(function () {});
@@ -2176,11 +2188,21 @@ function JsTester_NotificationMock (args) {
         set: function () {}
     }); 
 
-    constructor.requestPermission = function (callback) {
+    function addRequestPermissionCallback (callback) {
         notificationPermissionRequests.add({
             callback: callback,
             callStack: debug.getCallStack()
         });
+    }
+
+    constructor.requestPermission = function (callback) {
+        if (callback) {
+            addRequestPermissionCallback(callback);
+        } else {
+            return new Promise(function (resolve) {
+                addRequestPermissionCallback(resolve);
+            });
+        }
     };
 
     return constructor;
@@ -2225,10 +2247,12 @@ function JsTester_NotificationTester (args) {
 
     this.grantPermission = function () {
         update('granted');
+        Promise.runAll(false, true);
         return this;
     };
     this.denyPermission = function () {
         update('denied');
+        Promise.runAll(false, true);
         return this;
     };
     this.recentNotification = function () {

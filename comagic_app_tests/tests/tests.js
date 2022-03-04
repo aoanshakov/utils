@@ -2401,16 +2401,62 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    it('Использует новый API чатов.', function() {
-                        chatListRequest.extendedLastMessage().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
+                    describe('Использует новый API чатов.', function() {
+                        beforeEach(function() {
+                            chatListRequest.extendedLastMessage().receiveResponse();
+                            tester.messageListRequest().receiveResponse();
+                            tester.messageListRequest().receiveResponse();
+                        });
 
-                        tester.body.expectTextContentToHaveSubstring(
-                            'Помакова Бисерка Драгановна ' +
-                            '16:24 ' +
-                            'Привет'
-                        );
+                        it('Поступило новое сообщение от оператора. Отображено оповещение.', function() {
+                            tester.newMessage().fromOperator().withAttachment().receive();
+
+                            tester.expectChatsStoreToContain({
+                                chatListStore: {
+                                    chatListItems: [{
+                                        id: 2718935,
+                                        last_message: {
+                                            message: 'Я люблю тебя',
+                                            date: 1613910293000,
+                                            is_operator: true,
+                                            resource_type: 'photo'
+                                        }
+                                    }]
+                                }
+                            });
+                        });
+                        it('Поступило новое сообщение от посетителя. Отображено оповещение.', function() {
+                            tester.newMessage().receive();
+
+                            notificationTester.grantPermission().
+                                recentNotification().
+                                expectToHaveTitle('Помакова Бисерка Драгановна').
+                                expectToHaveBody('Я люблю тебя').
+                                expectToBeOpened();
+
+                            tester.changeMessageStatusRequest().receiveResponse();
+
+                            tester.expectChatsStoreToContain({
+                                chatListStore: {
+                                    chatListItems: [{
+                                        id: 2718935,
+                                        last_message: {
+                                            message: 'Я люблю тебя',
+                                            date: 1613910293000,
+                                            is_operator: false,
+                                            resource_type: null
+                                        }
+                                    }]
+                                }
+                            });
+                        });
+                        it('Отображено сообщение.', function() {
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Помакова Бисерка Драгановна ' +
+                                '16:24 ' +
+                                'Привет'
+                            );
+                        });
                     });
                 });
                 describe('Аналитика доступна.', function() {
