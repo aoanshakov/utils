@@ -373,7 +373,7 @@ index 6143f5e1..7ff73d45 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index c335a05d..91100e8b 100644
+index c335a05d..87a9abe0 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -10,7 +10,10 @@ import { Integrations } from '@sentry/tracing';
@@ -388,7 +388,7 @@ index c335a05d..91100e8b 100644
  
  import history from './history';
  import { getIntlLocale, getIntlMessages } from './i18n';
-@@ -92,4 +95,34 @@ const Root: React.FC = observer(props => {
+@@ -92,4 +95,35 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -396,10 +396,11 @@ index c335a05d..91100e8b 100644
 +window.application = {
 +    run({
 +        setHistory = () => null,
++        setChatsRootStore = () => null,
 +        appName = ''
 +    }) {
 +        createRootStore();
-+        createChatsRootStore();
++        setChatsRootStore(createChatsRootStore());
 +        createSoftphoneRootStore();
 +        createAnalyticsRootStore();
 +        setHistory(history);

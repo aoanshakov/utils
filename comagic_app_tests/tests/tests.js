@@ -2408,7 +2408,7 @@ tests.addTest(options => {
                                 'Больше не могу разговаривать с тобой, дай мне Веску!'
                             );
                         });
-                        it('Поступило новое сообщение от оператора. Отображено оповещение.', function() {
+                        it('Поступило новое сообщение от оператора. Отображено последнее сообщение.', function() {
                             tester.newMessage().fromOperator().withAttachment().receive();
 
                             tester.expectChatsStoreToContain({
@@ -2425,6 +2425,12 @@ tests.addTest(options => {
                                     }]
                                 }
                             });
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Помакова Бисерка Драгановна ' +
+                                '15:24 ' +
+                                'Вы: Я люблю тебя'
+                            );
                         });
                         it('Поступило новое сообщение от посетителя. Отображено оповещение.', function() {
                             tester.newMessage().receive();
@@ -2698,8 +2704,8 @@ tests.addTest(options => {
                         tester.allowMediaInput();
 
                         tester.numberCapacityRequest().receiveResponse();
-                        authenticatedUserRequest =  tester.authenticatedUserRequest().expectToBeSent();
-                        tester.registrationRequest().receiveResponse();
+                        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                        tester.registrationRequest().desktopSoftphone().receiveResponse();
                     });
 
                     describe('SIP-линия зарегистрирована.', function() {
@@ -2803,7 +2809,7 @@ tests.addTest(options => {
                                 tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().receiveResponse();
                                 tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
 
-                                tester.registrationRequest().expired().receiveResponse();
+                                tester.registrationRequest().desktopSoftphone().expired().receiveResponse();
                                 
                                 spendTime(2000);
                                 tester.webrtcWebsocket.finishDisconnecting();
@@ -2812,8 +2818,8 @@ tests.addTest(options => {
                                 tester.button('IP-телефон').expectToBeChecked();
                             });
                             it(
-                                'Прошло некоторое время. Сервер событий не отвечает. Отображено сообщение об установке ' +
-                                'соединения.',
+                                'Прошло некоторое время. Сервер событий не отвечает. Отображено сообщение об ' +
+                                'установке соединения.',
                             function() {
                                 spendTime(5000);
                                 tester.expectPingToBeSent();
@@ -2849,7 +2855,7 @@ tests.addTest(options => {
 
                                 tester.eventsWebSocket.finishDisconnecting();
                                 tester.authLogoutRequest().receiveResponse();
-                                tester.registrationRequest().expired().receiveResponse();
+                                tester.registrationRequest().desktopSoftphone().expired().receiveResponse();
 
                                 spendTime(2000);
                                 tester.webrtcWebsocket.finishDisconnecting();
@@ -2874,7 +2880,7 @@ tests.addTest(options => {
                                 tester.connectSIPWebSocket(1);
 
                                 tester.authenticatedUserRequest().receiveResponse();
-                                tester.registrationRequest().receiveResponse();
+                                tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                                 tester.allowMediaInput();
                             });
@@ -2983,27 +2989,23 @@ tests.addTest(options => {
                             beforeEach(function() {
                                 tester.addressBookButton.click();
 
-                                const usersRequest = tester.usersRequest().expectToBeSent(),
-                                    usersInGroupsRequest = tester.usersInGroupsRequest().expectToBeSent(),
-                                    groupsRequest = tester.groupsRequest().expectToBeSent();
+                                tester.usersRequest().receiveResponse();
+                                tester.usersInGroupsRequest().expectToBeSent();
+                                tester.groupsRequest().accessTokenExpired().receiveResponse();
 
-                                usersRequest.accessTokenExpired().receiveResponse();
-
-                                refreshRequest = tester.refreshRequest().expectToBeSent();
-
-                                usersInGroupsRequest.accessTokenExpired().receiveResponse();
-                                groupsRequest.accessTokenExpired().receiveResponse();
+                                refreshRequest = tester.refreshRequest().expectToBeSent()
                             });
 
                             it(
-                                'Не удалось обновить токен. Авторизуюсь заново. Пытаюсь поменять статус, но токен истек.',
+                                'Не удалось обновить токен. Авторизуюсь заново. Пытаюсь поменять статус, но токен ' +
+                                'истек.',
                             function() {
                                 refreshRequest.refreshTokenExpired().receiveResponse();
                                 tester.userLogoutRequest().receiveResponse();
 
                                 tester.authLogoutRequest().receiveResponse();
                                 tester.eventsWebSocket.finishDisconnecting();
-                                tester.registrationRequest().expired().receiveResponse();
+                                tester.registrationRequest().desktopSoftphone().expired().receiveResponse();
 
                                 spendTime(2000);
                                 tester.webrtcWebsocket.finishDisconnecting();
@@ -3016,11 +3018,11 @@ tests.addTest(options => {
                                 tester.loginRequest().receiveResponse();
                                 tester.configRequest().softphone().receiveResponse();
 
+                                tester.accountRequest().receiveResponse();
                                 tester.usersRequest().receiveResponse(),
                                 tester.usersInGroupsRequest().receiveResponse(),
                                 tester.groupsRequest().receiveResponse();
 
-                                tester.accountRequest().receiveResponse();
                                 tester.authCheckRequest().receiveResponse();
                                 tester.statusesRequest().receiveResponse();
                                     
@@ -3032,7 +3034,7 @@ tests.addTest(options => {
                                 tester.connectSIPWebSocket(1);
 
                                 tester.authenticatedUserRequest().receiveResponse();
-                                tester.registrationRequest().receiveResponse();
+                                tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                                 tester.allowMediaInput();
 
@@ -3047,8 +3049,6 @@ tests.addTest(options => {
                             it('Токен обновлен. Запросы переотправлены.', function() {
                                 refreshRequest.receiveResponse();
 
-                                tester.usersRequest().receiveResponse(),
-                                tester.usersInGroupsRequest().receiveResponse(),
                                 tester.groupsRequest().receiveResponse();
 
                                 tester.softphone.expectToHaveTextContent(
@@ -3061,12 +3061,12 @@ tests.addTest(options => {
                             });
                         });
                         it(
-                            'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку "Выход". Вхожу в ' +
-                            'софтфон заново. Удалось войти. Софтфон готов к работе.',
+                            'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку "Выход". ' +
+                            'Вхожу в софтфон заново. Удалось войти. Софтфон готов к работе.',
                         function() {
                             tester.eventsWebSocket.disconnect(4429);
                             tester.authLogoutRequest().receiveResponse();
-                            tester.registrationRequest().expired().receiveResponse();
+                            tester.registrationRequest().desktopSoftphone().expired().receiveResponse();
                             
                             spendTime(2000);
                             tester.webrtcWebsocket.finishDisconnecting();
@@ -3097,7 +3097,7 @@ tests.addTest(options => {
                             tester.connectSIPWebSocket(1);
 
                             tester.authenticatedUserRequest().receiveResponse();
-                            tester.registrationRequest().receiveResponse();
+                            tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                             tester.allowMediaInput();
 
@@ -3223,7 +3223,7 @@ tests.addTest(options => {
                 tester.allowMediaInput();
 
                 tester.authenticatedUserRequest().receiveResponse();
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().desktopSoftphone().receiveResponse();
             });
 
             describe('Поступил входящий звонок.', function() {
@@ -3310,7 +3310,7 @@ tests.addTest(options => {
                 tester.allowMediaInput();
 
                 tester.authenticatedUserRequest().receiveResponse();
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().desktopSoftphone().receiveResponse();
             });
 
             it('Поступил входящий звонок. Отправлено сообщение о необходимости поднять окно софтфона.', function() {
@@ -3363,7 +3363,7 @@ tests.addTest(options => {
                 tester.allowMediaInput();
 
                 tester.authenticatedUserRequest().receiveResponse();
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().desktopSoftphone().receiveResponse();
             });
 
             it(
@@ -3429,7 +3429,7 @@ tests.addTest(options => {
                 tester.allowMediaInput();
 
                 tester.authenticatedUserRequest().receiveResponse();
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().desktopSoftphone().receiveResponse();
             });
 
             it(
@@ -3482,7 +3482,7 @@ tests.addTest(options => {
             tester.allowMediaInput();
 
             tester.authenticatedUserRequest().receiveResponse();
-            tester.registrationRequest().receiveResponse();
+            tester.registrationRequest().desktopSoftphone().receiveResponse();
 
             tester.phoneField.expectToHaveValue('Введите номер');
         });
