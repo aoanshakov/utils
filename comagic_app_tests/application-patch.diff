@@ -373,7 +373,7 @@ index 6143f5e1..7ff73d45 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index f5c03679..723b4c6e 100644
+index c335a05d..91100e8b 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -10,7 +10,10 @@ import { Integrations } from '@sentry/tracing';
@@ -388,7 +388,7 @@ index f5c03679..723b4c6e 100644
  
  import history from './history';
  import { getIntlLocale, getIntlMessages } from './i18n';
-@@ -74,4 +77,34 @@ const Root: React.FC = observer(props => {
+@@ -92,4 +95,34 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -469,7 +469,7 @@ index 3e6598b9..545f0e4e 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index e0fbd837..a478b746 100644
+index 1b101f36..c53c3216 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -109,7 +109,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -481,10 +481,10 @@ index e0fbd837..a478b746 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -223,6 +223,8 @@ export const AuthStore = Loader.named('AuthStore')
-             isTokenRefreshing = false;
-             refreshingCall = null;
+@@ -202,6 +202,8 @@ export const AuthStore = Loader.named('AuthStore')
+         });
  
+         const afterCreate = () => {
 +            setAuthorized(Boolean(getToken()));
 +
              window.addEventListener('doLogoutUser', (event: CustomEvent) => {
