@@ -2270,6 +2270,7 @@ define(function () {
             var expires = '60',
                 sip_login = '077368',
                 sip_host = 'voip.uiscom.ru',
+                softphoneType = 'Web',
                 doSomething = function () {};
                 
             var checkAuthorization = function (request) {
@@ -2346,6 +2347,10 @@ define(function () {
                 send: function () {
                     this.receiveResponse();
                 },
+                desktopSoftphone: function () {
+                    softphoneType = 'Desktop';
+                    return this;
+                },
                 expectToBeSent: function () {
                     checkRegistration(
                         sip.recentRequest().
@@ -2353,7 +2358,8 @@ define(function () {
                             expectToHaveServerName('sip:' + sip_host).
                             expectHeaderToContain('From', '<sip:' + sip_login + '@' + sip_host + '>').
                             expectHeaderToContain('To', '<sip:' + sip_login + '@' + sip_host + '>').
-                            expectHeaderToHaveValue('Expires', 'Expires: ' + expires)
+                            expectHeaderToHaveValue('Expires', 'Expires: ' + expires).
+                            expectHeaderToHaveValue('User-Agent', 'User-Agent: UIS Softphone ' + softphoneType)
                     ).
                         response().
                         setUnauthorized().
