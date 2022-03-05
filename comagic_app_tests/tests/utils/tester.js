@@ -8,9 +8,11 @@ define(() => function ({
     isAlreadyAuthenticated = false,
     appName = '',
     webSockets,
-    path = '/'
+    path = '/',
+    image
 }) {
-    let history;
+    let history,
+        chatsRootStore;
     const mainTester = me;
 
     const jwtToken = {
@@ -37,6 +39,7 @@ define(() => function ({
 
     window.application.run({
         setHistory: value => (history = value),
+        setChatsRootStore: value => (chatsRootStore = value),
         appName
     });
 
@@ -268,6 +271,10 @@ define(() => function ({
         return me;
     };
 
+    me.expectChatsStoreToContain = expectedContent => {
+        utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
+    };
+
     me.messageListRequest = () => {
         let params = {
             visitor_id: 16479303
@@ -331,6 +338,37 @@ define(() => function ({
             Promise.runAll(false, true);
             spendTime(0)
             Promise.runAll(false, true);
+        }
+    });
+
+    me.changeMessageStatusRequest = () => ({
+        expectToBeSent() {
+            const request = ajax.recentRequest().
+                expectPathToContain('logic/operator').
+                expectBodyToContain({
+                    method: 'change_message_status',
+                    params: {
+                        chat_id: 2718935,
+                        message_id: 256085,
+                        status: 'delivered'
+                    }
+                });
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        data: true
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    Promise.runAll(false, true);
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
         }
     });
 
@@ -404,6 +442,97 @@ define(() => function ({
             }
         })
     });
+
+    me.transferCreatingMessage = () => {
+        const params = {
+            chat: {
+                chat_channel_id: 101,
+                chat_channel_type: 'telegram',
+                date_time: '2022-01-23T16:24:21.098210',
+                id: 2718936,
+                last_message: {
+                    message: 'Больше не могу разговаривать с тобой, дай мне Веску!',
+                    date: '2022-03-24T14:08:23.000Z',
+                    is_operator: false,
+                    resource_type: null
+                },
+                mark_ids: ['316', '579'],
+                phone: null,
+                site_id: 4663,
+                status: 'active',
+                visitor_id: 16479304,
+                visitor_name: 'Върбанова Илиана Милановна',
+                visitor_type: 'omni'
+            },
+            comment: 'Поговори с ней сама, я уже устала',
+            from_employee_id: 20817
+        };
+
+        return {
+            receive: () => me.chatsWebSocket.receive(JSON.stringify({
+                method: 'create_transfer',
+                params 
+            }))
+        };
+    };
+
+    me.newMessage = () => {
+        const params = {
+            chat_id: 2718935,
+            message: {
+                id: 256085,
+                source: 'visitor',
+                text: 'Я люблю тебя',
+                date: '2021-02-21T12:24:53.000Z',
+                status: null,
+                chat_id: 2718935,
+                reply_to: null,
+                resource: null,
+                resourceName: null,
+                employee_id: 20816,
+                employee_name: 'Карадимова Веска Анастасовна',
+                visitor_name: 'Помакова Бисерка Драгановна',
+                front_message_uuid: '2go824jglsjgl842d',
+                error_mnemonic: null
+            },
+            visitor_id: 16479303,
+            employee_id: 20816,
+            front_message_uuid: '2go824jglsjgl842d',
+        };
+
+        return {
+            fromOperator() {
+                params.message.source = 'operator';
+                return this;
+            },
+
+            withAttachment() {
+                params.message.resource = {
+                    id: 5829572,
+                    type: 'photo',
+                    mime: 'image/png',
+                    filename: 'heart.png',
+                    size: 925,
+                    width: 48,
+                    height: 48,
+                    duration: null,
+                    payload: `data:image/png;base64,${image}`,
+                    thumbs: {
+                        '100x100': {
+                            payload: image
+                        }
+                    }
+                };
+
+                return this;
+            },
+
+            receive: () => me.chatsWebSocket.receive(JSON.stringify({
+                method: 'new_message',
+                params 
+            }))
+        };
+    };
     
     this.connectEventsWebSocket = function (index) {
         this.getEventsWebSocket(index).connect();
@@ -602,10 +731,23 @@ define(() => function ({
             is_transfer: false,
             transferred_by_employee_full_name: '',
             active_leads: [],
+            is_need_auto_answer: false,
             is_final: true
         };
 
         return {
+            notFinal: function () {
+                params.crm_contact_link = null;
+                params.contact_full_name = null;
+                params.is_final = false;
+                return this;
+            },
+
+            needAutoAnswer: function () {
+                params.is_need_auto_answer = true;
+                return this;
+            },
+
             anotherPerson: function () {
                 params.calling_phone_number = params.contact_phone_number = '79161234510';
                 params.contact_full_name = 'Гигова Петранка';
@@ -940,6 +1082,9 @@ define(() => function ({
             anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
+            thirdAuthorizationToken: () =>
+                ((headers.Authorization = 'Bearer 2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29'), request),
+
             expectToBeSent: () => {
                 const request = ajax.recentRequest().
                     expectPathToContain('/sup/api/v1/settings').
@@ -1079,16 +1224,14 @@ define(() => function ({
             return {
                 receiveResponse() {
                     request.respondSuccessfullyWith({
-                        result: {
-                            data: [{
-                                id: 101,
-                                is_removed: true,
-                                name: 'mrDDosT',
-                                status: 'deleted',
-                                status_reason: 'omni_request',
-                                type: 'telegram'
-                            }]
-                        }
+                        data: [{
+                            id: 101,
+                            is_removed: false,
+                            name: 'mrDDosT',
+                            status: 'active',
+                            status_reason: 'omni_request',
+                            type: 'telegram'
+                        }]
                     });
 
                     Promise.runAll(false, true);
@@ -1115,7 +1258,32 @@ define(() => function ({
             chat_channel_type: 'telegram',
             date_time: '2022-01-21T16:24:21.098210',
             id: 2718935,
-            last_message: '432',
+            last_message: {
+                message: 'Привет',
+                date: '2022-02-22T13:07:22.000Z',
+                is_operator: false,
+                resource_type: null,
+                resource_name: null
+            },
+            mark_ids: ['316', '579'],
+            phone: null,
+            site_id: 4663,
+            status: 'new',
+            visitor_id: 16479303,
+            visitor_name: 'Помакова Бисерка Драгановна',
+            visitor_type: 'omni'
+        }, {
+            chat_channel_id: 101,
+            chat_channel_type: 'telegram',
+            date_time: '2022-01-22T17:25:22.098210',
+            id: 2718936,
+            last_message: {
+                message: 'Здравствуй',
+                date: '2022-06-24T16:04:26.000Z',
+                is_operator: false,
+                resource_type: null,
+                resource_name: null
+            },
             mark_ids: ['316', '579'],
             phone: null,
             site_id: 4663,
@@ -1125,7 +1293,24 @@ define(() => function ({
             visitor_type: 'omni'
         }];
 
-        return {
+        function addResponseModifiers (me) {
+            me.lastMessageFromOperator = () => {
+                data[0].last_message.is_operator = true;
+                return me;
+            };
+
+            me.lastMessageWithAttachment = () => {
+                data[0].last_message.resource_type = 'photo';
+                data[0].last_message.resource_name = 'heart.png';
+                data[0].last_message.message = '';
+
+                return me;
+            };
+
+            return me;
+        }
+
+        return addResponseModifiers({
             visitor() {
                 params = {
                     chat_id: 2718935,
@@ -1150,23 +1335,29 @@ define(() => function ({
                         params
                     });
 
-                return {
+                return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
-                            result: {data}
+                            result: {
+                                data: {
+                                    active_chat_count: 1,
+                                    new_chat_count: 1,
+                                    chats: data
+                                }
+                            } 
                         });
 
                         Promise.runAll(false, true);
                         spendTime(0)
                         Promise.runAll(false, true);
                     }
-                };
+                });
             },
 
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
             }
-        };
+        });
     };
 
     me.operatorAccountRequest = () => ({
@@ -1267,6 +1458,11 @@ define(() => function ({
                         data: [{
                             id: 20816,
                             full_name: 'Карадимова Веска Анастасовна',
+                            status_id: 1,
+                            photo_link: null
+                        }, {
+                            id: 20817,
+                            full_name: 'Чакърова Райна Илковна',
                             status_id: 1,
                             photo_link: null
                         }]
@@ -5762,6 +5958,9 @@ define(() => function ({
             anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
+            thirdAuthorizationToken: () =>
+                ((headers.Authorization = 'Bearer 2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29'), request),
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).expectBodyToContain({
                     method: 'get.report_groups',
@@ -6015,6 +6214,9 @@ define(() => function ({
             }
         };
 
+        let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            refresh = '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2';
+
         const addResponseModifiers = me => {
             me.refreshTokenExpired = () => {
                 response.result = null;
@@ -6023,6 +6225,16 @@ define(() => function ({
                     code: '-33020',
                     message: 'Expired refresh token'
                 };
+
+                return me;
+            };
+
+            me.anotherAuthorizationToken = () => {
+                token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                refresh = '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48';
+
+                response.result.jwt = '2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29';
+                response.result.refresh = '29onc84u2n9u2nlt39g823hglohglhg2o4l8gh2lf2hoj48';
 
                 return me;
             };
@@ -6036,14 +6248,14 @@ define(() => function ({
                     expectPathToContain('/auth/json_rpc').
                     expectToHaveMethod('POST').
                     expectToHaveHeaders({
-                        Authorization: `Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0`,
+                        Authorization: `Bearer ${token}`,
                         'X-Auth-Type': 'jwt'
                     }).
                     expectBodyToContain({
                         method: 'refresh',
                         params: {
-                            jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                            refresh: '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2'
+                            jwt: token,
+                            refresh
                         }
                     });
 

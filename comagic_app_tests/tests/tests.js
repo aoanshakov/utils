@@ -42,7 +42,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        xdescribe('Фичафлаг софтфона включен.', function() {
+        describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -254,6 +254,42 @@ tests.addTest(options => {
                                                         usersInGroupsRequest.addMore().receiveResponse();
                                                     });
                                                 });
+                                                describe('Нажимаю на кнопку выключения микрофона.', function() {
+                                                    beforeEach(function() {
+                                                        tester.microphoneButton.click();
+                                                    });
+
+                                                    it(
+                                                        'Собеседник повесил трубку. Поступил входящий звонок. ' +
+                                                        'Микрофон включен.',
+                                                    function() {
+                                                        incomingCall.receiveBye();
+
+                                                        tester.incomingCall().receive();
+                                                        tester.numaRequest().receiveResponse();
+                                                        tester.outCallEvent().receive();
+
+                                                        tester.callStartingButton.click();
+
+                                                        tester.secondConnection.connectWebRTC();
+                                                        tester.secondConnection.callTrackHandler();
+
+                                                        tester.allowMediaInput();
+                                                        tester.secondConnection.addCandidate();
+                                                        tester.requestAcceptIncomingCall();
+
+                                                        tester.microphoneButton.
+                                                            expectNotToHaveClass('clct-call-option--pressed');
+                                                            
+                                                        tester.secondConnection.expectNotToBeMute();
+                                                    });
+                                                    it('Микрофон выключен.', function() {
+                                                        tester.firstConnection.expectToBeMute();
+
+                                                        tester.microphoneButton.
+                                                            expectToHaveClass('clct-call-option--pressed');
+                                                    });
+                                                });
                                                 it('Нажимаю на кнопку удержания. Звонок удерживается.', function() {
                                                     tester.holdButton.click();
                                                     audioDecodingTester.accomplishAudioDecoding();
@@ -261,8 +297,13 @@ tests.addTest(options => {
                                                     tester.firstConnection.expectHoldMusicToPlay();
                                                 });
                                                 it('Отображено направление и номер.', function() {
+                                                    tester.microphoneButton.
+                                                        expectNotToHaveClass('clct-call-option--pressed');
+
                                                     tester.firstConnection.expectSinkIdToEqual('default');
                                                     tester.firstConnection.expectInputDeviceIdToEqual('default');
+                                                    tester.firstConnection.expectNotToBeMute();
+
                                                     tester.incomingIcon.expectToBeVisible();
                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                         'Шалева Дора +7 (916) 123-45-67 00:00:00'
@@ -337,32 +378,43 @@ tests.addTest(options => {
                                             });
                                         });
                                         describe('Звонок переведен от другого сотрудника.', function() {
+                                            let outCallEvent;
+
                                             beforeEach(function() {
-                                                tester.outCallEvent().isTransfer().receive();
+                                                outCallEvent = tester.outCallEvent().isTransfer();
                                             });
 
-                                            it('Принимаю звонок. Отображен знак трансфера номер и таймер.', function() {
-                                                tester.callStartingButton.click();
+                                            describe('Автоответ отключен.', function() {
+                                                beforeEach(function() {
+                                                    outCallEvent.receive();
+                                                });
 
-                                                tester.firstConnection.connectWebRTC();
-                                                tester.firstConnection.callTrackHandler();
+                                                it('Принимаю звонок. Отображен знак трансфера номер и таймер.', function() {
+                                                    tester.callStartingButton.click();
 
-                                                tester.allowMediaInput();
-                                                tester.firstConnection.addCandidate();
-                                                tester.requestAcceptIncomingCall();
+                                                    tester.firstConnection.connectWebRTC();
+                                                    tester.firstConnection.callTrackHandler();
 
-                                                tester.transferIncomingIcon.expectToBeVisible();
-                                                tester.softphone.expectTextContentToHaveSubstring(
-                                                    'Шалева Дора +7 (916) 123-45-67 00:00:00'
-                                                );
+                                                    tester.allowMediaInput();
+                                                    tester.firstConnection.addCandidate();
+                                                    tester.requestAcceptIncomingCall();
+
+                                                    tester.transferIncomingIcon.expectToBeVisible();
+                                                    tester.softphone.expectTextContentToHaveSubstring(
+                                                        'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                    );
+                                                });
+                                                it('Отображено сообщение о переводе звонка.', function() {
+                                                    tester.incomingIcon.expectNotToExist();
+                                                    tester.outgoingIcon.expectNotToExist();
+
+                                                    tester.softphone.expectTextContentToHaveSubstring(
+                                                        'Шалева Дора +7 (916) 123-45-67 Трансфер от Бисерка Макавеева'
+                                                    );
+                                                });
                                             });
-                                            it('Отображено сообщение о переводе звонка.', function() {
-                                                tester.incomingIcon.expectNotToExist();
-                                                tester.outgoingIcon.expectNotToExist();
-
-                                                tester.softphone.expectTextContentToHaveSubstring(
-                                                    'Шалева Дора +7 (916) 123-45-67 Трансфер от Бисерка Макавеева'
-                                                );
+                                            it('Автоответ включен. Звонок не принимается автоматически.', function() {
+                                                outCallEvent.needAutoAnswer().receive();
                                             });
                                         });
                                         describe('Звонок производится в рамках исходящего обзвона.', function() {
@@ -372,6 +424,20 @@ tests.addTest(options => {
                                                 outCallEvent = tester.outCallEvent().autoCallCampaignName();
                                             });
 
+                                            it('Автоответ включен. Звонок принимается.', function() {
+                                                outCallEvent.needAutoAnswer().receive();
+
+                                                tester.firstConnection.connectWebRTC();
+                                                tester.firstConnection.callTrackHandler();
+
+                                                tester.allowMediaInput();
+                                                tester.firstConnection.addCandidate();
+                                                tester.requestAcceptIncomingCall();
+
+                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                    'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                );
+                                            });
                                             it(
                                                 'Имя контакта отсутствует. Звонок обозначен, как исходящий обзвон.',
                                             function() {
@@ -1811,24 +1877,27 @@ tests.addTest(options => {
                     'авторизации. Отправлен только один запрос обновления токена.',
                 function() {
                     reportGroupsRequest.accessTokenExpired().receiveResponse();
-                    settingsRequest.accessTokenExpired().receiveResponse();
 
                     tester.refreshRequest().receiveResponse();
 
-                    tester.settingsRequest().anotherAuthorizationToken().expectToBeSent();
+                    settingsRequest.accessTokenExpired().receiveResponse();
                     tester.reportGroupsRequest().anotherAuthorizationToken().expectToBeSent();
+
+                    tester.refreshRequest().anotherAuthorizationToken().receiveResponse();
+                    tester.settingsRequest().thirdAuthorizationToken().expectToBeSent();
                 });
                 it(
                     'Сначала запрос от софтфона, а потом и запрос от лк завершился ошибкой истечения токена ' +
                     'авторизации. Отправлен только один запрос обновления токена.',
                 function() {
                     settingsRequest.accessTokenExpired().receiveResponse();
-                    reportGroupsRequest.accessTokenExpired().receiveResponse();
-
                     tester.refreshRequest().receiveResponse();
 
+                    reportGroupsRequest.accessTokenExpired().receiveResponse();
                     tester.settingsRequest().anotherAuthorizationToken().expectToBeSent();
-                    tester.reportGroupsRequest().anotherAuthorizationToken().expectToBeSent();
+
+                    tester.refreshRequest().anotherAuthorizationToken().receiveResponse();
+                    tester.reportGroupsRequest().thirdAuthorizationToken().expectToBeSent();
                 });
                 it(
                     'Срок действия токена авторизации истек. Токен авторизации обновлен. Софтфон подключен.',
@@ -2072,19 +2141,47 @@ tests.addTest(options => {
                             tester.authenticatedUserRequest().receiveResponse();
                         });
 
+                        describe('Получена неокончательная информация о звонке. Автоответ включен.', function() {
+                            beforeEach(function() {
+                                tester.outCallEvent().needAutoAnswer().notFinal().receive();
+                            });
+
+                            it(
+                                'Получена окончательная информация о звонке. Отображена информация о звонке.',
+                            function() {
+                                tester.outCallEvent().needAutoAnswer().receive();
+
+                                tester.incomingIcon.expectToBeVisible();
+
+                                tester.softphone.expectTextContentToHaveSubstring(
+                                    'Шалева Дора ' +
+                                    '+7 (916) 123-45-67 ' +
+
+                                    'Путь лида'
+                                );
+                            });
+                            it('Отображено сообщение о поиске контакта.', function() {
+                                tester.softphone.expectTextContentToHaveSubstring(
+                                    '+7 (916) 123-45-67 ' +
+                                    'Поиск контакта... ' +
+
+                                    'Путь лида'
+                                );
+                            });
+                        });
+                        it('Получена окончательная информация о звонке. Отображена информация о звонке.', function() {
+                            tester.outCallEvent().receive();
+
+                            tester.incomingIcon.expectToBeVisible();
+                            tester.softphone.
+                                expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67 Путь лида');
+                        });
                         it('Совершается исходящий звонок. Отображена информация о звонке.', function() {
                             tester.outCallSessionEvent().receive();
 
                             tester.outgoingIcon.expectToBeVisible();
                             tester.softphone.
                                 expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67');
-                        });
-                        it('Поступил входящий звонок. Отображена информация о звонке.', function() {
-                            tester.outCallEvent().receive();
-
-                            tester.incomingIcon.expectToBeVisible();
-                            tester.softphone.
-                                expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67 Путь лида');
                         });
                         it('Отбражен выпадающий список номеров.', function() {
                             tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
@@ -2208,7 +2305,7 @@ tests.addTest(options => {
                 accountRequest.operatorWorkplaceAvailable();
             });
 
-            xdescribe('Софтфон недоступен.', function() {
+            describe('Софтфон недоступен.', function() {
                 beforeEach(function() {
                     accountRequest.softphoneUnavailable();
                 });
@@ -2258,41 +2355,136 @@ tests.addTest(options => {
                         tester.chatsInitMessage().expectToBeSent();
 
                         operatorOfflineMessageListRequest.receiveResponse();
-                        chatListRequest.receiveResponse();
-                        tester.messageListRequest().receiveResponse();
                     });
 
-                    describe('Нажимаю на кнопку аккаунта.', function() {
+                    describe('Последнее сообщение в чате является текстовым.', function() {
                         beforeEach(function() {
-                            tester.userName.putMouseOver();
+                            chatListRequest.receiveResponse();
+                            tester.messageListRequest().receiveResponse();
+                            tester.messageListRequest().receiveResponse();
                         });
 
-                        it('Выбираю другой статус. Другой статус выбран.', function() {
-                            tester.statusesList.item('Перерыв').click();
+                        describe('Нажимаю на кнопку аккаунта.', function() {
+                            beforeEach(function() {
+                                tester.userName.putMouseOver();
+                            });
 
-                            tester.operatorStatusUpdateRequest().receiveResponse();
-                            tester.chatsEmployeeChangeMessage().receive();
+                            it('Выбираю другой статус. Другой статус выбран.', function() {
+                                tester.statusesList.item('Перерыв').click();
 
-                            tester.statusesList.item('Доступен').expectNotToBeSelected();
-                            tester.statusesList.item('Перерыв').expectToBeSelected();
+                                tester.operatorStatusUpdateRequest().receiveResponse();
+                                tester.chatsEmployeeChangeMessage().receive();
 
-                            tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
+                                tester.statusesList.item('Доступен').expectNotToBeSelected();
+                                tester.statusesList.item('Перерыв').expectToBeSelected();
+
+                                tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
+                            });
+                            it('Отображен список статусов.', function() {
+                                tester.statusesList.item('Доступен').expectToBeSelected();
+                                tester.statusesList.item('Перерыв').expectNotToBeSelected();
+
+                                tester.statusesList.expectTextContentToHaveSubstring(
+                                    'Доступен ' +
+                                    'Перерыв ' +
+                                    'Не беспокоить ' +
+                                    'Нет на месте ' +
+                                    'Нет на работе'
+                                );
+                            });
                         });
-                        it('Отображен список статусов.', function() {
-                            tester.statusesList.item('Доступен').expectToBeSelected();
-                            tester.statusesList.item('Перерыв').expectNotToBeSelected();
+                        it('Поступил перевод чата. Отображено оповещие о переводе чата.', function() {
+                            tester.transferCreatingMessage().receive();
+                                
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Перевод чата от оператора ' +
+                                'ЧР Чакърова Райна Илковна ' +
 
-                            tester.statusesList.expectTextContentToHaveSubstring(
-                                'Доступен ' +
-                                'Перерыв ' +
-                                'Не беспокоить ' +
-                                'Нет на месте ' +
-                                'Нет на работе'
+                                'Поговори с ней сама, я уже устала ' +
+
+                                'ВИ Върбанова Илиана Милановна ' +
+                                'uiscom.ru/ ' +
+
+                                'Больше не могу разговаривать с тобой, дай мне Веску!'
+                            );
+                        });
+                        it('Поступило новое сообщение от оператора. Отображено оповещение.', function() {
+                            tester.newMessage().fromOperator().withAttachment().receive();
+
+                            tester.expectChatsStoreToContain({
+                                chatListStore: {
+                                    chatListItems: [{
+                                        id: 2718935,
+                                        last_message: {
+                                            message: 'Я люблю тебя',
+                                            date: 1613910293000,
+                                            is_operator: true,
+                                            resource_type: 'photo',
+                                            resource_name: 'heart.png'
+                                        }
+                                    }]
+                                }
+                            });
+                        });
+                        it('Поступило новое сообщение от посетителя. Отображено оповещение.', function() {
+                            tester.newMessage().receive();
+
+                            notificationTester.grantPermission().
+                                recentNotification().
+                                expectToHaveTitle('Помакова Бисерка Драгановна').
+                                expectToHaveBody('Я люблю тебя').
+                                expectToBeOpened();
+
+                            tester.changeMessageStatusRequest().receiveResponse();
+
+                            tester.expectChatsStoreToContain({
+                                chatListStore: {
+                                    chatListItems: [{
+                                        id: 2718935,
+                                        last_message: {
+                                            message: 'Я люблю тебя',
+                                            date: 1613910293000,
+                                            is_operator: false,
+                                            resource_type: null,
+                                            resource_name: null
+                                        }
+                                    }]
+                                }
+                            });
+                        });
+                        it('Отображена страница чатов.', function() {
+                            tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Помакова Бисерка Драгановна ' +
+                                '16:24 ' +
+                                'Привет'
                             );
                         });
                     });
-                    it('Отображается статус сотрудника.', function() {
-                        tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
+                    it('Последнее сообщение в чате является файлом. Отображено имя файла.', function() {
+                        chatListRequest.lastMessageWithAttachment().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+
+                        tester.body.expectTextContentToHaveSubstring(
+                            'Помакова Бисерка Драгановна ' +
+                            '16:24 ' +
+                            'heart.png'
+                        );
+                    });
+                    it(
+                        'Последнее сообщение в чате отправлено оператором. Отображено сообщение с префиксом "Вы: ".',
+                    function() {
+                        chatListRequest.lastMessageFromOperator().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+
+                        tester.body.expectTextContentToHaveSubstring(
+                            'Помакова Бисерка Драгановна ' +
+                            '16:24 ' +
+                            'Вы: Привет'
+                        );
                     });
                 });
                 describe('Аналитика доступна.', function() {
@@ -2356,6 +2548,7 @@ tests.addTest(options => {
                         tester.chatsWebSocket.connect();
                         tester.chatsInitMessage().expectToBeSent();
                         tester.operatorAccountRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
                         tester.messageListRequest().receiveResponse();
                     });
                 });
@@ -2429,7 +2622,6 @@ tests.addTest(options => {
                 tester.body.expectTextContentToHaveSubstring('Привет 12:13');
             });
         });
-return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -2449,7 +2641,6 @@ return;
             tester.button('Софтфон').expectNotToExist();
         });
     });
-return;
     describe('Открываю десктопное приложение софтфона.', function() {
         let tester;
 

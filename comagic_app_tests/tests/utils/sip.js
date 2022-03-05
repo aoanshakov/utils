@@ -61,8 +61,8 @@ define(function () {
             }
 
             expectation(header, function (message) {
-                throw new Error('Заголовок "' + headerName + '" должен ' + message + '".' + "\n\n" + 'Заголовок:' +
-                    "\n\n" + header + "\n\n");
+                throw new Error('Заголовок "' + headerName + '" должен ' + message + '".' + "\n\n" + 'Действительное ' +
+                    'значение заголовка:' + "\n\n" + header + "\n\n");
             });
         }
 
