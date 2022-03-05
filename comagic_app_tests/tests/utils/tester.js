@@ -276,10 +276,39 @@ define(() => function ({
             visitor_id: 16479303
         };
 
+        let data = [{
+            id: 482058,
+            source: 'operator',
+            text: 'Привет',
+            date: '2020-02-10 12:13:14',
+            status: 'delivered',
+            chat_id: 2718935,
+            reply_to: null,
+            resource: null,
+            resourceName: null,
+            employee_id: 20816,
+            employee_name: 'Карадимова Веска Анастасовна',
+            visitor_name: 'Помакова Бисерка Драгановна',
+            front_message_uuid: '228gj24og824jgo8d',
+            error_mnemonic: null
+        }];
+
         return {
+            anotherChat() {
+                params = {
+                    chat_id: 2718936
+                };
+
+                data[0].id = 482059;
+                data[0].text = 'Здравствуй';
+                data[0].chat_id = 2718936;
+
+                return this;
+            },
+
             chat() {
                 params = {
-                    chat_id: 2718935,
+                    chat_id: 2718935
                 };
 
                 return this;
@@ -293,24 +322,7 @@ define(() => function ({
                         method: 'get_message_list',
                         params
                     }).respondSuccessfullyWith({
-                        result: {
-                            data: [{
-                                id: 482058,
-                                source: 'operator',
-                                text: 'Привет',
-                                date: '2020-02-10 12:13:14',
-                                status: 'delivered',
-                                chat_id: 2718935,
-                                reply_to: null,
-                                resource: null,
-                                resourceName: null,
-                                employee_id: 20816,
-                                employee_name: 'Карадимова Веска Анастасовна',
-                                visitor_name: 'Помакова Бисерка Драгановна',
-                                front_message_uuid: '228gj24og824jgo8d',
-                                error_mnemonic: null
-                            }]
-                        }
+                        result: {data}
                     });
 
                 Promise.runAll(false, true);
@@ -1290,6 +1302,8 @@ define(() => function ({
         }];
 
         function addResponseModifiers (me) {
+            me.nothingFound = () => ((data = []), me);
+
             me.lastMessageFromOperator = () => {
                 data[0].last_message.is_operator = true;
                 return me;
@@ -1306,19 +1320,20 @@ define(() => function ({
             return me;
         }
 
-        return addResponseModifiers({
-            visitor() {
-                params = {
-                    chat_id: 2718935,
-                    limit: 1,
-                    offset: 0,
-                    statuses: [
-                        'new',
-                        'active',
-                        'closed'
-                    ]
-                };
+        const chat = chat_id => {
+            params.chat_id = chat_id;
+            params.limit = 1;
+            params.statuses.push('closed');
+        };
 
+        return addResponseModifiers({
+            anotherChat() {
+                chat(2718936);
+                return this;
+            },
+            
+            chat() {
+                chat(2718935);
                 return this;
             },
 
@@ -1887,9 +1902,53 @@ define(() => function ({
                                 },
                                 virtual_phone_number: null,
                                 communication_date_time: '2022-02-18 13:20:28'
+                            }, {
+                                tags: {
+                                    items: [{
+                                        id: 45151,
+                                        name: ':)'
+                                    }],
+                                    communication_id: 2718935,
+                                    communication_type: 'chat'
+                                },
+                                call_type: {
+                                    value: null,
+                                    value_id: null
+                                },
+                                employees: [{
+                                    employee_full_name: 'SP_TEST Олег Оловянный'
+                                }],
+                                visitor_id: 5059668393,
+                                call_status: {
+                                    value: null,
+                                    value_id: null
+                                },
+                                call_records: null,
+                                call_direction: {
+                                    value: null,
+                                    value_id: null
+                                },
+                                chat_initiator: {
+                                    value: 'Посетитель',
+                                    value_id: 'visitor'
+                                },
+                                total_duration: null,
+                                communication_id: 2718936,
+                                communication_type: {
+                                    value: 'Чаты',
+                                    value_id: 'chat'
+                                },
+                                chat_messages_count: 5,
+                                communication_number: 1,
+                                offline_message_type: {
+                                    value: null,
+                                    value_id: null
+                                },
+                                virtual_phone_number: null,
+                                communication_date_time: '2022-02-18 13:20:28'
                             }],
                             metadata: {
-                                total_items: 1
+                                total_items: 2
                             }
                         }
                     });
@@ -6414,6 +6473,7 @@ define(() => function ({
         '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close'
     );
 
+    me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
     me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
     me.settingsButton = testersFactory.createDomElementTester('.cmg-settings-button');

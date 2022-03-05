@@ -389,7 +389,9 @@ tests.addTest(options => {
                                                     outCallEvent.receive();
                                                 });
 
-                                                it('Принимаю звонок. Отображен знак трансфера номер и таймер.', function() {
+                                                it(
+                                                    'Принимаю звонок. Отображен знак трансфера номер и таймер.',
+                                                function() {
                                                     tester.callStartingButton.click();
 
                                                     tester.firstConnection.connectWebRTC();
@@ -2497,38 +2499,63 @@ tests.addTest(options => {
                         tester.operatorAccountRequest().receiveResponse();
                     });
 
-                    it(
-                        'Открываю раздел "Все обращения". Нажимаю на ссылку с количеством сообщение. Отображены ' +
-                        'сообщения.',
-                    function() {
-                        tester.button('Сырые данные').click();
-                        tester.button('Все обращения').click();
-                            
-                        tester.reportGroupsRequest().receiveResponse();
-                        tester.reportsListRequest().allRequests().receiveResponse();
-                        tester.reportsListRequest().allRequests().receiveResponse();
-                        tester.reportTypesRequest().receiveResponse();
+                    describe('Открываю раздел "Все обращения". Нажимаю на ссылку с количеством сообщений.', function() {
+                        beforeEach(function() {
+                            tester.button('Сырые данные').click();
+                            tester.button('Все обращения').click();
+                                
+                            tester.reportGroupsRequest().receiveResponse();
+                            tester.reportsListRequest().allRequests().receiveResponse();
+                            tester.reportsListRequest().allRequests().receiveResponse();
+                            tester.reportTypesRequest().receiveResponse();
 
-                        tester.reportGroupsRequest().receiveResponse();
-                        tester.reportsListRequest().allRequests().receiveResponse();
-                        tester.reportsListRequest().allRequests().receiveResponse();
-                        tester.reportTypesRequest().receiveResponse();
+                            tester.reportGroupsRequest().receiveResponse();
+                            tester.reportsListRequest().allRequests().receiveResponse();
+                            tester.reportsListRequest().allRequests().receiveResponse();
+                            tester.reportTypesRequest().receiveResponse();
 
-                        tester.reportStateRequest().allRequests().receiveResponse();
-                        tester.reportRapidFiltersRequest().communications().receiveResponse();
-                        tester.reportFiltersRequest().receiveResponse();
-                        tester.columnsTreeRequest().receiveResponse();
-                        tester.tagsRequest().receiveResponse();
-                        tester.customFiltersRequest().receiveResponse();
-                        tester.communicationsRequest().receiveResponse()
+                            tester.reportStateRequest().allRequests().receiveResponse();
+                            tester.reportRapidFiltersRequest().communications().receiveResponse();
+                            tester.reportFiltersRequest().receiveResponse();
+                            tester.columnsTreeRequest().receiveResponse();
+                            tester.tagsRequest().receiveResponse();
+                            tester.customFiltersRequest().receiveResponse();
+                            tester.communicationsRequest().receiveResponse()
 
-                        tester.table.row.first().column.withHeader('Сообщений').button('4').click();
+                            tester.table.row.first().column.withHeader('Сообщений').button('4').click();
 
-                        tester.configRequest().receiveResponse();
-                        tester.messageListRequest().chat().receiveResponse();
-                        tester.chatListRequest().visitor().receiveResponse();
+                            tester.configRequest().receiveResponse();
+                            tester.messageListRequest().chat().receiveResponse();
+                            tester.chatListRequest().chat().receiveResponse();
+                        });
 
-                        tester.body.expectTextContentToHaveSubstring('Привет 12:13');
+                        describe(
+                            'Нажимаю на ссылку с количеством сообщений в другой строке.',
+                        function() {
+                            let chatListRequest;
+
+                            beforeEach(function() {
+                                tester.antDrawerCloseButton.click();
+
+                                tester.table.row.atIndex(1).column.withHeader('Сообщений').button('5').click();
+
+                                tester.configRequest().receiveResponse();
+                                tester.messageListRequest().anotherChat().receiveResponse();
+                                chatListRequest = tester.chatListRequest().anotherChat().expectToBeSent();
+                            });
+
+                            it('Чат не найден. Отображены другие сообщения.', function() {
+                                chatListRequest.nothingFound().receiveResponse();
+                                tester.body.expectTextContentToHaveSubstring('Здравствуй 12:13');
+                            });
+                            it('Отображены другие сообщения.', function() {
+                                chatListRequest.receiveResponse();
+                                tester.body.expectTextContentToHaveSubstring('Здравствуй 12:13');
+                            });
+                        });
+                        it('Отображены сообщения.', function() {
+                            tester.body.expectTextContentToHaveSubstring('Привет 12:13');
+                        });
                     });
                     it('Открываю РМО.', function() {
                         tester.productsButton.click();
@@ -2615,7 +2642,7 @@ tests.addTest(options => {
 
                 tester.configRequest().receiveResponse();
                 tester.messageListRequest().chat().receiveResponse();
-                tester.chatListRequest().visitor().receiveResponse();
+                tester.chatListRequest().chat().receiveResponse();
 
                 tester.body.expectTextContentToHaveSubstring('Привет 12:13');
             });
