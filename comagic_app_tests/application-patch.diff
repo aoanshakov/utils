@@ -9,7 +9,7 @@ index 34c2f302..5b44ba5c 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-va0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0d50e45e..79c6c1d2 100644
+index c1203f4a..d251a31a 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,9 +8,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');

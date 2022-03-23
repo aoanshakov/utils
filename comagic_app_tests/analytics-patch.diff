@@ -1,12 +1,12 @@
 diff --git a/package.json b/package.json
-index 37fec94..7ce5d77 100644
+index 561ed3f..7ce5d77 100644
 --- a/package.json
 +++ b/package.json
 @@ -80,7 +80,6 @@
      "highcharts-react-official": "^3.0.0",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#v1.15.4",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#v1.15.16",
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
