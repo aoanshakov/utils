@@ -509,6 +509,11 @@ define(() => function ({
         };
 
         return {
+            withoutText() {
+                params.message.text = '';
+                return this;
+            },
+
             fromOperator() {
                 params.message.source = 'operator';
                 return this;
@@ -6481,6 +6486,7 @@ define(() => function ({
     me.playerButton = testersFactory.createDomElementTester('.clct-audio-button');
     me.otherChannelCallNotification = createRootTester('#cmg-another-sip-line-incoming-call-notification');
     me.bugButton = testersFactory.createDomElementTester('.cmg-bug-icon');
+    me.notificationSection = testersFactory.createDomElementTester('.cm-chats--chat-notifications');
 
     me.popover = (() => {
         const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),

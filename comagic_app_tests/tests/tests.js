@@ -2408,8 +2408,41 @@ tests.addTest(options => {
                                 'Больше не могу разговаривать с тобой, дай мне Веску!'
                             );
                         });
-                        it('Поступило новое сообщение от оператора. Отображено оповещение.', function() {
+                        it('Поступило новое сообщение от посетителя. Отображено оповещение.', function() {
+                            tester.newMessage().receive();
+
+                            notificationTester.grantPermission().
+                                recentNotification().
+                                expectToHaveTitle('Помакова Бисерка Драгановна').
+                                expectToHaveBody('Я люблю тебя').
+                                expectToBeOpened();
+
+                            tester.changeMessageStatusRequest().receiveResponse();
+
+                            tester.notificationSection.expectToHaveTextContent(
+                                'ПБ Помакова Бисерка Драгановна ' +
+                                'Я люблю тебя'
+                            );
+
+                            tester.expectChatsStoreToContain({
+                                chatListStore: {
+                                    chatListItems: [{
+                                        id: 2718935,
+                                        last_message: {
+                                            message: 'Я люблю тебя',
+                                            date: 1613910293000,
+                                            is_operator: false,
+                                            resource_type: null,
+                                            resource_name: null
+                                        }
+                                    }]
+                                }
+                            });
+                        });
+                        it('Поступило новое сообщение от оператора. Оповещение не отображено.', function() {
                             tester.newMessage().fromOperator().withAttachment().receive();
+
+                            tester.notificationSection.expectToHaveTextContent('');
 
                             tester.expectChatsStoreToContain({
                                 chatListStore: {
@@ -2426,31 +2459,21 @@ tests.addTest(options => {
                                 }
                             });
                         });
-                        it('Поступило новое сообщение от посетителя. Отображено оповещение.', function() {
-                            tester.newMessage().receive();
+                        it('Поступило новое сообщение от посетителя с вложением. Отображено оповещение.', function() {
+                            tester.newMessage().withoutText().withAttachment().receive();
 
                             notificationTester.grantPermission().
                                 recentNotification().
                                 expectToHaveTitle('Помакова Бисерка Драгановна').
-                                expectToHaveBody('Я люблю тебя').
+                                expectToHaveBody('heart.png').
                                 expectToBeOpened();
 
                             tester.changeMessageStatusRequest().receiveResponse();
 
-                            tester.expectChatsStoreToContain({
-                                chatListStore: {
-                                    chatListItems: [{
-                                        id: 2718935,
-                                        last_message: {
-                                            message: 'Я люблю тебя',
-                                            date: 1613910293000,
-                                            is_operator: false,
-                                            resource_type: null,
-                                            resource_name: null
-                                        }
-                                    }]
-                                }
-                            });
+                            tester.notificationSection.expectToHaveTextContent(
+                                'ПБ Помакова Бисерка Драгановна ' +
+                                'heart.png'
+                            );
                         });
                         it('Отображена страница чатов.', function() {
                             tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
