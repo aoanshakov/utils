@@ -267,7 +267,7 @@ index c1203f4a..d251a31a 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index beee2750..3ec3213d 100644
+index beee2750..ca1efe96 100644
 --- a/package.json
 +++ b/package.json
 @@ -46,7 +46,7 @@
@@ -294,7 +294,7 @@ index beee2750..3ec3213d 100644
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
-+    "analytics": ".misc/analytics/frontend",
++    "analytics": "./misc/analytics/frontend",
 +    "softphone": "./misc/softphone",
 +    "chats": "./misc/chats",
      "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.4",
