@@ -12,7 +12,7 @@ index cf35fde4..32dc7c45 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 23bbaef3..957ca82e 100644
+index aeaf7f33..fabd1fb5 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,9 +8,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -282,7 +282,7 @@ index 23bbaef3..957ca82e 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index 4732756f..5f2d648a 100644
+index 77e31884..56438ba7 100644
 --- a/package.json
 +++ b/package.json
 @@ -58,8 +58,8 @@
@@ -299,7 +299,7 @@ index 4732756f..5f2d648a 100644
 @@ -69,11 +69,14 @@
    },
    "dependencies": {
-     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.2",
+     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.4",
 +    "analytics": "./misc/analytics/frontend",
      "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
@@ -308,10 +308,10 @@ index 4732756f..5f2d648a 100644
      "axios": "^0.24.0",
 +    "babel-loader": "^8.0.4",
 +    "chats": "./misc/chats",
+     "form-data": "^4.0.0",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
-     "dotenv-expand": "^5.1.0",
-@@ -83,7 +86,7 @@
+@@ -84,7 +87,7 @@
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
@@ -320,7 +320,7 @@ index 4732756f..5f2d648a 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -93,6 +96,8 @@
+@@ -94,6 +97,8 @@
      "react-dom": "^17.0.2",
      "react-intl": "5.15.8",
      "react-router-dom": "^5.1.2",

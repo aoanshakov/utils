@@ -1,21 +1,12 @@
 diff --git a/package.json b/package.json
-index 31f2de4..e9d5b89 100644
+index bede593..f4477da 100644
 --- a/package.json
 +++ b/package.json
-@@ -67,7 +67,7 @@
-     "webpack-merge": "^5.7.3"
-   },
-   "dependencies": {
--    "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.1",
-+    "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.2",
-     "antd": "^3.26.7",
-     "axios": "^0.24.0",
-     "classnames": "^2.2.6",
 @@ -80,7 +80,6 @@
      "highcharts-react-official": "^3.0.0",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#v1.14.5",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#v1.15.16",
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
