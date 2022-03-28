@@ -267,7 +267,7 @@ index c1203f4a..d251a31a 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index beee2750..ca1efe96 100644
+index beee2750..8166d7df 100644
 --- a/package.json
 +++ b/package.json
 @@ -46,7 +46,7 @@
@@ -314,9 +314,10 @@ index beee2750..ca1efe96 100644
      "react": "^17.0.2",
      "react-dom": "^17.0.2",
 -    "react-intl": "^5.15.8",
-+    "react-intl": "5.15.8",
-     "react-router-dom": "^5.1.2",
+-    "react-router-dom": "^5.1.2",
 -    "yup": "^0.28.1"
++    "react-intl": "5.15.8",
++    "react-router-dom": "5.1.2",
 +    "yup": "^0.28.1",
 +    "babel-loader": "^8.0.4"
    }

@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index bede593..f4477da 100644
+index bede593..3a44c41 100644
 --- a/package.json
 +++ b/package.json
 @@ -80,7 +80,6 @@
@@ -10,6 +10,15 @@ index bede593..f4477da 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
+@@ -95,7 +94,7 @@
+     "react-list": "^0.8.13",
+     "react-resizable": "^1.10.1",
+     "react-resize-detector": "^5.2.0",
+-    "react-router-dom": "^5.1.2",
++    "react-router-dom": "5.1.2",
+     "react-transition-group": "^4.4.2",
+     "wavesurfer.js": "^4.0.1",
+     "yup": "^0.28.1"
 diff --git a/src/components/ShadowContent.ts b/src/components/ShadowContent.ts
 deleted file mode 100644
 index dc4e8eb..0000000
