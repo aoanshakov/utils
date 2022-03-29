@@ -2364,6 +2364,89 @@ tests.addTest(options => {
                             tester.messageListRequest().receiveResponse();
                         });
 
+                        describe('Чат принят.', function() {
+                            let chatAcceptedMessage;
+
+                            beforeEach(function() {
+                                chatAcceptedMessage = tester.chatAcceptedMessage();
+                            });
+
+                            describe('Чат принял другой пользователь.', function() {
+                                beforeEach(function() {
+                                    chatAcceptedMessage = chatAcceptedMessage.anotherEmployee();
+                                });
+
+                                it('Чат был новым. Отображено измененное количество чатов.', function() {
+                                    chatAcceptedMessage.newChat().receive();
+
+                                    tester.body.expectTextContentToHaveSubstring(
+                                        'Новые 1 ' +
+                                        'В работе 5'
+                                    );
+
+                                    tester.body.expectTextContentNotToHaveSubstring(
+                                        'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                        'Привет 3'
+                                    );
+                                });
+                                it('Отображено измененное количество чатов.', function() {
+                                    chatAcceptedMessage.receive();
+
+                                    tester.body.expectTextContentToHaveSubstring(
+                                        'Новые 2 ' +
+                                        'В работе 4 ' +
+
+                                        'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                        'Привет 3'
+                                    );
+                                });
+                            });
+                            it('Чат принял авторизованный пользователь. Ничего не изменилось.', function() {
+                                chatAcceptedMessage.receive();
+
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'Новые 2 ' +
+                                    'В работе 5 ' +
+
+                                    'Активные 5 ' +
+
+                                    'ПБ Помакова Бисерка Драгановна 17:25 ' +
+                                    'Здравствуй'
+                                );
+                            });
+                        });
+                        describe('Закрыт чат.', function() {
+                            let chatClosedMessage;
+
+                            beforeEach(function() {
+                                chatClosedMessage = tester.chatClosedMessage();
+                            });
+
+                            it('Чат находился в работе. Отображено измененное количество чатов.', function() {
+                                chatClosedMessage.receive();
+
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'Новые 2 ' +
+                                    'В работе 4 ' +
+
+                                    'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                    'Привет 3'
+                                );
+                            });
+                            it('Чат был новым. Отображено измененное количество чатов.', function() {
+                                chatClosedMessage.newChat().receive();
+
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'Новые 1 ' +
+                                    'В работе 5'
+                                );
+
+                                tester.body.expectTextContentNotToHaveSubstring(
+                                    'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                    'Привет 3'
+                                );
+                            });
+                        });
                         describe('Нажимаю на кнопку аккаунта.', function() {
                             beforeEach(function() {
                                 tester.userName.putMouseOver();
@@ -2408,6 +2491,21 @@ tests.addTest(options => {
                                 'Больше не могу разговаривать с тобой, дай мне Веску!'
                             );
                         });
+                        it('Добавлен новый чат. Отображен новый чат.', function() {
+                            tester.newChatCreatingMessage().receive();
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Новые 3 ' +
+                                'В работе 5 ' +
+
+                                'ТД Томова Денка Райчовна'
+                            );
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                'Привет 3'
+                            );
+                        });
                         it('Поступило новое сообщение от посетителя. Отображено оповещение.', function() {
                             tester.newMessage().receive();
 
@@ -2418,6 +2516,16 @@ tests.addTest(options => {
                                 expectToBeOpened();
 
                             tester.changeMessageStatusRequest().receiveResponse();
+
+                            tester.body.expectTextContentToHaveSubstring('4 Чаты');
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Новые 2 ' +
+                                'В работе 5 ' +
+
+                                'ПБ Помакова Бисерка Драгановна 15:24 ' +
+                                'Я люблю тебя 4'
+                            );
 
                             tester.notificationSection.expectToHaveTextContent(
                                 'ПБ Помакова Бисерка Драгановна ' +
@@ -2479,9 +2587,8 @@ tests.addTest(options => {
                             tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
 
                             tester.body.expectTextContentToHaveSubstring(
-                                'Помакова Бисерка Драгановна ' +
-                                '16:24 ' +
-                                'Привет'
+                                'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                'Привет 3'
                             );
                         });
                     });

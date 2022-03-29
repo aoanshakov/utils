@@ -546,6 +546,68 @@ define(() => function ({
             }))
         };
     };
+
+    me.newChatCreatingMessage = () => {
+        const params = {
+            chat_id: 2718937,
+            chat_channel_id: 101,
+            visitor_id: 16479305,
+            visitor_name: 'Томова Денка Райчовна',
+            site_id: 4664,
+            context: {
+                phone: '79168283481'
+            }
+        };
+
+        return {
+            receive: () => me.chatsWebSocket.receive(JSON.stringify({
+                method: 'new_chat',
+                params 
+            }))
+        };
+    };
+
+    me.chatAcceptedMessage = () => {
+        const params = {
+            chat_id: 2718936,
+            employee_id: 20816
+        };
+
+        return {
+            anotherEmployee() {
+                params.employee_id = 20817;
+                return this;
+            },
+
+            newChat() {
+                params.chat_id = 2718935;
+                return this;
+            },
+
+            receive: () => me.chatsWebSocket.receive(JSON.stringify({
+                method: 'chat_accepted',
+                params 
+            }))
+        };
+    };
+
+    me.chatClosedMessage = () => {
+        const params = {
+            chat_id: 2718936
+        };
+
+        return {
+            newChat() {
+                params.chat_id = 2718935;
+                return this;
+            },
+
+            receive: () => me.chatsWebSocket.receive(JSON.stringify({
+                method: 'chat_closed',
+                params 
+            }))
+        };
+    };
     
     this.connectEventsWebSocket = function (index) {
         this.getEventsWebSocket(index).connect();
@@ -1271,6 +1333,7 @@ define(() => function ({
             chat_channel_type: 'telegram',
             date_time: '2022-01-21T16:24:21.098210',
             id: 2718935,
+            context: null,
             last_message: {
                 message: 'Привет',
                 date: '2022-02-22T13:07:22.000Z',
@@ -1284,12 +1347,14 @@ define(() => function ({
             status: 'new',
             visitor_id: 16479303,
             visitor_name: 'Помакова Бисерка Драгановна',
-            visitor_type: 'omni'
+            visitor_type: 'omni',
+            unread_message_count: 3
         }, {
             chat_channel_id: 101,
             chat_channel_type: 'telegram',
             date_time: '2022-01-22T17:25:22.098210',
             id: 2718936,
+            context: null,
             last_message: {
                 message: 'Здравствуй',
                 date: '2022-06-24T16:04:26.000Z',
@@ -1303,7 +1368,8 @@ define(() => function ({
             status: 'active',
             visitor_id: 16479303,
             visitor_name: 'Помакова Бисерка Драгановна',
-            visitor_type: 'omni'
+            visitor_type: 'omni',
+            unread_message_count: 0
         }];
 
         function addResponseModifiers (me) {
@@ -1356,8 +1422,8 @@ define(() => function ({
                         request.respondSuccessfullyWith({
                             result: {
                                 data: {
-                                    active_chat_count: 1,
-                                    new_chat_count: 1,
+                                    active_chat_count: 5,
+                                    new_chat_count: 2,
                                     chats: data
                                 }
                             } 
