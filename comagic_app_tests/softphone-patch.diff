@@ -28,10 +28,42 @@ index 7db2045..0793165 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d02a0b9..8191851 100644
+index d02a0b9..78c0dfc 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -302,4 +302,5 @@ export const RootStore = types
+@@ -3,7 +3,6 @@ import { types, Instance, getSnapshot, applySnapshot, SnapshotOut } from 'mobx-s
+ import makeInspectable from 'mobx-devtools-mst';
+ import createSoftphoneReducer from 'uis-softphone/reducer';
+ import createI18N from 'uis-softphone/common/createI18N';
+-import { toggleWidgetVisiblity, setAxiosProcessor, setStatus, onDialpadKeyDown } from 'uis-softphone/actions';
+ import { authorization } from 'uis-softphone/authorization/actions';
+ import { setStartApp, setStartMinimize } from 'uis-softphone/settings/actions';
+ import createSoftphoneMiddleware from 'uis-softphone/middleware';
+@@ -16,6 +15,15 @@ import { WebsocketStore } from './websocket/WebsocketStore';
+ import { StatusesStore } from './statuses/StatusesStore';
+ 
+ import {
++    toggleWidgetVisiblity,
++    setAxiosProcessor,
++    setStatus,
++    onDialpadKeyDown,
++    showMessage,
++    closeMessage
++} from 'uis-softphone/actions';
++
++import {
+     INTERCEPT_REQUEST,
+     SET_STATUSES,
+     JSSIP_INBOUNDING_CALL_INCOMING,
+@@ -267,6 +275,7 @@ export const RootStore = types
+                     accessGranted: false
+                 }));
+ 
++                self.showMessage = message => self.reduxStore.dispatch(showMessage(message));
+                 self.setStartApp = isStartApp => self.reduxStore.dispatch(setStartApp(isStartApp));
+                 self.setStartMinimize = isStartMinimize => self.reduxStore.dispatch(setStartMinimize(isStartMinimize));
+ 
+@@ -302,4 +311,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

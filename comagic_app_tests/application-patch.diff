@@ -439,10 +439,28 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3e6598b9..545f0e4e 100644
+index 3e6598b9..3f8e5d5c 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -159,7 +159,7 @@ export const RootStore = types
+@@ -53,6 +53,17 @@ const createSoftphoneStoreCreatingHandler = rootStore => {
+             getIpcRender().on(channelName, (event, data) => store[setParamValue]((data || {})[paramName])));
+ 
+         getIpcRender().send('app-ready');
++
++        getIpcRender().on('update-downloaded', () => store.showMessage({
++            id: 'update-downloaded',
++            title: 'Update received',
++            buttons: [{
++                id: 'update',
++                text: 'Update',
++                handler: () => getIpcRender().send('quit-and-install')
++            }]
++        }));
++
+         handleStoreCreating = () => null;
+     };
+ 
+@@ -159,7 +170,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -451,7 +469,7 @@ index 3e6598b9..545f0e4e 100644
                  response => {
                      logRequest({response});
  
-@@ -208,6 +208,7 @@ export const RootStore = types
+@@ -208,6 +219,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -459,7 +477,7 @@ index 3e6598b9..545f0e4e 100644
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -241,7 +242,8 @@ export type DependencyInjection = {
+@@ -241,7 +253,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
