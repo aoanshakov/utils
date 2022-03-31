@@ -138,7 +138,12 @@ define(function () {
                                 on: function (eventName, handler) {
                                     (messageHandlers[eventName] || (messageHandlers[eventName] = [])).push(handler)
                                 },
-                                send: function () {
+                                send: function (channel, message) {
+                                    if (channel == 'log') {
+                                        infoLogMessages.push(message);
+                                        return;
+                                    }
+
                                     messages.add(new Message(Array.prototype.slice.call(arguments, 0)));
                                 }
                             }
