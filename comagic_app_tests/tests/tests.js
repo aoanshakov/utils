@@ -389,7 +389,9 @@ tests.addTest(options => {
                                                     outCallEvent.receive();
                                                 });
 
-                                                it('Принимаю звонок. Отображен знак трансфера номер и таймер.', function() {
+                                                it(
+                                                    'Принимаю звонок. Отображен знак трансфера номер и таймер.',
+                                                function() {
                                                     tester.callStartingButton.click();
 
                                                     tester.firstConnection.connectWebRTC();
@@ -2364,6 +2366,89 @@ tests.addTest(options => {
                             tester.messageListRequest().receiveResponse();
                         });
 
+                        describe('Чат принят.', function() {
+                            let chatAcceptedMessage;
+
+                            beforeEach(function() {
+                                chatAcceptedMessage = tester.chatAcceptedMessage();
+                            });
+
+                            describe('Чат принял другой пользователь.', function() {
+                                beforeEach(function() {
+                                    chatAcceptedMessage = chatAcceptedMessage.anotherEmployee();
+                                });
+
+                                it('Чат был новым. Отображено измененное количество чатов.', function() {
+                                    chatAcceptedMessage.newChat().receive();
+
+                                    tester.body.expectTextContentToHaveSubstring(
+                                        'Новые 1 ' +
+                                        'В работе 5'
+                                    );
+
+                                    tester.body.expectTextContentNotToHaveSubstring(
+                                        'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                        'Привет 3'
+                                    );
+                                });
+                                it('Отображено измененное количество чатов.', function() {
+                                    chatAcceptedMessage.receive();
+
+                                    tester.body.expectTextContentToHaveSubstring(
+                                        'Новые 2 ' +
+                                        'В работе 4 ' +
+
+                                        'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                        'Привет 3'
+                                    );
+                                });
+                            });
+                            it('Чат принял авторизованный пользователь. Ничего не изменилось.', function() {
+                                chatAcceptedMessage.receive();
+
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'Новые 2 ' +
+                                    'В работе 5 ' +
+
+                                    'Активные 5 ' +
+
+                                    'ПБ Помакова Бисерка Драгановна 17:25 ' +
+                                    'Здравствуй'
+                                );
+                            });
+                        });
+                        describe('Закрыт чат.', function() {
+                            let chatClosedMessage;
+
+                            beforeEach(function() {
+                                chatClosedMessage = tester.chatClosedMessage();
+                            });
+
+                            it('Чат находился в работе. Отображено измененное количество чатов.', function() {
+                                chatClosedMessage.receive();
+
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'Новые 2 ' +
+                                    'В работе 4 ' +
+
+                                    'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                    'Привет 3'
+                                );
+                            });
+                            it('Чат был новым. Отображено измененное количество чатов.', function() {
+                                chatClosedMessage.newChat().receive();
+
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'Новые 1 ' +
+                                    'В работе 5'
+                                );
+
+                                tester.body.expectTextContentNotToHaveSubstring(
+                                    'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                    'Привет 3'
+                                );
+                            });
+                        });
                         describe('Нажимаю на кнопку аккаунта.', function() {
                             beforeEach(function() {
                                 tester.userName.putMouseOver();
@@ -2408,7 +2493,7 @@ tests.addTest(options => {
                                 'Больше не могу разговаривать с тобой, дай мне Веску!'
                             );
                         });
-                        it('Поступило новое сообщение от оператора. Отображено последнее сообщение.', function() {
+                        it('По'ступило новое сообщение от оператора. Отображено последнее сообщение.', function() {
                             tester.newMessage().fromOperator().withAttachment().receive();
 
                             tester.expectChatsStoreToContain({
@@ -2432,6 +2517,21 @@ tests.addTest(options => {
                                 'Вы: Я люблю тебя'
                             );
                         });
+                        it('Добавлен новый чат. Отображен новый чат.', function() {
+                            tester.newChatCreatingMessage().receive();
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Новые 3 ' +
+                                'В работе 5 ' +
+
+                                'ТД Томова Денка Райчовна'
+                            );
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                'Привет 3'
+                            );
+                        });
                         it('Поступило новое сообщение от посетителя. Отображено оповещение.', function() {
                             tester.newMessage().receive();
 
@@ -2442,6 +2542,21 @@ tests.addTest(options => {
                                 expectToBeOpened();
 
                             tester.changeMessageStatusRequest().receiveResponse();
+
+                            tester.body.expectTextContentToHaveSubstring('4 Чаты');
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Новые 2 ' +
+                                'В работе 5 ' +
+
+                                'ПБ Помакова Бисерка Драгановна 15:24 ' +
+                                'Я люблю тебя 4'
+                            );
+
+                            tester.notificationSection.expectToHaveTextContent(
+                                'ПБ Помакова Бисерка Драгановна ' +
+                                'Я люблю тебя'
+                            );
 
                             tester.expectChatsStoreToContain({
                                 chatListStore: {
@@ -2458,13 +2573,48 @@ tests.addTest(options => {
                                 }
                             });
                         });
+                        it('Поступило новое сообщение от оператора. Оповещение не отображено.', function() {
+                            tester.newMessage().fromOperator().withAttachment().receive();
+
+                            tester.notificationSection.expectToHaveTextContent('');
+
+                            tester.expectChatsStoreToContain({
+                                chatListStore: {
+                                    chatListItems: [{
+                                        id: 2718935,
+                                        last_message: {
+                                            message: 'Я люблю тебя',
+                                            date: 1613910293000,
+                                            is_operator: true,
+                                            resource_type: 'photo',
+                                            resource_name: 'heart.png'
+                                        }
+                                    }]
+                                }
+                            });
+                        });
+                        it('Поступило новое сообщение от посетителя с вложением. Отображено оповещение.', function() {
+                            tester.newMessage().withoutText().withAttachment().receive();
+
+                            notificationTester.grantPermission().
+                                recentNotification().
+                                expectToHaveTitle('Помакова Бисерка Драгановна').
+                                expectToHaveBody('heart.png').
+                                expectToBeOpened();
+
+                            tester.changeMessageStatusRequest().receiveResponse();
+
+                            tester.notificationSection.expectToHaveTextContent(
+                                'ПБ Помакова Бисерка Драгановна ' +
+                                'heart.png'
+                            );
+                        });
                         it('Отображена страница чатов.', function() {
                             tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
 
                             tester.body.expectTextContentToHaveSubstring(
-                                'Помакова Бисерка Драгановна ' +
-                                '16:24 ' +
-                                'Привет'
+                                'ПБ Помакова Бисерка Драгановна 16:24 ' +
+                                'Привет 3'
                             );
                         });
                     });
@@ -2505,38 +2655,63 @@ tests.addTest(options => {
                         tester.operatorAccountRequest().receiveResponse();
                     });
 
-                    it(
-                        'Открываю раздел "Все обращения". Нажимаю на ссылку с количеством сообщение. Отображены ' +
-                        'сообщения.',
-                    function() {
-                        tester.button('Сырые данные').click();
-                        tester.button('Все обращения').click();
-                            
-                        tester.reportGroupsRequest().receiveResponse();
-                        tester.reportsListRequest().allRequests().receiveResponse();
-                        tester.reportsListRequest().allRequests().receiveResponse();
-                        tester.reportTypesRequest().receiveResponse();
+                    describe('Открываю раздел "Все обращения". Нажимаю на ссылку с количеством сообщений.', function() {
+                        beforeEach(function() {
+                            tester.button('Сырые данные').click();
+                            tester.button('Все обращения').click();
+                                
+                            tester.reportGroupsRequest().receiveResponse();
+                            tester.reportsListRequest().allRequests().receiveResponse();
+                            tester.reportsListRequest().allRequests().receiveResponse();
+                            tester.reportTypesRequest().receiveResponse();
 
-                        tester.reportGroupsRequest().receiveResponse();
-                        tester.reportsListRequest().allRequests().receiveResponse();
-                        tester.reportsListRequest().allRequests().receiveResponse();
-                        tester.reportTypesRequest().receiveResponse();
+                            tester.reportGroupsRequest().receiveResponse();
+                            tester.reportsListRequest().allRequests().receiveResponse();
+                            tester.reportsListRequest().allRequests().receiveResponse();
+                            tester.reportTypesRequest().receiveResponse();
 
-                        tester.reportStateRequest().allRequests().receiveResponse();
-                        tester.reportRapidFiltersRequest().communications().receiveResponse();
-                        tester.reportFiltersRequest().receiveResponse();
-                        tester.columnsTreeRequest().receiveResponse();
-                        tester.tagsRequest().receiveResponse();
-                        tester.customFiltersRequest().receiveResponse();
-                        tester.communicationsRequest().receiveResponse()
+                            tester.reportStateRequest().allRequests().receiveResponse();
+                            tester.reportRapidFiltersRequest().communications().receiveResponse();
+                            tester.reportFiltersRequest().receiveResponse();
+                            tester.columnsTreeRequest().receiveResponse();
+                            tester.tagsRequest().receiveResponse();
+                            tester.customFiltersRequest().receiveResponse();
+                            tester.communicationsRequest().receiveResponse()
 
-                        tester.table.row.first().column.withHeader('Сообщений').button('4').click();
+                            tester.table.row.first().column.withHeader('Сообщений').button('4').click();
 
-                        tester.configRequest().receiveResponse();
-                        tester.messageListRequest().chat().receiveResponse();
-                        tester.chatListRequest().visitor().receiveResponse();
+                            tester.configRequest().receiveResponse();
+                            tester.messageListRequest().chat().receiveResponse();
+                            tester.chatListRequest().chat().receiveResponse();
+                        });
 
-                        tester.body.expectTextContentToHaveSubstring('Привет 12:13');
+                        describe(
+                            'Нажимаю на ссылку с количеством сообщений в другой строке.',
+                        function() {
+                            let chatListRequest;
+
+                            beforeEach(function() {
+                                tester.antDrawerCloseButton.click();
+
+                                tester.table.row.atIndex(1).column.withHeader('Сообщений').button('5').click();
+
+                                tester.configRequest().receiveResponse();
+                                tester.messageListRequest().anotherChat().receiveResponse();
+                                chatListRequest = tester.chatListRequest().anotherChat().expectToBeSent();
+                            });
+
+                            it('Чат не найден. Отображены другие сообщения.', function() {
+                                chatListRequest.nothingFound().receiveResponse();
+                                tester.body.expectTextContentToHaveSubstring('Здравствуй 12:13');
+                            });
+                            it('Отображены другие сообщения.', function() {
+                                chatListRequest.receiveResponse();
+                                tester.body.expectTextContentToHaveSubstring('Здравствуй 12:13');
+                            });
+                        });
+                        it('Отображены сообщения.', function() {
+                            tester.body.expectTextContentToHaveSubstring('Привет 12:13');
+                        });
                     });
                     it('Открываю РМО.', function() {
                         tester.productsButton.click();
@@ -2623,7 +2798,7 @@ tests.addTest(options => {
 
                 tester.configRequest().receiveResponse();
                 tester.messageListRequest().chat().receiveResponse();
-                tester.chatListRequest().visitor().receiveResponse();
+                tester.chatListRequest().chat().receiveResponse();
 
                 tester.body.expectTextContentToHaveSubstring('Привет 12:13');
             });
