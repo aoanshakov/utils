@@ -2493,7 +2493,7 @@ tests.addTest(options => {
                                 'Больше не могу разговаривать с тобой, дай мне Веску!'
                             );
                         });
-                        it('По'ступило новое сообщение от оператора. Отображено последнее сообщение.', function() {
+                        it('Поступило новое сообщение от оператора. Отображено последнее сообщение.', function() {
                             tester.newMessage().fromOperator().withAttachment().receive();
 
                             tester.expectChatsStoreToContain({
