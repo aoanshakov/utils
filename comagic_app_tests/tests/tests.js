@@ -191,6 +191,17 @@ tests.addTest(options => {
                                                                 tester.softphone.
                                                                     expectToHaveTextContent('Сотрудник не найден');
                                                             });
+                                                            it(
+                                                                'Ввожу номер в поле поиска. Сотрудники фильтруются ' +
+                                                                'по номеру.',
+                                                            function() {
+                                                                tester.softphone.input.fill('5');
+
+                                                                tester.softphone.expectToHaveTextContent(
+                                                                    'Шалева Дора 82 5 8 ' +
+                                                                    'Господинова Николина 29 5'
+                                                                );
+                                                            });
                                                         });
                                                         describe('Открываю вкладку групп.', function() {
                                                             beforeEach(function() {

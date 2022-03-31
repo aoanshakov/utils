@@ -9,7 +9,7 @@ index 34c2f302..5b44ba5c 100644
 -REACT_APP_MODULE_SOFTPHONE=https://softphone-va0-softphone.uis.st
 +REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index c1203f4a..d251a31a 100644
+index c1203f4a..64e80091 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -8,9 +8,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -157,7 +157,7 @@ index c1203f4a..d251a31a 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -311,16 +375,104 @@ module.exports = {
+@@ -311,16 +375,106 @@ module.exports = {
                      },
                  ],
              },
@@ -206,6 +206,8 @@ index c1203f4a..d251a31a 100644
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
 +            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
 +            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
++            'callTracking/CalltrackingSubstitutionControl': `${miscDirectory}/Stub.js`,
++            'callTracking/CalltrackingTrafficControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingSubstitutionRules': `${miscDirectory}/Stub.js`,
 +            'callTracking/NumberPools': `${miscDirectory}/Stub.js`,
@@ -267,7 +269,7 @@ index c1203f4a..d251a31a 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index beee2750..c3c42145 100644
+index d1c13ec7..c3c42145 100644
 --- a/package.json
 +++ b/package.json
 @@ -46,7 +46,7 @@
@@ -304,7 +306,7 @@ index beee2750..c3c42145 100644
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#1.12.8",
+-    "magic-ui": "v1.17.3",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
