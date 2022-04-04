@@ -880,7 +880,7 @@ tests.addTest(options => {
                                                                     );
                                                                 });
                                                                 it('Отображено сообщение о звонке.', function() {
-                                                                    tester.softphone.expectTextContentToHaveSubstring(
+                                                                    tester.body.expectTextContentToHaveSubstring(
                                                                         'Гигова Петранка Входящий...'
                                                                     );
 
@@ -917,7 +917,7 @@ tests.addTest(options => {
                                                             function() {
                                                                 outboundCall.receiveBusy();
 
-                                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                                tester.body.expectTextContentToHaveSubstring(
                                                                     'Гигова Петранка Входящий...'
                                                                 );
                                                             });
