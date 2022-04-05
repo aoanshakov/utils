@@ -811,6 +811,11 @@ define(() => function ({
         };
 
         return {
+            clickToCall: function () {
+                params.direction = 'out';
+                return this;
+            },
+
             notFinal: function () {
                 params.crm_contact_link = null;
                 params.contact_full_name = null;

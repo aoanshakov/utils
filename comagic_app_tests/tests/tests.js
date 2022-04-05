@@ -485,6 +485,13 @@ tests.addTest(options => {
                                                 '+7 (916) 123-45-67 Входящий звонок'
                                             );
                                         });
+                                        it(
+                                            'Звонок совершается с помощью click-to-call. Звонок отображается как ' +
+                                            'исходящий.',
+                                        function() {
+                                            tester.outCallEvent().clickToCall().receive();
+                                            tester.outgoingIcon.expectToBeVisible();
+                                        });
                                         it('Открытые сделки существуют. Открытые сделки отображены.', function() {
                                             tester.outCallEvent().activeLeads().receive();
 
