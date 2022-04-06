@@ -2855,8 +2855,6 @@ tests.addTest(options => {
                     appName: 'softphone'
                 });
 
-                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
-                
                 tester.input.withFieldLabel('Логин').fill('botusharova');
                 tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
@@ -2864,6 +2862,14 @@ tests.addTest(options => {
 
                 tester.loginRequest().receiveResponse();
                 tester.configRequest().softphone().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 212
+                    });
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
@@ -2909,6 +2915,14 @@ tests.addTest(options => {
                         describe('Нажимаю на кнопку настроек.', function() {
                             beforeEach(function() {
                                 tester.settingsButton.click();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 568
+                                    });
                             });
                             
                             describe('Софтфон должен запускаться автоматически.', function() {
@@ -3045,6 +3059,14 @@ tests.addTest(options => {
                                 tester.statusesList.item('Выход').click();
 
                                 tester.userLogoutRequest().receiveResponse();
+                                
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 300,
+                                        height: 350
+                                    });
 
                                 tester.eventsWebSocket.finishDisconnecting();
                                 tester.authLogoutRequest().receiveResponse();
@@ -3059,8 +3081,16 @@ tests.addTest(options => {
                                 tester.button('Войти').click();
 
                                 tester.loginRequest().anotherAuthorizationToken().receiveResponse();
-                                tester.configRequest().softphone().receiveResponse();
 
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 212
+                                    });
+
+                                tester.configRequest().softphone().receiveResponse();
                                 tester.accountRequest().anotherAuthorizationToken().receiveResponse();
                                 tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
                                 tester.statusesRequest().createExpectation().
@@ -3098,6 +3128,14 @@ tests.addTest(options => {
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 568
+                                    });
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
                                     expectToBeSentToChannel('incoming-call').
                                     expectToBeSentWithArguments(false);
                             });
@@ -3120,12 +3158,21 @@ tests.addTest(options => {
                             });
                             it('Нажимаю на клавишу Esc. Звонок отклоняется.', function() {
                                 utils.pressEscape();
-                                incomingCall.expectTemporarilyUnavailableToBeSent();
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
                                     expectToBeSentToChannel('call-end').
                                     expectToBeSentWithArguments(true);
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 212
+                                    });
+
+                                incomingCall.expectTemporarilyUnavailableToBeSent();
                             });
                             it('Нажимаю на открытую сделку. Открывается страница сделки.', function() {
                                 tester.anchor('По звонку с 79154394340').click();
@@ -3182,6 +3229,14 @@ tests.addTest(options => {
                             beforeEach(function() {
                                 tester.addressBookButton.click();
 
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 568
+                                    });
+
                                 tester.usersRequest().receiveResponse();
                                 tester.usersInGroupsRequest().expectToBeSent();
                                 tester.groupsRequest().accessTokenExpired().receiveResponse();
@@ -3196,6 +3251,14 @@ tests.addTest(options => {
                                 refreshRequest.refreshTokenExpired().receiveResponse();
                                 tester.userLogoutRequest().receiveResponse();
 
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 300,
+                                        height: 350
+                                    });
+
                                 tester.authLogoutRequest().receiveResponse();
                                 tester.eventsWebSocket.finishDisconnecting();
                                 tester.registrationRequest().desktopSoftphone().expired().receiveResponse();
@@ -3209,7 +3272,24 @@ tests.addTest(options => {
                                 tester.button('Войти').click();
 
                                 tester.loginRequest().receiveResponse();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 212
+                                    });
+
                                 tester.configRequest().softphone().receiveResponse();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 568
+                                    });
 
                                 tester.accountRequest().receiveResponse();
                                 tester.usersRequest().receiveResponse(),
@@ -3285,12 +3365,29 @@ tests.addTest(options => {
 
                             tester.userLogoutRequest().receiveResponse();
 
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('resize').
+                                expectToBeSentWithArguments({
+                                    width: 300,
+                                    height: 350
+                                });
+
                             tester.input.withFieldLabel('Логин').fill('botusharova');
                             tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
                             tester.button('Войти').click();
 
                             tester.loginRequest().anotherAuthorizationToken().receiveResponse();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('resize').
+                                expectToBeSentWithArguments({
+                                    width: 340,
+                                    height: 212
+                                });
+
                             tester.configRequest().softphone().receiveResponse();
 
                             tester.accountRequest().anotherAuthorizationToken().receiveResponse();
@@ -3345,8 +3442,16 @@ tests.addTest(options => {
                         });
                         it('Открываю историю звонков. Открывается страница контакта.', function() {
                             tester.callsHistoryButton.click();
-                            tester.callsRequest().receiveResponse();
 
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('resize').
+                                expectToBeSentWithArguments({
+                                    width: 340,
+                                    height: 568
+                                });
+
+                            tester.callsRequest().receiveResponse();
                             tester.callsHistoryRow.withText('Гяурова Марийка').name.click();
 
                             getPackage('electron').shell.
@@ -3354,6 +3459,14 @@ tests.addTest(options => {
                         });
                         it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
                             tester.dialpadVisibilityButton.click();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('resize').
+                                expectToBeSentWithArguments({
+                                    width: 340,
+                                    height: 568
+                                });
 
                             tester.userName.click();
 
@@ -3385,6 +3498,15 @@ tests.addTest(options => {
                 it('Не удалось авторизоваться в софтфоне.', function() {
                     authCheckRequest.invalidToken().receiveResponse();
                     tester.userLogoutRequest().receiveResponse();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 300,
+                            height: 350
+                        });
+                    
                     tester.authLogoutRequest().invalidToken().receiveResponse();
 
                     tester.button('Войти').expectToBeVisible();
@@ -3393,6 +3515,14 @@ tests.addTest(options => {
             it('Софтфон недоступен. Отображена форма аутентификации.', function() {
                 accountRequest.softphoneUnavailable().receiveResponse();
                 tester.userLogoutRequest().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 300,
+                        height: 350
+                    });
 
                 tester.button('Войти').expectToBeVisible();
             });
@@ -3406,8 +3536,6 @@ tests.addTest(options => {
                     appName: 'softphone'
                 });
 
-                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
-                
                 tester.input.withFieldLabel('Логин').fill('botusharova');
                 tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
@@ -3415,6 +3543,14 @@ tests.addTest(options => {
 
                 tester.loginRequest().receiveResponse();
                 tester.configRequest().softphone().receiveResponse();
+                    
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 212
+                    });
 
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
@@ -3445,18 +3581,35 @@ tests.addTest(options => {
 
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 340,
+                            height: 568
+                        });
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
                         expectToBeSentToChannel('incoming-call').
                         expectToBeSentWithArguments(true);
                 });
 
                 it('Звонок завершен. Отправлено сообщение о необходимости закрыть окно софтфона.', function() {
                     tester.stopCallButton.click();
-                    incomingCall.expectTemporarilyUnavailableToBeSent();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 340,
+                            height: 212
+                        });
 
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
                         expectToBeSentToChannel('call-end').
                         expectToBeSentWithArguments(true);
+
+                    incomingCall.expectTemporarilyUnavailableToBeSent();
                 });
                 it('Не одно сообщение не отправлено в бэк электрона.', function() {
                     getPackage('electron').ipcRenderer.
@@ -3467,6 +3620,14 @@ tests.addTest(options => {
             describe('Открываю настройки.', function() {
                 beforeEach(function() {
                     tester.settingsButton.click();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 340,
+                            height: 568
+                        });
                 });
 
                 it('Снимаю отметку со свитчбокса "Скрывать после звонка". Отметка снята.', function() {
@@ -3493,8 +3654,6 @@ tests.addTest(options => {
                     appName: 'softphone'
                 });
 
-                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
-                
                 tester.input.withFieldLabel('Логин').fill('botusharova');
                 tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
@@ -3502,6 +3661,14 @@ tests.addTest(options => {
 
                 tester.loginRequest().receiveResponse();
                 tester.configRequest().softphone().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 212
+                    });
 
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
@@ -3529,11 +3696,28 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 568
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
                     expectToBeSentToChannel('incoming-call').
                     expectToBeSentWithArguments(true);
             });
             it('Открываю настройки. Свитчбокс "Открывать во время звонка" отмечен.', function() {
                 tester.settingsButton.click();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 568
+                    });
+
                 tester.button('Открывать во время звонка').expectToBeChecked();
             });
         });
@@ -3546,8 +3730,6 @@ tests.addTest(options => {
                     appName: 'softphone'
                 });
 
-                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
-                
                 tester.input.withFieldLabel('Логин').fill('botusharova');
                 tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
@@ -3555,6 +3737,14 @@ tests.addTest(options => {
 
                 tester.loginRequest().receiveResponse();
                 tester.configRequest().softphone().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 212
+                    });
 
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
@@ -3585,19 +3775,44 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 568
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
                     expectToBeSentToChannel('incoming-call').
                     expectToBeSentWithArguments(true);
 
                 tester.stopCallButton.click();
-                incomingCall.expectTemporarilyUnavailableToBeSent();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 212
+                    });
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
                     expectToBeSentToChannel('call-end').
                     expectToBeSentWithArguments(false);
+
+                incomingCall.expectTemporarilyUnavailableToBeSent();
             });
             it('Открываю настройки. Свитчбокс "Скрывать после звонка" не отмечен.', function() {
                 tester.settingsButton.click();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 568
+                    });
 
                 tester.button('Открывать во время звонка').expectToBeChecked();
                 tester.button('Скрывать после звонка').expectNotToBeChecked();
@@ -3612,8 +3827,6 @@ tests.addTest(options => {
                     appName: 'softphone'
                 });
 
-                getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
-                
                 tester.input.withFieldLabel('Логин').fill('botusharova');
                 tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
@@ -3621,6 +3834,14 @@ tests.addTest(options => {
 
                 tester.loginRequest().receiveResponse();
                 tester.configRequest().softphone().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 212
+                    });
 
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
@@ -3650,19 +3871,45 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 568
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
                     expectToBeSentToChannel('incoming-call').
                     expectToBeSentWithArguments(true);
 
                 tester.stopCallButton.click();
-                incomingCall.expectTemporarilyUnavailableToBeSent();
+                
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 212
+                    });
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
                     expectToBeSentToChannel('call-end').
                     expectToBeSentWithArguments(true);
+
+                incomingCall.expectTemporarilyUnavailableToBeSent();
             });
             it('Открываю настройки. Свитчбокс "Скрывать после звонка" отмечен.', function() {
                 tester.settingsButton.click();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 568
+                    });
+
                 tester.button('Скрывать после звонка').expectToBeChecked();
             });
         });
@@ -3673,8 +3920,16 @@ tests.addTest(options => {
                 appName: 'softphone'
             });
 
-            getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('resize');
             tester.configRequest().softphone().receiveResponse();
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('resize').
+                expectToBeSentWithArguments({
+                    width: 340,
+                    height: 212
+                });
+
             getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
             tester.accountRequest().receiveResponse();
