@@ -192,6 +192,7 @@ docker run -it --rm \
     -v $testsDir:/usr/local/src/tests \
     --mount type=bind,source=$HOME/.ssh/known_hosts,target=/root/.ssh/known_hosts \
     --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa \
+    -p 6973:80 \
     $dockerArguments \
     $imageTag \
     --action $action \
