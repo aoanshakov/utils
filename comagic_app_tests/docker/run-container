@@ -92,7 +92,7 @@ then
     exit 1
 fi
 
-imageTag='comagic_app_tests'
+imageTag='uploader'
 
 if [ $buildImage -eq 1 ]
 then
@@ -174,18 +174,6 @@ then
     fi
 
     dockerArguments="$dockerArguments -v $applicationDirectory:/usr/local/src/comagic_app"
-fi
-
-if [ -z "$applicationDirectory" ]
-then
-    echo "Путь к приложению не указан"
-    exit 1
-fi
-
-if [ -z "$distDirectory" ]
-then
-    echo "Путь к дистрибутивам не указан"
-    exit 1
 fi
 
 docker run -it --rm \
