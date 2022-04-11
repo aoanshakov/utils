@@ -284,7 +284,7 @@ index 91310a1a..ec734fd2 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index 8e8ddfdd..bfb37637 100644
+index 7ead81bf..6b5cf859 100644
 --- a/package.json
 +++ b/package.json
 @@ -59,8 +59,8 @@
@@ -322,15 +322,19 @@ index 8e8ddfdd..bfb37637 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -96,6 +99,8 @@
+@@ -96,8 +99,11 @@
      "react-dom": "^17.0.2",
      "react-intl": "5.15.8",
      "react-router-dom": "^5.1.2",
 +    "react-router": "5.2.1",
 +    "softphone": "./misc/softphone",
      "stream-buffers": "^3.0.2",
-     "yup": "^0.28.1"
+     "yup": "^0.28.1",
+-    "broadcast-channel": "^4.10.0"
++    "broadcast-channel": "^4.10.0",
++    "string-hash": "^1.1.3"
    }
+ }
 diff --git a/public/index.html b/public/index.html
 index 6143f5e1..7ff73d45 100644
 --- a/public/index.html
