@@ -3007,14 +3007,32 @@ function JsTester_NoBroadcastChannelMessage () {
             'сообщение не было отправлено".'
         );
     };
+
+    this.expectToBeSentToChannel = function (expectedChannelName) {
+        throw new Error(
+            'Сообщение должно быть передано в канал "' + expectedChannelName + '", тогда, как ни одно ' +
+            'сообщение не было отправлено".'
+        );
+    };
+    
+    this.expectToContain = function (expectedContent) {
+        throw new Error(
+            'Должно быть отправлено сообщение с содержимым "' + JSON.stringify(expectedContent) + '", тогда, как ни ' +
+            'одно сообщение не было отправлено".'
+        );
+    };
+
+    this.getContent = function () {
+        throw new Error('Должно быть отправлено сообщение, тогда, как ни одно сообщение не было отправлено.');
+    };
 }
 
 function JsTester_BroadcastChannelMessage (args) {
     var actualMessage = args.message,
         actualChannelName = args.channelName,
-        utils = args.utils;
-
-    console.trace('NEW MESSAGE', args);
+        utils = args.utils,
+        debug = args.debug,
+        callStack = debug.getCallStack();
 
     this.expectToBeSentToChannel = function (expectedChannelName) {
         if (actualChannelName != expectedChannelName) {
@@ -3037,11 +3055,15 @@ function JsTester_BroadcastChannelMessage (args) {
         utils.expectObjectToContain(actualMessage, expectedContent);
     };
 
+    this.getContent = function () {
+        return actualMessage;
+    };
+
     this.expectNotToExist = function (exceptions) {
         var exception = new Error(
             'Ни одно сообщение не должно быть отправлено, тогда как было отправлено сообщение ' +
-                typeof actualMessage == 'string' ? actualMessage : JSON.stringify(actualMessage) +
-            '.'
+                (typeof actualMessage == 'string' ? actualMessage : JSON.stringify(actualMessage)) +
+            '.' + "\n\n" + callStack
         );
 
         if (exceptions) {
@@ -3057,7 +3079,8 @@ function JsTester_BroadcastChannelFactory (args) {
         broadcastChannelMessageEventFirerers = args.broadcastChannelMessageEventFirerers,
         handlers = args.handlers,
         shortcutHandlers = args.shortcutHandlers,
-        utils = args.utils;
+        utils = args.utils,
+        debug = args.debug;
 
     return function (channelName) {
         if (broadcastChannelMessageEventFirerers[channelName]) {
@@ -3073,7 +3096,8 @@ function JsTester_BroadcastChannelFactory (args) {
             broadcastChannelMessages.add(new JsTester_BroadcastChannelMessage({
                 channelName: channelName,
                 message: message,
-                utils: utils
+                utils: utils,
+                debug: debug
             }));
         };
 
@@ -3213,6 +3237,7 @@ function JsTester_Tests (factory) {
         broadcastChannelShortcutHandlers = {},
         broadcastChannelMessageEventFirerers = {},
         BroadcastChannel = new JsTester_BroadcastChannelFactory({
+            debug: debug,
             utils: utils,
             handlers: broadcastChannelHandlers,
             shortcutHandlers: broadcastChannelShortcutHandlers,
@@ -3664,7 +3689,6 @@ function JsTester_Tests (factory) {
         var exceptions = [];
 
         this.restoreRealDelayedTasks();
-        console.log('RECENT MESSAGE', broadcastChannelTester.recentMessage());
         broadcastChannelTester.recentMessage().expectNotToExist(exceptions);
         windowSize.reset();
         broadcastChannelMocker.restoreReal();

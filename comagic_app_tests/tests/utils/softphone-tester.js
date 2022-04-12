@@ -15,6 +15,7 @@ define(function () {
             spendTime = options.spendTime,
             addSecond = options.addSecond,
             triggerMutation = options.triggerMutation,
+            broadcastChannel = options.broadcastChannel,
             sip,
             eventsWebSocket,
             me = this,
@@ -5019,12 +5020,33 @@ define(function () {
         };
 
         this.masterInfoMessage = () => {
-            const message = me.tabStateChangeMessage();
-
             return {
-                hasNotMaster: () => message.setHasNoMaster(),
-                isNotMaster: () => message.setNotMaster(),
-                receive: () => message.receive()
+                hasNotMaster: () => null,
+                isNotMaster: () => null,
+                receive: () => {
+                    broadcastChannel.recentMessage();
+                    var message = broadcastChannel.recentMessage();
+
+                    message.expectToContain({
+                        type: 'internal',
+                        data: {
+                            context: 'leader',
+                            action: 'apply'
+                        }
+                    });
+
+                    var token = message.getContent().data.token;
+                    spendTime(150);
+                    Promise.runAll(false, true);
+
+                    broadcastChannel.recentMessage().expectToContain({
+                        type: 'internal',
+                        data: {
+                            context: 'leader',
+                            action: 'tell'
+                        }
+                    });
+                }
             };
         };
 

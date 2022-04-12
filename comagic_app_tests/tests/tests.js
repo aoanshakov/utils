@@ -14,8 +14,7 @@ tests.addTest(options => {
         audioDecodingTester,
         notificationTester,
         setFocus,
-        setBrowserHidden,
-        broadcastChannel
+        setBrowserHidden
     } = options;
 
     afterEach(function() {
@@ -81,6 +80,7 @@ tests.addTest(options => {
                     beforeEach(function() {
                         settingsRequest.receiveResponse();
                         notificationTester.grantPermission();
+                        tester.masterInfoMessage().receive();
 
                         tester.connectEventsWebSocket();
                         tester.connectSIPWebSocket();
@@ -1784,14 +1784,6 @@ tests.addTest(options => {
                                         tester.callStartingButton.expectNotToExist();
                                     });
                                     it('', function() {
-                                        Promise.runAll(false, true);
-                                        spendTime(0);
-                                        Promise.runAll(false, true);
-                                        spendTime(0);
-                                        Promise.runAll(false, true);
-                                        spendTime(0);
-                                        Promise.runAll(false, true);
-                                        spendTime(0);
                                     });
                                 });
                                 return;
