@@ -1,5 +1,5 @@
 diff --git a/dist/esbrowser/broadcast-channel.js b/dist/esbrowser/broadcast-channel.js
-index 771aa41..399fadb 100644
+index 771aa41..9ba1017 100644
 --- a/dist/esbrowser/broadcast-channel.js
 +++ b/dist/esbrowser/broadcast-channel.js
 @@ -81,7 +81,7 @@ export function clearNodeFolder(options) {
@@ -20,6 +20,15 @@ index 771aa41..399fadb 100644
      this._onML = null;
      this._addEL.message = [];
      return awaitPrepare // wait until all current sending are processed
+@@ -194,7 +194,7 @@ function _post(broadcastChannel, type, msg) {
+     type: type,
+     data: msg
+   };
+-  var awaitPrepare = broadcastChannel._prepP ? broadcastChannel._prepP : PROMISE_RESOLVED_VOID;
++  var awaitPrepare = broadcastChannel._prepP ? broadcastChannel._prepP : Promise.resolve();
+ 
+   return awaitPrepare.then(function () {
+     var sendPromise = broadcastChannel.method.postMessage(broadcastChannel._state, msgObj); // add/remove to unsend messages list
 diff --git a/dist/esbrowser/leader-election.js b/dist/esbrowser/leader-election.js
 index 4ac8a8d..2705891 100644
 --- a/dist/esbrowser/leader-election.js

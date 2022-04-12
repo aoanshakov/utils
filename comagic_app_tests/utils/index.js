@@ -174,7 +174,6 @@ actions['modify-code'] = params => actions['restore-code']({}).
     concat([
         `cp ${stub} ${misc}`,
         `cp ${shadowContentTsxSource} ${shadowContentTsxTarget}`
-        `cd ${broadcastChannel} && patch -p1 < ${broadcastChannelPatch}`
     ]).concat(actions['fix-permissions']);
 
 const appModule = ([module, path, args]) => [`web/comagic_app_modules/${module}`, path, args, misc];
@@ -191,8 +190,11 @@ actions['initialize'] = params => [
     `cd ${misc} && git clone${args} git@gitlab.uis.dev:${module}.git`
 ] : [])).reduce((result, item) => result.concat(item), []).concat(
     actions['modify-code'](params)
-).concat(!fs.existsSync(nodeModules) ?
-    [`chown -R root:root ${application}`, `${cda} npm install --verbose`].concat(actions['fix-permissions']) : []);
+).concat(!fs.existsSync(nodeModules) ?  [
+    `chown -R root:root ${application}`,
+    `${cda} npm install --verbose`,
+    `cd ${broadcastChannel} && patch -p1 < ${broadcastChannelPatch}`
+].concat(actions['fix-permissions']) : []);
 
 const rmVerbose = target => `if [ -e ${target} ]; then rm -rvf ${target}; fi`;
 

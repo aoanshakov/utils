@@ -3014,7 +3014,7 @@ function JsTester_BroadcastChannelMessage (args) {
         actualChannelName = args.channelName,
         utils = args.utils;
 
-    console.log('NEW MESSAGE', args);
+    console.trace('NEW MESSAGE', args);
 
     this.expectToBeSentToChannel = function (expectedChannelName) {
         if (actualChannelName != expectedChannelName) {
