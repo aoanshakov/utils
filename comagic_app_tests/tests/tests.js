@@ -14,7 +14,8 @@ tests.addTest(options => {
         audioDecodingTester,
         notificationTester,
         setFocus,
-        setBrowserHidden
+        setBrowserHidden,
+        broadcastChannel
     } = options;
 
     afterEach(function() {
@@ -103,7 +104,7 @@ tests.addTest(options => {
                                     reportGroupsRequest.receiveResponse();
                                 });
 
-                                describe('SIP-регистрация завершена.', function() {
+                                xdescribe('SIP-регистрация завершена.', function() {
                                     beforeEach(function() {
                                         registrationRequest.receiveResponse();
                                     });
@@ -776,7 +777,7 @@ tests.addTest(options => {
                                         tester.button('Софтфон').click();
                                     });
 
-                                    describe('Ввожу номер телефона.', function() {
+                                    xdescribe('Ввожу номер телефона.', function() {
                                         beforeEach(function() {
                                             tester.phoneField.fill('79161234567');
                                         });
@@ -1047,7 +1048,7 @@ tests.addTest(options => {
                                             tester.callStartingButton.expectToHaveAttribute('disabled');
                                         });
                                     });
-                                    describe('SIP-регистрация завершена.', function() {
+                                    xdescribe('SIP-регистрация завершена.', function() {
                                         beforeEach(function() {
                                             registrationRequest.receiveResponse();
                                         });
@@ -1774,20 +1775,32 @@ tests.addTest(options => {
                                             tester.callStartingButton.expectNotToHaveAttribute('disabled');
                                         });
                                     });
-                                    it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
+                                    xit('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
                                         tester.hideButton.click();
                                         tester.callStartingButton.expectNotToExist();
                                     });
-                                    it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
+                                    xit('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                                         tester.button('Софтфон').click();
                                         tester.callStartingButton.expectNotToExist();
                                     });
+                                    it('', function() {
+                                        Promise.runAll(false, true);
+                                        spendTime(0);
+                                        Promise.runAll(false, true);
+                                        spendTime(0);
+                                        Promise.runAll(false, true);
+                                        spendTime(0);
+                                        Promise.runAll(false, true);
+                                        spendTime(0);
+                                    });
                                 });
+                                return;
                                 it('Отображен пункт меню. Софтфон скрыт. Отображается статус сотрудника.', function() {
                                     tester.callStartingButton.expectNotToExist();
                                     tester.body.expectTextContentToHaveSubstring('Дашборды');
                                 });
                             });
+                            return;
                             describe('SIP-регистрация завершена. Срок действия токена авторизации истек.', function() {
                                 let refreshRequest;
 
@@ -1816,6 +1829,7 @@ tests.addTest(options => {
                                 });
                             });
                         });
+                        return;
                         it(
                             'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение о ' +
                             'том, что SIP-линия не зарегистрирована.',
@@ -1835,6 +1849,7 @@ tests.addTest(options => {
                             );
                         });
                     });
+                    return;
                     describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                         beforeEach(function() {
                             tester.disallowMediaInput();
@@ -1855,6 +1870,7 @@ tests.addTest(options => {
                         });
                     });
                 });
+                return;
                 describe('Номера должны быть скрыты.', function() {
                     beforeEach(function() {
                         reportGroupsRequest.receiveResponse();
@@ -1942,6 +1958,7 @@ tests.addTest(options => {
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
                 });
             });
+            return;
             describe('Нажимаю на иконку с телефоном.', function() {
                 beforeEach(function() {
                     reportGroupsRequest.receiveResponse();
@@ -2318,6 +2335,7 @@ tests.addTest(options => {
                 });
             });
         });
+return;
         describe('Чаты доступны.', function() {
             beforeEach(function() {
                 accountRequest.operatorWorkplaceAvailable();
@@ -2814,6 +2832,7 @@ tests.addTest(options => {
             tester.button('Софтфон').expectNotToExist();
         });
     });
+return;
     describe('Ранее были выбраны настройки звука. Открываю настройки звука.', function() {
         let tester;
 

@@ -1,0 +1,66 @@
+diff --git a/dist/esbrowser/broadcast-channel.js b/dist/esbrowser/broadcast-channel.js
+index 771aa41..399fadb 100644
+--- a/dist/esbrowser/broadcast-channel.js
++++ b/dist/esbrowser/broadcast-channel.js
+@@ -81,7 +81,7 @@ export function clearNodeFolder(options) {
+       return true;
+     });
+   } else {
+-    return PROMISE_RESOLVED_FALSE;
++    return Promise.resolve(false);
+   }
+ }
+ /**
+@@ -155,7 +155,7 @@ BroadcastChannel.prototype = {
+ 
+     OPEN_BROADCAST_CHANNELS["delete"](this);
+     this.closed = true;
+-    var awaitPrepare = this._prepP ? this._prepP : PROMISE_RESOLVED_VOID;
++    var awaitPrepare = this._prepP ? this._prepP : Promise.resolve();
+     this._onML = null;
+     this._addEL.message = [];
+     return awaitPrepare // wait until all current sending are processed
+diff --git a/dist/esbrowser/leader-election.js b/dist/esbrowser/leader-election.js
+index 4ac8a8d..2705891 100644
+--- a/dist/esbrowser/leader-election.js
++++ b/dist/esbrowser/leader-election.js
+@@ -16,7 +16,7 @@ var LeaderElection = function LeaderElection(broadcastChannel, options) {
+    * in parallel.
+    */
+ 
+-  this._aplQ = PROMISE_RESOLVED_VOID; // amount of unfinished applyOnce() calls
++  this._aplQ = Promise.resolve(); // amount of unfinished applyOnce() calls
+ 
+   this._aplQC = 0; // things to clean up
+ 
+@@ -90,7 +90,7 @@ LeaderElection.prototype = {
+        * has already elected a leader.
+        */
+       if (_this2.isLeader) {
+-        return PROMISE_RESOLVED_TRUE;
++        return Promise.resolve(true);
+       }
+ 
+       var stopCriteria = false;
+@@ -232,7 +232,7 @@ LeaderElection.prototype = {
+ 
+ function _awaitLeadershipOnce(leaderElector) {
+   if (leaderElector.isLeader) {
+-    return PROMISE_RESOLVED_VOID;
++    return Promise.resolve();
+   }
+ 
+   return new Promise(function (res) {
+diff --git a/dist/esbrowser/methods/native.js b/dist/esbrowser/methods/native.js
+index cef714d..ec8c846 100644
+--- a/dist/esbrowser/methods/native.js
++++ b/dist/esbrowser/methods/native.js
+@@ -24,7 +24,7 @@ export function close(channelState) {
+ export function postMessage(channelState, messageJson) {
+   try {
+     channelState.bc.postMessage(messageJson, false);
+-    return PROMISE_RESOLVED_VOID;
++    return Promise.resolve();
+   } catch (err) {
+     return Promise.reject(err);
+   }

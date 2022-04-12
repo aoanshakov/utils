@@ -30,7 +30,9 @@ const {
     packageLockJson,
     stub,
     shadowContentTsxSource,
-    shadowContentTsxTarget
+    shadowContentTsxTarget,
+    broadcastChannel,
+    broadcastChannelPatch
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -172,6 +174,7 @@ actions['modify-code'] = params => actions['restore-code']({}).
     concat([
         `cp ${stub} ${misc}`,
         `cp ${shadowContentTsxSource} ${shadowContentTsxTarget}`
+        `cd ${broadcastChannel} && patch -p1 < ${broadcastChannelPatch}`
     ]).concat(actions['fix-permissions']);
 
 const appModule = ([module, path, args]) => [`web/comagic_app_modules/${module}`, path, args, misc];

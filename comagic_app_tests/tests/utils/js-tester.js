@@ -2969,6 +2969,178 @@ function JsTester_WindowSize () {
     };
 }
 
+function JsTeste_Observable (args) {
+    var eventNames = args.eventNames,
+        handlers = args.handlers,
+        shortcutHandlers = args.shortcutHandlers,
+        me = args.me;
+
+    eventNames.forEach(function (eventName) {
+        shortcutHandlers[eventName] = function () {};
+        handlers[eventName] = new Map();
+
+        me['on' + eventName] = function (handler) {
+            shortcutHandlers[eventName] = handler;
+            handlers[eventName].set(handler, handler);
+        };
+
+        me.addEventListener = function (eventName, handler) {
+            handlers[eventName].set(handler, handler);
+        };
+
+        me.removeEventListener = function (eventName, handler) {
+            handlers[eventName].delete(handler);
+        };
+    });
+
+    return function (eventName) {
+        handlers[eventName].apply(null, Array.prototype.slice.call(arguments, 1));
+    };
+}
+    
+function JsTester_NoBroadcastChannelMessage () {
+    this.expectNotToExist = function () {};
+
+    this.expectToHaveContent = function (expectedMessge) {
+        throw new Error(
+            'Должно быть отправлено сообщение с содержимым "' + expectedMessage + '", тогда, как ни одно ' +
+            'сообщение не было отправлено".'
+        );
+    };
+}
+
+function JsTester_BroadcastChannelMessage (args) {
+    var actualMessage = args.message,
+        actualChannelName = args.channelName,
+        utils = args.utils;
+
+    console.log('NEW MESSAGE', args);
+
+    this.expectToBeSentToChannel = function (expectedChannelName) {
+        if (actualChannelName != expectedChannelName) {
+            throw new Error(
+                'Сообщение должно быть передано в канал "' + expectedChannelName + '", тогда, как оно было передано ' +
+                'в канал "' + actualChannelName + '".'
+            );
+        }
+    };
+    
+    this.expectToHaveContent = function (expectedMessge) {
+        if (actualMessage != expectedMessage) {
+            throw new Error(
+                'Сообщение должно иметь содержимое "' + expectedMessage + '", а не "' + actualMessage + '".'
+            );
+        }
+    };
+
+    this.expectToContain = function (expectedContent) {
+        utils.expectObjectToContain(actualMessage, expectedContent);
+    };
+
+    this.expectNotToExist = function (exceptions) {
+        var exception = new Error(
+            'Ни одно сообщение не должно быть отправлено, тогда как было отправлено сообщение ' +
+                typeof actualMessage == 'string' ? actualMessage : JSON.stringify(actualMessage) +
+            '.'
+        );
+
+        if (exceptions) {
+            exceptions.push(exception);
+        } else {
+            throw exception;
+        }
+    };
+}
+
+function JsTester_BroadcastChannelFactory (args) {
+    var broadcastChannelMessages = args.broadcastChannelMessages,
+        broadcastChannelMessageEventFirerers = args.broadcastChannelMessageEventFirerers,
+        handlers = args.handlers,
+        shortcutHandlers = args.shortcutHandlers,
+        utils = args.utils;
+
+    return function (channelName) {
+        if (broadcastChannelMessageEventFirerers[channelName]) {
+            throw new Error('Канал "' + channelName + '" уже был создан.');
+        }
+
+        handlers[channelName] = {};
+        shortcutHandlers[channelName] = {};
+        channelHandlers = handlers[channelName];
+        shortcutChannelHandlers = shortcutHandlers[channelName];
+
+        this.postMessage = function (message) {
+            broadcastChannelMessages.add(new JsTester_BroadcastChannelMessage({
+                channelName: channelName,
+                message: message,
+                utils: utils
+            }));
+        };
+
+        this.close = function () {
+        };
+
+        broadcastChannelMessageEventFirerers[channelName] = new JsTeste_Observable({
+            me: this,
+            eventNames: ['message'],
+            handlers: channelHandlers,
+            shortcutHandlers: shortcutChannelHandlers
+        });
+    };
+}
+
+function JsTester_BroadcastChannelTester (args) {
+    var broadcastChannelMessages = args.broadcastChannelMessages,
+        broadcastChannel = args.broadcastChannel,
+        broadcastChannelMessageEventFirerers = args.broadcastChannelMessageEventFirerers;
+
+    this.recentMessage = function () {
+        return broadcastChannelMessages.pop();
+    };
+
+    this.receiveMessage = function (channelName, message) {
+        fireEvent = broadcastChannelMessageEventFirerers[channelName];
+
+        if (!fireEvent) {
+            throw new Error('Канал "' + channelName + '" должен был быть создан.');
+        }
+
+        fireEvent(message);
+    };
+}
+
+function JsTester_BroadcastChannelMocker (args) {
+    var RealBroadcastChannel = window.BroadcastChannel,
+        broadcastChannelMessages = args.broadcastChannelMessages,
+        broadcastChannelTester = args.broadcastChannelTester,
+        BroadcastChannel = args.BroadcastChannel,
+        handlers = args.handlers,
+        shortcutHandlers = args.shortcutHandlers,
+        broadcastChannelMessageEventFirerers = args.broadcastChannelMessageEventFirerers;
+
+    this.replaceByFake = function () {
+        broadcastChannelMessages.removeAll();
+
+        Object.keys(broadcastChannelMessageEventFirerers).forEach(function (channelName) {
+            delete(broadcastChannelMessageEventFirerers[channelName]);
+        });
+
+        Object.keys(shortcutHandlers).forEach(function (channelName) {
+            delete(shortcutHandlers[channelName]);
+        });
+
+        Object.keys(handlers).forEach(function (channelName) {
+            delete(handlers[channelName]);
+        });
+
+        window.BroadcastChannel = BroadcastChannel;
+    };
+
+    this.restoreReal = function () {
+        window.BroadcastChannel = RealBroadcastChannel;
+    };
+}
+
 function JsTester_Tests (factory) {
     Object.defineProperty(window, 'ResizeObserver', {
         get: function () {
@@ -3036,6 +3208,30 @@ function JsTester_Tests (factory) {
 
     var utils = factory.createUtils(debug),
         windowSize = new JsTester_WindowSize(),
+        broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage()),
+        broadcastChannelHandlers = {},
+        broadcastChannelShortcutHandlers = {},
+        broadcastChannelMessageEventFirerers = {},
+        BroadcastChannel = new JsTester_BroadcastChannelFactory({
+            utils: utils,
+            handlers: broadcastChannelHandlers,
+            shortcutHandlers: broadcastChannelShortcutHandlers,
+            broadcastChannelMessages: broadcastChannelMessages,
+            broadcastChannelMessageEventFirerers: broadcastChannelMessageEventFirerers
+        }),
+        broadcastChannelTester = new JsTester_BroadcastChannelTester({
+            broadcastChannelMessages: broadcastChannelMessages,
+            BroadcastChannel: BroadcastChannel,
+            broadcastChannelMessageEventFirerers: broadcastChannelMessageEventFirerers
+        }),
+        broadcastChannelMocker = new JsTester_BroadcastChannelMocker({
+            broadcastChannelMessageEventFirerers: broadcastChannelMessageEventFirerers,
+            broadcastChannelTester: broadcastChannelTester,
+            broadcastChannelMessages: broadcastChannelMessages,
+            BroadcastChannel: BroadcastChannel,
+            handlers: broadcastChannelHandlers,
+            shortcutHandlers: broadcastChannelShortcutHandlers
+        }),
         mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
         mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
         mutationObserverTester =  mutationObserverFactory.createTester(),
@@ -3352,6 +3548,7 @@ function JsTester_Tests (factory) {
             sdp: sdp,
             image: image,
             windowSize: windowSize,
+            broadcastChannel: broadcastChannelTester,
             mutationObserverMocker: mutationObserverMocker,
             fileReader: fileReaderTester,
             triggerMutation: mutationObserverTester,
@@ -3433,6 +3630,7 @@ function JsTester_Tests (factory) {
         });
         userDeviceHandling.reset();
         utils.enableScrollingIntoView();
+        broadcastChannelMocker.replaceByFake();
         mutationObserverMocker.replaceByFake();
         fileReaderMocker.replaceByFake();
         execCommandReplacer.replaceByFake();
@@ -3466,7 +3664,10 @@ function JsTester_Tests (factory) {
         var exceptions = [];
 
         this.restoreRealDelayedTasks();
+        console.log('RECENT MESSAGE', broadcastChannelTester.recentMessage());
+        broadcastChannelTester.recentMessage().expectNotToExist(exceptions);
         windowSize.reset();
+        broadcastChannelMocker.restoreReal();
         mutationObserverMocker.restoreReal();
         fileReaderTester.expectNoFileToBeLoading();
         fileReaderMocker.restoreReal();
