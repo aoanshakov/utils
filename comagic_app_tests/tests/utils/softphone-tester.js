@@ -15,7 +15,7 @@ define(function () {
             spendTime = options.spendTime,
             addSecond = options.addSecond,
             triggerMutation = options.triggerMutation,
-            broadcastChannel = options.broadcastChannel,
+            broadcastChannels = options.broadcastChannels,
             sip,
             eventsWebSocket,
             me = this,
@@ -5019,36 +5019,90 @@ define(function () {
             return me;
         };
 
-        this.masterInfoMessage = () => {
-            return {
-                hasNotMaster: () => null,
-                isNotMaster: () => null,
-                receive: () => {
-                    broadcastChannel.recentMessage();
-                    var message = broadcastChannel.recentMessage();
+        {
+            let time = 0,
+                wasMaster;
 
-                    message.expectToContain({
+            const recentMessage = () => {
+                const message = broadcastChannels.recentMessage();
+                time = message.time;
+                return message;
+            };
+
+            const receiveMessage = message => {
+                message.time = new Date().getTime() * 1000;
+
+                if (message.time <= time) {
+                    time ++;
+                    message.time = time;
+                }
+
+                broadcastChannels.channel('crosstab').receiveMessage(message);
+            };
+
+            const applyLeader = () => !wasMaster && [
+                recentMessage(),
+                recentMessage()
+            ].forEach(message => message.expectToContain({
+                type: 'internal',
+                data: {
+                    context: 'leader',
+                    action: 'apply'
+                }
+            }));
+
+            this.masterInfoMessage = () => {
+                let receive = () => {
+                    wasMaster === false && receiveMessage({
                         type: 'internal',
                         data: {
                             context: 'leader',
-                            action: 'apply'
+                            action: 'death',
+                            token: 'g28g2hor28'
                         }
                     });
 
-                    var token = message.getContent().data.token;
+                    applyLeader();
+                    return;
+
                     spendTime(150);
                     Promise.runAll(false, true);
 
-                    broadcastChannel.recentMessage().expectToContain({
+                    broadcastChannels.recentMessage().expectToBeSentToChannel('crosstab').expectToContain({
                         type: 'internal',
                         data: {
                             context: 'leader',
                             action: 'tell'
                         }
                     });
-                }
+
+                    wasMaster = true;
+                };
+
+                return {
+                    hasNotMaster: () => null,
+                    isNotMaster() {
+                        receive = () => {
+                            applyLeader();
+
+                            receiveMessage({
+                                type: 'internal',
+                                data: {
+                                    context: 'leader',
+                                    action: 'tell',
+                                    token: 'g28g2hor28'
+                                }
+                            });
+
+                            wasMaster = false;
+                        };
+
+                        return this;
+                    },
+                    receive: () => receive()
+                };
             };
-        };
+        }
 
         this.settingsChangedMessage = function () {
             var data = {};

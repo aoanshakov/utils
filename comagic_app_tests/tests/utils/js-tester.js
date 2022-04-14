@@ -2976,13 +2976,19 @@ function JsTeste_Observable (args) {
         me = args.me;
 
     eventNames.forEach(function (eventName) {
+        var shortcutHandler;
+
         shortcutHandlers[eventName] = function () {};
         handlers[eventName] = new Map();
 
-        me['on' + eventName] = function (handler) {
-            shortcutHandlers[eventName] = handler;
-            handlers[eventName].set(handler, handler);
-        };
+        Object.defineProperty(me, 'on' + eventName, {
+            get: function () {
+                return shortcutHandler;
+            },
+            set: function (handler) {
+                shortcutHandlers[eventName] = shortcutHandler = handler;
+            }
+        }); 
 
         me.addEventListener = function (eventName, handler) {
             handlers[eventName].set(handler, handler);
@@ -2994,7 +3000,13 @@ function JsTeste_Observable (args) {
     });
 
     return function (eventName) {
-        handlers[eventName].apply(null, Array.prototype.slice.call(arguments, 1));
+        var args = Array.prototype.slice.call(arguments, 1);
+
+        [handlers[eventName], [shortcutHandlers[eventName]]].forEach(function (handlers) {
+            handlers.forEach(function (handle) {
+                handle.apply(null, args);
+            });
+        });
     };
 }
     
@@ -3041,6 +3053,8 @@ function JsTester_BroadcastChannelMessage (args) {
                 'в канал "' + actualChannelName + '".'
             );
         }
+
+        return this;
     };
     
     this.expectToHaveContent = function (expectedMessge) {
@@ -3049,10 +3063,14 @@ function JsTester_BroadcastChannelMessage (args) {
                 'Сообщение должно иметь содержимое "' + expectedMessage + '", а не "' + actualMessage + '".'
             );
         }
+
+        return this;
     };
 
     this.expectToContain = function (expectedContent) {
         utils.expectObjectToContain(actualMessage, expectedContent);
+
+        return this;
     };
 
     this.getContent = function () {
@@ -3076,14 +3094,14 @@ function JsTester_BroadcastChannelMessage (args) {
 
 function JsTester_BroadcastChannelFactory (args) {
     var broadcastChannelMessages = args.broadcastChannelMessages,
-        broadcastChannelMessageEventFirerers = args.broadcastChannelMessageEventFirerers,
+        broadcastChannelMessageEventFirers = args.broadcastChannelMessageEventFirers,
         handlers = args.handlers,
         shortcutHandlers = args.shortcutHandlers,
         utils = args.utils,
         debug = args.debug;
 
     return function (channelName) {
-        if (broadcastChannelMessageEventFirerers[channelName]) {
+        if (broadcastChannelMessageEventFirers[channelName]) {
             throw new Error('Канал "' + channelName + '" уже был создан.');
         }
 
@@ -3104,7 +3122,7 @@ function JsTester_BroadcastChannelFactory (args) {
         this.close = function () {
         };
 
-        broadcastChannelMessageEventFirerers[channelName] = new JsTeste_Observable({
+        broadcastChannelMessageEventFirers[channelName] = new JsTeste_Observable({
             me: this,
             eventNames: ['message'],
             handlers: channelHandlers,
@@ -3113,23 +3131,43 @@ function JsTester_BroadcastChannelFactory (args) {
     };
 }
 
+
 function JsTester_BroadcastChannelTester (args) {
+    var fireEvent = args.eventFirer,
+        channelName = args.channelName;
+
+    this.expectToExist = function () {
+        if (!fireEvent) {
+            throw new Error('Канал "' + channelName + '" должен был быть создан.');
+        }
+    };
+
+    this.expectNotToExist = function () {
+        if (fireEvent) {
+            throw new Error('Канал "' + channelName + '" не должен быть создан.');
+        }
+    };
+
+    this.receiveMessage = function (message) {
+        fireEvent('message', {
+            data: message
+        });
+    };
+}
+
+function JsTester_BroadcastChannelsTester (args) {
     var broadcastChannelMessages = args.broadcastChannelMessages,
-        broadcastChannel = args.broadcastChannel,
-        broadcastChannelMessageEventFirerers = args.broadcastChannelMessageEventFirerers;
+        broadcastChannelMessageEventFirers = args.broadcastChannelMessageEventFirers;
 
     this.recentMessage = function () {
         return broadcastChannelMessages.pop();
     };
 
-    this.receiveMessage = function (channelName, message) {
-        fireEvent = broadcastChannelMessageEventFirerers[channelName];
-
-        if (!fireEvent) {
-            throw new Error('Канал "' + channelName + '" должен был быть создан.');
-        }
-
-        fireEvent(message);
+    this.channel = function (channelName) {
+        return new JsTester_BroadcastChannelTester({
+            eventFirer: broadcastChannelMessageEventFirers[channelName],
+            channelName: channelName
+        });
     };
 }
 
@@ -3140,13 +3178,13 @@ function JsTester_BroadcastChannelMocker (args) {
         BroadcastChannel = args.BroadcastChannel,
         handlers = args.handlers,
         shortcutHandlers = args.shortcutHandlers,
-        broadcastChannelMessageEventFirerers = args.broadcastChannelMessageEventFirerers;
+        broadcastChannelMessageEventFirers = args.broadcastChannelMessageEventFirers;
 
     this.replaceByFake = function () {
         broadcastChannelMessages.removeAll();
 
-        Object.keys(broadcastChannelMessageEventFirerers).forEach(function (channelName) {
-            delete(broadcastChannelMessageEventFirerers[channelName]);
+        Object.keys(broadcastChannelMessageEventFirers).forEach(function (channelName) {
+            delete(broadcastChannelMessageEventFirers[channelName]);
         });
 
         Object.keys(shortcutHandlers).forEach(function (channelName) {
@@ -3235,22 +3273,21 @@ function JsTester_Tests (factory) {
         broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage()),
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},
-        broadcastChannelMessageEventFirerers = {},
+        broadcastChannelMessageEventFirers = {},
         BroadcastChannel = new JsTester_BroadcastChannelFactory({
             debug: debug,
             utils: utils,
             handlers: broadcastChannelHandlers,
             shortcutHandlers: broadcastChannelShortcutHandlers,
             broadcastChannelMessages: broadcastChannelMessages,
-            broadcastChannelMessageEventFirerers: broadcastChannelMessageEventFirerers
+            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers
         }),
-        broadcastChannelTester = new JsTester_BroadcastChannelTester({
+        broadcastChannelTester = new JsTester_BroadcastChannelsTester({
             broadcastChannelMessages: broadcastChannelMessages,
-            BroadcastChannel: BroadcastChannel,
-            broadcastChannelMessageEventFirerers: broadcastChannelMessageEventFirerers
+            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers
         }),
         broadcastChannelMocker = new JsTester_BroadcastChannelMocker({
-            broadcastChannelMessageEventFirerers: broadcastChannelMessageEventFirerers,
+            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers,
             broadcastChannelTester: broadcastChannelTester,
             broadcastChannelMessages: broadcastChannelMessages,
             BroadcastChannel: BroadcastChannel,
@@ -3573,7 +3610,7 @@ function JsTester_Tests (factory) {
             sdp: sdp,
             image: image,
             windowSize: windowSize,
-            broadcastChannel: broadcastChannelTester,
+            broadcastChannels: broadcastChannelTester,
             mutationObserverMocker: mutationObserverMocker,
             fileReader: fileReaderTester,
             triggerMutation: mutationObserverTester,
