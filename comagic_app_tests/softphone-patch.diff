@@ -36,75 +36,10 @@ index 7db2045..907e237 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 6903a17..87ea678 100644
+index 60bdcb8..87ea678 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -28,7 +28,8 @@ import {
-     SET_STATUSES,
-     JSSIP_INBOUNDING_CALL_INCOMING,
-     JSSIP_CALL_ENDED,
--    SOFTPHONE_HIGHT_CHANGED
-+    SOFTPHONE_HIGHT_CHANGED,
-+    HANDLE_EVENT
- } from 'uis-softphone/constants';
- 
- type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
-@@ -65,7 +66,9 @@ export const RootStore = types
-     })
-     .actions(self => {
-         let initialState: RootInstanceSnapshotOut;
--        const sizeChangeHandlers = [];
-+        const sizeChangeHandlers = [],
-+            accountFetchedHandlers = [],
-+            applicationChangeHandlers = [];
- 
-         const afterCreate = () => {
-             const SET_SOFTPHONE_HOST = 'SET_SOFTPHONE_HOST',
-@@ -155,6 +158,14 @@ export const RootStore = types
-                 createSoftphoneMiddleware(),
-                 store => next => action => {
-                     switch (action.type) {
-+                        case HANDLE_EVENT: {
-+                            const {data} = action;
-+
-+                            data.name == 'application_version_changed' &&
-+                                applicationChangeHandlers.forEach(handler => handler(data));
-+
-+                            break;
-+                        }
-                         case SOFTPHONE_HIGHT_CHANGED:
-                             fireSizeChangeEvent(action.isSoftphoneHigh);
-                             break;
-@@ -214,6 +225,12 @@ export const RootStore = types
-                 size.width && size.height && handler(size);
-             };
- 
-+            self.onApplicationChangeChanger = handler => applicationChangeHandlers.push(handler);
-+
-+            self.onAccountFetched = handler => {
-+                accountFetchedHandlers.push(handler)
-+            };
-+
-             self.onDialpadKeyDown = (...args) => dispatch(onDialpadKeyDown(...args));
-             self.statusesStore.setStatusUpdator((statusId: number) => dispatch(setStatus(statusId)));
-             self.setDictonary = i18n.setDictonary;
-@@ -293,6 +310,7 @@ export const RootStore = types
-                 });
- 
-                 self.handleAccountFetched = ({
-+                    accountStore,
-                     accountStore: {
-                         account: {
-                             app_id,
-@@ -309,6 +327,7 @@ export const RootStore = types
-                         hasFeatureFlag('softphone')
-                     );
- 
-+                    accessGranted && accountFetchedHandlers.forEach(handler => handler(accountStore));
-                     updateState({accessGranted});
-                     app_id && isSingleApp && !accessGranted && logout();
-                 };
-@@ -357,4 +376,5 @@ export const RootStore = types
+@@ -376,4 +376,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
