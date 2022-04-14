@@ -3505,6 +3505,14 @@ tests.addTest(options => {
                             utils.pressKey('7');
                             tester.phoneField.expectToBeFocused();
                         });
+                        it('Получена новая версия. Отправлено сообщение в бэк электрона.', function() {
+                            tester.applicationVersionChanged().receive();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('application-version-changed').
+                                expectToBeSentWithArguments('6.6.666');
+                        });
                         it('Некие сообщения выведены в лог.', function() {
                             tester.phoneField.expectNotToBeFocused();
 

@@ -6452,6 +6452,30 @@ define(() => function ({
         };
     };
 
+    me.applicationVersionChanged = function () {
+        var params = {
+            application_version: '6.6.666'
+        };
+
+        return {
+            critical: function () {
+                params.application_version = '6.7.666';
+                return this;
+            },
+            uncritical: function () {
+                params.application_version = '6.6.667';
+                return this;
+            },
+            receive: function () {
+                me.eventsWebSocket.receiveMessage({
+                    name: 'application_version_changed',
+                    type: 'event',
+                    params: params 
+                });
+            }
+        };
+    };
+
     me.disableTimeout = callback => {
         const setTimeout = window.setTimeout;
         window.setTimeout = () => null;
