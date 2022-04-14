@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 7db2045..0793165 100644
+index 7db2045..907e237 100644
 --- a/package.json
 +++ b/package.json
 @@ -55,7 +55,7 @@
@@ -11,7 +11,7 @@ index 7db2045..0793165 100644
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -64,7 +64,6 @@
+@@ -64,14 +64,13 @@
      "filesize": "^8.0.3",
      "formik": "^2.2.9",
      "history": "^4.10.1",
@@ -19,6 +19,14 @@ index 7db2045..0793165 100644
      "mobx": "^6.1.8",
      "mobx-react-lite": "^3.2.0",
      "mobx-state-tree": "^5.0.1",
+     "moment": "^2.29.1",
+     "react": "^17.0.1",
+     "react-dom": "^17.0.1",
+-    "react-intl": "^5.13.2",
++    "react-intl": "5.15.8",
+     "react-router-dom": "^5.2.0",
+     "react-redux": "^7.0.0",
+     "redux": "^4.0.0",
 @@ -79,6 +78,6 @@
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
@@ -28,10 +36,75 @@ index 7db2045..0793165 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 66ef71e..cb683d1 100644
+index 6903a17..87ea678 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -360,4 +360,5 @@ export const RootStore = types
+@@ -28,7 +28,8 @@ import {
+     SET_STATUSES,
+     JSSIP_INBOUNDING_CALL_INCOMING,
+     JSSIP_CALL_ENDED,
+-    SOFTPHONE_HIGHT_CHANGED
++    SOFTPHONE_HIGHT_CHANGED,
++    HANDLE_EVENT
+ } from 'uis-softphone/constants';
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+@@ -65,7 +66,9 @@ export const RootStore = types
+     })
+     .actions(self => {
+         let initialState: RootInstanceSnapshotOut;
+-        const sizeChangeHandlers = [];
++        const sizeChangeHandlers = [],
++            accountFetchedHandlers = [],
++            applicationChangeHandlers = [];
+ 
+         const afterCreate = () => {
+             const SET_SOFTPHONE_HOST = 'SET_SOFTPHONE_HOST',
+@@ -155,6 +158,14 @@ export const RootStore = types
+                 createSoftphoneMiddleware(),
+                 store => next => action => {
+                     switch (action.type) {
++                        case HANDLE_EVENT: {
++                            const {data} = action;
++
++                            data.name == 'application_version_changed' &&
++                                applicationChangeHandlers.forEach(handler => handler(data));
++
++                            break;
++                        }
+                         case SOFTPHONE_HIGHT_CHANGED:
+                             fireSizeChangeEvent(action.isSoftphoneHigh);
+                             break;
+@@ -214,6 +225,12 @@ export const RootStore = types
+                 size.width && size.height && handler(size);
+             };
+ 
++            self.onApplicationChangeChanger = handler => applicationChangeHandlers.push(handler);
++
++            self.onAccountFetched = handler => {
++                accountFetchedHandlers.push(handler)
++            };
++
+             self.onDialpadKeyDown = (...args) => dispatch(onDialpadKeyDown(...args));
+             self.statusesStore.setStatusUpdator((statusId: number) => dispatch(setStatus(statusId)));
+             self.setDictonary = i18n.setDictonary;
+@@ -293,6 +310,7 @@ export const RootStore = types
+                 });
+ 
+                 self.handleAccountFetched = ({
++                    accountStore,
+                     accountStore: {
+                         account: {
+                             app_id,
+@@ -309,6 +327,7 @@ export const RootStore = types
+                         hasFeatureFlag('softphone')
+                     );
+ 
++                    accessGranted && accountFetchedHandlers.forEach(handler => handler(accountStore));
+                     updateState({accessGranted});
+                     app_id && isSingleApp && !accessGranted && logout();
+                 };
+@@ -357,4 +376,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

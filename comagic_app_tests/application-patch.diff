@@ -284,7 +284,7 @@ index 91310a1a..ec734fd2 100644
      output: {
          filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
 diff --git a/package.json b/package.json
-index 7ead81bf..6b5cf859 100644
+index 7ead81bf..31201d0d 100644
 --- a/package.json
 +++ b/package.json
 @@ -59,8 +59,8 @@
@@ -322,7 +322,7 @@ index 7ead81bf..6b5cf859 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -96,8 +99,11 @@
+@@ -96,8 +99,12 @@
      "react-dom": "^17.0.2",
      "react-intl": "5.15.8",
      "react-router-dom": "^5.1.2",
@@ -332,7 +332,8 @@ index 7ead81bf..6b5cf859 100644
      "yup": "^0.28.1",
 -    "broadcast-channel": "^4.10.0"
 +    "broadcast-channel": "^4.10.0",
-+    "string-hash": "^1.1.3"
++    "string-hash": "^1.1.3",
++    "antd": "3.26.7"
    }
  }
 diff --git a/public/index.html b/public/index.html
@@ -445,10 +446,21 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d7d9c6aa..4a69c3a3 100644
+index d7d9c6aa..6a65f183 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -167,7 +167,7 @@ export const RootStore = types
+@@ -64,6 +64,10 @@ const createSoftphoneStoreCreatingHandler = rootStore => {
+             }]
+         }));
+ 
++        store.onAccountFetched(accountStore =>
++            getIpcRender().send('feature-flags-fetched', accountStore.toJSON()?.account?.feature_flags || []));
++
++        store.onApplicationChangeChanger(data => getIpcRender().send('application-version-changed', data));
+         store.onSizeChange(size => getIpcRender().send('resize', size));
+         handleStoreCreating = () => null;
+     };
+@@ -167,7 +171,7 @@ export const RootStore = types
  
              setAuthHeaders();
  
@@ -457,7 +469,7 @@ index d7d9c6aa..4a69c3a3 100644
                  response => {
                      logRequest({response});
  
-@@ -216,6 +216,7 @@ export const RootStore = types
+@@ -216,6 +220,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -465,7 +477,7 @@ index d7d9c6aa..4a69c3a3 100644
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -249,7 +250,8 @@ export type DependencyInjection = {
+@@ -249,7 +254,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
