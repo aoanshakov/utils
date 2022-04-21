@@ -2383,6 +2383,8 @@ define(function () {
                                 response().
                                 copyHeader('Contact').
                                 send();
+
+                            Promise.runAll(false, true);
                         }
                     };
                 },
@@ -2501,6 +2503,9 @@ define(function () {
                     
                     return this;
                 },
+                expectToBeSent: function () {
+                    return this.start();
+                },
                 start: function () {
                     function checkFromAndToHeaders (request) {
                         request.
@@ -2530,6 +2535,7 @@ define(function () {
                                 setBody('v=0').
                                 send();
 
+                            Promise.runAll(false, true);
                             return this;
                         },
                         setRinging: function () {
@@ -2539,6 +2545,7 @@ define(function () {
                                 copyHeader('Contact').
                                 send();
 
+                            Promise.runAll(false, true);
                             return this;
                         },
                         receiveBusy: function () {
@@ -2549,6 +2556,7 @@ define(function () {
                                 send();
 
                             checkFromAndToHeaders(sip.recentRequest().expectToHaveMethod('ACK'));
+                            Promise.runAll(false, true);
                         },
                         setAccepted: function () {
                             request.response().
@@ -2573,6 +2581,8 @@ define(function () {
                                 }
                             });
 
+                            Promise.runAll(false, true);
+
                             return {
                                 receiveBye: function () {
                                     response.request().
@@ -2581,6 +2591,7 @@ define(function () {
                                         receive();
 
                                     sip.recentResponse().expectOk();
+                                    Promise.runAll(false, true);
                                 }
                             };
                         }
@@ -2674,6 +2685,9 @@ define(function () {
                     Promise.runAll(false, true);
 
                     return {
+                        expectOkToBeSent: function () {
+                            me.requestAcceptIncomingCall();
+                        },
                         expectTemporarilyUnavailableToBeSent: function () {
                             me.requestDeclineIncomingCall();
                         },
@@ -2691,6 +2705,7 @@ define(function () {
 
                             sip.recentResponse().expectOk();
                             sip.recentResponse().expectRequestTerminated();
+                            Promise.runAll(false, true);
                         },
                         finish: function () {
                             response.request().
@@ -2699,6 +2714,7 @@ define(function () {
                                 receive();
 
                             sip.recentResponse().expectOk();
+                            Promise.runAll(false, true);
                         }
                     };
                 }
@@ -3514,6 +3530,8 @@ define(function () {
                 setMethod('ACK').
                 setCallReceiverLogin('077368').
                 receive();
+
+            Promise.runAll(false, true);
 
             eventsWebSocket.receiveMessage({
                 name: 'employee_changed',
@@ -4337,521 +4355,12 @@ define(function () {
             extendAdditionalSlavesNotification = extentor;
         };
 
-        this.slavesNotification = function () {
-            var channel = '1';
-
-            var sessionIds = {
-                1: '2P47TE0zlcmeOyswJ9yIBGQ468199568725824',
-                2: 'XAjXcNpBemN3ppGZiBUJGq8468199568725824'
-            };
-
-            var state = {
-                holded: undefined,
-                muted: false,
-                direction: 'outgoing',
-                state: 'idle',
-                phoneNumber: '',
-                disabled: false,
-                channelsCount: 1,
-                currentChannel: 1,
-                destroyed: false,
-                microphoneAccessGranted: false,
-                lastChannelChange:  {
-                    previousChannelNumber: null,
-                    newChannel: {
-                        sessionId: null,
-                        state: null,
-                        direction: null
-                    }
-                },
-                webRTCServerConnected: false,
-                registered: false,
-                channels: {
-                    1: {
-                        endedNormally: null,
-                        holded: undefined,
-                        holdButtonPressed: false,
-                        muted: false,
-                        direction: 'outgoing',
-                        state: 'idle',
-                        phoneNumber: ''
-                    },
-                    2: {
-                        endedNormally: null,
-                        holded: undefined,
-                        holdButtonPressed: false,
-                        muted: false,
-                        direction: 'outgoing',
-                        state: 'idle',
-                        phoneNumber: ''
-                    }
-                }
-            };
-
-            var maybeRemoveSecondChannel = function () {
-                state.channels['2'] = undefined;
-            };
-
-            var processing = [],
-                postprocessing = [],
-                newChannelProcessing = [];
-
-            var phoneNumbers = {
-                1: '79161234567',
-                2: '79161234567'
-            };
-            
-            function phoneNumber () {
-                processing.push((function (channel) {
-                    return function () {
-                        state.channels[channel].phoneNumber = phoneNumbers[channel];
-                        me.available();
-                    };
-                })(channel));
-            };
-
-            function changedChannel (newChannelNumber, previousChannelNumber) {
-                processing.push(function () {
-                    var newChannel = {
-                        state: state.channels[newChannelNumber].state,
-                        direction: state.channels[newChannelNumber].direction
-                    };
-
-                    state.lastChannelChange = {
-                        previousChannelNumber: previousChannelNumber,
-                        newChannel: newChannel 
-                    };
-
-                    newChannelProcessing.forEach(function (process) {
-                        process(newChannel)
-                    });
-                });
-            }
-
-            function createNotification (process) {
-                maybeRemoveSecondChannel();
-
-                processing.forEach(function (process) {
-                    process();
-                });
-
-                process();
-
-                postprocessing.forEach(function (process) {
-                    process();
-                });
-
-                Object.entries(state.channels[state.currentChannel]).forEach(function (args) {
-                    var key = args[0],
-                        value = args[1];
-
-                    key != 'holdButtonPressed' && (state[key] = value);
-                });
-
-                return {
-                    type: 'notify_slaves',
-                    data: {
-                        type: 'state_updating',
-                        state: state
-                    }
-                };
-            }
-
-            var me = extendSlavesNotification({
-                additional: function () {
-                    var processing = [];
-
-                    var state = {
-                        channels: {
-                            1: {
-                                dtmf: ''
-                            },
-                            2: {
-                                dtmf: ''
-                            }
-                        },
-                        sessions: {
-                            transfered: {
-                                1: undefined,
-                                2: undefined
-                            }
-                        },
-                        softphone: {
-                            names: {
-                                '79161234567': undefined,
-                                '79161234569': undefined
-                            }
-                        }
-                    };
-
-                    var notification = {
-                        type: 'notify_slaves',
-                        data: {
-                            type: 'state_updating',
-                            state: state 
-                        } 
-                    };
-
-                    function getNotification () {
-                        processing.forEach(function (process) {
-                            process();
-                        });
-
-                        return notification;
-                    }
-
-                    return extendAdditionalSlavesNotification({
-                        dtmf: function (value) {
-                            state.channels['1'].dtmf = value;
-                            return this;
-                        },
-                        transfered: function () {
-                            state.sessions.transfered['1'] = true;
-                            return this;
-                        },
-                        name: function () {
-                            state.softphone.names['79161234567'] = 'Шалева Дора';
-                            return this;
-                        },
-                        anotherName: function () {
-                            state.softphone.names['79161234569'] =
-                                'ООО "КОБЫЛА И ТРУПОГЛАЗЫЕ ЖАБЫ ИСКАЛИ ЦЕЗИЮ НАШЛИ ПОЗДНО УТРОМ СВИСТЯЩЕГО ХНА"';
-                            return this;
-                        },
-                        expectToBeSent: function () {
-                            eventsWebSocket.expectSentMessageToContain(getNotification());
-                        },
-                        receive: function () {
-                            eventsWebSocket.receiveMessage(getNotification());
-                        }
-                    }, state, processing);
-                },
-                wasIncomingAtTheMomentOfChannelChanging: function () {
-                    newChannelProcessing.push(newChannel => {
-                        newChannel.direction = 'incoming';
-                    });
-                    
-                    return this;
-                },
-                wasIdleAtTheMomentOfChannelChanging: function () {
-                    newChannelProcessing.push(newChannel => {
-                        newChannel.state = 'idle';
-                    });
-                    
-                    return this;
-                },
-                wasInProgressAtTheMomentOfChannelChanging: function () {
-                    newChannelProcessing.push(newChannel => {
-                        newChannel.state = 'progress';
-                    });
-                    
-                    return this;
-                },
-                currentChannelIsSecond: function () {
-                    this.twoChannels();
-                    state.currentChannel = 2;
-                    return this;
-                },
-                changedChannelToSecond: function () {
-                    this.currentChannelIsSecond();
-                    changedChannel(2, 1);
-                    return this;
-                },
-                changedChannelToFirst: function () {
-                    this.twoChannels();
-                    changedChannel(1, 2);
-                    state.currentChannel = 1;
-                    return this;
-                },
-                secondChannel: function () {
-                    this.twoChannels();
-                    channel = '2';
-                    return this;
-                },
-                twoChannels: function () {
-                    state.channelsCount = 2;
-                    maybeRemoveSecondChannel = function () {};
-
-                    if (!state.channels['2']) {
-                        return this;
-                    }
-
-                    return this;
-                },
-                webRTCServerConnected: function () {
-                    state.webRTCServerConnected = true;
-                    return this;
-                },
-                microphoneAccessGranted: function () {
-                    state.microphoneAccessGranted = true;
-                    return this;
-                },
-                registered: function () {
-                    state.registered = true;
-                    return this;
-                },
-                available: function () {
-                    state.webRTCServerConnected = true;
-                    state.microphoneAccessGranted = true;
-                    state.registered = true;
-
-                    return this;
-                },
-                ended: function() {
-                    this.available();
-                    state.channels[channel].endedNormally = true; 
-                    return this;
-                },
-                failed: function() {
-                    this.available();
-                    state.channels[channel].endedNormally = false; 
-                    return this;
-                },
-                muted: function () {
-                    state.channels[channel].muted = true; 
-                    return this;
-                },
-                holded: function () {
-                    state.channels[channel].holdButtonPressed = true; 
-                    return this;
-                },
-                incoming: function () {
-                    state.channels[channel].direction = 'incoming';
-                    return this;
-                },
-                startsWithEight: function () {
-                    processing.push(function () {
-                        state.channels[channel].phoneNumber = '8' + state.channels[channel].phoneNumber.substr(1);
-                    });
-
-                    return this;
-                },
-                shortPhoneNumber: function () {
-                    phoneNumbers[channel] = '79161';
-                    return this;
-                },
-                anotherShortPhoneNumber: function () {
-                    phoneNumbers[channel] = '295';
-                    return this;
-                },
-                anotherPhoneNumber: function () {
-                    phoneNumbers[channel] = '79161234569';
-                    return this;
-                },
-                fourthPhoneNumber: function () {
-                    phoneNumbers[channel] = '74999951240';
-                    return this;
-                },
-                thirdPhoneNumber: function () {
-                    phoneNumbers[channel] = '74950230625';
-                    return this;
-                },
-                sending: function () {
-                    state.channels[channel].state = 'sending';
-                    phoneNumber();
-                    return this;
-                },
-                progress: function () {
-                    state.channels[channel].state = 'progress';
-                    phoneNumber();
-                    return this;
-                },
-                confirmed: function () {
-                    state.channels[channel].state = 'confirmed';
-                    phoneNumber();
-                    return this;
-                },
-                microphoneAccessDenied: function () {
-                    state.error = 'microphoneAccessDenied';
-
-                    postprocessing.push(function () {
-                        state.microphoneAccessGranted = false;
-                    });
-
-                    return this;
-                },
-                registrationFailed: function () {
-                    state.error = 'registrationFailed';
-                    state.destroyed = true;
-                    return this;
-                },
-                appAlreadyOpened: function () {
-                    state.error = 'appAlreadyOpened';
-                    state.destroyed = true;
-                    return this;
-                },
-                disabled: function () {
-                    state.disabled = true;
-                    return this;
-                },
-                destroyed: function () {
-                    state.destroyed = true;
-                    return this;
-                },
-                expectToBeSent: function () {
-                    eventsWebSocket.expectSentMessageToContain(createNotification(function () {}));
-                },
-                receive: function () {
-                    eventsWebSocket.receiveMessage(createNotification(function () {
-                        Object.entries(state.channels).forEach(function (args) {
-                            var key = args[0],
-                                value = args[1];
-
-                            if (!value) {
-                                return;
-                            }
-
-                            value.state != 'idle' &&
-                                (state.channels[key].sessionId = sessionIds[key]);
-                        });
-                    }));
-                }
-            });
-
-            return me;
-        };
-
         var extendMasterNotification = function (notification) {
             return notification;
         };
 
         this.extendMasterNotification = function (extentor) {
             extendMasterNotification = extentor;
-        };
-
-        this.masterNotification = function () {
-            var data = {},
-                processing = [];
-
-            function createNotification () {
-                processing.forEach(function (process) {
-                    process();
-                });
-
-                return {
-                    type: 'notify_master',
-                    data: data
-                };
-            }
-
-            var me = extendMasterNotification({
-                setSecondChannel: function () {
-                    data = {
-                        action: 'setChannel',
-                        channel: 2
-                    };
-
-                    return this;
-                },
-                answer: function () {
-                    data = {
-                        action: 'answer'
-                    };
-
-                    return this;
-                },
-                sendDTMF: function () {
-                    data = {
-                        action: 'sendDTMF',
-                        dtmf: '#295'
-                    };
-
-                    return this;
-                },
-                unmute: function () {
-                    data = {
-                        action: 'unmute'
-                    };
-
-                    return this;
-                },
-                mute: function () {
-                    data = {
-                        action: 'mute'
-                    };
-
-                    return this;
-                },
-                unhold: function () {
-                    data = {
-                        action: 'unhold'
-                    };
-
-                    return this;
-                },
-                hold: function () {
-                    data = {
-                        action: 'hold'
-                    };
-
-                    return this;
-                },
-                secondChannel: function () {
-                    processing.push(function () {
-                        data.channel = 2;
-                    });
-
-                    return this;
-                },
-                terminate: function () {
-                    data = {
-                        action: 'terminate'
-                    };
-
-                    return this;
-                },
-                anotherShortPhoneNumber: function () {
-                    processing.push(function () {
-                        data.phoneNumber = '295';
-                    });
-
-                    return this;
-                },
-                fourthPhoneNumber: function () {
-                    processing.push(function () {
-                        data.phoneNumber = '74999951240';
-                    });
-
-                    return this;
-                },
-                thirdPhoneNumber: function () {
-                    processing.push(function () {
-                        data.phoneNumber = '74950230625';
-                    });
-
-                    return this;
-                },
-                anotherPhoneNumber: function () {
-                    processing.push(function () {
-                        data.phoneNumber = '79161234569';
-                    });
-
-                    return this;
-                },
-                call: function () {
-                    data = {
-                        action: 'call',
-                        phoneNumber: '79161234567'
-                    };
-
-                    return this;
-                },
-                tabOpened: function () {
-                    data = {
-                        action: 'tab_opened'
-                    };
-
-                    return this;
-                },
-                expectToBeSent: function () {
-                    eventsWebSocket.expectSentMessageToContain(createNotification());
-                },
-                receive: function () {
-                    eventsWebSocket.receiveMessage(createNotification());
-                }
-            }, data);
-
-            return me;
         };
 
         var extendOthersNotification = function (notification) {
@@ -4862,162 +4371,85 @@ define(function () {
             extendOthersNotification = extentor;
         };
 
-        this.othersNotification = function () {
-            var data = {},
-                maybeProcessData = function () {},
-                settingsUpdatingProcessing = [];
+        this.extendOthersNotification(function (notification, data) {
+            notification.numberCapacityUpdate = function () {
+                data.type = 'update_number_capacity';
+                data.value = 124825;
+                return notification;
+            };
 
-            function createNotification () {
-                maybeProcessData();
+            var settings = me.getApplicationSpecificSettings();
+            delete(settings.sip_login);
 
-                return {
-                    type: 'notify_others',
-                    data: data
-                };
-            }
+            notification.noTelephony = function () {
+                Object.keys(settings).forEach(key => ![
+                    'ws_url',
+                    'sip_channels_count',
+                    'ice_servers',
+                    'application_version'
+                ].includes(key) && delete(settings[key]));
 
-            function addMethods (me) {
-                me.expectToBeSent = function () {
-                    eventsWebSocket.expectSentMessageToContain(createNotification());
-                };
+                ['sip_host', 'sip_login', 'sip_password'].forEach(key => (settings[key] = null));
 
-                me.receive = function () {
-                    eventsWebSocket.receiveMessage(createNotification());
-                };
+                return this;
+            };
 
-                return me;
-            }
+            notification.modalWindowHiding = function () {
+                data.type = 'action_invocation';
+                data.action = 'hide_modal_window';
+                return this;
+            };
 
-            var me = addMethods(extendOthersNotification({
-                updateSettings: function () {
-                    var settings = {
-                        ringtone: undefined,
-                        microphone: undefined,
-                        remoteStreamVolume: undefined,
-                        holdMusic: undefined,
-                        outputDeviceId: undefined
-                    };
-                    
-                    function setRingtone () {
-                        settings.ringtone = {
-                            volume: undefined,
-                            deviceId: undefined,
-                            url: undefined
-                        };
-                    };
+            notification.anotherSipCredentials = function () {
+                settings.sip_login = '093820';
+                settings.sip_password = 'Fx223sxBfr';
+                return this;
+            };
 
-                    function setMicrophone () {
-                        settings.microphone = {
-                            volume: undefined,
-                            deviceId: undefined
-                        };
-                    }
+            notification.onLogoutStatusSpecified = function () {
+                settings.on_logout_status_id = 3;
+                return this;
+            };
 
-                    function setHoldMusic () {
-                        settings.holdMusic = {
-                            volume: undefined,
-                            url: undefined
-                        };
-                    }
+            notification.onLoginStatusSpecified = function () {
+                settings.on_login_status_id = 2;
+                return this;
+            };
 
-                    data.action = 'updateSettings';
-                    data.settings = settings;
+            notification.isNeedAutoSetStatus = function () {
+                settings.is_need_auto_set_status = true;
+                return this;
+            };
 
-                    maybeProcessData = function () {
-                        settingsUpdatingProcessing.forEach(function (process) {
-                            process(settings);
-                        });
-                    };
+            notification.incomingCallSoundIsDisabled = function () {
+                settings.is_enable_incoming_call_sound = false;
+                return notification;
+            };
 
-                    return addMethods({
-                        incomingRingtone: function () {
-                            setRingtone();
-                            settings.ringtone.url = 'https://somehost.com/softphone_ringtone2.mp3';
-                            return this;
-                        },
-                        noIncomingRingtone: function () {
-                            setRingtone();
-                            settings.ringtone.url = '';
-                            return this;
-                        },
-                        anotherRingtoneDevice: function () {
-                            setRingtone();
-                            settings.ringtone.deviceId =
-                                '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943ab';
+            notification.isNotUsingWidgetForCalls = function () {
+                settings.is_use_widget_for_calls = false;
+                return notification;
+            };
+                
+            notification.fixedNumberCapacityRule = function () {
+                settings.number_capacity_usage_rule = 'fixed';
+                return this;
+            };
 
-                            return this;
-                        },
-                        ringtoneDevice: function () {
-                            setRingtone();
-                            settings.ringtone.deviceId =
-                                'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab';
+            notification.isNeedHideNumbers = function () {
+                settings.is_need_hide_numbers = true;
+                return this;
+            };
 
-                            return this;
-                        },
-                        holdMusic: function () {
-                            setHoldMusic();
-                            settings.holdMusic.url = 'https://somehost.com/hold_music.mp3';
-                            return this;
-                        },
-                        noHoldMusic: function () {
-                            setHoldMusic();
-                            settings.holdMusic.url = '';
-                            return this;
-                        },
-                        defaultHoldMusicVolume: function () {
-                            setHoldMusic();
-                            settings.holdMusic.volume = 100;
-                            return this;
-                        },
-                        defaultMicrophoneVolume: function () {
-                            setMicrophone();
-                            settings.microphone.volume = 100;
-                            return this;
-                        },
-                        defaultRingtoneVolume: function () {
-                            setRingtone();
-                            settings.ringtone.volume = 100;
-                            return this;
-                        },
-                        holdMusicVolumeChanged: function () {
-                            setHoldMusic();
-                            settings.holdMusic.volume = 25;
-                            return this;
-                        },
-                        microphoneVolumeChanged: function () {
-                            setMicrophone();
-                            settings.microphone.volume = 25;
-                            return this;
-                        },
-                        ringtoneVolumeChanged: function () {
-                            setRingtone();
-                            settings.ringtone.volume = 25;
-                            return this;
-                        },
-                        ringtoneMuted: function () {
-                            setRingtone();
-                            settings.ringtone.volume = 0;
-                            return this;
-                        },
-                        microphoneDevice: function () {
-                            setMicrophone();
-                            settings.microphone.deviceId =
-                                '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a48ghal4';
+            notification.widgetStateUpdate = function () {
+                data.type = 'update_widget_state';
+                data.params = settings;
 
-                            return this;
-                        },
-                        outputDevice: function () {
-                            settings.outputDeviceId =
-                                '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943ab';
+                return notification;
+            };
 
-                            return this;
-                        }
-                    });
-                }
-            }, data));
-
-            return me;
-        };
+            return notification;
+        });
 
         {
             let time = 0,
@@ -5040,16 +4472,543 @@ define(function () {
                 broadcastChannels.channel('crosstab').receiveMessage(message);
             };
 
-            const applyLeader = () => !wasMaster && [
-                recentMessage(),
-                recentMessage()
-            ].forEach(message => message.expectToContain({
+            const createCustomMessage = data => ({
+                type: 'message',
+                data
+            });
+
+            const receiveCustomMessage = data => receiveMessage(createCustomMessage(data));
+                
+            const applyLeader = () => recentMessage().expectToContain({
                 type: 'internal',
                 data: {
                     context: 'leader',
                     action: 'apply'
                 }
-            }));
+            });
+                
+            this.masterNotification = function () {
+                var data = {},
+                    processing = [];
+
+                function createNotification () {
+                    processing.forEach(function (process) {
+                        process();
+                    });
+
+                    return {
+                        type: 'message',
+                        data: {
+                            type: 'notify_master',
+                            data
+                        }
+                    };
+                }
+
+                var me = extendMasterNotification({
+                    setSecondChannel: function () {
+                        data = {
+                            action: 'setChannel',
+                            channel: 2
+                        };
+
+                        return this;
+                    },
+                    answer: function () {
+                        data = {
+                            action: 'answer'
+                        };
+
+                        return this;
+                    },
+                    sendDTMF: function () {
+                        data = {
+                            action: 'sendDTMF',
+                            dtmf: '#295'
+                        };
+
+                        return this;
+                    },
+                    unmute: function () {
+                        data = {
+                            action: 'unmute'
+                        };
+
+                        return this;
+                    },
+                    mute: function () {
+                        data = {
+                            action: 'mute'
+                        };
+
+                        return this;
+                    },
+                    unhold: function () {
+                        data = {
+                            action: 'unhold'
+                        };
+
+                        return this;
+                    },
+                    hold: function () {
+                        data = {
+                            action: 'hold'
+                        };
+
+                        return this;
+                    },
+                    secondChannel: function () {
+                        processing.push(function () {
+                            data.channel = 2;
+                        });
+
+                        return this;
+                    },
+                    terminate: function () {
+                        data = {
+                            action: 'terminate'
+                        };
+
+                        return this;
+                    },
+                    anotherShortPhoneNumber: function () {
+                        processing.push(function () {
+                            data.phoneNumber = '295';
+                        });
+
+                        return this;
+                    },
+                    fourthPhoneNumber: function () {
+                        processing.push(function () {
+                            data.phoneNumber = '74999951240';
+                        });
+
+                        return this;
+                    },
+                    thirdPhoneNumber: function () {
+                        processing.push(function () {
+                            data.phoneNumber = '74950230625';
+                        });
+
+                        return this;
+                    },
+                    anotherPhoneNumber: function () {
+                        processing.push(function () {
+                            data.phoneNumber = '79161234569';
+                        });
+
+                        return this;
+                    },
+                    call: function () {
+                        data = {
+                            action: 'call',
+                            phoneNumber: '79161234567'
+                        };
+
+                        return this;
+                    },
+                    tabOpened: function () {
+                        data = {
+                            action: 'tab_opened'
+                        };
+
+                        return this;
+                    },
+                    expectToBeSent: function () {
+                        recentMessage().expectToContain(createNotification());
+                    },
+                    receive: function () {
+                        receiveMessage(createNotification());
+                    }
+                }, data);
+
+                return me;
+            };
+
+            this.slavesNotification = function () {
+                var channel = '1';
+
+                var sessionIds = {
+                    1: '2P47TE0zlcmeOyswJ9yIBGQ468199568725824',
+                    2: 'XAjXcNpBemN3ppGZiBUJGq8468199568725824'
+                };
+
+                var state = {
+                    holded: undefined,
+                    muted: false,
+                    direction: 'outgoing',
+                    state: 'idle',
+                    phoneNumber: '',
+                    disabled: false,
+                    channelsCount: 1,
+                    currentChannel: 1,
+                    destroyed: false,
+                    microphoneAccessGranted: false,
+                    lastChannelChange:  {
+                        previousChannelNumber: null,
+                        newChannel: {
+                            sessionId: null,
+                            state: null,
+                            direction: null
+                        }
+                    },
+                    webRTCServerConnected: false,
+                    registered: false,
+                    channels: {
+                        1: {
+                            endedNormally: null,
+                            holded: undefined,
+                            holdButtonPressed: false,
+                            muted: false,
+                            direction: 'outgoing',
+                            state: 'idle',
+                            phoneNumber: ''
+                        },
+                        2: {
+                            endedNormally: null,
+                            holded: undefined,
+                            holdButtonPressed: false,
+                            muted: false,
+                            direction: 'outgoing',
+                            state: 'idle',
+                            phoneNumber: ''
+                        }
+                    }
+                };
+
+                var maybeRemoveSecondChannel = function () {
+                    state.channels['2'] = undefined;
+                };
+
+                var processing = [],
+                    postprocessing = [],
+                    newChannelProcessing = [];
+
+                var phoneNumbers = {
+                    1: '79161234567',
+                    2: '79161234567'
+                };
+                
+                function phoneNumber () {
+                    processing.push((function (channel) {
+                        return function () {
+                            state.channels[channel].phoneNumber = phoneNumbers[channel];
+                            me.available();
+                        };
+                    })(channel));
+                };
+
+                function changedChannel (newChannelNumber, previousChannelNumber) {
+                    processing.push(function () {
+                        var newChannel = {
+                            state: state.channels[newChannelNumber].state,
+                            direction: state.channels[newChannelNumber].direction
+                        };
+
+                        state.lastChannelChange = {
+                            previousChannelNumber: previousChannelNumber,
+                            newChannel: newChannel 
+                        };
+
+                        newChannelProcessing.forEach(function (process) {
+                            process(newChannel)
+                        });
+                    });
+                }
+
+                function createNotification (process) {
+                    maybeRemoveSecondChannel();
+
+                    processing.forEach(function (process) {
+                        process();
+                    });
+
+                    process();
+
+                    postprocessing.forEach(function (process) {
+                        process();
+                    });
+
+                    Object.entries(state.channels[state.currentChannel]).forEach(function (args) {
+                        var key = args[0],
+                            value = args[1];
+
+                        key != 'holdButtonPressed' && (state[key] = value);
+                    });
+
+                    return {
+                        type: 'message',
+                        data: {
+                            type: 'notify_slaves',
+                            data: {
+                                type: 'state_updating',
+                                state: state
+                            }
+                        }
+                    };
+                }
+
+                var me = extendSlavesNotification({
+                    additional: function () {
+                        var processing = [];
+
+                        var state = {
+                            channels: {
+                                1: {
+                                    dtmf: ''
+                                },
+                                2: {
+                                    dtmf: ''
+                                }
+                            },
+                            sessions: {
+                                transfered: {
+                                    1: undefined,
+                                    2: undefined
+                                }
+                            },
+                            softphone: {
+                                names: {
+                                    '79161234567': undefined,
+                                    '79161234569': undefined
+                                }
+                            }
+                        };
+
+                        var notification = {
+                            type: 'notify_slaves',
+                            data: {
+                                type: 'state_updating',
+                                state: state 
+                            } 
+                        };
+
+                        function getNotification () {
+                            processing.forEach(function (process) {
+                                process();
+                            });
+
+                            return notification;
+                        }
+
+                        return extendAdditionalSlavesNotification({
+                            dtmf: function (value) {
+                                state.channels['1'].dtmf = value;
+                                return this;
+                            },
+                            transfered: function () {
+                                state.sessions.transfered['1'] = true;
+                                return this;
+                            },
+                            name: function () {
+                                state.softphone.names['79161234567'] = 'Шалева Дора';
+                                return this;
+                            },
+                            anotherName: function () {
+                                state.softphone.names['79161234569'] =
+                                    'ООО "КОБЫЛА И ТРУПОГЛАЗЫЕ ЖАБЫ ИСКАЛИ ЦЕЗИЮ НАШЛИ ПОЗДНО УТРОМ СВИСТЯЩЕГО ХНА"';
+                                return this;
+                            },
+                            expectToBeSent: function () {
+                                eventsWebSocket.expectSentMessageToContain(getNotification());
+                            },
+                            receive: function () {
+                                eventsWebSocket.receiveMessage(getNotification());
+                            }
+                        }, state, processing);
+                    },
+                    wasIncomingAtTheMomentOfChannelChanging: function () {
+                        newChannelProcessing.push(newChannel => {
+                            newChannel.direction = 'incoming';
+                        });
+                        
+                        return this;
+                    },
+                    wasIdleAtTheMomentOfChannelChanging: function () {
+                        newChannelProcessing.push(newChannel => {
+                            newChannel.state = 'idle';
+                        });
+                        
+                        return this;
+                    },
+                    wasInProgressAtTheMomentOfChannelChanging: function () {
+                        newChannelProcessing.push(newChannel => {
+                            newChannel.state = 'progress';
+                        });
+                        
+                        return this;
+                    },
+                    currentChannelIsSecond: function () {
+                        this.twoChannels();
+                        state.currentChannel = 2;
+                        return this;
+                    },
+                    changedChannelToSecond: function () {
+                        this.currentChannelIsSecond();
+                        changedChannel(2, 1);
+                        return this;
+                    },
+                    changedChannelToFirst: function () {
+                        this.twoChannels();
+                        changedChannel(1, 2);
+                        state.currentChannel = 1;
+                        return this;
+                    },
+                    secondChannel: function () {
+                        this.twoChannels();
+                        channel = '2';
+                        return this;
+                    },
+                    twoChannels: function () {
+                        state.channelsCount = 2;
+                        maybeRemoveSecondChannel = function () {};
+
+                        if (!state.channels['2']) {
+                            return this;
+                        }
+
+                        return this;
+                    },
+                    webRTCServerConnected: function () {
+                        state.webRTCServerConnected = true;
+                        return this;
+                    },
+                    microphoneAccessGranted: function () {
+                        state.microphoneAccessGranted = true;
+                        return this;
+                    },
+                    registered: function () {
+                        state.registered = true;
+                        return this;
+                    },
+                    available: function () {
+                        state.webRTCServerConnected = true;
+                        state.microphoneAccessGranted = true;
+                        state.registered = true;
+
+                        return this;
+                    },
+                    ended: function() {
+                        this.available();
+                        state.channels[channel].endedNormally = true; 
+                        return this;
+                    },
+                    failed: function() {
+                        this.available();
+                        state.channels[channel].endedNormally = false; 
+                        return this;
+                    },
+                    muted: function () {
+                        state.channels[channel].muted = true; 
+                        return this;
+                    },
+                    holded: function () {
+                        state.channels[channel].holdButtonPressed = true; 
+                        return this;
+                    },
+                    incoming: function () {
+                        state.channels[channel].direction = 'incoming';
+                        return this;
+                    },
+                    startsWithEight: function () {
+                        processing.push(function () {
+                            state.channels[channel].phoneNumber = '8' + state.channels[channel].phoneNumber.substr(1);
+                        });
+
+                        return this;
+                    },
+                    shortPhoneNumber: function () {
+                        phoneNumbers[channel] = '79161';
+                        return this;
+                    },
+                    anotherShortPhoneNumber: function () {
+                        phoneNumbers[channel] = '295';
+                        return this;
+                    },
+                    anotherPhoneNumber: function () {
+                        phoneNumbers[channel] = '79161234569';
+                        return this;
+                    },
+                    fifthPhoneNumber: function () {
+                        phoneNumbers[channel] = '79161234510';
+                        return this;
+                    },
+                    fourthPhoneNumber: function () {
+                        phoneNumbers[channel] = '74999951240';
+                        return this;
+                    },
+                    thirdPhoneNumber: function () {
+                        phoneNumbers[channel] = '74950230625';
+                        return this;
+                    },
+                    intercept: function () {
+                        phoneNumbers[channel] = '88';
+                        return this;
+                    },
+                    sending: function () {
+                        state.channels[channel].state = 'sending';
+                        phoneNumber();
+                        return this;
+                    },
+                    progress: function () {
+                        state.channels[channel].state = 'progress';
+                        phoneNumber();
+                        return this;
+                    },
+                    confirmed: function () {
+                        state.channels[channel].state = 'confirmed';
+                        phoneNumber();
+                        return this;
+                    },
+                    microphoneAccessDenied: function () {
+                        state.error = 'microphoneAccessDenied';
+
+                        postprocessing.push(function () {
+                            state.microphoneAccessGranted = false;
+                        });
+
+                        return this;
+                    },
+                    registrationFailed: function () {
+                        state.error = 'registrationFailed';
+                        state.destroyed = true;
+                        return this;
+                    },
+                    appAlreadyOpened: function () {
+                        state.error = 'appAlreadyOpened';
+                        state.destroyed = true;
+                        return this;
+                    },
+                    disabled: function () {
+                        state.disabled = true;
+                        return this;
+                    },
+                    destroyed: function () {
+                        state.destroyed = true;
+                        return this;
+                    },
+                    expectToBeSent: function () {
+                        recentMessage().expectToContain(createNotification(function () {}));
+                    },
+                    receive: function () {
+                        receiveMessage(createNotification(function () {
+                            Object.entries(state.channels).forEach(function (args) {
+                                var key = args[0],
+                                    value = args[1];
+
+                                if (!value) {
+                                    return;
+                                }
+
+                                value.state != 'idle' &&
+                                    (state.channels[key].sessionId = sessionIds[key]);
+                            });
+                        }));
+                    }
+                });
+
+                return me;
+            };
 
             this.masterInfoMessage = () => {
                 let receive = () => {
@@ -5062,13 +5021,25 @@ define(function () {
                         }
                     });
 
+                    Promise.runAll(false, true);
+
                     applyLeader();
-                    return;
 
                     spendTime(150);
                     Promise.runAll(false, true);
 
-                    broadcastChannels.recentMessage().expectToBeSentToChannel('crosstab').expectToContain({
+                    applyLeader();   
+
+                    spendTime(150);
+                    Promise.runAll(false, true);
+
+                    
+                    wasMaster !== false && anotherTabBecameLeader();
+                    wasMaster = true;
+                };
+
+                const anotherTabBecameLeader = () =>
+                    recentMessage().expectToBeSentToChannel('crosstab').expectToContain({
                         type: 'internal',
                         data: {
                             context: 'leader',
@@ -5076,14 +5047,18 @@ define(function () {
                         }
                     });
 
-                    wasMaster = true;
-                };
-
                 return {
+                    anotherTabBecameLeader() {
+                        receive = anotherTabBecameLeader;
+                        return this;
+                    },
                     hasNotMaster: () => null,
                     isNotMaster() {
                         receive = () => {
-                            applyLeader();
+                            if (!wasMaster) {
+                                applyLeader();
+                                applyLeader();
+                            }
 
                             receiveMessage({
                                 type: 'internal',
@@ -5101,6 +5076,206 @@ define(function () {
                     },
                     receive: () => receive()
                 };
+            };
+
+            this.othersNotification = function () {
+                var data = {},
+                    maybeProcessData = function () {},
+                    settingsUpdatingProcessing = [];
+
+                function createNotification () {
+                    maybeProcessData();
+
+                    return {
+                        type: 'notify_others',
+                        data: data
+                    };
+                }
+
+                function addMethods (me) {
+                    me.expectToBeSent = function () {
+                        recentMessage().expectToContain(createCustomMessage(createNotification()));
+                    };
+
+                    me.receive = function () {
+                        receiveCustomMessage(createNotification());
+                    };
+
+                    return me;
+                }
+
+                var me = addMethods(extendOthersNotification({
+                    updateSettings: function () {
+                        var settings = {
+                            ringtone: undefined,
+                            microphone: undefined,
+                            remoteStreamVolume: undefined,
+                            holdMusic: undefined,
+                            outputDeviceId: undefined,
+                            shouldPlayCallEndingSignal: undefined
+                        };
+                        
+                        function setRingtone () {
+                            !settings.ringtone && (settings.ringtone = {
+                                volume: undefined,
+                                deviceId: undefined,
+                                url: undefined
+                            });
+                        };
+
+                        function setMicrophone () {
+                            settings.microphone = {
+                                volume: undefined,
+                                deviceId: undefined
+                            };
+                        }
+
+                        function setHoldMusic () {
+                            settings.holdMusic = {
+                                volume: undefined,
+                                url: undefined
+                            };
+                        }
+
+                        data.action = 'updateSettings';
+                        data.settings = settings;
+
+                        maybeProcessData = function () {
+                            settingsUpdatingProcessing.forEach(function (process) {
+                                process(settings);
+                            });
+                        };
+                        return addMethods({
+                            defaultRingtone: function () {
+                                settings.ringtone = {};
+                                return this;
+                            },
+                            customRingtone: function () {
+                                setRingtone();
+                                settings.ringtone.url = 'https://somehost.com/softphone_ringtone3.mp3';
+                                return this;
+                            },
+                            anotherCustomRingtone: function () {
+                                setRingtone();
+                                settings.ringtone.url = 'https://somehost.com/softphone_ringtone2.mp3';
+                                return this;
+                            },
+                            shouldPlayCallEndingSignal: function () {
+                                settings.shouldPlayCallEndingSignal = true;
+                                return this;
+                            },
+                            shouldNotPlayCallEndingSignal: function () {
+                                settings.shouldPlayCallEndingSignal = false;
+                                return this;
+                            },
+                            noOutputDevice: function () {
+                                setRingtone();
+                                settings.outputDeviceId = null;
+                                return this;
+                            },
+                            noMicrophoneDevice: function () {
+                                setMicrophone();
+                                settings.microphone.deviceId = null;
+                                return this;
+                            },
+                            noRingtoneDevice: function () {
+                                setRingtone();
+                                settings.ringtone.deviceId = null;
+                                return this;
+                            },
+                            incomingRingtone: function () {
+                                setRingtone();
+                                settings.ringtone.url = 'https://somehost.com/softphone_ringtone2.mp3';
+                                return this;
+                            },
+                            noIncomingRingtone: function () {
+                                setRingtone();
+                                settings.ringtone.url = '';
+                                return this;
+                            },
+                            anotherRingtoneDevice: function () {
+                                setRingtone();
+                                settings.ringtone.deviceId =
+                                    '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943ab';
+
+                                return this;
+                            },
+                            ringtoneDevice: function () {
+                                setRingtone();
+                                settings.ringtone.deviceId =
+                                    'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab';
+
+                                return this;
+                            },
+                            holdMusic: function () {
+                                setHoldMusic();
+                                settings.holdMusic.url = 'https://somehost.com/hold_music.mp3';
+                                return this;
+                            },
+                            noHoldMusic: function () {
+                                setHoldMusic();
+                                settings.holdMusic.url = '';
+                                return this;
+                            },
+                            defaultHoldMusicVolume: function () {
+                                setHoldMusic();
+                                settings.holdMusic.volume = 100;
+                                return this;
+                            },
+                            defaultMicrophoneVolume: function () {
+                                setMicrophone();
+                                settings.microphone.volume = 100;
+                                return this;
+                            },
+                            defaultRingtoneVolume: function () {
+                                setRingtone();
+                                settings.ringtone.volume = 100;
+                                return this;
+                            },
+                            holdMusicVolumeChanged: function () {
+                                setHoldMusic();
+                                settings.holdMusic.volume = 25;
+                                return this;
+                            },
+                            microphoneVolumeChanged: function () {
+                                setMicrophone();
+                                settings.microphone.volume = 25;
+                                return this;
+                            },
+                            ringtoneVolumeChanged: function () {
+                                setRingtone();
+                                settings.ringtone.volume = 25;
+                                return this;
+                            },
+                            ringtoneMuted: function () {
+                                setRingtone();
+                                settings.ringtone.volume = 0;
+                                return this;
+                            },
+                            microphoneDevice: function () {
+                                setMicrophone();
+                                settings.microphone.deviceId =
+                                    '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a48ghal4';
+
+                                return this;
+                            },
+                            anotherOutputDevice: function () {
+                                settings.outputDeviceId =
+                                    'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab';
+
+                                return this;
+                            },
+                            outputDevice: function () {
+                                settings.outputDeviceId =
+                                    '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943ab';
+
+                                return this;
+                            }
+                        });
+                    }
+                }, data));
+
+                return me;
             };
         }
 

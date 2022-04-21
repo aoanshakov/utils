@@ -178,6 +178,8 @@ actions['modify-code'] = params => actions['restore-code']({}).
 
 const appModule = ([module, path, args]) => [`web/comagic_app_modules/${module}`, path, args, misc];
 
+actions['patch-broadcast-channel'] = [`cd ${broadcastChannel} && patch -p1 < ${broadcastChannelPatch}`];
+
 actions['initialize'] = params => [
     appModule(['chats', chats, '']),
     appModule(['softphone', softphone, '']),
@@ -192,9 +194,8 @@ actions['initialize'] = params => [
     actions['modify-code'](params)
 ).concat(!fs.existsSync(nodeModules) ?  [
     `chown -R root:root ${application}`,
-    `${cda} npm install --verbose`,
-    `cd ${broadcastChannel} && patch -p1 < ${broadcastChannelPatch}`
-].concat(actions['fix-permissions']) : []);
+    `${cda} npm install --verbose`
+].concat(actions['patch-broadcast-channel']).concat(actions['fix-permissions']) : []);
 
 const rmVerbose = target => `if [ -e ${target} ]; then rm -rvf ${target}; fi`;
 

@@ -4,7 +4,13 @@ tests.requireClass('Comagic.account.integration.bitrix24.store.AdditionalFields'
 tests.requireClass('Comagic.account.integration.bitrix24.store.Record');
 tests.requireClass('Comagic.account.integration.bitrix24.controller.Page');
 
-function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
+function AccountIntegrationBitrix24(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        utils = args.utils;
+    
+    Comagic.account.features = args.features || [];
+
     AccountIntegrationBitrix24.makeOverrides = function () {
         Ext.define('Comagic.test.account.integration.bitrix24.view.Page', {
             override: 'Comagic.account.integration.bitrix24.view.Page',

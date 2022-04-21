@@ -1000,33 +1000,37 @@ define(() => function ({
         };
     };
 
+    me.getApplicationSpecificSettings = function () {
+        return {
+            application_version: '1.3.2',
+            ice_servers: [{
+                urls: ['stun:stun.uiscom.ru:19302']
+            }],
+            numb: '74950216806',
+            number_capacity_id: 124824,
+            sip_channels_count: 2,
+            sip_host: 'voip.uiscom.ru',
+            sip_login: '077368',
+            sip_password: 'e2tcXhxbfr',
+            ws_url: '/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            is_need_hide_numbers: false,
+            is_extended_integration_available: true,
+            is_use_widget_for_calls: true,
+            is_need_open_widget_on_call: true,
+            is_need_close_widget_on_call_finished: false,
+            number_capacity_usage_rule: 'auto',
+            call_task: {
+                pause_between_calls_duration: 60,
+                call_card_show_duration: 10
+            }
+        };
+    };
+
     me.settingsRequest = () => {
         let shouldTriggerScrollRecalculation = true;
 
         const response = {
-            data: {
-                application_version: '1.3.2',
-                ice_servers: [{
-                    urls: ['stun:stun.uiscom.ru:19302']
-                }],
-                numb: '74950216806',
-                number_capacity_id: 124824,
-                sip_channels_count: 2,
-                sip_host: 'voip.uiscom.ru',
-                sip_login: '077368',
-                sip_password: 'e2tcXhxbfr',
-                ws_url: '/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                is_need_hide_numbers: false,
-                is_extended_integration_available: true,
-                is_use_widget_for_calls: true,
-                is_need_open_widget_on_call: true,
-                is_need_close_widget_on_call_finished: false,
-                number_capacity_usage_rule: 'auto',
-                call_task: {
-                    pause_between_calls_duration: 60,
-                    call_card_show_duration: 10
-                }
-            }
+            data: me.getApplicationSpecificSettings() 
         };
 
         let respond = request => {

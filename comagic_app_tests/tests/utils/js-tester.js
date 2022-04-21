@@ -3101,10 +3101,6 @@ function JsTester_BroadcastChannelFactory (args) {
         debug = args.debug;
 
     return function (channelName) {
-        if (broadcastChannelMessageEventFirers[channelName]) {
-            throw new Error('Канал "' + channelName + '" уже был создан.');
-        }
-
         handlers[channelName] = {};
         shortcutHandlers[channelName] = {};
         channelHandlers = handlers[channelName];
