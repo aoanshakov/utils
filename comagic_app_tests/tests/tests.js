@@ -2969,8 +2969,6 @@ tests.addTest(options => {
 
                     notificationTester.grantPermission();
 
-                    tester.connectEventsWebSocket();
-
                     tester.authenticatedUserRequest().receiveResponse();
                     reportGroupsRequest.receiveResponse();
 
@@ -2979,6 +2977,11 @@ tests.addTest(options => {
 
                 it('Вкладка становится ведущей. Поднимается webRTC-сокет.', function() {
                     tester.masterInfoMessage().receive();
+                    tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                    tester.connectEventsWebSocket();
+                    tester.authenticatedUserRequest().receiveResponse();
+
                     tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
 
                     tester.connectSIPWebSocket();
@@ -2988,8 +2991,8 @@ tests.addTest(options => {
                     tester.masterInfoMessage().tellIsLeader().receive();
 
                     tester.registrationRequest().receiveResponse();
-                    tester.slavesNotification().twoChannels().webRTCServerConnected().registered().
-                        softphoneServerConnected().expectToBeSent();
+                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                        registered().expectToBeSent();
 
                     tester.allowMediaInput();
                     tester.slavesNotification().twoChannels().available().expectToBeSent();
