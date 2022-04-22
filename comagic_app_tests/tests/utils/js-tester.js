@@ -354,6 +354,7 @@ function JsTester_NavigatorMock (args) {
 
     this.getUserMedia = getUserMedia;
     this.userAgent = navigator.userAgent;
+    this.vendor = navigator.vendor;
 }
 
 function JsTester_RTCConnectionSender (track) {

@@ -4639,8 +4639,8 @@ define(function () {
                     direction: 'outgoing',
                     state: 'idle',
                     phoneNumber: '',
-                    disabled: false,
-                    channelsCount: 1,
+                    disabled: null,
+                    channelsCount: 0,
                     currentChannel: 1,
                     destroyed: false,
                     microphoneAccessGranted: false,
@@ -4652,32 +4652,35 @@ define(function () {
                             direction: null
                         }
                     },
+                    softphoneServerConnected: false,
                     webRTCServerConnected: false,
                     registered: false,
-                    channels: {
-                        1: {
-                            endedNormally: null,
-                            holded: undefined,
-                            holdButtonPressed: false,
-                            muted: false,
-                            direction: 'outgoing',
-                            state: 'idle',
-                            phoneNumber: ''
-                        },
-                        2: {
-                            endedNormally: null,
-                            holded: undefined,
-                            holdButtonPressed: false,
-                            muted: false,
-                            direction: 'outgoing',
-                            state: 'idle',
-                            phoneNumber: ''
-                        }
-                    }
+                    channels: undefined
                 };
 
+                function getDefaultChannelState () {
+                    return {
+                        endedNormally: null,
+                        holded: undefined,
+                        holdButtonPressed: false,
+                        muted: false,
+                        direction: 'outgoing',
+                        state: 'idle',
+                        phoneNumber: ''
+                    };
+                }
+
+                function updateChannel (number, newState = {}) {
+                    !state.channels && (state.channels = {});
+
+                    !state.channels[number] && (state.channels[number] = {
+                        ...getDefaultChannelState(),
+                        ...newState
+                    });
+                }
+
                 var maybeRemoveSecondChannel = function () {
-                    state.channels['2'] = undefined;
+                    state.channels && (state.channels['2'] = undefined);
                 };
 
                 var processing = [],
@@ -4700,6 +4703,9 @@ define(function () {
 
                 function changedChannel (newChannelNumber, previousChannelNumber) {
                     processing.push(function () {
+                        updateChannel(previousChannelNumber);
+                        updateChannel(newChannelNumber);
+
                         var newChannel = {
                             state: state.channels[newChannelNumber].state,
                             direction: state.channels[newChannelNumber].direction
@@ -4729,12 +4735,13 @@ define(function () {
                         process();
                     });
 
-                    Object.entries(state.channels[state.currentChannel]).forEach(function (args) {
-                        var key = args[0],
-                            value = args[1];
+                    state.channels && state.channels[state.currentChannel] &&
+                        Object.entries(state.channels[state.currentChannel]).forEach(function (args) {
+                            var key = args[0],
+                                value = args[1];
 
-                        key != 'holdButtonPressed' && (state[key] = value);
-                    });
+                            key != 'holdButtonPressed' && (state[key] = value);
+                        });
 
                     return {
                         type: 'message',
@@ -4860,6 +4867,9 @@ define(function () {
                         return this;
                     },
                     twoChannels: function () {
+                        updateChannel(1);
+                        updateChannel(2);
+
                         state.channelsCount = 2;
                         maybeRemoveSecondChannel = function () {};
 
@@ -4869,7 +4879,12 @@ define(function () {
 
                         return this;
                     },
+                    softphoneServerConnected: function () {
+                        state.softphoneServerConnected = true;
+                        return this;
+                    },
                     webRTCServerConnected: function () {
+                        state.disabled = false;
                         state.webRTCServerConnected = true;
                         return this;
                     },
@@ -4881,8 +4896,13 @@ define(function () {
                         state.registered = true;
                         return this;
                     },
+                    enabled: function () {
+                        state.disabled = false;
+                        return this;
+                    },
                     available: function () {
-                        state.webRTCServerConnected = true;
+                        state.softphoneServerConnected = true;
+                        this.webRTCServerConnected();
                         state.microphoneAccessGranted = true;
                         state.registered = true;
 
@@ -4890,72 +4910,88 @@ define(function () {
                     },
                     ended: function() {
                         this.available();
+                        updateChannel(channel);
                         state.channels[channel].endedNormally = true; 
                         return this;
                     },
                     failed: function() {
                         this.available();
+                        updateChannel(channel);
                         state.channels[channel].endedNormally = false; 
                         return this;
                     },
                     muted: function () {
+                        updateChannel(channel);
                         state.channels[channel].muted = true; 
                         return this;
                     },
                     holded: function () {
+                        updateChannel(channel);
                         state.channels[channel].holdButtonPressed = true; 
                         return this;
                     },
                     incoming: function () {
+                        updateChannel(channel);
                         state.channels[channel].direction = 'incoming';
                         return this;
                     },
                     startsWithEight: function () {
                         processing.push(function () {
+                            updateChannel(channel);
                             state.channels[channel].phoneNumber = '8' + state.channels[channel].phoneNumber.substr(1);
                         });
 
                         return this;
                     },
                     shortPhoneNumber: function () {
+                        updateChannel(channel);
                         phoneNumbers[channel] = '79161';
                         return this;
                     },
                     anotherShortPhoneNumber: function () {
+                        updateChannel(channel);
                         phoneNumbers[channel] = '295';
                         return this;
                     },
                     anotherPhoneNumber: function () {
+                        updateChannel(channel);
                         phoneNumbers[channel] = '79161234569';
                         return this;
                     },
                     fifthPhoneNumber: function () {
+                        updateChannel(channel);
                         phoneNumbers[channel] = '79161234510';
                         return this;
                     },
                     fourthPhoneNumber: function () {
+                        updateChannel(channel);
                         phoneNumbers[channel] = '74999951240';
                         return this;
                     },
                     thirdPhoneNumber: function () {
+                        updateChannel(channel);
                         phoneNumbers[channel] = '74950230625';
                         return this;
                     },
                     intercept: function () {
+                        updateChannel(channel);
                         phoneNumbers[channel] = '88';
                         return this;
                     },
                     sending: function () {
+                        updateChannel(channel);
                         state.channels[channel].state = 'sending';
                         phoneNumber();
                         return this;
                     },
                     progress: function () {
+                        updateChannel(channel);
                         state.channels[channel].state = 'progress';
                         phoneNumber();
                         return this;
                     },
                     confirmed: function () {
+                        updateChannel(channel);
                         state.channels[channel].state = 'confirmed';
                         phoneNumber();
                         return this;
@@ -5033,12 +5069,10 @@ define(function () {
                     spendTime(150);
                     Promise.runAll(false, true);
 
-                    
-                    wasMaster !== false && anotherTabBecameLeader();
                     wasMaster = true;
                 };
 
-                const anotherTabBecameLeader = () =>
+                const tellIsLeader = () =>
                     recentMessage().expectToBeSentToChannel('crosstab').expectToContain({
                         type: 'internal',
                         data: {
@@ -5048,15 +5082,14 @@ define(function () {
                     });
 
                 return {
-                    anotherTabBecameLeader() {
-                        receive = anotherTabBecameLeader;
+                    tellIsLeader() {
+                        receive = tellIsLeader;
                         return this;
                     },
                     hasNotMaster: () => null,
                     isNotMaster() {
                         receive = () => {
                             if (!wasMaster) {
-                                applyLeader();
                                 applyLeader();
                             }
 
@@ -5069,6 +5102,7 @@ define(function () {
                                 }
                             });
 
+                            Promise.runAll(false, true);
                             wasMaster = false;
                         };
 
