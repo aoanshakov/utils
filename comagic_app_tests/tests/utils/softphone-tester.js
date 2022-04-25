@@ -4564,6 +4564,13 @@ define(function () {
 
                         return this;
                     },
+                    toggleWidgetVisiblity: function () {
+                        data = {
+                            action: 'toggle_widget_visiblity'
+                        };
+
+                        return this;
+                    },
                     terminate: function () {
                         data = {
                             action: 'terminate'
@@ -4775,6 +4782,7 @@ define(function () {
                                 }
                             },
                             softphone: {
+                                hidden: true,
                                 names: {
                                     '79161234567': undefined,
                                     '79161234569': undefined
@@ -4795,12 +4803,23 @@ define(function () {
                                 process();
                             });
 
-                            return notification;
+                            return {
+                                type: 'message',
+                                data: notification
+                            };
                         }
 
                         return extendAdditionalSlavesNotification({
+                            visible: function ()  {
+                                state.softphone.hidden = false;
+                                return this;
+                            },
                             dtmf: function (value) {
                                 state.channels['1'].dtmf = value;
+                                return this;
+                            },
+                            notTransfered: function () {
+                                state.sessions.transfered['1'] = false;
                                 return this;
                             },
                             transfered: function () {
@@ -4817,7 +4836,7 @@ define(function () {
                                 return this;
                             },
                             expectToBeSent: function () {
-                                eventsWebSocket.expectSentMessageToContain(getNotification());
+                                recentMessage().expectToContain(getNotification());
                             },
                             receive: function () {
                                 eventsWebSocket.receiveMessage(getNotification());

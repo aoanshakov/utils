@@ -277,9 +277,14 @@ tests.addTest(options => {
                                                                 tester.dtmf('5').expectToBeSent();
                                                                 spendTime(600);
 
-                                                                tester.transferButton.click();
+                                                                tester.slavesNotification().additional().visible().
+                                                                    transfered().dtmf('#295').expectToBeSent();
 
+                                                                tester.transferButton.click();
                                                                 tester.dtmf('#').expectToBeSent();
+
+                                                                tester.slavesNotification().additional().visible().
+                                                                    notTransfered().dtmf('#295#').expectToBeSent();
                                                             });
                                                             it('Отображена таблица сотрудников.', function() {
                                                                 tester.softphone.expectToHaveTextContent(
@@ -368,7 +373,7 @@ tests.addTest(options => {
 
                                                         tester.incomingIcon.expectToBeVisible();
                                                         tester.softphone.expectTextContentToHaveSubstring(
-                                                            'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                            'Шалева Дора +7 (916) 123-45-67 00:00'
                                                         );
                                                     });
                                                 });
@@ -483,7 +488,7 @@ tests.addTest(options => {
 
                                                         tester.transferIncomingIcon.expectToBeVisible();
                                                         tester.softphone.expectTextContentToHaveSubstring(
-                                                            'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                            'Шалева Дора +7 (916) 123-45-67 00:00'
                                                         );
                                                     });
                                                     it('Отображено сообщение о переводе звонка.', function() {
@@ -523,7 +528,7 @@ tests.addTest(options => {
                                                         expectToBeSent();
 
                                                     tester.softphone.expectTextContentToHaveSubstring(
-                                                        'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                        'Шалева Дора +7 (916) 123-45-67 00:00'
                                                     );
                                                 });
                                                 it(
@@ -892,6 +897,7 @@ tests.addTest(options => {
                                                         expectToBeSent();
 
                                                     tester.button('Софтфон').click();
+                                                    tester.slavesNotification().additional().visible().expectToBeSent();
 
                                                     spendTime(1000);
                                                     tester.getWebRtcSocket(0).finishDisconnecting();
@@ -938,6 +944,7 @@ tests.addTest(options => {
                                     describe('Нажимаю на иконку с телефоном.', function() {
                                         beforeEach(function() {
                                             tester.button('Софтфон').click();
+                                            tester.slavesNotification().additional().visible().expectToBeSent();
                                         });
 
                                         describe('Ввожу номер телефона.', function() {
@@ -1055,7 +1062,7 @@ tests.addTest(options => {
                                                                         tester.softphone.
                                                                             expectTextContentToHaveSubstring(
                                                                                 'Гигова Петранка ' +
-                                                                                '+7 (916) 123-45-10 00:00:00'
+                                                                                '+7 (916) 123-45-10 00:00'
                                                                             );
                                                                     });
                                                                     it(
@@ -1104,7 +1111,7 @@ tests.addTest(options => {
                                                                         tester.softphone.
                                                                             expectTextContentToHaveSubstring(
                                                                                 'Гигова Петранка ' +
-                                                                                '+7 (916) 123-45-10 00:00:00'
+                                                                                '+7 (916) 123-45-10 00:00'
                                                                             );
                                                                     });
                                                                     it(
@@ -1144,7 +1151,7 @@ tests.addTest(options => {
 
                                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                                         'Шалева Дора ' +
-                                                                        '+7 (916) 123-45-67 00:00:00'
+                                                                        '+7 (916) 123-45-67 00:00'
                                                                     );
                                                                     
                                                                     tester.body.expectTextContentToHaveSubstring(
@@ -1210,7 +1217,7 @@ tests.addTest(options => {
 
                                                                     tester.softphone.expectToHaveTextContent(
                                                                         'Шалева Дора ' +
-                                                                        '+7 (916) 123-45-67 00:00:00'
+                                                                        '+7 (916) 123-45-67 00:00'
                                                                     );
                                                                 });
                                                                 it(
@@ -1250,7 +1257,7 @@ tests.addTest(options => {
 
                                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                                         'Шалева Дора ' +
-                                                                        '+7 (916) 123-45-67 00:00:00'
+                                                                        '+7 (916) 123-45-67 00:00'
                                                                     );
                                                                 });
                                                             });
@@ -1272,7 +1279,7 @@ tests.addTest(options => {
                                                                 tester.softphone.expectToBeCollapsed();
                                                                 tester.outgoingIcon.expectToBeVisible();
                                                                 tester.softphone.expectTextContentToHaveSubstring(
-                                                                    'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                                    'Шалева Дора +7 (916) 123-45-67 00:00'
                                                                 );
                                                             });
                                                         });
@@ -1295,7 +1302,7 @@ tests.addTest(options => {
 
                                                         tester.outgoingIcon.expectToBeVisible();
                                                         tester.softphone.expectTextContentToHaveSubstring(
-                                                            '+7 (916) 123-45-67 Исходящий звонок 00:00:00'
+                                                            '+7 (916) 123-45-67 Исходящий звонок 00:00'
                                                         );
                                                     });
                                                     it(
@@ -1304,13 +1311,16 @@ tests.addTest(options => {
                                                     function() {
                                                         tester.outgoingIcon.expectToBeVisible();
                                                         tester.softphone.expectTextContentToHaveSubstring(
-                                                            '+7 (916) 123-45-67 Поиск контакта... 00:00:00'
+                                                            '+7 (916) 123-45-67 Поиск контакта... 00:00'
                                                         );
                                                     });
                                                 });
                                                 describe('Контакт является сотрудником.', function() {
                                                     beforeEach(function() {
                                                         numaRequest.employeeNameIsFound().receiveResponse();
+
+                                                        tester.slavesNotification().additional().name().visible().
+                                                            expectToBeSent();
                                                     });
 
                                                     it(
@@ -1332,7 +1342,7 @@ tests.addTest(options => {
                                                         tester.softphone.expectToBeCollapsed();
 
                                                         tester.softphone.expectTextContentToHaveSubstring(
-                                                            'Шалева Дора +7 (916) 123-45-67 00:00:00'
+                                                            'Шалева Дора +7 (916) 123-45-67 00:00'
                                                         );
                                                     });
                                                 });
@@ -2230,10 +2240,14 @@ tests.addTest(options => {
                                         });
                                         it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
                                             tester.hideButton.click();
+                                            tester.slavesNotification().additional().expectToBeSent();
+
                                             tester.callStartingButton.expectNotToExist();
                                         });
                                         it('Нажимаю на иконку с телефоном. Сотфтфон скрыт.', function() {
                                             tester.button('Софтфон').click();
+                                            tester.slavesNotification().additional().expectToBeSent();
+
                                             tester.callStartingButton.expectNotToExist();
                                         });
                                     });
@@ -2280,6 +2294,8 @@ tests.addTest(options => {
                                 'о том, что SIP-линия не зарегистрирована.',
                             function() {
                                 tester.button('Софтфон').click();
+                                tester.slavesNotification().additional().visible().expectToBeSent();
+
                                 tester.phoneField.fill('79161234567');
 
                                 authenticatedUserRequest.sipIsOffline().receiveResponse();
@@ -2313,6 +2329,7 @@ tests.addTest(options => {
                                     microphoneAccessDenied().softphoneServerConnected().expectToBeSent();
 
                                 tester.button('Софтфон').click();
+                                tester.slavesNotification().additional().visible().expectToBeSent();
                             });
 
                             it('Нажимаю на кнопку закрытия сообщения. Сообщение скрыто.', function() {
@@ -2357,6 +2374,7 @@ tests.addTest(options => {
 
                         it('Открываю историю звонков.', function() {
                             tester.button('Софтфон').click();
+                            tester.slavesNotification().additional().visible().expectToBeSent();
 
                             tester.callsHistoryButton.click();
                             tester.callsRequest().noContactName().receiveResponse();
@@ -2449,7 +2467,9 @@ tests.addTest(options => {
                 describe('Нажимаю на иконку с телефоном.', function() {
                     beforeEach(function() {
                         reportGroupsRequest.receiveResponse();
+
                         tester.button('Софтфон').click();
+                        tester.slavesNotification().additional().visible().expectToBeSent();
                     });
 
                     describe('Пользователь имеет права на список номеров.', function() {
@@ -2973,6 +2993,7 @@ tests.addTest(options => {
                     reportGroupsRequest.receiveResponse();
 
                     tester.button('Софтфон').click();
+                    tester.masterNotification().toggleWidgetVisiblity().expectToBeSent();
                 });
 
                 it('Вкладка становится ведущей. Поднимается webRTC-сокет.', function() {
@@ -3957,6 +3978,7 @@ tests.addTest(options => {
         tester.slavesNotification().twoChannels().available().expectToBeSent();
 
         tester.button('Софтфон').click();
+        tester.slavesNotification().additional().visible().expectToBeSent();
 
         tester.softphone.expectToBeExpanded();
         tester.phoneField.expectToBeVisible();
@@ -4030,6 +4052,7 @@ tests.addTest(options => {
         tester.slavesNotification().twoChannels().available().expectToBeSent();
 
         tester.button('Софтфон').click();
+        tester.slavesNotification().additional().visible().expectToBeSent();
 
         tester.softphone.expectToBeCollapsed();
         tester.phoneField.expectToBeVisible();
