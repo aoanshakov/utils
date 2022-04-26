@@ -4649,6 +4649,7 @@ define(function () {
                     disabled: null,
                     channelsCount: 0,
                     currentChannel: 1,
+                    statusId: null,
                     destroyed: false,
                     microphoneAccessGranted: false,
                     lastChannelChange:  {
@@ -4842,6 +4843,14 @@ define(function () {
                                 eventsWebSocket.receiveMessage(getNotification());
                             }
                         }, state, processing);
+                    },
+                    userDataFetched: function () {
+                        state.statusId = 3;
+                        return this;
+                    },
+                    anotherStatus: function () {
+                        state.statusId = 4;
+                        return this;
                     },
                     wasIncomingAtTheMomentOfChannelChanging: function () {
                         newChannelProcessing.push(newChannel => {
