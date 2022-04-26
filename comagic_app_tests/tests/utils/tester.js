@@ -749,6 +749,12 @@ define(() => function ({
             is_final: true
         };
 
+        const createMessage = () => ({
+            name: 'out_call_session',
+            type: 'event',
+            params: params 
+        });
+
         return {
             activeLeads() {
                 addActiveLeads(params);
@@ -761,12 +767,30 @@ define(() => function ({
                 return this;
             },
 
-            receive() {
-                me.eventsWebSocket.receiveMessage({
-                    name: 'out_call_session',
-                    type: 'event',
-                    params: params 
+            notifySlaves: () => {
+                const message = createMessage();
+
+                [
+                    'virtual_phone_number',
+                    'contact_phone_number',
+                    'calling_phone_number'
+                ].forEach(param => (message.params[param] = params[param].slice(1)));
+
+                me.recentCrosstabMessage().expectToContain({
+                    type: 'message',
+                    data: {
+                        type: 'notify_slaves',
+                        data: {
+                            type: 'websocket_message',
+                            message
+                        }
+                    }
                 });
+            },
+
+            receive() {
+                me.eventsWebSocket.receiveMessage(createMessage());
+                Promise.runAll(false, true);
             }
         };
     };
@@ -809,6 +833,12 @@ define(() => function ({
             is_need_auto_answer: false,
             is_final: true
         };
+
+        const createMessage = () => ({
+            name: 'out_call',
+            type: 'event',
+            params
+        });
 
         return {
             clickToCall: function () {
@@ -866,11 +896,23 @@ define(() => function ({
                 return this;
             },
 
-            receive: () => me.eventsWebSocket.receiveMessage({
-                name: 'out_call',
-                type: 'event',
-                params
-            }) 
+            notifySlaves: () => {
+                me.recentCrosstabMessage().expectToContain({
+                    type: 'message',
+                    data: {
+                        type: 'notify_slaves',
+                        data: {
+                            type: 'websocket_message',
+                            message: createMessage()
+                        }
+                    }
+                });
+            },
+
+            receive: () => {
+                me.eventsWebSocket.receiveMessage(createMessage());
+                Promise.runAll(false, true);
+            } 
         };
     };
 

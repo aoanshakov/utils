@@ -19,6 +19,7 @@ define(function () {
             sip,
             eventsWebSocket,
             me = this,
+            softphoneTester = this,
             webRtcUrlParam = 'webrtc_url',
             webRtcUrl = 'wss://webrtc.uiscom.ru',
             webRtcUrlForGettingSocket = webRtcUrl;
@@ -2527,6 +2528,11 @@ define(function () {
                     response.send();
                     
                     return {
+                        expectCancelingRequestToBeSent: function () {
+                            softphoneTester.requestCancelOutgoingCall();
+                            Promise.runAll(false, true);
+                            return this;
+                        },
                         setSessionProgress: function () {
                             request.response().
                                 setToTag(response.getToTag()).
@@ -2733,20 +2739,38 @@ define(function () {
         this.callSessionFinish = function () {
             var call_session_id = 980925456;
 
+            const createMessage = () => ({
+                id: 314723705,
+                name: 'call_session_finished',
+                type: 'event',
+                params: {
+                    call_session_id: call_session_id
+                }
+            });
+
             return {
                 setAnotherId: function () {
                     call_session_id = 182957828;
                     return this;
                 },
-                receive: function () {
-                    eventsWebSocket.receiveMessage({
-                        id: 314723705,
-                        name: 'call_session_finished',
-                        type: 'event',
-                        params: {
-                            call_session_id: call_session_id
+                thirdId: function () {
+                    call_session_id = 980925450;
+                    return this;
+                },
+                notifySlaves: () => {
+                    me.recentCrosstabMessage().expectToContain({
+                        type: 'message',
+                        data: {
+                            type: 'notify_slaves',
+                            data: {
+                                type: 'websocket_message',
+                                message: createMessage()
+                            }
                         }
                     });
+                },
+                receive: function () {
+                    eventsWebSocket.receiveMessage(createMessage());
                 }
             };
         };
@@ -4455,13 +4479,13 @@ define(function () {
             let time = 0,
                 wasMaster;
 
-            const recentMessage = () => {
+            const recentMessage = this.recentCrosstabMessage = () => {
                 const message = broadcastChannels.recentMessage();
                 time = message.time;
                 return message;
             };
 
-            const receiveMessage = message => {
+            const receiveMessage = this.receiveCrosstabMessage = message => {
                 message.time = new Date().getTime() * 1000;
 
                 if (message.time <= time) {

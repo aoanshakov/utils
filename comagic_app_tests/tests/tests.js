@@ -159,6 +159,7 @@ tests.addTest(options => {
                                             describe('Контакт найден.', function() {
                                                 beforeEach(function() {
                                                     tester.outCallEvent().receive();
+                                                    tester.outCallEvent().notifySlaves();
                                                 });
 
                                                 describe('Принимаю звонок.', function() {
@@ -340,7 +341,9 @@ tests.addTest(options => {
                                                                 incoming().progress().expectToBeSent();
 
                                                             tester.numaRequest().receiveResponse();
+
                                                             tester.outCallEvent().receive();
+                                                            tester.outCallEvent().notifySlaves();
 
                                                             tester.callStartingButton.click();
 
@@ -407,7 +410,9 @@ tests.addTest(options => {
                                                             incoming().progress().expectToBeSent();
 
                                                         tester.numaRequest().receiveResponse();
+
                                                         tester.outCallEvent().receive();
+                                                        tester.outCallEvent().notifySlaves();
                                                     });
 
                                                     it('Принимаю звонок. Отображен диалпад.', function() {
@@ -480,6 +485,7 @@ tests.addTest(options => {
                                                 describe('Автоответ отключен.', function() {
                                                     beforeEach(function() {
                                                         outCallEvent.receive();
+                                                        tester.outCallEvent().isTransfer().notifySlaves();
                                                     });
 
                                                     it(
@@ -516,6 +522,7 @@ tests.addTest(options => {
                                                     'Автоответ включен. Звонок не принимается автоматически.',
                                                 function() {
                                                     outCallEvent.needAutoAnswer().receive();
+                                                    tester.outCallEvent().needAutoAnswer().isTransfer().notifySlaves();
                                                 });
                                             });
                                             describe('Звонок производится в рамках исходящего обзвона.', function() {
@@ -527,6 +534,8 @@ tests.addTest(options => {
 
                                                 it('Автоответ включен. Звонок принимается.', function() {
                                                     outCallEvent.needAutoAnswer().receive();
+                                                    tester.outCallEvent().needAutoAnswer().autoCallCampaignName().
+                                                        notifySlaves();
 
                                                     tester.firstConnection.connectWebRTC();
                                                     tester.firstConnection.callTrackHandler();
@@ -546,6 +555,8 @@ tests.addTest(options => {
                                                     'Имя контакта отсутствует. Звонок обозначен, как исходящий обзвон.',
                                                 function() {
                                                     outCallEvent.noName().receive();
+                                                    tester.outCallEvent().noName().autoCallCampaignName().
+                                                        notifySlaves();
 
                                                     tester.outgoingIcon.expectToBeVisible();
                                                     tester.softphone.expectTextContentToHaveSubstring(
@@ -554,6 +565,7 @@ tests.addTest(options => {
                                                 });
                                                 it('Звонок отображается как исходящий.', function() {
                                                     outCallEvent.receive();
+                                                    tester.outCallEvent().autoCallCampaignName().notifySlaves();
 
                                                     tester.outgoingIcon.expectToBeVisible();
                                                     tester.softphone.expectTextContentToHaveSubstring(
@@ -566,6 +578,8 @@ tests.addTest(options => {
                                                 'контакта заблокирована.',
                                             function() {
                                                 tester.outCallEvent().noName().noCrmContactLink().receive();
+                                                tester.outCallEvent().noName().noCrmContactLink().notifySlaves();
+
                                                 tester.contactOpeningButton.click();
 
                                                 tester.contactOpeningButton.expectToHaveClass('cmg-button-disabled');
@@ -581,10 +595,13 @@ tests.addTest(options => {
                                                 'исходящий.',
                                             function() {
                                                 tester.outCallEvent().clickToCall().receive();
+                                                tester.outCallEvent().clickToCall().notifySlaves();
+
                                                 tester.outgoingIcon.expectToBeVisible();
                                             });
                                             it('Открытые сделки существуют. Открытые сделки отображены.', function() {
                                                 tester.outCallEvent().activeLeads().receive();
+                                                tester.outCallEvent().activeLeads().notifySlaves();
 
                                                 tester.anchor('По звонку с 79154394340').expectHrefToHavePath(
                                                     'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
@@ -607,6 +624,7 @@ tests.addTest(options => {
                                             });
                                             it('У контакта длинное имя.', function() {
                                                 tester.outCallEvent().longName().receive();
+                                                tester.outCallEvent().longName().notifySlaves();
                                             });
                                             it('Отображено сообщение о поиске контакта.', function() {
                                                 tester.interceptButton.expectNotToExist();
@@ -739,7 +757,9 @@ tests.addTest(options => {
                                                                     expectToBeSent();
 
                                                                 tester.numaRequest().receiveResponse();
+
                                                                 tester.outCallEvent().receive();
+                                                                tester.outCallEvent().notifySlaves();
                                                             });
 
                                                             it(
@@ -947,7 +967,9 @@ tests.addTest(options => {
                                                 progress().expectToBeSent();
 
                                             tester.numaRequest().receiveResponse();
+
                                             tester.outCallEvent().receive();
+                                            tester.outCallEvent().notifySlaves();
 
                                             notificationTester.grantPermission().
                                                 recentNotification().
@@ -1013,6 +1035,7 @@ tests.addTest(options => {
                                                         describe('Нет активных сделок.', function() {
                                                             beforeEach(function() {
                                                                 outCallSessionEvent.receive();
+                                                                tester.outCallSessionEvent().notifySlaves();
                                                             });
 
                                                             describe('Звонок принят.', function() {
@@ -1045,7 +1068,10 @@ tests.addTest(options => {
 
                                                                         tester.numaRequest().thirdNumber().
                                                                             receiveResponse();
+
                                                                         tester.outCallEvent().anotherPerson().receive();
+                                                                        tester.outCallEvent().anotherPerson().
+                                                                            notifySlaves();
                                                                     });
 
                                                                     it(
@@ -1201,7 +1227,10 @@ tests.addTest(options => {
                                                                     
                                                                     tester.numaRequest().thirdNumber().
                                                                         receiveResponse();
+
                                                                     tester.outCallEvent().anotherPerson().receive();
+                                                                    tester.outCallEvent().anotherPerson().
+                                                                        notifySlaves();
                                                                 });
 
                                                                 it(
@@ -1300,7 +1329,8 @@ tests.addTest(options => {
                                                                     ended().
                                                                     expectToBeSent();
 
-                                                                tester.requestCancelOutgoingCall();
+                                                                outboundCall.expectCancelingRequestToBeSent();
+                                                                tester.callSessionFinish().thirdId().notifySlaves();
 
                                                                 tester.phoneField.fill('79161234567');
 
@@ -1318,6 +1348,7 @@ tests.addTest(options => {
                                                             'Есть активные сделки. Отображены активные сделки.',
                                                         function() {
                                                             outCallSessionEvent.activeLeads().receive();
+                                                            tester.outCallSessionEvent().activeLeads().notifySlaves();
 
                                                             tester.softphone.expectToBeExpanded();
 
@@ -1330,6 +1361,7 @@ tests.addTest(options => {
                                                     });
                                                     it('Данные контакта не найдены.', function() {
                                                         tester.outCallSessionEvent().noName().receive();
+                                                        tester.outCallSessionEvent().noName().notifySlaves();
 
                                                         tester.outgoingIcon.expectToBeVisible();
                                                         tester.softphone.expectTextContentToHaveSubstring(
@@ -1370,7 +1402,8 @@ tests.addTest(options => {
                                                             ended().
                                                             expectToBeSent();
 
-                                                        tester.requestCancelOutgoingCall();
+                                                        outboundCall.expectCancelingRequestToBeSent();
+                                                        tester.callSessionFinish().thirdId().notifySlaves();
 
                                                         tester.phoneField.fill('79161234567');
 
@@ -1685,6 +1718,7 @@ tests.addTest(options => {
                                                     describe('Поступили данные о звонке.', function() {
                                                         beforeEach(function() {
                                                             tester.outCallEvent().receive();
+                                                            tester.outCallEvent().notifySlaves();
                                                         });
 
                                                         describe('Принимаю звонок.', function() {
@@ -1846,6 +1880,7 @@ tests.addTest(options => {
                                                     describe('Есть открытые сделки.', function() {
                                                         beforeEach(function() {
                                                             outCallSessionEvent.activeLeads().receive();
+                                                            tester.outCallSessionEvent().activeLeads().notifySlaves();
                                                         });
 
                                                         describe('Нажимаю на кнопку сворачивания.', function() {
@@ -1885,6 +1920,8 @@ tests.addTest(options => {
                                                     });
                                                     it('Нет открытых сделки. Отображен диалпад.', function() {
                                                         outCallSessionEvent.receive();
+                                                        tester.outCallSessionEvent().notifySlaves();
+
                                                         tester.dialpadButton(1).expectToBeVisible();;
 
                                                         tester.dialpadVisibilityButton.
@@ -2847,12 +2884,14 @@ tests.addTest(options => {
                             describe('Получена неокончательная информация о звонке. Автоответ включен.', function() {
                                 beforeEach(function() {
                                     tester.outCallEvent().needAutoAnswer().notFinal().receive();
+                                    tester.outCallEvent().needAutoAnswer().notFinal().notifySlaves();
                                 });
 
                                 it(
                                     'Получена окончательная информация о звонке. Отображена информация о звонке.',
                                 function() {
                                     tester.outCallEvent().needAutoAnswer().receive();
+                                    tester.outCallEvent().needAutoAnswer().notifySlaves();
 
                                     tester.incomingIcon.expectToBeVisible();
 
@@ -2876,6 +2915,7 @@ tests.addTest(options => {
                                 'Получена окончательная информация о звонке. Отображена информация о звонке.',
                             function() {
                                 tester.outCallEvent().receive();
+                                tester.outCallEvent().notifySlaves();
 
                                 tester.incomingIcon.expectToBeVisible();
                                 tester.softphone.
@@ -2883,6 +2923,7 @@ tests.addTest(options => {
                             });
                             it('Совершается исходящий звонок. Отображена информация о звонке.', function() {
                                 tester.outCallSessionEvent().receive();
+                                tester.outCallSessionEvent().notifySlaves();
 
                                 tester.outgoingIcon.expectToBeVisible();
                                 tester.softphone.
@@ -3758,6 +3799,7 @@ tests.addTest(options => {
                 tester.numaRequest().receiveResponse();
 
                 tester.outCallEvent().receive();
+                tester.outCallEvent().notifySlaves();
             });
 
             describe('Событие canplaythrough вызвано.', function() {
