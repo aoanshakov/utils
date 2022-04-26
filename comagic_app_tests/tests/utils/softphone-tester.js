@@ -4650,6 +4650,7 @@ define(function () {
                     },
                     receive: function () {
                         receiveMessage(createNotification());
+                        Promise.runAll(false, true);
                     }
                 }, data);
 
@@ -4780,7 +4781,7 @@ define(function () {
                         data: {
                             type: 'notify_slaves',
                             data: {
-                                type: 'state_updating',
+                                type: 'webrtc_state_updating',
                                 state: state
                             }
                         }
@@ -4808,6 +4809,8 @@ define(function () {
                             },
                             softphone: {
                                 hidden: true,
+                                sipPhoneIncomingCallNotification: null,
+                                sipPhoneOutgoingCallNotification: null,
                                 names: {
                                     '79161234567': undefined,
                                     '79161234569': undefined
@@ -4861,10 +4864,20 @@ define(function () {
                                 return this;
                             },
                             expectToBeSent: function () {
-                                recentMessage().expectToContain(getNotification());
+                                const notification = getNotification();
+
+                                !notification.data.data.state.softphone.notifications &&
+                                    (notification.data.data.state.softphone.notifications = utils.expectEmptyObject());
+
+                                recentMessage().expectToContain(notification);
                             },
                             receive: function () {
-                                eventsWebSocket.receiveMessage(getNotification());
+                                const notification = getNotification();
+
+                                !notification.data.data.state.softphone.notifications &&
+                                    (notification.data.data.state.softphone.notifications = {});
+                                
+                                receiveMessage(notification);
                             }
                         }, state, processing);
                     },
@@ -5134,10 +5147,9 @@ define(function () {
                     });
 
                 return {
-                    tellIsLeader() {
-                        receive = tellIsLeader;
-                        return this;
-                    },
+                    tellIsLeader: () => ({
+                        expectToBeSent: () => tellIsLeader()
+                    }),
                     hasNotMaster: () => null,
                     isNotMaster() {
                         receive = () => {

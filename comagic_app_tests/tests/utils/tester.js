@@ -896,8 +896,10 @@ define(() => function ({
                 return this;
             },
 
-            notifySlaves: () => {
-                me.recentCrosstabMessage().expectToContain({
+            getMessage: () => createMessage(),
+
+            slavesNotification: () => {
+                const notification = {
                     type: 'message',
                     data: {
                         type: 'notify_slaves',
@@ -906,7 +908,12 @@ define(() => function ({
                             message: createMessage()
                         }
                     }
-                });
+                };
+
+                return {
+                    expectToBeSent: () => me.recentCrosstabMessage().expectToContain(notification),
+                    receive: () => me.receiveCrosstabMessage(notification)
+                };
             },
 
             receive: () => {
@@ -915,6 +922,28 @@ define(() => function ({
             } 
         };
     };
+
+    me.extendAdditionalSlavesNotification((notification, state) => {
+        notification.outCallEvent = () => {
+            const {params} = me.outCallEvent().getMessage();
+
+            [
+                'virtual_number_comment',
+                'mark_ids',
+                'auto_call_campaign_name'
+            ].forEach(param => delete(params[param]));
+
+            state.softphone.notifications = {
+                '79161234567': {
+                    notification: params
+                }
+            };
+
+            return notification;
+        };
+
+        return notification;
+    });
 
     me.numaRequest = () => {
         let numa = 79161234567;
