@@ -292,7 +292,7 @@ index db04a6f8..068b983a 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index c36e68a9..f2d7e363 100644
+index c36e68a9..905db49e 100644
 --- a/package.json
 +++ b/package.json
 @@ -46,7 +46,7 @@
@@ -342,8 +342,8 @@ index c36e68a9..f2d7e363 100644
 -    "react-router-dom": "^5.1.2",
 -    "yup": "^0.28.1"
 +    "react-intl": "5.15.8",
-+    "react-router": "5.1.0",
-+    "react-router-dom": "5.1.2",
++    "react-router": "5.3.1",
++    "react-router-dom": "5.3.1",
 +    "simplebar-react": "^2.2.1",
 +    "yup": "^0.28.1",
 +    "babel-loader": "^8.0.4"
