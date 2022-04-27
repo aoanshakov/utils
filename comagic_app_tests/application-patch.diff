@@ -26,7 +26,7 @@ index b98d7d3e..6661126c 100644
 +REACT_APP_MODULE_SUPERVISOR_WORKPLACE=https://supervisor-workplace-int0-frontend.uis.st
 \ No newline at end of file
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index db04a6f8..c392499d 100644
+index db04a6f8..068b983a 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -7,10 +7,11 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -177,7 +177,7 @@ index db04a6f8..c392499d 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -327,17 +391,107 @@ module.exports = {
+@@ -327,17 +391,109 @@ module.exports = {
                      },
                  ],
              },
@@ -246,6 +246,8 @@ index db04a6f8..c392499d 100644
 +            'analytics/Dashboards/MarketerDashboard': `${miscDirectory}/Stub.js`,
 +            'analytics/SharedReport': `${miscDirectory}/Stub.js`,
 +            'analytics/cancelPendingRequests': `${miscDirectory}/Stub.js`,
++            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
++            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
          },
 +        plugins: [{
 +            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
