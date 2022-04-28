@@ -1345,8 +1345,8 @@ define(() => function ({
                 return this;
             },
 
-            expectToBeSent() {
-                let request = ajax.recentRequest().
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath('https://myint0.dev.uis.st/sup/auth/check').
                     expectToHaveHeaders({
                         Authorization: `Bearer ${token}`,
@@ -1804,7 +1804,7 @@ define(() => function ({
     });
 
     me.configRequest = () => {
-        let host = 'http://localhost:8083';
+        let host = '.';
 
         let response = {
             ENV: 'dev',
@@ -1820,8 +1820,13 @@ define(() => function ({
         };
 
         const me = {
+            chats: () => {
+                host = 'https://chats-int0-chats.uis.st';
+                return me;
+            },
+
             softphone: () => {
-                host = 'https://localhost:8084';
+                host = 'https://softphone-int0-softphone.uis.st';
                 response = {
                     REACT_APP_LOCALE: 'ru',
                     REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
