@@ -2412,6 +2412,13 @@ tests.addTest(options => {
                                         });
                                     });
                                     it(
+                                        'От ведомой вкладки пришел запрос отображения софтфона. Софтфон отображен.',
+                                    function() {
+                                        tester.masterNotification().toggleWidgetVisiblity().receive();
+                                        tester.callStartingButton.expectToBeVisible();
+                                        tester.slavesNotification().additional().visible().expectToBeSent();
+                                    });
+                                    it(
                                         'Отображен пункт меню. Софтфон скрыт. Отображается статус сотрудника.',
                                     function() {
                                         tester.callStartingButton.expectNotToExist();
@@ -3249,6 +3256,14 @@ tests.addTest(options => {
                         'Шалева Дора +7 (916) 123-45-67 ' +
                         'Путь лида'
                     );
+                });
+                it(
+                    'Ввожу номер телефона. Приходит сообщение о том, что вкладка все еще остается ведомой. Номер ' +
+                    'телефона все еще введен.',
+                function() {
+                    tester.phoneField.fill('79161234567');
+                    tester.masterInfoMessage().tellIsLeader().receive();
+                    tester.phoneField.expectToHaveValue('79161234567');
                 });
                 it('Попытка восстановления соединения не совершается.', function() {
                     tester.expectNoWebsocketConnecting();

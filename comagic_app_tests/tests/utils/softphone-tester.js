@@ -5149,9 +5149,19 @@ define(function () {
                         }
                     });
 
+                const receiveTellIsLeader = () => receiveMessage({
+                    type: 'internal',
+                    data: {
+                        context: 'leader',
+                        action: 'tell',
+                        token: 'g28g2hor28'
+                    }
+                });
+
                 return {
                     tellIsLeader: () => ({
-                        expectToBeSent: () => tellIsLeader()
+                        expectToBeSent: tellIsLeader,
+                        receive: receiveTellIsLeader
                     }),
                     hasNotMaster: () => null,
                     isNotMaster() {
@@ -5160,15 +5170,7 @@ define(function () {
                                 applyLeader();
                             }
 
-                            receiveMessage({
-                                type: 'internal',
-                                data: {
-                                    context: 'leader',
-                                    action: 'tell',
-                                    token: 'g28g2hor28'
-                                }
-                            });
-
+                            receiveTellIsLeader();
                             Promise.runAll(false, true);
                             wasMaster = false;
                         };
