@@ -24,7 +24,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 Sip,
                 soundSources,
                 Tester: function (options) {
-                    options.softphoneTester = new SoftphoneTester(options);
+                    options.softphoneTester = new SoftphoneTester({
+                        ...options,
+                        softphoneHost: 'myint0.dev.uis.st'
+                    });
+
                     return new Tester(options);
                 } 
             });

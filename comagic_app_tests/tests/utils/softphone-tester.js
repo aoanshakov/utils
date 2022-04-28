@@ -16,6 +16,7 @@ define(function () {
             addSecond = options.addSecond,
             triggerMutation = options.triggerMutation,
             broadcastChannels = options.broadcastChannels,
+            softphoneHost = options.softphoneHost,
             sip,
             eventsWebSocket,
             me = this,
@@ -1198,15 +1199,17 @@ define(function () {
 
         this.phoneBookGroupsRequest = this.requestPhoneBookGroups;
 
-        var webSocketRegExp = /sup\/ws\/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0$/;
+        var webSocketRegExp = /sup\/ws\/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0$/,
+            getWebSocketURL = () => `wss://${softphoneHost}/sup/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0`;
 
         this.anotherEventWebSocketPath = () => {
             webSocketRegExp = /sup\/ws\/935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf$/;
+            getWebSocketURL = () => `wss://${softphoneHost}/sup/ws/935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf`;
         };
 
         this.getEventsWebSocket = function (index) {
             this.eventsWebSocket = eventsWebSocket =
-                webSockets.getSocket(webSocketRegExp, index || 0);
+                webSockets.getSocket(softphoneHost ? getWebSocketURL() : webSocketRegExp, index || 0);
 
             var disconnect = eventsWebSocket.disconnect.bind(eventsWebSocket);
             eventsWebSocket.disconnect = (...args) => (disconnect(...args), Promise.runAll(false, true));
