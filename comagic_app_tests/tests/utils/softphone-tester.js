@@ -5191,7 +5191,7 @@ define(function () {
 
                     return {
                         type: 'notify_others',
-                        data: data
+                        data
                     };
                 }
 
@@ -5208,6 +5208,11 @@ define(function () {
                 }
 
                 var me = addMethods(extendOthersNotification({
+                    numberCapacityUpdate: function () {
+                        data.type = 'update_number_capacity';
+                        data.value = 124825;
+                        return notification;
+                    },
                     updateSettings: function () {
                         var settings = {
                             ringtone: undefined,

@@ -2729,7 +2729,9 @@ tests.addTest(options => {
                                             function() {
                                                 beforeEach(function() {
                                                     tester.select.option('+7 (916) 123-89-29 Некий номер').click();
+
                                                     tester.saveNumberCapacityRequest().receiveResponse();
+                                                    tester.othersNotification().numberCapacityUpdate().expectToBeSent();
                                                 });
 
                                                 it(
@@ -3204,17 +3206,19 @@ tests.addTest(options => {
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
 
-                    tester.settingsRequest().receiveResponse();
+                    tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
-                    tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                    tester.othersNotification().widgetStateUpdate().fixedNumberCapacityRule().expectToBeSent();
                     tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
                     
                     tester.talkOptionsRequest().receiveResponse();
-                    tester.permissionsRequest().receiveResponse();
+                    tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().
+                        receiveResponse();
 
                     notificationTester.grantPermission();
 
                     tester.authenticatedUserRequest().receiveResponse();
+                    tester.numberCapacityRequest().receiveResponse();
                     reportGroupsRequest.receiveResponse();
 
                     tester.slavesNotification().userDataFetched().twoChannels().available().receive();
@@ -3264,6 +3268,13 @@ tests.addTest(options => {
                     tester.phoneField.fill('79161234567');
                     tester.masterInfoMessage().tellIsLeader().receive();
                     tester.phoneField.expectToHaveValue('79161234567');
+                });
+                it('С другой ведомой вкладки поступил запрос скрытия виджета. Виджет остался видимым.', function() {
+                    tester.masterNotification().toggleWidgetVisiblity().receive();
+                    tester.phoneField.expectToBeVisible();
+                });
+                it('Получен запрос выбора номера от другой вкладки.', function() {
+                    tester.othersNotification().numberCapacityUpdate().receive();
                 });
                 it('Попытка восстановления соединения не совершается.', function() {
                     tester.expectNoWebsocketConnecting();
