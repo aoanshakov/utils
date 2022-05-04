@@ -34,11 +34,25 @@ index f6100f5..575687d 100644
      const nConfig = overrideFn(config, env)
      nConfig.plugins.push(new FilterWarningsPlugin({
          exclude: /mini-css-extract-plugin[^]*Conflicting order between:/
+diff --git a/package.json b/package.json
+index 9e39d7c..2137ffd 100644
+--- a/package.json
++++ b/package.json
+@@ -44,6 +44,9 @@
+         "not op_mini all"
+     ],
+     "devDependencies": {
++        "babel-loader": "^8.0.4",
++        "@babel/preset-env": "^7.1.0",
++        "@babel/preset-react": "^7.0.0",
+         "@loadable/component": "^5.7.0",
+         "@types/react-router": "^4.4.5",
+         "@types/react-router-dom": "^4.3.1",
 diff --git a/public/index.html b/public/index.html
-index 2623908..ba033e8 100644
+index 2623908..58dbf5e 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -21,7 +21,59 @@
+@@ -21,7 +21,43 @@
        Learn how to configure a non-root public URL by running `npm run build`.
      -->
      <title>UIS Admin</title>
@@ -47,16 +61,8 @@ index 2623908..ba033e8 100644
 +            animation-duration:1.2s !important;
 +        }
 +
-+        .ant-spin-dot-item {
++        .ant-spin-dot-item, .ant-notification-fade-enter, .fade-appear, .slide-up-appear, .slide-up-enter {
 +            opacity: 1 !important;
-+        }
-+
-+        .slide-up-appear, .slide-up-enter {
-+            opacity: 1 !important;
-+        }
-+
-+        .slide-up-leave {
-+            display: none !important;
 +        }
 +
 +        .zoom-enter, .zoom-big-fast-appear, .zoom-appear {
@@ -66,15 +72,7 @@ index 2623908..ba033e8 100644
 +            transform: none !important;
 +        }
 +
-+        .zoom-leave, .zoom-big-fast-leave {
-+            display: none !important;
-+        }
-+
-+        .ant-notification-fade-enter, .fade-appear {
-+            opacity: 1 !important;
-+        }
-+
-+        .ant-notification-fade-leave {
++        .zoom-leave, .zoom-big-fast-leave, .ant-notification-fade-leave, .ant-tabs-tabpane-inactive, .slide-up-leave {
 +            display: none !important;
 +        }
 +    </style>
@@ -98,7 +96,7 @@ index 2623908..ba033e8 100644
  </head>
  
  <body>
-@@ -37,6 +89,9 @@
+@@ -37,6 +73,9 @@
        To begin the development, run `npm start` or `yarn start`.
        To create a production bundle, use `npm run build` or `yarn build`.
      -->

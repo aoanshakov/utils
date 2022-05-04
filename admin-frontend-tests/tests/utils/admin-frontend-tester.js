@@ -49,6 +49,27 @@ define(() => {
                 find().
                 closest('div');
 
+            me.textfield = () => {
+                const tester = testersFactory.createTextFieldTester(() => getRoot().querySelector('input'));
+
+                tester.withPlaceholder = placeholder => {
+                    const getDomElement = () => getRoot().querySelector('input[placeholder="' + placeholder + '"]'),
+                        tester = testersFactory.createTextFieldTester(getDomElement());
+
+                    addErrorIcon(tester, getDomElement);
+                    return tester;
+                };
+
+                return tester;
+            };
+
+            me.tab = text => testersFactory.createDomElementTester(
+                utils.descendantOf(getRoot()).
+                    matchesSelector('.ant-tabs-tab').
+                    textEquals(text).
+                    find()
+            );
+
             me.anchor = text => testersFactory.createAnchorTester(
                 utils.descendantOf(getRoot()).
                     matchesSelector('a').
@@ -56,9 +77,21 @@ define(() => {
                     find()
             );
 
-            me.button = text => testersFactory.createDomElementTester(
-                utils.descendantOf(getRoot()).matchesSelector('.ant-btn, .pagination-item-link').textEquals(text).find()
-            );
+            me.button = text => {
+                const tester = testersFactory.createDomElementTester(
+                    utils.getVisibleSilently(
+                        utils.descendantOf(getRoot()).
+                            matchesSelector('.ant-btn, .pagination-item-link').
+                            textEquals(text).
+                            findAll()
+                    )
+                );
+                
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), Promise.runAll(false, true));
+
+                return tester;
+            };
 
             {
                 const getTester = getRoot => {
@@ -218,119 +251,161 @@ define(() => {
             notification: testersFactory.createDomElementTester(() => document.querySelector('.ant-notification')),
 
             table() {
-                return {
-                    header() {
-                        return {
-                            checkbox: () =>
-                                new Checkbox(document.querySelector('.ant-table-header-column .ant-checkbox-input')),
+                const tester = testersFactory.createDomElementTester('.softphone-settings-form');
+                
+                tester.header = () => {
+                    return {
+                        checkbox: () =>
+                            new Checkbox(document.querySelector('.ant-table-header-column .ant-checkbox-input')),
 
-                            withContent(content) {
-                                const header = utils.descendantOfBody().matchesSelector('.ant-table-header-column').
-                                    textEquals(content).find();
+                        withContent(content) {
+                            const header = utils.descendantOfBody().matchesSelector('.ant-table-header-column').
+                                textEquals(content).find();
 
-                                const headerTester = testersFactory.createDomElementTester(header),
-                                    sortIconTester = testersFactory.
-                                        createDomElementTester(header.querySelector('.table-header-column-sort img'));
+                            const headerTester = testersFactory.createDomElementTester(header),
+                                sortIconTester = testersFactory.
+                                    createDomElementTester(header.querySelector('.table-header-column-sort img'));
 
-                                sortIconTester.expectToBeArrowUp = () => sortIconTester.expectAttributeToHaveValue(
-                                    'src',
+                            sortIconTester.expectToBeArrowUp = () => sortIconTester.expectAttributeToHaveValue(
+                                'src',
 
-                                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAKCAMAAABR24SMAAAAAXNSR0IArs' +
-                                    '4c6QAAAARnQU1BAACxjwv8YQUAAAMAUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAALMw9IgAAAEAdFJOU/////////////////////////////////////////////' +
-                                    '////////////////////////////////////////////////////////////////////////////////' +
-                                    '////////////////////////////////////////////////////////////////////////////////' +
-                                    '////////////////////////////////////////////////////////////////////////////////' +
-                                    '///////////////////////////////////////////////////////wBT9wclAAAACXBIWXMAAA7DAA' +
-                                    'AOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQBwYWludC5uZXQgNC4wLjEzNANbegAAACJJREFUGFdj+A8EcI' +
-                                    'KBAUyCGSAmA4QBZEJpEEBWRwTr/38AiVkxz9dAKNcAAAAASUVORK5CYII='
-                                );
-
-                                sortIconTester.expectToBeArrowDown = () => sortIconTester.expectAttributeToHaveValue(
-                                    'src',
-
-                                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAKCAYAAABmBXS+AAAACX' +
-                                    'BIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAA4SURBVH' +
-                                    'gBvZAxCgAgDANz/v/PEQehasVO3pSWI5SiFYfMDE0FPkvjOFckPUQIg28lbMv0TxlHYwddtQ' +
-                                    'YM1RfzWgAAAABJRU5ErkJggg=='
-                                );
-
-                                headerTester.sortIcon = () => sortIconTester;
-                                return headerTester;
-                            }
-                        };
-                    },
-                    cell() {
-                        return {
-                            withContent(content) {
-                                return {
-                                    row() {
-                                        const getRow = () => utils.descendantOfBody().
-                                            matchesSelector('.ant-table-row > td').
-                                            textEquals(content).
-                                            find().
-                                            closest('.ant-table-row');
-
-                                        return createTesters(getRow, {
-                                            actionsMenu: () => testersFactory.createDomElementTester(
-                                                getRow().querySelector('.ant-dropdown-trigger')
-                                            ),
-
-                                            querySelector: selector => testersFactory.createDomElementTester(
-                                                getRow().querySelector(selector)
-                                            ),
-
-                                            checkbox: () => new Checkbox(
-                                                getRow().querySelector('.ant-checkbox-input')
-                                            )
-                                        });
-                                    }
-                                };
-                            }
-                        };
-                    },
-                    paging: () => ({
-                        page: page => {
-                            const liTester = testersFactory.createDomElementTester(
-                                utils.descendantOfBody().matchesSelector('.pagination-item').textEquals(page).find()
+                                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAKCAMAAABR24SMAAAAAXNSR0IArs' +
+                                '4c6QAAAARnQU1BAACxjwv8YQUAAAMAUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAALMw9IgAAAEAdFJOU/////////////////////////////////////////////' +
+                                '////////////////////////////////////////////////////////////////////////////////' +
+                                '////////////////////////////////////////////////////////////////////////////////' +
+                                '////////////////////////////////////////////////////////////////////////////////' +
+                                '///////////////////////////////////////////////////////wBT9wclAAAACXBIWXMAAA7DAA' +
+                                'AOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQBwYWludC5uZXQgNC4wLjEzNANbegAAACJJREFUGFdj+A8EcI' +
+                                'KBAUyCGSAmA4QBZEJpEEBWRwTr/38AiVkxz9dAKNcAAAAASUVORK5CYII='
                             );
 
-                            const aTester = testersFactory.createDomElementTester(
-                                utils.descendantOfBody().matchesSelector('.pagination-item a').textEquals(page).find()
+                            sortIconTester.expectToBeArrowDown = () => sortIconTester.expectAttributeToHaveValue(
+                                'src',
+
+                                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAKCAYAAABmBXS+AAAACX' +
+                                'BIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAA4SURBVH' +
+                                'gBvZAxCgAgDANz/v/PEQehasVO3pSWI5SiFYfMDE0FPkvjOFckPUQIg28lbMv0TxlHYwddtQ' +
+                                'YM1RfzWgAAAABJRU5ErkJggg=='
                             );
 
-                            liTester.click = () => aTester.click();
-
-                            liTester.expectToBeChecked = () => liTester.expectToHaveClass('pagination-item-active');
-
-                            liTester.expectNotToBeChecked = () =>
-                                liTester.expectNotToHaveClass('pagination-item-active');
-
-                            return liTester;
+                            headerTester.sortIcon = () => sortIconTester;
+                            return headerTester;
                         }
-                    })
+                    };
                 };
+
+                tester.cell = () => {
+                    return {
+                        withContent(content) {
+                            return {
+                                row() {
+                                    const cellSelector = '.ant-table-row > td, .softphone-settings-form td';
+
+                                    const getRow = () => utils.descendantOfBody().
+                                        matchesSelector(cellSelector).
+                                        textEquals(content).
+                                        find().
+                                        closest('.ant-table-row, tr');
+
+                                    return createTesters(getRow, {
+                                        actionsMenu: () => {
+                                            const tester = testersFactory.createDomElementTester(
+                                                getRow().querySelector('.ant-dropdown-trigger')
+                                            );
+
+                                            const click = tester.click.bind(tester);
+
+                                            tester.click = () => (click(), Promise.runAll(false, true));
+                                            return tester;
+                                        },
+
+                                        querySelector: selector => testersFactory.createDomElementTester(
+                                            getRow().querySelector(selector)
+                                        ),
+
+                                        checkbox: () => new Checkbox(
+                                            getRow().querySelector('.ant-checkbox-input')
+                                        ),
+
+                                        column: () => ({
+                                            withHeader: text => {
+                                                const headers = document.querySelectorAll(
+                                                    '.softphone-settings-form th'
+                                                );
+
+                                                const index = Array.prototype.findIndex.call(
+                                                    headers,
+                                                    header => utils.getTextContent(header) == text
+                                                );
+
+                                                if (index == -1) {
+                                                    throw new Error(`Колонка с заголовком "${text}" не найдена.`);
+                                                }
+
+                                                const getCell = () =>
+                                                    getRow().querySelectorAll(cellSelector)[index];
+
+                                                return createTesters(
+                                                    getCell,
+                                                    testersFactory.createDomElementTester(getCell)
+                                                );
+                                            }
+                                        })
+                                    });
+                                }
+                            };
+                        }
+                    };
+                };
+
+                tester.paging = () => ({
+                    page: page => {
+                        const liTester = testersFactory.createDomElementTester(
+                            utils.descendantOfBody().matchesSelector('.pagination-item').textEquals(page).find()
+                        );
+
+                        const aTester = testersFactory.createDomElementTester(
+                            utils.descendantOfBody().matchesSelector('.pagination-item a').textEquals(page).find()
+                        );
+
+                        liTester.click = () => aTester.click();
+
+                        liTester.expectToBeChecked = () => liTester.expectToHaveClass('pagination-item-active');
+
+                        liTester.expectNotToBeChecked = () =>
+                            liTester.expectNotToHaveClass('pagination-item-active');
+
+                        return liTester;
+                    }
+                });
+
+                return createTesters(() => document.querySelector('.softphone-settings-form'), tester);
             },
 
             menuitem(text) {
-                var menuitem = utils.descendantOfBody().
+                const menuitem = utils.descendantOfBody().
                     matchesSelector('.ant-menu-item, .ant-dropdown-menu-item').
                     textEquals(text).
                     find();
 
-                return testersFactory.createAnchorTester(menuitem.querySelector('a') || menuitem);
+                const tester = testersFactory.createAnchorTester(menuitem.querySelector('a') || menuitem),
+                    click = tester.click.bind(tester);
+
+                tester.click = () => (click(), Promise.runAll(false, true));
+                return tester;
             },
 
             root: testersFactory.createDomElementTester(() => document.querySelector('#root')),
@@ -338,18 +413,6 @@ define(() => {
                 const getPage = () => document.querySelector('.page');
                 return createTesters(getPage, testersFactory.createDomElementTester(getPage));
             })(),
-
-            textfield() {
-                return {
-                    withPlaceholder: placeholder => {
-                        const getDomElement = () => document.querySelector('input[placeholder="' + placeholder + '"]'),
-                            tester = testersFactory.createTextFieldTester(getDomElement());
-
-                        addErrorIcon(tester, getDomElement);
-                        return tester;
-                    }
-                };
-            },
 
             select() {
                 return {
@@ -434,7 +497,12 @@ define(() => {
                     permissions[name] ? permissions[name].push(value) : permissions[name] = [value];
 
                 const addResponseModifiers = me => {
-                    me.allowReadmanagementAppsLoginToApp = () => {
+                    me.allowReadSoftphoneSettings = () => {
+                        addPermission('softphone_settings', 'r');
+                        return me;
+                    };
+
+                    me.allowReadManagementAppsLoginToApp = () => {
                         addPermission('apps_management_apps_login_to_app', 'r');
                         return me;
                     };
@@ -1046,6 +1114,103 @@ define(() => {
                                         total_items: 75
                                     }
                                 }
+                            });
+
+                        Promise.runAll();
+                    }
+                };
+            },
+
+            appUpdatingRequest() {
+                return {
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                method: 'update.app',
+                                params: {
+                                    app_id: 386524,
+                                    customer_id: 94286,
+                                    softphone_settings: [{
+                                        widget_type: 'call_center',
+                                        ice_servers: 'stun:stun.uiscom.ru:19304',
+                                        sip_host: 'voip.uiscom.ru',
+                                        webrtc_urls: 'wss://webrtc.uiscom.ru',
+                                        rtu_sip_host: 'rtu.uis.st:443',
+                                        rtu_webrtc_urls: 'wss://rtu-webrtc.uiscom.ru'
+                                    }]
+                                }
+                            }).respondSuccessfullyWith({
+                                result: {
+                                    data: true
+                                } 
+                            });
+
+                        Promise.runAll();
+                    }
+                };
+            },
+
+            appRequest() {
+                return {
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                method: 'get.app',
+                                params: {
+                                    app_id: '386524'
+                                }
+                            }).respondSuccessfullyWith({
+                                result: {
+                                    data: {
+                                        app: {
+                                            tp_id: 27104,
+                                            tariff_plan: 'Некий тариф',
+                                            is_softphone_login_enabled: false,
+                                            app_name: 'ООО "Трупоглазые жабы"',
+                                            total_items_from_nodes: 2984,
+                                            app_user_login: 'admin@corpseeydtoads.com',
+                                            employee_full_name: 'Барова Елена',
+                                            app_user_name: 'Администратор',
+                                            phone: '79162938296',
+                                            app_id: 386524,
+                                            customer_id: 94286,
+                                            transit_dst_app_id: 660927,
+                                            is_use_numb_as_numa: false,
+                                            hide_return_commission: false,
+                                            agent_id: 6812934,
+                                            is_agent: false,
+                                            is_share_tp: false,
+                                            is_short_phone_shared_in_holding: false,
+                                            rtu: 'wss://rtu-webrtc.uiscom.ru',
+                                            is_uae_restriction_enabled: false
+                                        },
+                                        site: [{
+                                            domain: 'https://somesite.com',
+                                            banner_branding_text: 'Некий бренд',
+                                            banner_branding_url: 'https://somesite.com/brand'
+                                        }],
+                                        dt_black_ip: [{
+                                            id: 9174882,
+                                            ip: '125.62.57.176'
+                                        }],
+                                        tp: [{
+                                            id: 16369,
+                                            name: 'Другой' 
+                                        }],
+                                        softphone_settings: [{
+                                            widget_type: 'call_center',
+                                            ice_servers: 'stun:stun.uiscom.ru:19303',
+                                            sip_host: 'voip.uiscom.ru',
+                                            webrtc_urls: 'wss://webrtc.uiscom.ru',
+                                            rtu_sip_host: 'rtu.uis.st:443',
+                                            rtu_webrtc_urls: 'wss://rtu-webrtc.uiscom.ru'
+                                        }]
+                                    }
+                                } 
                             });
 
                         Promise.runAll();

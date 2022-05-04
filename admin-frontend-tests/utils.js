@@ -3,8 +3,16 @@ const {Args, isOneOf} = require('./utils/arguments'),
     execute = require('./utils/execute'),
     openAdminFrontendDir = `cd ${adminFrontend} &&`;
 
-const actions = {},
-    overridenFiles = 'src/history.js src/index.js src/index.js src/App.js public/index.html config-overrides.js';
+const actions = {};
+
+const overridenFiles =
+    'package.json ' +
+    'src/history.js ' +
+    'src/index.js ' +
+    'src/index.js ' +
+    'src/App.js ' +
+    'public/index.html ' +
+    'config-overrides.js';
 
 actions['create-patch'] = [
     `${openAdminFrontendDir} git diff -- ${overridenFiles} > ${adminFrontendPatch}`
