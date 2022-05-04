@@ -1214,6 +1214,13 @@ define(function () {
             var disconnect = eventsWebSocket.disconnect.bind(eventsWebSocket);
             eventsWebSocket.disconnect = (...args) => (disconnect(...args), Promise.runAll(false, true));
 
+            var disconnectAbnormally = eventsWebSocket.disconnectAbnormally;
+
+            eventsWebSocket.disconnectAbnormally = function () {
+                disconnectAbnormally.apply(eventsWebSocket, arguments);
+                Promise.runAll(false, true);
+            };
+
             return eventsWebSocket;
         };
 
@@ -4732,7 +4739,7 @@ define(function () {
                     processing.push((function (channel) {
                         return function () {
                             state.channels[channel].phoneNumber = phoneNumbers[channel];
-                            me.available();
+                            me.enabled();
                         };
                     })(channel));
                 };
@@ -4977,13 +4984,13 @@ define(function () {
                         return this;
                     },
                     ended: function() {
-                        this.available();
+                        me.enabled();
                         updateChannel(channel);
                         state.channels[channel].endedNormally = true; 
                         return this;
                     },
                     failed: function() {
-                        this.available();
+                        me.enabled();
                         updateChannel(channel);
                         state.channels[channel].endedNormally = false; 
                         return this;
