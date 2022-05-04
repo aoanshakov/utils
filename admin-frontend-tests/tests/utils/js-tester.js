@@ -1893,6 +1893,40 @@ function JsTester_CopiedTextsTester (copiedTexts) {
 }
 
 function JsTester_Tests (factory) {
+    Object.defineProperty(window, 'ResizeObserver', {
+        get: function () {
+            return undefined;
+        },
+        set: function () {}
+    }); 
+
+    Object.defineProperty(window, 'MessageChannel', {
+        get: function () {
+            return undefined;
+        },
+        set: function () {}
+    }); 
+
+    ['requestAnimationFrame', 'requestIdleCallback', 'queueMicrotask'].forEach(methodName => {
+        Object.defineProperty(window, methodName, {
+            get: function () {
+                return function (callback) {
+                    return setTimeout(callback, 0);
+                };
+            },
+            set: function () {}
+        });
+    });
+
+    Object.defineProperty(window, 'cancelAnimationFrame', {
+        get: function () {
+            return function (handle) {
+                clearTimeout(handle);
+            };
+        },
+        set: function () {}
+    }); 
+
     var testRunners = [],
         requiredClasses = [],
         storageMocker = new JsTester_StorageMocker(),

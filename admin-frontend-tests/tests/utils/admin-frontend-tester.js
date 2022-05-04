@@ -1,15 +1,34 @@
 define(() => {
+    let stores 
+
+    const resetStores = () => {
+        if (!stores) {
+            return false;
+        }
+
+        stores.appStore.isAuthenticated = false;
+        stores.appStore.directory = {};
+        stores.appStore.user = null;
+        stores.featureFlagsStore.initParams();
+        stores.eventsStore.initParams();
+
+        return true;
+    };
+
     return function (options) {
         const testersFactory = options.testersFactory,
             utils = options.utils,
             ajax = options.ajax,
             userMedia = options.userMedia,
             spendTime = options.spendTime,
-            {app, path, stores} = options.runApplication(options);
+            resetIsDone = resetStores();
 
-        stores.featureFlagsStore.initParams();
-        stores.eventsStore.initParams();
-        stores.appStore.directory = {};
+        result = options.runApplication(options);
+
+        const {app, path} = result;
+        stores = result.stores;
+
+        !resetIsDone && resetStores();
 
         function Checkbox (element) {
             var checkbox = testersFactory.createDomElementTester(element);
@@ -414,63 +433,86 @@ define(() => {
                 const addPermission = (name, value) =>
                     permissions[name] ? permissions[name].push(value) : permissions[name] = [value];
 
-                return {
-                    allowWriteApps() {
+                const addResponseModifiers = me => {
+                    me.allowReadmanagementAppsLoginToApp = () => {
+                        addPermission('apps_management_apps_login_to_app', 'r');
+                        return me;
+                    };
+
+                    me.allowReadStatisticsRevisionHistory = () => {
+                        addPermission('statistics_revision_history', 'r');
+                        return me;
+                    };
+
+                    me.allowWriteApps = () => {
                         addPermission('apps_management_apps', 'w');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowReadApps() {
+                    me.allowReadApps = () => {
                         addPermission('apps_management_apps', 'r');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowReadCrmIntegration() {
+                    me.allowReadCrmIntegration = () => {
                         addPermission('apps_management_crm_integration', 'r');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowReadUsers() {
+                    me.allowReadUsers = () => {
                         addPermission('app_users', 'r');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowReadEventResending() {
+                    me.allowReadEventResending = () => {
                         addPermission('apps_management_resend_crm_events', 'r');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowWriteEventResending() {
+                    me.allowWriteEventResending = () => {
                         addPermission('apps_management_resend_crm_events', 'w');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowReadFeatureFlags() {
+                    me.allowReadFeatureFlags = () => {
                         addPermission('feature_flags', 'r');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowWriteFeatureFlags() {
+                    me.allowWriteFeatureFlags = () => {
                         addPermission('feature_flags', 'w');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    receiveResponse() {
-                        ajax.recentRequest().
+                    return me;
+                };
+
+                return addResponseModifiers({
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
                                 method: 'get.user'
-                            }).
-                            respondSuccessfullyWith({
-                                result: {
-                                    data: {permissions}
-                                }
                             });
 
-                        Promise.runAll();
+                        return addResponseModifiers({
+                            receiveResponse() {
+                                request.respondSuccessfullyWith({
+                                    result: {
+                                        data: {permissions}
+                                    }
+                                });
+
+                                Promise.runAll();
+                            }
+                        });
+                    },
+
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
                     }
-                };
+                });
             },
 
             usersRequest() {

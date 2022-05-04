@@ -16,7 +16,8 @@ tests.addTest(function (options) {
     timeoutLogger.disable();
 
     describe('Открываю новую админку. Аутентифицируюсь.', function() {
-        let tester;
+        let tester,
+            userRequest;
 
         beforeEach(function() {
             const notificationsContainer = document.querySelector('.ant-notification span');
@@ -32,13 +33,15 @@ tests.addTest(function (options) {
             tester.button('Sign in').click();
             Promise.runAll();
             tester.userLoginRequest().receiveResponse();
+
+            userRequest = tester.userRequest().expectToBeSent();
         });
 
-        xdescribe(
+        describe(
             'Доступны разделы "Пользователи", "CRM-интеграции", "Переотправка событий" и "Фичефлаги".',
         function() {
             beforeEach(function() {
-                tester.userRequest().
+                userRequest.
                     allowReadEventResending().
                     allowWriteEventResending().
                     allowReadCrmIntegration().
@@ -1988,9 +1991,9 @@ tests.addTest(function (options) {
                 tester.menuitem('Фичефлаги').expectHrefToHavePath('/feature-flags');
             });
         });
-        xdescribe('Доступен только раздел "Пользовтатели".', function() {
+        describe('Доступен только раздел "Пользовтатели".', function() {
             beforeEach(function() {
-                tester.userRequest().allowReadUsers().receiveResponse();
+                userRequest.allowReadUsers().receiveResponse();
             });
 
             it('Заполняю поле "App ID". Нажимаю на кнопку "Применить".', function() {
@@ -2059,9 +2062,15 @@ tests.addTest(function (options) {
                 );
             });
         });
-        xdescribe('Доступен только раздел "Клиенты".', function() {
+        describe('Доступен только раздел "Клиенты".', function() {
             beforeEach(function() {
-                tester.userRequest().allowReadApps().allowWriteApps().receiveResponse();
+                userRequest.
+                    allowReadStatisticsRevisionHistory().
+                    allowReadmanagementAppsLoginToApp().
+                    allowReadApps().
+                    allowWriteApps().
+                    receiveResponse();
+
                 tester.directionRequest().addAppStates().addTpTpvAll().receiveResponse();
             });
 
@@ -2095,13 +2104,17 @@ tests.addTest(function (options) {
                 });
                 it('Нажимаю на кнпоку меню в строке таблицы. Открывается меню.', function() {
                     tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().actionsMenu().click();
-                    Promise.runAll();
+                    Promise.runAll(false, true);
                     tester.appUsersRequest().receiveResponse();
 
                     tester.dropdown.expectToHaveTextContent(
                         'История изменений ' +
                         'Редактирование клиента ' +
+
                         'Перейти в ЛК ' +
+                        'Ок ' +
+
+                        'Перейти в Новый ЛК ' +
                         'Ок'
                     );
                 });
@@ -2144,11 +2157,11 @@ tests.addTest(function (options) {
                 );
             });
         });
-        xit(
+        it(
             'Доступен только раздел "CRM-интеграции". Нажимаю на кнопку действий в строке, относящейся к amoCRM. ' +
             'Ссылка на раздел переотправки событий заблокирована. ',
         function() {
-            tester.userRequest().allowReadCrmIntegration().receiveResponse();
+            userRequest.allowReadCrmIntegration().receiveResponse();
             tester.directionRequest().addAppStates().receiveResponse();
 
             tester.button('Применить').click();
@@ -2162,7 +2175,7 @@ tests.addTest(function (options) {
             'Доступен раздел "Переотправка событий". Прав на запись в разделе нет. Заполняю поля фильтра. Кнопка ' +
             '"Повторить отправку" заблокирована.',
         function() {
-            tester.userRequest().allowReadEventResending().receiveResponse();
+            userRequest.allowReadEventResending().receiveResponse();
 
             tester.select().withPlaceholder('Тип CRM').arrowIcon().click();
             tester.select().option('amoCRM').click();
