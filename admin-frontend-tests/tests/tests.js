@@ -36,7 +36,7 @@ tests.addTest(function (options) {
             userRequest = tester.userRequest().expectToBeSent();
         });
 
-        xdescribe(
+        describe(
             'Доступны разделы "Пользователи", "CRM-интеграции", "Переотправка событий" и "Фичефлаги".',
         function() {
             beforeEach(function() {
@@ -1944,7 +1944,7 @@ tests.addTest(function (options) {
                 tester.menuitem('Фичефлаги').expectHrefToHavePath('/feature-flags');
             });
         });
-        xdescribe('Доступен только раздел "Пользовтатели".', function() {
+        describe('Доступен только раздел "Пользовтатели".', function() {
             beforeEach(function() {
                 userRequest.allowReadUsers().receiveResponse();
             });
@@ -2033,7 +2033,7 @@ tests.addTest(function (options) {
                     tester.appsRequest().receiveResponse();
                 });
 
-                xdescribe('Нажимаю на заголовок колонки "App ID". Отправлен запрос без сортировки.', function() {
+                describe('Нажимаю на заголовок колонки "App ID". Отправлен запрос без сортировки.', function() {
                     beforeEach(function() {
                         tester.table().header().withContent('App ID').click();
                         Promise.runAll();
@@ -2106,7 +2106,6 @@ tests.addTest(function (options) {
                                 expectToHaveValue('stun:stun.uiscom.ru:19303');
                         });
                     });
-                    return;
                     it('Открывается меню.', function() {
                         tester.dropdown.expectToHaveTextContent(
                             'История изменений ' +
@@ -2120,7 +2119,6 @@ tests.addTest(function (options) {
                         );
                     });
                 });
-                return;
                 it(
                     'Нажимаю на кнопку второй страницы. Получены данные второй страницы. Отображена вторая страница.',
                 function() {
@@ -2146,7 +2144,6 @@ tests.addTest(function (options) {
                     );
                 });
             });
-            return;
             it('В поле статусов отображены названия статусов.', function() {
                 tester.root.expectTextContentToHaveSubstring(
                     'Статусы ' +
@@ -2161,7 +2158,6 @@ tests.addTest(function (options) {
                 );
             });
         });
-return;
         it(
             'Доступен только раздел "CRM-интеграции". Нажимаю на кнопку действий в строке, относящейся к amoCRM. ' +
             'Ссылка на раздел переотправки событий заблокирована. ',
