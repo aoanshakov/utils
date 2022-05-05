@@ -2068,7 +2068,7 @@ tests.addTest(function (options) {
                             tester.tab('Настройки софтфона').click();
                         });
                         
-                        xit('Я меняю значение поля. Нажимаю на кнопку "Сохранить".', function() {
+                        it('Я меняю значение поля. Нажимаю на кнопку "Сохранить".', function() {
                             tester.table().
                                 cell().withContent('call_center').row().
                                 column().withHeader('ICE servers').textfield().
