@@ -5209,6 +5209,7 @@ define(function () {
 
                     me.receive = function () {
                         receiveCustomMessage(createNotification());
+                        spendTime(0);
                     };
 
                     return me;
