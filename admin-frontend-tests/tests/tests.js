@@ -2033,6 +2033,97 @@ tests.addTest(function (options) {
                     tester.appsRequest().receiveResponse();
                 });
 
+                describe('Нажимаю на кнпоку меню в строке таблицы.', function() {
+                    beforeEach(function() {
+                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().actionsMenu().click();
+                        tester.appUsersRequest().receiveResponse();
+                    });
+
+                    describe('Нажимаю на пункт меню "Редактирование клиента".', function() {
+                        let appRequest;
+
+                        beforeEach(function() {
+                            tester.menuitem('Редактирование клиента').click();
+                            appRequest = tester.appRequest().expectToBeSent();
+                        });
+                        
+                        describe('Значение поля URL для РТУ является строкой.', function() {
+                            beforeEach(function() {
+                                appRequest.receiveResponse();
+                                tester.tab('Настройки софтфона').click();
+                            });
+
+                            it(
+                                'Я меняю значение поля. Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения.',
+                            function() {
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('ICE servers').textfield().
+                                    fill('stun:stun.uiscom.ru:19304');
+
+                                tester.button('Сохранить').click();
+
+                                tester.appUpdatingRequest().receiveResponse();
+                                tester.appRequest().receiveResponse();
+                            });
+                            it('Форма заполнена.', function() {
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('WebRTC url').textfield().
+                                    expectToHaveValue('wss://webrtc.uiscom.ru');
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('РТУ WebRTC url').textfield().
+                                    expectToHaveValue('wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru');
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('SIP host').textfield().
+                                    expectToHaveValue('voip.uiscom.ru');
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('РТУ SIP host').textfield().
+                                    expectToHaveValue('rtu.uis.st:443');
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('ICE servers').textfield().
+                                    expectToHaveValue('stun:stun.uiscom.ru:19303');
+                            });
+                        });
+                        it(
+                            'Значение поля URL для РТУ является массивом. Я меняю значение поля. Нажимаю на кнопку ' +
+                            '"Сохранить". Отправлен запрос сохранения.',
+                        function() {
+                            appRequest.rtuWebrtcUrlsAreArray().receiveResponse();
+                            tester.tab('Настройки софтфона').click();
+
+                            tester.table().
+                                cell().withContent('call_center').row().
+                                column().withHeader('ICE servers').textfield().
+                                fill('stun:stun.uiscom.ru:19304');
+
+                            tester.button('Сохранить').click();
+
+                            tester.appUpdatingRequest().receiveResponse();
+                            tester.appRequest().receiveResponse();
+                        });
+                    });
+                    it('Открывается меню.', function() {
+                        tester.dropdown.expectToHaveTextContent(
+                            'История изменений ' +
+                            'Редактирование клиента ' +
+
+                            'Перейти в ЛК ' +
+                            'Ок ' +
+
+                            'Перейти в Новый ЛК ' +
+                            'Ок'
+                        );
+                    });
+                });
                 describe('Нажимаю на заголовок колонки "App ID". Отправлен запрос без сортировки.', function() {
                     beforeEach(function() {
                         tester.table().header().withContent('App ID').click();
@@ -2052,71 +2143,6 @@ tests.addTest(function (options) {
                     });
                     it('Под заголовком "App ID" нет стрелочки.', function() {
                         tester.table().header().withContent('App ID').sortIcon().expectNotToExist();
-                    });
-                });
-                describe('Нажимаю на кнпоку меню в строке таблицы.', function() {
-                    beforeEach(function() {
-                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().actionsMenu().click();
-                        tester.appUsersRequest().receiveResponse();
-                    });
-
-                    describe('Нажимаю на пункт меню "Редактирование клиента".', function() {
-                        beforeEach(function() {
-                            tester.menuitem('Редактирование клиента').click();
-                            tester.appRequest().receiveResponse();
-
-                            tester.tab('Настройки софтфона').click();
-                        });
-                        
-                        it('Я меняю значение поля. Нажимаю на кнопку "Сохранить".', function() {
-                            tester.table().
-                                cell().withContent('call_center').row().
-                                column().withHeader('ICE servers').textfield().
-                                fill('stun:stun.uiscom.ru:19304');
-
-                            tester.button('Сохранить').click();
-
-                            tester.appUpdatingRequest().receiveResponse();
-                            tester.appRequest().receiveResponse();
-                        });
-                        it('Форма заполнена.', function() {
-                            tester.table().
-                                cell().withContent('call_center').row().
-                                column().withHeader('WebRTC url').textfield().
-                                expectToHaveValue('wss://webrtc.uiscom.ru');
-
-                            tester.table().
-                                cell().withContent('call_center').row().
-                                column().withHeader('РТУ WebRTC url').textfield().
-                                expectToHaveValue('wss://rtu-webrtc.uiscom.ru');
-
-                            tester.table().
-                                cell().withContent('call_center').row().
-                                column().withHeader('SIP host').textfield().
-                                expectToHaveValue('voip.uiscom.ru');
-
-                            tester.table().
-                                cell().withContent('call_center').row().
-                                column().withHeader('РТУ SIP host').textfield().
-                                expectToHaveValue('rtu.uis.st:443');
-
-                            tester.table().
-                                cell().withContent('call_center').row().
-                                column().withHeader('ICE servers').textfield().
-                                expectToHaveValue('stun:stun.uiscom.ru:19303');
-                        });
-                    });
-                    it('Открывается меню.', function() {
-                        tester.dropdown.expectToHaveTextContent(
-                            'История изменений ' +
-                            'Редактирование клиента ' +
-
-                            'Перейти в ЛК ' +
-                            'Ок ' +
-
-                            'Перейти в Новый ЛК ' +
-                            'Ок'
-                        );
                     });
                 });
                 it(

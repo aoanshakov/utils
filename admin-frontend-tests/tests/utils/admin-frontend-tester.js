@@ -50,7 +50,8 @@ define(() => {
                 closest('div');
 
             me.textfield = () => {
-                const tester = testersFactory.createTextFieldTester(() => getRoot().querySelector('input'));
+                const tester = testersFactory.createTextFieldTester(() =>
+                    (getRoot() || new JsTester_NoElement()).querySelector('input'));
 
                 tester.withPlaceholder = placeholder => {
                     const getDomElement = () => getRoot().querySelector('input[placeholder="' + placeholder + '"]'),
@@ -1138,7 +1139,7 @@ define(() => {
                                         sip_host: 'voip.uiscom.ru',
                                         webrtc_urls: 'wss://webrtc.uiscom.ru',
                                         rtu_sip_host: 'rtu.uis.st:443',
-                                        rtu_webrtc_urls: 'wss://rtu-webrtc.uiscom.ru'
+                                        rtu_webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru'
                                     }]
                                 }
                             }).respondSuccessfullyWith({
@@ -1153,9 +1154,66 @@ define(() => {
             },
 
             appRequest() {
-                return {
-                    receiveResponse() {
-                        ajax.recentRequest().
+                const result = {
+                    data: {
+                        app: {
+                            tp_id: 27104,
+                            tariff_plan: 'Некий тариф',
+                            is_softphone_login_enabled: false,
+                            app_name: 'ООО "Трупоглазые жабы"',
+                            total_items_from_nodes: 2984,
+                            app_user_login: 'admin@corpseeydtoads.com',
+                            employee_full_name: 'Барова Елена',
+                            app_user_name: 'Администратор',
+                            phone: '79162938296',
+                            app_id: 386524,
+                            customer_id: 94286,
+                            transit_dst_app_id: 660927,
+                            is_use_numb_as_numa: false,
+                            hide_return_commission: false,
+                            agent_id: 6812934,
+                            is_agent: false,
+                            is_share_tp: false,
+                            is_short_phone_shared_in_holding: false,
+                            rtu: 'wss://rtu-webrtc.uiscom.ru',
+                            is_uae_restriction_enabled: false
+                        },
+                        site: [{
+                            domain: 'https://somesite.com',
+                            banner_branding_text: 'Некий бренд',
+                            banner_branding_url: 'https://somesite.com/brand'
+                        }],
+                        dt_black_ip: [{
+                            id: 9174882,
+                            ip: '125.62.57.176'
+                        }],
+                        tp: [{
+                            id: 16369,
+                            name: 'Другой' 
+                        }],
+                        softphone_settings: [{
+                            widget_type: 'call_center',
+                            ice_servers: 'stun:stun.uiscom.ru:19303',
+                            sip_host: 'voip.uiscom.ru',
+                            webrtc_urls: 'wss://webrtc.uiscom.ru',
+                            rtu_sip_host: 'rtu.uis.st:443',
+                            rtu_webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru'
+                        }]
+                    }
+                };
+
+                const addResponseModifiers = me => {
+                    me.rtuWebrtcUrlsAreArray = () => (result.data.softphone_settings[0].rtu_webrtc_urls = [
+                        'wss://rtu-1-webrtc.uiscom.ru',
+                        'wss://rtu-2-webrtc.uiscom.ru'
+                    ], me);
+
+                    return me;
+                };
+
+                return addResponseModifiers({
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
@@ -1163,59 +1221,20 @@ define(() => {
                                 params: {
                                     app_id: '386524'
                                 }
-                            }).respondSuccessfullyWith({
-                                result: {
-                                    data: {
-                                        app: {
-                                            tp_id: 27104,
-                                            tariff_plan: 'Некий тариф',
-                                            is_softphone_login_enabled: false,
-                                            app_name: 'ООО "Трупоглазые жабы"',
-                                            total_items_from_nodes: 2984,
-                                            app_user_login: 'admin@corpseeydtoads.com',
-                                            employee_full_name: 'Барова Елена',
-                                            app_user_name: 'Администратор',
-                                            phone: '79162938296',
-                                            app_id: 386524,
-                                            customer_id: 94286,
-                                            transit_dst_app_id: 660927,
-                                            is_use_numb_as_numa: false,
-                                            hide_return_commission: false,
-                                            agent_id: 6812934,
-                                            is_agent: false,
-                                            is_share_tp: false,
-                                            is_short_phone_shared_in_holding: false,
-                                            rtu: 'wss://rtu-webrtc.uiscom.ru',
-                                            is_uae_restriction_enabled: false
-                                        },
-                                        site: [{
-                                            domain: 'https://somesite.com',
-                                            banner_branding_text: 'Некий бренд',
-                                            banner_branding_url: 'https://somesite.com/brand'
-                                        }],
-                                        dt_black_ip: [{
-                                            id: 9174882,
-                                            ip: '125.62.57.176'
-                                        }],
-                                        tp: [{
-                                            id: 16369,
-                                            name: 'Другой' 
-                                        }],
-                                        softphone_settings: [{
-                                            widget_type: 'call_center',
-                                            ice_servers: 'stun:stun.uiscom.ru:19303',
-                                            sip_host: 'voip.uiscom.ru',
-                                            webrtc_urls: 'wss://webrtc.uiscom.ru',
-                                            rtu_sip_host: 'rtu.uis.st:443',
-                                            rtu_webrtc_urls: 'wss://rtu-webrtc.uiscom.ru'
-                                        }]
-                                    }
-                                } 
                             });
 
-                        Promise.runAll();
+                        return addResponseModifiers({
+                            receiveResponse() {
+                                request.respondSuccessfullyWith({result});
+                                Promise.runAll(false, true);
+                            }
+                        });
+                    },
+
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
                     }
-                };
+                });
             },
 
             appUsersRequest() {
