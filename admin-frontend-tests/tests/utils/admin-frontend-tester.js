@@ -1123,25 +1123,32 @@ define(() => {
             },
 
             appUpdatingRequest() {
+                const params = {
+                    app_id: 386524,
+                    customer_id: 94286,
+                    softphone_settings: [{
+                        widget_type: 'call_center',
+                        ice_servers: 'stun:stun.uiscom.ru:19304',
+                        sip_host: 'voip.uiscom.ru',
+                        webrtc_urls: 'wss://webrtc.uiscom.ru',
+                        rtu_sip_host: 'rtu.uis.st:443',
+                        rtu_webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru'
+                    }]
+                };
+
                 return {
+                    noRtuWebrtcUrls() {
+                        params.softphone_settings[0].rtu_webrtc_urls = '';
+                        return this;
+                    },
+
                     receiveResponse() {
                         ajax.recentRequest().
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
                                 method: 'update.app',
-                                params: {
-                                    app_id: 386524,
-                                    customer_id: 94286,
-                                    softphone_settings: [{
-                                        widget_type: 'call_center',
-                                        ice_servers: 'stun:stun.uiscom.ru:19304',
-                                        sip_host: 'voip.uiscom.ru',
-                                        webrtc_urls: 'wss://webrtc.uiscom.ru',
-                                        rtu_sip_host: 'rtu.uis.st:443',
-                                        rtu_webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru'
-                                    }]
-                                }
+                                params
                             }).respondSuccessfullyWith({
                                 result: {
                                     data: true
@@ -1207,6 +1214,8 @@ define(() => {
                         'wss://rtu-1-webrtc.uiscom.ru',
                         'wss://rtu-2-webrtc.uiscom.ru'
                     ], me);
+
+                    me.noRtuWebrtcUrls = () => (result.data.softphone_settings[0].rtu_webrtc_urls = null, me);
 
                     return me;
                 };

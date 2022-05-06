@@ -2110,6 +2110,23 @@ tests.addTest(function (options) {
                             tester.appUpdatingRequest().receiveResponse();
                             tester.appRequest().receiveResponse();
                         });
+                        it(
+                            'Значение поля URL для РТУ является пустым. Я меняю значение поля. Нажимаю на кнопку ' +
+                            '"Сохранить". Отправлен запрос сохранения.',
+                        function() {
+                            appRequest.noRtuWebrtcUrls().receiveResponse();
+                            tester.tab('Настройки софтфона').click();
+
+                            tester.table().
+                                cell().withContent('call_center').row().
+                                column().withHeader('ICE servers').textfield().
+                                fill('stun:stun.uiscom.ru:19304');
+
+                            tester.button('Сохранить').click();
+
+                            tester.appUpdatingRequest().noRtuWebrtcUrls().receiveResponse();
+                            tester.appRequest().receiveResponse();
+                        });
                     });
                     it('Открывается меню.', function() {
                         tester.dropdown.expectToHaveTextContent(
