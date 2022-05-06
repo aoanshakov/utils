@@ -3479,7 +3479,10 @@ tests.addTest(options => {
                     tester.allowMediaInput();
                     tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
                 });
-                it('Поступил входящий звонок. Отображена информация о звонке.', function() {
+                it('Сворачиваю окно. Поступил входящий звонок. Отображена информация о звонке.', function() {
+                    setFocus(false);
+                    setBrowserHidden(true);
+
                     tester.slavesNotification().available().twoChannels().incoming().progress().userDataFetched().
                         receive();
                     tester.outCallEvent().slavesNotification().receive();
