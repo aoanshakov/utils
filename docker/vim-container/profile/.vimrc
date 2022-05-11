@@ -200,6 +200,7 @@ function! SetUpEslint()
             let isReactApp = isReactApp || stridx(path, '/call_center_frontend/') != -1
             let isReactApp = isReactApp || stridx(path, '/comagic_app/') != -1
             let isReactApp = isReactApp || stridx(path, '/softphone/') != -1
+            let isReactApp = isReactApp || stridx(path, '/iframe_autoplay/') != -1
         endif
 
         let isReactApp = isReactApp || stridx(path, '/bitrix-digital-pipeline/')  != -1

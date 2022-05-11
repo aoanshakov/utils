@@ -1,0 +1,156 @@
+#!/bin/bash
+
+port=""
+farg=""
+isOsX=0
+dockerArguments=""
+entrypointArguments=""
+buildImage=0
+noCache=""
+window="top"
+
+if [ $(uname | grep Darwin | wc -l) -eq 0 ]
+then
+    dockerArguments="$dockerArguments --mount type=bind,source=/etc/passwd,target=/etc/passwd"
+    dockerArguments="$dockerArguments --mount type=bind,source=/etc/group,target=/etc/group"
+    entrypointArguments="$entrypointArguments --owner $USER"
+    farg="-f"
+else
+    isOsX=1
+fi
+
+function getAbsolutePath {
+    currentDirectory=$(pwd)
+    cd $@
+    result=$(pwd)
+    echo $result
+    cd $currentDirectory
+}
+
+function usageError {
+    echo $@
+    echo "Для того чтобы узнать как пользоваться скриптом запуска контейнера выполни команду \"$0 --help\""
+}
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "--build-image" ]
+    then
+        buildImage=1
+    elif [ "$1" = "--no-cache" ]
+    then
+        noCache="--no-cache"
+    elif [ "$1" = "--port" ]
+    then
+        if [ -z "$2" ]
+        then
+            echo "Укажите номер порта, который будет соответстовать восьмидесятому порту в контейнере."
+            exit 1
+        fi
+
+        dockerArguments="$dockerArguments -p $2:80"
+        shift
+    elif [ "$1" = "--window" ]
+    then
+        if [ -z "$2" ]
+        then
+            echo "Укажите тип окна (top или iframe)."
+            exit 1
+        fi
+
+        window="$2"
+        shift
+    elif [ "$1" = "--iframe-port" ]
+    then
+        if [ -z "$2" ]
+        then
+            echo "Укажите порт для окна в iframe."
+            exit 1
+        fi
+
+        entrypointArguments="$entrypointArguments --iframe-port $2"
+        shift
+    fi
+
+    shift
+done
+
+docker --version
+if [ $? -ne 0 ]
+then
+    echo "Установи докер"
+    exit 1
+fi
+
+currentFile=$0
+
+if [ -L $currentFile ]
+then
+    currentFile=$(readlink $farg $currentFile)
+    if [ $? -ne 0 ]
+    then
+        echo "Не удалось получить путь к скрипту"
+        exit 1
+    fi
+fi
+
+currentDir=$(dirname $currentFile)
+if [ $? -ne 0 ]
+then
+    echo "Не удалось получить текущую директорию"
+    exit 1
+fi
+
+imageTag='iframe-autoplay'
+
+if [ $buildImage -eq 1 ]
+then
+    docker build $noCache -t $imageTag $currentDir
+    if [ $? -ne 0 ]
+    then
+        echo "Не удалось собрать образ"
+        exit 1
+    fi
+
+    exit 0
+fi
+
+linesCount=$(docker images ${imageTag} | wc -l)
+if [ $? -ne 0 ]
+then
+    echo "Не удалось получить список образов"
+    exit 1
+fi
+
+if [ $linesCount -eq 1 ]
+then
+    docker build --no-cache -t $imageTag $currentDir
+
+    if [ $? -ne 0 ]
+    then
+        echo "Не удалось собрать образ"
+        exit 1
+    fi
+fi
+
+appDir="$currentDir/.."
+
+if [ $isOsX -eq 0 ]
+then
+    appDir=$(readlink -f $appDir)
+    if [ $? -ne 0 ]
+    then
+        echo "Не удалось получить директорию с приложением"
+        exit 1
+    fi
+else
+    appDir=$(getAbsolutePath $appDir)
+fi
+
+docker run -it --rm \
+    -v $appDir:/usr/local/src \
+    $dockerArguments \
+    $imageTag \
+    --action $action \
+    $entrypointArguments \
+    --window $window

@@ -2767,8 +2767,8 @@ define(function () {
                     call_session_id = 980925450;
                     return this;
                 },
-                notifySlaves: () => {
-                    me.recentCrosstabMessage().expectToContain({
+                slavesNotification: () => ({
+                    expectToBeSent: () => me.recentCrosstabMessage().expectToContain({
                         type: 'message',
                         data: {
                             type: 'notify_slaves',
@@ -2777,11 +2777,9 @@ define(function () {
                                 message: createMessage()
                             }
                         }
-                    });
-                },
-                receive: function () {
-                    eventsWebSocket.receiveMessage(createMessage());
-                }
+                    })
+                }),
+                receive: () => eventsWebSocket.receiveMessage(createMessage())
             };
         };
 

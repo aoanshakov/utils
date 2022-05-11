@@ -767,26 +767,28 @@ define(() => function ({
                 return this;
             },
 
-            notifySlaves: () => {
-                const message = createMessage();
+            slavesNotification: () => ({
+                expectToBeSent: () => {
+                    const message = createMessage();
 
-                [
-                    'virtual_phone_number',
-                    'contact_phone_number',
-                    'calling_phone_number'
-                ].forEach(param => (message.params[param] = params[param].slice(1)));
+                    [
+                        'virtual_phone_number',
+                        'contact_phone_number',
+                        'calling_phone_number'
+                    ].forEach(param => (message.params[param] = params[param].slice(1)));
 
-                me.recentCrosstabMessage().expectToContain({
-                    type: 'message',
-                    data: {
-                        type: 'notify_slaves',
+                    me.recentCrosstabMessage().expectToContain({
+                        type: 'message',
                         data: {
-                            type: 'websocket_message',
-                            message
+                            type: 'notify_slaves',
+                            data: {
+                                type: 'websocket_message',
+                                message
+                            }
                         }
-                    }
-                });
-            },
+                    });
+                }
+            }),
 
             receive() {
                 me.eventsWebSocket.receiveMessage(createMessage());

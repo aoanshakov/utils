@@ -450,6 +450,33 @@ tests.addTest(options => {
                                                         );
                                                     });
                                                 });
+                                                it(
+                                                    'Поступил второй входящий звонок. Отображено сообщение о звонке ' +
+                                                    'на вторую линию.',
+                                                function() {
+                                                    tester.incomingCall().thirdNumber().receive();
+
+                                                    tester.slavesNotification().
+                                                        userDataFetched().
+                                                        twoChannels().
+                                                        available().
+                                                        incoming().
+                                                        progress().
+                                                        secondChannel().
+                                                            incoming().
+                                                            progress().
+                                                            fifthPhoneNumber().
+                                                        expectToBeSent();
+
+                                                    tester.numaRequest().thirdNumber().receiveResponse();
+                                                    tester.outCallEvent().anotherPerson().receive();
+                                                    tester.outCallEvent().anotherPerson().slavesNotification().
+                                                        expectToBeSent();
+
+                                                    tester.body.expectTextContentToHaveSubstring(
+                                                        'Гигова Петранка Входящий...'
+                                                    );
+                                                });
                                                 it('Нажимаю на кнопку открытия контакта.', function() {
                                                     tester.contactOpeningButton.click();
 
@@ -1112,7 +1139,9 @@ tests.addTest(options => {
                                                         describe('Нет активных сделок.', function() {
                                                             beforeEach(function() {
                                                                 outCallSessionEvent.receive();
-                                                                tester.outCallSessionEvent().notifySlaves();
+
+                                                                tester.outCallSessionEvent().slavesNotification().
+                                                                    expectToBeSent();
                                                             });
 
                                                             describe('Звонок принят.', function() {
@@ -1418,7 +1447,8 @@ tests.addTest(options => {
                                                                     expectToBeSent();
 
                                                                 outboundCall.expectCancelingRequestToBeSent();
-                                                                tester.callSessionFinish().thirdId().notifySlaves();
+                                                                tester.callSessionFinish().thirdId().
+                                                                    slavesNotification().expectToBeSent();
 
                                                                 tester.phoneField.fill('79161234567');
 
@@ -1436,7 +1466,8 @@ tests.addTest(options => {
                                                             'Есть активные сделки. Отображены активные сделки.',
                                                         function() {
                                                             outCallSessionEvent.activeLeads().receive();
-                                                            tester.outCallSessionEvent().activeLeads().notifySlaves();
+                                                            tester.outCallSessionEvent().activeLeads().
+                                                                slavesNotification().expectToBeSent();
 
                                                             tester.softphone.expectToBeExpanded();
 
@@ -1449,7 +1480,8 @@ tests.addTest(options => {
                                                     });
                                                     it('Данные контакта не найдены.', function() {
                                                         tester.outCallSessionEvent().noName().receive();
-                                                        tester.outCallSessionEvent().noName().notifySlaves();
+                                                        tester.outCallSessionEvent().noName().
+                                                            slavesNotification().expectToBeSent();
 
                                                         tester.outgoingIcon.expectToBeVisible();
                                                         tester.softphone.expectTextContentToHaveSubstring(
@@ -1491,7 +1523,9 @@ tests.addTest(options => {
                                                             expectToBeSent();
 
                                                         outboundCall.expectCancelingRequestToBeSent();
-                                                        tester.callSessionFinish().thirdId().notifySlaves();
+
+                                                        tester.callSessionFinish().thirdId().slavesNotification().
+                                                            expectToBeSent();
 
                                                         tester.phoneField.fill('79161234567');
 
@@ -2000,7 +2034,9 @@ tests.addTest(options => {
                                                     describe('Есть открытые сделки.', function() {
                                                         beforeEach(function() {
                                                             outCallSessionEvent.activeLeads().receive();
-                                                            tester.outCallSessionEvent().activeLeads().notifySlaves();
+
+                                                            tester.outCallSessionEvent().activeLeads().
+                                                                slavesNotification().expectToBeSent();
                                                         });
 
                                                         describe('Нажимаю на кнопку сворачивания.', function() {
@@ -2040,7 +2076,9 @@ tests.addTest(options => {
                                                     });
                                                     it('Нет открытых сделки. Отображен диалпад.', function() {
                                                         outCallSessionEvent.receive();
-                                                        tester.outCallSessionEvent().notifySlaves();
+
+                                                        tester.outCallSessionEvent().slavesNotification().
+                                                            expectToBeSent();
 
                                                         tester.dialpadButton(1).expectToBeVisible();;
 
@@ -3131,7 +3169,7 @@ tests.addTest(options => {
                             });
                             it('Совершается исходящий звонок. Отображена информация о звонке.', function() {
                                 tester.outCallSessionEvent().receive();
-                                tester.outCallSessionEvent().notifySlaves();
+                                tester.outCallSessionEvent().slavesNotification().expectToBeSent();
 
                                 tester.outgoingIcon.expectToBeVisible();
                                 tester.softphone.
