@@ -193,58 +193,135 @@ tests.addTest(options => {
 
                                                         describe('Сотрдников мало.', function() {
                                                             beforeEach(function() {
-                                                                usersRequest.receiveResponse();
                                                                 usersInGroupsRequest.receiveResponse();
                                                             });
 
-                                                            describe('Открываю вкладку групп.', function() {
+                                                            describe(
+                                                                'Ни один из номеров не включает в себя другой.',
+                                                            function() {
                                                                 beforeEach(function() {
-                                                                    tester.button('Группы').click();
+                                                                    usersRequest.receiveResponse();
                                                                 });
 
+                                                                describe('Открываю вкладку групп.', function() {
+                                                                    beforeEach(function() {
+                                                                        tester.button('Группы').click();
+                                                                    });
+
+                                                                    it(
+                                                                        'Соединение разрывается. Кнопка звонка ' +
+                                                                        'заблокирована.',
+                                                                    function() {
+                                                                        tester.disconnectEventsWebSocket();
+
+                                                                        tester.slavesNotification().
+                                                                            twoChannels().
+                                                                            registered().
+                                                                            webRTCServerConnected().
+                                                                            microphoneAccessGranted().
+                                                                            userDataFetched().
+                                                                            incoming().
+                                                                            confirmed().
+                                                                            expectToBeSent();
+
+                                                                        tester.employeeRow('Отдел дистрибуции').
+                                                                            expectToBeDisaled();
+                                                                    });
+                                                                    it('Отображена таблица групп.', function() {
+                                                                        tester.employeeRow('Отдел дистрибуции').
+                                                                            expectToBeEnabled();
+
+                                                                        tester.softphone.expectToHaveTextContent(
+                                                                            'Сотрудники Группы ' +
+
+                                                                            'Отдел дистрибуции 298 1 /1 ' +
+                                                                            'Отдел по работе с ключевыми клиентами ' +
+                                                                                '726 0 ' +
+                                                                            '/1 Отдел региональных продаж 828 2 /2'
+                                                                        );
+                                                                    });
+                                                                });
+                                                                describe('Ввожу значение в поле поиска.', function() {
+                                                                    beforeEach(function() {
+                                                                        tester.softphone.input.fill('ова');
+                                                                    });
+
+                                                                    it(
+                                                                        'Нажимаю на иконку очищения поля. Отображены ' +
+                                                                        'все сотрудники.',
+                                                                    function() {
+                                                                        tester.softphone.input.clearIcon.click();
+
+                                                                        tester.softphone.expectToHaveTextContent(
+                                                                            'Сотрудники Группы ' +
+
+                                                                            'Божилова Йовка 296 ' +
+                                                                            'Господинова Николина 295 ' +
+                                                                            'Шалева Дора 8258'
+                                                                        );
+
+                                                                        tester.softphone.input.expectToHaveValue('');
+                                                                    });
+                                                                    it('Отображены найденные сотрудники.', function() {
+                                                                        tester.softphone.expectToHaveTextContent(
+                                                                            'Сотрудники Группы ' +
+
+                                                                            'Божил ова Йовка 296 ' +
+                                                                            'Господин ова Николина 295'
+                                                                        );
+                                                                    });
+                                                                });
                                                                 it(
-                                                                    'Соединение разрывается. Кнопка звонка ' +
-                                                                    'заблокирована.',
+                                                                    'Ввожу значение в поле поиска. Ничего не ' +
+                                                                    'найдено. Отображено сообщение о том, что ничего ' +
+                                                                    'не найдено.',
                                                                 function() {
-                                                                    tester.disconnectEventsWebSocket();
+                                                                    tester.softphone.input.fill('йцукен');
 
-                                                                    tester.slavesNotification().
-                                                                        twoChannels().
-                                                                        registered().
-                                                                        webRTCServerConnected().
-                                                                        microphoneAccessGranted().
-                                                                        userDataFetched().
-                                                                        incoming().
-                                                                        confirmed().
-                                                                        expectToBeSent();
-
-                                                                    tester.employeeRow('Отдел дистрибуции').
-                                                                        expectToBeDisaled();
+                                                                    tester.softphone.expectToHaveTextContent(
+                                                                        'Сотрудники Группы ' +
+                                                                        'Сотрудник не найден'
+                                                                    );
                                                                 });
-                                                                it('Отображена таблица групп.', function() {
-                                                                    tester.employeeRow('Отдел дистрибуции').
-                                                                        expectToBeEnabled();
+                                                                it(
+                                                                    'Ввожу номер в поле поиска. Сотрудники ' +
+                                                                    'фильтруются по номеру.',
+                                                                function() {
+                                                                    tester.softphone.input.fill('5');
 
                                                                     tester.softphone.expectToHaveTextContent(
                                                                         'Сотрудники Группы ' +
 
-                                                                        'Отдел дистрибуции 298 1 /1 ' +
-                                                                        'Отдел по работе с ключевыми клиентами 726 0 ' +
-                                                                        '/1 Отдел региональных продаж 828 2 /2'
+                                                                        'Шалева Дора 82 5 8 ' +
+                                                                        'Господинова Николина 29 5'
                                                                     );
                                                                 });
-                                                            });
-                                                            describe('Ввожу значение в поле поиска.', function() {
-                                                                beforeEach(function() {
-                                                                    tester.softphone.input.fill('ова');
-                                                                });
-
                                                                 it(
-                                                                    'Нажимаю на иконку очищения поля. Отображены ' +
-                                                                    'все сотрудники.',
+                                                                    'Нажимаю на строку в таблице сотрудника.',
                                                                 function() {
-                                                                    tester.softphone.input.clearIcon.click();
+                                                                    tester.employeeRow('Господинова Николина').click();
 
+                                                                    tester.dtmf('#').expectToBeSent();
+                                                                    spendTime(600);
+                                                                    tester.dtmf('2').expectToBeSent();
+                                                                    spendTime(600);
+                                                                    tester.dtmf('9').expectToBeSent();
+                                                                    spendTime(600);
+                                                                    tester.dtmf('5').expectToBeSent();
+                                                                    spendTime(600);
+
+                                                                    tester.slavesNotification().additional().visible().
+                                                                        transfered().dtmf('#295').outCallEvent().
+                                                                        expectToBeSent();
+
+                                                                    tester.transferButton.click();
+                                                                    tester.dtmf('#').expectToBeSent();
+
+                                                                    tester.slavesNotification().additional().visible().
+                                                                        outCallEvent().notTransfered().dtmf('#295#').
+                                                                        expectToBeSent();
+                                                                });
+                                                                it('Отображена таблица сотрудников.', function() {
                                                                     tester.softphone.expectToHaveTextContent(
                                                                         'Сотрудники Группы ' +
 
@@ -253,79 +330,28 @@ tests.addTest(options => {
                                                                         'Шалева Дора 8258'
                                                                     );
 
-                                                                    tester.softphone.input.expectToHaveValue('');
-                                                                });
-                                                                it('Отображены найденные сотрудники.', function() {
-                                                                    tester.softphone.expectToHaveTextContent(
-                                                                        'Сотрудники Группы ' +
-
-                                                                        'Божил ова Йовка 296 ' +
-                                                                        'Господин ова Николина 295'
-                                                                    );
+                                                                    tester.employeeRow('Божилова Йовка').transferIcon.
+                                                                        expectToBeVisible();
+                                                                    tester.employeeRow('Божилова Йовка').
+                                                                        expectToBeDisaled();
+                                                                    tester.employeeRow('Шалева Дора').
+                                                                        expectToBeEnabled();
                                                                 });
                                                             });
                                                             it(
-                                                                'Ввожу значение в поле поиска. Ничего не ' +
-                                                                'найдено. Отображено сообщение о том, что ничего ' +
-                                                                'не найдено.',
+                                                                'Один из номеров включает в себя другой. Ввожу один ' +
+                                                                'из номеров в поле поиска.',
                                                             function() {
-                                                                tester.softphone.input.fill('йцукен');
+                                                                usersRequest.anotherShortPhone().receiveResponse();
 
-                                                                tester.softphone.expectToHaveTextContent(
-                                                                    'Сотрудники Группы ' +
-                                                                    'Сотрудник не найден'
-                                                                );
-                                                            });
-                                                            it(
-                                                                'Ввожу номер в поле поиска. Сотрудники ' +
-                                                                'фильтруются по номеру.',
-                                                            function() {
-                                                                tester.softphone.input.fill('5');
+                                                                tester.softphone.input.fill('296');
 
-                                                                tester.softphone.expectToHaveTextContent(
-                                                                    'Сотрудники Группы ' +
-
-                                                                    'Шалева Дора 82 5 8 ' +
-                                                                    'Господинова Николина 29 5'
-                                                                );
-                                                            });
-                                                            it('Нажимаю на строку в таблице сотрудника.', function() {
-                                                                tester.employeeRow('Господинова Николина').click();
-
-                                                                tester.dtmf('#').expectToBeSent();
-                                                                spendTime(600);
-                                                                tester.dtmf('2').expectToBeSent();
-                                                                spendTime(600);
-                                                                tester.dtmf('9').expectToBeSent();
-                                                                spendTime(600);
-                                                                tester.dtmf('5').expectToBeSent();
-                                                                spendTime(600);
-
-                                                                tester.slavesNotification().additional().visible().
-                                                                    transfered().dtmf('#295').outCallEvent().
-                                                                    expectToBeSent();
-
-                                                                tester.transferButton.click();
-                                                                tester.dtmf('#').expectToBeSent();
-
-                                                                tester.slavesNotification().additional().visible().
-                                                                    outCallEvent().notTransfered().dtmf('#295#').
-                                                                    expectToBeSent();
-                                                            });
-                                                            it('Отображена таблица сотрудников.', function() {
                                                                 tester.softphone.expectToHaveTextContent(
                                                                     'Сотрудники Группы ' +
 
                                                                     'Божилова Йовка 296 ' +
-                                                                    'Господинова Николина 295 ' +
-                                                                    'Шалева Дора 8258'
+                                                                    'Господинова Николина 296 3'
                                                                 );
-
-                                                                tester.employeeRow('Божилова Йовка').transferIcon.
-                                                                    expectToBeVisible();
-                                                                tester.employeeRow('Божилова Йовка').
-                                                                    expectToBeDisaled();
-                                                                tester.employeeRow('Шалева Дора').expectToBeEnabled();
                                                             });
                                                         });
                                                         it('Сотрудников много.', function() {
@@ -1544,6 +1570,10 @@ tests.addTest(options => {
                                                     });
                                                 });
                                             });
+                                            it('Нажимаю на кнопку удаления цифры. Цифра удалена.', function() {
+                                                tester.digitRemovingButton.click();
+                                                tester.phoneField.fill('7916123456');
+                                            });
                                             it('Кнопка вызова заблокирована.', function() {
                                                 tester.callStartingButton.expectToHaveAttribute('disabled');
                                             });
@@ -2296,22 +2326,6 @@ tests.addTest(options => {
                                                     tester.softphone.expectToBeExpanded();
                                                 });
                                             });
-                                            describe('Нажимаю на кнопку разворачивания софтфона.', function() {
-                                                beforeEach(function() {
-                                                    tester.collapsednessToggleButton.click();
-                                                });
-
-                                                it(
-                                                    'Нажимаю на кнопку сворачивания софтфона. Кнопка удаления цифры ' +
-                                                    'скрыта.',
-                                                function() {
-                                                    tester.collapsednessToggleButton.click();
-                                                    tester.digitRemovingButton.expectNotToExist();
-                                                });
-                                                it('Кнопка удаления цифры видима.', function() {
-                                                    tester.digitRemovingButton.expectToBeVisible();
-                                                });
-                                            });
                                             it(
                                                 'Софтфон открыт в другом окне. Отображено сообщение о том, что ' +
                                                 'софтфон открыт в другом окне.',
@@ -2549,8 +2563,6 @@ tests.addTest(options => {
                                                 tester.softphone.expectTextContentNotToHaveSubstring(
                                                     'Микрофон не обнаружен'
                                                 );
-
-                                                tester.digitRemovingButton.expectNotToExist();
 
                                                 tester.body.expectTextContentToHaveSubstring(
                                                     'karadimova Не беспокоить'

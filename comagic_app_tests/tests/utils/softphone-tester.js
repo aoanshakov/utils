@@ -666,9 +666,12 @@ define(function () {
                 with_active_phones: undefined
             };
 
-            var additionalUsers = [];
+            var additionalUsers = [],
+                processors = [];
 
             function addResponseModifiers (me) {
+                me.anotherShortPhone = () => (processors.push(data => (data[2].short_phone = '2963')), me);
+
                 me.addMoreUsers = me.addMore = function () {
                     var i;
 
@@ -706,10 +709,10 @@ define(function () {
                             Promise.runAll();
                         },
                         receiveResponse: function () {
-                            request.respondSuccessfullyWith({
-                                data: me.getUsers().concat(additionalUsers)
-                            });
+                            const data = me.getUsers().concat(additionalUsers);
+                            processors.forEach(process => process(data));
 
+                            request.respondSuccessfullyWith({data});
                             Promise.runAll(false, true);
                             triggerScrollRecalculation();
                         }
