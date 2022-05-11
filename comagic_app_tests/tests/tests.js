@@ -197,58 +197,6 @@ tests.addTest(options => {
                                                                 usersInGroupsRequest.receiveResponse();
                                                             });
 
-                                                            describe('Нажимаю на кнопку поиска.', function() {
-                                                                beforeEach(function() {
-                                                                    tester.searchButton.click();
-                                                                });
-
-                                                                describe('Ввожу значение в поле поиска.', function() {
-                                                                    beforeEach(function() {
-                                                                        tester.softphone.input.fill('ова');
-                                                                    });
-
-                                                                    it(
-                                                                        'Нажимаю на иконку очищения поля. Отображены ' +
-                                                                        'все сотрудники.',
-                                                                    function() {
-                                                                        tester.softphone.input.clearIcon.click();
-
-                                                                        tester.softphone.expectToHaveTextContent(
-                                                                            'Сотрудники Группы ' +
-
-                                                                            'Божилова Йовка 296 ' +
-                                                                            'Господинова Николина 295 ' +
-                                                                            'Шалева Дора 8258'
-                                                                        );
-                                                                    });
-                                                                    it('Отображены найденные сотрудники.', function() {
-                                                                        tester.softphone.expectToHaveTextContent(
-                                                                            'Божил ова Йовка 296 ' +
-                                                                            'Господин ова Николина 295'
-                                                                        );
-                                                                    });
-                                                                });
-                                                                it(
-                                                                    'Ввожу значение в поле поиска. Ничего не ' +
-                                                                    'найдено. Отображено сообщение о том, что ничего ' +
-                                                                    'не найдено.',
-                                                                function() {
-                                                                    tester.softphone.input.fill('йцукен');
-                                                                    tester.softphone.
-                                                                        expectToHaveTextContent('Сотрудник не найден');
-                                                                });
-                                                                it(
-                                                                    'Ввожу номер в поле поиска. Сотрудники ' +
-                                                                    'фильтруются по номеру.',
-                                                                function() {
-                                                                    tester.softphone.input.fill('5');
-
-                                                                    tester.softphone.expectToHaveTextContent(
-                                                                        'Шалева Дора 82 5 8 ' +
-                                                                        'Господинова Николина 29 5'
-                                                                    );
-                                                                });
-                                                            });
                                                             describe('Открываю вкладку групп.', function() {
                                                                 beforeEach(function() {
                                                                     tester.button('Группы').click();
@@ -285,6 +233,61 @@ tests.addTest(options => {
                                                                         '/1 Отдел региональных продаж 828 2 /2'
                                                                     );
                                                                 });
+                                                            });
+                                                            describe('Ввожу значение в поле поиска.', function() {
+                                                                beforeEach(function() {
+                                                                    tester.softphone.input.fill('ова');
+                                                                });
+
+                                                                it(
+                                                                    'Нажимаю на иконку очищения поля. Отображены ' +
+                                                                    'все сотрудники.',
+                                                                function() {
+                                                                    tester.softphone.input.clearIcon.click();
+
+                                                                    tester.softphone.expectToHaveTextContent(
+                                                                        'Сотрудники Группы ' +
+
+                                                                        'Божилова Йовка 296 ' +
+                                                                        'Господинова Николина 295 ' +
+                                                                        'Шалева Дора 8258'
+                                                                    );
+
+                                                                    tester.softphone.input.expectToHaveValue('');
+                                                                });
+                                                                it('Отображены найденные сотрудники.', function() {
+                                                                    tester.softphone.expectToHaveTextContent(
+                                                                        'Сотрудники Группы ' +
+
+                                                                        'Божил ова Йовка 296 ' +
+                                                                        'Господин ова Николина 295'
+                                                                    );
+                                                                });
+                                                            });
+                                                            it(
+                                                                'Ввожу значение в поле поиска. Ничего не ' +
+                                                                'найдено. Отображено сообщение о том, что ничего ' +
+                                                                'не найдено.',
+                                                            function() {
+                                                                tester.softphone.input.fill('йцукен');
+
+                                                                tester.softphone.expectToHaveTextContent(
+                                                                    'Сотрудники Группы ' +
+                                                                    'Сотрудник не найден'
+                                                                );
+                                                            });
+                                                            it(
+                                                                'Ввожу номер в поле поиска. Сотрудники ' +
+                                                                'фильтруются по номеру.',
+                                                            function() {
+                                                                tester.softphone.input.fill('5');
+
+                                                                tester.softphone.expectToHaveTextContent(
+                                                                    'Сотрудники Группы ' +
+
+                                                                    'Шалева Дора 82 5 8 ' +
+                                                                    'Господинова Николина 29 5'
+                                                                );
                                                             });
                                                             it('Нажимаю на строку в таблице сотрудника.', function() {
                                                                 tester.employeeRow('Господинова Николина').click();
