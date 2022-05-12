@@ -2944,7 +2944,7 @@ function JsTester_ZipArchive () {
     ]);
 }
 
-function JsTester_WindowSize () {
+function JsTester_WindowSize (spendTime) {
     var originalInnerHeight = window.innerHeight,
         innerHeight = originalInnerHeight;
 
@@ -2963,6 +2963,7 @@ function JsTester_WindowSize () {
         redefineProperty();
         innerHeight = value;
         window.dispatchEvent(new Event('resize'));
+        spendTime(0);
     };
 
     this.reset = function () {
@@ -3266,7 +3267,7 @@ function JsTester_Tests (factory) {
     };
 
     var utils = factory.createUtils(debug),
-        windowSize = new JsTester_WindowSize(),
+        windowSize = new JsTester_WindowSize(spendTime),
         broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage()),
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},

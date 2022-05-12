@@ -6669,6 +6669,14 @@ define(() => function ({
     me.bugButton = testersFactory.createDomElementTester('.cmg-bug-icon');
     me.notificationSection = testersFactory.createDomElementTester('.cm-chats--chat-notifications');
 
+    {
+        const tester = testersFactory.createDomElementTester('.ui-select-popup-header .ui-icon'),
+            click = tester.click.bind(tester);
+
+        tester.click = () => (click(), spendTime(0));
+        me.arrowNextToSearchField = tester;
+    }
+
     me.popover = (() => {
         const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),
             tester = testersFactory.createDomElementTester(getDomElement);

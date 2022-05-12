@@ -271,6 +271,31 @@ tests.addTest(options => {
                                                                         );
                                                                     });
                                                                 });
+                                                                describe('Ввожу номер в поле поиска.', function() {
+                                                                    beforeEach(function() {
+                                                                        tester.softphone.input.fill('29');
+                                                                    });
+
+                                                                    it(
+                                                                        'Открываю вкладку "Группы". Список групп ' +
+                                                                        'отфильтрован по номеру.',
+                                                                    function() {
+                                                                        tester.button('Группы').click();
+
+                                                                        tester.softphone.expectToHaveTextContent(
+                                                                            'Сотрудники Группы ' +
+                                                                            'Отдел дистрибуции 29 8 1 /1'
+                                                                        );
+                                                                    });
+                                                                    it('Сотрудники фильтруются по номеру.', function() {
+                                                                        tester.softphone.expectToHaveTextContent(
+                                                                            'Сотрудники Группы ' +
+
+                                                                            'Господинова Николина 29 5 ' +
+                                                                            'Божилова Йовка 29 6'
+                                                                        );
+                                                                    });
+                                                                });
                                                                 it(
                                                                     'Ввожу значение в поле поиска. Ничего не ' +
                                                                     'найдено. Отображено сообщение о том, что ничего ' +
@@ -281,19 +306,6 @@ tests.addTest(options => {
                                                                     tester.softphone.expectToHaveTextContent(
                                                                         'Сотрудники Группы ' +
                                                                         'Сотрудник не найден'
-                                                                    );
-                                                                });
-                                                                it(
-                                                                    'Ввожу номер в поле поиска. Сотрудники ' +
-                                                                    'фильтруются по номеру.',
-                                                                function() {
-                                                                    tester.softphone.input.fill('5');
-
-                                                                    tester.softphone.expectToHaveTextContent(
-                                                                        'Сотрудники Группы ' +
-
-                                                                        'Шалева Дора 82 5 8 ' +
-                                                                        'Господинова Николина 29 5'
                                                                     );
                                                                 });
                                                                 it(
@@ -4496,23 +4508,6 @@ tests.addTest(options => {
                                 tester.spinner.expectToBeVisible();
                             });
                         });
-                        describe('Открываю список номеров.', function() {
-                            beforeEach(function() {
-                                windowSize.setHeight(212);
-                                tester.select.arrow.click();
-                            });
-
-                            it('Список вписан в окно.', function() {
-                                tester.select.popup.expectToHaveTopOffset(4);
-                                tester.select.popup.expectToHaveHeight(204);
-                            });
-                            it('Растягиваю окно. Список меняет положение и размер.', function() {
-                                windowSize.setHeight(568);
-
-                                tester.select.popup.expectToHaveTopOffset(92);
-                                tester.select.popup.expectToHaveHeight(331);
-                            });
-                        });
                         describe('Открываю таблицу сотрудников. Токен истек.', function() {
                             let refreshRequest;
 
@@ -4627,6 +4622,29 @@ tests.addTest(options => {
                                     'Господинова Николина 295 ' +
                                     'Шалева Дора 8258'
                                 );
+                            });
+                        });
+                        describe('Открываю список номеров.', function() {
+                            beforeEach(function() {
+                                windowSize.setHeight(212);
+                                tester.select.arrow.click();
+                            });
+
+                            it('Нажимаю на кнопку сворачивания списка.', function() {
+                                tester.arrowNextToSearchField.click();
+                                tester.select.popup.expectNotToExist();
+                            });
+                            it('Растягиваю окно. Список меняет положение и размер.', function() {
+                                windowSize.setHeight(568);
+
+                                tester.select.popup.expectToHaveTopOffset(92);
+                                tester.select.popup.expectToHaveHeight(331);
+
+                                tester.arrowNextToSearchField.expectNotToExist();
+                            });
+                            it('Список вписан в окно.', function() {
+                                tester.select.popup.expectToHaveTopOffset(4);
+                                tester.select.popup.expectToHaveHeight(204);
                             });
                         });
                         describe('Получено обновление.', function() {
