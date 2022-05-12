@@ -4581,16 +4581,16 @@ tests.addTest(options => {
                                         height: 568
                                     });
 
+                                tester.usersRequest().receiveResponse(),
+                                tester.usersInGroupsRequest().receiveResponse(),
+                                tester.groupsRequest().receiveResponse();
+
                                 tester.accountRequest().receiveResponse();
                                 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
                                     expectToBeSentToChannel('feature-flags-fetched').
                                     expectToBeSentWithArguments(['softphone', undefined]);
-
-                                tester.usersRequest().receiveResponse(),
-                                tester.usersInGroupsRequest().receiveResponse(),
-                                tester.groupsRequest().receiveResponse();
 
                                 tester.authCheckRequest().receiveResponse();
                                 tester.statusesRequest().receiveResponse();

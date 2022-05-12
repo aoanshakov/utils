@@ -1,40 +1,30 @@
-diff --git a/.env b/.env
-index cf35fde4..32dc7c45 100644
---- a/.env
-+++ b/.env
-@@ -10,6 +10,6 @@ REACT_APP_COMAGIC_WEB_URL=https://int0.dev.uis.st
- REACT_APP_PROJECT=
- REACT_APP_MODULE_ANALYTICS=http://localhost:8081
- REACT_APP_MODULE_CALL_TRACKING=http://localhost:8082
--REACT_APP_MODULE_CHATS=https://chats-int0-chats.uis.st
-+REACT_APP_MODULE_CHATS=http://localhost:8083
- REACT_APP_LEADGEN_MODULE=
--REACT_APP_MODULE_SOFTPHONE=https://softphone-int0-softphone.uis.st
-+REACT_APP_MODULE_SOFTPHONE=https://localhost:8084
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 91310a1a..ec734fd2 100644
+index 90627a16..0f3e7465 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
-@@ -8,9 +8,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+@@ -7,10 +7,11 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
  const MiniCssExtractPlugin = require('mini-css-extract-plugin');
  const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
  const TerserPlugin = require('terser-webpack-plugin');
 -const ExternalRemotesPlugin = require('external-remotes-plugin');
 +//const ExternalRemotesPlugin = require('external-remotes-plugin');
+ const CopyPlugin = require('copy-webpack-plugin');
  const comagicCoreDeps = require('@comagic/core/package.json');
  const magicUIDeps = require('magic-ui/package.json');
 +const hash = require('string-hash');
  
  const { ModuleFederationPlugin } = webpack.container;
  const pkgJson = require('../package.json');
-@@ -20,14 +21,27 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -20,6 +21,8 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
 +const miscDirectory = `${appDirectory}/misc`;
 +const magicUIDirectory = `${miscDirectory}/magic_ui`;
+ const publicDir = path.resolve(appDirectory, 'public');
+ const buildDir = path.resolve(appDirectory, 'build');
  const dotenv = path.resolve(appDirectory, '.env');
- const isProductionMode = NODE_ENV !== 'development';
+@@ -27,9 +30,20 @@ const isProductionMode = NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
@@ -55,7 +45,7 @@ index 91310a1a..ec734fd2 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -104,10 +118,11 @@ const webpackDefinePlugin = () => {
+@@ -106,10 +120,11 @@ const webpackDefinePlugin = () => {
      return opts;
  };
  
@@ -68,7 +58,7 @@ index 91310a1a..ec734fd2 100644
          },
          {
              loader: 'css-loader',
-@@ -193,7 +208,7 @@ const plugins = () => {
+@@ -205,7 +220,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -77,7 +67,7 @@ index 91310a1a..ec734fd2 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -213,6 +228,11 @@ const plugins = () => {
+@@ -227,6 +242,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -89,7 +79,7 @@ index 91310a1a..ec734fd2 100644
      ];
  
      if (isProductionMode) {
-@@ -236,6 +256,13 @@ const plugins = () => {
+@@ -250,6 +270,13 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -103,7 +93,7 @@ index 91310a1a..ec734fd2 100644
  module.exports = {
      entry: './src/index.tsx',
      target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
-@@ -255,6 +282,21 @@ module.exports = {
+@@ -271,6 +298,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -125,7 +115,7 @@ index 91310a1a..ec734fd2 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -274,7 +316,7 @@ module.exports = {
+@@ -290,7 +332,7 @@ module.exports = {
                          }),
                      },
                  },
@@ -134,7 +124,7 @@ index 91310a1a..ec734fd2 100644
              },
              {
                  test: /\.css$/,
-@@ -285,6 +327,29 @@ module.exports = {
+@@ -301,6 +343,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -164,7 +154,7 @@ index 91310a1a..ec734fd2 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -300,6 +365,7 @@ module.exports = {
+@@ -316,6 +381,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -172,7 +162,7 @@ index 91310a1a..ec734fd2 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -315,16 +381,106 @@ module.exports = {
+@@ -331,17 +397,110 @@ module.exports = {
                      },
                  ],
              },
@@ -206,6 +196,7 @@ index 91310a1a..ec734fd2 100644
      },
      resolve: {
          extensions: ['.tsx', '.ts', '.js'],
+ 
          alias: {
 -            '@': path.resolve(appDirectory, './src'),
 -            '@models': path.resolve(appDirectory, './src/models'),
@@ -240,7 +231,10 @@ index 91310a1a..ec734fd2 100644
 +            'analytics/Dashboards/MarketerDashboard': `${miscDirectory}/Stub.js`,
 +            'analytics/SharedReport': `${miscDirectory}/Stub.js`,
 +            'analytics/cancelPendingRequests': `${miscDirectory}/Stub.js`,
++            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
++            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`
          },
++
 +        plugins: [{
 +            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
 +                request,
@@ -282,9 +276,9 @@ index 91310a1a..ec734fd2 100644
 +        }]
      },
      output: {
-         filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
+         clean: true,
 diff --git a/package.json b/package.json
-index 7ead81bf..31201d0d 100644
+index c78669a6..456d5891 100644
 --- a/package.json
 +++ b/package.json
 @@ -59,8 +59,8 @@
@@ -296,7 +290,7 @@ index 7ead81bf..31201d0d 100644
 +    "ts-loader": "8.0.17",
 +    "typescript": "4.2.2",
      "url-loader": "^3.0.0",
-     "webpack": "^5.38.1",
+     "webpack": "^5.72.0",
      "webpack-bundle-analyzer": "^4.4.0",
 @@ -70,11 +70,14 @@
    },
@@ -317,7 +311,7 @@ index 7ead81bf..31201d0d 100644
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
--    "magic-ui": "v1.17.3",
+-    "magic-ui": "^1.18.25",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
@@ -337,10 +331,10 @@ index 7ead81bf..31201d0d 100644
    }
  }
 diff --git a/public/index.html b/public/index.html
-index 6143f5e1..7ff73d45 100644
+index fd0f39d9..22b7a6a7 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -22,7 +22,29 @@
+@@ -23,7 +23,29 @@
      })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
      <!-- End Google Tag Manager -->
      <% } %>
@@ -369,9 +363,9 @@ index 6143f5e1..7ff73d45 100644
 +        }
 +    </style>
  </head>
- <body>
+ <body class="cm-body">
      <% if (htmlWebpackPlugin.options.env.production) { %>
-@@ -34,5 +56,6 @@
+@@ -35,5 +57,6 @@
      <% } %>
      <noscript>You need to enable JavaScript to run this app.</noscript>
      <div id="root"></div>
@@ -446,19 +440,19 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 09748d98..4cd21e22 100644
+index cbccb1f0..8a8e476f 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -175,7 +175,7 @@ export const RootStore = types
- 
-             setAuthHeaders();
+@@ -194,7 +194,7 @@ export const RootStore = types
+                 }
+             );
  
 -            axios.interceptors.response.use(
 +            window.axiosInterceptors = axios.interceptors.response.use(
                  response => {
                      logRequest({response});
  
-@@ -224,6 +224,7 @@ export const RootStore = types
+@@ -252,6 +252,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -466,7 +460,7 @@ index 09748d98..4cd21e22 100644
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -257,7 +258,8 @@ export type DependencyInjection = {
+@@ -285,7 +286,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -477,10 +471,10 @@ index 09748d98..4cd21e22 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 1b101f36..c53c3216 100644
+index 862322d9..f3f7b0b4 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -109,7 +109,7 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -102,7 +102,7 @@ const removeToken = (skipLocalStorage = false) => {
  
  export const AuthStore = Loader.named('AuthStore')
      .props({
@@ -489,7 +483,7 @@ index 1b101f36..c53c3216 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -202,6 +202,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -199,6 +199,8 @@ export const AuthStore = Loader.named('AuthStore')
          });
  
          const afterCreate = () => {
