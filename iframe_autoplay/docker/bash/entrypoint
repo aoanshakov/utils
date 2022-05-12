@@ -1,0 +1,38 @@
+#!/bin/bash
+
+path=/usr/local/src
+window="top"
+
+if [ ! -d $path ]
+then
+    echo "директория приложения смонтирована некорректно"
+    exit 1
+fi
+
+export SIP_LIB_TEST_USER=""
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "--owner" ]
+    then
+        export SIP_LIB_TEST_USER=$2
+        shift
+    elif [ "$1" = "--window" ]
+    then
+        window="$2"
+        shift
+    elif [ "$1" = "--iframe-port" ]
+    then
+        cp $path/html/top.template.html $path/html/top/index.html
+        sed -i "s/{port}/$2/g" $path/html/top/index.html
+        shift
+    fi
+
+    shift
+done
+
+cp $path/configs/$window.nginx.conf /etc/nginx/nginx.conf
+
+cd $path
+service nginx start
+bash

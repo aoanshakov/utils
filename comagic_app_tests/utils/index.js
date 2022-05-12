@@ -41,7 +41,9 @@ const {
     updaterPatch,
     updaterLog,
     publisher,
-    publisherDir
+    publisherDir,
+    broadcastChannel,
+    broadcastChannelPatch
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -227,6 +229,8 @@ actions['modify-code'] = params => actions['restore-code']({}).
 
 const appModule = ([module, path, args]) => [`web/comagic_app_modules/${module}`, path, args, misc];
 
+actions['patch-broadcast-channel'] = [`cd ${broadcastChannel} && patch -p1 < ${broadcastChannelPatch}`];
+
 actions['initialize'] = params => [
     appModule(['chats', chats, '']),
     appModule(['softphone', softphone, '']),
@@ -239,8 +243,10 @@ actions['initialize'] = params => [
     `cd ${misc} && git clone${args} git@gitlab.uis.dev:${module}.git`
 ] : [])).reduce((result, item) => result.concat(item), []).concat(
     actions['modify-code'](params)
-).concat(!fs.existsSync(nodeModules) ?
-    [`chown -R root:root ${application}`, `${cda} npm install --verbose`].concat(actions['fix-permissions']) : []);
+).concat(!fs.existsSync(nodeModules) ?  [
+    `chown -R root:root ${application}`,
+    `${cda} npm install --verbose`
+].concat(actions['patch-broadcast-channel']).concat(actions['fix-permissions']) : []);
 
 actions['remove-node-modules'] = overriding.map(({application}) => [
     rmVerbose(`${application}/node_modules`),

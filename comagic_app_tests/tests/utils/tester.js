@@ -753,6 +753,12 @@ define(() => function ({
             is_final: true
         };
 
+        const createMessage = () => ({
+            name: 'out_call_session',
+            type: 'event',
+            params: params 
+        });
+
         return {
             activeLeads() {
                 addActiveLeads(params);
@@ -765,12 +771,32 @@ define(() => function ({
                 return this;
             },
 
+            slavesNotification: () => ({
+                expectToBeSent: () => {
+                    const message = createMessage();
+
+                    [
+                        'virtual_phone_number',
+                        'contact_phone_number',
+                        'calling_phone_number'
+                    ].forEach(param => (message.params[param] = params[param].slice(1)));
+
+                    me.recentCrosstabMessage().expectToContain({
+                        type: 'message',
+                        data: {
+                            type: 'notify_slaves',
+                            data: {
+                                type: 'websocket_message',
+                                message
+                            }
+                        }
+                    });
+                }
+            }),
+
             receive() {
-                me.eventsWebSocket.receiveMessage({
-                    name: 'out_call_session',
-                    type: 'event',
-                    params: params 
-                });
+                me.eventsWebSocket.receiveMessage(createMessage());
+                Promise.runAll(false, true);
             }
         };
     };
@@ -813,6 +839,12 @@ define(() => function ({
             is_need_auto_answer: false,
             is_final: true
         };
+
+        const createMessage = () => ({
+            name: 'out_call',
+            type: 'event',
+            params
+        });
 
         return {
             clickToCall: function () {
@@ -870,13 +902,54 @@ define(() => function ({
                 return this;
             },
 
-            receive: () => me.eventsWebSocket.receiveMessage({
-                name: 'out_call',
-                type: 'event',
-                params
-            }) 
+            getMessage: () => createMessage(),
+
+            slavesNotification: () => {
+                const notification = {
+                    type: 'message',
+                    data: {
+                        type: 'notify_slaves',
+                        data: {
+                            type: 'websocket_message',
+                            message: createMessage()
+                        }
+                    }
+                };
+
+                return {
+                    expectToBeSent: () => me.recentCrosstabMessage().expectToContain(notification),
+                    receive: () => me.receiveCrosstabMessage(notification)
+                };
+            },
+
+            receive: () => {
+                me.eventsWebSocket.receiveMessage(createMessage());
+                Promise.runAll(false, true);
+            } 
         };
     };
+
+    me.extendAdditionalSlavesNotification((notification, state) => {
+        notification.outCallEvent = () => {
+            const {params} = me.outCallEvent().getMessage();
+
+            [
+                'virtual_number_comment',
+                'mark_ids',
+                'auto_call_campaign_name'
+            ].forEach(param => delete(params[param]));
+
+            state.softphone.notifications = {
+                '79161234567': {
+                    notification: params
+                }
+            };
+
+            return notification;
+        };
+
+        return notification;
+    });
 
     me.numaRequest = () => {
         let numa = 79161234567;
@@ -1004,33 +1077,37 @@ define(() => function ({
         };
     };
 
+    me.getApplicationSpecificSettings = function () {
+        return {
+            application_version: '1.3.2',
+            ice_servers: [{
+                urls: ['stun:stun.uiscom.ru:19302']
+            }],
+            numb: '74950216806',
+            number_capacity_id: 124824,
+            sip_channels_count: 2,
+            sip_host: 'voip.uiscom.ru',
+            sip_login: '077368',
+            sip_password: 'e2tcXhxbfr',
+            ws_url: '/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            is_need_hide_numbers: false,
+            is_extended_integration_available: true,
+            is_use_widget_for_calls: true,
+            is_need_open_widget_on_call: true,
+            is_need_close_widget_on_call_finished: false,
+            number_capacity_usage_rule: 'auto',
+            call_task: {
+                pause_between_calls_duration: 60,
+                call_card_show_duration: 10
+            }
+        };
+    };
+
     me.settingsRequest = () => {
         let shouldTriggerScrollRecalculation = true;
 
         const response = {
-            data: {
-                application_version: '1.3.2',
-                ice_servers: [{
-                    urls: ['stun:stun.uiscom.ru:19302']
-                }],
-                numb: '74950216806',
-                number_capacity_id: 124824,
-                sip_channels_count: 2,
-                sip_host: 'voip.uiscom.ru',
-                sip_login: '077368',
-                sip_password: 'e2tcXhxbfr',
-                ws_url: '/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                is_need_hide_numbers: false,
-                is_extended_integration_available: true,
-                is_use_widget_for_calls: true,
-                is_need_open_widget_on_call: true,
-                is_need_close_widget_on_call_finished: false,
-                number_capacity_usage_rule: 'auto',
-                call_task: {
-                    pause_between_calls_duration: 60,
-                    call_card_show_duration: 10
-                }
-            }
+            data: me.getApplicationSpecificSettings() 
         };
 
         let respond = request => {
@@ -1274,8 +1351,8 @@ define(() => function ({
                 return this;
             },
 
-            expectToBeSent() {
-                let request = ajax.recentRequest().
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath('https://myint0.dev.uis.st/sup/auth/check').
                     expectToHaveHeaders({
                         Authorization: `Bearer ${token}`,
@@ -1733,7 +1810,7 @@ define(() => function ({
     });
 
     me.configRequest = () => {
-        let host = 'http://localhost:8083';
+        let host = '.';
 
         let response = {
             ENV: 'dev',
@@ -1749,8 +1826,13 @@ define(() => function ({
         };
 
         const me = {
+            chats: () => {
+                host = 'https://chats-int0-chats.uis.st';
+                return me;
+            },
+
             softphone: () => {
-                host = 'https://localhost:8084';
+                host = 'https://softphone-int0-softphone.uis.st';
                 response = {
                     REACT_APP_LOCALE: 'ru',
                     REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',

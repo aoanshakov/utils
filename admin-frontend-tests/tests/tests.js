@@ -16,7 +16,8 @@ tests.addTest(function (options) {
     timeoutLogger.disable();
 
     describe('Открываю новую админку. Аутентифицируюсь.', function() {
-        let tester;
+        let tester,
+            userRequest;
 
         beforeEach(function() {
             const notificationsContainer = document.querySelector('.ant-notification span');
@@ -30,15 +31,16 @@ tests.addTest(function (options) {
             tester.textfield().withPlaceholder('Password').fill('2i3g8h89sdG32r');
 
             tester.button('Sign in').click();
-            Promise.runAll();
             tester.userLoginRequest().receiveResponse();
+
+            userRequest = tester.userRequest().expectToBeSent();
         });
 
-        xdescribe(
+        describe(
             'Доступны разделы "Пользователи", "CRM-интеграции", "Переотправка событий" и "Фичефлаги".',
         function() {
             beforeEach(function() {
-                tester.userRequest().
+                userRequest.
                     allowReadEventResending().
                     allowWriteEventResending().
                     allowReadCrmIntegration().
@@ -67,8 +69,6 @@ tests.addTest(function (options) {
                     describe('Нажимаю на кнопку "Поиск".', function() {
                         beforeEach(function() {
                             tester.button('Поиск').click();
-                            Promise.runAll();
-
                             featureFlagsRequest = tester.featureFlagsRequest().searchString().expectToBeSent();
                         });
 
@@ -138,7 +138,6 @@ tests.addTest(function (options) {
 
                                                         Promise.runAll(false, true);
                                                         tester.button('Сохранить').click();
-                                                        Promise.runAll(false, true);
 
                                                         featureFlagUpdatingRequest =
                                                             tester.featureFlagUpdatingRequest().
@@ -183,7 +182,6 @@ tests.addTest(function (options) {
                                                 function() {
                                                     Promise.runAll(false, true);
                                                     tester.button('Сохранить').click();
-                                                    Promise.runAll(false, true);
 
                                                     tester.featureFlagUpdatingRequest().
                                                         changeName().
@@ -231,7 +229,6 @@ tests.addTest(function (options) {
 
                                         it('Нажимаю на кнопку "Добавить флаг". Форма незаполнена.', function() {
                                             tester.button('Добавить флаг').click();
-                                            Promise.runAll(false, true);
 
                                             tester.textfield().withPlaceholder('Введите название флага').
                                                 expectToHaveValue('');
@@ -255,8 +252,6 @@ tests.addTest(function (options) {
                                             spendTime(100);
 
                                             tester.modal().button('Выключить').click();
-
-                                            Promise.runAll(false, true);
                                             tester.featureFlagUpdatingRequest().switching().receiveResponse();
 
                                             spendTime(200);
@@ -302,15 +297,12 @@ tests.addTest(function (options) {
                                             Promise.runAll(false, true);
 
                                             tester.button('Сохранить').click();
-                                            Promise.runAll(false, true)
                                         });
 
                                         it(
                                             'Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения флага.',
                                         function() {
                                             tester.modal().button('Сохранить').click();
-                                            Promise.runAll(false, true);
-
                                             tester.featureFlagUpdatingRequest().enabled().global().expectToBeSent();
 
                                             spendTime(100);
@@ -481,9 +473,8 @@ tests.addTest(function (options) {
                                     Promise.runAll(false, true);
 
                                     tester.button('Сохранить').click();
-                                    Promise.runAll(false, true)
-
                                     tester.featureFlagUpdatingRequest().enabled().global().expectToBeSent();
+
                                     tester.modal().expectToBeHiddenOrNotExist();
                                 });
                             });
@@ -500,7 +491,6 @@ tests.addTest(function (options) {
                                 function() {
                                     tester.modal().button('Удалить').click();
 
-                                    Promise.runAll(false, true);
                                     tester.featureFlagDeletingRequest().receiveResponse();
                                     tester.featureFlagsRequest().searchString().receiveResponse();
 
@@ -539,8 +529,6 @@ tests.addTest(function (options) {
 
                                 it('Нажимаю на кнопку выключения. Флаг выключен.', function() {
                                     tester.modal().button('Выключить').click();
-
-                                    Promise.runAll(false, true);
                                     tester.featureFlagUpdatingRequest().switching().receiveResponse();
 
                                     spendTime(200);
@@ -602,8 +590,6 @@ tests.addTest(function (options) {
 
                                 it('Нажимаю на кнопку включения. Флаг включен.', function() {
                                     tester.modal().button('Включить').click();
-
-                                    Promise.runAll(false, true);
                                     tester.featureFlagUpdatingRequest().switching().enabled().receiveResponse();
 
                                     spendTime(200);
@@ -774,8 +760,6 @@ tests.addTest(function (options) {
                             tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
 
                             tester.button('Поиск').click();
-                            Promise.runAll();
-
                             tester.featureFlagsRequest().searchString().namespaces().receiveResponse();
                         });
 
@@ -801,8 +785,6 @@ tests.addTest(function (options) {
                             tester.select().withPlaceholder('Выберите пространство имен').arrowIcon().click();
 
                             tester.button('Поиск').click();
-                            Promise.runAll();
-
                             tester.featureFlagsRequest().searchString().receiveResponse();
                         });
                     });
@@ -810,8 +792,6 @@ tests.addTest(function (options) {
                         tester.radioButton('Global').click();
 
                         tester.button('Поиск').click();
-                        Promise.runAll();
-
                         tester.featureFlagsRequest().searchString().global().expectToBeSent();
                     });
                     it(
@@ -820,15 +800,12 @@ tests.addTest(function (options) {
                         tester.radioButton('Связанные с AppID').click();
 
                         tester.button('Поиск').click();
-                        Promise.runAll();
-
                         tester.featureFlagsRequest().searchString().notGlobal().expectToBeSent();
                     });
                 });
                 describe('Нажимаю на кнопку "Добавить флаг".', function() {
                     beforeEach(function() {
                         tester.button('Добавить флаг').click();
-                        Promise.runAll(false, true);
                     });
 
                     describe('Заполняю форму.', function() {
@@ -924,7 +901,6 @@ tests.addTest(function (options) {
 
                                         beforeEach(function() {
                                             tester.button('Сохранить').click();
-                                            Promise.runAll(false, true);
 
                                             featureFlagCreatingRequest = tester.featureFlagCreatingRequest().
                                                 expectToBeSent();
@@ -996,8 +972,6 @@ tests.addTest(function (options) {
                                     ).fill('Шунин');
 
                                     tester.button('Поиск').click();
-                                    Promise.runAll(false, true);
-
                                     tester.appsRequest().setSearch().changeLimit().receiveResponse();
                                 });
                                 it('Отображены клиенты.', function() {
@@ -1019,8 +993,8 @@ tests.addTest(function (options) {
                                 tester.switchField().withLabel('Состояние').click();
 
                                 Promise.runAll(false, true);
+
                                 tester.button('Сохранить').click();
-                                Promise.runAll(false, true);
 
                                 tester.featureFlagCreatingRequest().global().enabled().receiveResponse();
                                 tester.featureFlagsRequest().receiveResponse();
@@ -1077,7 +1051,6 @@ tests.addTest(function (options) {
                             Promise.runAll(false, true);
 
                             tester.button('Сохранить').click();
-                            Promise.runAll(false, true);
                         });
                         it('Безуспешно пытаюсь выбрать дату раньше сегдняшнего дня.', function() {
                             tester.calendar().cell('23').click();
@@ -1112,8 +1085,6 @@ tests.addTest(function (options) {
                 });
                 it('Нажимаю на кнопку "Поиск". Отправлен запрос фичафлагов.', function() {
                     tester.button('Поиск').click();
-                    Promise.runAll();
-
                     tester.featureFlagsRequest().expectToBeSent();
                 });
                 it('Отмечена радиокнопка "Все".', function() {
@@ -1166,7 +1137,6 @@ tests.addTest(function (options) {
 
                                         beforeEach(function() {
                                             tester.button('Применить').click();
-                                            Promise.runAll();
                                             amocrmEventsRequest = tester.amocrmEventsRequest().expectToBeSent();
                                         });
 
@@ -1180,7 +1150,7 @@ tests.addTest(function (options) {
                                             function() {
                                                 beforeEach(function() {
                                                     tester.button('дальше').click();
-                                                    Promise.runAll();
+
                                                     amocrmEventsRequest = tester.amocrmEventsRequest().setOffset(25).
                                                         expectToBeSent();
                                                 });
@@ -1193,7 +1163,7 @@ tests.addTest(function (options) {
                                                     describe('Перехожу на третью страницу.', function() {
                                                         beforeEach(function() {
                                                             tester.button('дальше').click();
-                                                            Promise.runAll();
+
                                                             tester.amocrmEventsRequest().setOffset(50).expectToBeSent().
                                                                 addEvents(50, 74).receiveResponse();
                                                         });
@@ -1242,7 +1212,6 @@ tests.addTest(function (options) {
                                                         describe('Перехожу на четвертую страницу.', function() {
                                                             beforeEach(function() {
                                                                 tester.button('дальше').click();
-                                                                Promise.runAll();
 
                                                                 tester.amocrmEventsRequest().
                                                                     setOffset(75).
@@ -1256,7 +1225,6 @@ tests.addTest(function (options) {
                                                                 'страница.',
                                                             function() {
                                                                 tester.button('В начало').click();
-                                                                Promise.runAll();
                                                                 tester.amocrmEventsRequest().expectToBeSent();
                                                             });
                                                             it('Отображены три кнопки страниц.', function() {
@@ -1354,7 +1322,7 @@ tests.addTest(function (options) {
                                                         click();
 
                                                     tester.button('Повторить отправку').click();
-                                                    Promise.runAll();
+
                                                     amocrmEventsResendingRequest =
                                                         tester.amocrmEventsResendingRequest().
                                                             setTwoEvents().
@@ -1475,7 +1443,6 @@ tests.addTest(function (options) {
                                                     click();
 
                                                 tester.button('Повторить отправку').click();
-                                                Promise.runAll();
 
                                                 tester.amocrmEventsResendingRequest().receiveResponse();
                                                 tester.amocrmEventsRequest().expectToBeSent();
@@ -1499,7 +1466,6 @@ tests.addTest(function (options) {
                                                     click();
 
                                                 tester.button('Повторить отправку').click();
-                                                Promise.runAll();
 
                                                 tester.amocrmEventsResendingRequest().receiveResponse();
                                                 tester.amocrmEventsRequest().expectToBeSent();
@@ -1513,7 +1479,6 @@ tests.addTest(function (options) {
                                                 'события выбраны.',
                                             function() {
                                                 tester.button('Выбрать все недоставленные').click();
-                                                Promise.runAll(false, true);
 
                                                 tester.table().cell().withContent('79157389283').row().checkbox().
                                                     expectToBeChecked();
@@ -1738,7 +1703,6 @@ tests.addTest(function (options) {
                                         tester.checkbox().withLabel('Недоставленные').click();
 
                                         tester.button('Применить').click();
-                                        Promise.runAll();
                                         tester.amocrmEventsRequest().setAllExceptUndelivered().receiveResponse();
 
                                         tester.path.expectQueryToContain({
@@ -1755,7 +1719,6 @@ tests.addTest(function (options) {
                                         tester.checkbox().withLabel('Доставленные').click();
 
                                         tester.button('Применить').click();
-                                        Promise.runAll();
                                         tester.amocrmEventsRequest().setAllExceptDelivered().receiveResponse();
 
                                         tester.path.expectQueryToContain({
@@ -1784,7 +1747,6 @@ tests.addTest(function (options) {
                                     tester.calendar().okButton().click();
 
                                     tester.button('Применить').click();
-                                    Promise.runAll();
                                     tester.amocrmEventsRequest().changeRangeTime().receiveResponse();
                                 });
                             });
@@ -1807,7 +1769,6 @@ tests.addTest(function (options) {
                                     'Нажимаю на кнопку "Применить". Отправляется запрос сегодняшних событий.',
                                 function() {
                                     tester.button('Применить').click();
-                                    Promise.runAll();
                                     tester.amocrmEventsRequest().setDefaultDateRange().expectToBeSent();
                                 });
                             });
@@ -1831,7 +1792,6 @@ tests.addTest(function (options) {
                                     'периоду, окончанием которого является сегодняшний день.',
                                 function() {
                                     tester.button('Применить').click();
-                                    Promise.runAll();
                                     tester.amocrmEventsRequest().setAnotherDateRange().expectToBeSent();
                                 });
                             });
@@ -1840,7 +1800,6 @@ tests.addTest(function (options) {
                             'Нажимаю на кнопка "Применить". Отправляется запрос событий с дефолтными параметрами.',
                         function() {
                             tester.button('Применить').click();
-                            Promise.runAll();
                             tester.amocrmEventsRequest().setDefaultParams().receiveResponse();
                         });
                     });
@@ -1849,14 +1808,12 @@ tests.addTest(function (options) {
                         tester.select().option('bitrix').click();
 
                         tester.button('Применить').click();
-                        Promise.runAll();
                         tester.amocrmEventsRequest().setDefaultParams().setBitrix().receiveResponse();
 
                         tester.table().cell().withContent('79157389283').row().checkbox().click();
                         tester.table().cell().withContent('79157389285').row().checkbox().click();
 
                         tester.button('Повторить отправку').click();
-                        Promise.runAll();
                         tester.amocrmEventsResendingRequest().setTwoEvents().setBitrix().expectToBeSent();
                     });
                 });
@@ -1874,7 +1831,6 @@ tests.addTest(function (options) {
                     tester.directionRequest().addAppStates().receiveResponse();
 
                     tester.button('Применить').click();
-                    Promise.runAll();
                     tester.integrationsRequest().receiveResponse();
                 });
 
@@ -1988,16 +1944,15 @@ tests.addTest(function (options) {
                 tester.menuitem('Фичефлаги').expectHrefToHavePath('/feature-flags');
             });
         });
-        xdescribe('Доступен только раздел "Пользовтатели".', function() {
+        describe('Доступен только раздел "Пользовтатели".', function() {
             beforeEach(function() {
-                tester.userRequest().allowReadUsers().receiveResponse();
+                userRequest.allowReadUsers().receiveResponse();
             });
 
             it('Заполняю поле "App ID". Нажимаю на кнопку "Применить".', function() {
                 tester.textfield().withPlaceholder('App ID').fill('4735');
 
                 tester.button('Применить').click();
-                Promise.runAll();
                 tester.usersRequest().receiveResponse();
 
                 tester.root.expectToHaveTextContent(
@@ -2059,19 +2014,133 @@ tests.addTest(function (options) {
                 );
             });
         });
-        xdescribe('Доступен только раздел "Клиенты".', function() {
+        describe('Доступен только раздел "Клиенты".', function() {
             beforeEach(function() {
-                tester.userRequest().allowReadApps().allowWriteApps().receiveResponse();
+                userRequest.
+                    allowReadStatisticsRevisionHistory().
+                    allowReadManagementAppsLoginToApp().
+                    allowReadApps().
+                    allowWriteApps().
+                    allowReadSoftphoneSettings().
+                    receiveResponse();
+
                 tester.directionRequest().addAppStates().addTpTpvAll().receiveResponse();
             });
 
             describe('Нажимаю на кнпоку "Применить".', function() {
                 beforeEach(function() {
                     tester.button('Применить').click();
-                    Promise.runAll();
                     tester.appsRequest().receiveResponse();
                 });
 
+                describe('Нажимаю на кнпоку меню в строке таблицы.', function() {
+                    beforeEach(function() {
+                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().actionsMenu().click();
+                        tester.appUsersRequest().receiveResponse();
+                    });
+
+                    describe('Нажимаю на пункт меню "Редактирование клиента".', function() {
+                        let appRequest;
+
+                        beforeEach(function() {
+                            tester.menuitem('Редактирование клиента').click();
+                            appRequest = tester.appRequest().expectToBeSent();
+                        });
+                        
+                        describe('Значение поля URL для РТУ является строкой.', function() {
+                            beforeEach(function() {
+                                appRequest.receiveResponse();
+                                tester.tab('Настройки софтфона').click();
+                            });
+
+                            it(
+                                'Я меняю значение поля. Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения.',
+                            function() {
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('ICE servers').textfield().
+                                    fill('stun:stun.uiscom.ru:19304');
+
+                                tester.button('Сохранить').click();
+
+                                tester.appUpdatingRequest().receiveResponse();
+                                tester.appRequest().receiveResponse();
+                            });
+                            it('Форма заполнена.', function() {
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('WebRTC url').textfield().
+                                    expectToHaveValue('wss://webrtc.uiscom.ru');
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('РТУ WebRTC url').textfield().
+                                    expectToHaveValue('wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru');
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('SIP host').textfield().
+                                    expectToHaveValue('voip.uiscom.ru');
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('РТУ SIP host').textfield().
+                                    expectToHaveValue('rtu.uis.st:443');
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('ICE servers').textfield().
+                                    expectToHaveValue('stun:stun.uiscom.ru:19303');
+                            });
+                        });
+                        it(
+                            'Значение поля URL для РТУ является массивом. Я меняю значение поля. Нажимаю на кнопку ' +
+                            '"Сохранить". Отправлен запрос сохранения.',
+                        function() {
+                            appRequest.rtuWebrtcUrlsAreArray().receiveResponse();
+                            tester.tab('Настройки софтфона').click();
+
+                            tester.table().
+                                cell().withContent('call_center').row().
+                                column().withHeader('ICE servers').textfield().
+                                fill('stun:stun.uiscom.ru:19304');
+
+                            tester.button('Сохранить').click();
+
+                            tester.appUpdatingRequest().receiveResponse();
+                            tester.appRequest().receiveResponse();
+                        });
+                        it(
+                            'Значение поля URL для РТУ является пустым. Я меняю значение поля. Нажимаю на кнопку ' +
+                            '"Сохранить". Отправлен запрос сохранения.',
+                        function() {
+                            appRequest.noRtuWebrtcUrls().receiveResponse();
+                            tester.tab('Настройки софтфона').click();
+
+                            tester.table().
+                                cell().withContent('call_center').row().
+                                column().withHeader('ICE servers').textfield().
+                                fill('stun:stun.uiscom.ru:19304');
+
+                            tester.button('Сохранить').click();
+
+                            tester.appUpdatingRequest().noRtuWebrtcUrls().receiveResponse();
+                            tester.appRequest().receiveResponse();
+                        });
+                    });
+                    it('Открывается меню.', function() {
+                        tester.dropdown.expectToHaveTextContent(
+                            'История изменений ' +
+                            'Редактирование клиента ' +
+
+                            'Перейти в ЛК ' +
+                            'Ок ' +
+
+                            'Перейти в Новый ЛК ' +
+                            'Ок'
+                        );
+                    });
+                });
                 describe('Нажимаю на заголовок колонки "App ID". Отправлен запрос без сортировки.', function() {
                     beforeEach(function() {
                         tester.table().header().withContent('App ID').click();
@@ -2092,18 +2161,6 @@ tests.addTest(function (options) {
                     it('Под заголовком "App ID" нет стрелочки.', function() {
                         tester.table().header().withContent('App ID').sortIcon().expectNotToExist();
                     });
-                });
-                it('Нажимаю на кнпоку меню в строке таблицы. Открывается меню.', function() {
-                    tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().actionsMenu().click();
-                    Promise.runAll();
-                    tester.appUsersRequest().receiveResponse();
-
-                    tester.dropdown.expectToHaveTextContent(
-                        'История изменений ' +
-                        'Редактирование клиента ' +
-                        'Перейти в ЛК ' +
-                        'Ок'
-                    );
                 });
                 it(
                     'Нажимаю на кнопку второй страницы. Получены данные второй страницы. Отображена вторая страница.',
@@ -2144,15 +2201,14 @@ tests.addTest(function (options) {
                 );
             });
         });
-        xit(
+        it(
             'Доступен только раздел "CRM-интеграции". Нажимаю на кнопку действий в строке, относящейся к amoCRM. ' +
             'Ссылка на раздел переотправки событий заблокирована. ',
         function() {
-            tester.userRequest().allowReadCrmIntegration().receiveResponse();
+            userRequest.allowReadCrmIntegration().receiveResponse();
             tester.directionRequest().addAppStates().receiveResponse();
 
             tester.button('Применить').click();
-            Promise.runAll();
             tester.integrationsRequest().receiveResponse();
 
             tester.table().cell().withContent('amoCRM').row().actionsMenu().click();
@@ -2162,7 +2218,7 @@ tests.addTest(function (options) {
             'Доступен раздел "Переотправка событий". Прав на запись в разделе нет. Заполняю поля фильтра. Кнопка ' +
             '"Повторить отправку" заблокирована.',
         function() {
-            tester.userRequest().allowReadEventResending().receiveResponse();
+            userRequest.allowReadEventResending().receiveResponse();
 
             tester.select().withPlaceholder('Тип CRM').arrowIcon().click();
             tester.select().option('amoCRM').click();
@@ -2181,7 +2237,6 @@ tests.addTest(function (options) {
             tester.calendar().okButton().click();
 
             tester.button('Применить').click();
-            Promise.runAll();
             tester.amocrmEventsRequest().receiveResponse();
 
             tester.table().cell().withContent('79157389283').row().checkbox().click();

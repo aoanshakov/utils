@@ -22,7 +22,11 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const WrappedTester = function (options) {
-                options.softphoneTester = new SoftphoneTester(options);
+                options.softphoneTester = new SoftphoneTester({
+                    ...options,
+                    softphoneHost: 'myint0.dev.uis.st'
+                });
+
                 return new Tester(options);
             };
 

@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index e676414..fbcd175 100644
+index e676414..918456e 100644
 --- a/package.json
 +++ b/package.json
 @@ -55,7 +55,7 @@
@@ -19,15 +19,15 @@ index e676414..fbcd175 100644
      "mobx": "^6.3.8",
      "mobx-devtools-mst": "^0.9.30",
      "mobx-react-lite": "^3.2.2",
-@@ -73,7 +72,7 @@
-     "moment": "^2.29.1",
+@@ -74,7 +73,7 @@
      "react": "^17.0.2",
      "react-dom": "^17.0.2",
--    "react-intl": "^5.22.0",
-+    "react-intl": "5.15.8",
-     "react-router-dom": "^5.2.0",
+     "react-intl": "^5.22.0",
+-    "react-router-dom": "^5.2.0",
++    "react-router-dom": "5.3.1",
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
+     "yup": "^0.32.9"
 diff --git a/src/App.tsx b/src/App.tsx
 index 5f054bd..1386b7e 100644
 --- a/src/App.tsx
