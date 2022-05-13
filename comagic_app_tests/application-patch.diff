@@ -278,7 +278,7 @@ index 90627a16..0f3e7465 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 30411eec..68371d2a 100644
+index 62b55f84..d05ecea8 100644
 --- a/package.json
 +++ b/package.json
 @@ -58,8 +58,8 @@
@@ -300,7 +300,7 @@ index 30411eec..68371d2a 100644
      "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.4",
      "@electron/remote": "^2.0.8",
      "@sentry/react": "^6.17.6",
-@@ -75,6 +76,8 @@
+@@ -76,6 +77,8 @@
      "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
      "axios": "^0.24.0",
@@ -309,16 +309,16 @@ index 30411eec..68371d2a 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -86,7 +89,7 @@
+@@ -87,7 +90,7 @@
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
--    "magic-ui": "^1.18.25",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#int_2022_02.0",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -96,8 +99,13 @@
+@@ -97,8 +100,13 @@
      "react-dom": "^17.0.2",
      "react-intl": "5.15.8",
      "react-router-dom": "^5.1.2",

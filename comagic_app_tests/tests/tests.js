@@ -4274,7 +4274,9 @@ tests.addTest(options => {
                                 tester.button('Автозапуск приложения').expectToBeChecked();
                                 tester.button('Запускать свернуто').expectNotToBeChecked();
                             });
-                            it('Отмечаю свитчбокс "Открывать во время звонка". Значение параметра сохранено.', function() {
+                            it(
+                                'Отмечаю свитчбокс "Открывать во время звонка". Значение параметра сохранено.',
+                            function() {
                                 tester.button('Открывать во время звонка').click();
 
                                 tester.button('Открывать во время звонка').expectToBeChecked();
@@ -4479,8 +4481,9 @@ tests.addTest(options => {
                             it('Нажимаю на открытую сделку. Открывается страница сделки.', function() {
                                 tester.anchor('По звонку с 79154394340').click();
 
-                                getPackage('electron').shell.
-                                    expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/leads/detail/3003651');
+                                getPackage('electron').shell.expectExternalUrlToBeOpened(
+                                    'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
+                                );
                             });
                         });
                         describe('Нажимаю на кнопку дебага.', function() {
@@ -4636,6 +4639,18 @@ tests.addTest(options => {
                             });
                             it('Растягиваю окно. Список меняет положение и размер.', function() {
                                 windowSize.setHeight(568);
+
+                                tester.select.popup.expectToHaveTopOffset(92);
+                                tester.select.popup.expectToHaveHeight(331);
+
+                                tester.arrowNextToSearchField.expectNotToExist();
+                            });
+                            it(
+                                'Закрываю список. Растягиваю окно. Открываю список. Список меняет положение и размер.',
+                            function() {
+                                tester.select.arrow.click();
+                                windowSize.setHeight(568);
+                                tester.select.arrow.click();
 
                                 tester.select.popup.expectToHaveTopOffset(92);
                                 tester.select.popup.expectToHaveHeight(331);
