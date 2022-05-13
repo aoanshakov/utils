@@ -620,7 +620,7 @@ define(() => function ({
     me.userLogoutRequest = () => ({
         expectToBeSent() {
             const request = ajax.recentRequest().
-                expectPathToContain('/auth/json_rpc').
+                expectPathToContain('$REACT_APP_AUTH_URL').
                 expectToHaveMethod('POST').
                 expectBodyToContain({
                     method: 'logout',
@@ -1827,12 +1827,12 @@ define(() => function ({
 
         const me = {
             chats: () => {
-                host = 'https://chats-int0-chats.uis.st';
+                host = '$REACT_APP_MODULE_CHATS';
                 return me;
             },
 
             softphone: () => {
-                host = 'https://softphone-int0-softphone.uis.st';
+                host = '$REACT_APP_MODULE_SOFTPHONE';
                 response = {
                     REACT_APP_LOCALE: 'ru',
                     REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
@@ -6391,7 +6391,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 let request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('/front/v2.0').
+                    expectPathToContain('$REACT_APP_BASE_URL').
                     expectToHaveMethod('POST').
                     expectToHaveHeaders({
                         Authorization: `Bearer ${token}`,
@@ -6462,7 +6462,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent() {
                 request = ajax.recentRequest().
-                    expectPathToContain('/auth/json_rpc').
+                    expectPathToContain('$REACT_APP_AUTH_URL').
                     expectToHaveMethod('POST').
                     expectToHaveHeaders({
                         Authorization: `Bearer ${token}`,
@@ -6506,7 +6506,7 @@ define(() => function ({
 
             receiveResponse() {
                 ajax.recentRequest().
-                    expectPathToContain('/auth/json_rpc').
+                    expectPathToContain('$REACT_APP_AUTH_URL').
                     expectToHaveMethod('POST').
                     expectBodyToContain({
                         method: 'login',

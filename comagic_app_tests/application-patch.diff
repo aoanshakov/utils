@@ -278,10 +278,10 @@ index 90627a16..0f3e7465 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index c78669a6..456d5891 100644
+index 30411eec..68371d2a 100644
 --- a/package.json
 +++ b/package.json
-@@ -59,8 +59,8 @@
+@@ -58,8 +58,8 @@
      "style-loader": "^2.0.0",
      "terser-webpack-plugin": "^5.1.4",
      "ts-import-plugin": "^1.6.7",
@@ -292,21 +292,23 @@ index c78669a6..456d5891 100644
      "url-loader": "^3.0.0",
      "webpack": "^5.72.0",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -70,11 +70,14 @@
+@@ -68,6 +68,7 @@
+     "webpack-merge": "^5.7.3"
    },
    "dependencies": {
-     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.4",
 +    "analytics": "./misc/analytics/frontend",
+     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.4",
+     "@electron/remote": "^2.0.8",
+     "@sentry/react": "^6.17.6",
+@@ -75,6 +76,8 @@
      "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
-     "@sentry/react": "^6.17.6",
-     "@sentry/tracing": "^6.17.6",
      "axios": "^0.24.0",
 +    "babel-loader": "^8.0.4",
 +    "chats": "./misc/chats",
-     "form-data": "^4.0.0",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
+     "dotenv-expand": "^5.1.0",
 @@ -86,7 +89,7 @@
      "formik": "^2.2.9",
      "history": "^4.10.1",
@@ -316,20 +318,21 @@ index c78669a6..456d5891 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -96,8 +99,12 @@
+@@ -96,8 +99,13 @@
      "react-dom": "^17.0.2",
      "react-intl": "5.15.8",
      "react-router-dom": "^5.1.2",
 +    "react-router": "5.2.1",
 +    "softphone": "./misc/softphone",
      "stream-buffers": "^3.0.2",
-     "yup": "^0.28.1",
--    "broadcast-channel": "^4.10.0"
+-    "yup": "^0.28.1"
++    "yup": "^0.28.1",
 +    "broadcast-channel": "^4.10.0",
 +    "string-hash": "^1.1.3",
 +    "antd": "3.26.7"
-   }
- }
+   },
+   "optionalDependencies": {
+     "dmg-license": "^1.0.9"
 diff --git a/public/index.html b/public/index.html
 index fd0f39d9..22b7a6a7 100644
 --- a/public/index.html

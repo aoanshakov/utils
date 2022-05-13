@@ -4812,7 +4812,7 @@ tests.addTest(options => {
                             tester.phoneField.expectNotToBeFocused();
 
                             getPackage('electron-log').expectToContain('State changed');
-                            getPackage('electron-log').expectToContain('/auth/json_rpc');
+                            getPackage('electron-log').expectToContain('$REACT_APP_AUTH_URL');
                         });
                     });
                     it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
