@@ -271,6 +271,31 @@ tests.addTest(options => {
                                                                         );
                                                                     });
                                                                 });
+                                                                describe('Ввожу номер в поле поиска.', function() {
+                                                                    beforeEach(function() {
+                                                                        tester.softphone.input.fill('29');
+                                                                    });
+
+                                                                    it(
+                                                                        'Открываю вкладку "Группы". Список групп ' +
+                                                                        'отфильтрован по номеру.',
+                                                                    function() {
+                                                                        tester.button('Группы').click();
+
+                                                                        tester.softphone.expectToHaveTextContent(
+                                                                            'Сотрудники Группы ' +
+                                                                            'Отдел дистрибуции 29 8 1 /1'
+                                                                        );
+                                                                    });
+                                                                    it('Сотрудники фильтруются по номеру.', function() {
+                                                                        tester.softphone.expectToHaveTextContent(
+                                                                            'Сотрудники Группы ' +
+
+                                                                            'Господинова Николина 29 5 ' +
+                                                                            'Божилова Йовка 29 6'
+                                                                        );
+                                                                    });
+                                                                });
                                                                 it(
                                                                     'Ввожу значение в поле поиска. Ничего не ' +
                                                                     'найдено. Отображено сообщение о том, что ничего ' +
@@ -281,19 +306,6 @@ tests.addTest(options => {
                                                                     tester.softphone.expectToHaveTextContent(
                                                                         'Сотрудники Группы ' +
                                                                         'Сотрудник не найден'
-                                                                    );
-                                                                });
-                                                                it(
-                                                                    'Ввожу номер в поле поиска. Сотрудники ' +
-                                                                    'фильтруются по номеру.',
-                                                                function() {
-                                                                    tester.softphone.input.fill('5');
-
-                                                                    tester.softphone.expectToHaveTextContent(
-                                                                        'Сотрудники Группы ' +
-
-                                                                        'Шалева Дора 82 5 8 ' +
-                                                                        'Господинова Николина 29 5'
                                                                     );
                                                                 });
                                                                 it(
@@ -680,7 +692,10 @@ tests.addTest(options => {
                                                 tester.outCallEvent().activeLeads().slavesNotification().
                                                     expectToBeSent();
 
-                                                tester.anchor('По звонку с 79154394340').expectHrefToHavePath(
+
+                                                tester.anchor('По звонку с 79154394340').click();
+
+                                                windowOpener.expectToHavePath(
                                                     'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
                                                 );
                                             });
@@ -3762,6 +3777,30 @@ tests.addTest(options => {
                                 'uiscom.ru/ ' +
 
                                 'Больше не могу разговаривать с тобой, дай мне Веску!'
+                            );
+                        });
+                        it('Поступило новое сообщение от оператора. Отображено последнее сообщение.', function() {
+                            tester.newMessage().fromOperator().withAttachment().receive();
+
+                            tester.expectChatsStoreToContain({
+                                chatListStore: {
+                                    chatListItems: [{
+                                        id: 2718935,
+                                        last_message: {
+                                            message: 'Я люблю тебя',
+                                            date: 1613910293000,
+                                            is_operator: true,
+                                            resource_type: 'photo',
+                                            resource_name: 'heart.png'
+                                        }
+                                    }]
+                                }
+                            });
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Помакова Бисерка Драгановна ' +
+                                '15:24 ' +
+                                'Вы: Я люблю тебя'
                             );
                         });
                         it('Добавлен новый чат. Отображен новый чат.', function() {

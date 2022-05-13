@@ -25,13 +25,15 @@ define(() => function ({
         refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
     };
 
-    isAlreadyAuthenticated && (
+    isAlreadyAuthenticated && (appName ? localStorage.setItem('electronCookies', JSON.stringify({
+        auth: JSON.stringify(jwtToken)
+    })) : (
         document.cookie =
-            'auth=%7B%22' +
-            'jwt%22%3A%22XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0%22%2C%22' +
-            'refresh%22%3A%222982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2%22%7D; ' +
-            'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
-    );
+        'auth=%7B%22' +
+        'jwt%22%3A%22XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0%22%2C%22' +
+        'refresh%22%3A%222982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2%22%7D; ' +
+        'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
+    ));
 
     window.rootConfig = {appName};
 
@@ -49,6 +51,8 @@ define(() => function ({
     Promise.runAll(false, true);
     spendTime(0);
     Promise.runAll(false, true);
+
+    me.history = history;
 
     const addTesters = (me, getRootElement) => {
         me.table = (() => {
@@ -6530,6 +6534,30 @@ define(() => function ({
         };
     };
 
+    me.applicationVersionChanged = function () {
+        var params = {
+            application_version: '6.6.666'
+        };
+
+        return {
+            critical: function () {
+                params.application_version = '6.7.666';
+                return this;
+            },
+            uncritical: function () {
+                params.application_version = '6.6.667';
+                return this;
+            },
+            receive: function () {
+                me.eventsWebSocket.receiveMessage({
+                    name: 'application_version_changed',
+                    type: 'event',
+                    params: params 
+                });
+            }
+        };
+    };
+
     me.disableTimeout = callback => {
         const setTimeout = window.setTimeout;
         window.setTimeout = () => null;
@@ -6641,6 +6669,14 @@ define(() => function ({
     me.bugButton = testersFactory.createDomElementTester('.cmg-bug-icon');
     me.notificationSection = testersFactory.createDomElementTester('.cm-chats--chat-notifications');
 
+    {
+        const tester = testersFactory.createDomElementTester('.ui-select-popup-header .ui-icon'),
+            click = tester.click.bind(tester);
+
+        tester.click = () => (click(), spendTime(0));
+        me.arrowNextToSearchField = tester;
+    }
+
     me.popover = (() => {
         const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),
             tester = testersFactory.createDomElementTester(getDomElement);
@@ -6661,8 +6697,12 @@ define(() => function ({
     })();
 
     me.userName = (tester => {
-        const putMouseOver = tester.putMouseOver.bind(tester);
+        const putMouseOver = tester.putMouseOver.bind(tester),
+            click = tester.click.bind(tester);
+
         tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
+        tester.click = () => (click(), spendTime(0));
+
         return tester;
     })(testersFactory.createDomElementTester(
         '.cm-user-only-account--username, .cm-chats--account-icon, .cm-chats--account--username'

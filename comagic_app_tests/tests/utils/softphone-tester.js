@@ -666,10 +666,25 @@ define(function () {
                 with_active_phones: undefined
             };
 
-            var additionalUsers = [],
+            const additionalUsers = [],
                 processors = [];
+            let data,
+                respond = request => request.respondSuccessfullyWith({data});
 
             function addResponseModifiers (me) {
+                me.accessTokenExpired = () => {
+                    respond = request => request.respondUnauthorizedWith({
+                        error: {
+                            code: 401,
+                            message: 'Token has been expired',
+                            mnemonic: 'expired_token',
+                            is_smart: false
+                        }
+                    });
+
+                    return me;
+                };
+
                 me.anotherShortPhone = () => (processors.push(data => (data[2].short_phone = '2963')), me);
 
                 me.addMoreUsers = me.addMore = function () {
@@ -709,10 +724,10 @@ define(function () {
                             Promise.runAll();
                         },
                         receiveResponse: function () {
-                            const data = me.getUsers().concat(additionalUsers);
+                            data = me.getUsers().concat(additionalUsers);
                             processors.forEach(process => process(data));
 
-                            request.respondSuccessfullyWith({data});
+                            respond(request);
                             Promise.runAll(false, true);
                             triggerScrollRecalculation();
                         }
@@ -728,6 +743,10 @@ define(function () {
             var request = me.requestUsers();
 
             return {
+                accessTokenExpired: function () {
+                    request.accessTokenExpired();
+                    return this;
+                },
                 addMore: function () {
                     request.addMoreUsers();
                     return this;
@@ -744,7 +763,44 @@ define(function () {
         this.requestUsersInGroups = function () {
             var additionalUsersInGroups = [];
 
+            var respond = request =>  request.respondSuccessfullyWith({
+                data: [{
+                    employee_id: 20816,
+                    group_id: 89203,
+                    id: 293032
+                }, {
+                    employee_id: 82756,
+                    group_id: 89203,
+                    id: 293033
+                }, {
+                    employee_id: 82756,
+                    group_id: 82958,
+                    id: 293034
+                }, {
+                    employee_id: 583783,
+                    group_id: 82958,
+                    id: 293035
+                }, {
+                    employee_id: 79582,
+                    group_id: 17589,
+                    id: 293036
+                }].concat(additionalUsersInGroups)
+            });
+
             function addResponseModifiers (me) {
+                me.accessTokenExpired = () => {
+                    respond = request => request.respondUnauthorizedWith({
+                        error: {
+                            code: 401,
+                            message: 'Token has been expired',
+                            mnemonic: 'expired_token',
+                            is_smart: false
+                        }
+                    });
+
+                    return me;
+                };
+
                 me.addMore = function () {
                     var i;
 
@@ -768,30 +824,7 @@ define(function () {
 
                     return addResponseModifiers({
                         receiveResponse: function () {
-                            request.respondSuccessfullyWith({
-                                data: [{
-                                    employee_id: 20816,
-                                    group_id: 89203,
-                                    id: 293032
-                                }, {
-                                    employee_id: 82756,
-                                    group_id: 89203,
-                                    id: 293033
-                                }, {
-                                    employee_id: 82756,
-                                    group_id: 82958,
-                                    id: 293034
-                                }, {
-                                    employee_id: 583783,
-                                    group_id: 82958,
-                                    id: 293035
-                                }, {
-                                    employee_id: 79582,
-                                    group_id: 17589,
-                                    id: 293036
-                                }].concat(additionalUsersInGroups)
-                            });
-
+                            respond(request);
                             Promise.runAll();
                         }
                     });
@@ -810,7 +843,40 @@ define(function () {
         this.requestGroups = function () {
             var additionalGroups = [];
 
-            return {
+            var respond = request => request.respondSuccessfullyWith({
+                data: [{
+                    id: 89203,
+                    name: 'Отдел дистрибуции',
+                    short_phone: '298'
+                }, {
+                    id: 82958,
+                    name: 'Отдел региональных продаж',
+                    short_phone: '828'
+                }, {
+                    id: 17589,
+                    name: 'Отдел по работе с ключевыми клиентами',
+                    short_phone: '726'
+                }].concat(additionalGroups)
+            });
+
+            function addResponseModifiers (me) {
+                me.accessTokenExpired = function () {
+                    respond = request => request.respondUnauthorizedWith({
+                        error: {
+                            code: 401,
+                            message: 'Token has been expired',
+                            mnemonic: 'expired_token',
+                            is_smart: false
+                        }
+                    });
+
+                    return me;
+                };
+
+                return me;
+            }
+
+            return addResponseModifiers({
                 addMore: function () {
                     var i;
 
@@ -830,38 +896,27 @@ define(function () {
                 expectToBeSent: function () {
                     var request = ajax.recentRequest().expectPathToContain('/sup/api/v1/groups');
 
-                    return {
+                    return addResponseModifiers({
                         receiveResponse: function () {
-                            request.respondSuccessfullyWith({
-                                data: [{
-                                    id: 89203,
-                                    name: 'Отдел дистрибуции',
-                                    short_phone: '298'
-                                }, {
-                                    id: 82958,
-                                    name: 'Отдел региональных продаж',
-                                    short_phone: '828'
-                                }, {
-                                    id: 17589,
-                                    name: 'Отдел по работе с ключевыми клиентами',
-                                    short_phone: '726'
-                                }].concat(additionalGroups)
-                            });
-
+                            respond(request);
                             Promise.runAll();
                         }
-                    };
+                    });
                 },
                 send: function () {
                     this.expectToBeSent().receiveResponse();
                 }
-            };
+            });
         };
 
         this.groupsRequest = function () {
             var request = this.requestGroups();
 
             return {
+                accessTokenExpired: function () {
+                    request.accessTokenExpired();
+                    return this;
+                },
                 addMore: function () {
                     request.addMore();
                     return this;

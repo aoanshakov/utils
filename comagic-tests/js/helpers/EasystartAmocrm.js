@@ -1,4 +1,8 @@
-function EasystartAmocrm(requestsManager, testersFactory, utils) {
+function EasystartAmocrm(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        utils = args.utils;
+
     var me = this;
 
     function dateFormats (date) {
@@ -21,6 +25,14 @@ function EasystartAmocrm(requestsManager, testersFactory, utils) {
         },
         success: true,
         partner: 'amocrm'
+    };
+
+    this.setFatalError = function () {
+        easyStartApplicationState = {
+            success: false,
+            error: 'Произошла фатальная ошибка',
+            partner: 'amocrm'
+        };
     };
 
     Ext.define('EasyStart.test.amocrm.Utils', {
@@ -1328,6 +1340,12 @@ function EasystartAmocrm(requestsManager, testersFactory, utils) {
             handleDone: function () {}
         });
     };
+
+    this.fatalErrorMessage = testersFactory.createDomElementTester(function () {
+        return utils.findElementByTextContent(
+            document.body, 'Ошибка Произошла фатальная ошибка', '.x-component'
+        );
+    });
 
     function SupportRequestSender () {
         window.Comagic = window.Comagic || {};
