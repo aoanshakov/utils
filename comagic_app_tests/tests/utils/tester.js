@@ -26,10 +26,10 @@ define(() => function ({
     };
 
     isAlreadyAuthenticated && (appName ? localStorage.setItem('electronCookies', JSON.stringify({
-        auth: JSON.stringify(jwtToken)
+        '$REACT_APP_AUTH_COOKIE': JSON.stringify(jwtToken)
     })) : (
         document.cookie =
-        'auth=%7B%22' +
+        '%5C%24REACT_APP_AUTH_COOKIE=%7B%22' +
         'jwt%22%3A%22XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0%22%2C%22' +
         'refresh%22%3A%222982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2%22%7D; ' +
         'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
@@ -1822,7 +1822,7 @@ define(() => function ({
             REACT_APP_WS_URL: 'wss://lobarev.dev.uis.st/ws',
             REACT_APP_LOCALE: 'ru',
             REACT_APP_BUILD_MODE: '',
-            REACT_APP_AUTH_COOKIE: 'auth'
+            REACT_APP_AUTH_COOKIE: '$REACT_APP_AUTH_COOKIE'
         };
 
         const me = {
@@ -1836,7 +1836,7 @@ define(() => function ({
                 response = {
                     REACT_APP_LOCALE: 'ru',
                     REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
-                    REACT_APP_AUTH_COOKIE: 'auth'
+                    REACT_APP_AUTH_COOKIE: '$REACT_APP_AUTH_COOKIE'
                 };
 
                 return me;

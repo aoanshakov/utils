@@ -49,12 +49,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 return packageName => packageName != 'replaceByFake' ? packages[packageName] : null;
             };
 
-            tests.runTests({
-                Sip,
-                FakeRequire: FakeRequire,
-                soundSources,
-                Tester: WrappedTester 
-            });
+            try {
+                tests.runTests({
+                    Sip,
+                    FakeRequire: FakeRequire,
+                    soundSources,
+                    Tester: WrappedTester 
+                });
+            } catch (e) {
+                console.log(e);
+            }
         });
 
         jasmine.getEnv().execute();

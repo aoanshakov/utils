@@ -2282,13 +2282,21 @@ function JsTester_NotificationTester (args) {
     };
 }
 
-function JsTester_BrowserVisibilityReplacer (isBrowserHidden) {
-    var setBrowserHidden = isBrowserHidden.createSetter(),
-        getBrowserHiddennes = isBrowserHidden.createGetter();
+function JsTester_BrowserVisibilityReplacer ({
+    isBrowserHidden,
+    isBrowserVisible
+}) {
+    var getBrowserHiddennes = isBrowserHidden.createGetter(),
+        getBrowserVisibility = isBrowserVisible.createGetter();
 
     this.replaceByFake = function () {
         Object.defineProperty(document, 'hidden', {
             get: getBrowserHiddennes,
+            set: function () {}
+        }); 
+
+        Object.defineProperty(document, 'visibilityState', {
+            get: getBrowserVisibility,
             set: function () {}
         }); 
     };
@@ -3201,6 +3209,24 @@ function JsTester_BroadcastChannelMocker (args) {
     };
 }
 
+function JsTester_VisibilitySetter ({
+    setFocus,
+    setBrowserHidden,
+    setBrowserVisible,
+    isBrowserHidden
+}) {
+    return function (newValue) {
+        newValue = !newValue;
+        const isChanged = newValue !== isBrowserHidden();
+
+        setBrowserHidden(newValue);
+        setBrowserVisible(!newValue);
+        
+        isChanged && document.dispatchEvent(new Event('visibilitychange'));
+        Promise.runAll(false, true);
+    };
+}
+
 function JsTester_Tests (factory) {
     Object.defineProperty(window, 'ResizeObserver', {
         get: function () {
@@ -3297,9 +3323,14 @@ function JsTester_Tests (factory) {
         mutationObserverTester =  mutationObserverFactory.createTester(),
         hasFocus = new JsTester_Variable(),
         isBrowserHidden = new JsTester_Variable(),
+        isBrowserVisible = new JsTester_Variable(true),
         setBrowserHidden = isBrowserHidden.createSetter(),
+        setBrowserVisible = isBrowserVisible.createSetter(),
         focusReplacer = new JsTester_FocusReplacer(hasFocus),
-        browserVisibilityReplacer = new JsTester_BrowserVisibilityReplacer(isBrowserHidden),
+        browserVisibilityReplacer = new JsTester_BrowserVisibilityReplacer({
+            isBrowserHidden,
+            isBrowserVisible
+        }),
         notifications = new JsTester_Queue(new JsTester_NoNotificationMessage()),
         notificationPermissionRequests = new JsTester_Queue({
             callback: function () {}
@@ -3631,16 +3662,23 @@ function JsTester_Tests (factory) {
             setNow: setNow,
             addSecond: addSecond,
             playingOscillatorsTester: playingOscillatorsTester,
-            windowEventsFirerer: windowEventsFirerer,
+            unload: () => {
+                windowEventsFirerer('unload');
+                Promise.runAll(false, true);
+            },
             audioDecodingTester: audioDecodingTester,
             decodedTracksTester: decodedTracksTester,
             audioProcessing: audioProcessingTester,
             audioGain: audioGainTester,
             notificationTester: notificationTester,
-            setFocus: hasFocus.createSetter(),
-            setBrowserHidden: isBrowserHidden.createSetter(),
             blobsTester: blobsTester,
-            copiedTextsTester: copiedTextsTester
+            copiedTextsTester: copiedTextsTester,
+            setDocumentVisible: new JsTester_VisibilitySetter({
+                setFocus: hasFocus.createSetter(),
+                setBrowserHidden,
+                setBrowserVisible,
+                isBrowserHidden: isBrowserHidden.createGetter(),
+            })
         };
 
         (function () {
@@ -3681,6 +3719,7 @@ function JsTester_Tests (factory) {
         setNow(null);
 
         setBrowserHidden(false);
+        setBrowserVisible(true);
         audioNodesConnection.reset();
         additionalDevices.splice(0, additionalDevices.length);
         additionalDevices.push({

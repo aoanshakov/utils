@@ -4706,7 +4706,32 @@ define(function () {
                     },
                     tabOpened: function () {
                         data = {
-                            action: 'tab_opened'
+                            action: 'tab_opened',
+                            visible: true
+                        };
+
+                        return this;
+                    },
+                    tabOpenedInBackground: function () {
+                        data = {
+                            action: 'tab_opened',
+                            visible: false
+                        };
+
+                        return this;
+                    },
+                    tabBecameVisible: function () {
+                        data = {
+                            action: 'tab_visibility_change',
+                            visible: true
+                        };
+
+                        return this;
+                    },
+                    tabBecameHidden: function () {
+                        data = {
+                            action: 'tab_visibility_change',
+                            visible: false
                         };
 
                         return this;
@@ -4732,6 +4757,7 @@ define(function () {
                 };
 
                 var state = {
+                    visible: true,
                     holded: undefined,
                     muted: false,
                     direction: 'outgoing',
@@ -4855,6 +4881,25 @@ define(function () {
                 }
 
                 var me = extendSlavesNotification({
+                    tabsVisibilityRequest: function () {
+                        const data = {
+                            type: 'message',
+                            data: {
+                                type: 'notify_slaves',
+                                method: 'get_tabs_visibility'
+                            }
+                        };
+
+                        return {
+                            expectToBeSent: function () {
+                                recentMessage().expectToContain(data);
+                            },
+                            receive: function () {
+                                receiveMessage(data);
+                                Promise.runAll(false, true);
+                            }
+                        };
+                    },
                     additional: function () {
                         var processing = [];
 
@@ -5152,6 +5197,10 @@ define(function () {
                     },
                     destroyed: function () {
                         state.destroyed = true;
+                        return this;
+                    },
+                    hidden: function () {
+                        state.visible = false;
                         return this;
                     },
                     expectToBeSent: function () {

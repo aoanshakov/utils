@@ -5,6 +5,7 @@ tests.addTest(options => {
         spendTime,
         windowOpener,
         mediaStreamsTester,
+        unload,
         ajax,
         fetch,
         soundSources,
@@ -15,8 +16,7 @@ tests.addTest(options => {
         blobsTester,
         windowSize,
         notificationTester,
-        setFocus,
-        setBrowserHidden
+        setDocumentVisible
     } = options;
 
     const getPackage = Tester.createPackagesGetter(options);
@@ -1105,27 +1105,118 @@ tests.addTest(options => {
                                                 tester.button('IP-телефон').expectNotToBeChecked();
                                             });
                                         });
-                                        it(
-                                            'Браузер скрыт. Поступил входящий звонок. Отображено браузерное ' +
-                                            'уведомление.',
-                                        function() {
-                                            setFocus(false);
-                                            setBrowserHidden(true);
+                                        describe('Браузер скрыт.', function() {
+                                            beforeEach(function() {
+                                                setDocumentVisible(false);
 
-                                            tester.incomingCall().receive();
-                                            tester.slavesNotification().available().userDataFetched().twoChannels().
-                                                incoming().progress().expectToBeSent();
+                                                tester.slavesNotification().userDataFetched().twoChannels().available().
+                                                    hidden().expectToBeSent();
+                                            });
 
-                                            tester.numaRequest().receiveResponse();
+                                            describe('Открывается новая вкладка.', function() {
+                                                beforeEach(function() {
+                                                    tester.masterNotification().tabOpened().receive();
 
-                                            tester.outCallEvent().receive();
-                                            tester.outCallEvent().slavesNotification().expectToBeSent();
+                                                    tester.slavesNotification().userDataFetched().twoChannels().
+                                                        available().expectToBeSent();
+                                                    tester.slavesNotification().additional().expectToBeSent();
+                                                });
 
-                                            notificationTester.grantPermission().
-                                                recentNotification().
-                                                expectToHaveTitle('Входящий звонок').
-                                                expectToHaveBody('Шалева Дора +7 (916) 123-45-67').
-                                                expectToBeOpened();
+                                                describe('Вкладка скрыта.', function() {
+                                                    beforeEach(function() {
+                                                        tester.masterNotification().tabBecameHidden().receive();
+
+                                                        tester.slavesNotification().userDataFetched().twoChannels().
+                                                            available().hidden().expectToBeSent();
+                                                    });
+
+                                                    it(
+                                                        'Вкладка снова открыта. Поступил входящий звонок. браузерное ' +
+                                                        'уведомление не отображено.',
+                                                    function() {
+                                                        tester.masterNotification().tabBecameVisible().receive();
+
+                                                        tester.slavesNotification().userDataFetched().twoChannels().
+                                                            available().expectToBeSent();
+
+                                                        tester.incomingCall().receive();
+                                                        tester.slavesNotification().available().userDataFetched().
+                                                            twoChannels().incoming().progress().expectToBeSent();
+
+                                                        tester.numaRequest().receiveResponse();
+
+                                                        tester.outCallEvent().receive();
+                                                        tester.outCallEvent().slavesNotification().expectToBeSent();
+                                                    });
+                                                    it(
+                                                        'Поступил входящий звонок. Отображено браузерное уведомление.',
+                                                    function() {
+                                                        tester.incomingCall().receive();
+                                                        tester.slavesNotification().available().userDataFetched().
+                                                            twoChannels().incoming().progress().hidden().
+                                                            expectToBeSent();
+
+                                                        tester.numaRequest().receiveResponse();
+
+                                                        tester.outCallEvent().receive();
+                                                        tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                                                        notificationTester.grantPermission().
+                                                            recentNotification().
+                                                            expectToHaveTitle('Входящий звонок').
+                                                            expectToHaveBody('Шалева Дора +7 (916) 123-45-67').
+                                                            expectToBeOpened();
+                                                    });
+                                                });
+                                                it(
+                                                    'Поступил входящий звонок. браузерное уведомление не отображено.',
+                                                function() {
+                                                    tester.incomingCall().receive();
+                                                    tester.slavesNotification().available().userDataFetched().
+                                                        twoChannels().incoming().progress().expectToBeSent();
+
+                                                    tester.numaRequest().receiveResponse();
+
+                                                    tester.outCallEvent().receive();
+                                                    tester.outCallEvent().slavesNotification().expectToBeSent();
+                                                });
+                                            });
+                                            it(
+                                                'Вкладка снова открыта. Поступил входящий звонок. браузерное ' +
+                                                'уведомление не отображено.',
+                                            function() {
+                                                setDocumentVisible(true);
+
+                                                tester.slavesNotification().userDataFetched().twoChannels().available().
+                                                    expectToBeSent();
+
+                                                tester.incomingCall().receive();
+                                                tester.slavesNotification().available().userDataFetched().twoChannels().
+                                                    incoming().progress().expectToBeSent();
+
+                                                tester.numaRequest().receiveResponse();
+
+                                                tester.outCallEvent().receive();
+                                                tester.outCallEvent().slavesNotification().expectToBeSent();
+                                            });
+                                            it(
+                                                'Поступил входящий звонок. Отображено браузерное уведомление.',
+                                            function() {
+                                                tester.incomingCall().receive();
+                                                tester.slavesNotification().available().userDataFetched().twoChannels().
+                                                    incoming().progress().hidden().expectToBeSent();
+
+                                                tester.numaRequest().receiveResponse();
+
+                                                tester.outCallEvent().receive();
+                                                tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                                                notificationTester.grantPermission().
+                                                    recentNotification().
+                                                    expectToHaveTitle('Входящий звонок').
+                                                    expectToHaveBody('Шалева Дора +7 (916) 123-45-67').
+                                                    expectToBeOpened();
+                                            });
                                         });
                                     });
                                     describe('Нажимаю на иконку с телефоном.', function() {
@@ -3484,6 +3575,89 @@ tests.addTest(options => {
                     tester.slavesNotification().additional().visible().receive();
                 });
 
+                describe('Скрываю окно.', function() {
+                    beforeEach(function() {
+                        setDocumentVisible(false);
+                        tester.masterNotification().tabBecameHidden().expectToBeSent();
+                    });
+
+                    describe('Вкладка становится ведущей. Поднимается webRTC-сокет.', function() {
+                        beforeEach(function() {
+                            tester.masterInfoMessage().receive();
+
+                            tester.slavesNotification().tabsVisibilityRequest().expectToBeSent();
+                            tester.slavesNotification().userDataFetched().twoChannels().hidden().enabled().
+                                expectToBeSent();
+                            tester.slavesNotification().additional().visible().expectToBeSent();
+
+                            tester.connectEventsWebSocket();
+                            tester.slavesNotification().userDataFetched().twoChannels().hidden().enabled().
+                                softphoneServerConnected().expectToBeSent();
+
+                            tester.connectSIPWebSocket();
+                            tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().
+                                hidden().softphoneServerConnected().expectToBeSent();
+
+                            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                            tester.allowMediaInput();
+                            tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().
+                                hidden().softphoneServerConnected().microphoneAccessGranted().expectToBeSent();
+
+                            tester.authenticatedUserRequest().receiveResponse();
+
+                            tester.registrationRequest().receiveResponse();
+                            tester.slavesNotification().userDataFetched().twoChannels().available().hidden().
+                                expectToBeSent();
+                        });
+
+                        it('Поступил входящий звонок. Отображено браузерное уведомление.', function() {
+                            tester.incomingCall().receive();
+                            tester.slavesNotification().available().userDataFetched().twoChannels().
+                                incoming().progress().hidden().expectToBeSent();
+
+                            tester.numaRequest().receiveResponse();
+
+                            tester.outCallEvent().receive();
+                            tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                            notificationTester.grantPermission().
+                                recentNotification().
+                                expectToHaveTitle('Входящий звонок').
+                                expectToHaveBody('Шалева Дора +7 (916) 123-45-67').
+                                expectToBeOpened();
+                        });
+                        it(
+                            'Существует другая открытая вкладка. Поступил входящий звонок. Браузерное ' +
+                            'уведомление не отображено.',
+                        function() {
+                            tester.masterNotification().tabBecameVisible().receive();
+                            tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
+
+                            tester.incomingCall().receive();
+                            tester.slavesNotification().available().userDataFetched().twoChannels().
+                                incoming().progress().expectToBeSent();
+
+                            tester.numaRequest().receiveResponse();
+
+                            tester.outCallEvent().receive();
+                            tester.outCallEvent().slavesNotification().expectToBeSent();
+                        });
+                    });
+                    it('Получен запрос видимости окна. Ничего не происходит.', function() {
+                        tester.slavesNotification().tabsVisibilityRequest().receive();
+                    });
+                    it('Поступил входящий звонок. Отображена информация о звонке.', function() {
+                        tester.slavesNotification().available().twoChannels().incoming().progress().userDataFetched().
+                            receive();
+                        tester.outCallEvent().slavesNotification().receive();
+
+                        tester.softphone.expectTextContentToHaveSubstring(
+                            'Шалева Дора +7 (916) 123-45-67 ' +
+                            'Путь лида'
+                        );
+                    });
+                });
                 it('Открываю настройки звука. На другой вкладке изменены настройки звука.', function() {
                     tester.button('Настройки').click();
                     tester.popover.button('Софтфон').click();
@@ -3524,11 +3698,15 @@ tests.addTest(options => {
 
                     tester.button('Сигнал о завершении звонка').expectToBeChecked();
                 });
-                it('Вкладка становится ведущей. Поднимается webRTC-сокет.', function() {
+                it(
+                    'Вкладка становится ведущей. Скрываю вкладку. Раскрываю вкладку. Поступил входящий звонок. ' +
+                    'Информация о звонке не отображена.',
+                function() {
                     tester.masterInfoMessage().receive();
+
+                    tester.slavesNotification().tabsVisibilityRequest().expectToBeSent();
                     tester.slavesNotification().userDataFetched().twoChannels().enabled().expectToBeSent();
                     tester.slavesNotification().additional().visible().expectToBeSent();
-                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                     tester.connectEventsWebSocket();
                     tester.slavesNotification().userDataFetched().twoChannels().enabled().softphoneServerConnected().
@@ -3538,27 +3716,31 @@ tests.addTest(options => {
                     tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().
                         softphoneServerConnected().expectToBeSent();
 
+                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                    tester.allowMediaInput();
+                    tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().
+                        softphoneServerConnected().microphoneAccessGranted().expectToBeSent();
+
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.registrationRequest().receiveResponse();
-                    tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().
-                        softphoneServerConnected().registered().expectToBeSent();
-
-                    tester.allowMediaInput();
                     tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
-                });
-                it('Сворачиваю окно. Поступил входящий звонок. Отображена информация о звонке.', function() {
-                    setFocus(false);
-                    setBrowserHidden(true);
 
-                    tester.slavesNotification().available().twoChannels().incoming().progress().userDataFetched().
-                        receive();
-                    tester.outCallEvent().slavesNotification().receive();
+                    setDocumentVisible(false);
+                    tester.slavesNotification().userDataFetched().twoChannels().available().hidden().expectToBeSent();
 
-                    tester.softphone.expectTextContentToHaveSubstring(
-                        'Шалева Дора +7 (916) 123-45-67 ' +
-                        'Путь лида'
-                    );
+                    setDocumentVisible(true);
+                    tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
+
+                    tester.incomingCall().receive();
+                    tester.slavesNotification().available().userDataFetched().twoChannels().
+                        incoming().progress().expectToBeSent();
+
+                    tester.numaRequest().receiveResponse();
+
+                    tester.outCallEvent().receive();
+                    tester.outCallEvent().slavesNotification().expectToBeSent();
                 });
                 it(
                     'Ввожу номер телефона. Приходит сообщение о том, что вкладка все еще остается ведомой. Номер ' +
@@ -3580,6 +3762,18 @@ tests.addTest(options => {
                     tester.slavesNotification().twoChannels().available().anotherStatus().receive();
                     tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
                 });
+                it('Окно свернуто. В ведущую вкладку отправлено сообщение о том, что окно свернуто.', function() {
+                    setDocumentVisible(false);
+                    tester.masterNotification().tabBecameHidden().expectToBeSent();
+                });
+                it('Закрываю окно. Отправляется сообщение о скрытии окна.', function() {
+                    unload();
+                    tester.masterNotification().tabBecameHidden().expectToBeSent();
+                });
+                it('Получен запрос видимости окна. Отправлено сообщение о видимости вкладки.', function() {
+                    tester.slavesNotification().tabsVisibilityRequest().receive();
+                    tester.masterNotification().tabBecameVisible().expectToBeSent();
+                });
                 it('Попытка восстановления соединения не совершается.', function() {
                     tester.expectNoWebsocketConnecting();
 
@@ -3587,527 +3781,41 @@ tests.addTest(options => {
                     tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
                 });
             });
-        });
-        describe('Чаты доступны.', function() {
-            beforeEach(function() {
-                accountRequest.operatorWorkplaceAvailable();
-            });
-
-            describe('Софтфон недоступен.', function() {
+            describe(
+                'Окно свернуто. Вкладка является ведомой. Отправлено сообщение о том, что вкладка открыта в фоне.',
+            function() {
                 beforeEach(function() {
-                    accountRequest.softphoneUnavailable();
-                });
+                    setDocumentVisible(false);
 
-                describe('Аналитика недоступна.', function() {
-                    beforeEach(function() {
-                        accountRequest.receiveResponse();
+                    tester.masterInfoMessage().isNotMaster().receive();
+                    tester.masterNotification().tabOpenedInBackground().expectToBeSent();
 
-                        tester.reportGroupsRequest().receiveResponse();
-                        tester.reportsListRequest().receiveResponse();
-                        tester.reportTypesRequest().receiveResponse();
+                    tester.authCheckRequest().receiveResponse();
+                    tester.statusesRequest().receiveResponse();
 
-                        let requests = fetch.inAnyOrder();
+                    tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
-                        const configRequest1 = tester.configRequest().expectToBeSent(requests),
-                            configRequest2 = tester.configRequest().expectToBeSent(requests),
-                            configRequest3 = tester.configRequest().expectToBeSent(requests);
-
-                        requests.expectToBeSent();
-
-                        configRequest1.receiveResponse();
-                        configRequest2.receiveResponse();
-                        configRequest3.receiveResponse();
-
-                        requests = ajax.inAnyOrder();
-
-                        const secondOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests),
-                            chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
-                            operatorStatusListRequest = tester.operatorStatusListRequest().expectToBeSent(requests),
-                            operatorListRequest = tester.operatorListRequest().expectToBeSent(requests),
-                            operatorSiteListRequest = tester.operatorSiteListRequest().expectToBeSent(requests),
-                            thirdOperatorAccountRequest = tester.operatorAccountRequest().expectToBeSent(requests);
-                            operatorOfflineMessageListRequest =
-                                tester.operatorOfflineMessageListRequest().expectToBeSent(requests);
-                            chatListRequest = tester.chatListRequest().expectToBeSent(requests);
-
-                        requests.expectToBeSent();
-
-                        secondOperatorAccountRequest.receiveResponse();
-                        chatChannelListRequest.receiveResponse();
-                        operatorStatusListRequest.receiveResponse();
-                        operatorListRequest.receiveResponse();
-                        operatorSiteListRequest.receiveResponse();
-                        thirdOperatorAccountRequest.receiveResponse();
-
-                        tester.chatsWebSocket.connect();
-                        tester.chatsInitMessage().expectToBeSent();
-
-                        operatorOfflineMessageListRequest.receiveResponse();
-                    });
-
-                    describe('Последнее сообщение в чате является текстовым.', function() {
-                        beforeEach(function() {
-                            chatListRequest.receiveResponse();
-                            tester.messageListRequest().receiveResponse();
-                            tester.messageListRequest().receiveResponse();
-                        });
-
-                        describe('Чат принят.', function() {
-                            let chatAcceptedMessage;
-
-                            beforeEach(function() {
-                                chatAcceptedMessage = tester.chatAcceptedMessage();
-                            });
-
-                            describe('Чат принял другой пользователь.', function() {
-                                beforeEach(function() {
-                                    chatAcceptedMessage = chatAcceptedMessage.anotherEmployee();
-                                });
-
-                                it('Чат был новым. Отображено измененное количество чатов.', function() {
-                                    chatAcceptedMessage.newChat().receive();
-
-                                    tester.body.expectTextContentToHaveSubstring(
-                                        'Новые 1 ' +
-                                        'В работе 5'
-                                    );
-
-                                    tester.body.expectTextContentNotToHaveSubstring(
-                                        'ПБ Помакова Бисерка Драгановна 16:24 ' +
-                                        'Привет 3'
-                                    );
-                                });
-                                it('Отображено измененное количество чатов.', function() {
-                                    chatAcceptedMessage.receive();
-
-                                    tester.body.expectTextContentToHaveSubstring(
-                                        'Новые 2 ' +
-                                        'В работе 4 ' +
-
-                                        'ПБ Помакова Бисерка Драгановна 16:24 ' +
-                                        'Привет 3'
-                                    );
-                                });
-                            });
-                            it('Чат принял авторизованный пользователь. Ничего не изменилось.', function() {
-                                chatAcceptedMessage.receive();
-
-                                tester.body.expectTextContentToHaveSubstring(
-                                    'Новые 2 ' +
-                                    'В работе 5 ' +
-
-                                    'Активные 5 ' +
-
-                                    'ПБ Помакова Бисерка Драгановна 17:25 ' +
-                                    'Здравствуй'
-                                );
-                            });
-                        });
-                        describe('Закрыт чат.', function() {
-                            let chatClosedMessage;
-
-                            beforeEach(function() {
-                                chatClosedMessage = tester.chatClosedMessage();
-                            });
-
-                            it('Чат находился в работе. Отображено измененное количество чатов.', function() {
-                                chatClosedMessage.receive();
-
-                                tester.body.expectTextContentToHaveSubstring(
-                                    'Новые 2 ' +
-                                    'В работе 4 ' +
-
-                                    'ПБ Помакова Бисерка Драгановна 16:24 ' +
-                                    'Привет 3'
-                                );
-                            });
-                            it('Чат был новым. Отображено измененное количество чатов.', function() {
-                                chatClosedMessage.newChat().receive();
-
-                                tester.body.expectTextContentToHaveSubstring(
-                                    'Новые 1 ' +
-                                    'В работе 5'
-                                );
-
-                                tester.body.expectTextContentNotToHaveSubstring(
-                                    'ПБ Помакова Бисерка Драгановна 16:24 ' +
-                                    'Привет 3'
-                                );
-                            });
-                        });
-                        describe('Нажимаю на кнопку аккаунта.', function() {
-                            beforeEach(function() {
-                                tester.userName.putMouseOver();
-                            });
-
-                            it('Выбираю другой статус. Другой статус выбран.', function() {
-                                tester.statusesList.item('Перерыв').click();
-
-                                tester.operatorStatusUpdateRequest().receiveResponse();
-                                tester.chatsEmployeeChangeMessage().receive();
-
-                                tester.statusesList.item('Доступен').expectNotToBeSelected();
-                                tester.statusesList.item('Перерыв').expectToBeSelected();
-
-                                tester.body.expectTextContentToHaveSubstring('karadimova Перерыв');
-                            });
-                            it('Отображен список статусов.', function() {
-                                tester.statusesList.item('Доступен').expectToBeSelected();
-                                tester.statusesList.item('Перерыв').expectNotToBeSelected();
-
-                                tester.statusesList.expectTextContentToHaveSubstring(
-                                    'Доступен ' +
-                                    'Перерыв ' +
-                                    'Не беспокоить ' +
-                                    'Нет на месте ' +
-                                    'Нет на работе'
-                                );
-                            });
-                        });
-                        it('Поступил перевод чата. Отображено оповещие о переводе чата.', function() {
-                            tester.transferCreatingMessage().receive();
-                                
-                            tester.body.expectTextContentToHaveSubstring(
-                                'Перевод чата от оператора ' +
-                                'ЧР Чакърова Райна Илковна ' +
-
-                                'Поговори с ней сама, я уже устала ' +
-
-                                'ВИ Върбанова Илиана Милановна ' +
-                                'uiscom.ru/ ' +
-
-                                'Больше не могу разговаривать с тобой, дай мне Веску!'
-                            );
-                        });
-                        it('Поступило новое сообщение от оператора. Отображено последнее сообщение.', function() {
-                            tester.newMessage().fromOperator().withAttachment().receive();
-
-                            tester.expectChatsStoreToContain({
-                                chatListStore: {
-                                    chatListItems: [{
-                                        id: 2718935,
-                                        last_message: {
-                                            message: 'Я люблю тебя',
-                                            date: 1613910293000,
-                                            is_operator: true,
-                                            resource_type: 'photo',
-                                            resource_name: 'heart.png'
-                                        }
-                                    }]
-                                }
-                            });
-
-                            tester.body.expectTextContentToHaveSubstring(
-                                'Помакова Бисерка Драгановна ' +
-                                '15:24 ' +
-                                'Вы: Я люблю тебя'
-                            );
-                        });
-                        it('Добавлен новый чат. Отображен новый чат.', function() {
-                            tester.newChatCreatingMessage().receive();
-
-                            tester.body.expectTextContentToHaveSubstring(
-                                'Новые 3 ' +
-                                'В работе 5 ' +
-
-                                'ТД Томова Денка Райчовна'
-                            );
-
-                            tester.body.expectTextContentToHaveSubstring(
-                                'ПБ Помакова Бисерка Драгановна 16:24 ' +
-                                'Привет 3'
-                            );
-                        });
-                        it('Поступило новое сообщение от посетителя. Отображено оповещение.', function() {
-                            tester.newMessage().receive();
-
-                            notificationTester.grantPermission().
-                                recentNotification().
-                                expectToHaveTitle('Помакова Бисерка Драгановна').
-                                expectToHaveBody('Я люблю тебя').
-                                expectToBeOpened();
-
-                            tester.changeMessageStatusRequest().receiveResponse();
-
-                            tester.body.expectTextContentToHaveSubstring('4 Чаты');
-
-                            tester.body.expectTextContentToHaveSubstring(
-                                'Новые 2 ' +
-                                'В работе 5 ' +
-
-                                'ПБ Помакова Бисерка Драгановна 15:24 ' +
-                                'Я люблю тебя 4'
-                            );
-
-                            tester.notificationSection.expectToHaveTextContent(
-                                'ПБ Помакова Бисерка Драгановна ' +
-                                'Я люблю тебя'
-                            );
-
-                            tester.expectChatsStoreToContain({
-                                chatListStore: {
-                                    chatListItems: [{
-                                        id: 2718935,
-                                        last_message: {
-                                            message: 'Я люблю тебя',
-                                            date: 1613910293000,
-                                            is_operator: false,
-                                            resource_type: null,
-                                            resource_name: null
-                                        }
-                                    }]
-                                }
-                            });
-                        });
-                        it('Поступило новое сообщение от оператора. Оповещение не отображено.', function() {
-                            tester.newMessage().fromOperator().withAttachment().receive();
-
-                            tester.notificationSection.expectToHaveTextContent('');
-
-                            tester.expectChatsStoreToContain({
-                                chatListStore: {
-                                    chatListItems: [{
-                                        id: 2718935,
-                                        last_message: {
-                                            message: 'Я люблю тебя',
-                                            date: 1613910293000,
-                                            is_operator: true,
-                                            resource_type: 'photo',
-                                            resource_name: 'heart.png'
-                                        }
-                                    }]
-                                }
-                            });
-                        });
-                        it('Поступило новое сообщение от посетителя с вложением. Отображено оповещение.', function() {
-                            tester.newMessage().withoutText().withAttachment().receive();
-
-                            notificationTester.grantPermission().
-                                recentNotification().
-                                expectToHaveTitle('Помакова Бисерка Драгановна').
-                                expectToHaveBody('heart.png').
-                                expectToBeOpened();
-
-                            tester.changeMessageStatusRequest().receiveResponse();
-
-                            tester.notificationSection.expectToHaveTextContent(
-                                'ПБ Помакова Бисерка Драгановна ' +
-                                'heart.png'
-                            );
-                        });
-                        it('Отображена страница чатов.', function() {
-                            tester.body.expectTextContentToHaveSubstring('karadimova Доступен');
-
-                            tester.body.expectTextContentToHaveSubstring(
-                                'ПБ Помакова Бисерка Драгановна 16:24 ' +
-                                'Привет 3'
-                            );
-                        });
-                    });
-                    it('Последнее сообщение в чате является файлом. Отображено имя файла.', function() {
-                        chatListRequest.lastMessageWithAttachment().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
-
-                        tester.body.expectTextContentToHaveSubstring(
-                            'Помакова Бисерка Драгановна ' +
-                            '16:24 ' +
-                            'heart.png'
-                        );
-                    });
-                    it(
-                        'Последнее сообщение в чате отправлено оператором. Отображено сообщение с префиксом "Вы: ".',
-                    function() {
-                        chatListRequest.lastMessageFromOperator().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
-
-                        tester.body.expectTextContentToHaveSubstring(
-                            'Помакова Бисерка Драгановна ' +
-                            '16:24 ' +
-                            'Вы: Привет'
-                        );
-                    });
-                });
-                describe('Аналитика доступна.', function() {
-                    beforeEach(function() {
-                        accountRequest.webAccountLoginAvailable().receiveResponse();
-
-                        tester.reportGroupsRequest().receiveResponse();
-                        tester.reportsListRequest().allRequests().receiveResponse();
-                        tester.reportTypesRequest().receiveResponse();
-
-                        tester.configRequest().receiveResponse();
-                        tester.operatorAccountRequest().receiveResponse();
-                    });
-
-                    describe('Открываю раздел "Все обращения". Нажимаю на ссылку с количеством сообщений.', function() {
-                        beforeEach(function() {
-                            tester.button('Сырые данные').click();
-                            tester.button('Все обращения').click();
-                                
-                            tester.reportGroupsRequest().receiveResponse();
-                            tester.reportsListRequest().allRequests().receiveResponse();
-                            tester.reportsListRequest().allRequests().receiveResponse();
-                            tester.reportTypesRequest().receiveResponse();
-
-                            tester.reportGroupsRequest().receiveResponse();
-                            tester.reportsListRequest().allRequests().receiveResponse();
-                            tester.reportsListRequest().allRequests().receiveResponse();
-                            tester.reportTypesRequest().receiveResponse();
-
-                            tester.reportStateRequest().allRequests().receiveResponse();
-                            tester.reportRapidFiltersRequest().communications().receiveResponse();
-                            tester.reportFiltersRequest().receiveResponse();
-                            tester.columnsTreeRequest().receiveResponse();
-                            tester.tagsRequest().receiveResponse();
-                            tester.customFiltersRequest().receiveResponse();
-                            tester.communicationsRequest().receiveResponse()
-
-                            tester.table.row.first().column.withHeader('Сообщений').button('4').click();
-
-                            tester.configRequest().chats().receiveResponse();
-                            tester.messageListRequest().chat().receiveResponse();
-                            tester.chatListRequest().chat().receiveResponse();
-                        });
-
-                        describe(
-                            'Нажимаю на ссылку с количеством сообщений в другой строке.',
-                        function() {
-                            let chatListRequest;
-
-                            beforeEach(function() {
-                                tester.antDrawerCloseButton.click();
-
-                                tester.table.row.atIndex(1).column.withHeader('Сообщений').button('5').click();
-
-                                tester.configRequest().chats().receiveResponse();
-                                tester.messageListRequest().anotherChat().receiveResponse();
-                                chatListRequest = tester.chatListRequest().anotherChat().expectToBeSent();
-                            });
-
-                            it('Чат не найден. Отображены другие сообщения.', function() {
-                                chatListRequest.nothingFound().receiveResponse();
-                                tester.body.expectTextContentToHaveSubstring('Здравствуй 12:13');
-                            });
-                            it('Отображены другие сообщения.', function() {
-                                chatListRequest.receiveResponse();
-                                tester.body.expectTextContentToHaveSubstring('Здравствуй 12:13');
-                            });
-                        });
-                        it('Отображены сообщения.', function() {
-                            tester.body.expectTextContentToHaveSubstring('Привет 12:13');
-                        });
-                    });
-                    it('Открываю РМО.', function() {
-                        tester.productsButton.click();
-                        tester.button('Рабочее место оператора').click();
-                            
-                        tester.configRequest().receiveResponse();
-                        tester.configRequest().receiveResponse();
-                        tester.operatorOfflineMessageListRequest().receiveResponse();
-                        tester.chatListRequest().receiveResponse();
-                        tester.chatChannelListRequest().receiveResponse();
-                        tester.operatorStatusListRequest().receiveResponse();
-                        tester.operatorListRequest().receiveResponse();
-                        tester.operatorSiteListRequest().receiveResponse();
-
-                        tester.chatsWebSocket.connect();
-                        tester.chatsInitMessage().expectToBeSent();
-                        tester.operatorAccountRequest().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
-                    });
-                });
-            });
-            it('Аналитика доступна.', function() {
-                accountRequest.webAccountLoginAvailable().receiveResponse();
-
-                const requests = ajax.inAnyOrder();
-
-                const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
-                    reportsListRequest = tester.reportsListRequest().allRequests().expectToBeSent(requests),
-                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
-
-                const secondAccountRequest = tester.accountRequest().
-                    operatorWorkplaceAvailable().
-                    webAccountLoginAvailable().
-                    expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                reportsListRequest.receiveResponse();
-                reportTypesRequest.receiveResponse();
-                secondAccountRequest.receiveResponse();
-                reportGroupsRequest.receiveResponse();
-
-                tester.configRequest().softphone().receiveResponse();
-
-                tester.masterInfoMessage().receive();
-                tester.slavesNotification().expectToBeSent();
-                tester.slavesNotification().additional().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-
-                tester.authCheckRequest().receiveResponse();
-                tester.statusesRequest().receiveResponse();
-
-                tester.settingsRequest().receiveResponse();
-                tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+                    tester.othersNotification().widgetStateUpdate().fixedNumberCapacityRule().expectToBeSent();
+                    tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
                     
-                tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().
+                        receiveResponse();
 
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
+                    notificationTester.grantPermission();
 
-                notificationTester.grantPermission();
+                    tester.authenticatedUserRequest().receiveResponse();
+                    tester.numberCapacityRequest().receiveResponse();
+                    reportGroupsRequest.receiveResponse();
+                });
 
-                tester.connectEventsWebSocket();
-                tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
-
-                tester.connectSIPWebSocket();
-                tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
-                    expectToBeSent();
-
-                tester.authenticatedUserRequest().receiveResponse();
-                tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().
-                    softphoneServerConnected().expectToBeSent();
-
-                tester.registrationRequest().receiveResponse();
-                tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().registered().
-                    softphoneServerConnected().expectToBeSent();
-
-                tester.allowMediaInput();
-                tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
-
-                tester.button('Сырые данные').click();
-                tester.button('Все обращения').click();
-                    
-                tester.reportGroupsRequest().receiveResponse();
-                tester.reportsListRequest().allRequests().receiveResponse();
-                tester.reportsListRequest().allRequests().receiveResponse();
-                tester.reportTypesRequest().receiveResponse();
-
-                tester.reportGroupsRequest().receiveResponse();
-                tester.reportsListRequest().allRequests().receiveResponse();
-                tester.reportsListRequest().allRequests().receiveResponse();
-                tester.reportTypesRequest().receiveResponse();
-
-                tester.reportStateRequest().allRequests().receiveResponse();
-                tester.reportRapidFiltersRequest().communications().receiveResponse();
-                tester.reportFiltersRequest().receiveResponse();
-                tester.columnsTreeRequest().receiveResponse();
-                tester.tagsRequest().receiveResponse();
-                tester.customFiltersRequest().receiveResponse();
-                tester.communicationsRequest().receiveResponse()
-
-                tester.table.row.first().column.withHeader('Сообщений').button('4').click();
-
-                tester.configRequest().chats().receiveResponse();
-                tester.messageListRequest().chat().receiveResponse();
-                tester.chatListRequest().chat().receiveResponse();
-
-                tester.body.expectTextContentToHaveSubstring('Привет 12:13');
+                it('Закрываю окно. Сообщение о скрытии окна не отправляется.', function() {
+                    unload();
+                });
+                it('Окно развернуто. В ведущую вкладку отправлено сообщение о том, что окно развернуто.', function() {
+                    setDocumentVisible(true);
+                    tester.masterNotification().tabBecameVisible().expectToBeSent();
+                });
             });
         });
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
