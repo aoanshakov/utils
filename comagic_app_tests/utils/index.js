@@ -60,6 +60,7 @@ const analyticsOverridenFiles = 'src/models/RootStore.ts src/models/reports/Root
     'src/components/ShadowContent.ts package.json';
 
 const overridenFiles = [
+    'src/utils/cookie.ts',
     'public/index.html',
     'src/bootstrap.tsx',
     'src/history.ts',

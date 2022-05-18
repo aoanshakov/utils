@@ -474,10 +474,10 @@ index cbccb1f0..8a8e476f 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 862322d9..f3f7b0b4 100644
+index 5b4ca3ae..3b805b4a 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -102,7 +102,7 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -95,7 +95,7 @@ const removeToken = (skipLocalStorage = false) => {
  
  export const AuthStore = Loader.named('AuthStore')
      .props({
@@ -486,7 +486,7 @@ index 862322d9..f3f7b0b4 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -199,6 +199,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -192,6 +192,8 @@ export const AuthStore = Loader.named('AuthStore')
          });
  
          const afterCreate = () => {
@@ -522,3 +522,32 @@ index 8c0a28d7..ce190fe9 100644
      };
  
      try {
+diff --git a/src/utils/cookie.ts b/src/utils/cookie.ts
+index 9882b7ef..62ae7319 100644
+--- a/src/utils/cookie.ts
++++ b/src/utils/cookie.ts
+@@ -40,13 +40,14 @@ const resetElectronCookiesManager = () => {
+ };
+ 
+ window.getElectronCookiesManager = resetElectronCookiesManager;
++const prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
+ 
+ export function getCookie(name: string): string {
+     if (isSoftphone()) {
+         return window.getElectronCookiesManager().getItem(name);
+     }
+ 
+-    const matches = new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)').exec(
++    const matches = new RegExp('(?:^|; )' + prepareName(name) + '=([^;]*)').exec(
+         document.cookie
+     );
+ 
+@@ -68,7 +69,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+         options.expires = options.expires.toUTCString();
+     }
+ 
+-    let updatedCookie = encodeURIComponent(name) + '=' + encodeURIComponent(value);
++    let updatedCookie = prepareName(name) + '=' + encodeURIComponent(value);
+ 
+     let optionKey: keyof Options;
+     for (optionKey in options) {
