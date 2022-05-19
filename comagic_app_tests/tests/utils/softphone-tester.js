@@ -4567,15 +4567,16 @@ define(function () {
                 data
             });
 
-            const receiveCustomMessage = data => receiveMessage(createCustomMessage(data));
-                
-            const applyLeader = () => recentMessage().expectToContain({
+            const applyMessage = () => ({
                 type: 'internal',
                 data: {
                     context: 'leader',
                     action: 'apply'
                 }
             });
+
+            const receiveCustomMessage = data => receiveMessage(createCustomMessage(data)),
+                applyLeader = () => recentMessage().expectToContain(applyMessage());
                 
             this.masterNotification = function () {
                 var data = {},
@@ -5273,6 +5274,14 @@ define(function () {
                 });
 
                 return {
+                    applyLeader: () => ({
+                        receive: () => {
+                            const message = applyMessage();
+                            message.data.token = 'i9js2l68w8';
+
+                            receiveMessage(message);
+                        }
+                    }),
                     tellIsLeader: () => ({
                         expectToBeSent: tellIsLeader,
                         receive: receiveTellIsLeader

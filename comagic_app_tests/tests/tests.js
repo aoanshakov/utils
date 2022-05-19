@@ -2648,6 +2648,9 @@ tests.addTest(options => {
                                                     '+7 (916) 123-45-67 Поиск контакта... 00:00'
                                                 );
                                             });
+                                            it('От ведомой вкладки получен токен.', function() {
+                                                tester.masterInfoMessage().applyLeader().receive();
+                                            });
                                             it('Отображен софтфон.', function() {
                                                 if (localStorage.getItem('isSoftphoneHigh') != 'false') {
                                                     throw new Error(
@@ -3735,6 +3738,31 @@ tests.addTest(options => {
                     tester.outCallEvent().slavesNotification().expectToBeSent();
                 });
                 it(
+                    'Сессионная кука уже удалена. На ведущей вкладке был совершен выход из софтфона. Отображается ' +
+                    'форма аутентификации.',
+                function() {
+                    document.cookie = '';
+
+                    tester.slavesNotification().userDataFetched().twoChannels().microphoneAccessGranted().
+                        destroyed().enabled().receive();
+
+                    tester.authLogoutRequest().receiveResponse();
+
+                    tester.input.withFieldLabel('Логин').expectToBeVisible();
+                });
+                it(
+                    'Сессионная кука еще не удалена. На ведущей вкладке был совершен выход из софтфона. Отображается ' +
+                    'форма аутентификации.',
+                function() {
+                    tester.slavesNotification().userDataFetched().twoChannels().microphoneAccessGranted().
+                        destroyed().enabled().receive();
+
+                    tester.authLogoutRequest().receiveResponse();
+                    tester.userLogoutRequest().receiveResponse();
+
+                    tester.input.withFieldLabel('Логин').expectToBeVisible();
+                });
+                it(
                     'Ввожу номер телефона. Приходит сообщение о том, что вкладка все еще остается ведомой. Номер ' +
                     'телефона все еще введен.',
                 function() {
@@ -3765,15 +3793,6 @@ tests.addTest(options => {
                 it('Получен запрос видимости окна. Отправлено сообщение о видимости вкладки.', function() {
                     tester.slavesNotification().tabsVisibilityRequest().receive();
                     tester.masterNotification().tabBecameVisible().expectToBeSent();
-                });
-                it(
-                    'На ведущей вкладке был совершен выход из софтфона. Выход совершен также и на ведомой вкладке.',
-                function() {
-                    tester.slavesNotification().userDataFetched().twoChannels().microphoneAccessGranted().destroyed().
-                        enabled().receive();
-
-                    tester.authLogoutRequest().receiveResponse();
-                    tester.userLogoutRequest().receiveResponse();
                 });
                 it('Попытка восстановления соединения не совершается.', function() {
                     tester.expectNoWebsocketConnecting();
