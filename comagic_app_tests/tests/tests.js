@@ -3766,7 +3766,9 @@ tests.addTest(options => {
                     tester.slavesNotification().tabsVisibilityRequest().receive();
                     tester.masterNotification().tabBecameVisible().expectToBeSent();
                 });
-                it('На ведущей вкладке был совершен выход из софтфона.', function() {
+                it(
+                    'На ведущей вкладке был совершен выход из софтфона. Выход совершен также и на ведомой вкладке.',
+                function() {
                     tester.slavesNotification().userDataFetched().twoChannels().microphoneAccessGranted().destroyed().
                         enabled().receive();
 
