@@ -28,10 +28,91 @@ index 7f1c52d..a978a99 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 114681d..a1e41ab 100644
+index 114681d..eeb34f0 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -379,4 +379,5 @@ export const RootStore = types
+@@ -8,7 +8,6 @@ import { setStartApp, setStartMinimize } from 'uis-softphone/settings/actions';
+ import createSoftphoneMiddleware from 'uis-softphone/middleware';
+ import thunkMiddleware from 'redux-thunk';
+ import { combineReducers, createStore, applyMiddleware } from 'redux';
+-import { STATUSES_MANAGER_CREATED } from 'uis-softphone/authorization/constants.js';
+ import { AuthStore } from './auth/AuthStore';
+ import { EmployeesStore } from './employees/EmployeesStore';
+ import { WebsocketStore } from './websocket/WebsocketStore';
+@@ -24,12 +23,18 @@ import {
+ } from 'uis-softphone/actions';
+ 
+ import {
++    STATUSES_MANAGER_CREATED,
++    HANDLE_WEBRTC_CREATED 
++} from 'uis-softphone/authorization/constants';
++
++import {
+     INTERCEPT_REQUEST,
+     SET_STATUSES,
+     JSSIP_INBOUNDING_CALL_INCOMING,
+     JSSIP_CALL_ENDED,
+     SOFTPHONE_HIGHT_CHANGED,
+-    HANDLE_EVENT
++    HANDLE_EVENT,
++    HANDLE_LOGOUT
+ } from 'uis-softphone/constants';
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+@@ -65,7 +70,8 @@ export const RootStore = types
+         statusesStore: types.optional(StatusesStore, {}),
+     })
+     .actions(self => {
+-        let initialState: RootInstanceSnapshotOut;
++        let initialState: RootInstanceSnapshotOut,
++            hasError = false;
+         const sizeChangeHandlers = [],
+             accountFetchedHandlers = [],
+             applicationChangeHandlers = [];
+@@ -76,13 +82,19 @@ export const RootStore = types
+                 removeAllRequests = () => requests.splice(0, requests.length),
+                 i18n = createI18N(),
+                 isSingleApp = window.rootConfig?.appName == 'softphone';
++            hasError = false;
+ 
+             let authStore,
+                 handleIncomingCall = () => null,
+                 handlerCallEnd = () => null,
+                 isAuthorized = false;
+ 
+-            const logout = () => self.authStore.getToken()?.jwt && authStore && authStore.fetchLogoutUser();
++            const logout = () => self.authStore.getToken()?.jwt &&
++                authStore &&
++                !authStore?.isUserLogoutProceeding &&
++                authStore.fetchLogoutUser();
++
++            const doLogout = () => authStore ? logout() : self.authStore.doShellLogout();
+ 
+             let fileLogger = {
+                 downloadLog: () => null,
+@@ -169,6 +181,12 @@ export const RootStore = types
+ 
+                             break;
+                         }
++                        case HANDLE_WEBRTC_CREATED:
++                            action.webRTC.on('error', () => (hasError = true));
++                            break;
++                        case HANDLE_LOGOUT:
++                            !hasError && doLogout();
++                            break;
+                         case SOFTPHONE_HIGHT_CHANGED:
+                             fireSizeChangeEvent(action.isSoftphoneHigh);
+                             break;
+@@ -204,7 +222,7 @@ export const RootStore = types
+                                             self.authStore.doShellRefreshToken();
+                                             break;
+                                         case 'invalid_token':
+-                                            authStore ? logout() : self.authStore.doShellLogout();
++                                            doLogout();
+                                             break;
+                                         default:
+                                             callback(response);
+@@ -379,4 +397,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

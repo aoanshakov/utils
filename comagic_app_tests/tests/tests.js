@@ -1921,10 +1921,8 @@ tests.addTest(options => {
 
                                                     tester.configRequest().softphone().receiveResponse();
 
-                                                    tester.masterInfoMessage().receive();
                                                     tester.slavesNotification().expectToBeSent();
                                                     tester.slavesNotification().additional().visible().expectToBeSent();
-                                                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                                                     const requests = ajax.inAnyOrder();
 
@@ -1985,8 +1983,6 @@ tests.addTest(options => {
                                                     tester.allowMediaInput();
                                                     tester.slavesNotification().userDataFetched().twoChannels().
                                                         available().expectToBeSent();
-
-                                                    tester.phoneField.fill('79161234567');
 
                                                     tester.callStartingButton.expectNotToHaveAttribute('disabled');
                                                     tester.button('Софтфон').expectToBeVisible();
@@ -2293,11 +2289,9 @@ tests.addTest(options => {
 
                                                         tester.configRequest().softphone().receiveResponse();
 
-                                                        tester.masterInfoMessage().receive();
                                                         tester.slavesNotification().expectToBeSent();
                                                         tester.slavesNotification().additional().visible().
                                                             expectToBeSent();
-                                                        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                                                         const requests = ajax.inAnyOrder();
 
@@ -2538,10 +2532,8 @@ tests.addTest(options => {
 
                                                 tester.configRequest().softphone().receiveResponse();
 
-                                                tester.masterInfoMessage().receive();
                                                 tester.slavesNotification().expectToBeSent();
                                                 tester.slavesNotification().additional().visible().expectToBeSent();
-                                                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                                                 const requests = ajax.inAnyOrder();
 
@@ -3773,6 +3765,13 @@ tests.addTest(options => {
                 it('Получен запрос видимости окна. Отправлено сообщение о видимости вкладки.', function() {
                     tester.slavesNotification().tabsVisibilityRequest().receive();
                     tester.masterNotification().tabBecameVisible().expectToBeSent();
+                });
+                it('На ведущей вкладке был совершен выход из софтфона.', function() {
+                    tester.slavesNotification().userDataFetched().twoChannels().microphoneAccessGranted().destroyed().
+                        enabled().receive();
+
+                    tester.authLogoutRequest().receiveResponse();
+                    tester.userLogoutRequest().receiveResponse();
                 });
                 it('Попытка восстановления соединения не совершается.', function() {
                     tester.expectNoWebsocketConnecting();

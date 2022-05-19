@@ -5220,6 +5220,8 @@ define(function () {
                                     (state.channels[key].sessionId = sessionIds[key]);
                             });
                         }));
+
+                        Promise.runAll(false, true);
                     }
                 });
 

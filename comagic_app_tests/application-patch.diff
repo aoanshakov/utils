@@ -474,27 +474,72 @@ index cbccb1f0..8a8e476f 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 5b4ca3ae..3b805b4a 100644
+index 5b4ca3ae..f0e35384 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -95,7 +95,7 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -95,8 +95,9 @@ const removeToken = (skipLocalStorage = false) => {
  
  export const AuthStore = Loader.named('AuthStore')
      .props({
 -        isAuthorized: types.optional(types.boolean, Boolean(getToken())),
 +        isAuthorized: types.optional(types.boolean, false),
          isTokenRefreshing: types.optional(types.boolean, false),
++        isUserLogoutProceeding: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -192,6 +192,8 @@ export const AuthStore = Loader.named('AuthStore')
+     .actions(self => {
+@@ -111,6 +112,10 @@ export const AuthStore = Loader.named('AuthStore')
+             self.isTokenRefreshing = value;
+         };
+ 
++        const setIsUserLogoutProceeding = (value: boolean) => {
++            self.isUserLogoutProceeding = value;
++        };
++
+         const logout = (skipLocalStorage = false) => {
+             resetStore();
+             setAuthorized(false);
+@@ -166,14 +171,12 @@ export const AuthStore = Loader.named('AuthStore')
+             }
+         });
+ 
+-        let isUserLogoutProceeding = false;
+-
+         const fetchLogoutUser = flow(function*() {
+-            if (isUserLogoutProceeding) {
++            if (self.isUserLogoutProceeding) {
+                 return;
+             }
+ 
+-            isUserLogoutProceeding = true;
++            self.setIsUserLogoutProceeding(true);
+             self.setLoading(true);
+ 
+             try {
+@@ -187,11 +190,14 @@ export const AuthStore = Loader.named('AuthStore')
+                 return Promise.reject(e);
+             } finally {
+                 logout();
+-                isUserLogoutProceeding = false;
++                self.setIsUserLogoutProceeding(false);
+             }
          });
  
          const afterCreate = () => {
 +            setAuthorized(Boolean(getToken()));
++            self.setIsUserLogoutProceeding(false);
 +
              window.addEventListener('doLogoutUser', (event: CustomEvent) => {
                  const eventWindowId = event.detail;
                  if (eventWindowId !== authStore.windowId) {
+@@ -233,6 +239,7 @@ export const AuthStore = Loader.named('AuthStore')
+             fetchRefresh,
+             logout,
+             setIsTokenRefreshing,
++            setIsUserLogoutProceeding,
+             afterCreate,
+         };
+     });
 diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
 index 8c0a28d7..ce190fe9 100644
 --- a/src/rpc/httpRpc.ts

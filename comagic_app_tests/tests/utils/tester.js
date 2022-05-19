@@ -36,6 +36,7 @@ define(() => function ({
     ));
 
     window.rootConfig = {appName};
+    window.crossTabCommunicatorCache = {};
 
     window.application.run({
         setHistory: value => (history = value),
