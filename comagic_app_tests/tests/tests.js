@@ -2648,8 +2648,32 @@ tests.addTest(options => {
                                                     '+7 (916) 123-45-67 Поиск контакта... 00:00'
                                                 );
                                             });
-                                            it('От ведомой вкладки получен токен.', function() {
+                                            it('От ведомой вкладки получен токен. Ничего не сломалось.', function() {
                                                 tester.masterInfoMessage().applyLeader().receive();
+                                            });
+                                            it(
+                                                'Получен запрос на выход из софтфона. Отображена форма авторизации.',
+                                            function() {
+                                                tester.masterNotification().destroy().receive();
+
+                                                tester.slavesNotification().
+                                                    userDataFetched().
+                                                    twoChannels().
+                                                    destroyed().
+                                                    microphoneAccessGranted().
+                                                    enabled().
+                                                    expectToBeSent();
+
+                                                tester.authLogoutRequest().receiveResponse();
+                                                tester.userLogoutRequest().receiveResponse();
+
+                                                tester.eventsWebSocket.finishDisconnecting();
+                                                tester.registrationRequest().expired().receiveResponse();
+
+                                                spendTime(2000);
+                                                tester.webrtcWebsocket.finishDisconnecting();
+
+                                                tester.input.withFieldLabel('Логин').expectToBeVisible();
                                             });
                                             it('Отображен софтфон.', function() {
                                                 if (localStorage.getItem('isSoftphoneHigh') != 'false') {
@@ -3745,6 +3769,7 @@ tests.addTest(options => {
 
                     tester.slavesNotification().userDataFetched().twoChannels().microphoneAccessGranted().
                         destroyed().enabled().receive();
+                    tester.masterNotification().destroy().expectToBeSent();
 
                     tester.authLogoutRequest().receiveResponse();
 
@@ -3793,6 +3818,18 @@ tests.addTest(options => {
                 it('Получен запрос видимости окна. Отправлено сообщение о видимости вкладки.', function() {
                     tester.slavesNotification().tabsVisibilityRequest().receive();
                     tester.masterNotification().tabBecameVisible().expectToBeSent();
+                });
+                it(
+                    'Нажимаю на кнпоку выход. Софтфон разлогинивается. Отправлен запрос выключения софтфона в мастер ' +
+                    'вкладку.',
+                function() {
+                    tester.userName.putMouseOver();
+                    tester.logoutButton.click();
+
+                    tester.userLogoutRequest().receiveResponse();
+                    tester.authLogoutRequest().receiveResponse();
+
+                    tester.masterNotification().destroy().expectToBeSent();
                 });
                 it('Попытка восстановления соединения не совершается.', function() {
                     tester.expectNoWebsocketConnecting();

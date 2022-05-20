@@ -4605,6 +4605,13 @@ define(function () {
 
                         return this;
                     },
+                    destroy: function () {
+                        data = {
+                            action: 'destroy'
+                        };
+
+                        return this;
+                    },
                     answer: function () {
                         data = {
                             action: 'answer'
