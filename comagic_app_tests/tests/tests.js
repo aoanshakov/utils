@@ -2656,14 +2656,6 @@ tests.addTest(options => {
                                             function() {
                                                 tester.masterNotification().destroy().receive();
 
-                                                tester.slavesNotification().
-                                                    userDataFetched().
-                                                    twoChannels().
-                                                    destroyed().
-                                                    microphoneAccessGranted().
-                                                    enabled().
-                                                    expectToBeSent();
-
                                                 tester.authLogoutRequest().receiveResponse();
                                                 tester.userLogoutRequest().receiveResponse();
 
@@ -2672,6 +2664,39 @@ tests.addTest(options => {
 
                                                 spendTime(2000);
                                                 tester.webrtcWebsocket.finishDisconnecting();
+
+                                                tester.slavesNotification().
+                                                    userDataFetched().
+                                                    twoChannels().
+                                                    destroyed().
+                                                    microphoneAccessGranted().
+                                                    enabled().
+                                                    expectToBeSent();
+
+                                                tester.input.withFieldLabel('Логин').expectToBeVisible();
+                                            });
+                                            it(
+                                                'Авторизационная кука удалена. Получен запрос на выход из софтфона. ' +
+                                                'Отображена форма авторизации.',
+                                            function() {
+                                                document.cookie = '';
+                                                tester.masterNotification().destroy().receive();
+
+                                                tester.authLogoutRequest().receiveResponse();
+
+                                                tester.eventsWebSocket.finishDisconnecting();
+                                                tester.registrationRequest().expired().receiveResponse();
+
+                                                spendTime(2000);
+                                                tester.webrtcWebsocket.finishDisconnecting();
+
+                                                tester.slavesNotification().
+                                                    userDataFetched().
+                                                    twoChannels().
+                                                    destroyed().
+                                                    microphoneAccessGranted().
+                                                    enabled().
+                                                    expectToBeSent();
 
                                                 tester.input.withFieldLabel('Логин').expectToBeVisible();
                                             });
@@ -2814,21 +2839,48 @@ tests.addTest(options => {
                                     microphoneAccessDenied().softphoneServerConnected().expectToBeSent();
 
                                 authenticatedUserRequest.receiveResponse();
-                                tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().
-                                    microphoneAccessDenied().softphoneServerConnected().expectToBeSent();
+
+                                tester.slavesNotification().
+                                    userDataFetched().
+                                    twoChannels().
+                                    webRTCServerConnected().
+                                    microphoneAccessDenied().
+                                    softphoneServerConnected().
+                                    expectToBeSent();
 
                                 reportGroupsRequest.receiveResponse();
 
                                 registrationRequest.receiveResponse();
 
-                                tester.slavesNotification().userDataFetched().twoChannels().registered().
-                                    webRTCServerConnected().microphoneAccessDenied().softphoneServerConnected().
+                                tester.slavesNotification().
+                                    userDataFetched().
+                                    twoChannels().
+                                    registered().
+                                    webRTCServerConnected().
+                                    microphoneAccessDenied().
+                                    softphoneServerConnected().
                                     expectToBeSent();
 
                                 tester.button('Софтфон').click();
                                 tester.slavesNotification().additional().visible().expectToBeSent();
                             });
 
+                            it('Нажимаю на кнопку второй линии. Происходит переход на вторую линию.', function() {
+                                tester.secondLineButton.click();
+
+                                tester.slavesNotification().
+                                    userDataFetched().
+                                    twoChannels().
+                                    changedChannelToSecond().
+                                    registered().
+                                    webRTCServerConnected().
+                                    microphoneAccessDenied().
+                                    softphoneServerConnected().
+                                    expectToBeSent();
+
+                                tester.firstLineButton.expectNotToHaveClass('cmg-bottom-button-selected');
+                                tester.secondLineButton.expectToHaveClass('cmg-bottom-button-selected');
+                            });
                             it('Нажимаю на кнопку закрытия сообщения. Сообщение скрыто.', function() {
                                 tester.closeButton.click();
                                 tester.softphone.expectTextContentNotToHaveSubstring('Микрофон не обнаружен');
