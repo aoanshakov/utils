@@ -3350,6 +3350,22 @@ tests.addTest(options => {
                                 });
                             });
                             it(
+                                'Получена окончательная информация о звонке. Имя длинное. Отображена информация о ' +
+                                'звонке.',
+                            function() {
+                                tester.outCallEvent().longName().receive();
+                                tester.outCallEvent().longName().slavesNotification().expectToBeSent();
+
+                                tester.incomingIcon.expectToBeVisible();
+
+                                tester.softphone.expectTextContentToHaveSubstring(
+                                    'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна ' +
+                                    '+7 (916) 123-45-67 ' +
+
+                                    'Путь лида'
+                                );
+                            });
+                            it(
                                 'Получена окончательная информация о звонке. Отображена информация о звонке.',
                             function() {
                                 tester.outCallEvent().receive();
