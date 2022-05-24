@@ -28,7 +28,7 @@ index 7f1c52d..a978a99 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 9b1b21a..96f93f8 100644
+index d9d12be..2faf7c0 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -399,4 +399,5 @@ export const RootStore = types
