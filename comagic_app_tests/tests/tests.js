@@ -4467,7 +4467,7 @@ tests.addTest(options => {
                             });
 
                             it('Нажимаю на кнопку сворачивания списка.', function() {
-                                tester.arrowNextToSearchField.click();
+                                tester.button('Отменить').click();
                                 tester.select.popup.expectNotToExist();
                             });
                             it('Растягиваю окно. Список меняет положение и размер.', function() {
@@ -4476,7 +4476,7 @@ tests.addTest(options => {
                                 tester.select.popup.expectToHaveTopOffset(92);
                                 tester.select.popup.expectToHaveHeight(331);
 
-                                tester.arrowNextToSearchField.expectNotToExist();
+                                tester.button('Отменить').expectNotToExist();
                             });
                             it(
                                 'Закрываю список. Растягиваю окно. Открываю список. Список меняет положение и размер.',
@@ -4488,7 +4488,7 @@ tests.addTest(options => {
                                 tester.select.popup.expectToHaveTopOffset(92);
                                 tester.select.popup.expectToHaveHeight(331);
 
-                                tester.arrowNextToSearchField.expectNotToExist();
+                                tester.button('Отменить').expectNotToExist();
                             });
                             it('Список вписан в окно.', function() {
                                 tester.select.popup.expectToHaveTopOffset(4);
