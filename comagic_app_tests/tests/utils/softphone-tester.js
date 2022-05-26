@@ -5251,12 +5251,12 @@ define(function () {
 
                     applyLeader();
 
-                    spendTime(150);
+                    spendTime(1000);
                     Promise.runAll(false, true);
 
                     applyLeader();   
 
-                    spendTime(150);
+                    spendTime(1000);
                     Promise.runAll(false, true);
 
                     wasMaster = true;
