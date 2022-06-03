@@ -4079,6 +4079,24 @@ function JsTester_TextExpectations (throwSubstringInclusionError) {
     };
 }
 
+function JsTester_Element ({
+    getElement,
+    utils
+}) {
+    var oldGetElement = getElement;
+    var getElement = utils.makeFunction(getElement);
+
+    this.querySelector = function (selector) {
+        return utils.getVisibleSilently(
+            (getElement() || new JsTester_NoElement()).querySelectorAll(selector)
+        ) || new JsTester_NoElement();
+    };
+
+    this.querySelectorAll = function (selector) {
+        return utils.getAllVisible(selector);
+    };
+}
+
 function JsTester_Utils (debug) {
     var me = this,
         doNothing = function () {};
@@ -4103,10 +4121,6 @@ function JsTester_Utils (debug) {
 
             return args[0];
         };
-    };
-
-    this.querySelector = function (selector) {
-        return document.querySelector(selector) || new JsTester_NoElement();
     };
 
     this.receiveWindowMessage = function (text) {
@@ -4526,10 +4540,13 @@ function JsTester_Utils (debug) {
 
         (new JsTester_ParamsContainingExpectation(object))(expectedContent);
     };
-    function getVisible (domElements, handleError) {
-        var results = Array.prototype.filter.call(domElements, (function (domElement) {
+    this.getAllVisible = function (domElements) {
+        return Array.prototype.filter.call(domElements, (function (domElement) {
             return this.isVisible(domElement);
         }).bind(this));
+    };
+    function getVisible (domElements, handleError) {
+        var results = me.getAllVisible(domElements);
 
         if (results.length != 1) {
             handleError(results.length);
@@ -4622,6 +4639,19 @@ function JsTester_Utils (debug) {
         }
 
         return '?' + getComponents([], query).join('&');
+    };
+
+    this.element = function (getElement) {
+        return new JsTester_Element({
+            getElement,
+            utils: this
+        });
+    };
+
+    var element = this.element(() => document.body);
+
+    this.querySelector = function (selector) {
+        return element.querySelector(selector);
     };
 
     this.enableScrollingIntoView();
@@ -5881,6 +5911,13 @@ function JsTester_InputElement (
 }
 
 function JsTester_NoElement () {
+    Object.defineProperty(this, 'innerHTML', {
+        set: function () {},
+        get: function () {
+            return '';
+        }
+    });
+
     Object.defineProperty(this, 'parentNode', {
         set: function () {},
         get: function () {

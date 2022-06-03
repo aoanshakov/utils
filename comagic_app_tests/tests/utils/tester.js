@@ -107,11 +107,50 @@ define(() => function ({
             return tester;
         })();
 
+        const rootTester = utils.element(getRootElement);
+        
+        me.calendarField = (() => {
+            const tester = testersFactory.createDomElementTester(() => rootTester.querySelector('.cm-calendar__field')),
+                getPopup = () => utils.querySelector('.cm-calendar'),
+                popupTester = testersFactory.createDomElementTester(getPopup);
+
+            const getMonthPanel = index => {
+                const getMonthPanel = () => 
+                    getPopup().querySelectorAll('.cm-calendar__months__item')[index] ||
+                    new JsTester_NoElement();
+
+                const monthPanelTester = testersFactory.createDomElementTester(getMonthPanel);
+
+                monthPanelTester.title = testersFactory.createDomElementTester(() =>
+                    getMonthPanel().querySelector('.cm-calendar__months__item__title'));
+
+                monthPanelTester.day = day => testersFactory.createDomElementTester(() =>
+                    utils.descendantOf(getMonthPanel()).
+                        matchesSelector('.cm-calendar__days__item__text').
+                        textEquals(day + '').
+                        find());
+
+                return monthPanelTester;
+            };
+
+            popupTester.firstMonthPanel = getMonthPanel(0);
+            popupTester.secondMonthPanel = getMonthPanel(1);
+            popupTester.thirdMonthPanel = getMonthPanel(2);
+            
+            Object.defineProperty(tester, 'popup', {
+                get: function () {
+                    return addTesters(popupTester, getPopup);
+                }
+            })
+
+            return tester;
+        })();
+
         me.stopCallButton = testersFactory.createDomElementTester(() =>
-            utils.getVisibleSilently(getRootElement().querySelectorAll('.cmg-call-button-stop')));
+            rootTester.querySelector('.cmg-call-button-stop'));
 
         me.callStartingButton = testersFactory.createDomElementTester(() =>
-            utils.getVisibleSilently(getRootElement().querySelectorAll('.cmg-call-button-start')));
+            rootTester.querySelector('.cmg-call-button-start'));
 
         me.slider = (() => {
             const tester = testersFactory.createDomElementTester(() =>
@@ -122,6 +161,18 @@ define(() => function ({
 
             return tester;
         })();
+
+        me.radioButton = text => {
+            const tester = testersFactory.createDomElementTester(utils.descendantOf(getRootElement()).
+                textEquals(text).
+                matchesSelector('.cm-radio-button').
+                find());
+
+            tester.expectToBeSelected = () => tester.expectNotToHaveClass('cm-button--unselected');
+            tester.expectNotToBeSelected = () => tester.expectToHaveClass('cm-button--unselected');
+
+            return tester;
+        };
 
         me.button = text => {
             let domElement = utils.descendantOf(getRootElement()).
@@ -172,41 +223,84 @@ define(() => function ({
             return tester;
         };
 
-        me.select = (getSelectField => {
-            const tester = testersFactory.createDomElementTester(getSelectField);
+        me.switchButton = (() => {
+            const tester = testersFactory.createDomElementTester('.ui-switch'),
+                checkedClass = 'ui-switch-checked';
 
-            tester.arrow = (tester => {
-                const click = tester.click.bind(tester);
+            tester.expectToBeChecked = () => tester.expectToHaveClass(checkedClass);
+            tester.expectNotToBeChecked = () => tester.expectNotToHaveClass(checkedClass);
+
+            return tester;
+        })();
+
+        me.select = (getSelectField => {
+            const createTester = (filter = () => true) => {
+                const tester = testersFactory.createDomElementTester(() => getSelectField(filter)),
+                    click = tester.click.bind(tester);
 
                 tester.click = () => (click(), spendTime(0));
-                return tester;
-            })(testersFactory.createDomElementTester(
-                () => getSelectField().closest('.ui-select-container').querySelector('.ui-icon svg')
-            ));
 
-            tester.popup = testersFactory.createDomElementTester(() =>
-                (utils.getVisibleSilently(document.querySelectorAll('.ui-select-popup')) || new JsTester_NoElement()).
-                    closest('div')
-            );
+                tester.arrow = (tester => {
+                    const click = tester.click.bind(tester);
 
-            tester.option = text => {
-                const tester = testersFactory.createDomElementTester(
-                    utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find()
-                );
+                    tester.click = () => (click(), spendTime(0));
+                    return tester;
+                })(testersFactory.createDomElementTester(
+                    () => getSelectField(filter).closest('.ui-select-container').querySelector('.ui-icon svg')
+                ));
 
-                const click = tester.click.bind(tester);
-                tester.click = () => (click(), Promise.runAll(false, true));
+                tester.popup = testersFactory.createDomElementTester(() => (
+                    utils.getVisibleSilently(document.querySelectorAll('.ui-select-popup')) || new JsTester_NoElement()
+                ).closest('div'));
+
+                tester.option = text => {
+                    const option = utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find(),
+                        tester = testersFactory.createDomElementTester(option),
+                        click = tester.click.bind(tester),
+                        checkbox = option.querySelector('.ui-checkbox');
+
+                    tester.click = () => (click(), Promise.runAll(false, true), spendTime(0));
+
+                    tester.expectToBeSelected = logEnabled => {
+                        if (!checkbox.classList.contains('ui-checkbox-checked')) {
+                            throw new Error(`Опиция "${text}" должна быть отмечена.`);
+                        }
+                    };
+
+                    tester.expectNotToBeSelected = () => {
+                        if (checkbox.classList.contains('ui-checkbox-checked')) {
+                            throw new Error(`Опиция "${text}" не должна быть отмечена.`);
+                        }
+                    };
+
+                    return tester;
+                };
 
                 return tester;
             };
 
+            const tester = createTester();
+            tester.withValue = expectedValue => createTester(select => utils.getTextContent(select) == expectedValue);
+
+            tester.withPlaceholder = expectedPlaceholder => createTester(select => utils.getTextContent(
+                select.querySelector('.ui-select-placeholder') ||
+                new JsTester_NoElement()
+            ) == expectedPlaceholder);
+
             return tester;
-        })(() => [
+        })((filter = () => true) => [
             '.ui-select-field',
             '.ui-select'
-        ].reduce((domElement, selector) => domElement || (
-            getRootElement() || new JsTester_NoElement()
-        ).querySelector(selector), null) || new JsTester_NoElement())
+        ].reduce((domElement, selector) => domElement || utils.getVisibleSilently(
+            Array.prototype.slice.call(
+                (
+                    getRootElement() ||
+                    new JsTester_NoElement()
+                ).querySelectorAll(selector),
+
+                0
+            ).filter(filter)
+        ), null) || new JsTester_NoElement())
 
         {
             const getInputs = () =>
@@ -217,7 +311,13 @@ define(() => function ({
                 () => getInput().closest('.ui-input').querySelector('.ui-input-suffix-close')
             )), tester);
 
-            me.input = testersFactory.createTextFieldTester(getInput);
+            me.input = (() => {
+                const tester = testersFactory.createTextFieldTester(getInput),
+                    fill = tester.fill.bind(tester);
+
+                tester.fill = value => (fill(value), Promise.runAll(false, true)); 
+                return tester;
+            })();
 
             me.input.withPlaceholder = placeholder => testersFactory.createTextFieldTester(
                 utils.getVisibleSilently(getInputs().filter(input => input.placeholder == placeholder))
@@ -652,12 +752,132 @@ define(() => function ({
         }
     });
 
+    me.notProcessedCallsRequest = () => {
+        const queryParams = {
+            call_directions: 'in,out',
+            call_types: 'external,internal',
+            is_not_processed: 'null',
+            is_processed_by_any: undefined,
+            group_ids: []
+        };
+
+        const addGroup = groupId => (queryParams.group_ids || (queryParams.group_ids = [])).push(groupId);
+
+        return {
+            isNotProcessedByAny() {
+                this.notProcessed();
+                queryParams.is_processed_by_any = '0';
+                return this;
+            },
+
+            isProcessedByAny() {
+                this.notProcessed();
+                queryParams.is_processed_by_any = '1';
+                return this;
+            },
+
+            notProcessed() {
+                queryParams.is_not_processed = undefined;
+                return this;
+            },
+
+            incoming() {
+                this.notProcessed();
+                queryParams.call_directions = 'in';
+                return this;
+            },
+
+            outgoing() {
+                this.notProcessed();
+                queryParams.call_directions = 'out';
+                return this;
+            },
+
+            external() {
+                this.notProcessed();
+                queryParams.call_types = 'external';
+                return this;
+            },
+
+            internal() {
+                this.notProcessed();
+                queryParams.call_types = 'internal';
+                return this;
+            },
+
+            group() {
+                this.notProcessed();
+                addGroup(89203);
+                return this;
+            },
+
+            secondGroup() {
+                this.notProcessed();
+                addGroup(82958);
+                return this;
+            },
+
+            thirdGroup() {
+                this.notProcessed();
+                addGroup(17589);
+                return this;
+            },
+
+            receiveResponse() {
+                queryParams.group_ids && (queryParams.group_ids = queryParams.group_ids.join(','));
+
+                ajax.recentRequest().
+                    expectPathToContain('/sup/api/v1/not_processed_calls').
+                    expectToHaveMethod('GET').
+                    expectQueryToContain(queryParams).
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: [{
+                            component: 'default',
+                            call_session_id: 980925444,
+                            comment: null,
+                            phone_book_contact_id: null,
+                            direction: 'in',
+                            duration: 20,
+                            contact_name: null,
+                            is_failed: false,
+                            mark_ids: [],
+                            subscriber_number: '74950230625',
+                            virtual_number: '74950230630',
+                            start_time: '2019-12-19T08:03:02.522+03:00'
+                        }, {
+                            component: 'default',
+                            call_session_id: 980925445,
+                            comment: null,
+                            phone_book_contact_id: null,
+                            direction: 'in',
+                            duration: 24,
+                            contact_name: null,
+                            is_failed: false,
+                            mark_ids: [],
+                            subscriber_number: '74950230626',
+                            virtual_number: '74950230631',
+                            start_time: '2019-12-19T10:13:02.529+03:00'
+                        }]
+                    });
+
+                Promise.runAll(false, true);
+            }
+        };
+    };
+
     me.callsRequest = () => {
         const params = {
             limit: '100',
             search: '',
             is_strict_date_till: '0',
-            with_names: undefined
+            with_names: undefined,
+            from: '2019-12-16T00:00:00.000+03:00',
+            to: '2019-12-19T23:59:59.999+03:00',
+            call_directions: undefined,
+            call_types: undefined,
+            is_processed_by_any: undefined,
+            group_id: undefined
         };
 
         let getResponse = count => [{
@@ -694,6 +914,8 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.search = value => ((params.search = value), me);
+
             me.noContactName = () => {
                 processors.push(data => (data[0].contact_name = null));
                 return me;
@@ -709,6 +931,18 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            changeDate() {
+                params.from = '2019-11-15T00:00:00.000+03:00';
+                params.to = '2019-12-18T23:59:59.999+03:00';
+                return this;
+            },
+
+            numa() {
+                params.numa = '38294829382;';
+                data = [];
+                return this;
+            },
+
             secondPage() {
                 params.to = '2019-11-22T21:37:26.362+03:00';
                 params.is_strict_date_till = '1';
@@ -6116,8 +6350,8 @@ define(() => function ({
                 type: 'communications',
                 group_id: 9,
                 is_system: false,
-                description: 'Показывает информацию по всем видам обращений (звонкам, заявкам, чатам) в едином окне. Отчет ' +
-                    'строится по дате обращения.'
+                description: 'Показывает информацию по всем видам обращений (звонкам, заявкам, чатам) в едином окне. ' +
+                    'Отчет строится по дате обращения.'
             }), me);
 
             return me;

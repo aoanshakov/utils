@@ -1218,6 +1218,181 @@ tests.addTest(options => {
                                                     expectToBeOpened();
                                             });
                                         });
+                                        describe('Открываю раздел "История звонков".', function() {
+                                            beforeEach(function() {
+                                                tester.button('История звонков').click();
+                                                tester.callsRequest().receiveResponse();
+                                            });
+
+                                            describe('Нажимаю на кнопку "Необработанные".', function() {
+                                                beforeEach(function() {
+                                                    tester.radioButton('Необработанные').click();
+
+                                                    tester.groupsRequest().receiveResponse();
+                                                    tester.notProcessedCallsRequest().isProcessedByAny().
+                                                        receiveResponse();
+                                                });
+
+                                                describe('Открываю выпадающий список "Звонки".', function() {
+                                                    beforeEach(function() {
+                                                        tester.select.withValue('Звонки: Все').click();
+                                                    });
+
+                                                    it(
+                                                        'Выбираю опцию "Внешние". Отправлен запрос истории звонков.',
+                                                    function() {
+                                                        tester.select.option('Внешние').click();
+
+                                                        tester.notProcessedCallsRequest().isProcessedByAny().external().
+                                                            receiveResponse();
+                                                    });
+                                                    it(
+                                                        'Выбираю опцию "Внутренние". Отправлен запрос истории звонков.',
+                                                    function() {
+                                                        tester.select.option('Внутренние').click();
+
+                                                        tester.notProcessedCallsRequest().isProcessedByAny().internal().
+                                                            receiveResponse();
+                                                    });
+                                                });
+                                                describe('Открываю выпадающий список "Направления".', function() {
+                                                    beforeEach(function() {
+                                                        tester.select.withValue('Направления: Все').click();
+                                                    });
+
+                                                    it(
+                                                        'Выбираю опцию "Входящие". Отправлен запрос истории звонков.',
+                                                    function() {
+                                                        tester.select.option('Входящие').click();
+
+                                                        tester.notProcessedCallsRequest().isProcessedByAny().incoming().
+                                                            receiveResponse();
+                                                    });
+                                                    it(
+                                                        'Выбираю опцию "Исходящие". Отправлен запрос истории звонков.',
+                                                    function() {
+                                                        tester.select.option('Исходящие').click();
+
+                                                        tester.notProcessedCallsRequest().isProcessedByAny().outgoing().
+                                                            receiveResponse();
+                                                    });
+                                                });
+                                                it('Выбираю группы. Отправлен запрос истории звонков.', function() {
+                                                    tester.select.withPlaceholder('Группы').click();
+
+                                                    tester.select.option('Отдел дистрибуции').click();
+                                                    tester.notProcessedCallsRequest().isProcessedByAny().group().
+                                                        receiveResponse();
+
+                                                    tester.select.option('Отдел по работе с ключевыми клиентами').
+                                                        click();
+                                                    tester.notProcessedCallsRequest().isProcessedByAny().group().
+                                                        thirdGroup().receiveResponse();
+
+                                                    tester.select.option('Отдел дистрибуции').expectToBeSelected();
+                                                    tester.select.option('Отдел региональных продаж').
+                                                        expectNotToBeSelected();
+                                                    tester.select.option('Отдел по работе с ключевыми клиентами').
+                                                        expectToBeSelected(true);
+                                                });
+                                                it('Отображена история звонков.', function() {
+                                                    tester.radioButton('Мои').expectNotToBeSelected();
+                                                    tester.radioButton('Все').expectNotToBeSelected();
+                                                    tester.radioButton('Необработанные').expectToBeSelected();
+                                                    
+                                                    tester.switchButton.expectToBeChecked();
+
+                                                    tester.table.expectTextContentToHaveSubstring(
+                                                        'Дата / время ' +
+                                                        'Номер абонента ' +
+                                                        'Виртуальный номер ' +
+                                                        'Длительность ' +
+
+                                                        '19 дек 2019 08:03 ' +
+                                                        '+7 (495) 023-06-25 ' +
+                                                        '+7 (495) 023-06-30 ' +
+                                                        '00:00:20 ' +
+
+                                                        '19 дек 2019 10:13 ' +
+                                                        '+7 (495) 023-06-26 ' +
+                                                        '+7 (495) 023-06-31 ' +
+                                                        '00:00:24'
+                                                    );
+                                                });
+                                            });
+                                            it(
+                                                'Ввожу значеие в поле поиска. Отправлен запрос истории звонков.',
+                                            function() {
+                                                tester.input.fill('qwe123');
+                                                tester.callsRequest().search('qwe123').receiveResponse();
+                                            });
+                                            it(
+                                                'Нажимаю на кнопку "Все". Отправлен запрос истории звонков.',
+                                            function() {
+                                                tester.radioButton('Все').click();
+                                                tester.notProcessedCallsRequest().receiveResponse();
+
+                                                tester.radioButton('Мои').expectNotToBeSelected();
+                                                tester.radioButton('Все').expectToBeSelected();
+                                                tester.radioButton('Необработанные').expectNotToBeSelected();
+
+                                                tester.table.expectTextContentToHaveSubstring(
+                                                    'Дата / время ' +
+                                                    'Номер абонента ' +
+                                                    'Виртуальный номер ' +
+                                                    'Длительность ' +
+
+                                                    '19 дек 2019 08:03 ' +
+                                                    '+7 (495) 023-06-25 ' +
+                                                    '+7 (495) 023-06-30 ' +
+                                                    '00:00:20 ' +
+
+                                                    '19 дек 2019 10:13 ' +
+                                                    '+7 (495) 023-06-26 ' +
+                                                    '+7 (495) 023-06-31 ' +
+                                                    '00:00:24'
+                                                );
+                                            });
+                                            it(
+                                                'Изменяю фильтр по дате. Отправлен запрос истории звонков.',
+                                            function() {
+                                                tester.calendarField.click();
+
+                                                tester.calendarField.popup.secondMonthPanel.day(15).click();
+                                                tester.calendarField.popup.thirdMonthPanel.day(18).click();
+
+                                                tester.calendarField.popup.button('Применить').click();
+                                                tester.callsRequest().changeDate().receiveResponse();
+
+                                                tester.body.
+                                                    expectTextContentToHaveSubstring('15 ноя 2019 - 18 дек 2019');
+                                            });
+                                            it('Отображена история звонков.', function() {
+                                                tester.body.
+                                                    expectTextContentToHaveSubstring('16 дек 2019 - 19 дек 2019');
+
+                                                tester.radioButton('Мои').expectToBeSelected();
+                                                tester.radioButton('Все').expectNotToBeSelected();
+                                                tester.radioButton('Необработанные').expectNotToBeSelected();
+
+                                                tester.table.expectTextContentToHaveSubstring(
+                                                    'Дата / время ' +
+                                                    'ФИО контакта ' +
+                                                    'Номер абонента ' +
+                                                    'Длительность ' +
+
+                                                    '19 дек 2019 08:03 ' +
+                                                    'Гяурова Марийка ' +
+                                                    '+7 (495) 023-06-25 ' +
+                                                    '00:00:20 ' +
+
+                                                    '18 дек 2019 18:08 ' +
+                                                    'Манова Тома ' +
+                                                    '+7 (495) 023-06-26 ' +
+                                                    '00:00:21'
+                                                );
+                                            });
+                                        });
                                     });
                                     describe('Нажимаю на иконку с телефоном.', function() {
                                         beforeEach(function() {
@@ -3951,6 +4126,7 @@ tests.addTest(options => {
             tester.reportTypesRequest().receiveResponse();
 
             tester.button('Софтфон').expectNotToExist();
+            tester.button('История звонков').expectNotToExist();
         });
         it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
@@ -3960,6 +4136,7 @@ tests.addTest(options => {
             tester.reportTypesRequest().receiveResponse();
 
             tester.button('Софтфон').expectNotToExist();
+            tester.button('История звонков').expectNotToExist();
         });
     });
     describe('Открываю десктопное приложение софтфона.', function() {

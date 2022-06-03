@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 90627a16..0f3e7465 100644
+index 90627a16..72ac9ad5 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -7,10 +7,11 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -162,7 +162,7 @@ index 90627a16..0f3e7465 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -331,17 +397,110 @@ module.exports = {
+@@ -331,17 +397,119 @@ module.exports = {
                      },
                  ],
              },
@@ -207,6 +207,7 @@ index 90627a16..0f3e7465 100644
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
 +            'softphone/Settings': 'softphone/src/Settings.tsx',
++            'softphone/CallHistory': 'softphone/src/CallHistory.tsx',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
@@ -231,6 +232,14 @@ index 90627a16..0f3e7465 100644
 +            'analytics/Dashboards/MarketerDashboard': `${miscDirectory}/Stub.js`,
 +            'analytics/SharedReport': `${miscDirectory}/Stub.js`,
 +            'analytics/cancelPendingRequests': `${miscDirectory}/Stub.js`,
++            'analytics/ReportTable':
++                `${miscDirectory}/analytics/frontend/src/components/reports/communications/ReportTable.tsx`,
++            'analytics/CalendarButton':
++                `${miscDirectory}/analytics/frontend/src/components/lib/calendar/BasicCalendarButton.tsx`,
++            'analytics/RadioButton':
++                `${miscDirectory}/analytics/frontend/src/components/lib/radio-button/RadioButton.tsx`,
++            'analytics/RadioGroup':
++                `${miscDirectory}/analytics/frontend/src/components/lib/radio-button/RadioGroup.tsx`,
 +            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`
          },
