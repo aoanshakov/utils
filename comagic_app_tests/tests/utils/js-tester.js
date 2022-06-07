@@ -5669,11 +5669,17 @@ function JsTester_InputElement (
     getDomElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
     genetiveDescription, factory
 ) {
-    var me = this,
-        nativeValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    var me = this;
 
     function nativeSetValue (value) {
-        nativeValueSetter.call(getDomElement(), value);
+        Object.getOwnPropertyDescriptor(
+            (
+                getDomElement() instanceof HTMLInputElement ?
+                    HTMLInputElement :
+                    HTMLTextAreaElement
+            ).prototype,
+            'value'
+        ).set.call(getDomElement(), value);
     }
 
     factory.admixDomElementTester(this, [
@@ -6008,6 +6014,13 @@ function JsTester_DomElement (
         return actualValue;
     }
 
+    this.endTransition = function () {
+        this.expectToExist();
+
+        getDomElement().dispatchEvent(new TransitionEvent('transitionend', {
+            bubbles: true
+        }));
+    };
     this.pressEscape = function () {
         this.expectToBeVisible();
         utils.pressEscape(getDomElement());

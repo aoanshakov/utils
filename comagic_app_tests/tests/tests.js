@@ -145,7 +145,7 @@ tests.addTest(options => {
                                                 expectToBeSent();
                                         });
 
-                                        xdescribe('Поступил входящий звонок.', function() {
+                                        describe('Поступил входящий звонок.', function() {
                                             let incomingCall;
 
                                             beforeEach(function() {
@@ -758,7 +758,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        xdescribe(
+                                        describe(
                                             'Нажимаю на кнопку "Настройки". Нажимаю на кнопку "Софтфон".',
                                         function() {
                                             beforeEach(function() {
@@ -1105,7 +1105,7 @@ tests.addTest(options => {
                                                 tester.button('IP-телефон').expectNotToBeChecked();
                                             });
                                         });
-                                        xdescribe('Браузер скрыт.', function() {
+                                        describe('Браузер скрыт.', function() {
                                             beforeEach(function() {
                                                 setDocumentVisible(false);
 
@@ -1226,7 +1226,7 @@ tests.addTest(options => {
                                                 tester.marksRequest().receiveResponse();
                                             });
 
-                                            xdescribe('Нажимаю на кнопку "Необработанные".', function() {
+                                            describe('Нажимаю на кнопку "Необработанные".', function() {
                                                 beforeEach(function() {
                                                     tester.radioButton('Необработанные').click();
 
@@ -1342,7 +1342,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            xdescribe('Нажимаю на кнопку тегов.', function() {
+                                            describe('Нажимаю на кнопку тегов.', function() {
                                                 beforeEach(function() {
                                                     tester.table.row.first.column.withHeader('Теги').svg.click();
                                                 });
@@ -1390,7 +1390,28 @@ tests.addTest(options => {
                                                     tester.select.option('Отложенный звонок').expectToBeSelected();
                                                 });
                                             });
-                                            xit(
+                                            describe('Нажимаю на кнопку комментария.', function() {
+                                                beforeEach(function() {
+                                                    tester.table.row.first.column.withHeader('Комментарий').svg.click();
+                                                });
+
+                                                it('Изменяю значение поля.', function() {
+                                                    tester.modalWindow.textarea.fill('Другой комментарий');
+
+                                                    tester.button('Сохранить').click();
+                                                    tester.commentUpdatingRequest().receiveResponse();
+                                                });
+                                                it(
+                                                    'Нажимаю на кнпоку закрытие модального окна. Окно закрыто.',
+                                                function() {
+                                                    tester.modalWindow.closeButton.click();
+                                                    tester.modalWindow.expectNotToExist();
+                                                });
+                                                it('Отображен комментарий.', function() {
+                                                    tester.modalWindow.textarea.expectToHaveValue('Некий комментарий');
+                                                });
+                                            });
+                                            it(
                                                 'Нажимаю на кнопку "Все". Отправлен запрос истории звонков.',
                                             function() {
                                                 tester.radioButton('Все').click();
@@ -1419,7 +1440,7 @@ tests.addTest(options => {
                                                     '00:00:24'
                                                 );
                                             });
-                                            xit(
+                                            it(
                                                 'Изменяю фильтр по дате. Отправлен запрос истории звонков.',
                                             function() {
                                                 tester.calendarField.click();
@@ -1435,20 +1456,12 @@ tests.addTest(options => {
 
                                                 tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
                                             });
-                                            xit(
+                                            it(
                                                 'Ввожу значеие в поле поиска. Отправлен запрос истории звонков.',
                                             function() {
                                                 tester.input.fill('qwe123');
                                                 tester.callsRequest().search('qwe123').receiveResponse();
                                             });
-                                            it('Нажимаю на кнопку комментария. Изменяю значение поля.', function() {
-                                                tester.table.row.first.column.withHeader('Комментарий').svg.click();
-                                                tester.modalWindowBody.textarea.fill('Другой комментарий');
-
-                                                tester.button('Сохранить').click();
-                                                tester.commentUpdatingRequest().receiveResponse();
-                                            });
-                                            return;
                                             it('Отображена история звонков.', function() {
                                                 tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
 
@@ -1483,7 +1496,6 @@ tests.addTest(options => {
                                             });
                                         });
                                     });
-                                    return;
                                     describe('Нажимаю на иконку с телефоном.', function() {
                                         beforeEach(function() {
                                             tester.button('Софтфон').click();
@@ -3031,7 +3043,6 @@ tests.addTest(options => {
                                         tester.body.expectTextContentToHaveSubstring('Дашборды');
                                     });
                                 });
-return;
                                 describe(
                                     'SIP-регистрация завершена. Срок действия токена авторизации истек.',
                                 function() {
@@ -3064,7 +3075,6 @@ return;
                                     });
                                 });
                             });
-return;
                             it(
                                 'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение ' +
                                 'о том, что SIP-линия не зарегистрирована.',
@@ -3098,7 +3108,6 @@ return;
                                 );
                             });
                         });
-return;
                         describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                             beforeEach(function() {
                                 tester.disallowMediaInput();
@@ -3158,7 +3167,6 @@ return;
                             });
                         });
                     });
-return;
                     describe('Номера должны быть скрыты.', function() {
                         beforeEach(function() {
                             reportGroupsRequest.receiveResponse();
@@ -3289,7 +3297,6 @@ return;
                         tester.input.withFieldLabel('Логин').expectToBeVisible();
                     });
                 });
-return;
                 describe('Нажимаю на иконку с телефоном.', function() {
                     beforeEach(function() {
                         reportGroupsRequest.receiveResponse();
@@ -3947,7 +3954,6 @@ return;
                     tester.marksRequest().receiveResponse();
                 });
             });
-return;
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().isNotMaster().receive();
@@ -4260,7 +4266,6 @@ return;
                 });
             });
         });
-return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -4282,7 +4287,6 @@ return;
             tester.button('История звонков').expectNotToExist();
         });
     });
-return;
     describe('Открываю десктопное приложение софтфона.', function() {
         let tester;
 

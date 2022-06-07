@@ -56,7 +56,23 @@ define(() => function ({
     me.history = history;
 
     const addTesters = (me, getRootElement) => {
-        me.svg = testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector('svg'));
+        me.textarea = testersFactory.createTextFieldTester(() =>
+            utils.element(getRootElement()).querySelector('textarea'));
+
+        me.svg = (() => {
+            const tester = testersFactory.createDomElementTester(() =>
+                utils.element(getRootElement()).querySelector('svg'));
+
+            const click = tester.click.bind(tester);
+
+            tester.click = () => {
+                click();
+                spendTime(0);
+                spendTime(10);
+            };
+
+            return tester;
+        })();
 
         me.table = (() => {
             const tester = testersFactory.createDomElementTester('.ant-table, .ui-table');
@@ -364,6 +380,27 @@ define(() => function ({
 
         return me;
     };
+
+    me.modalWindow = (() => {
+        const getModalWindow = () => utils.querySelector('.clct-modal, .ui-modal'),
+            windowTester = addTesters(testersFactory.createDomElementTester(getModalWindow), getModalWindow);
+
+        windowTester.closeButton = (() => {
+            const tester = testersFactory.createDomElementTester(() =>
+                utils.element(getModalWindow()).querySelector('.ui-modal-close-x'));
+
+            const click = tester.click.bind(tester);
+
+            tester.click = () => {
+                click();
+                windowTester.endTransition();
+            };
+
+            return tester;
+        })();
+
+        return windowTester;
+    })();
 
     const createRootTester = selector => {
         const getRootElement = () => document.querySelector(selector) || new JsTester_NoElement();
@@ -915,6 +952,9 @@ define(() => function ({
                     respondSuccessfullyWith(true);
 
                 Promise.runAll(false, true);
+
+                utils.isVisible(utils.querySelector('.clct-modal, .ui-modal')) &&
+                    mainTester.modalWindow.endTransition();
             }
         };
     };
