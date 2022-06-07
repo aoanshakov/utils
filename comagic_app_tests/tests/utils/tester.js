@@ -56,12 +56,14 @@ define(() => function ({
     me.history = history;
 
     const addTesters = (me, getRootElement) => {
+        me.svg = testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector('svg'));
+
         me.table = (() => {
-            const tester = testersFactory.createDomElementTester('.ant-table');
+            const tester = testersFactory.createDomElementTester('.ant-table, .ui-table');
 
             const getHeaderColumnIndex = text => {
                 let i;
-                const columns = document.querySelectorAll('.ant-table-thead th'),
+                const columns = document.querySelectorAll('.ant-table-thead th, .ui-table-header-cell-th'),
                     {length} = columns;
 
                 for (i = 0; i < length; i ++) {
@@ -82,7 +84,7 @@ define(() => function ({
 
                 atIndex: index => {
                     const getRow = () => (
-                        getRootElement().querySelectorAll('.ant-table-row ') || []
+                        getRootElement().querySelectorAll('.ant-table-row, .ui-table-body-row') || []
                     )[index] || new JsTester_NoElement();
 
                     const tester = testersFactory.createDomElementTester(getRow);
@@ -104,29 +106,34 @@ define(() => function ({
                 } 
             };
 
+            tester.row.first = tester.row.atIndex(0);
+
             return tester;
         })();
 
         const rootTester = utils.element(getRootElement);
         
         me.calendarField = (() => {
-            const tester = testersFactory.createDomElementTester(() => rootTester.querySelector('.cm-calendar__field')),
-                getPopup = () => utils.querySelector('.cm-calendar'),
-                popupTester = testersFactory.createDomElementTester(getPopup);
+            const getPopup = () => utils.querySelector('.cm-calendar, .ui-date-range-picker-popover'),
+                popupTester = testersFactory.createDomElementTester(getPopup),
+                getPicker = () => rootTester.querySelector('.ui-date-range-picker, .cm-calendar__field'),
+                tester = testersFactory.createDomElementTester(getPicker),
+                click = tester.click.bind(tester),
+                inputTester = testersFactory.createTextFieldTester(() => getPicker().querySelector('input'));
 
             const getMonthPanel = index => {
                 const getMonthPanel = () => 
-                    getPopup().querySelectorAll('.cm-calendar__months__item')[index] ||
+                    getPopup().querySelectorAll('.cm-calendar__months__item, .ui-date-range-picker-month')[index] ||
                     new JsTester_NoElement();
 
                 const monthPanelTester = testersFactory.createDomElementTester(getMonthPanel);
 
                 monthPanelTester.title = testersFactory.createDomElementTester(() =>
-                    getMonthPanel().querySelector('.cm-calendar__months__item__title'));
+                    getMonthPanel().querySelector('.cm-calendar__months__item__title, .ui-date-range-picker-header'));
 
                 monthPanelTester.day = day => testersFactory.createDomElementTester(() =>
                     utils.descendantOf(getMonthPanel()).
-                        matchesSelector('.cm-calendar__days__item__text').
+                        matchesSelector('.cm-calendar__days__item__text, .ui-date-range-picker-cell-container').
                         textEquals(day + '').
                         find());
 
@@ -136,7 +143,15 @@ define(() => function ({
             popupTester.firstMonthPanel = getMonthPanel(0);
             popupTester.secondMonthPanel = getMonthPanel(1);
             popupTester.thirdMonthPanel = getMonthPanel(2);
-            
+
+            popupTester.leftButton = testersFactory.createDomElementTester(() =>
+                getPopup().querySelector('.ui-date-range-picker-header-nav-icon-left'));
+            popupTester.rightButton = testersFactory.createDomElementTester(() =>
+                getPopup().querySelector('.ui-date-range-picker-header-nav-icon-right'));
+
+            tester.expectToHaveValue = inputTester.expectToHaveValue.bind(inputTester);
+            tester.click = () => (click(), spendTime(0));
+
             Object.defineProperty(tester, 'popup', {
                 get: function () {
                     return addTesters(popupTester, getPopup);
@@ -165,11 +180,11 @@ define(() => function ({
         me.radioButton = text => {
             const tester = testersFactory.createDomElementTester(utils.descendantOf(getRootElement()).
                 textEquals(text).
-                matchesSelector('.cm-radio-button').
+                matchesSelector('.ui-radio-wrapper, .cm-radio-button').
                 find());
 
-            tester.expectToBeSelected = () => tester.expectNotToHaveClass('cm-button--unselected');
-            tester.expectNotToBeSelected = () => tester.expectToHaveClass('cm-button--unselected');
+            tester.expectToBeSelected = () => tester.expectToHaveClass('ui-radio-wrapper-checked');
+            tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('ui-radio-wrapper-checked');
 
             return tester;
         };
@@ -225,10 +240,13 @@ define(() => function ({
 
         me.switchButton = (() => {
             const tester = testersFactory.createDomElementTester('.ui-switch'),
-                checkedClass = 'ui-switch-checked';
+                checkedClass = 'ui-switch-checked',
+                disabledClass = 'ui-switch-disabled';
 
             tester.expectToBeChecked = () => tester.expectToHaveClass(checkedClass);
             tester.expectNotToBeChecked = () => tester.expectNotToHaveClass(checkedClass);
+            tester.expectToBeDisaled = () => tester.expectToHaveClass(disabledClass)
+            tester.expectToBeEnabled = () => tester.expectNotToHaveClass(disabledClass)
 
             return tester;
         })();
@@ -237,6 +255,9 @@ define(() => function ({
             const createTester = (filter = () => true) => {
                 const tester = testersFactory.createDomElementTester(() => getSelectField(filter)),
                     click = tester.click.bind(tester);
+
+                const selectTester = testersFactory.createDomElementTester(() =>
+                    getSelectField(filter).closest('.ui-select'));
 
                 tester.click = () => (click(), spendTime(0));
 
@@ -275,6 +296,9 @@ define(() => function ({
 
                     return tester;
                 };
+
+                tester.expectToBeDisaled = () => selectTester.expectToHaveClass('ui-select-disabled');
+                tester.expectToBeEnabled = () => selectTester.expectNotToHaveClass('ui-select-disabled');
 
                 return tester;
             };
@@ -866,6 +890,32 @@ define(() => function ({
         };
     };
 
+    me.markAddingRequest = function () {
+        return {
+            receiveResponse: function () {
+                ajax.recentRequest().
+                    expectToHaveMethod('PUT').
+                    expectPathToContain('/sup/api/v1/users/me/calls/980925444/marks/148').
+                    respondSuccessfullyWith(true);
+
+                Promise.runAll(false, true);
+            }
+        };
+    };
+
+    me.markDeletingRequest = function () {
+        return {
+            receiveResponse: function () {
+                ajax.recentRequest().
+                    expectToHaveMethod('DELETE').
+                    expectPathToContain('/sup/api/v1/users/me/calls/980925444/marks/88').
+                    respondSuccessfullyWith(true);
+
+                Promise.runAll(false, true);
+            }
+        };
+    };
+
     me.callsRequest = () => {
         const params = {
             limit: '100',
@@ -890,7 +940,7 @@ define(() => function ({
             contact_name: 'Гяурова Марийка',
             crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/218401',
             is_failed: false,
-            mark_ids: [],
+            mark_ids: [88, 495],
             number: '74950230625',
             start_time: '2019-12-19T08:03:02.522+03:00'
         }, {

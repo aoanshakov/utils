@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 0eb557f..890fb5e 100644
+index 403b917..890fb5e 100644
 --- a/package.json
 +++ b/package.json
 @@ -54,7 +54,7 @@
@@ -15,7 +15,7 @@ index 0eb557f..890fb5e 100644
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "madge": "^5.0.1",
--    "magic-ui": "^1.19.1",
+-    "magic-ui": "^1.19.15",
      "mobx": "^6.3.8",
      "mobx-devtools-mst": "^0.9.30",
      "mobx-react-lite": "^3.2.2",
@@ -58,10 +58,10 @@ index 564e8ec..e156b1f 100644
 +const history = window.memoryHistory;
  export default history;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3110d58..a59d2db 100644
+index d71456e..00dd413 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -65,7 +65,8 @@ export const RootStore = types
+@@ -67,7 +67,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
