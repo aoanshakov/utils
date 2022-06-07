@@ -29,10 +29,30 @@ index 7eb0654..a978a99 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index b7f20b8..e9f83cb 100644
+index b7f20b8..6fb045e 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -409,4 +409,5 @@ export const RootStore = types
+@@ -35,7 +35,8 @@ import {
+     JSSIP_CALL_ENDED,
+     SOFTPHONE_HIGHT_CHANGED,
+     HANDLE_EVENT,
+-    HANDLE_LOGOUT
++    HANDLE_LOGOUT,
++    SET_PERMISSIONS
+ } from 'uis-softphone/constants';
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+@@ -179,6 +180,9 @@ export const RootStore = types
+                 createSoftphoneMiddleware(),
+                 store => next => action => {
+                     switch (action.type) {
++                        case SET_PERMISSIONS:
++                            self.callHistoryStore.setPermissions(action.permissions);
++                            break;
+                         case HANDLE_EVENT: {
+                             const {data} = action;
+ 
+@@ -409,4 +413,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

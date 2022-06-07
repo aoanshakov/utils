@@ -1236,7 +1236,7 @@ tests.addTest(options => {
                                                     tester.marksRequest().receiveResponse();
                                                 });
 
-                                                xdescribe('Открываю выпадающий список "Звонки".', function() {
+                                                describe('Открываю выпадающий список "Звонки".', function() {
                                                     beforeEach(function() {
                                                         tester.select.withValue('Звонки: Все').click();
                                                     });
@@ -1260,7 +1260,7 @@ tests.addTest(options => {
                                                         tester.marksRequest().receiveResponse();
                                                     });
                                                 });
-                                                xdescribe('Открываю выпадающий список "Направления".', function() {
+                                                describe('Открываю выпадающий список "Направления".', function() {
                                                     beforeEach(function() {
                                                         tester.select.withValue('Направления: Все').click();
                                                     });
@@ -1284,7 +1284,7 @@ tests.addTest(options => {
                                                         tester.marksRequest().receiveResponse();
                                                     });
                                                 });
-                                                xit('Выбираю группы. Отправлен запрос истории звонков.', function() {
+                                                it('Выбираю группы. Отправлен запрос истории звонков.', function() {
                                                     tester.select.withPlaceholder('Группы').click();
 
                                                     tester.select.option('Отдел дистрибуции').click();
@@ -1342,12 +1342,12 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            describe('Нажимаю на кнопку тегов.', function() {
+                                            xdescribe('Нажимаю на кнопку тегов.', function() {
                                                 beforeEach(function() {
                                                     tester.table.row.first.column.withHeader('Теги').svg.click();
                                                 });
 
-                                                xit('Изменяю теги. Теги изменены.', function() {
+                                                it('Изменяю теги. Теги изменены.', function() {
                                                     tester.select.option('Генератор лидов').click();
                                                     tester.markAddingRequest().receiveResponse();
 
@@ -1384,14 +1384,12 @@ tests.addTest(options => {
                                                     tester.select.option('Отложенный звонок').expectNotToExist();
                                                     tester.select.option('Нецелевой контакт').expectToBeVisible();
                                                 });
-                                                return;
                                                 it('Отмечены опции выранных тегов.', function() {
                                                     tester.select.option('Генератор лидов').expectNotToBeSelected();
                                                     tester.select.option('Нецелевой контакт').expectToBeSelected();
                                                     tester.select.option('Отложенный звонок').expectToBeSelected();
                                                 });
                                             });
-                                            return;
                                             xit(
                                                 'Нажимаю на кнопку "Все". Отправлен запрос истории звонков.',
                                             function() {
@@ -1443,6 +1441,14 @@ tests.addTest(options => {
                                                 tester.input.fill('qwe123');
                                                 tester.callsRequest().search('qwe123').receiveResponse();
                                             });
+                                            it('Нажимаю на кнопку комментария. Изменяю значение поля.', function() {
+                                                tester.table.row.first.column.withHeader('Комментарий').svg.click();
+                                                tester.modalWindowBody.textarea.fill('Другой комментарий');
+
+                                                tester.button('Сохранить').click();
+                                                tester.commentUpdatingRequest().receiveResponse();
+                                            });
+                                            return;
                                             it('Отображена история звонков.', function() {
                                                 tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
 
@@ -1460,6 +1466,7 @@ tests.addTest(options => {
                                                     'ФИО контакта ' +
                                                     'Номер абонента ' +
                                                     'Теги ' +
+                                                    'Комментарий ' +
                                                     'Длительность ' +
 
                                                     '19 дек 2019 08:03 ' +
@@ -3892,6 +3899,52 @@ return;
                             );
                         });
                     });
+                });
+                it('Статистика по всем звонкам недоступна. Открываю раздел "История звонков".', function() {
+                    permissionsRequest.disallowSoftphoneAllCallsStatSelect().receiveResponse();
+                    settingsRequest.receiveResponse();
+                    tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                    reportGroupsRequest.receiveResponse();
+
+                    tester.connectEventsWebSocket();
+                    tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                    tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                    notificationTester.grantPermission();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    tester.authenticatedUserRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.registrationRequest().receiveResponse();
+                    tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                    tester.button('История звонков').click();
+
+                    tester.callsRequest().receiveResponse();
+                    tester.marksRequest().receiveResponse();
                 });
             });
 return;

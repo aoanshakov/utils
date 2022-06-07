@@ -890,6 +890,35 @@ define(() => function ({
         };
     };
 
+    me.commentUpdatingRequest = function () {
+        let call_session_id = '980925444';
+
+        const bodyParams = {
+            comment: 'Другой комментарий'
+        };
+
+        return {
+            anotherCall() {
+                call_session_id = '980925445';
+                return this;
+            },
+
+            empty() {
+                bodyParams.comment = '';
+                return this;
+            },
+
+            receiveResponse() {
+                ajax.recentRequest().expectPathToContain(`/sup/api/v1/users/me/calls/${call_session_id}`).
+                    expectToHaveMethod('PATCH').
+                    expectBodyToContain(bodyParams).
+                    respondSuccessfullyWith(true);
+
+                Promise.runAll(false, true);
+            }
+        };
+    };
+
     me.markAddingRequest = function () {
         return {
             receiveResponse: function () {
@@ -933,7 +962,7 @@ define(() => function ({
         let getResponse = count => [{
             cdr_type: 'default',
             call_session_id: 980925444,
-            comment: null,
+            comment: 'Некий комментарий',
             phone_book_contact_id: 2204382409,
             direction: 'in',
             duration: 20,

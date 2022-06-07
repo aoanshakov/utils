@@ -1101,6 +1101,12 @@ define(function () {
 
         this.requestPermissions = function () {
             var data = {
+                softphone_all_calls_stat: {
+                    is_delete: true,
+                    is_insert: true,
+                    is_select: true,
+                    is_update: true
+                },
                 address_book: {
                     is_delete: true,
                     is_insert: true,
@@ -1134,6 +1140,10 @@ define(function () {
             };
 
             var me = {
+                disallowSoftphoneAllCallsStatSelect: function () {
+                    data.softphone_all_calls_stat.is_select = false;
+                    return this;
+                },
                 disallowSoftphoneLogin: function () {
                     data.softphone_login.is_select = false;
                     return this;
