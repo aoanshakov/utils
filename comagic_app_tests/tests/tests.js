@@ -3907,6 +3907,222 @@ tests.addTest(options => {
                         });
                     });
                 });
+                describe('Обновление комментария недоступно. Открываю раздел "История звонков".', function() {
+                    beforeEach(function() {
+                        permissionsRequest.disallowCallSessionCommentingUpdate().receiveResponse();
+                        settingsRequest.receiveResponse();
+                        tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                        reportGroupsRequest.receiveResponse();
+
+                        tester.connectEventsWebSocket();
+                        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                        tester.connectSIPWebSocket();
+                        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                            expectToBeSent();
+
+                        tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                        tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                        notificationTester.grantPermission();
+
+                        tester.allowMediaInput();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            expectToBeSent();
+
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            userDataFetched().
+                            expectToBeSent();
+
+                        tester.registrationRequest().receiveResponse();
+                        tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                        tester.button('История звонков').click();
+
+                        tester.callsRequest().receiveResponse();
+                        tester.marksRequest().receiveResponse();
+                    });
+
+                    describe('Нажимаю на кнопку комментария там где комментарий есть.', function() {
+                        beforeEach(function() {
+                            tester.table.row.first.column.withHeader('Комментарий').svg.click();
+                        });
+
+                        it('Стираю комментарий. Кнопка сохранения доступна.', function() {
+                            tester.modalWindow.textarea.clear();
+                            tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                        });
+                        it('Ввожу другой комментарий. Кнопка сохранения заблокирована.', function() {
+                            tester.modalWindow.textarea.fill('Другой комментарий');
+                            tester.button('Сохранить').expectToHaveAttribute('disabled');
+                        });
+                    });
+                    it(
+                        'Нажимаю на кнопку комментария там где комментария нет. Ввожу комментарий. Кнопка сохранения ' +
+                        'доступна.',
+                    function() {
+                        tester.table.row.atIndex(1).column.withHeader('Комментарий').svg.click();
+                        tester.modalWindow.textarea.fill('Другой комментарий');
+
+                        tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                    });
+                });
+                describe('Добавление комментария недоступно. Открываю раздел "История звонков".', function() {
+                    beforeEach(function() {
+                        permissionsRequest.disallowCallSessionCommentingInsert().receiveResponse();
+                        settingsRequest.receiveResponse();
+                        tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                        reportGroupsRequest.receiveResponse();
+
+                        tester.connectEventsWebSocket();
+                        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                        tester.connectSIPWebSocket();
+                        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                            expectToBeSent();
+
+                        tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                        tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                        notificationTester.grantPermission();
+
+                        tester.allowMediaInput();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            expectToBeSent();
+
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            userDataFetched().
+                            expectToBeSent();
+
+                        tester.registrationRequest().receiveResponse();
+                        tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                        tester.button('История звонков').click();
+
+                        tester.callsRequest().receiveResponse();
+                        tester.marksRequest().receiveResponse();
+                    });
+
+                    describe('Нажимаю на кнопку комментария там где комментарий есть.', function() {
+                        beforeEach(function() {
+                            tester.table.row.first.column.withHeader('Комментарий').svg.click();
+                        });
+
+                        it('Стираю комментарий. Кнопка сохранения доступна.', function() {
+                            tester.modalWindow.textarea.clear();
+                            tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                        });
+                        it('Ввожу другой комментарий. Кнопка сохранения доступна.', function() {
+                            tester.modalWindow.textarea.fill('Другой комментарий');
+                            tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                        });
+                    });
+                    it(
+                        'Нажимаю на кнопку комментария там где комментария нет. Ввожу комментарий. Кнопка сохранения ' +
+                        'заблокирована.',
+                    function() {
+                        tester.table.row.atIndex(1).column.withHeader('Комментарий').svg.click();
+                        tester.modalWindow.textarea.fill('Другой комментарий');
+
+                        tester.button('Сохранить').expectToHaveAttribute('disabled');
+                    });
+                });
+                describe('Удаление комментария недоступно. Открываю раздел "История звонков".', function() {
+                    beforeEach(function() {
+                        permissionsRequest.disallowCallSessionCommentingDelete().receiveResponse();
+                        settingsRequest.receiveResponse();
+                        tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                        reportGroupsRequest.receiveResponse();
+
+                        tester.connectEventsWebSocket();
+                        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                        tester.connectSIPWebSocket();
+                        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                            expectToBeSent();
+
+                        tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                        tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                        notificationTester.grantPermission();
+
+                        tester.allowMediaInput();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            expectToBeSent();
+
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            userDataFetched().
+                            expectToBeSent();
+
+                        tester.registrationRequest().receiveResponse();
+                        tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                        tester.button('История звонков').click();
+
+                        tester.callsRequest().receiveResponse();
+                        tester.marksRequest().receiveResponse();
+                    });
+
+                    describe('Нажимаю на кнопку комментария там где комментарий есть.', function() {
+                        beforeEach(function() {
+                            tester.table.row.first.column.withHeader('Комментарий').svg.click();
+                        });
+
+                        it('Стираю комментарий. Кнопка сохранения доступна.', function() {
+                            tester.modalWindow.textarea.clear();
+                            tester.button('Сохранить').expectToHaveAttribute('disabled');
+                        });
+                        it('Ввожу другой комментарий. Кнопка сохранения доступна.', function() {
+                            tester.modalWindow.textarea.fill('Другой комментарий');
+                            tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                        });
+                    });
+                    it(
+                        'Нажимаю на кнопку комментария там где комментария нет. Ввожу комментарий. Кнопка сохранения ' +
+                        'заблокирована.',
+                    function() {
+                        tester.table.row.atIndex(1).column.withHeader('Комментарий').svg.click();
+                        tester.modalWindow.textarea.fill('Другой комментарий');
+
+                        tester.button('Сохранить').expectNotToHaveAttribute('disabled');
+                    });
+                });
                 it('Статистика по всем звонкам недоступна. Открываю раздел "История звонков".', function() {
                     permissionsRequest.disallowSoftphoneAllCallsStatSelect().receiveResponse();
                     settingsRequest.receiveResponse();
@@ -3952,6 +4168,106 @@ tests.addTest(options => {
 
                     tester.callsRequest().receiveResponse();
                     tester.marksRequest().receiveResponse();
+                });
+                it(
+                    'Просмотр комментариев недоступен. Открываю раздел "История звонков". Комментарии не отображатся.',
+                function() {
+                    permissionsRequest.disallowCallSessionCommentingSelect().receiveResponse();
+                    settingsRequest.receiveResponse();
+                    tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                    reportGroupsRequest.receiveResponse();
+
+                    tester.connectEventsWebSocket();
+                    tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                    tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                    notificationTester.grantPermission();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    tester.authenticatedUserRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.registrationRequest().receiveResponse();
+                    tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                    tester.button('История звонков').click();
+
+                    tester.callsRequest().receiveResponse();
+                    tester.marksRequest().receiveResponse();
+
+                    tester.table.expectTextContentNotToHaveSubstring('Комментарий');
+                });
+                it(
+                    'Просмотр тегов недоступен. Открываю раздел "История звонков". Теги не отображатся.',
+                function() {
+                    permissionsRequest.disallowTagManagementSelect().receiveResponse();
+                    settingsRequest.receiveResponse();
+                    tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                    reportGroupsRequest.receiveResponse();
+
+                    tester.connectEventsWebSocket();
+                    tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                    tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                    notificationTester.grantPermission();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    tester.authenticatedUserRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.registrationRequest().receiveResponse();
+                    tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                    tester.button('История звонков').click();
+
+                    tester.callsRequest().receiveResponse();
+                    tester.marksRequest().receiveResponse();
+
+                    tester.table.expectTextContentNotToHaveSubstring('Теги');
                 });
             });
             describe('Вкладка является ведомой. Открываю софтфон.', function() {

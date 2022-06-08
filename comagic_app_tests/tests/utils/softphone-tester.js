@@ -1140,6 +1140,26 @@ define(function () {
             };
 
             var me = {
+                disallowTagManagementSelect: function () {
+                    data.tag_management.is_select = false;
+                    return this;
+                },
+                disallowCallSessionCommentingDelete: function () {
+                    data.call_session_commenting.is_delete = false;
+                    return this;
+                },
+                disallowCallSessionCommentingInsert: function () {
+                    data.call_session_commenting.is_insert = false;
+                    return this;
+                },
+                disallowCallSessionCommentingSelect: function () {
+                    data.call_session_commenting.is_select = false;
+                    return this;
+                },
+                disallowCallSessionCommentingUpdate: function () {
+                    data.call_session_commenting.is_update = false;
+                    return this;
+                },
                 disallowSoftphoneAllCallsStatSelect: function () {
                     data.softphone_all_calls_stat.is_select = false;
                     return this;

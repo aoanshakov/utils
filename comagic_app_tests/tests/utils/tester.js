@@ -94,10 +94,6 @@ define(() => function ({
             };
 
             tester.row = {
-                first() {
-                    return this.atIndex(0);
-                },
-
                 atIndex: index => {
                     const getRow = () => (
                         getRootElement().querySelectorAll('.ant-table-row, .ui-table-body-row') || []
