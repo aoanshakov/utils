@@ -1462,6 +1462,12 @@ tests.addTest(options => {
                                                 tester.input.fill('qwe123');
                                                 tester.callsRequest().search('qwe123').receiveResponse();
                                             });
+                                            it('Нажимаю на кнопку проигрывания записи.', function() {
+                                                tester.table.row.first.column.withHeader('Запись').svg.click();
+                                                
+                                                tester.talkRecordRequest().receiveResponse();
+                                                audioDecodingTester.accomplishAudioDecoding();
+                                            });
                                             it('Отображена история звонков.', function() {
                                                 tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
 

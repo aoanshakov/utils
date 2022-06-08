@@ -923,7 +923,7 @@ define(() => function ({
         };
     };
 
-    me.commentUpdatingRequest = function () {
+    me.commentUpdatingRequest = () => {
         let call_session_id = '980925444';
 
         const bodyParams = {
@@ -955,28 +955,67 @@ define(() => function ({
         };
     };
 
-    me.markAddingRequest = function () {
+    me.markAddingRequest = () => ({
+        receiveResponse: () => {
+            ajax.recentRequest().
+                expectToHaveMethod('PUT').
+                expectPathToContain('/sup/api/v1/users/me/calls/980925444/marks/148').
+                respondSuccessfullyWith(true);
+
+            Promise.runAll(false, true);
+        }
+    });
+
+    me.markDeletingRequest = () => ({
+        receiveResponse: () => {
+            ajax.recentRequest().
+                expectToHaveMethod('DELETE').
+                expectPathToContain('/sup/api/v1/users/me/calls/980925444/marks/88').
+                respondSuccessfullyWith(true);
+
+            Promise.runAll(false, true);
+        }
+    });
+
+    me.talkRecordRequest = () => {
+        let path = 'https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/';
+
         return {
-            receiveResponse: function () {
-                ajax.recentRequest().
-                    expectToHaveMethod('PUT').
-                    expectPathToContain('/sup/api/v1/users/me/calls/980925444/marks/148').
-                    respondSuccessfullyWith(true);
+            setFullRecord() {
+                path = 'https://proxy.dev.uis.st:9099/files/session/1378329557/a463d88a0e55599eba24c3f4638fc17c';
+                return this;
+            },
 
-                Promise.runAll(false, true);
-            }
-        };
-    };
+            setSecond() {
+                path = 'https://app.comagic.ru/system/media/talk/1306955705/baf9be6ace6b0cb2f9b0e1ed0738db1a/';
+                return this;
+            },
 
-    me.markDeletingRequest = function () {
-        return {
-            receiveResponse: function () {
-                ajax.recentRequest().
-                    expectToHaveMethod('DELETE').
-                    expectPathToContain('/sup/api/v1/users/me/calls/980925444/marks/88').
-                    respondSuccessfullyWith(true);
+            setThird() {
+                path = 'https://app.comagic.ru/system/media/talk/2938571928/2fj923fholfr32hlf498f8h18f1hfl1c/';
+                return this;
+            },
 
-                Promise.runAll(false, true);
+            setFourth() {
+                path = 'https://app.comagic.ru/system/media/talk/2938571928/298jfr28h923jf89h92g2lo3829woghc/';
+                return this;
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
+
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHavePath(path).
+                    expectToHaveMethod('GET');
+
+                return {
+                    receiveResponse() {
+                        request.respondSuccessfullyWith('29f2f28ofjowf829f');
+                        Promise.runAll(false, true);
+                    }
+                };
             }
         };
     };
@@ -1007,7 +1046,8 @@ define(() => function ({
             is_failed: false,
             mark_ids: [88, 495],
             number: '74950230625',
-            start_time: '2019-12-19T08:03:02.522+03:00'
+            start_time: '2019-12-19T08:03:02.522+03:00',
+            file_links: ['https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/']
         }, {
             cdr_type: 'default',
             call_session_id: 980925445,
@@ -1020,7 +1060,11 @@ define(() => function ({
             is_failed: false,
             mark_ids: [],
             number: '74950230626',
-            start_time: '2019-12-18T18:08:25.522+03:00'
+            start_time: '2019-12-18T18:08:25.522+03:00',
+            file_links: [
+                'https://app.comagic.ru/system/media/talk/1306955705/baf9be6ace6b0cb2f9b0e1ed0738db1a/',
+                'https://app.comagic.ru/system/media/talk/2938571928/2fj923fholfr32hlf498f8h18f1hfl1c/'
+            ]
         }].concat(me.getCalls({
             date: '2019-12-17T18:07:25',
             count: count - 2

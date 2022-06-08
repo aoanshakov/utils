@@ -1455,13 +1455,39 @@ function JsTester_BiquadFilter (debug) {
     this.connect = function () {};
 }
 
-function JsTester_Buffer () {
+function JsTester_TypedArray () {
+    var array = [];
+
+    this.set = function (items, start) {
+        array.splice.apply(array, [start, 0].concat(items));
+    };
+}
+
+function JsTester_Buffer (args) {
     Object.defineProperty(this, 'length', {
         get: function () {
             return 1;
         },
         set: function () {}
     }); 
+
+    Object.defineProperty(this, 'sampleRate', {
+        get: function () {
+            return 1;
+        },
+        set: function () {}
+    }); 
+
+    Object.defineProperty(this, 'numberOfChannels', {
+        get: function () {
+            return 1;
+        },
+        set: function () {}
+    }); 
+    
+    this.getChannelData = function (index) {
+        return new JsTester_TypedArray();
+    };
 }
 
 function JsTester_AudioNode () {
@@ -1500,6 +1526,7 @@ function JsTester_AudioContextMock (args) {
         });
     }
     this.createBuffer = function () {
+        return new JsTester_Buffer(Array.prototype.slice.call(arguments, 0));
     };
     this.createAnalyser = function () {
         return new JsTester_AudioNode();
