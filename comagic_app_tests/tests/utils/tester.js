@@ -56,6 +56,9 @@ define(() => function ({
     me.history = history;
 
     const addTesters = (me, getRootElement) => {
+        me.phoneLink = testersFactory.createDomElementTester(() =>
+            utils.element(getRootElement()).querySelector('.cmg-softphone-call-history-phone-link'));
+
         me.textarea = testersFactory.createTextFieldTester(() =>
             utils.element(getRootElement()).querySelector('textarea'));
 

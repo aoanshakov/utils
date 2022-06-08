@@ -145,7 +145,7 @@ tests.addTest(options => {
                                                 expectToBeSent();
                                         });
 
-                                        xdescribe('Поступил входящий звонок.', function() {
+                                        describe('Поступил входящий звонок.', function() {
                                             let incomingCall;
 
                                             beforeEach(function() {
@@ -758,7 +758,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        xdescribe(
+                                        describe(
                                             'Нажимаю на кнопку "Настройки". Нажимаю на кнопку "Софтфон".',
                                         function() {
                                             beforeEach(function() {
@@ -1105,7 +1105,7 @@ tests.addTest(options => {
                                                 tester.button('IP-телефон').expectNotToBeChecked();
                                             });
                                         });
-                                        xdescribe('Браузер скрыт.', function() {
+                                        describe('Браузер скрыт.', function() {
                                             beforeEach(function() {
                                                 setDocumentVisible(false);
 
@@ -1233,7 +1233,7 @@ tests.addTest(options => {
                                                     callsRequest.receiveResponse();
                                                 });
 
-                                                xdescribe('Нажимаю на кнопку "Необработанные".', function() {
+                                                describe('Нажимаю на кнопку "Необработанные".', function() {
                                                     beforeEach(function() {
                                                         tester.radioButton('Необработанные').click();
 
@@ -1366,7 +1366,7 @@ tests.addTest(options => {
                                                         );
                                                     });
                                                 });
-                                                xdescribe('Нажимаю на кнопку тегов.', function() {
+                                                describe('Нажимаю на кнопку тегов.', function() {
                                                     beforeEach(function() {
                                                         tester.table.row.first.column.withHeader('Теги').svg.click();
                                                     });
@@ -1417,7 +1417,7 @@ tests.addTest(options => {
                                                         tester.select.option('Отложенный звонок').expectToBeSelected();
                                                     });
                                                 });
-                                                xdescribe('Нажимаю на кнопку комментария.', function() {
+                                                describe('Нажимаю на кнопку комментария.', function() {
                                                     beforeEach(function() {
                                                         tester.table.row.first.column.withHeader('Комментарий').svg.
                                                             click();
@@ -1440,7 +1440,7 @@ tests.addTest(options => {
                                                             expectToHaveValue('Некий комментарий');
                                                     });
                                                 });
-                                                xit(
+                                                it(
                                                     'Нажимаю на кнопку "Все". Отправлен запрос истории звонков.',
                                                 function() {
                                                     tester.radioButton('Все').click();
@@ -1469,7 +1469,7 @@ tests.addTest(options => {
                                                         '00:00:24'
                                                     );
                                                 });
-                                                xit(
+                                                it(
                                                     'Изменяю фильтр по дате. Отправлен запрос истории звонков.',
                                                 function() {
                                                     tester.calendarField.click();
@@ -1485,17 +1485,83 @@ tests.addTest(options => {
 
                                                     tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
                                                 });
-                                                xit(
+                                                it(
                                                     'Ввожу значеие в поле поиска. Отправлен запрос истории звонков.',
                                                 function() {
                                                     tester.input.fill('qwe123');
                                                     tester.callsRequest().search('qwe123').receiveResponse();
                                                 });
-                                                xit('Нажимаю на кнопку проигрывания записи.', function() {
+                                                it('Нажимаю на кнопку проигрывания записи.', function() {
                                                     tester.table.row.first.column.withHeader('Запись').svg.click();
                                                     
                                                     tester.talkRecordRequest().receiveResponse();
                                                     audioDecodingTester.accomplishAudioDecoding();
+                                                });
+                                                it(
+                                                    'Нажимаю на ссылку в колонке "Номер абонента". Совершается звонок.',
+                                                function() {
+                                                    tester.table.row.first.column.withHeader('Номер абонента').
+                                                        phoneLink.click();
+
+                                                    tester.firstConnection.connectWebRTC();
+                                                    tester.allowMediaInput();
+
+                                                    const outboundCall = tester.outboundCall().setNumberFromCallsGrid().
+                                                        expectToBeSent();
+
+                                                    tester.slavesNotification().
+                                                        available().
+                                                        thirdPhoneNumber().
+                                                        userDataFetched().
+                                                        twoChannels().
+                                                        sending().
+                                                        expectToBeSent();
+
+                                                    outboundCall.setRinging();
+
+                                                    tester.slavesNotification().
+                                                        thirdPhoneNumber().
+                                                        available().
+                                                        userDataFetched().
+                                                        twoChannels().
+                                                        progress().
+                                                        expectToBeSent();
+                                                    
+                                                    tester.firstConnection.callTrackHandler();
+                                                    tester.numaRequest().anotherNumber().receiveResponse();
+                                                });
+                                                it(
+                                                    'Нажимаю на ссылку в колонке "ФИО контакта". Совершается звонок.',
+                                                function() {
+                                                    tester.table.row.first.column.withHeader('ФИО контакта').phoneLink.
+                                                        click();
+
+                                                    tester.firstConnection.connectWebRTC();
+                                                    tester.allowMediaInput();
+
+                                                    const outboundCall = tester.outboundCall().setNumberFromCallsGrid().
+                                                        expectToBeSent();
+
+                                                    tester.slavesNotification().
+                                                        available().
+                                                        thirdPhoneNumber().
+                                                        userDataFetched().
+                                                        twoChannels().
+                                                        sending().
+                                                        expectToBeSent();
+
+                                                    outboundCall.setRinging();
+
+                                                    tester.slavesNotification().
+                                                        thirdPhoneNumber().
+                                                        available().
+                                                        userDataFetched().
+                                                        twoChannels().
+                                                        progress().
+                                                        expectToBeSent();
+                                                    
+                                                    tester.firstConnection.callTrackHandler();
+                                                    tester.numaRequest().anotherNumber().receiveResponse();
                                                 });
                                                 it('Отображена история звонков.', function() {
                                                     tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
@@ -1536,7 +1602,6 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            return;
                                             it(
                                                 'Есть неуспешные звонки. Строки с неуспешными звонками внешне ' +
                                                 'отличаются от строк с успешными звонками.',
@@ -1550,7 +1615,6 @@ tests.addTest(options => {
                                             });
                                         });
                                     });
-                                        return;
                                     describe('Нажимаю на иконку с телефоном.', function() {
                                         beforeEach(function() {
                                             tester.button('Софтфон').click();
@@ -3098,7 +3162,6 @@ tests.addTest(options => {
                                         tester.body.expectTextContentToHaveSubstring('Дашборды');
                                     });
                                 });
-return;
                                 describe(
                                     'SIP-регистрация завершена. Срок действия токена авторизации истек.',
                                 function() {
@@ -3131,7 +3194,6 @@ return;
                                     });
                                 });
                             });
-return;
                             it(
                                 'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение ' +
                                 'о том, что SIP-линия не зарегистрирована.',
@@ -3165,7 +3227,6 @@ return;
                                 );
                             });
                         });
-return;
                         describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                             beforeEach(function() {
                                 tester.disallowMediaInput();
@@ -3225,7 +3286,6 @@ return;
                             });
                         });
                     });
-return;
                     describe('Номера должны быть скрыты.', function() {
                         beforeEach(function() {
                             reportGroupsRequest.receiveResponse();
@@ -3356,7 +3416,6 @@ return;
                         tester.input.withFieldLabel('Логин').expectToBeVisible();
                     });
                 });
-return;
                 describe('Нажимаю на иконку с телефоном.', function() {
                     beforeEach(function() {
                         reportGroupsRequest.receiveResponse();
@@ -4330,7 +4389,6 @@ return;
                     tester.table.expectTextContentNotToHaveSubstring('Теги');
                 });
             });
-return;
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().isNotMaster().receive();
@@ -4643,7 +4701,6 @@ return;
                 });
             });
         });
-return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -4665,7 +4722,6 @@ return;
             tester.button('История звонков').expectNotToExist();
         });
     });
-return;
     describe('Открываю десктопное приложение софтфона.', function() {
         let tester;
 
