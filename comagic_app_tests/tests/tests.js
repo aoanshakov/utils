@@ -1440,6 +1440,55 @@ tests.addTest(options => {
                                                             expectToHaveValue('Некий комментарий');
                                                     });
                                                 });
+                                                describe('Изменяю комментарий.', function() {
+                                                    beforeEach(function() {
+                                                        tester.
+                                                            table.
+                                                            row.atIndex(1).
+                                                            column.withHeader('Комментарий').
+                                                            svg.
+                                                            click();
+
+                                                        tester.modalWindow.textarea.fill('Другой комментарий');
+
+                                                        tester.button('Сохранить').click();
+                                                        tester.commentUpdatingRequest().anotherCall().receiveResponse();
+                                                    });
+
+                                                    it(
+                                                        'Открываю окно редактирования комментария. Комментарий ' +
+                                                        'изменен.',
+                                                    function() {
+                                                        tester.
+                                                            table.
+                                                            row.atIndex(1).
+                                                            column.withHeader('Комментарий').
+                                                            svg.
+                                                            click();
+
+                                                        tester.modalWindow.textarea.
+                                                            expectToHaveValue('Другой комментарий');
+                                                    });
+                                                    it('Комментарий изменен.', function() {
+                                                        tester.
+                                                            table.
+                                                            row.first.
+                                                            column.withHeader('Комментарий').
+                                                            svg.
+                                                            expectToHaveClass(
+                                                                'comment_svg__cmg-softphone-call-history-comment-cell'
+                                                            );
+
+                                                        tester.
+                                                            table.
+                                                            row.atIndex(1).
+                                                            column.withHeader('Комментарий').
+                                                            svg.
+                                                            expectToHaveClass(
+                                                                'comment_svg__cmg-softphone-call-history-comment-cell'
+                                                            );
+                                                    });
+                                                });
                                                 it(
                                                     'Нажимаю на кнопку "Все". Отправлен запрос истории звонков.',
                                                 function() {
@@ -1579,6 +1628,24 @@ tests.addTest(options => {
                                                         expectToHaveClass('incoming_svg__cmg-direction-icon');
                                                     tester.table.row.atIndex(1).column.first.svg.
                                                         expectToHaveClass('outgoing_svg__cmg-direction-icon');
+
+                                                    tester.
+                                                        table.
+                                                        row.first.
+                                                        column.withHeader('Комментарий').
+                                                        svg.
+                                                        expectToHaveClass(
+                                                            'comment_svg__cmg-softphone-call-history-comment-cell'
+                                                        );
+
+                                                    tester.
+                                                        table.
+                                                        row.atIndex(1).
+                                                        column.withHeader('Комментарий').
+                                                        svg.
+                                                        expectToHaveClass(
+                                                            'add_svg__cmg-softphone-call-history-comment-cell'
+                                                        );
 
                                                     tester.table.expectTextContentToHaveSubstring(
                                                         'Дата / время ' +
