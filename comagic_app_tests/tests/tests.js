@@ -6242,11 +6242,8 @@ tests.addTest(options => {
             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
         });
     });
-    it('Открываю настройки софтфона.', function() {
-        let authenticatedUserRequest,
-            tester;
-
-        tester = new Tester({
+    it('Открываю настройки софтфона. Страница локализована.', function() {
+        const tester = new Tester({
             ...options,
             path: '/settings/softphone',
             isAlreadyAuthenticated: true
@@ -6314,6 +6311,75 @@ tests.addTest(options => {
             'Settings ' +
             'Common Sound'
         );
+    });
+    it('Открываю историю звонков. Страница локализована.', function() {
+        setNow('2019-12-19T12:10:06');
+
+        const tester = new Tester({
+            ...options,
+            path: '/call-history',
+            isAlreadyAuthenticated: true
+        });
+
+        tester.accountRequest().receiveResponse();
+
+        const requests = ajax.inAnyOrder();
+
+        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+            secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+        requests.expectToBeSent();
+
+        reportGroupsRequest.receiveResponse();
+        reportsListRequest.receiveResponse();
+        reportTypesRequest.receiveResponse();
+        secondAccountRequest.receiveResponse();
+
+        tester.configRequest().softphone().receiveResponse();
+
+        tester.masterInfoMessage().receive();
+        tester.slavesNotification().expectToBeSent();
+        tester.slavesNotification().additional().expectToBeSent();
+        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+        tester.authCheckRequest().receiveResponse();
+
+        tester.callsRequest().receiveResponse();
+        tester.marksRequest().receiveResponse();
+
+        tester.statusesRequest().receiveResponse();
+        
+        tester.settingsRequest().receiveResponse();
+        tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+        tester.othersNotification().widgetStateUpdate().expectToBeSent();
+        tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+        notificationTester.grantPermission();
+        tester.talkOptionsRequest().receiveResponse();
+        tester.permissionsRequest().receiveResponse();
+
+        tester.connectEventsWebSocket();
+        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+        tester.connectSIPWebSocket();
+        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().expectToBeSent();
+
+        tester.authenticatedUserRequest().receiveResponse();
+        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().softphoneServerConnected().
+            expectToBeSent();
+        
+        tester.registrationRequest().receiveResponse();
+        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().softphoneServerConnected().
+            registered().expectToBeSent();
+
+        tester.allowMediaInput();
+        tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
+
+        tester.body.expectTextContentToHaveSubstring('Скрыть обработанные другими группами');
+        tester.body.expectTextContentNotToHaveSubstring('Hide calls processed by another groups');
     });
     it('Ранее софтфон был развернут. Софтфон развернут.', function() {
         localStorage.setItem('isSoftphoneHigh', true);
