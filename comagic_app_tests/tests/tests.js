@@ -145,7 +145,7 @@ tests.addTest(options => {
                                                 expectToBeSent();
                                         });
 
-                                        describe('Поступил входящий звонок.', function() {
+                                        xdescribe('Поступил входящий звонок.', function() {
                                             let incomingCall;
 
                                             beforeEach(function() {
@@ -758,7 +758,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        describe(
+                                        xdescribe(
                                             'Нажимаю на кнопку "Настройки". Нажимаю на кнопку "Софтфон".',
                                         function() {
                                             beforeEach(function() {
@@ -1105,7 +1105,7 @@ tests.addTest(options => {
                                                 tester.button('IP-телефон').expectNotToBeChecked();
                                             });
                                         });
-                                        describe('Браузер скрыт.', function() {
+                                        xdescribe('Браузер скрыт.', function() {
                                             beforeEach(function() {
                                                 setDocumentVisible(false);
 
@@ -1219,110 +1219,238 @@ tests.addTest(options => {
                                             });
                                         });
                                         describe('Открываю раздел "История звонков".', function() {
+                                            let callsRequest;
+
                                             beforeEach(function() {
                                                 tester.button('История звонков').click();
 
-                                                tester.callsRequest().receiveResponse();
+                                                callsRequest = tester.callsRequest().expectToBeSent();
                                                 tester.marksRequest().receiveResponse();
                                             });
 
-                                            describe('Нажимаю на кнопку "Необработанные".', function() {
+                                            describe('Все звонки успешны.', function() {
                                                 beforeEach(function() {
-                                                    tester.radioButton('Необработанные').click();
-
-                                                    tester.groupsRequest().receiveResponse();
-                                                    tester.notProcessedCallsRequest().isProcessedByAny().
-                                                        receiveResponse();
-                                                    tester.marksRequest().receiveResponse();
+                                                    callsRequest.receiveResponse();
                                                 });
 
-                                                describe('Открываю выпадающий список "Звонки".', function() {
+                                                xdescribe('Нажимаю на кнопку "Необработанные".', function() {
                                                     beforeEach(function() {
-                                                        tester.select.withValue('Звонки: Все').click();
-                                                    });
+                                                        tester.radioButton('Необработанные').click();
 
-                                                    it(
-                                                        'Выбираю опцию "Внешние". Отправлен запрос истории звонков.',
-                                                    function() {
-                                                        tester.select.option('Внешние').click();
-
-                                                        tester.notProcessedCallsRequest().isProcessedByAny().external().
+                                                        tester.groupsRequest().receiveResponse();
+                                                        tester.notProcessedCallsRequest().isProcessedByAny().
                                                             receiveResponse();
                                                         tester.marksRequest().receiveResponse();
                                                     });
-                                                    it(
-                                                        'Выбираю опцию "Внутренние". Отправлен запрос истории звонков.',
-                                                    function() {
-                                                        tester.select.option('Внутренние').click();
 
-                                                        tester.notProcessedCallsRequest().isProcessedByAny().internal().
+                                                    describe('Открываю выпадающий список "Звонки".', function() {
+                                                        beforeEach(function() {
+                                                            tester.select.withValue('Звонки: Все').click();
+                                                        });
+
+                                                        it(
+                                                            'Выбираю опцию "Внешние". Отправлен запрос истории ' +
+                                                            'звонков.',
+                                                        function() {
+                                                            tester.select.option('Внешние').click();
+
+                                                            tester.notProcessedCallsRequest().
+                                                                isProcessedByAny().
+                                                                external().
+                                                                receiveResponse();
+
+                                                            tester.marksRequest().receiveResponse();
+                                                        });
+                                                        it(
+                                                            'Выбираю опцию "Внутренние". Отправлен запрос истории ' +
+                                                            'звонков.',
+                                                        function() {
+                                                            tester.select.option('Внутренние').click();
+
+                                                            tester.notProcessedCallsRequest().
+                                                                isProcessedByAny().
+                                                                internal().
+                                                                receiveResponse();
+
+                                                            tester.marksRequest().receiveResponse();
+                                                        });
+                                                    });
+                                                    describe('Открываю выпадающий список "Направления".', function() {
+                                                        beforeEach(function() {
+                                                            tester.select.withValue('Направления: Все').click();
+                                                        });
+
+                                                        it(
+                                                            'Выбираю опцию "Входящие". Отправлен запрос истории ' +
+                                                            'звонков.',
+                                                        function() {
+                                                            tester.select.option('Входящие').click();
+
+                                                            tester.notProcessedCallsRequest().
+                                                                isProcessedByAny().
+                                                                incoming().
+                                                                receiveResponse();
+
+                                                            tester.marksRequest().receiveResponse();
+                                                        });
+                                                        it(
+                                                            'Выбираю опцию "Исходящие". Отправлен запрос истории ' +
+                                                            'звонков.',
+                                                        function() {
+                                                            tester.select.option('Исходящие').click();
+
+                                                            tester.notProcessedCallsRequest().
+                                                                isProcessedByAny().
+                                                                outgoing().
+                                                                receiveResponse();
+
+                                                            tester.marksRequest().receiveResponse();
+                                                        });
+                                                    });
+                                                    it('Выбираю группы. Отправлен запрос истории звонков.', function() {
+                                                        tester.select.withPlaceholder('Группы').click();
+
+                                                        tester.select.option('Отдел дистрибуции').click();
+
+                                                        tester.notProcessedCallsRequest().isProcessedByAny().group().
                                                             receiveResponse();
                                                         tester.marksRequest().receiveResponse();
+
+                                                        tester.select.option('Отдел по работе с ключевыми клиентами').
+                                                            click();
+
+                                                        tester.notProcessedCallsRequest().isProcessedByAny().group().
+                                                            thirdGroup().receiveResponse();
+                                                        tester.marksRequest().receiveResponse();
+
+                                                        tester.select.option('Отдел дистрибуции').expectToBeSelected();
+                                                        tester.select.option('Отдел региональных продаж').
+                                                            expectNotToBeSelected();
+                                                        tester.select.option('Отдел по работе с ключевыми клиентами').
+                                                            expectToBeSelected(true);
+                                                    });
+                                                    it(
+                                                        'Снимаю отметку со свитчбокса. Отправлен запрос истории ' +
+                                                        'звонков.',
+                                                    function() {
+                                                        tester.switchButton.click();
+
+                                                        tester.notProcessedCallsRequest().isNotProcessedByAny().
+                                                            receiveResponse();
+                                                        tester.marksRequest().receiveResponse();
+
+                                                        tester.switchButton.expectNotToBeChecked();
+                                                    });
+                                                    it('Отображена история звонков.', function() {
+                                                        tester.radioButton('Мои').expectNotToBeSelected();
+                                                        tester.radioButton('Все').expectNotToBeSelected();
+                                                        tester.radioButton('Необработанные').expectToBeSelected();
+
+                                                        tester.switchButton.expectToBeChecked();
+
+                                                        tester.table.expectTextContentToHaveSubstring(
+                                                            'Дата / время ' +
+                                                            'Номер абонента ' +
+                                                            'Виртуальный номер ' +
+                                                            'Длительность ' +
+
+                                                            '19 дек 2019 08:03 ' +
+                                                            '+7 (495) 023-06-25 ' +
+                                                            '+7 (495) 023-06-30 ' +
+                                                            '00:00:20 ' +
+
+                                                            '19 дек 2019 10:13 ' +
+                                                            '+7 (495) 023-06-26 ' +
+                                                            '+7 (495) 023-06-31 ' +
+                                                            '00:00:24'
+                                                        );
                                                     });
                                                 });
-                                                describe('Открываю выпадающий список "Направления".', function() {
+                                                xdescribe('Нажимаю на кнопку тегов.', function() {
                                                     beforeEach(function() {
-                                                        tester.select.withValue('Направления: Все').click();
+                                                        tester.table.row.first.column.withHeader('Теги').svg.click();
                                                     });
 
-                                                    it(
-                                                        'Выбираю опцию "Входящие". Отправлен запрос истории звонков.',
-                                                    function() {
-                                                        tester.select.option('Входящие').click();
+                                                    it('Изменяю теги. Теги изменены.', function() {
+                                                        tester.select.option('Генератор лидов').click();
+                                                        tester.markAddingRequest().receiveResponse();
 
-                                                        tester.notProcessedCallsRequest().isProcessedByAny().incoming().
-                                                            receiveResponse();
-                                                        tester.marksRequest().receiveResponse();
+                                                        tester.select.option('Нецелевой контакт').click();
+                                                        tester.markDeletingRequest().receiveResponse();
+
+                                                        tester.select.option('Генератор лидов').expectToBeSelected();
+                                                        tester.select.option('Нецелевой контакт').
+                                                            expectNotToBeSelected();
+                                                        tester.select.option('Отложенный звонок').expectToBeSelected();
+
+                                                        tester.table.expectTextContentToHaveSubstring(
+                                                            'Дата / время ' +
+                                                            'ФИО контакта ' +
+                                                            'Номер абонента ' +
+                                                            'Теги ' +
+                                                            'Длительность ' +
+
+                                                            '19 дек 2019 08:03 ' +
+                                                            'Гяурова Марийка ' +
+                                                            '+7 (495) 023-06-25 ' +
+                                                            'Отложенный звонок, Генератор лидов ' +
+                                                            '00:00:20 ' +
+
+                                                            '18 дек 2019 18:08 ' +
+                                                            'Манова Тома ' +
+                                                            '+7 (495) 023-06-26 ' +
+                                                            '00:00:21'
+                                                        );
                                                     });
                                                     it(
-                                                        'Выбираю опцию "Исходящие". Отправлен запрос истории звонков.',
+                                                        'Ввожу значеиние в поле поиска. Теги отфильтрованы.',
                                                     function() {
-                                                        tester.select.option('Исходящие').click();
+                                                        tester.input.withPlaceholder('Найти').fill('не');
 
-                                                        tester.notProcessedCallsRequest().isProcessedByAny().outgoing().
-                                                            receiveResponse();
-                                                        tester.marksRequest().receiveResponse();
+                                                        tester.input.withPlaceholder('Найти').expectToHaveValue('не');
+                                                        tester.select.option('Отложенный звонок').expectNotToExist();
+                                                        tester.select.option('Нецелевой контакт').expectToBeVisible();
+                                                    });
+                                                    it('Отмечены опции выранных тегов.', function() {
+                                                        tester.select.option('Генератор лидов').expectNotToBeSelected();
+                                                        tester.select.option('Нецелевой контакт').expectToBeSelected();
+                                                        tester.select.option('Отложенный звонок').expectToBeSelected();
                                                     });
                                                 });
-                                                it('Выбираю группы. Отправлен запрос истории звонков.', function() {
-                                                    tester.select.withPlaceholder('Группы').click();
+                                                xdescribe('Нажимаю на кнопку комментария.', function() {
+                                                    beforeEach(function() {
+                                                        tester.table.row.first.column.withHeader('Комментарий').svg.
+                                                            click();
+                                                    });
 
-                                                    tester.select.option('Отдел дистрибуции').click();
+                                                    it('Изменяю значение поля.', function() {
+                                                        tester.modalWindow.textarea.fill('Другой комментарий');
 
-                                                    tester.notProcessedCallsRequest().isProcessedByAny().group().
-                                                        receiveResponse();
-                                                    tester.marksRequest().receiveResponse();
-
-                                                    tester.select.option('Отдел по работе с ключевыми клиентами').
-                                                        click();
-
-                                                    tester.notProcessedCallsRequest().isProcessedByAny().group().
-                                                        thirdGroup().receiveResponse();
-                                                    tester.marksRequest().receiveResponse();
-
-                                                    tester.select.option('Отдел дистрибуции').expectToBeSelected();
-                                                    tester.select.option('Отдел региональных продаж').
-                                                        expectNotToBeSelected();
-                                                    tester.select.option('Отдел по работе с ключевыми клиентами').
-                                                        expectToBeSelected(true);
+                                                        tester.button('Сохранить').click();
+                                                        tester.commentUpdatingRequest().receiveResponse();
+                                                    });
+                                                    it(
+                                                        'Нажимаю на кнпоку закрытие модального окна. Окно закрыто.',
+                                                    function() {
+                                                        tester.modalWindow.closeButton.click();
+                                                        tester.modalWindow.expectNotToExist();
+                                                    });
+                                                    it('Отображен комментарий.', function() {
+                                                        tester.modalWindow.textarea.
+                                                            expectToHaveValue('Некий комментарий');
+                                                    });
                                                 });
-                                                it(
-                                                    'Снимаю отметку со свитчбокса. Отправлен запрос истории звонков.',
+                                                xit(
+                                                    'Нажимаю на кнопку "Все". Отправлен запрос истории звонков.',
                                                 function() {
-                                                    tester.switchButton.click();
+                                                    tester.radioButton('Все').click();
 
-                                                    tester.notProcessedCallsRequest().isNotProcessedByAny().
-                                                        receiveResponse();
+                                                    tester.notProcessedCallsRequest().receiveResponse();
                                                     tester.marksRequest().receiveResponse();
 
-                                                    tester.switchButton.expectNotToBeChecked();
-                                                });
-                                                it('Отображена история звонков.', function() {
                                                     tester.radioButton('Мои').expectNotToBeSelected();
-                                                    tester.radioButton('Все').expectNotToBeSelected();
-                                                    tester.radioButton('Необработанные').expectToBeSelected();
-
-                                                    tester.switchButton.expectToBeChecked();
+                                                    tester.radioButton('Все').expectToBeSelected();
+                                                    tester.radioButton('Необработанные').expectNotToBeSelected();
 
                                                     tester.table.expectTextContentToHaveSubstring(
                                                         'Дата / время ' +
@@ -1341,34 +1469,64 @@ tests.addTest(options => {
                                                         '00:00:24'
                                                     );
                                                 });
-                                            });
-                                            describe('Нажимаю на кнопку тегов.', function() {
-                                                beforeEach(function() {
-                                                    tester.table.row.first.column.withHeader('Теги').svg.click();
+                                                xit(
+                                                    'Изменяю фильтр по дате. Отправлен запрос истории звонков.',
+                                                function() {
+                                                    tester.calendarField.click();
+                                                    tester.calendarField.popup.leftButton.click();
+
+                                                    tester.calendarField.popup.firstMonthPanel.day(15).click();
+                                                    tester.calendarField.popup.secondMonthPanel.day(18).click();
+
+                                                    tester.calendarField.popup.button('Применить').click();
+
+                                                    tester.callsRequest().changeDate().receiveResponse();
+                                                    tester.marksRequest().receiveResponse();
+
+                                                    tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
                                                 });
+                                                xit(
+                                                    'Ввожу значеие в поле поиска. Отправлен запрос истории звонков.',
+                                                function() {
+                                                    tester.input.fill('qwe123');
+                                                    tester.callsRequest().search('qwe123').receiveResponse();
+                                                });
+                                                xit('Нажимаю на кнопку проигрывания записи.', function() {
+                                                    tester.table.row.first.column.withHeader('Запись').svg.click();
+                                                    
+                                                    tester.talkRecordRequest().receiveResponse();
+                                                    audioDecodingTester.accomplishAudioDecoding();
+                                                });
+                                                it('Отображена история звонков.', function() {
+                                                    tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
 
-                                                it('Изменяю теги. Теги изменены.', function() {
-                                                    tester.select.option('Генератор лидов').click();
-                                                    tester.markAddingRequest().receiveResponse();
+                                                    tester.radioButton('Мои').expectToBeSelected();
+                                                    tester.radioButton('Все').expectNotToBeSelected();
+                                                    tester.radioButton('Необработанные').expectNotToBeSelected();
 
-                                                    tester.select.option('Нецелевой контакт').click();
-                                                    tester.markDeletingRequest().receiveResponse();
+                                                    tester.select.withValue('Звонки: Все').expectToBeDisaled();
+                                                    tester.select.withValue('Направления: Все').expectToBeDisaled();
+                                                    tester.select.withPlaceholder('Группы').expectToBeDisaled();
+                                                    tester.switchButton.expectToBeDisaled();
 
-                                                    tester.select.option('Генератор лидов').expectToBeSelected();
-                                                    tester.select.option('Нецелевой контакт').expectNotToBeSelected();
-                                                    tester.select.option('Отложенный звонок').expectToBeSelected();
+                                                    tester.table.row.first.column.first.svg.
+                                                        expectToHaveClass('incoming_svg__cmg-direction-icon');
+                                                    tester.table.row.atIndex(1).column.first.svg.
+                                                        expectToHaveClass('outgoing_svg__cmg-direction-icon');
 
                                                     tester.table.expectTextContentToHaveSubstring(
                                                         'Дата / время ' +
                                                         'ФИО контакта ' +
                                                         'Номер абонента ' +
                                                         'Теги ' +
+                                                        'Комментарий ' +
                                                         'Длительность ' +
+                                                        'Запись ' +
 
                                                         '19 дек 2019 08:03 ' +
                                                         'Гяурова Марийка ' +
                                                         '+7 (495) 023-06-25 ' +
-                                                        'Отложенный звонок, Генератор лидов ' +
+                                                        'Нецелевой контакт, Отложенный звонок ' +
                                                         '00:00:20 ' +
 
                                                         '18 дек 2019 18:08 ' +
@@ -1377,131 +1535,22 @@ tests.addTest(options => {
                                                         '00:00:21'
                                                     );
                                                 });
-                                                it('Ввожу значеиние в поле поиска. Теги отфильтрованы.', function() {
-                                                    tester.input.withPlaceholder('Найти').fill('не');
-
-                                                    tester.input.withPlaceholder('Найти').expectToHaveValue('не');
-                                                    tester.select.option('Отложенный звонок').expectNotToExist();
-                                                    tester.select.option('Нецелевой контакт').expectToBeVisible();
-                                                });
-                                                it('Отмечены опции выранных тегов.', function() {
-                                                    tester.select.option('Генератор лидов').expectNotToBeSelected();
-                                                    tester.select.option('Нецелевой контакт').expectToBeSelected();
-                                                    tester.select.option('Отложенный звонок').expectToBeSelected();
-                                                });
                                             });
-                                            describe('Нажимаю на кнопку комментария.', function() {
-                                                beforeEach(function() {
-                                                    tester.table.row.first.column.withHeader('Комментарий').svg.click();
-                                                });
-
-                                                it('Изменяю значение поля.', function() {
-                                                    tester.modalWindow.textarea.fill('Другой комментарий');
-
-                                                    tester.button('Сохранить').click();
-                                                    tester.commentUpdatingRequest().receiveResponse();
-                                                });
-                                                it(
-                                                    'Нажимаю на кнпоку закрытие модального окна. Окно закрыто.',
-                                                function() {
-                                                    tester.modalWindow.closeButton.click();
-                                                    tester.modalWindow.expectNotToExist();
-                                                });
-                                                it('Отображен комментарий.', function() {
-                                                    tester.modalWindow.textarea.expectToHaveValue('Некий комментарий');
-                                                });
-                                            });
+                                            return;
                                             it(
-                                                'Нажимаю на кнопку "Все". Отправлен запрос истории звонков.',
+                                                'Есть неуспешные звонки. Строки с неуспешными звонками внешне ' +
+                                                'отличаются от строк с успешными звонками.',
                                             function() {
-                                                tester.radioButton('Все').click();
+                                                callsRequest.isFailed().receiveResponse();
 
-                                                tester.notProcessedCallsRequest().receiveResponse();
-                                                tester.marksRequest().receiveResponse();
-
-                                                tester.radioButton('Мои').expectNotToBeSelected();
-                                                tester.radioButton('Все').expectToBeSelected();
-                                                tester.radioButton('Необработанные').expectNotToBeSelected();
-
-                                                tester.table.expectTextContentToHaveSubstring(
-                                                    'Дата / время ' +
-                                                    'Номер абонента ' +
-                                                    'Виртуальный номер ' +
-                                                    'Длительность ' +
-
-                                                    '19 дек 2019 08:03 ' +
-                                                    '+7 (495) 023-06-25 ' +
-                                                    '+7 (495) 023-06-30 ' +
-                                                    '00:00:20 ' +
-
-                                                    '19 дек 2019 10:13 ' +
-                                                    '+7 (495) 023-06-26 ' +
-                                                    '+7 (495) 023-06-31 ' +
-                                                    '00:00:24'
-                                                );
-                                            });
-                                            it(
-                                                'Изменяю фильтр по дате. Отправлен запрос истории звонков.',
-                                            function() {
-                                                tester.calendarField.click();
-                                                tester.calendarField.popup.leftButton.click();
-
-                                                tester.calendarField.popup.firstMonthPanel.day(15).click();
-                                                tester.calendarField.popup.secondMonthPanel.day(18).click();
-
-                                                tester.calendarField.popup.button('Применить').click();
-
-                                                tester.callsRequest().changeDate().receiveResponse();
-                                                tester.marksRequest().receiveResponse();
-
-                                                tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
-                                            });
-                                            it(
-                                                'Ввожу значеие в поле поиска. Отправлен запрос истории звонков.',
-                                            function() {
-                                                tester.input.fill('qwe123');
-                                                tester.callsRequest().search('qwe123').receiveResponse();
-                                            });
-                                            it('Нажимаю на кнопку проигрывания записи.', function() {
-                                                tester.table.row.first.column.withHeader('Запись').svg.click();
-                                                
-                                                tester.talkRecordRequest().receiveResponse();
-                                                audioDecodingTester.accomplishAudioDecoding();
-                                            });
-                                            it('Отображена история звонков.', function() {
-                                                tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
-
-                                                tester.radioButton('Мои').expectToBeSelected();
-                                                tester.radioButton('Все').expectNotToBeSelected();
-                                                tester.radioButton('Необработанные').expectNotToBeSelected();
-
-                                                tester.select.withValue('Звонки: Все').expectToBeDisaled();
-                                                tester.select.withValue('Направления: Все').expectToBeDisaled();
-                                                tester.select.withPlaceholder('Группы').expectToBeDisaled();
-                                                tester.switchButton.expectToBeDisaled();
-
-                                                tester.table.expectTextContentToHaveSubstring(
-                                                    'Дата / время ' +
-                                                    'ФИО контакта ' +
-                                                    'Номер абонента ' +
-                                                    'Теги ' +
-                                                    'Комментарий ' +
-                                                    'Длительность ' +
-
-                                                    '19 дек 2019 08:03 ' +
-                                                    'Гяурова Марийка ' +
-                                                    '+7 (495) 023-06-25 ' +
-                                                    'Нецелевой контакт, Отложенный звонок ' +
-                                                    '00:00:20 ' +
-
-                                                    '18 дек 2019 18:08 ' +
-                                                    'Манова Тома ' +
-                                                    '+7 (495) 023-06-26 ' +
-                                                    '00:00:21'
-                                                );
+                                                tester.table.row.first.
+                                                    expectToHaveClass('cmg-softphone-call-history-failed-call-row');
+                                                tester.table.row.atIndex(1).
+                                                    expectNotToHaveClass('cmg-softphone-call-history-failed-call-row');
                                             });
                                         });
                                     });
+                                        return;
                                     describe('Нажимаю на иконку с телефоном.', function() {
                                         beforeEach(function() {
                                             tester.button('Софтфон').click();
@@ -3049,6 +3098,7 @@ tests.addTest(options => {
                                         tester.body.expectTextContentToHaveSubstring('Дашборды');
                                     });
                                 });
+return;
                                 describe(
                                     'SIP-регистрация завершена. Срок действия токена авторизации истек.',
                                 function() {
@@ -3081,6 +3131,7 @@ tests.addTest(options => {
                                     });
                                 });
                             });
+return;
                             it(
                                 'SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном. Отображено сообщение ' +
                                 'о том, что SIP-линия не зарегистрирована.',
@@ -3114,6 +3165,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
+return;
                         describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                             beforeEach(function() {
                                 tester.disallowMediaInput();
@@ -3173,6 +3225,7 @@ tests.addTest(options => {
                             });
                         });
                     });
+return;
                     describe('Номера должны быть скрыты.', function() {
                         beforeEach(function() {
                             reportGroupsRequest.receiveResponse();
@@ -3303,6 +3356,7 @@ tests.addTest(options => {
                         tester.input.withFieldLabel('Логин').expectToBeVisible();
                     });
                 });
+return;
                 describe('Нажимаю на иконку с телефоном.', function() {
                     beforeEach(function() {
                         reportGroupsRequest.receiveResponse();
@@ -4276,6 +4330,7 @@ tests.addTest(options => {
                     tester.table.expectTextContentNotToHaveSubstring('Теги');
                 });
             });
+return;
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().isNotMaster().receive();
@@ -4588,6 +4643,7 @@ tests.addTest(options => {
                 });
             });
         });
+return;
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneUnavailable().receiveResponse();
 
@@ -4609,6 +4665,7 @@ tests.addTest(options => {
             tester.button('История звонков').expectNotToExist();
         });
     });
+return;
     describe('Открываю десктопное приложение софтфона.', function() {
         let tester;
 

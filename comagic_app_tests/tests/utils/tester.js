@@ -102,17 +102,26 @@ define(() => function ({
                     const tester = testersFactory.createDomElementTester(getRow);
 
                     tester.column = {
-                        withHeader: text => {
+                        atIndex: index => {
                             const getColumn = () => (
                                 getRow().querySelectorAll('td') || []
-                            )[getHeaderColumnIndex(text)] || new JsTester_NoElement();
+                            )[index] || new JsTester_NoElement();
 
                             const tester = testersFactory.createDomElementTester(getColumn);
                             addTesters(tester, getColumn);
 
                             return tester;
-                        }
+                        },
+
                     };
+
+                    tester.column.withHeader = text => tester.column.atIndex(getHeaderColumnIndex(text))
+
+                    Object.defineProperty(tester.column, 'first', {
+                        get: function () {
+                            return tester.column.atIndex(0);
+                        }
+                    });
 
                     return tester;
                 } 
@@ -1073,6 +1082,7 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.isFailed = () => (processors.push(data => (data[0].is_failed = true)), me);
             me.search = value => ((params.search = value), me);
 
             me.noContactName = () => {

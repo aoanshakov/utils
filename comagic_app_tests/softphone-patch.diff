@@ -29,10 +29,37 @@ index 7eb0654..a978a99 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 400ddb6..6fb045e 100644
+index 400ddb6..2724785 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -413,4 +413,5 @@ export const RootStore = types
+@@ -20,7 +20,8 @@ import {
+     setStatus,
+     onDialpadKeyDown,
+     showMessage,
+-    closeMessage
++    closeMessage,
++    showWidget
+ } from 'uis-softphone/actions';
+ 
+ import {
+@@ -191,9 +192,14 @@ export const RootStore = types
+ 
+                             break;
+                         }
+-                        case HANDLE_WEBRTC_CREATED:
+-                            action.webRTC.on('error', () => (hasError = true));
++                        case HANDLE_WEBRTC_CREATED: {
++                            const {webRTC} = action;
++
++                            webRTC.on('error', () => (hasError = true));
++                            self.call = phoneNumber => (dispatch(showWidget), webRTC.call(phoneNumber),);
++
+                             break;
++                        }
+                         case HANDLE_LOGOUT:
+                             !hasError && logout();
+                             break;
+@@ -413,4 +419,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

@@ -461,7 +461,8 @@ define(function () {
                     mark_ids: [],
                     number: '74950230627',
                     start_time: utils.formatDate(date),
-                    contact_name: 'Сотирова Атанаска'
+                    contact_name: 'Сотирова Атанаска',
+                    file_links: null
                 };
 
                 process(item);
