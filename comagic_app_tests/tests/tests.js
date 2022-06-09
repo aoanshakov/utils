@@ -1417,7 +1417,27 @@ tests.addTest(options => {
                                                         tester.select.option('Отложенный звонок').expectNotToExist();
                                                         tester.select.option('Нецелевой контакт').expectToBeVisible();
                                                     });
+                                                    it(
+                                                        'Нажимаю на кнопку удаления тег "Нецелевой контакт". ' +
+                                                        'Отправлен запрос удаления тега.',
+                                                    function() {
+                                                        tester.select.tag('Нецелевой контакт').closeButton.click();
+                                                        tester.markDeletingRequest().receiveResponse();
+
+                                                        tester.select.tag('Генератор лидов').expectNotToExist();
+                                                        tester.select.tag('Нецелевой контакт').expectNotToExist();
+                                                        tester.select.tag('Отложенный звонок').expectToBeVisible();
+
+                                                        tester.select.option('Генератор лидов').expectNotToBeSelected();
+                                                        tester.select.option('Нецелевой контакт').
+                                                            expectNotToBeSelected();
+                                                        tester.select.option('Отложенный звонок').expectToBeSelected();
+                                                    });
                                                     it('Отмечены опции выранных тегов.', function() {
+                                                        tester.select.tag('Генератор лидов').expectNotToExist();
+                                                        tester.select.option('Нецелевой контакт').expectToBeVisible();
+                                                        tester.select.option('Отложенный звонок').expectToBeVisible();
+
                                                         tester.select.option('Генератор лидов').expectNotToBeSelected();
                                                         tester.select.option('Нецелевой контакт').expectToBeSelected();
                                                         tester.select.option('Отложенный звонок').expectToBeSelected();

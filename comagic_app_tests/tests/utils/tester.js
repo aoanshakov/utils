@@ -299,6 +299,27 @@ define(() => function ({
                     utils.getVisibleSilently(document.querySelectorAll('.ui-select-popup')) || new JsTester_NoElement()
                 ).closest('div'));
 
+                tester.tag = text => {
+                    const getTag = () =>  utils.descendantOf(getRootElement()).
+                        textEquals(text).
+                        matchesSelector('.cmg-softphone-call-history-marks-popup-value').
+                        find();
+
+                    const tester = testersFactory.createDomElementTester(getTag);
+
+                    tester.closeButton = (() => {
+                        const tester = testersFactory.createDomElementTester(() =>
+                            utils.element(getTag()).querySelector('svg'));
+
+                        const click = tester.click.bind(tester);
+                        tester.click = () => (click(), spendTime(0));
+
+                        return tester;
+                    })();
+
+                    return tester;
+                };
+
                 tester.option = text => {
                     const option = utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find(),
                         tester = testersFactory.createDomElementTester(option),
