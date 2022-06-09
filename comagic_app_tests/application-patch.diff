@@ -388,7 +388,7 @@ index fd0f39d9..22b7a6a7 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index c335a05d..87a9abe0 100644
+index c335a05d..efb4cad5 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -10,7 +10,10 @@ import { Integrations } from '@sentry/tracing';
@@ -415,7 +415,7 @@ index c335a05d..87a9abe0 100644
 +        appName = ''
 +    }) {
 +        createRootStore();
-+        setChatsRootStore(createChatsRootStore());
++        appName != 'softphone' && setChatsRootStore(createChatsRootStore());
 +        createSoftphoneRootStore();
 +        createAnalyticsRootStore();
 +        setHistory(history);

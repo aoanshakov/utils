@@ -775,7 +775,7 @@ tests.addTest(options => {
                                                     let ringtoneRequest;
 
                                                     beforeEach(function() {
-                                                        tester.slider.click(26);
+                                                        tester.slider.click(25);
 
                                                         tester.othersNotification().
                                                             updateSettings().
@@ -1224,7 +1224,8 @@ tests.addTest(options => {
                                             beforeEach(function() {
                                                 tester.button('История звонков').click();
 
-                                                callsRequest = tester.callsRequest().expectToBeSent();
+                                                callsRequest = tester.callsRequest().fromFirstWeekDay().
+                                                    expectToBeSent();
                                                 tester.marksRequest().receiveResponse();
                                             });
 
@@ -1352,7 +1353,10 @@ tests.addTest(options => {
                                                             'Дата / время ' +
                                                             'Номер абонента ' +
                                                             'Виртуальный номер ' +
+                                                            'Теги ' +
+                                                            'Комментарий ' +
                                                             'Длительность ' +
+                                                            'Запись ' +
 
                                                             '19 дек 2019 08:03 ' +
                                                             '+7 (495) 023-06-25 ' +
@@ -1388,7 +1392,9 @@ tests.addTest(options => {
                                                             'ФИО контакта ' +
                                                             'Номер абонента ' +
                                                             'Теги ' +
+                                                            'Комментарий ' +
                                                             'Длительность ' +
+                                                            'Запись ' +
 
                                                             '19 дек 2019 08:03 ' +
                                                             'Гяурова Марийка ' +
@@ -1505,7 +1511,10 @@ tests.addTest(options => {
                                                         'Дата / время ' +
                                                         'Номер абонента ' +
                                                         'Виртуальный номер ' +
+                                                        'Теги ' +
+                                                        'Комментарий ' +
                                                         'Длительность ' +
+                                                        'Запись ' +
 
                                                         '19 дек 2019 08:03 ' +
                                                         '+7 (495) 023-06-25 ' +
@@ -1537,8 +1546,11 @@ tests.addTest(options => {
                                                 it(
                                                     'Ввожу значеие в поле поиска. Отправлен запрос истории звонков.',
                                                 function() {
-                                                    tester.input.fill('qwe123');
-                                                    tester.callsRequest().search('qwe123').receiveResponse();
+                                                    tester.input.withPlaceholder('Имя или телефон').fill('qwe123');
+
+                                                    tester.callsRequest().fromFirstWeekDay().search('qwe123').
+                                                        receiveResponse();
+                                                    tester.marksRequest().receiveResponse();
                                                 });
                                                 it('Нажимаю на кнопку проигрывания записи.', function() {
                                                     tester.table.row.first.column.withHeader('Запись').svg.click();
@@ -1673,7 +1685,7 @@ tests.addTest(options => {
                                                 'Есть неуспешные звонки. Строки с неуспешными звонками внешне ' +
                                                 'отличаются от строк с успешными звонками.',
                                             function() {
-                                                callsRequest.isFailed().receiveResponse();
+                                                callsRequest.isFailed().fromFirstWeekDay().receiveResponse();
 
                                                 tester.table.row.first.
                                                     expectToHaveClass('cmg-softphone-call-history-failed-call-row');
@@ -4137,7 +4149,7 @@ tests.addTest(options => {
 
                         tester.button('История звонков').click();
 
-                        tester.callsRequest().receiveResponse();
+                        tester.callsRequest().fromFirstWeekDay().receiveResponse();
                         tester.marksRequest().receiveResponse();
                     });
 
@@ -4209,7 +4221,7 @@ tests.addTest(options => {
 
                         tester.button('История звонков').click();
 
-                        tester.callsRequest().receiveResponse();
+                        tester.callsRequest().fromFirstWeekDay().receiveResponse();
                         tester.marksRequest().receiveResponse();
                     });
 
@@ -4281,7 +4293,7 @@ tests.addTest(options => {
 
                         tester.button('История звонков').click();
 
-                        tester.callsRequest().receiveResponse();
+                        tester.callsRequest().fromFirstWeekDay().receiveResponse();
                         tester.marksRequest().receiveResponse();
                     });
 
@@ -4352,7 +4364,7 @@ tests.addTest(options => {
 
                     tester.button('История звонков').click();
 
-                    tester.callsRequest().receiveResponse();
+                    tester.callsRequest().fromFirstWeekDay().receiveResponse();
                     tester.marksRequest().receiveResponse();
                 });
                 it(
@@ -4400,7 +4412,7 @@ tests.addTest(options => {
 
                     tester.button('История звонков').click();
 
-                    tester.callsRequest().receiveResponse();
+                    tester.callsRequest().fromFirstWeekDay().receiveResponse();
                     tester.marksRequest().receiveResponse();
 
                     tester.table.expectTextContentNotToHaveSubstring('Комментарий');
@@ -4450,7 +4462,7 @@ tests.addTest(options => {
 
                     tester.button('История звонков').click();
 
-                    tester.callsRequest().receiveResponse();
+                    tester.callsRequest().fromFirstWeekDay().receiveResponse();
                     tester.marksRequest().receiveResponse();
 
                     tester.table.expectTextContentNotToHaveSubstring('Теги');
@@ -4769,6 +4781,9 @@ tests.addTest(options => {
             });
         });
         it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
+            tester.masterInfoMessage().receive();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
             accountRequest.softphoneUnavailable().receiveResponse();
 
             tester.reportGroupsRequest().receiveResponse();
@@ -4779,6 +4794,9 @@ tests.addTest(options => {
             tester.button('История звонков').expectNotToExist();
         });
         it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
+            tester.masterInfoMessage().receive();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+            
             accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
 
             tester.reportGroupsRequest().receiveResponse();
@@ -4797,6 +4815,7 @@ tests.addTest(options => {
                 accountRequest;
 
             beforeEach(function() {
+                setNow('2019-12-19T12:10:06');
                 localStorage.setItem('clct:to_top_on_call', 'false');
 
                 tester = new Tester({
@@ -6413,7 +6432,7 @@ tests.addTest(options => {
 
         tester.authCheckRequest().receiveResponse();
 
-        tester.callsRequest().receiveResponse();
+        tester.callsRequest().fromFirstWeekDay().receiveResponse();
         tester.marksRequest().receiveResponse();
 
         tester.statusesRequest().receiveResponse();

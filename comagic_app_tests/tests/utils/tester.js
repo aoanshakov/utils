@@ -37,6 +37,7 @@ define(() => function ({
 
     window.rootConfig = {appName};
     window.crossTabCommunicatorCache = {};
+    window.softphoneCrossTabCommunicatorCache = {};
 
     window.application.run({
         setHistory: value => (history = value),
@@ -367,9 +368,16 @@ define(() => function ({
                 return tester;
             })();
 
-            me.input.withPlaceholder = placeholder => testersFactory.createTextFieldTester(
-                utils.getVisibleSilently(getInputs().filter(input => input.placeholder == placeholder))
-            );
+            me.input.withPlaceholder = placeholder => {
+                const tester = testersFactory.createTextFieldTester(
+                    utils.getVisibleSilently(getInputs().filter(input => input.placeholder == placeholder))
+                );
+
+                const fill = tester.fill.bind(tester);
+                tester.fill = value => (fill(value), Promise.runAll(false, true)); 
+
+                return tester;
+            };
 
             me.input.withFieldLabel = label => {
                 const labelEl = utils.descendantOf(getRootElement()).
@@ -1038,7 +1046,7 @@ define(() => function ({
             search: '',
             is_strict_date_till: '0',
             with_names: undefined,
-            from: '2019-12-16T00:00:00.000+03:00',
+            from: undefined,
             to: '2019-12-19T23:59:59.999+03:00',
             call_directions: undefined,
             call_types: undefined,
@@ -1085,6 +1093,7 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.fromFirstWeekDay = () => ((params.from = '2019-12-16T00:00:00.000+03:00'), me);
             me.isFailed = () => (processors.push(data => (data[0].is_failed = true)), me);
             me.search = value => ((params.search = value), me);
 
