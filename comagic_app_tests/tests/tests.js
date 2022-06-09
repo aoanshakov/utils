@@ -1495,6 +1495,40 @@ tests.addTest(options => {
                                                             );
                                                     });
                                                 });
+                                                describe(
+                                                    'Ввожу значеие в поле поиска. Проходит некоторое время.',
+                                                function() {
+                                                    beforeEach(function() {
+                                                        tester.input.withPlaceholder('Имя или телефон').input('qwe12');
+
+                                                        spendTime(499);
+                                                        Promise.runAll(false, true);
+                                                    });
+
+                                                    it(
+                                                        'Проходит еще некоторое время. Отправлен запрос истории ' +
+                                                        'звонков.',
+                                                    function() {
+                                                        spendTime(1);
+                                                        Promise.runAll(false, true);
+
+                                                        tester.callsRequest().fromFirstWeekDay().search('qwe12').
+                                                            receiveResponse();
+                                                        tester.marksRequest().receiveResponse();
+                                                    });
+                                                    it(
+                                                        'История звонков не была запрошена. Ввожу еще некоторые ' +
+                                                        'символы.',
+                                                    function() {
+                                                        tester.input.withPlaceholder('Имя или телефон').input('3');
+
+                                                        spendTime(1);
+                                                        Promise.runAll(false, true);
+                                                    });
+                                                    it('История звонков не была запрошена.', function() {
+                                                        ajax.expectNoRequestsToBeSent();
+                                                    });
+                                                });
                                                 it(
                                                     'Нажимаю на кнопку "Все". Отправлен запрос истории звонков.',
                                                 function() {
@@ -1542,15 +1576,6 @@ tests.addTest(options => {
                                                     tester.marksRequest().receiveResponse();
 
                                                     tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
-                                                });
-                                                it(
-                                                    'Ввожу значеие в поле поиска. Отправлен запрос истории звонков.',
-                                                function() {
-                                                    tester.input.withPlaceholder('Имя или телефон').fill('qwe123');
-
-                                                    tester.callsRequest().fromFirstWeekDay().search('qwe123').
-                                                        receiveResponse();
-                                                    tester.marksRequest().receiveResponse();
                                                 });
                                                 it('Нажимаю на кнопку проигрывания записи.', function() {
                                                     tester.table.row.first.column.withHeader('Запись').svg.click();

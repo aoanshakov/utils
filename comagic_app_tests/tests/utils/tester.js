@@ -373,8 +373,11 @@ define(() => function ({
                     utils.getVisibleSilently(getInputs().filter(input => input.placeholder == placeholder))
                 );
 
-                const fill = tester.fill.bind(tester);
+                const fill = tester.fill.bind(tester),
+                    input = tester.input.bind(tester);
+
                 tester.fill = value => (fill(value), Promise.runAll(false, true)); 
+                tester.input = value => (input(value), Promise.runAll(false, true)); 
 
                 return tester;
             };
