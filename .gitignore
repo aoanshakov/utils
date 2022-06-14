@@ -28,3 +28,4 @@ comagic_app_tests/sails_pg_session/
 comagic_app_tests/updater.log
 comagic_app_tests/updater/
 comagic_app_tests/publisher/node_modules
+comagic_app_tests/tests-server-log.log

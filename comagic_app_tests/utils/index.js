@@ -43,7 +43,9 @@ const {
     publisher,
     publisherDir,
     broadcastChannel,
-    broadcastChannelPatch
+    broadcastChannelPatch,
+    server,
+    testsServerLog
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -268,9 +270,12 @@ actions['run-server'] = params => actions['initialize'](params).concat([
             '-subj "/C=GB/ST=London/L=London/O=Global Security/OU=IT Department/CN=example.com"'
     ].join(' '),
 
+    rmVerbose(testsServerLog),
+    `touch ${testsServerLog}`,
     'service nginx stop',
     `cp ${nginxConfig} /etc/nginx/nginx.conf`,
     'service nginx start',
+    `node ${server} > ${testsServerLog} 2>&1 &`,
     `${cda} npm run dev`
 ]);
 

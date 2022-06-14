@@ -345,7 +345,7 @@ index 88f6d254..d05ecea8 100644
    "optionalDependencies": {
      "dmg-license": "^1.0.9"
 diff --git a/public/index.html b/public/index.html
-index fd0f39d9..22b7a6a7 100644
+index fd0f39d9..6741d8aa 100644
 --- a/public/index.html
 +++ b/public/index.html
 @@ -23,7 +23,29 @@
@@ -370,7 +370,7 @@ index fd0f39d9..22b7a6a7 100644
 +        tests.exposeDebugUtils('jsTestDebug');
 +    </script>
 +    <script src="/tests/utils/require.js"></script>
-+    <script src="/tests/tests.js"></script>
++    <script src="/tests/{script}.js"></script>
 +    <style>
 +        #root {
 +            position: static !important;
