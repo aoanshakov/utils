@@ -1224,7 +1224,7 @@ tests.addTest(options => {
                                             beforeEach(function() {
                                                 tester.button('История звонков').click();
 
-                                                callsRequest = tester.callsRequest().fromFirstWeekDay().
+                                                callsRequest = tester.callsRequest().fromFirstWeekDay().firstPage().
                                                     expectToBeSent();
                                                 tester.marksRequest().receiveResponse();
                                             });
@@ -1515,38 +1515,53 @@ tests.addTest(options => {
                                                             );
                                                     });
                                                 });
-                                                describe(
-                                                    'Ввожу значеие в поле поиска. Проходит некоторое время.',
-                                                function() {
+                                                describe('Ввожу значеие в поле поиска.', function() {
                                                     beforeEach(function() {
                                                         tester.input.withPlaceholder('Имя или телефон').input('qwe12');
-
-                                                        spendTime(499);
-                                                        Promise.runAll(false, true);
                                                     });
 
-                                                    it(
-                                                        'Проходит еще некоторое время. Отправлен запрос истории ' +
-                                                        'звонков.',
-                                                    function() {
-                                                        spendTime(1);
-                                                        Promise.runAll(false, true);
+                                                    describe('Проходит некоторое время.', function() {
+                                                        beforeEach(function() {
+                                                            spendTime(499);
+                                                            Promise.runAll(false, true);
+                                                        });
 
-                                                        tester.callsRequest().fromFirstWeekDay().search('qwe12').
-                                                            receiveResponse();
-                                                        tester.marksRequest().receiveResponse();
-                                                    });
-                                                    it(
-                                                        'История звонков не была запрошена. Ввожу еще некоторые ' +
-                                                        'символы.',
-                                                    function() {
-                                                        tester.input.withPlaceholder('Имя или телефон').input('3');
+                                                        describe('Ввожу еще некоторые символы. ', function() {
+                                                            beforeEach(function() {
+                                                                tester.input.withPlaceholder('Имя или телефон').
+                                                                    input('3');
+                                                            });
 
-                                                        spendTime(1);
-                                                        Promise.runAll(false, true);
+                                                            it(
+                                                                'Проходит некоторое время. История звонков не была ' +
+                                                                'запрошена.',
+                                                            function() {
+                                                                spendTime(1);
+                                                                Promise.runAll(false, true);
+                                                            });
+                                                            it('Значение введено в поле поиска.', function() {
+                                                                tester.input.withPlaceholder('Имя или телефон').
+                                                                    expectToHaveValue('qwe123');
+                                                            });
+                                                        });
+                                                        it(
+                                                            'Проходит еще некоторое время. Отправлен запрос истории ' +
+                                                            'звонков.',
+                                                        function() {
+                                                            spendTime(1);
+                                                            Promise.runAll(false, true);
+
+                                                            tester.callsRequest().fromFirstWeekDay().search('qwe12').
+                                                                firstPage().receiveResponse();
+                                                            tester.marksRequest().receiveResponse();
+                                                        });
+                                                        it('История звонков не была запрошена.', function() {
+                                                            ajax.expectNoRequestsToBeSent();
+                                                        });
                                                     });
-                                                    it('История звонков не была запрошена.', function() {
-                                                        ajax.expectNoRequestsToBeSent();
+                                                    it('Значение введено в поле поиска.', function() {
+                                                        tester.input.withPlaceholder('Имя или телефон').
+                                                            expectToHaveValue('qwe12');
                                                     });
                                                 });
                                                 it(
@@ -1592,16 +1607,30 @@ tests.addTest(options => {
 
                                                     tester.calendarField.popup.button('Применить').click();
 
-                                                    tester.callsRequest().changeDate().receiveResponse();
+                                                    tester.callsRequest().changeDate().firstPage().receiveResponse();
                                                     tester.marksRequest().receiveResponse();
 
                                                     tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
                                                 });
-                                                it('Нажимаю на кнопку проигрывания записи.', function() {
-                                                    tester.table.row.first.column.withHeader('Запись').svg.click();
+                                                it(
+                                                    'Нажимаю на кнопку проигрывания записи. Запись проигрывается.',
+                                                function() {
+                                                    tester.table.row.first.column.withHeader('Запись').playIcon.click();
                                                     
                                                     tester.talkRecordRequest().receiveResponse();
                                                     audioDecodingTester.accomplishAudioDecoding();
+                                                });
+                                                it(
+                                                    'Нажимаю на кнопку скачивания записи. Открыт выпадающий список ' +
+                                                    'записей.',
+                                                function() {
+                                                    tester.table.row.atIndex(1).column.withHeader('Запись').
+                                                        downloadIcon.click();
+
+                                                    tester.select.option('baf9be6ace6b0cb2f9b0e1ed0738db1a.mp3').
+                                                        expectToBeVisible();
+                                                    tester.select.option('2fj923fholfr32hlf498f8h18f1hfl1c.mp3').
+                                                        expectToBeVisible();
                                                 });
                                                 it(
                                                     'Нажимаю на ссылку в колонке "Номер абонента". Совершается звонок.',
@@ -1669,6 +1698,76 @@ tests.addTest(options => {
                                                     tester.firstConnection.callTrackHandler();
                                                     tester.numaRequest().anotherNumber().receiveResponse();
                                                 });
+                                                it(
+                                                    'Нажимаю на кнопку второй страницы. Отправлен запрос второй ' +
+                                                    'страницы.',
+                                                function() {
+                                                    tester.table.pagingPanel.pageButton('2').click();
+
+                                                    tester.callsRequest().fromFirstWeekDay().secondPage().
+                                                        receiveResponse();
+                                                    tester.marksRequest().receiveResponse();
+
+                                                    tester.table.pagingPanel.pageButton('1').expectNotToBePressed();
+                                                    tester.table.pagingPanel.pageButton('2').expectToBePressed();
+                                                    tester.table.pagingPanel.pageButton('3').expectNotToExist();
+
+                                                    tester.table.expectTextContentToHaveSubstringsConsideringOrder(
+                                                        'Дата / время ' +
+                                                        'ФИО контакта ' +
+                                                        'Номер абонента ' +
+                                                        'Теги ' +
+                                                        'Комментарий ' +
+                                                        'Длительность ' +
+                                                        'Запись ' +
+
+                                                        '17 мая 2021 12:02 ' +
+                                                        'Сотирова Атанаска ' +
+                                                        '+7 (495) 023-06-27 ' +
+                                                        '00:00:22',
+
+                                                        '16 мая 2021 11:41 ' +
+                                                        'Сотирова Атанаска ' +
+                                                        '+7 (495) 023-06-27 ' +
+                                                        '00:00:22 ' +
+
+                                                        '1 2 15 строк Страница 10'
+                                                    );
+                                                });
+                                                it(
+                                                    'Выбираю другое количество строк на странице. Отправлен запрос ' +
+                                                    'истории звонков.',
+                                                function() {
+                                                    tester.table.pagingPanel.select.click();
+                                                    tester.select.option('25').click();
+
+                                                    tester.callsRequest().fromFirstWeekDay().anotherLimit().
+                                                        receiveResponse();
+                                                    tester.marksRequest().receiveResponse();
+
+                                                    tester.table.expectTextContentToHaveSubstringsConsideringOrder(
+                                                        'Дата / время ' +
+                                                        'ФИО контакта ' +
+                                                        'Номер абонента ' +
+                                                        'Теги ' +
+                                                        'Комментарий ' +
+                                                        'Длительность ' +
+                                                        'Запись ' +
+
+                                                        '19 дек 2019 08:03 ' +
+                                                        'Гяурова Марийка ' +
+                                                        '+7 (495) 023-06-25 ' +
+                                                        'Нецелевой контакт, Отложенный звонок ' +
+                                                        '00:00:20',
+
+                                                        '14 дек 2019 10:59 ' +
+                                                        'Сотирова Атанаска ' +
+                                                        '+7 (495) 023-06-27 ' +
+                                                        '00:00:22 ' +
+
+                                                        '1 15 строк Страница 25'
+                                                    );
+                                                });
                                                 it('Отображена история звонков.', function() {
                                                     tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
 
@@ -1685,6 +1784,10 @@ tests.addTest(options => {
                                                         expectToHaveClass('incoming_svg__cmg-direction-icon');
                                                     tester.table.row.atIndex(1).column.first.svg.
                                                         expectToHaveClass('outgoing_svg__cmg-direction-icon');
+
+                                                    tester.table.pagingPanel.pageButton('1').expectToBePressed();
+                                                    tester.table.pagingPanel.pageButton('2').expectNotToBePressed();
+                                                    tester.table.pagingPanel.pageButton('3').expectNotToExist();
 
                                                     tester.
                                                         table.
@@ -1704,7 +1807,7 @@ tests.addTest(options => {
                                                             'add_svg__cmg-softphone-call-history-comment-cell'
                                                         );
 
-                                                    tester.table.expectTextContentToHaveSubstring(
+                                                    tester.table.expectTextContentToHaveSubstringsConsideringOrder(
                                                         'Дата / время ' +
                                                         'ФИО контакта ' +
                                                         'Номер абонента ' +
@@ -1722,15 +1825,49 @@ tests.addTest(options => {
                                                         '18 дек 2019 18:08 ' +
                                                         'Манова Тома ' +
                                                         '+7 (495) 023-06-26 ' +
-                                                        '00:00:21'
+                                                        '00:00:21',
+
+                                                        '15 дек 2019 17:25 ' +
+                                                        'Сотирова Атанаска ' +
+                                                        '+7 (495) 023-06-27 ' +
+                                                        '00:00:22 ' +
+
+                                                        '1 2 15 строк Страница 10'
                                                     );
                                                 });
+                                            });
+                                            it(
+                                                'Общее количество записей не было получено. Отображена история ' +
+                                                'звонков.',
+                                            function() {
+                                                callsRequest.noTotal().receiveResponse();
+
+                                                tester.table.expectTextContentToHaveSubstringsConsideringOrder(
+                                                    'Дата / время ' +
+                                                    'ФИО контакта ' +
+                                                    'Номер абонента ' +
+                                                    'Теги ' +
+                                                    'Комментарий ' +
+                                                    'Длительность ' +
+                                                    'Запись ' +
+
+                                                    '19 дек 2019 08:03 ' +
+                                                    'Гяурова Марийка ' +
+                                                    '+7 (495) 023-06-25 ' +
+                                                    'Нецелевой контакт, Отложенный звонок ' +
+                                                    '00:00:20 ',
+
+                                                    '14 дек 2019 10:59 ' +
+                                                    'Сотирова Атанаска ' +
+                                                    '+7 (495) 023-06-27 ' +
+                                                    '00:00:22'
+                                                );
                                             });
                                             it(
                                                 'Есть неуспешные звонки. Строки с неуспешными звонками внешне ' +
                                                 'отличаются от строк с успешными звонками.',
                                             function() {
-                                                callsRequest.isFailed().fromFirstWeekDay().receiveResponse();
+                                                callsRequest.isFailed().receiveResponse();
 
                                                 tester.table.row.first.
                                                     expectToHaveClass('cmg-softphone-call-history-failed-call-row');
@@ -2307,7 +2444,9 @@ tests.addTest(options => {
                                                             'истории.',
                                                         function() {
                                                             tester.callsGridScrolling().toTheEnd().scroll();
-                                                            tester.callsRequest().secondPage().expectToBeSent();
+
+                                                            tester.callsRequest().infiniteScrollSecondPage().
+                                                                expectToBeSent();
                                                         });
                                                         it('Вторая страница истории еще не запрошена.', function() {
                                                             ajax.expectNoRequestsToBeSent();
@@ -4194,7 +4333,7 @@ tests.addTest(options => {
 
                         tester.button('История звонков').click();
 
-                        tester.callsRequest().fromFirstWeekDay().receiveResponse();
+                        tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                         tester.marksRequest().receiveResponse();
                     });
 
@@ -4266,7 +4405,7 @@ tests.addTest(options => {
 
                         tester.button('История звонков').click();
 
-                        tester.callsRequest().fromFirstWeekDay().receiveResponse();
+                        tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                         tester.marksRequest().receiveResponse();
                     });
 
@@ -4338,7 +4477,7 @@ tests.addTest(options => {
 
                         tester.button('История звонков').click();
 
-                        tester.callsRequest().fromFirstWeekDay().receiveResponse();
+                        tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                         tester.marksRequest().receiveResponse();
                     });
 
@@ -4409,7 +4548,7 @@ tests.addTest(options => {
 
                     tester.button('История звонков').click();
 
-                    tester.callsRequest().fromFirstWeekDay().receiveResponse();
+                    tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                     tester.marksRequest().receiveResponse();
                 });
                 it(
@@ -4457,7 +4596,7 @@ tests.addTest(options => {
 
                     tester.button('История звонков').click();
 
-                    tester.callsRequest().fromFirstWeekDay().receiveResponse();
+                    tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                     tester.marksRequest().receiveResponse();
 
                     tester.table.expectTextContentNotToHaveSubstring('Комментарий');
@@ -4507,7 +4646,7 @@ tests.addTest(options => {
 
                     tester.button('История звонков').click();
 
-                    tester.callsRequest().fromFirstWeekDay().receiveResponse();
+                    tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                     tester.marksRequest().receiveResponse();
 
                     tester.table.expectTextContentNotToHaveSubstring('Теги');
@@ -6477,7 +6616,7 @@ tests.addTest(options => {
 
         tester.authCheckRequest().receiveResponse();
 
-        tester.callsRequest().fromFirstWeekDay().receiveResponse();
+        tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
         tester.marksRequest().receiveResponse();
 
         tester.statusesRequest().receiveResponse();

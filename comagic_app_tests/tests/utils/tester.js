@@ -63,9 +63,9 @@ define(() => function ({
         me.textarea = testersFactory.createTextFieldTester(() =>
             utils.element(getRootElement()).querySelector('textarea'));
 
-        me.svg = (() => {
+        const getSvg = selector => {
             const tester = testersFactory.createDomElementTester(() =>
-                utils.element(getRootElement()).querySelector('svg'));
+                utils.element(getRootElement()).querySelector(selector));
 
             const click = tester.click.bind(tester);
 
@@ -76,10 +76,15 @@ define(() => function ({
             };
 
             return tester;
-        })();
+        };
+
+        me.playIcon = getSvg('.play_svg__cmg-icon');
+        me.downloadIcon = getSvg('.download_svg__cmg-icon');
+        me.svg = getSvg('svg');
 
         me.table = (() => {
-            const tester = testersFactory.createDomElementTester('.ant-table, .ui-table');
+            const getTable = () => utils.element(getRootElement()).querySelector('.ant-table, .ui-table'),
+                tester = testersFactory.createDomElementTester(getTable);
 
             const getHeaderColumnIndex = text => {
                 let i;
@@ -122,9 +127,7 @@ define(() => function ({
                     tester.column.withHeader = text => tester.column.atIndex(getHeaderColumnIndex(text))
 
                     Object.defineProperty(tester.column, 'first', {
-                        get: function () {
-                            return tester.column.atIndex(0);
-                        }
+                        get: () => tester.column.atIndex(0)
                     });
 
                     return tester;
@@ -132,6 +135,38 @@ define(() => function ({
             };
 
             tester.row.first = tester.row.atIndex(0);
+
+            Object.defineProperty(tester, 'pagingPanel', {
+                get: () => {
+                    const getPagingPanel = () => utils.element(getTable()).querySelector('.ui-pagination'),
+                        tester = testersFactory.createDomElementTester(getPagingPanel);
+
+                    tester.pageButton = text => (() => {
+                        const getLi = () => utils.
+                            descendantOf(getPagingPanel()).
+                            matchesSelector('.ui-pagination-btns-pages__item').
+                            textEquals(text).
+                            find();
+
+                        const tester = testersFactory.createDomElementTester(getLi);
+
+                        const anchorTester = testersFactory.createDomElementTester(() =>
+                            utils.element(getLi()).querySelector('a'));
+
+                        const click = anchorTester.click.bind(anchorTester);
+                        tester.click = () => (click(), Promise.runAll(false, true));
+
+                        tester.expectToBePressed = () => tester.
+                            expectToHaveClass('ui-pagination-btns-pages__item--active');
+                        tester.expectNotToBePressed = () => tester.
+                            expectNotToHaveClass('ui-pagination-btns-pages__item--active');
+
+                        return tester;
+                    })();
+
+                    return addTesters(tester, getPagingPanel);
+                }
+            });
 
             return tester;
         })();
@@ -156,11 +191,11 @@ define(() => function ({
                 monthPanelTester.title = testersFactory.createDomElementTester(() =>
                     getMonthPanel().querySelector('.cm-calendar__months__item__title, .ui-date-range-picker-header'));
 
-                monthPanelTester.day = day => testersFactory.createDomElementTester(() =>
-                    utils.descendantOf(getMonthPanel()).
-                        matchesSelector('.cm-calendar__days__item__text, .ui-date-range-picker-cell-container').
-                        textEquals(day + '').
-                        find());
+                monthPanelTester.day = day => testersFactory.createDomElementTester(() => utils.
+                    descendantOf(getMonthPanel()).
+                    matchesSelector('.cm-calendar__days__item__text, .ui-date-range-picker-cell-container').
+                    textEquals(day + '').
+                    find());
 
                 return monthPanelTester;
             };
@@ -219,6 +254,7 @@ define(() => function ({
                 textEquals(text).
                 matchesSelector(
                     'button, ' +
+                    '.ui-pagination-btns-pages__item, ' +
                     '.clct-c-button, ' +
                     '.ui-radio-content, ' +
                     '.cmg-switch-label, ' +
@@ -1066,6 +1102,7 @@ define(() => function ({
 
     me.callsRequest = () => {
         const params = {
+            start: undefined,
             limit: '100',
             search: '',
             is_strict_date_till: '0',
@@ -1077,6 +1114,9 @@ define(() => function ({
             is_processed_by_any: undefined,
             group_id: undefined
         };
+
+        let count = 100,
+            total;
 
         let getResponse = count => [{
             cdr_type: 'default',
@@ -1117,9 +1157,14 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
-            me.fromFirstWeekDay = () => ((params.from = '2019-12-16T00:00:00.000+03:00'), me);
+            me.noCalls = () => ((getResponse = () => []), me);
             me.isFailed = () => (processors.push(data => (data[0].is_failed = true)), me);
-            me.search = value => ((params.search = value), me);
+
+            me.noTotal = () => {
+                total = undefined;
+                count = 15;
+                return me;
+            };
 
             me.noContactName = () => {
                 processors.push(data => (data[0].contact_name = null));
@@ -1131,11 +1176,20 @@ define(() => function ({
                 return me;
             };
 
-            me.noCalls = () => ((getResponse = () => []), me);
             return me;
         };
 
         return addResponseModifiers({
+            fromFirstWeekDay() {
+                params.from = '2019-12-16T00:00:00.000+03:00';
+                return this;
+            },
+
+            search(value) {
+                params.search = value;
+                return this;
+            },
+
             changeDate() {
                 params.from = '2019-11-15T00:00:00.000+03:00';
                 params.to = '2019-12-18T23:59:59.999+03:00';
@@ -1148,7 +1202,35 @@ define(() => function ({
                 return this;
             },
 
+            anotherLimit() {
+                count = 15;
+                total = 15;
+                params.start = '0';
+                params.limit = '25';
+                return this;
+            },
+
+            firstPage() {
+                count = 10;
+                total = 15;
+                params.start = '0';
+                params.limit = '10';
+                return this;
+            },
+
             secondPage() {
+                total = 15;
+                params.start = params.limit = '10';
+
+                getResponse = () => me.getCalls({
+                    date: '2021-05-17T18:07:25',
+                    count: 5
+                });
+
+                return this;
+            },
+
+            infiniteScrollSecondPage() {
                 params.to = '2019-11-22T21:37:26.362+03:00';
                 params.is_strict_date_till = '1';
 
@@ -1162,10 +1244,10 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse: () => {
-                        const data = getResponse(params.limit);
+                        const data = getResponse(count);
                         processors.forEach(process => process(data));
 
-                        request.respondSuccessfullyWith({data});
+                        request.respondSuccessfullyWith({data, total});
                         Promise.runAll();
                         me.triggerScrollRecalculation();
                     }
