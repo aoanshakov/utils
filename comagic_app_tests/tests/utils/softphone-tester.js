@@ -4608,6 +4608,15 @@ define(function () {
 
             const receiveCustomMessage = data => receiveMessage(createCustomMessage(data)),
                 applyLeader = () => recentMessage().expectToContain(applyMessage());
+
+            const receiveLeaderDeath = () => receiveMessage({
+                type: 'internal',
+                data: {
+                    context: 'leader',
+                    action: 'death',
+                    token: 'g28g2hor28'
+                }
+            });
                 
             this.masterNotification = function () {
                 var data = {},
@@ -5269,14 +5278,7 @@ define(function () {
 
             this.masterInfoMessage = () => {
                 let receive = () => {
-                    wasMaster === false && receiveMessage({
-                        type: 'internal',
-                        data: {
-                            context: 'leader',
-                            action: 'death',
-                            token: 'g28g2hor28'
-                        }
-                    });
+                    wasMaster === false && receiveLeaderDeath();
 
                     Promise.runAll(false, true);
 
@@ -5312,6 +5314,20 @@ define(function () {
                 });
 
                 return {
+                    leaderDeath: () => ({
+                        receive: receiveLeaderDeath,
+                        expectToBeSent: () => {
+                            wasMaster = false;
+
+                            recentMessage().expectToBeSentToChannel('crosstab').expectToContain({
+                                type: 'internal',
+                                data: {
+                                    context: 'leader',
+                                    action: 'death'
+                                }
+                            });
+                        } 
+                    }),
                     applyLeader: () => ({
                         receive: () => {
                             const message = applyMessage();

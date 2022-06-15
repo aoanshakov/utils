@@ -24,6 +24,7 @@ module.exports = {
     nginxConfig: `${utils}/nginx.conf`,
     server: `${utils}/server.js`,
     testsServerLog: `${tests}/tests-server-log.log`,
+    testsServerPid: `${tests}/tests-server.pid`,
     testsScriptsDir: `${tests}/tests`,
     preCommitHook,
     stub: `${tests}/Stub.js`,

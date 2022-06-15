@@ -1,10 +1,12 @@
 const http = require('http'),
     url = require('url'),
     path = require('path'),
+    write = require('./write'),
     fs = require('fs'),
-    {testsScriptsDir} = require('./paths');
+    {testsScriptsDir, testsServerPid} = require('./paths');
 let currentRequest;
 
+write(testsServerPid, process.pid);
 console.log('Creating server');
 
 http.createServer(function(request, response) {

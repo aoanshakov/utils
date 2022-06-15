@@ -45,7 +45,8 @@ const {
     broadcastChannel,
     broadcastChannelPatch,
     server,
-    testsServerLog
+    testsServerLog,
+    testsServerPid
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -270,7 +271,9 @@ actions['run-server'] = params => actions['initialize'](params).concat([
             '-subj "/C=GB/ST=London/L=London/O=Global Security/OU=IT Department/CN=example.com"'
     ].join(' '),
 
+    `if [ -e ${testsServerPid} ]; then kill -9 $(cat ${testsServerPid}); echo "Return code: $?"; fi`,
     rmVerbose(testsServerLog),
+    rmVerbose(testsServerPid),
     `touch ${testsServerLog}`,
     'service nginx stop',
     `cp ${nginxConfig} /etc/nginx/nginx.conf`,

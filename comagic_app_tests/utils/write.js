@@ -4,5 +4,5 @@ const path = require('path'),
 module.exports = (filePath, content) => {
     const directoryPath = path.dirname(filePath);
     !fs.existsSync(directoryPath) && fs.mkdirSync(directoryPath, {recursive: true});
-    fs.writeFileSync(filePath, content);
+    fs.writeFileSync(filePath, content ? `${content}` : '');
 };
