@@ -253,6 +253,46 @@ tests.addTest(options => {
                         );
                     });
                 });
+                describe('Ввожу значеие в поле поиска.', function() {
+                    beforeEach(function() {
+                        tester.input.withPlaceholder('Имя или телефон').input('qwe12');
+                    });
+
+                    describe('Проходит некоторое время.', function() {
+                        beforeEach(function() {
+                            spendTime(499);
+                            Promise.runAll(false, true);
+                        });
+
+                        describe('Ввожу еще некоторые символы. ', function() {
+                            beforeEach(function() {
+                                tester.input.withPlaceholder('Имя или телефон').input('3');
+                            });
+
+                            it('Проходит некоторое время. История звонков не была запрошена.', function() {
+                                spendTime(1);
+                                Promise.runAll(false, true);
+                            });
+                            it('Значение введено в поле поиска.', function() {
+                                tester.input.withPlaceholder('Имя или телефон').expectToHaveValue('qwe123');
+                            });
+                        });
+                        it('Проходит еще некоторое время. Отправлен запрос истории звонков.', function() {
+                            spendTime(1);
+                            Promise.runAll(false, true);
+
+                            tester.callsRequest().fromFirstWeekDay().search('qwe12').firstPage().
+                                receiveResponse();
+                            tester.marksRequest().receiveResponse();
+                        });
+                        it('История звонков не была запрошена.', function() {
+                            ajax.expectNoRequestsToBeSent();
+                        });
+                    });
+                    it('Значение введено в поле поиска.', function() {
+                        tester.input.withPlaceholder('Имя или телефон').expectToHaveValue('qwe12');
+                    });
+                });
                 describe('Нажимаю на кнопку тегов.', function() {
                     beforeEach(function() {
                         tester.table.row.first.column.withHeader('Теги').svg.click();
@@ -321,6 +361,62 @@ tests.addTest(options => {
                         tester.select.option('Отложенный звонок').expectToBeSelected();
                     });
                 });
+                describe('Открываю окно добавления комментария.', function() {
+                    beforeEach(function() {
+                        tester.
+                            table.
+                            row.atIndex(1).
+                            column.withHeader('Комментарий').
+                            svg.
+                            click();
+                    });
+                    
+                    describe('Ввожу непустой комментарий.', function() {
+                        beforeEach(function() {
+                            tester.modalWindow.textarea.fill('Другой комментарий');
+
+                            tester.button('Сохранить').click();
+                            tester.commentUpdatingRequest().anotherCall().receiveResponse();
+                        });
+
+                        it('Открываю окно редактирования комментария. Комментарий изменен.', function() {
+                            tester.
+                                table.
+                                row.atIndex(1).
+                                column.withHeader('Комментарий').
+                                svg.
+                                click();
+
+                            tester.modalWindow.textarea.expectToHaveValue('Другой комментарий');
+                        });
+                        it('Комментарий добавлен.', function() {
+                            tester.
+                                table.
+                                row.first.
+                                column.withHeader('Комментарий').
+                                svg.
+                                expectToHaveClass(
+                                    'comment_svg__cmg-softphone-call-history-comment-cell'
+                                );
+
+                            tester.
+                                table.
+                                row.atIndex(1).
+                                column.withHeader('Комментарий').
+                                svg.
+                                expectToHaveClass(
+                                    'comment_svg__cmg-softphone-call-history-comment-cell'
+                                );
+                        });
+                    });
+                    it('Ввожу пробелы. Кнопка "Сохранить" заблокирована.', function() {
+                        tester.modalWindow.textarea.fill('  ');
+                        tester.button('Сохранить').expectToHaveAttribute('disabled');
+                    });
+                    it('Кнопка "Сохранить" заблокирована.', function() {
+                        tester.button('Сохранить').expectToHaveAttribute('disabled');
+                    });
+                });
                 describe('Нажимаю на кнопку комментария.', function() {
                     beforeEach(function() {
                         tester.table.row.first.column.withHeader('Комментарий').svg.click();
@@ -340,91 +436,6 @@ tests.addTest(options => {
                     });
                     it('Отображен комментарий.', function() {
                         tester.modalWindow.textarea.expectToHaveValue('Некий комментарий');
-                    });
-                });
-                describe('Изменяю комментарий.', function() {
-                    beforeEach(function() {
-                        tester.
-                            table.
-                            row.atIndex(1).
-                            column.withHeader('Комментарий').
-                            svg.
-                            click();
-
-                        tester.modalWindow.textarea.fill('Другой комментарий');
-
-                        tester.button('Сохранить').click();
-                        tester.commentUpdatingRequest().anotherCall().receiveResponse();
-                    });
-
-                    it('Открываю окно редактирования комментария. Комментарий изменен.', function() {
-                        tester.
-                            table.
-                            row.atIndex(1).
-                            column.withHeader('Комментарий').
-                            svg.
-                            click();
-
-                        tester.modalWindow.textarea.expectToHaveValue('Другой комментарий');
-                    });
-                    it('Комментарий изменен.', function() {
-                        tester.
-                            table.
-                            row.first.
-                            column.withHeader('Комментарий').
-                            svg.
-                            expectToHaveClass(
-                                'comment_svg__cmg-softphone-call-history-comment-cell'
-                            );
-
-                        tester.
-                            table.
-                            row.atIndex(1).
-                            column.withHeader('Комментарий').
-                            svg.
-                            expectToHaveClass(
-                                'comment_svg__cmg-softphone-call-history-comment-cell'
-                            );
-                    });
-                });
-                describe('Ввожу значеие в поле поиска.', function() {
-                    beforeEach(function() {
-                        tester.input.withPlaceholder('Имя или телефон').input('qwe12');
-                    });
-
-                    describe('Проходит некоторое время.', function() {
-                        beforeEach(function() {
-                            spendTime(499);
-                            Promise.runAll(false, true);
-                        });
-
-                        describe('Ввожу еще некоторые символы. ', function() {
-                            beforeEach(function() {
-                                tester.input.withPlaceholder('Имя или телефон').input('3');
-                            });
-
-                            it('Проходит некоторое время. История звонков не была запрошена.', function() {
-                                spendTime(1);
-                                Promise.runAll(false, true);
-                            });
-                            it('Значение введено в поле поиска.', function() {
-                                tester.input.withPlaceholder('Имя или телефон').expectToHaveValue('qwe123');
-                            });
-                        });
-                        it('Проходит еще некоторое время. Отправлен запрос истории звонков.', function() {
-                            spendTime(1);
-                            Promise.runAll(false, true);
-
-                            tester.callsRequest().fromFirstWeekDay().search('qwe12').firstPage().
-                                receiveResponse();
-                            tester.marksRequest().receiveResponse();
-                        });
-                        it('История звонков не была запрошена.', function() {
-                            ajax.expectNoRequestsToBeSent();
-                        });
-                    });
-                    it('Значение введено в поле поиска.', function() {
-                        tester.input.withPlaceholder('Имя или телефон').expectToHaveValue('qwe12');
                     });
                 });
                 it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
