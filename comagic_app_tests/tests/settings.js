@@ -252,7 +252,7 @@ tests.addTest(options => {
                                     const mediaStream = tester.allowMediaInput();
 
                                     tester.firstConnection.addCandidate();
-                                    incomingCall.expectOkToBeSent();
+                                    incomingCall.expectOkToBeSent().receiveResponse();
 
                                     tester.slavesNotification().
                                         available().
@@ -642,7 +642,7 @@ tests.addTest(options => {
                         tester.allowMediaInput();
                         tester.firstConnection.addCandidate();
 
-                        incomingCall.expectOkToBeSent();
+                        incomingCall.expectOkToBeSent().receiveResponse();
                         tester.slavesNotification().available().userDataFetched().twoChannels().incoming().confirmed().
                             expectToBeSent();
                     });
@@ -684,7 +684,7 @@ tests.addTest(options => {
                 const mediaStream = tester.allowMediaInput();
                 tester.firstConnection.addCandidate();
 
-                incomingCall.expectOkToBeSent();
+                incomingCall.expectOkToBeSent().receiveResponse();
                 tester.slavesNotification().available().userDataFetched().twoChannels().incoming().confirmed().
                     expectToBeSent();
                     

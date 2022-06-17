@@ -173,7 +173,7 @@ tests.addTest(options => {
                                                         tester.allowMediaInput();
                                                         tester.firstConnection.addCandidate();
 
-                                                        incomingCall.expectOkToBeSent();
+                                                        incomingCall.expectOkToBeSent().receiveResponse();
                                                         tester.slavesNotification().available().userDataFetched().
                                                             twoChannels().incoming().confirmed().expectToBeSent();
                                                     });
@@ -406,7 +406,7 @@ tests.addTest(options => {
                                                             tester.allowMediaInput();
                                                             tester.secondConnection.addCandidate();
 
-                                                            incomingCall.expectOkToBeSent();
+                                                            incomingCall.expectOkToBeSent().receiveResponse();
                                                             tester.slavesNotification().available().userDataFetched().
                                                                 twoChannels().incoming().confirmed().expectToBeSent();
 
@@ -478,7 +478,7 @@ tests.addTest(options => {
                                                         tester.allowMediaInput();
                                                         tester.firstConnection.addCandidate();
 
-                                                        incomingCall.expectOkToBeSent();
+                                                        incomingCall.expectOkToBeSent().receiveResponse();
                                                         tester.slavesNotification().available().userDataFetched().
                                                             twoChannels().incoming().confirmed().expectToBeSent();
 
@@ -582,7 +582,7 @@ tests.addTest(options => {
                                                         tester.allowMediaInput();
                                                         tester.firstConnection.addCandidate();
 
-                                                        incomingCall.expectOkToBeSent();
+                                                        incomingCall.expectOkToBeSent().receiveResponse();
                                                         tester.slavesNotification().available().userDataFetched().
                                                             twoChannels().incoming().confirmed().expectToBeSent();
 
@@ -628,7 +628,7 @@ tests.addTest(options => {
                                                     tester.allowMediaInput();
                                                     tester.firstConnection.addCandidate();
 
-                                                    incomingCall.expectOkToBeSent();
+                                                    incomingCall.expectOkToBeSent().receiveResponse();
                                                     tester.slavesNotification().available().userDataFetched().
                                                         twoChannels().incoming().confirmed().expectToBeSent();
 
@@ -982,7 +982,8 @@ tests.addTest(options => {
                                                                         tester.allowMediaInput();
                                                                         tester.secondConnection.addCandidate();
 
-                                                                        incomingCall.expectOkToBeSent();
+                                                                        incomingCall.expectOkToBeSent().
+                                                                            receiveResponse();
 
                                                                         tester.slavesNotification().
                                                                             available().
@@ -1034,7 +1035,8 @@ tests.addTest(options => {
                                                                         tester.allowMediaInput();
                                                                         tester.secondConnection.addCandidate();
 
-                                                                        incomingCall.expectOkToBeSent();
+                                                                        incomingCall.expectOkToBeSent().
+                                                                            receiveResponse();
 
                                                                         tester.slavesNotification().
                                                                             available().
@@ -1172,6 +1174,11 @@ tests.addTest(options => {
                                                                         expectToBeSent();
 
                                                                     incomingCall.expectTemporarilyUnavailableToBeSent();
+
+                                                                    tester.callSessionFinish().
+                                                                        thirdId().
+                                                                        slavesNotification().
+                                                                        expectToBeSent();
 
                                                                     tester.softphone.expectToHaveTextContent(
                                                                         'Шалева Дора ' +
@@ -1682,7 +1689,7 @@ tests.addTest(options => {
                                                                 tester.allowMediaInput();
                                                                 tester.firstConnection.addCandidate();
 
-                                                                incomingCall.expectOkToBeSent();
+                                                                incomingCall.expectOkToBeSent().receiveResponse();
                                                                 tester.slavesNotification().available().
                                                                     userDataFetched().twoChannels().incoming().
                                                                     confirmed().expectToBeSent();
@@ -1761,7 +1768,7 @@ tests.addTest(options => {
                                                         tester.allowMediaInput();
                                                         tester.firstConnection.addCandidate();
 
-                                                        incomingCall.expectOkToBeSent();
+                                                        incomingCall.expectOkToBeSent().receiveResponse();
                                                         tester.slavesNotification().available().userDataFetched().
                                                             twoChannels().incoming().confirmed().expectToBeSent();
 

@@ -2791,7 +2791,7 @@ define(function () {
 
                     return {
                         expectOkToBeSent: function () {
-                            me.requestAcceptIncomingCall();
+                            return me.requestAcceptIncomingCall();
                         },
                         expectTemporarilyUnavailableToBeSent: function () {
                             me.requestDeclineIncomingCall();
@@ -3644,27 +3644,39 @@ define(function () {
         };
 
         this.requestAcceptIncomingCall = function () {
-            sip.recentResponse().
+            var request = sip.recentResponse().
                 expectOk().
-                request().
-                setServerName('voip.uiscom.ru').
-                setMethod('ACK').
-                setCallReceiverLogin('077368').
-                receive();
+                request();
 
-            Promise.runAll(false, true);
+            return {
+                receiveResponse: function () {
+                    request.
+                        setServerName('voip.uiscom.ru').
+                        setMethod('ACK').
+                        setCallReceiverLogin('077368').
+                        receive();
 
-            eventsWebSocket.receiveMessage({
-                name: 'employee_changed',
-                type: 'event',
-                params: {
-                    action: 'update',
-                    data: {
-                        id: 20816,
-                        is_in_call: true
-                    }
+                    Promise.runAll(false, true);
+
+                    eventsWebSocket.receiveMessage({
+                        name: 'employee_changed',
+                        type: 'event',
+                        params: {
+                            action: 'update',
+                            data: {
+                                id: 20816,
+                                is_in_call: true
+                            }
+                        }
+                    });
+
+                    return {
+                        expectByeRequestToBeSent: function () {
+                            me.requestCallFinish();
+                        }
+                    };
                 }
-            });
+            };
         };
 
         function Connection(index) {
@@ -3796,6 +3808,8 @@ define(function () {
                     call_session_id: 980925450
                 }
             });
+
+            Promise.runAll(false, true);
         }
 
         this.notificationOfUserStateChanging = function () {

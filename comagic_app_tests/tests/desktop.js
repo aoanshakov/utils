@@ -347,10 +347,12 @@ tests.addTest(options => {
 
                                 tester.allowMediaInput();
                                 tester.firstConnection.addCandidate();
-                                tester.requestAcceptIncomingCall();
+                                
+                                incomingCall.expectOkToBeSent().receiveResponse();
 
                                 utils.pressKey('7');
                                 tester.dtmf('7').send();
+
                                 tester.expectToneSevenToPlay();
                             });
                             it('Нажимаю на клавишу Esc. Звонок отклоняется.', function() {

@@ -1369,6 +1369,11 @@ define(() => function ({
         });
 
         return {
+            anotherContactNumber: function () {
+                params.contact_phone_number = '79161234570';
+                return this;
+            },
+
             clickToCall: function () {
                 params.direction = 'out';
                 return this;
@@ -7052,6 +7057,96 @@ define(() => function ({
 
                 spendTime(0);
                 Promise.runAll(false, true);
+            }
+        };
+    };
+
+    me.ipcPrompterCallPreparationMessage = () => {
+        const data = {
+            target: 'monitoring',
+            message: 'prepare_to_prompter_call',
+            call_session_id: 79161234567,
+            subscriber_number: '79161234569',
+            employee_full_name: 'Шалева Дора Добриновна',
+            show_notification: true
+        };
+        
+        return {
+            noSubscriberNumber() {
+                data.subscriber_number = null;
+                return this;
+            },
+
+            dontShowNotification() {
+                data.show_notification = false;
+                return this;
+            },
+
+            anotherPhoneNumber() {
+                data.call_session_id = 79161234570;
+                return this;
+            },
+
+            receive() {
+                me.eventsWebSocket.receiveMessage({
+                    type: 'ipc',
+                    data
+                });
+            }
+        };
+    };
+
+    me.ipcPrompterCallAwaitMessage = () => {
+        const data = {
+            target: 'monitoring',
+            message: 'await_prompter_call',
+            call_session_id: 79161234567
+        };
+        
+        return {
+            anotherPhoneNumber() {
+                data.call_session_id = 79161234570;
+                return this;
+            },
+
+            expectToBeSent() {
+                me.eventsWebSocket.expectSentMessageToContain({
+                    type: 'ipc',
+                    data
+                });
+            }
+        };
+    };
+
+    me.ipcAlreadyPrompterMessage = () => {
+        const data = {
+            target: 'monitoring',
+            message: 'already_prompter',
+            call_session_id: 79161234570
+        };
+        
+        return {
+            expectToBeSent() {
+                me.eventsWebSocket.expectSentMessageToContain({
+                    type: 'ipc',
+                    data
+                });
+            }
+        };
+    };
+
+    me.ipcPrompterCallEndMessage = () => {
+        const data = {
+            target: 'monitoring',
+            message: 'end_prompter_call'
+        };
+        
+        return {
+            receive() {
+                me.eventsWebSocket.receiveMessage({
+                    type: 'ipc',
+                    data
+                });
             }
         };
     };
