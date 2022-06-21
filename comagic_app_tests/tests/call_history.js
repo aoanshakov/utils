@@ -373,7 +373,7 @@ tests.addTest(options => {
                     
                     describe('Ввожу непустой комментарий.', function() {
                         beforeEach(function() {
-                            tester.modalWindow.textarea.fill('Другой комментарий');
+                            tester.modalWindow.textarea.fill('   Другой комментарий ');
 
                             tester.button('Сохранить').click();
                             tester.commentUpdatingRequest().anotherCall().receiveResponse();
@@ -438,6 +438,26 @@ tests.addTest(options => {
                         tester.modalWindow.textarea.expectToHaveValue('Некий комментарий');
                     });
                 });
+                describe(
+                    'Нажимаю на кнопку проигрывания записи. Запись проигрывается. Нажимаю на кнопку закрытия плеера.',
+                function() {
+                    beforeEach(function() {
+                        tester.table.row.first.column.withHeader('Запись').playIcon.click();
+                        
+                        tester.talkRecordRequest().receiveResponse();
+                        audioDecodingTester.accomplishAudioDecoding();
+
+                        tester.closeButton.click();
+                    });
+
+                    it('Нажимаю на кнопку проигрывания записи. Плеер отображается.', function() {
+                        tester.table.row.first.column.withHeader('Запись').playIcon.click();
+                        tester.closeButton.expectToBeVisible();
+                    });
+                    it('Плеер скрыт.', function() {
+                        tester.closeButton.expectNotToExist();
+                    });
+                });
                 it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
                     tester.radioButton('Все').click();
 
@@ -481,12 +501,6 @@ tests.addTest(options => {
                     tester.marksRequest().receiveResponse();
 
                     tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
-                });
-                it('Нажимаю на кнопку проигрывания записи. Запись проигрывается.', function() {
-                    tester.table.row.first.column.withHeader('Запись').playIcon.click();
-                    
-                    tester.talkRecordRequest().receiveResponse();
-                    audioDecodingTester.accomplishAudioDecoding();
                 });
                 it('Нажимаю на кнопку скачивания записи. Открыт выпадающий список записей.', function() {
                     tester.table.row.atIndex(1).column.withHeader('Запись').downloadIcon.click();

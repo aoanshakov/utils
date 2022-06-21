@@ -2,6 +2,7 @@ tests.addTest(options => {
     const {
         utils,
         Tester,
+        broadcastChannels,
         spendTime,
         windowOpener,
         mediaStreamsTester,
@@ -42,7 +43,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        describe('Фичафлаг софтфона включен.', function() {
+        xdescribe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -2061,6 +2062,136 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
+                                            describe(
+                                                'Получено сообщение о том, что другая вкладка стала ведущей. ' +
+                                                'Разрывается соединение с вебсокетами. Получено оповещение о ' +
+                                                'состоянии ведущей вкладки.',
+                                            function() {
+                                                beforeEach(function() {
+                                                    tester.masterInfoMessage().tellIsLeader().receive();
+                                                    tester.masterNotification().tabOpened().expectToBeSent();
+
+                                                    tester.authenticatedUserRequest().receiveResponse();
+
+                                                    tester.eventsWebSocket.finishDisconnecting();
+                                                    tester.registrationRequest().expired().receiveResponse();
+
+                                                    spendTime(2000);
+                                                    tester.webrtcWebsocket.finishDisconnecting();
+
+                                                    tester.slavesNotification().
+                                                        available().
+                                                        userDataFetched().
+                                                        twoChannels().
+                                                        receive();
+                                                });
+
+                                                describe(
+                                                    'Вкладка снова становится ведущей. Устанавливается соединение.',
+                                                function() {
+                                                    beforeEach(function() {
+                                                        tester.masterInfoMessage().receive();
+
+                                                        tester.slavesNotification().
+                                                            tabsVisibilityRequest().
+                                                            expectToBeSent();
+
+                                                        tester.slavesNotification().
+                                                            userDataFetched().
+                                                            enabled().
+                                                            twoChannels().
+                                                            expectToBeSent();
+
+                                                        tester.slavesNotification().
+                                                            additional().
+                                                            visible().
+                                                            expectToBeSent();
+
+                                                        tester.masterInfoMessage().
+                                                            tellIsLeader().
+                                                            expectToBeSent();
+
+                                                        tester.connectSIPWebSocket(1);
+
+                                                        tester.slavesNotification().
+                                                            userDataFetched().
+                                                            enabled().
+                                                            twoChannels().
+                                                            webRTCServerConnected().
+                                                            expectToBeSent();
+
+                                                        tester.allowMediaInput();
+
+                                                        tester.slavesNotification().
+                                                            userDataFetched().
+                                                            enabled().
+                                                            twoChannels().
+                                                            webRTCServerConnected().
+                                                            microphoneAccessGranted().
+                                                            expectToBeSent();
+
+                                                        tester.registrationRequest().receiveResponse();
+
+                                                        tester.slavesNotification().
+                                                            userDataFetched().
+                                                            enabled().
+                                                            twoChannels().
+                                                            webRTCServerConnected().
+                                                            microphoneAccessGranted().
+                                                            registered().
+                                                            expectToBeSent();
+                                                        
+                                                        tester.getEventsWebSocket(1).expectToBeConnecting();
+                                                    });
+                                                        
+                                                    describe('Соединение установлено.', function() {
+                                                        beforeEach(function() {
+                                                            tester.connectEventsWebSocket(1);
+                                                            tester.authenticatedUserRequest().receiveResponse();
+
+                                                            tester.slavesNotification().
+                                                                userDataFetched().
+                                                                twoChannels().
+                                                                available().
+                                                                expectToBeSent();
+                                                        });
+
+                                                        it(
+                                                            'Прошло некоторое время. Проверка наличия ведущей ' +
+                                                            'вкладки не совершается.',
+                                                        function() {
+                                                            spendTime(3000);
+                                                            Promise.runAll(false, true);
+                                                        });
+                                                        it('Софтфон доступен.', function() {
+                                                            tester.callButton.expectNotToHaveAttribute('disabled');
+
+                                                            tester.softphone.expectTextContentNotToHaveSubstring(
+                                                                'Устанавливается соединение...'
+                                                            );
+                                                        });
+                                                    });
+                                                    it('Отображено сообщение об установке соедниния.', function() {
+                                                        tester.softphone.
+                                                            expectToHaveTextContent('Устанавливается соединение...');
+                                                    });
+                                                });
+                                                it(
+                                                    'Прошло некоторое время. Проверяется наличие ведущей вкладки.',
+                                                function() {
+                                                    spendTime(1000);
+                                                    Promise.runAll(false, true);
+
+                                                    tester.masterInfoMessage().applyLeader().expectToBeSent();
+                                                });
+                                                it('Софтфон приведен в актуальное состояние.', function() {
+                                                    tester.callButton.expectNotToHaveAttribute('disabled');
+
+                                                    tester.softphone.expectTextContentNotToHaveSubstring(
+                                                        'Устанавливается соединение...'
+                                                    );
+                                                });
+                                            });
                                             describe('Нажимаю на кнопку таблицы сотрудников.', function() {
                                                 beforeEach(function() {
                                                     tester.addressBookButton.click();
@@ -2388,6 +2519,13 @@ tests.addTest(options => {
                                                     expectToBeSent();
 
                                                 tester.input.withFieldLabel('Логин').expectToBeVisible();
+                                            });
+                                            it(
+                                                'Прошло некоторое время. Проверка наличия ведущей вкладки не ' +
+                                                'совершается.',
+                                            function() {
+                                                spendTime(3000);
+                                                Promise.runAll(false, true);
                                             });
                                             it('Отображен софтфон.', function() {
                                                 if (localStorage.getItem('isSoftphoneHigh') != 'false') {
@@ -3407,6 +3545,13 @@ tests.addTest(options => {
                                 expectToBeOpened();
                         });
                         it(
+                            'Прошло некоторое время. Проверка наличия ведущей вкладки не ' +
+                            'совершается.',
+                        function() {
+                            spendTime(3000);
+                            Promise.runAll(false, true);
+                        });
+                        it(
                             'Существует другая открытая вкладка. Поступил входящий звонок. Браузерное ' +
                             'уведомление не отображено.',
                         function() {
@@ -3739,6 +3884,12 @@ tests.addTest(options => {
                     tester.masterInfoMessage().leaderDeath().expectToBeSent();
                     tester.masterNotification().destroy().expectToBeSent();
                 });
+                it('Прошло некоторое время. Проверяется наличие ведущей вкладки.', function() {
+                    spendTime(2000);
+                    Promise.runAll(false, true);
+
+                    tester.masterInfoMessage().applyLeader().expectToBeSent();
+                });
                 it('Попытка восстановления соединения не совершается.', function() {
                     tester.expectNoWebsocketConnecting();
 
@@ -3783,33 +3934,232 @@ tests.addTest(options => {
                 });
             });
         });
-        it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
-            tester.masterInfoMessage().receive();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+        describe('Вкладка является ведущей.', function() {
+            beforeEach(function() {
+                tester.masterInfoMessage().receive();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+            });
 
-            accountRequest.softphoneUnavailable().receiveResponse();
+            describe('Пользователь является руководителем.', function() {
+                beforeEach(function() {
+                    accountRequest = accountRequest.manager();
+                });
 
-            tester.reportGroupsRequest().receiveResponse();
-            tester.reportsListRequest().receiveResponse();
-            tester.reportTypesRequest().receiveResponse();
+                xit('Фичефлаг софтфона включен. Кнопка софтфона отображена.', function() {
+                    accountRequest.receiveResponse();
 
-            tester.button('Софтфон').expectNotToExist();
-            tester.button('История звонков').expectNotToExist();
-        });
-        it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
-            tester.masterInfoMessage().receive();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-            
-            accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
+                    tester.configRequest().softphone().receiveResponse();
 
-            tester.reportGroupsRequest().receiveResponse();
-            tester.reportsListRequest().receiveResponse();
-            tester.reportTypesRequest().receiveResponse();
+                    tester.slavesNotification().expectToBeSent();
+                    tester.slavesNotification().additional().expectToBeSent();
 
-            tester.button('Софтфон').expectNotToExist();
-            tester.button('История звонков').expectNotToExist();
+                    const requests = ajax.inAnyOrder();
+
+                    const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                        reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                        reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                        secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    reportsListRequest.receiveResponse();
+                    reportTypesRequest.receiveResponse();
+                    reportGroupsRequest.receiveResponse();
+                    secondAccountRequest.receiveResponse();
+
+                    tester.authCheckRequest().receiveResponse();
+                    tester.statusesRequest().receiveResponse();
+
+                    tester.settingsRequest().receiveResponse();
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
+
+                    notificationTester.grantPermission();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
+
+                    tester.connectEventsWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        widgetStateUpdate().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        updateSettings().
+                        shouldNotPlayCallEndingSignal().
+                        expectToBeSent();
+
+                    tester.authenticatedUserRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.registrationRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        userDataFetched().
+                        registered().
+                        expectToBeSent();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.button('Софтфон').expectToBeVisible();
+                    tester.button('История звонков').expectToBeVisible();
+                });
+                it('Фичефлаг софтфона для руководителя включен. Кнопка софтфона отображена.', function() {
+                    accountRequest.managerSoftphoneFeatureFlagEnabled().receiveResponse();
+
+                    tester.configRequest().softphone().receiveResponse();
+
+                    tester.slavesNotification().expectToBeSent();
+                    tester.slavesNotification().additional().expectToBeSent();
+
+                    const requests = ajax.inAnyOrder();
+
+                    const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                        reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                        reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                        secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    reportsListRequest.receiveResponse();
+                    reportTypesRequest.receiveResponse();
+                    reportGroupsRequest.receiveResponse();
+                    secondAccountRequest.receiveResponse();
+
+                    tester.authCheckRequest().receiveResponse();
+                    tester.statusesRequest().receiveResponse();
+
+                    tester.settingsRequest().receiveResponse();
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
+
+                    notificationTester.grantPermission();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
+
+                    tester.connectEventsWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        widgetStateUpdate().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        updateSettings().
+                        shouldNotPlayCallEndingSignal().
+                        expectToBeSent();
+
+                    tester.authenticatedUserRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.registrationRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        userDataFetched().
+                        registered().
+                        expectToBeSent();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        userDataFetched().
+                        expectToBeSent();
+                });
+                return;
+                it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
+                    accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
+
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
+
+                    tester.button('Софтфон').expectNotToExist();
+                    tester.button('История звонков').expectNotToExist();
+                });
+            });
+            return;
+            xit('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
+                accountRequest.softphoneUnavailable().receiveResponse();
+
+                tester.reportGroupsRequest().receiveResponse();
+                tester.reportsListRequest().receiveResponse();
+                tester.reportTypesRequest().receiveResponse();
+
+                tester.button('Софтфон').expectNotToExist();
+                tester.button('История звонков').expectNotToExist();
+            });
+            it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
+                accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
+
+                tester.reportGroupsRequest().receiveResponse();
+                tester.reportsListRequest().receiveResponse();
+                tester.reportTypesRequest().receiveResponse();
+
+                tester.button('Софтфон').expectNotToExist();
+                tester.button('История звонков').expectNotToExist();
+            });
         });
     });
+return;
     describe('Я уже аутентифицирован. Открываю новый личный кабинет.', function() {
         let authenticatedUserRequest,
             tester;

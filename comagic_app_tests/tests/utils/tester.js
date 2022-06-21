@@ -6750,6 +6750,7 @@ define(() => function ({
                     user_name: 'karadimova',
                     user_type: 'user',
                     feature_flags: ['softphone'],
+                    call_center_role: 'employee',
                     components: [
                         'operation',
                         'dialing',
@@ -6902,7 +6903,11 @@ define(() => function ({
                 return me;
             };
             
+            me.manager = () => (response.result.data.call_center_role = 'manager', me);
             me.softphoneFeatureFlagDisabled = () => ((response.result.data.feature_flags = []), me);
+
+            me.managerSoftphoneFeatureFlagEnabled = () =>
+                ((response.result.data.feature_flags = ['manager_softphone']), me);
 
             me.softphoneUnavailable = () => ((response.result.data.permissions =
                 response.result.data.permissions.filter(({unit_id}) => unit_id != 'softphone_login')), me);
@@ -7272,9 +7277,16 @@ define(() => function ({
         return tester;
     })(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
 
-    me.closeButton = testersFactory.createDomElementTester(
-        '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close'
-    );
+    me.closeButton = (() => {
+        const tester = testersFactory.createDomElementTester(
+            '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close, .ui-audio-player__close'
+        );
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
 
     me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');

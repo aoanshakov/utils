@@ -5318,14 +5318,19 @@ define(function () {
                         }
                     });
 
-                const receiveTellIsLeader = () => receiveMessage({
-                    type: 'internal',
-                    data: {
-                        context: 'leader',
-                        action: 'tell',
-                        token: 'g28g2hor28'
-                    }
-                });
+                const receiveTellIsLeader = () => {
+                    receiveMessage({
+                        type: 'internal',
+                        data: {
+                            context: 'leader',
+                            action: 'tell',
+                            token: 'g28g2hor28'
+                        }
+                    });
+
+                    Promise.runAll(false, true);
+                    wasMaster = false;
+                };
 
                 return {
                     leaderDeath: () => ({
@@ -5343,6 +5348,7 @@ define(function () {
                         } 
                     }),
                     applyLeader: () => ({
+                        expectToBeSent: applyLeader,
                         receive: () => {
                             const message = applyMessage();
                             message.data.token = 'i9js2l68w8';
@@ -5362,8 +5368,6 @@ define(function () {
                             }
 
                             receiveTellIsLeader();
-                            Promise.runAll(false, true);
-                            wasMaster = false;
                         };
 
                         return this;
