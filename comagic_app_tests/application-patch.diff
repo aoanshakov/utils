@@ -291,7 +291,7 @@ index 90627a16..d6c5df92 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index db806a0a..7d4c2367 100644
+index db806a0a..d6833d1a 100644
 --- a/package.json
 +++ b/package.json
 @@ -58,8 +58,8 @@
@@ -328,12 +328,13 @@ index db806a0a..7d4c2367 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -95,11 +99,14 @@
+@@ -95,11 +99,15 @@
      "react": "^17.0.2",
      "react-dom": "^17.0.2",
      "react-intl": "5.15.8",
 -    "react-router-dom": "^5.1.2",
 +    "react-router": "5.2.1",
++    "react-router-dom": "5.2.1",
 +    "simplebar-react": "^2.4.1",
 +    "softphone": "./misc/softphone",
      "stream-buffers": "^3.0.2",
@@ -390,10 +391,17 @@ index fd0f39d9..6741d8aa 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 68f48551..eddf50e7 100644
+index 68f48551..7768b31a 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -10,7 +10,10 @@ import { Integrations } from '@sentry/tracing';
+@@ -4,13 +4,16 @@ import ReactDOM from 'react-dom';
+ import { Router } from 'react-router-dom';
+ import { IntlProvider } from 'react-intl';
+ import moment from 'moment';
+-import { CoreProvider } from '@comagic/core';
++import { CoreProvider, eventBus } from '@comagic/core';
+ import * as Sentry from '@sentry/react';
+ import { Integrations } from '@sentry/tracing';
  
  import { useMountEffect } from '@hooks';
  
@@ -405,13 +413,14 @@ index 68f48551..eddf50e7 100644
  
  import history from './history';
  import { getIntlLocale, getIntlMessages } from './i18n';
-@@ -92,4 +95,35 @@ const Root: React.FC = observer(props => {
+@@ -92,4 +95,37 @@ const Root: React.FC = observer(props => {
      );
  });
  
 -ReactDOM.render(<Root {...(window.rootConfig || {})}/>, document.getElementById('root'));
 +window.application = {
 +    run({
++        setEventBus = () => null,
 +        setHistory = () => null,
 +        setChatsRootStore = () => null,
 +        appName = ''
@@ -421,6 +430,7 @@ index 68f48551..eddf50e7 100644
 +        createSoftphoneRootStore();
 +        createAnalyticsRootStore();
 +        setHistory(history);
++        setEventBus(eventBus);
 +
 +        this.exit();
 +

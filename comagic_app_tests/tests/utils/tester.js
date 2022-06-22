@@ -12,6 +12,7 @@ define(() => function ({
     image
 }) {
     let history,
+        eventBus,
         chatsRootStore;
     const mainTester = me;
 
@@ -40,10 +41,16 @@ define(() => function ({
     window.softphoneCrossTabCommunicatorCache = {};
 
     window.application.run({
+        setEventBus: value => (eventBus = value),
         setHistory: value => (history = value),
         setChatsRootStore: value => (chatsRootStore = value),
         appName
     });
+
+    me.eventBus = (() => {
+        const broadcast = eventBus.broadcast.bind(eventBus);
+        return {broadcast};
+    })();
 
     me.history = history;
     history.replace(path);

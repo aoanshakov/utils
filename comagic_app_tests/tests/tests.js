@@ -43,7 +43,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        xdescribe('Фичафлаг софтфона включен.', function() {
+        describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -3945,7 +3945,7 @@ tests.addTest(options => {
                     accountRequest = accountRequest.manager();
                 });
 
-                xit('Фичефлаг софтфона включен. Кнопка софтфона отображена.', function() {
+                it('Фичефлаг софтфона включен. Кнопка софтфона отображена.', function() {
                     accountRequest.receiveResponse();
 
                     tester.configRequest().softphone().receiveResponse();
@@ -4124,7 +4124,6 @@ tests.addTest(options => {
                         userDataFetched().
                         expectToBeSent();
                 });
-                return;
                 it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
                     accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
 
@@ -4136,15 +4135,14 @@ tests.addTest(options => {
                     tester.button('История звонков').expectNotToExist();
                 });
             });
-            return;
-            xit('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
+            it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
                 accountRequest.softphoneUnavailable().receiveResponse();
 
                 tester.reportGroupsRequest().receiveResponse();
                 tester.reportsListRequest().receiveResponse();
                 tester.reportTypesRequest().receiveResponse();
 
-                tester.button('Софтфон').expectNotToExist();
+                tester.button('Софтфон').expectNotToEist();
                 tester.button('История звонков').expectNotToExist();
             });
             it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
@@ -4159,7 +4157,6 @@ tests.addTest(options => {
             });
         });
     });
-return;
     describe('Я уже аутентифицирован. Открываю новый личный кабинет.', function() {
         let authenticatedUserRequest,
             tester;
