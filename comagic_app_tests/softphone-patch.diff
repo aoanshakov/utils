@@ -36,10 +36,202 @@ index 7852e70..04c7e30 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index b2ec301..8415bc8 100644
+index b2ec301..1c5ff6b 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -412,4 +412,5 @@ export const RootStore = types
+@@ -1,9 +1,10 @@
+ import React from 'react';
+ import { types, Instance, getSnapshot, applySnapshot, SnapshotOut } from 'mobx-state-tree';
+ import makeInspectable from 'mobx-devtools-mst';
+-import createSoftphoneReducer from 'uis-softphone/reducer';
++import createSoftphoneReducer, { maybeHidePhoneNumber } from 'uis-softphone/reducer';
+ import createI18N from 'uis-softphone/common/createI18N';
+ import { authorization } from 'uis-softphone/authorization/actions';
++import prompter, { checkPendingCallToPrompt } from './prompter/reducer';
+ import { setStartApp, setStartMinimize } from 'uis-softphone/settings/actions';
+ import createSoftphoneMiddleware from 'uis-softphone/middleware';
+ import thunkMiddleware from 'redux-thunk';
+@@ -15,13 +16,22 @@ import { StatusesStore } from './statuses/StatusesStore';
+ import { CallHistoryStore } from './call_history/CallHistoryStore';
+ 
+ import {
++    setPrompterSipLine,
++    addPendingCallToPrompt
++} from './prompter/actions';
++
++import {
+     toggleWidgetVisiblity,
+     setAxiosProcessor,
+     setStatus,
+     onDialpadKeyDown,
+     showMessage,
+     closeMessage,
+-    showWidget
++    showWidget,
++    sendBrowserNotification,
++    addNotificationToSession,
++    sendToWebsocket,
++    terminateSession
+ } from 'uis-softphone/actions';
+ 
+ import {
+@@ -34,6 +44,7 @@ import {
+     SET_STATUSES,
+     JSSIP_INBOUNDING_CALL_INCOMING,
+     JSSIP_CALL_ENDED,
++    JSSIP_INBOUNDING_CALL_ENDED,
+     SOFTPHONE_HIGHT_CHANGED,
+     HANDLE_EVENT,
+     HANDLE_LOGOUT,
+@@ -62,7 +73,8 @@ export const ConfigStore = types
+         return { setConfig };
+     });
+ 
+-const returnTrue = () => true;
++const returnTrue = () => true,
++    shouldDisplayCallNotification = (phone, state) => !checkPendingCallToPrompt(state, phone);
+ 
+ export const RootStore = types
+     .model('RootStore', {
+@@ -139,6 +151,7 @@ export const RootStore = types
+             };
+ 
+             self.reduxStore = createStore(combineReducers({
++                prompter,
+                 requestUrls: (state = {
+                     httpServerUrl: window.location.host
+                 }, action) => {
+@@ -151,7 +164,7 @@ export const RootStore = types
+                     return state;
+                 },
+                 mayHideSoftphone: () => returnTrue,
+-                shouldDisplayCallNotification: () => returnTrue,
++                shouldDisplayCallNotification: () => shouldDisplayCallNotification,
+                 getPhoneNumber: () => () => '',
+                 createSlavesNotification: () => state => ({}),
+                 getWebRTCConfig: () => () => isSingleApp ? {
+@@ -187,11 +200,58 @@ export const RootStore = types
+                             self.callHistoryStore.setPermissions(action.permissions);
+                             break;
+                         case HANDLE_EVENT: {
+-                            const {data} = action;
++                            const {data} = action,
++                                {prompterSipLine} = getState().prompter;
+ 
+                             data.name == 'application_version_changed' &&
+                                 applicationChangeHandlers.forEach(handler => handler(data));
+ 
++                            if (data.type === 'ipc') {
++                                const {
++                                    call_session_id,
++                                    subscriber_number,
++                                    employee_full_name,
++                                    show_notification
++                                } = data.data;
++
++                                switch (data.data.message) {
++                                    case 'prepare_to_prompter_call':
++                                        if (prompterSipLine) {
++                                            dispatch(sendToWebsocket({
++                                                type: 'ipc',
++                                                data: {
++                                                    target: 'monitoring',
++                                                    message: 'already_prompter',
++                                                    call_session_id
++                                                }
++                                            }));
++                                        } else {
++                                            dispatch(addPendingCallToPrompt({
++                                                call_session_id,
++                                                subscriber_number,
++                                                employee_full_name,
++                                                show_notification
++                                            }));
++
++                                            dispatch(sendToWebsocket({
++                                                type: 'ipc',
++                                                data: {
++                                                    target: 'monitoring',
++                                                    message: 'await_prompter_call',
++                                                    call_session_id
++                                                }
++                                            }));
++                                        }
++                                        break;
++                                    case 'end_prompter_call':
++                                        if (prompterSipLine) {
++                                            dispatch(setPrompterSipLine(null));
++                                            dispatch(terminateSession(prompterSipLine));
++                                        }
++                                        break;
++                                }
++                            }
++
+                             break;
+                         }
+                         case HANDLE_WEBRTC_CREATED: {
+@@ -211,9 +271,59 @@ export const RootStore = types
+                         case JSSIP_CALL_ENDED:
+                             handlerCallEnd(store.getState().settings.closeOnCallEnd);
+                             break;
+-                        case JSSIP_INBOUNDING_CALL_INCOMING:
++                        case JSSIP_INBOUNDING_CALL_ENDED:
++                            dispatch(setPrompterSipLine(null));
++                            break;
++                        case JSSIP_INBOUNDING_CALL_INCOMING: {
+                             handleIncomingCall(store.getState().settings.toTopOnCall);
++
++                            const state = store.getState(),
++                                {session} = action,
++                                {phoneNumber, channel} = session;
++                            
++                            const {
++                                prompter: {pendingPromptCall},
++                                webRTC: {
++                                    sdk,
++                                    sounds: {incomingRingtone}
++                                }
++                            } = state;
++
++                            if (checkPendingCallToPrompt(state, phoneNumber)) {
++                                const {
++                                    employee_full_name,
++                                    subscriber_number,
++                                    show_notification
++                                } = pendingPromptCall;
++
++                                show_notification && dispatch(sendBrowserNotification(
++                                    state.i18n('Connecting to call'),
++                                    {
++                                        body:`${employee_full_name} ${maybeHidePhoneNumber(
++                                            state,
++                                            subscriber_number,
++                                            true
++                                        )}`,
++                                        icon: '/build/icon.ico',
++                                        silent: false,
++                                        requireInteraction: true
++                                    }
++                                ));
++
++                                incomingRingtone.mute();
++                                dispatch(setPrompterSipLine(channel));
++
++                                subscriber_number && dispatch(addNotificationToSession({
++                                    calling_phone_number: phoneNumber,
++                                    subscriber_number 
++                                }));
++
++                                sdk.mute();
++                                sdk.answer(channel);
++                            }
++
+                             break;
++                        }
+                         case SET_STATUSES:
+                             self.statusesStore.setStatuses(action.data || []);
+                             break;
+@@ -412,4 +522,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
