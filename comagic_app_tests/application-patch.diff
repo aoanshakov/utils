@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 90627a16..fc66a78f 100644
+index 90627a16..d6c5df92 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -7,10 +7,11 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -166,7 +166,7 @@ index 90627a16..fc66a78f 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -331,17 +401,117 @@ module.exports = {
+@@ -331,17 +401,119 @@ module.exports = {
                      },
                  ],
              },
@@ -215,6 +215,7 @@ index 90627a16..fc66a78f 100644
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
 +            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
 +            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
++            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingSubstitutionControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingTrafficControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
@@ -243,7 +244,8 @@ index 90627a16..fc66a78f 100644
 +            'analytics/RadioGroup':
 +                `${miscDirectory}/analytics/frontend/src/components/lib/radio-button/RadioGroup.tsx`,
 +            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
-+            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`
++            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
++            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`
          },
 +
 +        plugins: [{
@@ -289,7 +291,7 @@ index 90627a16..fc66a78f 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 88f6d254..d05ecea8 100644
+index db806a0a..7d4c2367 100644
 --- a/package.json
 +++ b/package.json
 @@ -58,8 +58,8 @@
@@ -303,15 +305,12 @@ index 88f6d254..d05ecea8 100644
      "url-loader": "^3.0.0",
      "webpack": "^5.72.0",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -68,6 +68,7 @@
-     "webpack-merge": "^5.7.3"
-   },
-   "dependencies": {
-+    "analytics": "./misc/analytics/frontend",
-     "@comagic/core": "git+https://comagic-core:bCb2p2VJ6HxAMxries77@gitlab.uis.dev/web/comagic_app_modules/core.git#0.5.4",
-     "@electron/remote": "^2.0.8",
+@@ -72,9 +72,13 @@
      "@sentry/react": "^6.17.6",
-@@ -76,6 +77,8 @@
+     "@sentry/tracing": "^6.17.6",
+     "ajv": "^8.8.2",
++    "analytics": "./misc/analytics/frontend",
++    "antd": "3.26.7",
      "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
      "axios": "^0.24.0",
@@ -320,7 +319,7 @@ index 88f6d254..d05ecea8 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -87,7 +90,7 @@
+@@ -86,7 +90,7 @@
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
@@ -329,21 +328,24 @@ index 88f6d254..d05ecea8 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -97,8 +100,13 @@
+@@ -95,11 +99,14 @@
+     "react": "^17.0.2",
      "react-dom": "^17.0.2",
      "react-intl": "5.15.8",
-     "react-router-dom": "^5.1.2",
+-    "react-router-dom": "^5.1.2",
 +    "react-router": "5.2.1",
++    "simplebar-react": "^2.4.1",
 +    "softphone": "./misc/softphone",
      "stream-buffers": "^3.0.2",
--    "yup": "^0.28.1"
-+    "yup": "^0.28.1",
-+    "broadcast-channel": "^4.10.0",
 +    "string-hash": "^1.1.3",
-+    "antd": "3.26.7"
+     "yup": "^0.28.1"
    },
    "optionalDependencies": {
      "dmg-license": "^1.0.9"
+   }
+-}
+\ No newline at end of file
++}
 diff --git a/public/index.html b/public/index.html
 index fd0f39d9..6741d8aa 100644
 --- a/public/index.html
@@ -388,7 +390,7 @@ index fd0f39d9..6741d8aa 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index c335a05d..efb4cad5 100644
+index 68f48551..eddf50e7 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -10,7 +10,10 @@ import { Integrations } from '@sentry/tracing';
@@ -454,10 +456,10 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index cbccb1f0..8a8e476f 100644
+index ebfab264..bd60b369 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -194,7 +194,7 @@ export const RootStore = types
+@@ -195,7 +195,7 @@ export const RootStore = types
                  }
              );
  
@@ -466,7 +468,7 @@ index cbccb1f0..8a8e476f 100644
                  response => {
                      logRequest({response});
  
-@@ -252,6 +252,7 @@ export const RootStore = types
+@@ -256,6 +256,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -474,7 +476,7 @@ index cbccb1f0..8a8e476f 100644
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -285,7 +286,8 @@ export type DependencyInjection = {
+@@ -289,7 +290,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -485,7 +487,7 @@ index cbccb1f0..8a8e476f 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index f1d73bd3..f0e35384 100644
+index 69e2d7d1..1eb0fc74 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -95,7 +95,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -497,7 +499,7 @@ index f1d73bd3..f0e35384 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          isUserLogoutProceeding: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
-@@ -195,6 +195,7 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -200,6 +200,7 @@ export const AuthStore = Loader.named('AuthStore')
          });
  
          const afterCreate = () => {

@@ -69,7 +69,7 @@ tests.addTest(options => {
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
         });
 
-        describe(
+        xdescribe(
             'Получены права. Получены настройки софтфона. Получен доступ к микрофону. SIP-линия ' +
             'зарегистрирована. Получены данные для отчета. SIP-регистрация завершена. Открываю раздел ' +
             '"История звонков".',
@@ -734,7 +734,7 @@ tests.addTest(options => {
                     expectNotToHaveClass('cmg-softphone-call-history-failed-call-row');
             });
         });
-        describe('Обновление комментария недоступно. Открываю раздел "История звонков".', function() {
+        xdescribe('Обновление комментария недоступно. Открываю раздел "История звонков".', function() {
             beforeEach(function() {
                 permissionsRequest.disallowCallSessionCommentingUpdate().receiveResponse();
                 settingsRequest.receiveResponse();
@@ -806,7 +806,7 @@ tests.addTest(options => {
                 tester.button('Сохранить').expectNotToHaveAttribute('disabled');
             });
         });
-        describe('Добавление комментария недоступно. Открываю раздел "История звонков".', function() {
+        xdescribe('Добавление комментария недоступно. Открываю раздел "История звонков".', function() {
             beforeEach(function() {
                 permissionsRequest.disallowCallSessionCommentingInsert().receiveResponse();
                 settingsRequest.receiveResponse();
@@ -878,7 +878,7 @@ tests.addTest(options => {
                 tester.button('Сохранить').expectToHaveAttribute('disabled');
             });
         });
-        describe('Удаление комментария недоступно. Открываю раздел "История звонков".', function() {
+        xdescribe('Удаление комментария недоступно. Открываю раздел "История звонков".', function() {
             beforeEach(function() {
                 permissionsRequest.disallowCallSessionCommentingDelete().receiveResponse();
                 settingsRequest.receiveResponse();
@@ -950,7 +950,7 @@ tests.addTest(options => {
                 tester.button('Сохранить').expectNotToHaveAttribute('disabled');
             });
         });
-        it('Статистика по всем звонкам недоступна. Открываю раздел "История звонков".', function() {
+        xit('Статистика по всем звонкам недоступна. Открываю раздел "История звонков".', function() {
             permissionsRequest.disallowSoftphoneAllCallsStatSelect().receiveResponse();
             settingsRequest.receiveResponse();
             tester.slavesNotification().twoChannels().enabled().expectToBeSent();
@@ -996,7 +996,7 @@ tests.addTest(options => {
             tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
             tester.marksRequest().receiveResponse();
         });
-        it(
+        xit(
             'Просмотр комментариев недоступен. Открываю раздел "История звонков". Комментарии не отображатся.',
         function() {
             permissionsRequest.disallowCallSessionCommentingSelect().receiveResponse();
@@ -1097,6 +1097,7 @@ tests.addTest(options => {
             tester.table.expectTextContentNotToHaveSubstring('Теги');
         });
     });
+    return;
     it('Открываю историю звонков. Страница локализована.', function() {
         setNow('2019-12-19T12:10:06');
 

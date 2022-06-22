@@ -1142,7 +1142,7 @@ define(function () {
 
             var me = {
                 disallowTagManagementSelect: function () {
-                    data.tag_management.is_select = false;
+                    data.tag_management.is_select = null;
                     return this;
                 },
                 disallowCallSessionCommentingDelete: function () {
