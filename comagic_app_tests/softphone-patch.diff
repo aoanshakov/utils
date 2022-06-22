@@ -36,40 +36,10 @@ index 7852e70..04c7e30 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 924c3fa..8415bc8 100644
+index b2ec301..8415bc8 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -350,25 +350,16 @@ export const RootStore = types
- 
-                 self.handleAccountFetched = ({
-                     accountStore,
--                    accountStore: {
--                        account: {
--                            app_id,
--                            permissions
--                        },
--                        hasFeatureFlag
--                    },
-+                    isSoftphoneAvailable,
-                     ...args
-                 }) => {
-                     authStore = args.authStore;
--
--                    const accessGranted = !!(
--                        permissions.get('softphone_login')?.is_select &&
--                        hasFeatureFlag('softphone')
--                    );
-+                    const accessGranted = isSoftphoneAvailable(accountStore);
- 
-                     accessGranted && accountFetchedHandlers.forEach(handler => handler(accountStore));
-                     updateState({accessGranted});
--                    app_id && isSingleApp && !accessGranted && logout();
-+
-+                    accountStore.toJSON()?.account?.app_id && isSingleApp && !accessGranted && logout();
-                 };
- 
-                 window.addEventListener('tokenChange', () => updateState(getTokenParams()));
-@@ -421,4 +412,5 @@ export const RootStore = types
+@@ -412,4 +412,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
