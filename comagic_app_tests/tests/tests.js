@@ -1576,10 +1576,10 @@ tests.addTest(options => {
                                                 it('Софтфон недоступен.', function() {
                                                     accountRequest.softphoneUnavailable().receiveResponse();
 
-                                                    tester.reportGroupsRequest().anotherAuthorizationToken().
-                                                        receiveResponse();
-                                                    tester.reportsListRequest().receiveResponse();
-                                                    tester.reportTypesRequest().receiveResponse();
+                                                    tester.accountRequest().anotherAuthorizationToken().
+                                                        softphoneUnavailable().expectToBeSent();
+
+                                                    tester.configRequest().softphone().receiveResponse();
 
                                                     tester.softphone.expectNotToExist();
                                                     tester.button('Софтфон').expectNotToExist();
@@ -1600,20 +1600,16 @@ tests.addTest(options => {
                                                         anotherAuthorizationToken().expectToBeSent(requests);
                                                     const authCheckRequest = tester.authCheckRequest().
                                                         anotherAuthorizationToken().expectToBeSent(requests);
-                                                    const reportGroupsRequest = tester.reportGroupsRequest().
-                                                        anotherAuthorizationToken().expectToBeSent(requests);
-                                                    const reportsListRequest = tester.reportsListRequest().
-                                                        expectToBeSent(requests);
-                                                    const reportTypesRequest = tester.reportTypesRequest().
-                                                        expectToBeSent(requests);
 
                                                     requests.expectToBeSent();
 
                                                     secondAccountRequest.receiveResponse();
                                                     authCheckRequest.receiveResponse();
-                                                    reportGroupsRequest.receiveResponse();
-                                                    reportsListRequest.receiveResponse();
-                                                    reportTypesRequest.receiveResponse();
+
+                                                    tester.reportGroupsRequest().anotherAuthorizationToken().
+                                                        receiveResponse();
+                                                    tester.reportsListRequest().receiveResponse();
+                                                    tester.reportTypesRequest().receiveResponse();
 
                                                     tester.statusesRequest().createExpectation().
                                                         anotherAuthorizationToken().checkCompliance().receiveResponse();
@@ -1968,12 +1964,6 @@ tests.addTest(options => {
 
                                                         const requests = ajax.inAnyOrder();
 
-                                                        const reportGroupsRequest = tester.reportGroupsRequest().
-                                                            expectToBeSent(requests);
-                                                        const reportsListRequest = tester.reportsListRequest().
-                                                            expectToBeSent(requests);
-                                                        const reportTypesRequest = tester.reportTypesRequest().
-                                                            expectToBeSent(requests);
                                                         const secondAccountRequest = tester.accountRequest().
                                                             expectToBeSent(requests);
                                                         const authCheckRequest = tester.authCheckRequest().
@@ -1981,11 +1971,12 @@ tests.addTest(options => {
 
                                                         requests.expectToBeSent();
 
-                                                        reportsListRequest.receiveResponse();
-                                                        reportTypesRequest.receiveResponse();
                                                         secondAccountRequest.receiveResponse();
-                                                        reportGroupsRequest.receiveResponse();
                                                         authCheckRequest.receiveResponse();
+
+                                                        tester.reportGroupsRequest().receiveResponse();
+                                                        tester.reportsListRequest().receiveResponse();
+                                                        tester.reportTypesRequest().receiveResponse();
 
                                                         tester.statusesRequest().receiveResponse();
                                                         tester.settingsRequest().receiveResponse();
@@ -2359,20 +2350,11 @@ tests.addTest(options => {
                                                     anotherAuthorizationToken().expectToBeSent(requests);
                                                 const accountRequest = tester.accountRequest().
                                                     anotherAuthorizationToken().expectToBeSent(requests);
-                                                const reportGroupsRequest = tester.reportGroupsRequest().
-                                                    anotherAuthorizationToken().expectToBeSent(requests);
-                                                const reportsListRequest = tester.reportsListRequest().
-                                                    expectToBeSent(requests);
-                                                const reportTypesRequest = tester.reportTypesRequest().
-                                                    expectToBeSent(requests);
 
                                                 requests.expectToBeSent();
 
                                                 authCheckRequest.receiveResponse();
                                                 accountRequest.receiveResponse();
-                                                reportGroupsRequest.receiveResponse();
-                                                reportsListRequest.receiveResponse();
-                                                reportTypesRequest.receiveResponse();
 
                                                 tester.statusesRequest().createExpectation().
                                                     anotherAuthorizationToken().checkCompliance().receiveResponse();
@@ -2386,6 +2368,11 @@ tests.addTest(options => {
 
                                                 tester.talkOptionsRequest().receiveResponse();
                                                 tester.permissionsRequest().receiveResponse();
+
+                                                tester.reportGroupsRequest().anotherAuthorizationToken().
+                                                    receiveResponse();
+                                                tester.reportsListRequest().receiveResponse();
+                                                tester.reportTypesRequest().receiveResponse();
 
                                                 tester.connectEventsWebSocket(1);
                                                 tester.slavesNotification().twoChannels().enabled().
@@ -3656,18 +3643,12 @@ tests.addTest(options => {
 
                     const requests = ajax.inAnyOrder();
 
-                    const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                    const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-                    const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
-                    const reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
-                    const secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                        secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
                     requests.expectToBeSent();
 
                     authCheckRequest.receiveResponse();
-                    reportGroupsRequest.receiveResponse();
-                    reportsListRequest.receiveResponse();
-                    reportTypesRequest.receiveResponse();
                     secondAccountRequest.receiveResponse();
 
                     tester.configRequest().softphone().receiveResponse();
@@ -3682,6 +3663,10 @@ tests.addTest(options => {
                     tester.settingsRequest().receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
+
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
                     
                     tester.slavesNotification().
                         twoChannels().
@@ -3760,17 +3745,19 @@ tests.addTest(options => {
                     const requests = ajax.inAnyOrder();
 
                     const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                    const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                    /*const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                     const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
-                    const reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
+                    const reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);*/
                     const secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
                     requests.expectToBeSent();
 
                     authCheckRequest.receiveResponse();
+                    /*
                     reportGroupsRequest.receiveResponse();
                     reportsListRequest.receiveResponse();
                     reportTypesRequest.receiveResponse();
+                    */
                     secondAccountRequest.receiveResponse();
 
                     tester.configRequest().softphone().receiveResponse();
@@ -3785,6 +3772,10 @@ tests.addTest(options => {
                     tester.settingsRequest().receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
+
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
                     
                     tester.slavesNotification().
                         twoChannels().
@@ -3950,9 +3941,6 @@ tests.addTest(options => {
 
                     tester.configRequest().softphone().receiveResponse();
 
-                    tester.slavesNotification().expectToBeSent();
-                    tester.slavesNotification().additional().expectToBeSent();
-
                     const requests = ajax.inAnyOrder();
 
                     const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
@@ -3965,7 +3953,10 @@ tests.addTest(options => {
                     reportsListRequest.receiveResponse();
                     reportTypesRequest.receiveResponse();
                     reportGroupsRequest.receiveResponse();
-                    secondAccountRequest.receiveResponse();
+                    secondAccountRequest.manager().receiveResponse();
+                    
+                    tester.slavesNotification().expectToBeSent();
+                    tester.slavesNotification().additional().expectToBeSent();
 
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
@@ -4041,9 +4032,6 @@ tests.addTest(options => {
 
                     tester.configRequest().softphone().receiveResponse();
 
-                    tester.slavesNotification().expectToBeSent();
-                    tester.slavesNotification().additional().expectToBeSent();
-
                     const requests = ajax.inAnyOrder();
 
                     const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
@@ -4057,6 +4045,9 @@ tests.addTest(options => {
                     reportTypesRequest.receiveResponse();
                     reportGroupsRequest.receiveResponse();
                     secondAccountRequest.receiveResponse();
+
+                    tester.slavesNotification().expectToBeSent();
+                    tester.slavesNotification().additional().expectToBeSent();
 
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
@@ -4142,7 +4133,7 @@ tests.addTest(options => {
                 tester.reportsListRequest().receiveResponse();
                 tester.reportTypesRequest().receiveResponse();
 
-                tester.button('Софтфон').expectNotToEist();
+                tester.button('Софтфон').expectNotToExist();
                 tester.button('История звонков').expectNotToExist();
             });
             it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
