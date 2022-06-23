@@ -36,87 +36,10 @@ index 8b7d3d7..e5aadc4 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index ac68ad7..57f8549 100644
+index c24e9b5..57f8549 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -49,7 +49,8 @@ import {
-     SOFTPHONE_HIGHT_CHANGED,
-     HANDLE_EVENT,
-     HANDLE_LOGOUT,
--    SET_PERMISSIONS
-+    SET_PERMISSIONS,
-+    IS_TRUE
- } from 'uis-softphone/constants';
- 
- type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
-@@ -206,6 +207,8 @@ export const RootStore = types
-                             data.name == 'application_version_changed' &&
-                                 applicationChangeHandlers.forEach(handler => handler(data));
- 
-+                            data.data?.action == 'prepare_to_prompter_call' &&
-+                                handlePrompterCallPreparing(data?.data?.data);
-                             break;
-                         }
-                         case HANDLE_WEBRTC_CREATED: {
-@@ -236,6 +239,7 @@ export const RootStore = types
-                                 {phoneNumber, channel} = session;
-                             
-                             const {
-+                                softphone: {isMaster},
-                                 prompter: {pendingPromptCall},
-                                 webRTC: {
-                                     sdk,
-@@ -264,7 +268,6 @@ export const RootStore = types
-                                     }
-                                 ));
- 
--                                incomingRingtone.mute();
-                                 dispatch(setPrompterSipLine(channel));
- 
-                                 subscriber_number && dispatch(addNotificationToSession({
-@@ -272,8 +275,11 @@ export const RootStore = types
-                                     subscriber_number 
-                                 }));
- 
--                                sdk.mute();
--                                sdk.answer(channel);
-+                                if (isMaster == IS_TRUE) {
-+                                    incomingRingtone.mute();
-+                                    sdk.mute();
-+                                    sdk.answer(channel);
-+                                }
-                             }
- 
-                             break;
-@@ -456,7 +462,7 @@ export const RootStore = types
-                 };
-             }
- 
--            eventBus.subscribe('prepare_to_prompter_call', ({
-+            const handlePrompterCallPreparing = ({
-                 call_session_id,
-                 subscriber_number,
-                 employee_full_name,
-@@ -474,6 +480,18 @@ export const RootStore = types
- 
-                     eventBus.broadcast('await_prompter_call', {call_session_id});
-                 }
-+            };
-+
-+            eventBus.subscribe('prepare_to_prompter_call', data => {
-+                self.reduxStore.getState().webRTC.sendCrossTabMessage({
-+                    type: 'notify_others',
-+                    data: {
-+                        action: 'prepare_to_prompter_call',
-+                        data
-+                    }
-+                });
-+
-+                handlePrompterCallPreparing(data);
-             });
- 
-             eventBus.subscribe('end_prompter_call', () => {
-@@ -507,4 +525,5 @@ export const RootStore = types
+@@ -525,4 +525,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
