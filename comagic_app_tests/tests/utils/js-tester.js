@@ -104,38 +104,78 @@ function JsTester_UserMediaEventHandlersItem (options) {
     };
 }
 
-function JsTester_Queue (emptyValue) {
-    var emptyItem = new JsTester_EmptyQueueItem(emptyValue),
+function JsTester_QueueItemAppender () {
+    return function (args) {
+        var currentItem = args.currentItem,
+            newItem = args.newItem;
+
+        newItem.setOther(currentItem);
+        return newItem;
+    };
+}
+
+function JsTester_StackItemAppender () {
+    return function (args) {
+        var currentItem = args.currentItem,
+            lastItem = args.lastItem,
+            newItem = args.newItem,
+            emptyItem = args.emptyItem;
+
+        if (emptyItem == currentItem) {
+            currentItem = newItem;
+        }
+
+        newItem.setOther(emptyItem);
+        lastItem.setOther(newItem);
+        return currentItem;
+    };
+}
+
+function JsTester_Container (args) {
+    var emptyValue = args.emptyValue,
+        add = args.appender,
+        emptyItem = new JsTester_EmptyContainerItem(emptyValue),
+        currentItem,
         lastItem;
 
     this.forEach = function (callback) {
-        var currentItem = lastItem;
+        var item = currentItem;
 
-        while (currentItem != emptyItem) {
-            callback(currentItem.getValue());
-            currentItem = currentItem.getPrevious();
+        while (item != emptyItem) {
+            callback(item.getValue());
+            item = item.getOther();
         }
     };
     this.add = function (value) {
-        lastItem = new JsTester_QueueItem(lastItem, value);
+        const newItem = new JsTester_ContainerItem(value);
+
+        currentItem = add({
+            emptyItem: emptyItem,
+            newItem: newItem,
+            currentItem: currentItem,
+            lastItem: lastItem
+        });
+
+        lastItem = newItem;
     };
     this.pop = function () {
-        var value = lastItem.getValue();
-        lastItem = lastItem.getPrevious();
+        var value = currentItem.getValue();
+        currentItem = currentItem.getOther();
         return value;
     };
     this.isEmpty = function () {
-        return lastItem === emptyItem;
+        return currentItem === emptyItem;
     };
     this.removeAll = function () {
-        lastItem = emptyItem;
+        currentItem = lastItem = emptyItem;
     };
 
     this.removeAll();
 }
 
-function JsTester_EmptyQueueItem (emptyValue) {
-    this.getPrevious = function () {
+function JsTester_EmptyContainerItem (emptyValue) {
+    this.setOther = function () {};
+    this.getOther = function () {
         return this;
     };
     this.getValue = function () {
@@ -143,13 +183,33 @@ function JsTester_EmptyQueueItem (emptyValue) {
     };
 }
 
-function JsTester_QueueItem (previous, value) {
-    this.getPrevious = function () {
-        return previous;
+function JsTester_ContainerItem (value) {
+    var other;
+
+    this.setOther = function (value) {
+        other = value;
+    };
+    this.getOther = function () {
+        return other;
     };
     this.getValue = function () {
         return value;
     };
+}
+
+function JsTester_Queue (emptyValue, logEnabled) {
+    return new JsTester_Container({
+        logEnabled,
+        emptyValue,
+        appender: new JsTester_QueueItemAppender()
+    });
+}
+
+function JsTester_Stack (emptyValue) {
+    return new JsTester_Container({
+        emptyValue: emptyValue,
+        appender: new JsTester_StackItemAppender()
+    });
 }
 
 function JsTester_UserMediaEventHandlers (debug) {
@@ -3321,7 +3381,7 @@ function JsTester_Tests (factory) {
 
     var utils = factory.createUtils(debug),
         windowSize = new JsTester_WindowSize(spendTime),
-        broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage()),
+        broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage(), true),
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},
         broadcastChannelMessageEventFirers = {},

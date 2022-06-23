@@ -391,7 +391,7 @@ index fd0f39d9..6741d8aa 100644
  </html>
 \ No newline at end of file
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 68f48551..7768b31a 100644
+index 68f48551..0a91be5b 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -4,13 +4,16 @@ import ReactDOM from 'react-dom';
@@ -425,12 +425,12 @@ index 68f48551..7768b31a 100644
 +        setChatsRootStore = () => null,
 +        appName = ''
 +    }) {
++        setEventBus(eventBus);
 +        createRootStore();
 +        appName != 'softphone' && setChatsRootStore(createChatsRootStore());
 +        createSoftphoneRootStore();
 +        createAnalyticsRootStore();
 +        setHistory(history);
-+        setEventBus(eventBus);
 +
 +        this.exit();
 +

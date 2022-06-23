@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 7852e70..04c7e30 100644
+index 8b7d3d7..e5aadc4 100644
 --- a/package.json
 +++ b/package.json
 @@ -20,7 +20,6 @@
@@ -10,16 +10,16 @@ index 7852e70..04c7e30 100644
      "@types/uuid": "^8.3.1",
      "@types/yup": "^0.29.11",
      "@typescript-eslint/eslint-plugin": "^4.16.1",
-@@ -56,7 +55,7 @@
-     "string-hash": "^1.1.3",
+@@ -57,7 +56,7 @@
      "nanoid": "^3.2.0",
      "@babel/runtime": "^7.13.9",
+     "@comagic/core": "^0.6.1",
 -    "antd": "^4.13.0",
 +    "antd": "3.26.7",
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -72,14 +71,12 @@
+@@ -74,14 +73,12 @@
      "react": "^17.0.1",
      "react-dom": "^17.0.1",
      "react-intl": "^5.13.2",
@@ -36,10 +36,115 @@ index 7852e70..04c7e30 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d51e5f4..1c5ff6b 100644
+index 0424d33..62e76d9 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -522,4 +522,5 @@ export const RootStore = types
+@@ -201,58 +201,11 @@ export const RootStore = types
+                             self.callHistoryStore.setPermissions(action.permissions);
+                             break;
+                         case HANDLE_EVENT: {
+-                            const {data} = action,
+-                                {prompterSipLine} = getState().prompter;
++                            const {data} = action;
+ 
+                             data.name == 'application_version_changed' &&
+                                 applicationChangeHandlers.forEach(handler => handler(data));
+ 
+-                            if (data.type === 'ipc') {
+-                                const {
+-                                    call_session_id,
+-                                    subscriber_number,
+-                                    employee_full_name,
+-                                    show_notification
+-                                } = data.data;
+-
+-                                switch (data.data.message) {
+-                                    case 'prepare_to_prompter_call':
+-                                        if (prompterSipLine) {
+-                                            dispatch(sendToWebsocket({
+-                                                type: 'ipc',
+-                                                data: {
+-                                                    target: 'monitoring',
+-                                                    message: 'already_prompter',
+-                                                    call_session_id
+-                                                }
+-                                            }));
+-                                        } else {
+-                                            dispatch(addPendingCallToPrompt({
+-                                                call_session_id,
+-                                                subscriber_number,
+-                                                employee_full_name,
+-                                                show_notification
+-                                            }));
+-
+-                                            dispatch(sendToWebsocket({
+-                                                type: 'ipc',
+-                                                data: {
+-                                                    target: 'monitoring',
+-                                                    message: 'await_prompter_call',
+-                                                    call_session_id
+-                                                }
+-                                            }));
+-                                        }
+-                                        break;
+-                                    case 'end_prompter_call':
+-                                        if (prompterSipLine) {
+-                                            dispatch(setPrompterSipLine(null));
+-                                            dispatch(terminateSession(prompterSipLine));
+-                                        }
+-                                        break;
+-                                }
+-                            }
+-
+                             break;
+                         }
+                         case HANDLE_WEBRTC_CREATED: {
+@@ -504,16 +457,35 @@ export const RootStore = types
+             }
+ 
+             eventBus.subscribe('prepare_to_prompter_call', ({
+-                                                                call_session_id,
+-                                                                employee_full_name,
+-                                                                employee_id,
+-                                                                show_notification,
+-                                                                subscriber_number,
+-                                                            }) => {
+-                    // TODO подготовиться к звонку суфлера, вместо null кинуть строкой ошибку если подготовиться невозможно
+-                    eventBus.broadcast('await_prompter_call', null);
++                call_session_id,
++                subscriber_number,
++                employee_full_name,
++                show_notification
++            }) => {
++                if (self.reduxStore.getState().prompter.prompterSipLine) {
++                    eventBus.broadcast('already_prompter', {call_session_id});
++                } else {
++                    dispatch(addPendingCallToPrompt({
++                        call_session_id,
++                        subscriber_number,
++                        employee_full_name,
++                        show_notification
++                    }));
++
++                    eventBus.broadcast('await_prompter_call', {call_session_id});
++                }
++            });
++
++            eventBus.subscribe('end_prompter_call', () => {
++                const {prompterSipLine} = self.reduxStore.getState().prompter;
++
++                if (!prompterSipLine) {
++                    return;
+                 }
+-            );
++
++                dispatch(setPrompterSipLine(null));
++                dispatch(terminateSession(prompterSipLine));
++            });
+ 
+             dispatch(setAxiosProcessor(axios => (axios.defaults.headers['X-Auth-Type'] = 'jwt')))
+             initialState = getSnapshot(self);
+@@ -535,4 +507,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

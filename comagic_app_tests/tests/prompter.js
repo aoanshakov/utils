@@ -136,6 +136,10 @@ tests.addTest(options => {
                 expectToBeSent();
         });
 
+        afterEach(function() {
+            tester.eventBus.nextEvent().expectNotToExist();
+        });
+
         describe('Происходит подготовка к подключению ко звонку.', function() {
             beforeEach(function() {
                 ipcPrompterCallPreparationMessage = tester.ipcPrompterCallPreparationMessage();

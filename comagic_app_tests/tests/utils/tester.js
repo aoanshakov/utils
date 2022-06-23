@@ -2,6 +2,7 @@ define(() => function ({
     testersFactory,
     utils,
     ajax,
+    debug,
     fetch,
     spendTime,
     softphoneTester: me,
@@ -41,16 +42,72 @@ define(() => function ({
     window.softphoneCrossTabCommunicatorCache = {};
 
     window.application.run({
-        setEventBus: value => (eventBus = value),
+        setEventBus: eventBus => {
+            const events = {};
+
+            eventBus.subscribe = (eventName, callback) => {
+                const callbacks = events[eventName] || (events[eventName] = new Set());
+                callbacks.add(callback);
+
+                return () => callbacks.delete(callback);
+            };
+
+            const broadcast = (eventName, ...args) =>
+                (events[eventName] || new Set()).forEach(callback => callback(...args));
+
+            const stack = new JsTester_Stack({
+                expectNotToExist: () => null,
+                expectToHaveArguments: (...expectedArguments) => {
+                    throw new Error(
+                        `Событие должно быть вызывано с такими аргументами ${JSON.stringify(expectedArguments)}, ` +
+                        'тогда как никакое событие не было вызвано.'
+                    );
+                },
+                expectEventNameToEqual: expectedEventName => {
+                    throw new Error(
+                        `Должно быть вызывано событие "${expectedEventName}", тогда как никакое событие не было ` +
+                        `вызвано.`
+                    );
+                }
+            });
+
+            eventBus.broadcast = (actualEventName, ...args) => {
+                const callStack = debug.getCallStack();
+
+                const event = {
+                    expectToHaveArguments: (...expectedArguments) =>
+                        (utils.expectObjectToContain(args, expectedArguments), event),
+                    expectNotToExist: () => {
+                        throw new Error(
+                            `Никакое событие не должно быть вызвано, тогда как было вызвано событие ` +
+                            `"${actualEventName}" с аргументами ${JSON.stringify(args)}`
+                        );
+                    },
+                    expectEventNameToEqual: expectedEventName => {
+                        if (expectedEventName != actualEventName) {
+                            throw new Error(
+                                `Должно быть вызывано событие "${expectedEventName}", тогда как было вызвано событие ` +
+                                `"${actualEventName}".`
+                            );
+                        }
+
+                        return event;
+                    }
+                };
+
+                stack.add(event);
+                broadcast(actualEventName, ...args);
+            };
+
+            me.eventBus = {
+                broadcast,
+                nextEvent: () => stack.pop()
+            };
+        },
         setHistory: value => (history = value),
         setChatsRootStore: value => (chatsRootStore = value),
         appName
     });
-
-    me.eventBus = (() => {
-        const broadcast = eventBus.broadcast.bind(eventBus);
-        return {broadcast};
-    })();
 
     me.history = history;
     history.replace(path);
@@ -7075,8 +7132,6 @@ define(() => function ({
 
     me.ipcPrompterCallPreparationMessage = () => {
         const data = {
-            target: 'monitoring',
-            message: 'prepare_to_prompter_call',
             call_session_id: 79161234567,
             subscriber_number: '79161234569',
             employee_full_name: 'Шалева Дора Добриновна',
@@ -7099,19 +7154,12 @@ define(() => function ({
                 return this;
             },
 
-            receive() {
-                me.eventsWebSocket.receiveMessage({
-                    type: 'ipc',
-                    data
-                });
-            }
+            receive: () => me.eventBus.broadcast('prepare_to_prompter_call', data)
         };
     };
 
     me.ipcPrompterCallAwaitMessage = () => {
         const data = {
-            target: 'monitoring',
-            message: 'await_prompter_call',
             call_session_id: 79161234567
         };
         
@@ -7121,47 +7169,29 @@ define(() => function ({
                 return this;
             },
 
-            expectToBeSent() {
-                me.eventsWebSocket.expectSentMessageToContain({
-                    type: 'ipc',
-                    data
-                });
-            }
+            expectToBeSent: () => me.eventBus.
+                nextEvent().
+                expectEventNameToEqual('await_prompter_call').
+                expectToHaveArguments(data)
         };
     };
 
     me.ipcAlreadyPrompterMessage = () => {
         const data = {
-            target: 'monitoring',
-            message: 'already_prompter',
             call_session_id: 79161234570
         };
         
         return {
-            expectToBeSent() {
-                me.eventsWebSocket.expectSentMessageToContain({
-                    type: 'ipc',
-                    data
-                });
-            }
+            expectToBeSent: () => me.eventBus.
+                nextEvent().
+                expectEventNameToEqual('already_prompter').
+                expectToHaveArguments(data)
         };
     };
 
-    me.ipcPrompterCallEndMessage = () => {
-        const data = {
-            target: 'monitoring',
-            message: 'end_prompter_call'
-        };
-        
-        return {
-            receive() {
-                me.eventsWebSocket.receiveMessage({
-                    type: 'ipc',
-                    data
-                });
-            }
-        };
-    };
+    me.ipcPrompterCallEndMessage = () => ({
+        receive: () => me.eventBus.broadcast('end_prompter_call')
+    });
 
     me.applicationVersionChanged = function () {
         var params = {
