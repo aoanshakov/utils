@@ -7154,7 +7154,10 @@ define(() => function ({
                 return this;
             },
 
-            receive: () => me.eventBus.broadcast('prepare_to_prompter_call', data)
+            receive: () => {
+                me.eventBus.broadcast('prepare_to_prompter_call', data);
+                Promise.runAll(false, true);
+            }
         };
     };
 

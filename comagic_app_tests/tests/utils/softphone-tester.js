@@ -5404,6 +5404,33 @@ define(function () {
                 }
 
                 var me = addMethods(extendOthersNotification({
+                    prompterCallPreparation: function () {
+                        data.action = 'prepare_to_prompter_call';
+
+                        data.data = {
+                            call_session_id: 79161234567,
+                            subscriber_number: '79161234569',
+                            employee_full_name: 'Шалева Дора Добриновна',
+                            show_notification: true
+                        };
+
+                        me.noSubscriberNumber = function () {
+                            data.data.subscriber_number = null;
+                            return me;
+                        };
+
+                        me.dontShowNotification = function () {
+                            data.data.show_notification = false;
+                            return me;
+                        };
+
+                        me.anotherPhoneNumber = function () {
+                            data.data.call_session_id = 79161234570;
+                            return me;
+                        };
+
+                        return me;
+                    },
                     numberCapacityUpdate: function () {
                         data.type = 'update_number_capacity';
                         data.value = 124825;
