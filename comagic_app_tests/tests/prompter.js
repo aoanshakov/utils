@@ -297,7 +297,7 @@ tests.addTest(options => {
                                     tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().
                                         expectToBeSent();
 
-                                    tester.ipcPrompterCallAwaitMessage().anotherPhoneNumber().expectToBeSent();
+                                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
                                 });
                             });
                             it(
@@ -322,7 +322,7 @@ tests.addTest(options => {
                                 tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().
                                     expectToBeSent();
 
-                                tester.ipcPrompterCallAwaitMessage().anotherPhoneNumber().expectToBeSent();
+                                tester.ipcPrompterCallAwaitMessage().expectToBeSent();
                             });
                             it(
                                 'Происходит подготовка к подключению ко звонку. Отправлено сообщение о ' +
@@ -333,7 +333,7 @@ tests.addTest(options => {
                                 tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().
                                     expectToBeSent();
 
-                                tester.ipcAlreadyPrompterMessage().expectToBeSent();
+                                tester.ipcPrompterCallAwaitMessage().alreadyPreparing().expectToBeSent();
                             });
                             it('Кнопки заблокированы.', function() {
                                 tester.microphoneButton.expectToHaveClass('clct-call-option--pressed');
@@ -439,8 +439,7 @@ tests.addTest(options => {
                 function() {
                     ipcPrompterCallPreparationMessage.anotherPhoneNumber().receive();
                     tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().expectToBeSent();
-
-                    tester.ipcPrompterCallAwaitMessage().anotherPhoneNumber().expectToBeSent();
+                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                     tester.incomingCall().receive();
 
@@ -469,7 +468,6 @@ tests.addTest(options => {
                 function() {
                     ipcPrompterCallPreparationMessage.dontShowNotification().receive();
                     tester.othersNotification().prompterCallPreparation().dontShowNotification().expectToBeSent();
-
                     tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                     incomingCall = tester.incomingCall().receive();
@@ -527,7 +525,6 @@ tests.addTest(options => {
 
                 tester.ipcPrompterCallPreparationMessage().noSubscriberNumber().receive();
                 tester.othersNotification().prompterCallPreparation().noSubscriberNumber().expectToBeSent();
-
                 tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                 incomingCall = tester.incomingCall().receive();

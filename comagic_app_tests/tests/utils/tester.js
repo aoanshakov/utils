@@ -419,7 +419,7 @@ define(() => function ({
 
                     return tester;
                 };
-
+                
                 tester.option = text => {
                     const option = utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find(),
                         tester = testersFactory.createDomElementTester(option),
@@ -7162,32 +7162,17 @@ define(() => function ({
     };
 
     me.ipcPrompterCallAwaitMessage = () => {
-        const data = {
-            call_session_id: 79161234567
-        };
+        let data = null;
         
         return {
-            anotherPhoneNumber() {
-                data.call_session_id = 79161234570;
+            alreadyPreparing() {
+                data = 'Подготовка к звонку уже прозводится';
                 return this;
             },
 
             expectToBeSent: () => me.eventBus.
                 nextEvent().
                 expectEventNameToEqual('await_prompter_call').
-                expectToHaveArguments(data)
-        };
-    };
-
-    me.ipcAlreadyPrompterMessage = () => {
-        const data = {
-            call_session_id: 79161234570
-        };
-        
-        return {
-            expectToBeSent: () => me.eventBus.
-                nextEvent().
-                expectEventNameToEqual('already_prompter').
                 expectToHaveArguments(data)
         };
     };

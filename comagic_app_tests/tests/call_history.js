@@ -336,6 +336,10 @@ tests.addTest(options => {
                         tester.input.withPlaceholder('Найти').expectToHaveValue('не');
                         tester.select.option('Отложенный звонок').expectNotToExist();
                         tester.select.option('Нецелевой контакт').expectToBeVisible();
+
+                        tester.select.tag('Нецелевой контакт').expectToBeVisible();
+                        tester.select.tag('Отложенный звонок').expectToBeVisible();
+                        tester.select.tag('Генератор лидов').expectNotToExist();
                     });
                     it(
                         'Нажимаю на кнопку удаления тег "Нецелевой контакт". Отправлен запрос удаления тега.',
