@@ -1222,21 +1222,15 @@ define(() => function ({
 
         const addResponseModifiers = me => {
             me.noCalls = () => ((getResponse = () => []), me);
-            me.isFailed = () => (processors.push(data => (data[0].is_failed = true)), me);
+            me.isFailed = () => (processors.push(data => data.forEach(item => (item.is_failed = true))), me);
+            me.noContactName = () => (processors.push(data => (data[0].contact_name = null)), me);
+
+            me.transferCall = () =>
+                (processors.push(data => (data.forEach(item => (item.cdr_type = 'transfer_call')))), me);
 
             me.noTotal = () => {
                 total = undefined;
                 count = 15;
-                return me;
-            };
-
-            me.noContactName = () => {
-                processors.push(data => (data[0].contact_name = null));
-                return me;
-            };
-
-            me.transfer = () => {
-                processors.push(data => (data[0].cdr_type = 'transfer_call'));
                 return me;
             };
 

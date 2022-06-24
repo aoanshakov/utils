@@ -655,6 +655,9 @@ tests.addTest(options => {
                     tester.table.pagingPanel.pageButton('2').expectNotToBePressed();
                     tester.table.pagingPanel.pageButton('3').expectNotToExist();
 
+                    tester.table.row.first.
+                        expectNotToHaveClass('cmg-softphone-call-history-failed-call-row');
+
                     tester.
                         table.
                         row.first.
@@ -702,6 +705,28 @@ tests.addTest(options => {
                     );
                 });
             });
+            describe('Есть звонки трансфера.', function() {
+                beforeEach(function() {
+                    callsRequest = callsRequest.transferCall();
+                });
+
+                it('Есть пропущенные звонки. Звонки трансфера отличаются от обычных.', function() {
+                    callsRequest.isFailed().receiveResponse();
+
+                    tester.table.row.first.column.first.svg.
+                        expectToHaveClass('transfer_incoming_failed_svg__cmg-direction-icon');
+                    tester.table.row.atIndex(1).column.first.svg.
+                        expectToHaveClass('transfer_outgoing_failed_svg__cmg-direction-icon');
+                });
+                it('Звонки трансфера отличаются от обычных.', function() {
+                    callsRequest.receiveResponse();
+
+                    tester.table.row.first.column.first.svg.
+                        expectToHaveClass('transfer_incoming_successful_svg__cmg-direction-icon');
+                    tester.table.row.atIndex(1).column.first.svg.
+                        expectToHaveClass('transfer_outgoing_successful_svg__cmg-direction-icon');
+                });
+            });
             it('Общее количество записей не было получено. Отображена история звонков.', function() {
                 callsRequest.noTotal().receiveResponse();
 
@@ -734,8 +759,6 @@ tests.addTest(options => {
 
                 tester.table.row.first.
                     expectToHaveClass('cmg-softphone-call-history-failed-call-row');
-                tester.table.row.atIndex(1).
-                    expectNotToHaveClass('cmg-softphone-call-history-failed-call-row');
             });
         });
         describe('Обновление комментария недоступно. Открываю раздел "История звонков".', function() {

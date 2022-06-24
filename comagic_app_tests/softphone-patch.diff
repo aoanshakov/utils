@@ -36,32 +36,10 @@ index 8b7d3d7..e5aadc4 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index c24e9b5..114127f 100644
+index 384d1c7..114127f 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -468,8 +468,10 @@ export const RootStore = types
-                 employee_full_name,
-                 show_notification
-             }) => {
--                if (self.reduxStore.getState().prompter.prompterSipLine) {
--                    eventBus.broadcast('already_prompter', {call_session_id});
-+                const state = self.reduxStore.getState();
-+
-+                if (state.prompter.prompterSipLine) {
-+                    eventBus.broadcast('await_prompter_call', state.i18n('Already preparing to call'));
-                 } else {
-                     dispatch(addPendingCallToPrompt({
-                         call_session_id,
-@@ -478,7 +480,7 @@ export const RootStore = types
-                         show_notification
-                     }));
- 
--                    eventBus.broadcast('await_prompter_call', {call_session_id});
-+                    eventBus.broadcast('await_prompter_call', null);
-                 }
-             };
- 
-@@ -525,4 +527,5 @@ export const RootStore = types
+@@ -527,4 +527,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
