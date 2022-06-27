@@ -1516,7 +1516,7 @@ tests.addTest(options => {
                                                 it(
                                                     'Звонок является трансфером. Отображена иконка трансфера.',
                                                 function() {
-                                                    callsRequest.transfer().receiveResponse();
+                                                    callsRequest.transferCall().receiveResponse();
 
                                                     tester.callsHistoryRow.withText('Гяурова Марийка').directory.
                                                         expectToHaveClass('cmg-direction-transfer');
@@ -2225,12 +2225,11 @@ tests.addTest(options => {
                                                 'софтфон открыт в другом окне.',
                                             function() {
                                                 tester.eventsWebSocket.disconnect(4429);
-                                                tester.masterInfoMessage().leaderDeath().expectToBeSent();
 
                                                 tester.slavesNotification().
                                                     userDataFetched().
                                                     twoChannels().
-                                                    destroyed().
+                                                    appAlreadyOpened().
                                                     enabled().
                                                     microphoneAccessGranted().
                                                     expectToBeSent();
@@ -2974,10 +2973,14 @@ tests.addTest(options => {
                                             'открыт в другом окне.',
                                         function() {
                                             tester.eventsWebSocket.disconnect(4429);
-                                            tester.masterInfoMessage().leaderDeath().expectToBeSent();
 
-                                            tester.slavesNotification().userDataFetched().twoChannels().destroyed().
-                                                microphoneAccessGranted().enabled().expectToBeSent();
+                                            tester.slavesNotification().
+                                                userDataFetched().
+                                                twoChannels().
+                                                appAlreadyOpened().
+                                                microphoneAccessGranted().
+                                                enabled().
+                                                expectToBeSent();
 
                                             tester.authLogoutRequest().receiveResponse();
                                             tester.registrationRequest().expired().receiveResponse();
@@ -3744,20 +3747,12 @@ tests.addTest(options => {
 
                     const requests = ajax.inAnyOrder();
 
-                    const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                    /*const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-                    const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
-                    const reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);*/
-                    const secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                        secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
                     requests.expectToBeSent();
 
                     authCheckRequest.receiveResponse();
-                    /*
-                    reportGroupsRequest.receiveResponse();
-                    reportsListRequest.receiveResponse();
-                    reportTypesRequest.receiveResponse();
-                    */
                     secondAccountRequest.receiveResponse();
 
                     tester.configRequest().softphone().receiveResponse();
@@ -3829,6 +3824,20 @@ tests.addTest(options => {
                         available().
                         userDataFetched().
                         expectToBeSent();
+                });
+                it(
+                    'Софтфон открыт в другом окне. Отображено сообщение о том, что софтфон открыт в другом окне.',
+                function() {
+                    tester.slavesNotification().
+                        userDataFetched().
+                        twoChannels().
+                        appAlreadyOpened().
+                        enabled().
+                        microphoneAccessGranted().
+                        receive();
+
+                    tester.authLogoutRequest().receiveResponse();
+                    tester.softphone.expectTextContentToHaveSubstring('Софтфон открыт в другом окне');
                 });
                 it(
                     'Ввожу номер телефона. Приходит сообщение о том, что вкладка все еще остается ведомой. Номер ' +

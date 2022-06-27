@@ -36,10 +36,263 @@ index 8b7d3d7..e5aadc4 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 384d1c7..114127f 100644
+index 384d1c7..f067de9 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -527,4 +527,5 @@ export const RootStore = types
+@@ -207,14 +207,21 @@ export const RootStore = types
+                             data.name == 'application_version_changed' &&
+                                 applicationChangeHandlers.forEach(handler => handler(data));
+ 
+-                            data.data?.action == 'prepare_to_prompter_call' &&
++                            data.type == 'notify_others' && data.data?.action == 'prepare_to_prompter_call' &&
+                                 handlePrompterCallPreparing(data?.data?.data);
++
++                            data.type == 'notify_slaves' &&
++                                data.data?.type == 'state_updating' &&
++                                !data.data?.destroyed && 
++                                store.getState().webRTC.state.error == 'appAlreadyOpened' &&
++                                authorize()
++
+                             break;
+                         }
+                         case HANDLE_WEBRTC_CREATED: {
+                             const {webRTC} = action;
+ 
+-                            webRTC.on('error', () => (hasError = true));
++                            webRTC.on('error', error => (hasError = true));
+                             call = phoneNumber => (dispatch(showWidget), webRTC.call(phoneNumber));
+ 
+                             break;
+@@ -347,8 +354,44 @@ export const RootStore = types
+             self.setCallEndHandler = value => (handlerCallEnd = value);
+             window.addEventListener('toggleSoftphoneVisiblity', () => dispatch(toggleWidgetVisiblity));
+ 
+-            {
+-                const updateState = (() => {
++            const handlePrompterCallPreparing = ({
++                call_session_id,
++                subscriber_number,
++                employee_full_name,
++                show_notification
++            }) => {
++                const state = self.reduxStore.getState();
++
++                if (state.prompter.prompterSipLine) {
++                    eventBus.broadcast('await_prompter_call', state.i18n('Already preparing to call'));
++                } else {
++                    dispatch(addPendingCallToPrompt({
++                        call_session_id,
++                        subscriber_number,
++                        employee_full_name,
++                        show_notification
++                    }));
++
++                    eventBus.broadcast('await_prompter_call', null);
++                }
++            };
++
++            eventBus.subscribe('end_prompter_call', () => {
++                const {prompterSipLine} = self.reduxStore.getState().prompter;
++
++                if (!prompterSipLine) {
++                    return;
++                }
++
++                dispatch(setPrompterSipLine(null));
++                dispatch(terminateSession(prompterSipLine));
++            });
++
++            const {authorize} = (() => {
++                const {
++                    updateState,
++                    authorize
++                } = (() => {
+                     const state = {
+                         configFetched: false,
+                         accessGranted: false,
+@@ -356,61 +399,66 @@ export const RootStore = types
+                         softphoneHost: ''
+                     };
+ 
+-                    return newState => {
+-                        let isChanged = false;
++                    const isSoftphoneAvailable = () => state.accessGranted &&
++                        state.configFetched &&
++                        state.token &&
++                        state.softphoneHost;
+ 
+-                        const shouldFireSizeChangeEvent = !!('token' in newState && (
+-                            !newState.token && state.token
+-                        ) || (
+-                            newState.token && !state.token
+-                        ));
++                    const authorize = () => isSoftphoneAvailable() && dispatch(authorization({
++                        token: state.token
++                    }, false));
+ 
+-                        Object.keys(newState).forEach(key => {
+-                            const value = newState[key];
++                    return {
++                        authorize,
+ 
+-                            if (state[key] == value) {
+-                                return;
+-                            }
++                        updateState: newState => {
++                            let isChanged = false;
+ 
+-                            isChanged = true;
+-                            state[key] = newState[key];
+-                        });
++                            const shouldFireSizeChangeEvent = !!('token' in newState && (
++                                !newState.token && state.token
++                            ) || (
++                                newState.token && !state.token
++                            ));
+ 
+-                        if (!isChanged) {
+-                            return;
+-                        }
++                            Object.keys(newState).forEach(key => {
++                                const value = newState[key];
+ 
+-                        const {
+-                            accessGranted,
+-                            configFetched,
+-                            token,
+-                            softphoneHost
+-                        } = state;
++                                if (state[key] == value) {
++                                    return;
++                                }
+ 
+-                        if (accessGranted && configFetched && token && softphoneHost) {
+-                            const {
+-                                webRTC: {shouldInitialize},
+-                                changeAuthToken
+-                            } = getState();
++                                isChanged = true;
++                                state[key] = newState[key];
++                            });
+ 
+-                            shouldInitialize ?
+-                                dispatch(authorization({token}, false)) :
+-                                changeAuthToken(token);
++                            if (!isChanged) {
++                                return;
++                            }
+ 
+-                            requests.forEach(action => action.request(action.args));
+-                            removeAllRequests();
+-                        } else {
+-                            const {
+-                                sdk,
+-                                state: {destroyed}
+-                            } = getState().webRTC;
++                            const {token} = state;
++
++                            if (isSoftphoneAvailable()) {
++                                const {
++                                    webRTC: {shouldInitialize},
++                                    changeAuthToken
++                                } = getState();
++
++                                shouldInitialize ? authorize() : changeAuthToken(token);
++                                requests.forEach(action => action.request(action.args));
++                                removeAllRequests();
++                            } else {
++                                const {
++                                    sdk,
++                                    state: {destroyed}
++                                } = getState().webRTC;
+ 
+-                            !destroyed && sdk && sdk.destroy();
+-                            removeAllRequests();
++                                !destroyed && sdk && sdk.destroy();
++                                removeAllRequests();
++                            }
++                            
++                            isAuthorized = !!token;
++                            shouldFireSizeChangeEvent && fireSizeChangeEvent();
+                         }
+-                        
+-                        isAuthorized = !!token;
+-                        shouldFireSizeChangeEvent && fireSizeChangeEvent();
+                     };
+                 })();
+ 
+@@ -460,52 +508,30 @@ export const RootStore = types
+                         softphoneHost
+                     });
+                 };
+-            }
+ 
+-            const handlePrompterCallPreparing = ({
+-                call_session_id,
+-                subscriber_number,
+-                employee_full_name,
+-                show_notification
+-            }) => {
+-                const state = self.reduxStore.getState();
++                eventBus.subscribe('prepare_to_prompter_call', data => {
++                    const {
++                        webRTC: {
++                            sendCrossTabMessage,
++                            state: {error}
++                        }
++                    } = self.reduxStore.getState();
+ 
+-                if (state.prompter.prompterSipLine) {
+-                    eventBus.broadcast('await_prompter_call', state.i18n('Already preparing to call'));
+-                } else {
+-                    dispatch(addPendingCallToPrompt({
+-                        call_session_id,
+-                        subscriber_number,
+-                        employee_full_name,
+-                        show_notification
+-                    }));
++                    error == 'appAlreadyOpened' && authorize();
+ 
+-                    eventBus.broadcast('await_prompter_call', null);
+-                }
+-            };
++                    sendCrossTabMessage({
++                        type: 'notify_others',
++                        data: {
++                            action: 'prepare_to_prompter_call',
++                            data
++                        }
++                    });
+ 
+-            eventBus.subscribe('prepare_to_prompter_call', data => {
+-                self.reduxStore.getState().webRTC.sendCrossTabMessage({
+-                    type: 'notify_others',
+-                    data: {
+-                        action: 'prepare_to_prompter_call',
+-                        data
+-                    }
++                    handlePrompterCallPreparing(data);
+                 });
+ 
+-                handlePrompterCallPreparing(data);
+-            });
+-
+-            eventBus.subscribe('end_prompter_call', () => {
+-                const {prompterSipLine} = self.reduxStore.getState().prompter;
+-
+-                if (!prompterSipLine) {
+-                    return;
+-                }
+-
+-                dispatch(setPrompterSipLine(null));
+-                dispatch(terminateSession(prompterSipLine));
+-            });
++                return {authorize};
++            })();
+ 
+             dispatch(setAxiosProcessor(axios => (axios.defaults.headers['X-Auth-Type'] = 'jwt')))
+             initialState = getSnapshot(self);
+@@ -527,4 +553,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

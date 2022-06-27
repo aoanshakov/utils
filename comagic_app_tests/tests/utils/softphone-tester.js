@@ -5056,6 +5056,9 @@ define(function () {
                                     (notification.data.data.state.softphone.notifications = {});
                                 
                                 receiveMessage(notification);
+
+                                Promise.runAll(false, true);
+                                spendTime(0);
                             }
                         }, state, processing);
                     },
@@ -5275,7 +5278,7 @@ define(function () {
                     },
                     receive: function () {
                         receiveMessage(createNotification(function () {
-                            Object.entries(state.channels).forEach(function (args) {
+                            Object.entries(state.channels || {}).forEach(function (args) {
                                 var key = args[0],
                                     value = args[1];
 
@@ -5289,6 +5292,7 @@ define(function () {
                         }));
 
                         Promise.runAll(false, true);
+                        spendTime(0);
                     }
                 });
 
