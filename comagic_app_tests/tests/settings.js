@@ -506,6 +506,14 @@ tests.addTest(options => {
                 incomingRingtone().
                 receive();
 
+            tester.ringtoneRequest().receiveResponse();
+            fileReader.accomplishFileLoading(tester.secondRingtone);
+
+            mediaStreamsTester.setIsAbleToPlayThough(
+                'data:audio/wav;base64,' +
+                tester.secondRingtone
+            );
+
             tester.body.expectTextContentToHaveSubstring('Громкость звонка 25%');
 
             tester.fieldRow('Мелодия звонка').select.expectToHaveTextContent('Мелодия звонка 2');

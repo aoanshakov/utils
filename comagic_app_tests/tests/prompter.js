@@ -135,59 +135,118 @@ tests.addTest(options => {
                 tester.eventBus.nextEvent().expectNotToExist();
             });
 
-            describe('Происходит подготовка к подключению ко звонку.', function() {
+            describe(
+                'Происходит подготовка к подключению ко звонку. Поступил входящий звонок с ожидаемого номера.',
+            function() {
+                let incomingCall;
+
                 beforeEach(function() {
-                    ipcPrompterCallPreparationMessage = tester.ipcPrompterCallPreparationMessage();
+                    tester.ipcPrompterCallPreparationMessage().receive();
+                    tester.othersNotification().prompterCallPreparation().expectToBeSent();
+
+                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+
+                    incomingCall = tester.incomingCall().receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        muted().
+                        progress().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        progress().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.numaRequest().receiveResponse();
+
+                    tester.firstConnection.connectWebRTC();
+                    tester.firstConnection.callTrackHandler();
+
+                    tester.allowMediaInput();
+                    tester.firstConnection.addCandidate();
+
+                    incomingCall = incomingCall.expectOkToBeSent();
                 });
 
-                describe('Поступил входящий звонок с ожидаемого номера.', function() {
-                    let incomingCall;
-                    
+                describe('Получена информация о звонке.', function() {
                     beforeEach(function() {
-                        ipcPrompterCallPreparationMessage.receive();
-                        tester.othersNotification().prompterCallPreparation().expectToBeSent();
-
-                        tester.ipcPrompterCallAwaitMessage().expectToBeSent();
-
-                        incomingCall = tester.incomingCall().receive();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            available().
-                            incoming().
-                            muted().
-                            progress().
-                            userDataFetched().
-                            expectToBeSent();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            available().
-                            incoming().
-                            progress().
-                            userDataFetched().
-                            expectToBeSent();
-
-                        tester.numaRequest().receiveResponse();
-
-                        tester.firstConnection.connectWebRTC();
-                        tester.firstConnection.callTrackHandler();
-
-                        tester.allowMediaInput();
-                        tester.firstConnection.addCandidate();
-
-                        incomingCall = incomingCall.expectOkToBeSent();
+                        tester.outCallEvent().receive();
+                        tester.outCallEvent().slavesNotification().expectToBeSent();
                     });
 
-                    describe('Получена информация о звонке.', function() {
+                    describe('Звонок принимается автоматически.', function() {
                         beforeEach(function() {
-                            tester.outCallEvent().receive();
-                            tester.outCallEvent().slavesNotification().expectToBeSent();
+                            incomingCall = incomingCall.receiveResponse();
+
+                            tester.slavesNotification().
+                                available().
+                                userDataFetched().
+                                twoChannels().
+                                incoming().
+                                muted().
+                                confirmed().
+                                expectToBeSent();
                         });
 
-                        describe('Звонок принимается автоматически.', function() {
+                        describe('Завершаю звонок.', function() {
                             beforeEach(function() {
-                                incomingCall = incomingCall.receiveResponse();
+                                tester.stopCallButton.click();
+
+                                tester.slavesNotification().
+                                    available().
+                                    userDataFetched().
+                                    twoChannels().
+                                    ended().
+                                    expectToBeSent();
+
+                                incomingCall.expectByeRequestToBeSent();
+                                tester.callSessionFinish().thirdId().slavesNotification().expectToBeSent();
+                            });
+
+                            it(
+                                'Поступает входящий звонок. Звонок принимается автоматически.',
+                            function() {
+                                incomingCall = tester.incomingCall().receive();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    available().
+                                    incoming().
+                                    muted().
+                                    progress().
+                                    userDataFetched().
+                                    expectToBeSent();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    available().
+                                    incoming().
+                                    progress().
+                                    userDataFetched().
+                                    expectToBeSent();
+
+                                tester.numaRequest().receiveResponse();
+
+                                tester.secondConnection.connectWebRTC();
+                                tester.secondConnection.callTrackHandler();
+
+                                tester.allowMediaInput();
+                                tester.secondConnection.addCandidate();
+
+                                incomingCall = incomingCall.expectOkToBeSent();
+
+                                tester.outCallEvent().receive();
+                                tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                                incomingCall.receiveResponse();
 
                                 tester.slavesNotification().
                                     available().
@@ -198,169 +257,106 @@ tests.addTest(options => {
                                     confirmed().
                                     expectToBeSent();
                             });
-
-                            describe('Завершаю звонок.', function() {
-                                beforeEach(function() {
-                                    tester.stopCallButton.click();
-
-                                    tester.slavesNotification().
-                                        available().
-                                        userDataFetched().
-                                        twoChannels().
-                                        ended().
-                                        expectToBeSent();
-
-                                    incomingCall.expectByeRequestToBeSent();
-                                    tester.callSessionFinish().thirdId().slavesNotification().expectToBeSent();
-                                });
-
-                                it(
-                                    'Поступает входящий звонок. Звонок принимается автоматически.',
-                                function() {
-                                    incomingCall = tester.incomingCall().receive();
-
-                                    tester.slavesNotification().
-                                        twoChannels().
-                                        available().
-                                        incoming().
-                                        muted().
-                                        progress().
-                                        userDataFetched().
-                                        expectToBeSent();
-
-                                    tester.slavesNotification().
-                                        twoChannels().
-                                        available().
-                                        incoming().
-                                        progress().
-                                        userDataFetched().
-                                        expectToBeSent();
-
-                                    tester.numaRequest().receiveResponse();
-
-                                    tester.secondConnection.connectWebRTC();
-                                    tester.secondConnection.callTrackHandler();
-
-                                    tester.allowMediaInput();
-                                    tester.secondConnection.addCandidate();
-
-                                    incomingCall = incomingCall.expectOkToBeSent();
-
-                                    tester.outCallEvent().receive();
-                                    tester.outCallEvent().slavesNotification().expectToBeSent();
-
-                                    incomingCall.receiveResponse();
-
-                                    tester.slavesNotification().
-                                        available().
-                                        userDataFetched().
-                                        twoChannels().
-                                        incoming().
-                                        muted().
-                                        confirmed().
-                                        expectToBeSent();
-                                });
-                                it(
-                                    'Проходит некоторое время. Поступает входящий звонок. Звонок не ' +
-                                    'принимается автоматически.',
-                                function() {
-                                    new Array(6).fill(null).forEach(function () {
-                                        spendTime(5000);
-                                        tester.expectPingToBeSent();
-                                        tester.receivePong();
-                                    });
-
-                                    incomingCall = tester.incomingCall().receive();
-
-                                    tester.slavesNotification().
-                                        twoChannels().
-                                        available().
-                                        incoming().
-                                        progress().
-                                        userDataFetched().
-                                        expectToBeSent();
-
-                                    tester.numaRequest().receiveResponse();
-
-                                    tester.outCallEvent().receive();
-                                    tester.outCallEvent().slavesNotification().expectToBeSent();
-
-                                    tester.expectIncomingCallSoundToPlay();
-                                });
-                                it(
-                                    'Происходит подготовка к подключению ко звонку. Сообщение о том, что ' +
-                                    'подключение ко звонку уже произведено не отправлено.',
-                                function() {
-                                    tester.ipcPrompterCallPreparationMessage().anotherPhoneNumber().receive();
-
-                                    tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().
-                                        expectToBeSent();
-
-                                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
-                                });
-                            });
                             it(
-                                'Подключение ко звонку завершено. Происходит подготовка к подключению ко ' +
-                                'звонку. Сообщение о том, что подключение ко звонку уже ' +
-                                'произведено не отправлено.',
+                                'Проходит некоторое время. Поступает входящий звонок. Звонок не ' +
+                                'принимается автоматически.',
                             function() {
-                                tester.ipcPrompterCallEndMessage().receive();
+                                new Array(6).fill(null).forEach(function () {
+                                    spendTime(5000);
+                                    tester.expectPingToBeSent();
+                                    tester.receivePong();
+                                });
 
-                                incomingCall.expectByeRequestToBeSent();
-                                tester.callSessionFinish().thirdId().slavesNotification().expectToBeSent();
+                                incomingCall = tester.incomingCall().receive();
 
                                 tester.slavesNotification().
-                                    available().
-                                    userDataFetched().
                                     twoChannels().
-                                    ended().
+                                    available().
+                                    incoming().
+                                    progress().
+                                    userDataFetched().
                                     expectToBeSent();
 
+                                tester.numaRequest().receiveResponse();
+
+                                tester.outCallEvent().receive();
+                                tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                                tester.expectIncomingCallSoundToPlay();
+                            });
+                            it(
+                                'Происходит подготовка к подключению ко звонку. Сообщение о том, что ' +
+                                'подключение ко звонку уже произведено не отправлено.',
+                            function() {
                                 tester.ipcPrompterCallPreparationMessage().anotherPhoneNumber().receive();
-                                
+
                                 tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().
                                     expectToBeSent();
 
                                 tester.ipcPrompterCallAwaitMessage().expectToBeSent();
                             });
-                            it(
-                                'Происходит подготовка к подключению ко звонку. Отправлено сообщение о ' +
-                                'том, что подключение ко звонку уже произведено.',
-                            function() {
-                                tester.ipcPrompterCallPreparationMessage().anotherPhoneNumber().receive();
-
-                                tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().
-                                    expectToBeSent();
-
-                                tester.ipcPrompterCallAwaitMessage().alreadyPreparing().expectToBeSent();
-                            });
-                            it('Кнопки заблокированы.', function() {
-                                tester.microphoneButton.expectToHaveClass('clct-call-option--pressed');
-                                tester.holdButton.expectToHaveAttribute('disabled');
-                                tester.transferButton.expectToHaveClass('cmg-button-disabled');
-
-                                tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
-                                tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
-
-                                tester.softphone.expectTextContentToHaveSubstring(
-                                    'Шалева Дора ' +
-
-                                    '+7 (916) 123-45-69 00:00 ' +
-
-                                    'Путь лида ' +
-
-                                    'Виртуальный номер ' +
-                                    '+7 (916) 123-45-68'
-                                );
-                            });
                         });
-                        it('Рингтон не звучит.', function() {
-                            tester.expectNoSoundToPlay();
+                        it(
+                            'Подключение ко звонку завершено. Происходит подготовка к подключению ко ' +
+                            'звонку. Сообщение о том, что подключение ко звонку уже ' +
+                            'произведено не отправлено.',
+                        function() {
+                            tester.ipcPrompterCallEndMessage().receive();
+
+                            incomingCall.expectByeRequestToBeSent();
+                            tester.callSessionFinish().thirdId().slavesNotification().expectToBeSent();
+
+                            tester.slavesNotification().
+                                available().
+                                userDataFetched().
+                                twoChannels().
+                                ended().
+                                expectToBeSent();
+
+                            tester.ipcPrompterCallPreparationMessage().anotherPhoneNumber().receive();
+                            
+                            tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().
+                                expectToBeSent();
+
+                            tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+                        });
+                        it(
+                            'Происходит подготовка к подключению ко звонку. Отправлено сообщение о ' +
+                            'том, что подключение ко звонку уже произведено.',
+                        function() {
+                            tester.ipcPrompterCallPreparationMessage().anotherPhoneNumber().receive();
+
+                            tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().
+                                expectToBeSent();
+
+                            tester.ipcPrompterCallAwaitMessage().alreadyPreparing().expectToBeSent();
+                        });
+                        it('Кнопки заблокированы.', function() {
+                            tester.microphoneButton.expectToHaveClass('clct-call-option--pressed');
+                            tester.holdButton.expectToHaveAttribute('disabled');
+                            tester.transferButton.expectToHaveClass('cmg-button-disabled');
+
+                            tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                            tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
+
+                            tester.softphone.expectTextContentToHaveSubstring(
+                                'Шалева Дора ' +
+
+                                '+7 (916) 123-45-69 00:00 ' +
+
+                                'Путь лида ' +
+
+                                'Виртуальный номер ' +
+                                '+7 (916) 123-45-68'
+                            );
                         });
                     });
-                    it('Отображен номер полученный из события подготовки к подключению ко звонку..', function() {
-                        tester.body.expectTextContentToHaveSubstring('+7 (916) 123-45-69');
+                    it('Рингтон не звучит.', function() {
+                        tester.expectNoSoundToPlay();
                     });
+                });
+                it('Отображен номер полученный из события подготовки к подключению ко звонку..', function() {
+                    tester.body.expectTextContentToHaveSubstring('+7 (916) 123-45-69');
                 });
             });
             describe('Браузер скрыт. Происходит подготовка к подключению ко звонку.', function() {
@@ -514,6 +510,294 @@ tests.addTest(options => {
                         expectToBeSent();
                 });
             });
+            describe('Софтфон открыт в другом окне.', function() {
+                beforeEach(function() {
+                    tester.eventsWebSocket.disconnect(4429);
+
+                    tester.slavesNotification().
+                        userDataFetched().
+                        twoChannels().
+                        appAlreadyOpened().
+                        enabled().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    tester.authLogoutRequest().receiveResponse();
+                    tester.registrationRequest().expired().receiveResponse();
+                    
+                    spendTime(2000);
+                    tester.webrtcWebsocket.finishDisconnecting();
+                });
+
+                it(
+                    'На активной вкладке происходит подготовка к подключению ко звонку. Софтфон активируется заново. ' +
+                    'Поступает входящий звонок. Кнопки заблокированы.',
+                function() {
+                    tester.ipcPrompterCallPreparationMessage().receive();
+                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+
+                    tester.slavesNotification().expectToBeSent();
+                    tester.slavesNotification().additional().expectToBeSent();
+
+                    tester.othersNotification().prompterCallPreparation().expectToBeSent();
+
+                    tester.authCheckRequest().receiveResponse();
+                    tester.statusesRequest().receiveResponse();
+                    tester.settingsRequest().receiveResponse();
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
+
+                    tester.connectEventsWebSocket(1);
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.connectSIPWebSocket(1);
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        widgetStateUpdate().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        updateSettings().
+                        shouldNotPlayCallEndingSignal().
+                        expectToBeSent();
+
+                    tester.authenticatedUserRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.registrationRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        userDataFetched().
+                        registered().
+                        expectToBeSent();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    let incomingCall = tester.incomingCall().receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        muted().
+                        progress().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        progress().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.numaRequest().receiveResponse();
+
+                    tester.firstConnection.connectWebRTC();
+                    tester.firstConnection.callTrackHandler();
+
+                    tester.allowMediaInput();
+                    tester.firstConnection.addCandidate();
+
+                    tester.outCallEvent().receive();
+                    tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                    incomingCall.expectOkToBeSent().receiveResponse();
+
+                    tester.slavesNotification().
+                        available().
+                        userDataFetched().
+                        twoChannels().
+                        incoming().
+                        muted().
+                        confirmed().
+                        expectToBeSent();
+
+                    tester.stopCallButton.expectNotToHaveAttribute('disabled');
+                    tester.microphoneButton.expectToHaveClass('clct-call-option--pressed');
+                    tester.holdButton.expectToHaveAttribute('disabled');
+                    tester.transferButton.expectToHaveClass('cmg-button-disabled');
+
+                    tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                    tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
+
+                    tester.softphone.expectTextContentToHaveSubstring(
+                        'Шалева Дора ' +
+
+                        '+7 (916) 123-45-69 00:00 ' +
+
+                        'Путь лида ' +
+
+                        'Виртуальный номер ' +
+                        '+7 (916) 123-45-68'
+                    );
+                });
+                it(
+                    'Происходит подготовка к подключению ко звонку на другой вкладке. Софтфон активируется заново. ' +
+                    'Поступает входящий звонок. Кнопки заблокированы.',
+                function() {
+                    tester.othersNotification().prompterCallPreparation().receive();
+                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+
+                    tester.slavesNotification().expectToBeSent();
+                    tester.slavesNotification().additional().expectToBeSent();
+
+                    tester.authCheckRequest().receiveResponse();
+                    tester.statusesRequest().receiveResponse();
+                    tester.settingsRequest().receiveResponse();
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
+
+                    tester.connectEventsWebSocket(1);
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.connectSIPWebSocket(1);
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        widgetStateUpdate().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        updateSettings().
+                        shouldNotPlayCallEndingSignal().
+                        expectToBeSent();
+
+                    tester.authenticatedUserRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.registrationRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        userDataFetched().
+                        registered().
+                        expectToBeSent();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    let incomingCall = tester.incomingCall().receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        muted().
+                        progress().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        progress().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.numaRequest().receiveResponse();
+
+                    tester.firstConnection.connectWebRTC();
+                    tester.firstConnection.callTrackHandler();
+
+                    tester.allowMediaInput();
+                    tester.firstConnection.addCandidate();
+
+                    tester.outCallEvent().receive();
+                    tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                    incomingCall.expectOkToBeSent().receiveResponse();
+
+                    tester.slavesNotification().
+                        available().
+                        userDataFetched().
+                        twoChannels().
+                        incoming().
+                        muted().
+                        confirmed().
+                        expectToBeSent();
+
+                    tester.stopCallButton.expectNotToHaveAttribute('disabled');
+                    tester.microphoneButton.expectToHaveClass('clct-call-option--pressed');
+                    tester.holdButton.expectToHaveAttribute('disabled');
+                    tester.transferButton.expectToHaveClass('cmg-button-disabled');
+
+                    tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                    tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
+
+                    tester.softphone.expectTextContentToHaveSubstring(
+                        'Шалева Дора ' +
+
+                        '+7 (916) 123-45-69 00:00 ' +
+
+                        'Путь лида ' +
+
+                        'Виртуальный номер ' +
+                        '+7 (916) 123-45-68'
+                    );
+                });
+            });
             it(
                 'Получена информация о звонке. Происходит подготовка к подключению ко звонку. Номер клинета ' +
                 'неизвестен. Поступил входящий звонок с ожидаемого номера. Отображен номер полученный из события ' +
@@ -643,153 +927,6 @@ tests.addTest(options => {
                     '+7 (916) 123-45-68'
                 );
             });
-            it('Софтфон открыт в другом окне.', function() {
-                tester.eventsWebSocket.disconnect(4429);
-
-                tester.slavesNotification().
-                    userDataFetched().
-                    twoChannels().
-                    appAlreadyOpened().
-                    enabled().
-                    microphoneAccessGranted().
-                    expectToBeSent();
-
-                tester.authLogoutRequest().receiveResponse();
-                tester.registrationRequest().expired().receiveResponse();
-                
-                spendTime(2000);
-                tester.webrtcWebsocket.finishDisconnecting();
-                    
-                tester.ipcPrompterCallPreparationMessage().receive();
-                tester.ipcPrompterCallAwaitMessage().expectToBeSent();
-                tester.othersNotification().prompterCallPreparation().expectToBeSent();
-
-                tester.slavesNotification().expectToBeSent();
-                tester.slavesNotification().additional().expectToBeSent();
-
-                tester.authCheckRequest().receiveResponse();
-                tester.statusesRequest().receiveResponse();
-                tester.settingsRequest().receiveResponse();
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
-                    expectToBeSent();
-
-                tester.connectEventsWebSocket(1);
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
-                    softphoneServerConnected().
-                    expectToBeSent();
-
-                tester.connectSIPWebSocket(1);
-
-                tester.slavesNotification().
-                    twoChannels().
-                    webRTCServerConnected().
-                    softphoneServerConnected().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    widgetStateUpdate().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
-                tester.authenticatedUserRequest().receiveResponse();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    webRTCServerConnected().
-                    softphoneServerConnected().
-                    userDataFetched().
-                    expectToBeSent();
-
-                tester.registrationRequest().receiveResponse();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    webRTCServerConnected().
-                    softphoneServerConnected().
-                    userDataFetched().
-                    registered().
-                    expectToBeSent();
-
-                tester.allowMediaInput();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
-                    userDataFetched().
-                    expectToBeSent();
-
-                let incomingCall = tester.incomingCall().receive();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
-                    incoming().
-                    muted().
-                    progress().
-                    userDataFetched().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
-                    incoming().
-                    progress().
-                    userDataFetched().
-                    expectToBeSent();
-
-                tester.numaRequest().receiveResponse();
-
-                tester.firstConnection.connectWebRTC();
-                tester.firstConnection.callTrackHandler();
-
-                tester.allowMediaInput();
-                tester.firstConnection.addCandidate();
-
-                tester.outCallEvent().receive();
-                tester.outCallEvent().slavesNotification().expectToBeSent();
-
-                incomingCall.expectOkToBeSent().receiveResponse();
-
-                tester.slavesNotification().
-                    available().
-                    userDataFetched().
-                    twoChannels().
-                    incoming().
-                    muted().
-                    confirmed().
-                    expectToBeSent();
-
-                tester.stopCallButton.expectNotToHaveAttribute('disabled');
-                tester.microphoneButton.expectToHaveClass('clct-call-option--pressed');
-                tester.holdButton.expectToHaveAttribute('disabled');
-                tester.transferButton.expectToHaveClass('cmg-button-disabled');
-
-                tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
-                tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
-
-                tester.softphone.expectTextContentToHaveSubstring(
-                    'Шалева Дора ' +
-
-                    '+7 (916) 123-45-69 00:00 ' +
-
-                    'Путь лида ' +
-
-                    'Виртуальный номер ' +
-                    '+7 (916) 123-45-68'
-                );
-            });
         });
         describe('Вкладка является ведомой.', function() {
             beforeEach(function() {
@@ -840,6 +977,139 @@ tests.addTest(options => {
                     receive();
             });
 
+            describe('Софтфон открыт в другом окне.', function() {
+                beforeEach(function() {
+                    tester.slavesNotification().
+                        userDataFetched().
+                        twoChannels().
+                        appAlreadyOpened().
+                        enabled().
+                        microphoneAccessGranted().
+                        receive();
+
+                    tester.authLogoutRequest().receiveResponse();
+                });
+
+                it('Подготовка к подключению ко звонку происходит на активной вкладке.', function() {
+                    tester.ipcPrompterCallPreparationMessage().receive();
+                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+                    tester.othersNotification().prompterCallPreparation().expectToBeSent();
+                });
+                it(
+                    'Подготовка к подключению ко звонку происходит на другой вкладке. Происходит активация софтфона ' +
+                    'сначала на ведущей, а потом и на ведомой вкладке. Кнопки заблокированы.',
+                function() {
+                    tester.othersNotification().prompterCallPreparation().receive();
+                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+
+                    tester.slavesNotification().receive();
+                    tester.slavesNotification().additional().receive();
+
+                    tester.masterNotification().tabOpened().expectToBeSent();
+
+                    tester.authCheckRequest().receiveResponse();
+                    tester.statusesRequest().receiveResponse();
+                    tester.settingsRequest().receiveResponse();
+
+                    tester.othersNotification().
+                        widgetStateUpdate().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        updateSettings().
+                        shouldNotPlayCallEndingSignal().
+                        expectToBeSent();
+
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
+                    tester.authenticatedUserRequest().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        userDataFetched().
+                        receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        userDataFetched().
+                        registered().
+                        receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        userDataFetched().
+                        receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        muted().
+                        progress().
+                        userDataFetched().
+                        receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        progress().
+                        userDataFetched().
+                        receive();
+
+                    tester.outCallEvent().slavesNotification().receive();
+
+                    tester.slavesNotification().
+                        available().
+                        userDataFetched().
+                        twoChannels().
+                        incoming().
+                        muted().
+                        confirmed().
+                        receive();
+
+                    tester.stopCallButton.expectNotToHaveAttribute('disabled');
+                    tester.microphoneButton.expectToHaveClass('clct-call-option--pressed');
+                    tester.holdButton.expectToHaveAttribute('disabled');
+                    tester.transferButton.expectToHaveClass('cmg-button-disabled');
+
+                    tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                    tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
+
+                    tester.softphone.expectTextContentToHaveSubstring(
+                        'Шалева Дора ' +
+
+                        '+7 (916) 123-45-69 00:00 ' +
+
+                        'Путь лида ' +
+
+                        'Виртуальный номер ' +
+                        '+7 (916) 123-45-68'
+                    );
+                });
+            });
             it(
                 'Скрываю вкладку. Из другой вкладки передано сообщение о подготовке к подключению ко звонку. ' +
                 'Поступил входящий звонок с ожидаемого номера. Уведомление не отображается.',
@@ -971,130 +1241,6 @@ tests.addTest(options => {
                     confirmed().
                     receive();
 
-                tester.microphoneButton.expectToHaveClass('clct-call-option--pressed');
-                tester.holdButton.expectToHaveAttribute('disabled');
-                tester.transferButton.expectToHaveClass('cmg-button-disabled');
-
-                tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
-                tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
-
-                tester.softphone.expectTextContentToHaveSubstring(
-                    'Шалева Дора ' +
-
-                    '+7 (916) 123-45-69 00:00 ' +
-
-                    'Путь лида ' +
-
-                    'Виртуальный номер ' +
-                    '+7 (916) 123-45-68'
-                );
-            });
-            it(
-                'Софтфон открыт в другом окне. Происходит активация софтфона сначала на ведущей, а потом и на ' +
-                'ведомой вкладке. Кнопки заблокированы.',
-            function() {
-                tester.slavesNotification().
-                    userDataFetched().
-                    twoChannels().
-                    appAlreadyOpened().
-                    enabled().
-                    microphoneAccessGranted().
-                    receive();
-
-                tester.authLogoutRequest().receiveResponse();
-
-                tester.othersNotification().prompterCallPreparation().receive();
-                tester.ipcPrompterCallAwaitMessage().expectToBeSent();
-
-                tester.slavesNotification().receive();
-                tester.slavesNotification().additional().receive();
-
-                tester.masterNotification().tabOpened().expectToBeSent();
-
-                tester.authCheckRequest().receiveResponse();
-                tester.statusesRequest().receiveResponse();
-                tester.settingsRequest().receiveResponse();
-
-                tester.othersNotification().
-                    widgetStateUpdate().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
-                tester.authenticatedUserRequest().receiveResponse();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
-                    receive();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
-                    softphoneServerConnected().
-                    receive();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    webRTCServerConnected().
-                    softphoneServerConnected().
-                    receive();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    webRTCServerConnected().
-                    softphoneServerConnected().
-                    userDataFetched().
-                    receive();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    webRTCServerConnected().
-                    softphoneServerConnected().
-                    userDataFetched().
-                    registered().
-                    receive();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
-                    userDataFetched().
-                    receive();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
-                    incoming().
-                    muted().
-                    progress().
-                    userDataFetched().
-                    receive();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
-                    incoming().
-                    progress().
-                    userDataFetched().
-                    receive();
-
-                tester.outCallEvent().slavesNotification().receive();
-
-                tester.slavesNotification().
-                    available().
-                    userDataFetched().
-                    twoChannels().
-                    incoming().
-                    muted().
-                    confirmed().
-                    receive();
-
-                tester.stopCallButton.expectNotToHaveAttribute('disabled');
                 tester.microphoneButton.expectToHaveClass('clct-call-option--pressed');
                 tester.holdButton.expectToHaveAttribute('disabled');
                 tester.transferButton.expectToHaveClass('cmg-button-disabled');
