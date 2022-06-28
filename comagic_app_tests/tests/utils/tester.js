@@ -7131,6 +7131,30 @@ define(() => function ({
         };
     };
 
+    me.extendMasterNotification((notification, data) => ((notification.revive = () =>
+        ((data.action = 'revive'), notification)), notification));
+
+    me.extendOthersNotification((notification, data) => {
+        notification.prompterCallPreparation = () => {
+            data.action = 'prepare_to_prompter_call';
+
+            data.data = {
+                call_session_id: 79161234567,
+                subscriber_number: '79161234569',
+                employee_full_name: 'Шалева Дора Добриновна',
+                show_notification: true
+            };
+
+            notification.noSubscriberNumber = () => ((data.data.subscriber_number = null), notification);
+            notification.dontShowNotification = () => ((data.data.show_notification = false), notification);
+            notification.anotherPhoneNumber = () => ((data.data.call_session_id = 79161234570), notification);
+
+            return notification;
+        };
+        
+        return notification;
+    });
+
     me.ipcPrompterCallPreparationMessage = () => {
         const data = {
             call_session_id: 79161234567,

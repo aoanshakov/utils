@@ -725,7 +725,6 @@ tests.addTest(options => {
                     'Поступает входящий звонок. Кнопки заблокированы.',
                 function() {
                     tester.othersNotification().prompterCallPreparation().receive();
-                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                     tester.slavesNotification().expectToBeSent();
                     tester.slavesNotification().additional().expectToBeSent();
@@ -920,8 +919,6 @@ tests.addTest(options => {
                 'Получена информация о звонке. Звонок принимается автоматически. Кнопки заблокированы.',
             function() {
                 tester.othersNotification().prompterCallPreparation().receive();
-                tester.ipcPrompterCallAwaitMessage().expectToBeSent();
-
                 let incomingCall = tester.incomingCall().receive();
 
                 tester.slavesNotification().
@@ -1056,7 +1053,6 @@ tests.addTest(options => {
                     'сначала на ведущей, а потом и на ведомой вкладке. Кнопки заблокированы.',
                 function() {
                     tester.othersNotification().prompterCallPreparation().receive();
-                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                     tester.slavesNotification().receive();
                     tester.slavesNotification().additional().receive();
@@ -1174,7 +1170,6 @@ tests.addTest(options => {
                 tester.masterNotification().tabBecameHidden().expectToBeSent();
 
                 tester.othersNotification().prompterCallPreparation().receive();
-                tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -1208,7 +1203,6 @@ tests.addTest(options => {
             });
             it('Поступил входящий звонок с ожидаемого номера. Кнопки заблокированы.', function() {
                 tester.othersNotification().prompterCallPreparation().receive();
-                tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                 tester.slavesNotification().
                     twoChannels().

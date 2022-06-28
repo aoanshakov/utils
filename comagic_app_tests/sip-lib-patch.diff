@@ -1,12 +1,12 @@
 diff --git a/package.json b/package.json
-index 71dc601..c375f3b 100644
+index 475c53f..c375f3b 100644
 --- a/package.json
 +++ b/package.json
 @@ -36,6 +36,6 @@
      "webpack-cli": "^4.2.0",
      "babel-loader": "^8.0.4",
      "react-draggable": "^4.2.0",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#int_2022_02.0"
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#int_2022_13.0"
 +    "@uiscom/uis_webrtc": "./uis_webrtc"
    }
  }
