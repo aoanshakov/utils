@@ -462,6 +462,51 @@ tests.addTest(options => {
                         tester.closeButton.expectNotToExist();
                     });
                 });
+                describe('Открываю календарь', function() {
+                    beforeEach(function() {
+                        tester.calendarField.click();
+                    });
+
+                    describe('Изменяю фильтр по дате.', function() {
+                        beforeEach(function() {
+                            tester.calendarField.popup.leftButton.click();
+
+                            tester.calendarField.popup.firstMonthPanel.day(15).click();
+                            tester.calendarField.popup.secondMonthPanel.day(18).click();
+                        });
+
+                        it('Нажимаю на кнопку "Применить". Отправлен запрос истории звонков.', function() {
+                            tester.calendarField.popup.button('Применить').click();
+
+                            tester.callsRequest().changeDate().firstPage().receiveResponse();
+                            tester.marksRequest().receiveResponse();
+
+                            tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
+                        });
+                        it('Поля даты заполнены.', function() {
+                            tester.calendarField.popup.input.first.expectToHaveValue('15.11.2019');
+                            tester.calendarField.popup.input.atIndex(1).expectToHaveValue('18.12.2019');
+                        });
+                    });
+                    it(
+                        'Изменяю фильтр по дате вручную. Нажимаю на кнопку "Применить". Отправлен запрос истории ' +
+                        'звонков.',
+                    function() {
+                        tester.calendarField.popup.input.first.fill('15.11.2019').pressEnter();
+                        tester.calendarField.popup.input.atIndex(1).fill('18.12.2019').pressEnter();
+
+                        tester.calendarField.popup.button('Применить').click();
+                        
+                        tester.callsRequest().changeDate().firstPage().receiveResponse();
+                        tester.marksRequest().receiveResponse();
+
+                        tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
+                    });
+                    it('Поля даты заполнены.', function() {
+                        tester.calendarField.popup.input.first.expectToHaveValue('16.12.2019');
+                        tester.calendarField.popup.input.atIndex(1).expectToHaveValue('19.12.2019');
+                    });
+                });
                 it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
                     tester.radioButton('Все').click();
 
@@ -491,20 +536,6 @@ tests.addTest(options => {
                         '+7 (495) 023-06-31 ' +
                         '00:00:24'
                     );
-                });
-                it('Изменяю фильтр по дате. Отправлен запрос истории звонков.', function() {
-                    tester.calendarField.click();
-                    tester.calendarField.popup.leftButton.click();
-
-                    tester.calendarField.popup.firstMonthPanel.day(15).click();
-                    tester.calendarField.popup.secondMonthPanel.day(18).click();
-
-                    tester.calendarField.popup.button('Применить').click();
-
-                    tester.callsRequest().changeDate().firstPage().receiveResponse();
-                    tester.marksRequest().receiveResponse();
-
-                    tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
                 });
                 it('Нажимаю на кнопку скачивания записи. Открыт выпадающий список записей.', function() {
                     tester.table.row.atIndex(1).column.withHeader('Запись').downloadIcon.click();

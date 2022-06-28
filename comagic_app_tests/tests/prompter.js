@@ -371,62 +371,118 @@ tests.addTest(options => {
                     ipcPrompterCallPreparationMessage = tester.ipcPrompterCallPreparationMessage();
                 });
 
-                it(
-                    'Поступил входящий звонок с ожидаемого номера. Получена информация о звонке. Звонок принимается ' +
-                    'автоматически. Отображается уведомление с заголовком "Подключение к звонку".',
-                function() {
-                    ipcPrompterCallPreparationMessage.receive();
-                    tester.othersNotification().prompterCallPreparation().expectToBeSent();
+                describe('Звонок должен прийти с ожидаемого номера.', function() {
+                    beforeEach(function() {
+                        ipcPrompterCallPreparationMessage.receive();
+                        tester.othersNotification().prompterCallPreparation().expectToBeSent();
 
-                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+                        tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+                    });
 
-                    incomingCall = tester.incomingCall().receive();
+                    it(
+                        'Поступил входящий звонок. Получена информация о звонке. Звонок принимается автоматически. ' +
+                        'Отображается уведомление с заголовком "Подключение к звонку".',
+                    function() {
+                        incomingCall = tester.incomingCall().receive();
 
-                    tester.slavesNotification().
-                        twoChannels().
-                        available().
-                        incoming().
-                        muted().
-                        progress().
-                        hidden().
-                        userDataFetched().
-                        expectToBeSent();
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            incoming().
+                            muted().
+                            progress().
+                            hidden().
+                            userDataFetched().
+                            expectToBeSent();
 
-                    tester.slavesNotification().
-                        twoChannels().
-                        available().
-                        incoming().
-                        progress().
-                        hidden().
-                        userDataFetched().
-                        expectToBeSent();
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            incoming().
+                            progress().
+                            hidden().
+                            userDataFetched().
+                            expectToBeSent();
 
-                    tester.numaRequest().receiveResponse();
+                        tester.numaRequest().receiveResponse();
 
-                    tester.firstConnection.connectWebRTC();
-                    tester.firstConnection.callTrackHandler();
+                        tester.firstConnection.connectWebRTC();
+                        tester.firstConnection.callTrackHandler();
 
-                    tester.allowMediaInput();
-                    tester.firstConnection.addCandidate();
+                        tester.allowMediaInput();
+                        tester.firstConnection.addCandidate();
 
-                    tester.outCallEvent().receive();
-                    tester.outCallEvent().slavesNotification().expectToBeSent();
+                        tester.outCallEvent().receive();
+                        tester.outCallEvent().slavesNotification().expectToBeSent();
 
-                    incomingCall.expectOkToBeSent().receiveResponse();
+                        incomingCall.expectOkToBeSent().receiveResponse();
 
-                    tester.slavesNotification().
-                        available().
-                        userDataFetched().
-                        twoChannels().
-                        incoming().
-                        muted().
-                        confirmed().
-                        hidden().
-                        expectToBeSent();
+                        tester.slavesNotification().
+                            available().
+                            userDataFetched().
+                            twoChannels().
+                            incoming().
+                            muted().
+                            confirmed().
+                            hidden().
+                            expectToBeSent();
 
-                    notificationTester.grantPermission().recentNotification().
-                        expectToHaveTitle('Подключение к звонку').
-                        expectToHaveBody('Шалева Дора Добриновна +7 (916) 123-45-69');
+                        notificationTester.grantPermission().recentNotification().
+                            expectToHaveTitle('Подключение к звонку').
+                            expectToHaveBody('Шалева Дора Добриновна +7 (916) 123-45-69');
+                    });
+                    it(
+                        'Получена информация о звонке. Поступил входящий звонок. Звонок принимается автоматически. ' +
+                        'Отображается уведомление с заголовком "Подключение к звонку".',
+                    function() {
+                        tester.outCallEvent().receive();
+                        tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                        incomingCall = tester.incomingCall().receive();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            incoming().
+                            muted().
+                            progress().
+                            hidden().
+                            userDataFetched().
+                            expectToBeSent();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            incoming().
+                            progress().
+                            hidden().
+                            userDataFetched().
+                            expectToBeSent();
+
+                        tester.numaRequest().receiveResponse();
+
+                        tester.firstConnection.connectWebRTC();
+                        tester.firstConnection.callTrackHandler();
+
+                        tester.allowMediaInput();
+                        tester.firstConnection.addCandidate();
+
+                        incomingCall.expectOkToBeSent().receiveResponse();
+
+                        tester.slavesNotification().
+                            available().
+                            userDataFetched().
+                            twoChannels().
+                            incoming().
+                            muted().
+                            confirmed().
+                            hidden().
+                            expectToBeSent();
+
+                        notificationTester.grantPermission().recentNotification().
+                            expectToHaveTitle('Подключение к звонку').
+                            expectToHaveBody('Шалева Дора Добриновна +7 (916) 123-45-69');
+                    });
                 });
                 it(
                     'Поступил входящий звонок с номером отличающимся от ожидаемого. Отображается ' +

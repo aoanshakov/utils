@@ -255,11 +255,18 @@ define(() => function ({
                 monthPanelTester.title = testersFactory.createDomElementTester(() =>
                     getMonthPanel().querySelector('.cm-calendar__months__item__title, .ui-date-range-picker-header'));
 
-                monthPanelTester.day = day => testersFactory.createDomElementTester(() => utils.
-                    descendantOf(getMonthPanel()).
-                    matchesSelector('.cm-calendar__days__item__text, .ui-date-range-picker-cell-container').
-                    textEquals(day + '').
-                    find());
+                monthPanelTester.day = day => {
+                    const tester = testersFactory.createDomElementTester(() => utils.
+                        descendantOf(getMonthPanel()).
+                        matchesSelector('.cm-calendar__days__item__text, .ui-date-range-picker-cell-container').
+                        textEquals(day + '').
+                        find());
+
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0));
+                    
+                    return tester;
+                };
 
                 return monthPanelTester;
             };
@@ -477,31 +484,27 @@ define(() => function ({
                 Array.prototype.slice.call((getRootElement() || new JsTester_NoElement()).querySelectorAll('input'), 0);
             const getInput = () => utils.getVisibleSilently(getInputs());
 
-            const addMethods = (tester, getInput) => ((tester.clearIcon = testersFactory.createDomElementTester(
-                () => getInput().closest('.ui-input').querySelector('.ui-input-suffix-close')
-            )), tester);
-
-            me.input = (() => {
+            const addMethods = getInput => {
                 const tester = testersFactory.createTextFieldTester(getInput),
-                    fill = tester.fill.bind(tester);
-
-                tester.fill = value => (fill(value), Promise.runAll(false, true)); 
-                return tester;
-            })();
-
-            me.input.withPlaceholder = placeholder => {
-                const tester = testersFactory.createTextFieldTester(
-                    utils.getVisibleSilently(getInputs().filter(input => input.placeholder == placeholder))
-                );
-
-                const fill = tester.fill.bind(tester),
+                    fill = tester.fill.bind(tester),
                     input = tester.input.bind(tester);
 
-                tester.fill = value => (fill(value), Promise.runAll(false, true)); 
-                tester.input = value => (input(value), Promise.runAll(false, true)); 
+                tester.fill = value => (fill(value), Promise.runAll(false, true), tester); 
+                tester.input = value => (input(value), Promise.runAll(false, true)), tester; 
+
+                tester.clearIcon = testersFactory.createDomElementTester(
+                    () => getInput().closest('.ui-input').querySelector('.ui-input-suffix-close')
+                );
 
                 return tester;
             };
+
+            me.input = addMethods(getInput);
+            me.input.atIndex = index => addMethods(() => getInputs()[index]);
+            me.input.first = me.input.atIndex(0);
+
+            me.input.withPlaceholder = placeholder => addMethods(() =>
+                utils.getVisibleSilently(getInputs().filter(input => input.placeholder == placeholder)));
 
             me.input.withFieldLabel = label => {
                 const labelEl = utils.descendantOf(getRootElement()).
@@ -512,10 +515,8 @@ define(() => function ({
                 const row = labelEl.closest('.ant-row'),
                     input = (row || labelEl.closest('.ui-label')).querySelector('input');
 
-                return addMethods(testersFactory.createTextFieldTester(input), () => input);
+                return addMethods(() => input);
             };
-
-            addMethods(me.input, getInput);
         }
 
         return me;

@@ -835,6 +835,68 @@ tests.addTest(options => {
                                                     tester.outCallEvent().slavesNotification().expectToBeSent();
                                                 });
                                             });
+                                            describe('Поступила информация о звонке.', function() {
+                                                beforeEach(function() {
+                                                    tester.outCallEvent().receive();
+                                                    tester.outCallEvent().slavesNotification().expectToBeSent();
+                                                });
+
+                                                it('Поступил звонок. Отображено уведомление о звонке.', function() {
+                                                    tester.incomingCall().receive();
+
+                                                    tester.slavesNotification().
+                                                        available().
+                                                        userDataFetched().
+                                                        twoChannels().
+                                                        incoming().
+                                                        progress().
+                                                        hidden().
+                                                        expectToBeSent();
+
+                                                    tester.numaRequest().receiveResponse();
+
+                                                    notificationTester.grantPermission().
+                                                        recentNotification().
+                                                        expectToHaveTitle('Входящий звонок').
+                                                        expectToHaveBody('Шалева Дора +7 (916) 123-45-67').
+                                                        expectToBeOpened();
+                                                });
+                                                it('Уведомление о звонке не отобразилось.', function() {
+                                                    notificationTester.recentNotification().expectNotToExist();
+                                                });
+                                            });
+                                            describe('Поступил входящий звонок.', function() {
+                                                beforeEach(function() {
+                                                    tester.incomingCall().receive();
+
+                                                    tester.slavesNotification().
+                                                        available().
+                                                        userDataFetched().
+                                                        twoChannels().
+                                                        incoming().
+                                                        progress().
+                                                        hidden().
+                                                        expectToBeSent();
+
+                                                    tester.numaRequest().receiveResponse();
+                                                });
+
+                                                it(
+                                                    'Поступила информация о звонке. Отображено браузерное уведомление.',
+                                                function() {
+                                                    tester.outCallEvent().receive();
+                                                    tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                                                    notificationTester.grantPermission().
+                                                        recentNotification().
+                                                        expectToHaveTitle('Входящий звонок').
+                                                        expectToHaveBody('Шалева Дора +7 (916) 123-45-67').
+                                                        expectToBeOpened();
+                                                });
+                                                it('Уведомление о звонке не отобразилось.', function() {
+                                                    notificationTester.recentNotification().expectNotToExist();
+                                                });
+                                            });
                                             it(
                                                 'Вкладка снова открыта. Поступил входящий звонок. браузерное ' +
                                                 'уведомление не отображено.',
@@ -853,24 +915,30 @@ tests.addTest(options => {
                                                 tester.outCallEvent().receive();
                                                 tester.outCallEvent().slavesNotification().expectToBeSent();
                                             });
-                                            it(
-                                                'Поступил входящий звонок. Отображено браузерное уведомление.',
-                                            function() {
-                                                tester.incomingCall().receive();
-                                                tester.slavesNotification().available().userDataFetched().twoChannels().
-                                                    incoming().progress().hidden().expectToBeSent();
+                                        });
+                                        it(
+                                            'Поступила информация о звонке. Поступил звонок. Отображена информация о ' +
+                                            'звонке.',
+                                        function() {
+                                            tester.outCallEvent().receive();
+                                            tester.outCallEvent().slavesNotification().expectToBeSent();
 
-                                                tester.numaRequest().receiveResponse();
+                                            tester.incomingCall().receive();
 
-                                                tester.outCallEvent().receive();
-                                                tester.outCallEvent().slavesNotification().expectToBeSent();
+                                            tester.slavesNotification().
+                                                twoChannels().
+                                                available().
+                                                incoming().
+                                                progress().
+                                                userDataFetched().
+                                                expectToBeSent();
 
-                                                notificationTester.grantPermission().
-                                                    recentNotification().
-                                                    expectToHaveTitle('Входящий звонок').
-                                                    expectToHaveBody('Шалева Дора +7 (916) 123-45-67').
-                                                    expectToBeOpened();
-                                            });
+                                            tester.numaRequest().receiveResponse();
+                                                
+                                            tester.softphone.expectTextContentToHaveSubstring(
+                                                'Шалева Дора +7 (916) 123-45-67 ' +
+                                                'Путь лида'
+                                            );
                                         });
                                     });
                                     describe('Нажимаю на иконку с телефоном.', function() {

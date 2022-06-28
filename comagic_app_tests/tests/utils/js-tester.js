@@ -4270,7 +4270,7 @@ function JsTester_Utils (debug) {
             preventDefaultHandler();
         };
     };
-    function createKeyboardEvent (eventName, key, keyCode, preventDefaultHandler) {
+    function createKeyboardEvent (eventName, key, keyCode, preventDefaultHandler, code) {
         var keyboardEvent = document.createEvent('KeyboardEvent');
 
         me.addPreventDefaultHandler(keyboardEvent, preventDefaultHandler);
@@ -4279,6 +4279,13 @@ function JsTester_Utils (debug) {
             eventName, true, false, null, 0, false, 0, false, keyCode, 0);
         keyboardEvent.which = keyboardEvent.keyCode = keyCode;
         keyboardEvent.key = key;
+        code && (keyboardEvent.code = code);
+
+        Object.defineProperty(keyboardEvent, 'code', {
+            get: function () {
+                return code;
+            }
+        });     
 
         ['keyCode', 'which', 'charCode'].forEach(function (propertyName) {
             Object.defineProperty(keyboardEvent, propertyName, {
@@ -4329,7 +4336,7 @@ function JsTester_Utils (debug) {
         target.dispatchEvent(createKeyboardEvent(
             'keyup', key, keyCode, function () {}));
     };
-    this.pressSpecialKey = function (target, keyCode, handleKeyDown, handleKeyUp) {
+    this.pressSpecialKey = function (target, keyCode, handleKeyDown, handleKeyUp, code) {
         target = target || document;
 
         handleKeyDown = handleKeyDown || function() {};
@@ -4339,11 +4346,11 @@ function JsTester_Utils (debug) {
             function () {
                 handleKeyDown = function () {};
                 handleKeyUp = function () {};
-            }));
+            }, code));
 
         handleKeyDown();
 
-        target.dispatchEvent(createKeyboardEvent('keyup', '', keyCode, function () {}));
+        target.dispatchEvent(createKeyboardEvent('keyup', '', keyCode, function () {}, code));
 
         handleKeyUp();
     };
@@ -4351,7 +4358,7 @@ function JsTester_Utils (debug) {
         this.pressSpecialKey(target, 27);
     };
     this.pressEnter = function (target) {
-        this.pressSpecialKey(target, 13);
+        this.pressSpecialKey(target, 13, undefined, undefined, 'Enter');
     };
     this.pressRight = function (target, repetitions) {
         this.repeat(repetitions, function () {
