@@ -751,6 +751,10 @@ tests.addTest(options => {
                     '00:00:22'
                 );
             });
+            it('Записи для таблицы не были получены. Панель пагинации скрыта.', function() {
+                callsRequest.noCalls().receiveResponse();
+                tester.table.pagingPanel.expectNotToExist();
+            });
             it(
                 'Есть неуспешные звонки. Строки с неуспешными звонками внешне отличаются от строк с ' +
                 'успешными звонками.',
