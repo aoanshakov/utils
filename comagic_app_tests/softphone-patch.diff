@@ -36,96 +36,10 @@ index 8b7d3d7..e5aadc4 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 7c7c694..9921fcb 100644
+index bb713d8..9921fcb 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -108,7 +108,8 @@ export const RootStore = types
-                 requests = [],
-                 removeAllRequests = () => requests.splice(0, requests.length),
-                 i18n = createI18N(),
--                isSingleApp = window.rootConfig?.appName == 'softphone';
-+                isSingleApp = window.rootConfig?.appName == 'softphone',
-+                enablingHandlers = [];
-             hasError = false;
-             subscriptionRemovers = [];
- 
-@@ -118,6 +119,17 @@ export const RootStore = types
-                 handlerCallEnd = () => null,
-                 isAuthorized = false;
- 
-+            const broadcast = (...args) => {
-+                const doBroadcast = () => eventBus.broadcast(...args);
-+
-+                if (!self.reduxStore.getState().webRTC.state.available) {
-+                    enablingHandlers.push(doBroadcast);
-+                    return;
-+                }
-+
-+                doBroadcast();
-+            };
-+
-             const logout = () => {
-                 if (authStore?.isUserLogoutProceeding) {
-                     return;
-@@ -216,7 +228,7 @@ export const RootStore = types
-                                 applicationChangeHandlers.forEach(handler => handler(data));
- 
-                             data.type == 'notify_others' && data.data?.action == 'prepare_to_prompter_call' &&
--                                handlePrompterCallPreparing(data?.data?.data);
-+                                handlePrompterCallPreparing(data?.data?.data, () => null);
- 
-                             data.type == 'notify_slaves' &&
-                                 data.data?.type == 'state_updating' &&
-@@ -232,6 +244,11 @@ export const RootStore = types
-                             webRTC.on('error', () => (hasError = true));
-                             call = phoneNumber => (dispatch(showWidget), webRTC.call(phoneNumber));
- 
-+                            webRTC.on('enabled', () => {
-+                                enablingHandlers.forEach(handle => handle());
-+                                enablingHandlers.splice(0, enablingHandlers.length);
-+                            });
-+
-                             break;
-                         }
-                         case HANDLE_LOGOUT:
-@@ -373,7 +390,8 @@ export const RootStore = types
-                     }
-                 });
- 
--                handlePrompterCallPreparing(data);
-+                dispatch(showWidget);
-+                handlePrompterCallPreparing(data, broadcast);
-             });
- 
-             subscribe('end_prompter_call', () => {
-@@ -517,7 +535,7 @@ export const RootStore = types
-                 subscriber_number,
-                 employee_full_name,
-                 show_notification
--            }) => {
-+            }, broadcast) => {
-                 const state = self.reduxStore.getState();
- 
-                 const {
-@@ -532,7 +550,7 @@ export const RootStore = types
-                 error == 'appAlreadyOpened' && isMaster === IS_TRUE && authorize();
- 
-                 if (prompterSipLine) {
--                    eventBus.broadcast('await_prompter_call', i18n('Already preparing to call'));
-+                    broadcast('await_prompter_call', i18n('Already preparing to call'));
-                 } else {
-                     dispatch(addPendingCallToPrompt({
-                         call_session_id,
-@@ -541,7 +559,7 @@ export const RootStore = types
-                         show_notification
-                     }));
- 
--                    eventBus.broadcast('await_prompter_call', null);
-+                    broadcast('await_prompter_call', null);
-                 }
-             };
- 
-@@ -565,4 +583,5 @@ export const RootStore = types
+@@ -583,4 +583,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
