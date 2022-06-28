@@ -298,6 +298,36 @@ tests.addTest(options => {
                         tester.table.row.first.column.withHeader('Теги').svg.click();
                     });
 
+                    describe(
+                        'Нажимаю на кнопку удаления тег "Нецелевой контакт". Отправлен запрос удаления тега.',
+                    function() {
+                        beforeEach(function() {
+                            tester.select.tag('Нецелевой контакт').closeButton.click();
+                            tester.markDeletingRequest().receiveResponse();
+                        });
+
+                        it('Удаляю все теги. Теги не отмечены.', function() {
+                            tester.select.tag('Отложенный звонок').closeButton.click();
+                            tester.markDeletingRequest().anotherMark().receiveResponse();
+
+                            tester.select.tag('Генератор лидов').expectNotToExist();
+                            tester.select.tag('Нецелевой контакт').expectNotToExist();
+                            tester.select.tag('Отложенный звонок').expectNotToExist();
+
+                            tester.select.option('Генератор лидов').expectNotToBeSelected();
+                            tester.select.option('Нецелевой контакт').expectNotToBeSelected();
+                            tester.select.option('Отложенный звонок').expectNotToBeSelected();
+                        });
+                        it('Тег не отмечен.', function() {
+                            tester.select.tag('Генератор лидов').expectNotToExist();
+                            tester.select.tag('Нецелевой контакт').expectNotToExist();
+                            tester.select.tag('Отложенный звонок').expectToBeVisible();
+
+                            tester.select.option('Генератор лидов').expectNotToBeSelected();
+                            tester.select.option('Нецелевой контакт').expectNotToBeSelected();
+                            tester.select.option('Отложенный звонок').expectToBeSelected();
+                        });
+                    });
                     it('Изменяю теги. Теги изменены.', function() {
                         tester.select.option('Генератор лидов').click();
                         tester.markAddingRequest().receiveResponse();
@@ -340,20 +370,6 @@ tests.addTest(options => {
                         tester.select.tag('Нецелевой контакт').expectToBeVisible();
                         tester.select.tag('Отложенный звонок').expectToBeVisible();
                         tester.select.tag('Генератор лидов').expectNotToExist();
-                    });
-                    it(
-                        'Нажимаю на кнопку удаления тег "Нецелевой контакт". Отправлен запрос удаления тега.',
-                    function() {
-                        tester.select.tag('Нецелевой контакт').closeButton.click();
-                        tester.markDeletingRequest().receiveResponse();
-
-                        tester.select.tag('Генератор лидов').expectNotToExist();
-                        tester.select.tag('Нецелевой контакт').expectNotToExist();
-                        tester.select.tag('Отложенный звонок').expectToBeVisible();
-
-                        tester.select.option('Генератор лидов').expectNotToBeSelected();
-                        tester.select.option('Нецелевой контакт').expectNotToBeSelected();
-                        tester.select.option('Отложенный звонок').expectToBeSelected();
                     });
                     it('Отмечены опции выранных тегов.', function() {
                         tester.select.tag('Генератор лидов').expectNotToExist();

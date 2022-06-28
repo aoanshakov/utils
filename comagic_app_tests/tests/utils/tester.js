@@ -1111,16 +1111,25 @@ define(() => function ({
         }
     });
 
-    me.markDeletingRequest = () => ({
-        receiveResponse: () => {
-            ajax.recentRequest().
-                expectToHaveMethod('DELETE').
-                expectPathToContain('/sup/api/v1/users/me/calls/980925444/marks/88').
-                respondSuccessfullyWith(true);
+    me.markDeletingRequest = () => {
+        let id = '88';
 
-            Promise.runAll(false, true);
-        }
-    });
+        return {
+            anotherMark() {
+                id = '495';
+                return this;
+            },
+
+            receiveResponse: () => {
+                ajax.recentRequest().
+                    expectToHaveMethod('DELETE').
+                    expectPathToContain(`/sup/api/v1/users/me/calls/980925444/marks/${id}`).
+                    respondSuccessfullyWith(true);
+
+                Promise.runAll(false, true);
+            }
+        };
+    };
 
     me.talkRecordRequest = () => {
         let path = 'https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/';
