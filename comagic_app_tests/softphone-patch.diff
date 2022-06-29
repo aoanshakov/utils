@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 8b7d3d7..e5aadc4 100644
+index 0863e6e..fac2cc3 100644
 --- a/package.json
 +++ b/package.json
 @@ -20,7 +20,6 @@
@@ -13,7 +13,7 @@ index 8b7d3d7..e5aadc4 100644
 @@ -57,7 +56,7 @@
      "nanoid": "^3.2.0",
      "@babel/runtime": "^7.13.9",
-     "@comagic/core": "^0.6.1",
+     "@comagic/core": "^0.6.7",
 -    "antd": "^4.13.0",
 +    "antd": "3.26.7",
      "async-mutex": "^0.3.2",

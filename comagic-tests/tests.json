@@ -101,6 +101,14 @@
         "services.autocalls.autobackcall": [
             "helpers/ServicesAutocallsAutobackcall.js",
             "tests/services.autocalls.autobackcall.js"
+        ],
+        "services.ats.sip.edit": [
+            "helpers/ServicesAtsSipEditPage.js",
+            "tests/services.ats.sip.edit.js"
+        ],
+        "services.ats.sip": [
+            "helpers/ServicesAtsSip.js",
+            "tests/services.ats.sip.js"
         ]
     },
     "easystart": {

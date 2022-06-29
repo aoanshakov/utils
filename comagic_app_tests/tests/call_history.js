@@ -681,6 +681,50 @@ tests.addTest(options => {
                         '1 15 строк Страница 25'
                     );
                 });
+                it('Поступил входящий звонок. Принимаю звонок. Звонок завершен.', function() {
+                    let incomingCall = tester.incomingCall().receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        progress().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.numaRequest().receiveResponse();
+                    tester.outCallEvent().receive();
+                    tester.outCallEvent().slavesNotification().expectToBeSent();
+                    tester.callStartingButton.click();
+
+                    tester.firstConnection.connectWebRTC();
+                    tester.firstConnection.callTrackHandler();
+
+                    tester.allowMediaInput();
+                    tester.firstConnection.addCandidate();
+
+                    incomingCall.expectOkToBeSent().receiveResponse();
+                    
+                    tester.slavesNotification().
+                        available().
+                        userDataFetched().
+                        twoChannels().
+                        incoming().
+                        confirmed().
+                        expectToBeSent();
+
+                    incomingCall.receiveBye();
+
+                    tester.slavesNotification().
+                        available().
+                        userDataFetched().
+                        twoChannels().
+                        ended().
+                        expectToBeSent();
+
+                    tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+                    tester.marksRequest().receiveResponse();
+                });
                 it('Отображена история звонков.', function() {
                     tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
 

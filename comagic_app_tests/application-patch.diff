@@ -293,7 +293,7 @@ index 8c325253..1e0a9553 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 6f199d5a..aa4acf40 100644
+index ca2ee8d5..aa4acf40 100644
 --- a/package.json
 +++ b/package.json
 @@ -59,8 +59,8 @@
@@ -325,7 +325,7 @@ index 6f199d5a..aa4acf40 100644
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#0d98e9edef486e948ac1407ae29abfec207a2c76",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#dee5be778a2df043b4e560b630b37579f88f9666",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
@@ -493,7 +493,7 @@ index 878297c6..05932ead 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 8868a98e..939025e9 100644
+index e6dd1223..21ca7ec0 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -95,7 +95,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -503,16 +503,17 @@ index 8868a98e..939025e9 100644
 -        isAuthorized: types.optional(types.boolean, Boolean(getToken())),
 +        isAuthorized: types.optional(types.boolean, false),
          isTokenRefreshing: types.optional(types.boolean, false),
-         isUserLogoutProceeding: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
-@@ -200,6 +200,7 @@ export const AuthStore = Loader.named('AuthStore')
+     })
+@@ -189,6 +189,8 @@ export const AuthStore = Loader.named('AuthStore')
          });
  
          const afterCreate = () => {
 +            setAuthorized(Boolean(getToken()));
-             self.setIsUserLogoutProceeding(false);
- 
++
              window.addEventListener('doLogoutUser', (event: CustomEvent) => {
+                 const eventWindowId = event.detail;
+                 if (eventWindowId !== authStore.windowId) {
 diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
 index 8c0a28d7..ce190fe9 100644
 --- a/src/rpc/httpRpc.ts
