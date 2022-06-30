@@ -837,10 +837,6 @@ tests.addTest(options => {
                             expectToHaveClass('transfer_outgoing_successful_svg__cmg-direction-icon');
                     });
                 });
-                it('Записи для таблицы не были получены. Панель пагинации скрыта.', function() {
-                    callsRequest.noCalls().receiveResponse();
-                    tester.table.pagingPanel.expectNotToExist();
-                });
                 it(
                     'Есть неуспешные звонки. Строки с неуспешными звонками внешне отличаются от строк с ' +
                     'успешными звонками.',
@@ -849,6 +845,29 @@ tests.addTest(options => {
 
                     tester.table.row.first.
                         expectToHaveClass('cmg-softphone-call-history-failed-call-row');
+                });
+                it('Записи для таблицы не были получены. Панель пагинации скрыта.', function() {
+                    callsRequest.noCalls().receiveResponse();
+                    tester.table.pagingPanel.expectNotToExist();
+                });
+                it('Имя контакта не было получено. Оторажен номер.', function() {
+                    callsRequest.noContactName().receiveResponse();
+
+                    tester.table.expectTextContentToHaveSubstring(
+                        'Дата / время ' +
+                        'ФИО контакта ' +
+                        'Номер абонента ' +
+                        'Теги ' +
+                        'Комментарий ' +
+                        'Длительность ' +
+                        'Запись ' +
+
+                        '19 дек 2019 08:03 ' +
+                        '+7 (495) 023-06-25 ' +
+                        '+7 (495) 023-06-25 ' +
+                        'Нецелевой контакт, Отложенный звонок ' +
+                        '00:00:20 ',
+                    );
                 });
                 it('Общее количество записей не было получено. Отображена история звонков.', function() {
                     callsRequest.noTotal().receiveResponse();
@@ -1203,6 +1222,8 @@ tests.addTest(options => {
             });
         });
         describe('Номера должны быть скрыты. Открываю историю звонков.', function() {
+            let callsRequest;
+
             beforeEach(function() {
                 settingsRequest.shouldHideNumbers().receiveResponse();
                 tester.slavesNotification().twoChannels().enabled().expectToBeSent();
@@ -1252,48 +1273,55 @@ tests.addTest(options => {
 
                 tester.button('История звонков').click();
 
-                tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+                callsRequest = tester.callsRequest().fromFirstWeekDay().firstPage().expectToBeSent();
                 tester.marksRequest().receiveResponse();
             });
 
-            it('Нажимаю на кнопку "Все". Номера скрыты.', function() {
-                tester.radioButton('Все').click();
+            describe('Имя контакта получено.', function() {
+                beforeEach(function() {
+                    callsRequest.receiveResponse();
+                });
 
-                tester.notProcessedCallsRequest().receiveResponse();
-                tester.marksRequest().receiveResponse();
+                it('Нажимаю на кнопку "Все". Номера скрыты.', function() {
+                    tester.radioButton('Все').click();
 
-                tester.table.expectTextContentToHaveSubstring(
-                    'Дата / время ' +
-                    'Номер абонента ' +
-                    'Виртуальный номер ' +
-                    'Теги ' +
-                    'Комментарий ' +
-                    'Длительность ' +
-                    'Запись ' +
+                    tester.notProcessedCallsRequest().receiveResponse();
+                    tester.marksRequest().receiveResponse();
 
-                    '19 дек 2019 08:03 ' +
-                    'Неизвестный номер ' +
-                    '+7 (495) 023-06-30 ' +
-                    '00:00:20 ' +
+                    tester.table.expectTextContentToHaveSubstring(
+                        'Дата / время ' +
+                        'Номер абонента ' +
+                        'Виртуальный номер ' +
+                        'Теги ' +
+                        'Комментарий ' +
+                        'Длительность ' +
+                        'Запись ' +
 
-                    '19 дек 2019 10:13 ' +
-                    'Неизвестный номер ' +
-                    '+7 (495) 023-06-31 ' +
-                    '00:00:24'
-                );
+                        '19 дек 2019 08:03 ' +
+                        'Неизвестный номер ' +
+                        '+7 (495) 023-06-30 ' +
+                        '00:00:20 ' +
+
+                        '19 дек 2019 10:13 ' +
+                        'Неизвестный номер ' +
+                        '+7 (495) 023-06-31 ' +
+                        '00:00:24'
+                    );
+                });
+                it('Номера скрыты.', function() {
+                    tester.table.expectTextContentToHaveSubstring(
+                        'Гяурова Марийка ' +
+                        'Неизвестный номер'
+                    );
+                });
             });
-            it('Номера скрыты.', function() {
+            it('Имя контакта не было получено. Оторажен номер.', function() {
+                callsRequest.noContactName().receiveResponse();
+
                 tester.table.expectTextContentToHaveSubstring(
                     '19 дек 2019 08:03 ' +
-                    'Гяурова Марийка ' +
                     'Неизвестный номер ' +
-                    'Нецелевой контакт, Отложенный звонок ' +
-                    '00:00:20 ' +
-
-                    '18 дек 2019 18:08 ' +
-                    'Манова Тома ' +
-                    'Неизвестный номер ' +
-                    '00:00:21'
+                    'Неизвестный номер '
                 );
             });
         });
