@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 8c325253..1e0a9553 100644
+index 8c325253..6ab2001b 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -7,11 +7,12 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -167,7 +167,7 @@ index 8c325253..1e0a9553 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -346,17 +416,120 @@ module.exports = {
+@@ -346,17 +416,121 @@ module.exports = {
                      },
                  ],
              },
@@ -211,6 +211,7 @@ index 8c325253..1e0a9553 100644
 +            'softphone/Account': 'softphone/src/Account.tsx',
 +            'softphone/Settings': 'softphone/src/Settings.tsx',
 +            'softphone/CallHistory': 'softphone/src/call_history/index.tsx',
++            'softphone/CallStats': `${miscDirectory}/Stub.js`,
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',

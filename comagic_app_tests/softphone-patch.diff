@@ -36,10 +36,61 @@ index 0251d89..7ca7d33 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 426c114..35f5897 100644
+index a3d0fff..dd738c5 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -584,4 +584,5 @@ export const RootStore = types
+@@ -86,13 +86,15 @@ export const RootStore = types
+     .actions(self => {
+         let initialState: RootInstanceSnapshotOut,
+             hasError = false,
+-            doRequest = () => null;
++            doRequest = () => null,
++            doMaybeHidePhoneNumber = value => value;
+         const sizeChangeHandlers = [],
+             accountFetchedHandlers = [],
+             applicationChangeHandlers = [],
+             subscriptionRemovers = [],
+             subscribe = (...args) => subscriptionRemovers.push(eventBus.subscribe(...args)),
+-            request = async (...args) => doRequest(...args);
++            request = async (...args) => doRequest(...args),
++            maybeHidePhoneNumberMethod = (...args) => doMaybeHidePhoneNumber(...args);
+ 
+         const removeSubscriptions = () => {
+             subscriptionRemovers.forEach(removeSubscription => removeSubscription());
+@@ -294,11 +296,7 @@ export const RootStore = types
+                                 show_notification &&
+                                     dispatch(
+                                         sendBrowserNotification(state.i18n('Connecting to call'), {
+-                                            body: `${employee_full_name} ${maybeHidePhoneNumber(
+-                                                state,
+-                                                subscriber_number,
+-                                                true
+-                                            )}`,
++                                            body: `${employee_full_name} ${doMaybeHidePhoneNumber(subscriber_number)}`,
+                                             icon: '/build/icon.ico',
+                                             silent: false,
+                                             requireInteraction: true,
+@@ -569,6 +567,7 @@ export const RootStore = types
+ 
+             dispatch(setAxiosProcessor(axios => (axios.defaults.headers['X-Auth-Type'] = 'jwt')));
+             initialState = getSnapshot(self);
++            doMaybeHidePhoneNumber = value => maybeHidePhoneNumber(getState(), value, true);
+ 
+             doRequest = args =>
+                 new Promise((resolve, reject) =>
+@@ -584,10 +583,16 @@ export const RootStore = types
+             applySnapshot(self, initialState);
+         };
+ 
+-        return { afterCreate, resetStore, request };
++        return {
++            afterCreate,
++            resetStore,
++            request,
++            maybeHidePhoneNumber: maybeHidePhoneNumberMethod 
++        };
+     });
+ 
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
