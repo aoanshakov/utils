@@ -292,6 +292,33 @@ define(() => function ({
             return tester;
         })();
 
+        !me.audioPlayer && Object.defineProperty(me, 'audioPlayer', {
+            get: () => {
+                const getPlayer = () => utils.element(getRootElement()).querySelector('.ui-audio-player'),
+                    tester = testersFactory.createDomElementTester(getPlayer);
+
+                addTesters(tester, getPlayer);
+
+                const atIndex = tester.button.atIndex.bind(tester.button);
+
+                tester.button.atIndex = index => {
+                    const tester = atIndex(index),
+                        putMouseOver = tester.putMouseOver.bind(tester);
+
+                    tester.putMouseOver = () => {
+                        putMouseOver();
+                        spendTime(100);
+                        spendTime(0);
+                        return tester;
+                    };
+
+                    return tester;
+                };
+
+                return tester;
+            }
+        });
+
         me.stopCallButton = testersFactory.createDomElementTester(() =>
             rootTester.querySelector('.cmg-call-button-stop'));
 
@@ -300,10 +327,10 @@ define(() => function ({
 
         me.slider = (() => {
             const tester = testersFactory.createDomElementTester(() =>
-                (getRootElement() || new JsTester_NoElement()).querySelector('.ant-slider-track'))
+                (getRootElement() || new JsTester_NoElement()).querySelector('.ant-slider-track, .ui-slider-rail'))
 
             const click = tester.click.bind(tester);
-            tester.click = x => (click(x, 50), spendTime(100));
+            tester.click = (...args) => (click(...args), spendTime(100));
 
             return tester;
         })();
@@ -320,19 +347,20 @@ define(() => function ({
             return tester;
         };
 
+        const buttonSelector = 
+            'button, ' +
+            '.ui-pagination-btns-pages__item, ' +
+            '.clct-c-button, ' +
+            '.ui-radio-content, ' +
+            '.cmg-switch-label, ' +
+            '.src-components-main-menu-nav-item-styles-module__label, ' +
+            '.src-components-main-menu-settings-styles-module__label, ' +
+            '.src-components-main-menu-menu-link-styles-module__item a';
+
         me.button = text => {
             let domElement = utils.descendantOf(getRootElement()).
                 textEquals(text).
-                matchesSelector(
-                    'button, ' +
-                    '.ui-pagination-btns-pages__item, ' +
-                    '.clct-c-button, ' +
-                    '.ui-radio-content, ' +
-                    '.cmg-switch-label, ' +
-                    '.src-components-main-menu-nav-item-styles-module__label, ' +
-                    '.src-components-main-menu-settings-styles-module__label, ' +
-                    '.src-components-main-menu-menu-link-styles-module__item a'
-                ).
+                matchesSelector(buttonSelector).
                 find();
 
             domElement = domElement.querySelector('a') || domElement;
@@ -369,6 +397,11 @@ define(() => function ({
             
             return tester;
         };
+
+        me.button.atIndex = index => testersFactory.createDomElementTester(() =>
+            utils.element(getRootElement()).querySelectorAll(buttonSelector)[index] || new JsTester_NoElement());
+
+        me.button.first = me.button.atIndex(0);
 
         me.switchButton = (() => {
             const tester = testersFactory.createDomElementTester('.ui-switch'),
@@ -433,7 +466,7 @@ define(() => function ({
                         click = tester.click.bind(tester),
                         checkbox = option.querySelector('.ui-checkbox');
 
-                    tester.click = () => (click(), Promise.runAll(false, true), spendTime(0));
+                    tester.click = () => (click(), Promise.runAll(false, true), spendTime(0), spendTime(0), tester);
 
                     tester.expectToBeSelected = logEnabled => {
                         if (!checkbox.classList.contains('ui-checkbox-checked')) {
@@ -487,8 +520,10 @@ define(() => function ({
             const addMethods = getInput => {
                 const tester = testersFactory.createTextFieldTester(getInput),
                     fill = tester.fill.bind(tester),
-                    input = tester.input.bind(tester);
+                    input = tester.input.bind(tester),
+                    click = tester.click.bind(tester);
 
+                tester.click = () => (click(), spendTime(0), spendTime(0), tester);
                 tester.fill = value => (fill(value), Promise.runAll(false, true), tester); 
                 tester.input = value => (input(value), Promise.runAll(false, true)), tester; 
 

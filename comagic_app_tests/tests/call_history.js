@@ -150,9 +150,7 @@ tests.addTest(options => {
                             tester.select.withValue('Звонки: Все').click();
                         });
 
-                        it(
-                            'Выбираю опцию "Внешние". Отправлен запрос истории звонков.',
-                        function() {
+                        it('Выбираю опцию "Внешние". Отправлен запрос истории звонков.', function() {
                             tester.select.option('Внешние').click();
 
                             tester.notProcessedCallsRequest().
@@ -437,47 +435,6 @@ tests.addTest(options => {
                         tester.button('Сохранить').expectToHaveAttribute('disabled');
                     });
                 });
-                describe('Нажимаю на кнопку комментария.', function() {
-                    beforeEach(function() {
-                        tester.table.row.first.column.withHeader('Комментарий').svg.click();
-                    });
-
-                    it('Изменяю значение поля.', function() {
-                        tester.modalWindow.textarea.fill('Другой комментарий');
-
-                        tester.button('Сохранить').click();
-                        tester.commentUpdatingRequest().receiveResponse();
-                    });
-                    it(
-                        'Нажимаю на кнпоку закрытие модального окна. Окно закрыто.',
-                    function() {
-                        tester.modalWindow.closeButton.click();
-                        tester.modalWindow.expectNotToExist();
-                    });
-                    it('Отображен комментарий.', function() {
-                        tester.modalWindow.textarea.expectToHaveValue('Некий комментарий');
-                    });
-                });
-                describe(
-                    'Нажимаю на кнопку проигрывания записи. Запись проигрывается. Нажимаю на кнопку закрытия плеера.',
-                function() {
-                    beforeEach(function() {
-                        tester.table.row.first.column.withHeader('Запись').playIcon.click();
-                        
-                        tester.talkRecordRequest().receiveResponse();
-                        audioDecodingTester.accomplishAudioDecoding();
-
-                        tester.closeButton.click();
-                    });
-
-                    it('Нажимаю на кнопку проигрывания записи. Плеер отображается.', function() {
-                        tester.table.row.first.column.withHeader('Запись').playIcon.click();
-                        tester.closeButton.expectToBeVisible();
-                    });
-                    it('Плеер скрыт.', function() {
-                        tester.closeButton.expectNotToExist();
-                    });
-                });
                 describe('Открываю календарь', function() {
                     beforeEach(function() {
                         tester.calendarField.click();
@@ -521,6 +478,65 @@ tests.addTest(options => {
                     it('Поля даты заполнены.', function() {
                         tester.calendarField.popup.input.first.expectToHaveValue('16.12.2019');
                         tester.calendarField.popup.input.atIndex(1).expectToHaveValue('19.12.2019');
+                    });
+                });
+                describe('Нажимаю на кнопку проигрывания записи. Запись проигрывается.', function() {
+                    beforeEach(function() {
+                        tester.table.row.first.column.withHeader('Запись').playIcon.click();
+                        
+                        tester.talkRecordRequest().receiveResponse();
+                        audioDecodingTester.accomplishAudioDecoding();
+                    });
+
+                    describe('Нажимаю на кнопку закрытия плеера.', function() {
+                        beforeEach(function() {
+                            tester.closeButton.click();
+                        });
+
+                        it('Нажимаю на кнопку проигрывания записи. Плеер отображается.', function() {
+                            tester.table.row.first.column.withHeader('Запись').playIcon.click();
+                            tester.audioPlayer.expectToBeVisible();
+                        });
+                        it('Плеер скрыт.', function() {
+                            tester.audioPlayer.expectNotToExist();
+                        });
+                    });
+                    it('Меняю громкость. Плеер отображается.', function() {
+                        tester.audioPlayer.button.atIndex(1).putMouseOver();
+                        tester.slider.click(50, 25);
+                        
+                        tester.audioPlayer.expectToBeVisible();
+                    });
+                    it('Меняю скорость. Плеер отображается.', function() {
+                        tester.audioPlayer.button.atIndex(2).putMouseOver();
+                        tester.select.option('1.25').click();
+
+                        tester.audioPlayer.expectToBeVisible();
+                    });
+                    it('Кликаю на элемент вне плеера. Плеер скрыт.', function() {
+                        tester.input.withPlaceholder('Имя или телефон').click();
+                        tester.audioPlayer.expectNotToExist();
+                    });
+                });
+                describe('Нажимаю на кнопку комментария.', function() {
+                    beforeEach(function() {
+                        tester.table.row.first.column.withHeader('Комментарий').svg.click();
+                    });
+
+                    it('Изменяю значение поля.', function() {
+                        tester.modalWindow.textarea.fill('Другой комментарий');
+
+                        tester.button('Сохранить').click();
+                        tester.commentUpdatingRequest().receiveResponse();
+                    });
+                    it(
+                        'Нажимаю на кнпоку закрытие модального окна. Окно закрыто.',
+                    function() {
+                        tester.modalWindow.closeButton.click();
+                        tester.modalWindow.expectNotToExist();
+                    });
+                    it('Отображен комментарий.', function() {
+                        tester.modalWindow.textarea.expectToHaveValue('Некий комментарий');
                     });
                 });
                 it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {

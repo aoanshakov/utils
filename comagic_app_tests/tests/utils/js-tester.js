@@ -4173,14 +4173,16 @@ function JsTester_Element ({
     var oldGetElement = getElement;
     var getElement = utils.makeFunction(getElement);
 
+    function querySelectorAll (selector) {
+        return (getElement() || new JsTester_NoElement()).querySelectorAll(selector);
+    }
+
     this.querySelector = function (selector) {
-        return utils.getVisibleSilently(
-            (getElement() || new JsTester_NoElement()).querySelectorAll(selector)
-        ) || new JsTester_NoElement();
+        return utils.getVisibleSilently(querySelectorAll(selector)) || new JsTester_NoElement();
     };
 
     this.querySelectorAll = function (selector) {
-        return utils.getAllVisible(selector);
+        return utils.getAllVisible(querySelectorAll(selector));
     };
 }
 
@@ -6108,6 +6110,10 @@ function JsTester_DomElement (
         return actualValue;
     }
 
+    this.log = function () {
+        this.expectToExist();
+        console.log(getDomElement());
+    };
     this.endTransition = function () {
         this.expectToExist();
 
