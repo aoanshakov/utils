@@ -3704,7 +3704,8 @@ function JsTester_Tests (factory) {
             testersFactory = factory.createTestersFactory({
                 wait: wait,
                 utils: utils,
-                blobsTester: blobsTester
+                blobsTester: blobsTester,
+                spendTime: spendTime
             });
         } catch(e) {
             error = e;
@@ -3937,7 +3938,8 @@ function JsTester_TestersFactory (args) {
         gender = factory.createGender(),
         female = gender.female,
         neuter = gender.neuter,
-        male = gender.male;
+        male = gender.male,
+        spendTime = args.spendTime;
 
     this.createFileFieldTester = function () {
         var getDomElement = utils.makeDomElementGetter(arguments[0]);
@@ -3967,9 +3969,18 @@ function JsTester_TestersFactory (args) {
     this.createTextFieldTester = function (domElement, label) {
         var getDomElement = utils.makeDomElementGetter(domElement);
 
-        return new JsTester_InputElement(getDomElement, wait, utils, this, neuter,
+        return new JsTester_InputElement(
+            getDomElement,
+            wait,
+            utils,
+            this,
+            neuter,
             utils.fieldDescription('текстовое поле', label),
-            utils.fieldDescription('текстовое поле', label), utils.fieldDescription('текстового поля', label), factory);
+            utils.fieldDescription('текстовое поле', label),
+            utils.fieldDescription('текстового поля', label),
+            factory,
+            spendTime
+        );
     };
     this.createTextAreaTester = function (getDomElement, label) {
         return new JsTester_TextArea(
@@ -4353,7 +4364,6 @@ function JsTester_Utils (debug) {
         handleKeyDown();
 
         target.dispatchEvent(createKeyboardEvent('keyup', '', keyCode, function () {}, code));
-
         handleKeyUp();
     };
     this.pressEscape = function (target) {
@@ -5763,7 +5773,7 @@ function JsTester_Anchor (
 
 function JsTester_InputElement (
     getDomElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
-    genetiveDescription, factory
+    genetiveDescription, factory, spendTime
 ) {
     var me = this;
 
@@ -5845,12 +5855,11 @@ function JsTester_InputElement (
 
         utils.pressSpecialKey(inputElement, keyCode, function () {
             nativeSetValue(beforeCursor + afterCursor);
+            fireChange();
         }, function () {
             var cursorPosition = beforeCursor.length;
             inputElement.setSelectionRange(cursorPosition, cursorPosition);
         });
-
-        fireChange();
     }
 
     function pressDelete () {
@@ -5892,7 +5901,6 @@ function JsTester_InputElement (
     };
     this.pressDelete = function () {
         this.click();
-
         pressDelete();
 
         return this;
@@ -5980,6 +5988,7 @@ function JsTester_InputElement (
     };
     this.fill = function (value) {
         clear();
+
         getDomElement().setSelectionRange(0, 0);
         input(value);
     };
@@ -6313,6 +6322,8 @@ function JsTester_DomElement (
                 expectedContent + '", тогда, как ' + gender.pronoun + ' содержит текст "' + actualContent + '".'
             );
         }
+
+        return this;
     };
     this.expectToHaveContent = function (expectedContent) {
         this.expectToBeVisible();

@@ -121,6 +121,9 @@ define(() => function ({
     me.history = history;
 
     const addTesters = (me, getRootElement) => {
+        me.anchor = text => testersFactory.createAnchorTester(() =>
+            utils.descendantOf(getRootElement()).matchesSelector('a').textEquals(text).find());
+
         me.phoneLink = testersFactory.createDomElementTester(() =>
             utils.element(getRootElement()).querySelector('.cmg-softphone-call-history-phone-link'));
 
@@ -1230,7 +1233,12 @@ define(() => function ({
         let getResponse = count => [{
             cdr_type: 'default',
             call_session_id: 980925444,
-            comment: 'Некий комментарий',
+            comment: [
+                'Некий https://ya.ru комментарий ' +
+                'http://ya.ru http тоже можно ' +
+                'hhttp://ya.ru уже нельзя',
+                'ищет на всех https://go.comagic.ru/', 'строках'
+            ].join("\n"),
             phone_book_contact_id: 2204382409,
             direction: 'in',
             duration: 20,
@@ -7338,9 +7346,6 @@ define(() => function ({
     me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
     me.addressBookButton = testersFactory.createDomElementTester('#cmg-address-book-button');
     me.contactOpeningButton = testersFactory.createDomElementTester('#cmg-open-contact-button');
-
-    me.anchor = text => testersFactory.createAnchorTester(() =>
-        utils.descendantOfBody().matchesSelector('a').textEquals(text).find());
 
     me.employeeRow = text => (domElement => {
         const tester = testersFactory.createDomElementTester(domElement);

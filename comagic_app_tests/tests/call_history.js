@@ -408,6 +408,7 @@ tests.addTest(options => {
                                     svg.
                                     click();
 
+                                tester.button('Редактировать').click();
                                 tester.modalWindow.textarea.expectToHaveValue('Другой комментарий');
                             });
                             it('Комментарий добавлен.', function() {
@@ -526,20 +527,60 @@ tests.addTest(options => {
                             tester.table.row.first.column.withHeader('Комментарий').svg.click();
                         });
 
-                        it('Изменяю значение поля.', function() {
-                            tester.modalWindow.textarea.fill('Другой комментарий');
+                        describe('Нажимаю на кнопку "Редактировать".', function() {
+                            beforeEach(function() {
+                                tester.button('Редактировать').click();
+                            });
 
-                            tester.button('Сохранить').click();
-                            tester.commentUpdatingRequest().receiveResponse();
+                            it(
+                                'Изменяю значение поля. Нажимаю на кнопку "Сохранить". Значение сохраняется.',
+                            function() {
+                                tester.modalWindow.textarea.fill('Другой комментарий');
+
+                                tester.button('Сохранить').click();
+                                tester.commentUpdatingRequest().receiveResponse();
+                            });
+                            it('Отображен комментарий.', function() {
+                                tester.modalWindow.textarea.expectToHaveValue([
+                                    'Некий https://ya.ru комментарий ' +
+                                    'http://ya.ru http тоже можно ' +
+                                    'hhttp://ya.ru уже нельзя',
+                                    'ищет на всех https://go.comagic.ru/', 'строках'
+                                ].join("\n"));
+                            });
                         });
-                        it(
-                            'Нажимаю на кнпоку закрытие модального окна. Окно закрыто.',
-                        function() {
+                        it('Нажимаю на кнпоку закрытие модального окна. Окно закрыто.', function() {
                             tester.modalWindow.closeButton.click();
                             tester.modalWindow.expectNotToExist();
                         });
                         it('Отображен комментарий.', function() {
-                            tester.modalWindow.textarea.expectToHaveValue('Некий комментарий');
+                            tester.modalWindow.expectToHaveTextContent(
+                                'Комментарий ' +
+
+                                'Некий https://ya.ru комментарий ' +
+                                'http://ya.ru http тоже можно ' +
+                                'hhttp://ya.ru уже нельзя ' +
+                                'ищет на всех https://go.comagic.ru/ строках ' +
+
+                                'Редактировать ' +
+                                'Отмена Сохранить'
+                            );
+
+                            tester.modalWindow.
+                                anchor('https://ya.ru').
+                                expectAttributeToHaveValue('href', 'https://ya.ru');
+
+                            tester.modalWindow.
+                                anchor('http://ya.ru').
+                                expectAttributeToHaveValue('href', 'http://ya.ru');
+
+                            tester.modalWindow.
+                                anchor('https://go.comagic.ru/').
+                                expectAttributeToHaveValue('href', 'https://go.comagic.ru/');
+
+                            tester.modalWindow.
+                                anchor('hhttp://ya.ru').
+                                expectNotToExist();
                         });
                     });
                     it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
@@ -939,6 +980,7 @@ tests.addTest(options => {
                 describe('Нажимаю на кнопку комментария там где комментарий есть.', function() {
                     beforeEach(function() {
                         tester.table.row.first.column.withHeader('Комментарий').svg.click();
+                        tester.button('Редактировать').click();
                     });
 
                     it('Стираю комментарий. Кнопка сохранения доступна.', function() {
@@ -1005,6 +1047,7 @@ tests.addTest(options => {
                 describe('Нажимаю на кнопку комментария там где комментарий есть.', function() {
                     beforeEach(function() {
                         tester.table.row.first.column.withHeader('Комментарий').svg.click();
+                        tester.button('Редактировать').click();
                     });
 
                     it('Стираю комментарий. Кнопка сохранения доступна.', function() {
@@ -1071,6 +1114,7 @@ tests.addTest(options => {
                 describe('Нажимаю на кнопку комментария там где комментарий есть.', function() {
                     beforeEach(function() {
                         tester.table.row.first.column.withHeader('Комментарий').svg.click();
+                        tester.button('Редактировать').click();
                     });
 
                     it('Стираю комментарий. Кнопка сохранения доступна.', function() {
