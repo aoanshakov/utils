@@ -139,7 +139,7 @@ tests.addTest(options => {
                         callsRequest.receiveResponse();
                     });
 
-                    describe('Нажимаю на кнопку "Необработанные".', function() {
+                    xdescribe('Нажимаю на кнопку "Необработанные".', function() {
                         beforeEach(function() {
                             tester.radioButton('Необработанные').click();
 
@@ -254,7 +254,7 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    describe('Ввожу значеие в поле поиска.', function() {
+                    xdescribe('Ввожу значеие в поле поиска.', function() {
                         beforeEach(function() {
                             tester.input.withPlaceholder('Имя или телефон').input('qwe12');
                         });
@@ -294,7 +294,7 @@ tests.addTest(options => {
                             tester.input.withPlaceholder('Имя или телефон').expectToHaveValue('qwe12');
                         });
                     });
-                    describe('Нажимаю на кнопку тегов.', function() {
+                    xdescribe('Нажимаю на кнопку тегов.', function() {
                         beforeEach(function() {
                             tester.table.row.first.column.withHeader('Теги').svg.click();
                         });
@@ -382,7 +382,7 @@ tests.addTest(options => {
                             tester.select.option('Отложенный звонок').expectToBeSelected();
                         });
                     });
-                    describe('Открываю окно добавления комментария.', function() {
+                    xdescribe('Открываю окно добавления комментария.', function() {
                         beforeEach(function() {
                             tester.
                                 table.
@@ -439,7 +439,7 @@ tests.addTest(options => {
                             tester.button('Сохранить').expectToHaveAttribute('disabled');
                         });
                     });
-                    describe('Открываю календарь', function() {
+                    xdescribe('Открываю календарь', function() {
                         beforeEach(function() {
                             tester.calendarField.click();
                         });
@@ -484,7 +484,7 @@ tests.addTest(options => {
                             tester.calendarField.popup.input.atIndex(1).expectToHaveValue('19.12.2019');
                         });
                     });
-                    describe('Нажимаю на кнопку проигрывания записи. Запись проигрывается.', function() {
+                    xdescribe('Нажимаю на кнопку проигрывания записи. Запись проигрывается.', function() {
                         beforeEach(function() {
                             tester.table.row.first.column.withHeader('Запись').playIcon.click();
                             
@@ -522,7 +522,7 @@ tests.addTest(options => {
                             tester.audioPlayer.expectNotToExist();
                         });
                     });
-                    describe('Нажимаю на кнопку комментария.', function() {
+                    xdescribe('Нажимаю на кнопку комментария.', function() {
                         beforeEach(function() {
                             tester.table.row.first.column.withHeader('Комментарий').svg.click();
                         });
@@ -583,7 +583,7 @@ tests.addTest(options => {
                                 expectNotToExist();
                         });
                     });
-                    it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
+                    xit('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
                         tester.radioButton('Все').click();
 
                         tester.notProcessedCallsRequest().receiveResponse();
@@ -613,13 +613,13 @@ tests.addTest(options => {
                             '00:00:24'
                         );
                     });
-                    it('Нажимаю на кнопку скачивания записи. Открыт выпадающий список записей.', function() {
+                    xit('Нажимаю на кнопку скачивания записи. Открыт выпадающий список записей.', function() {
                         tester.table.row.atIndex(1).column.withHeader('Запись').downloadIcon.click();
 
                         tester.select.option('baf9be6ace6b0cb2f9b0e1ed0738db1a.mp3').expectToBeVisible();
                         tester.select.option('2fj923fholfr32hlf498f8h18f1hfl1c.mp3').expectToBeVisible();
                     });
-                    it('Нажимаю на ссылку в колонке "Номер абонента". Совершается звонок.', function() {
+                    xit('Нажимаю на ссылку в колонке "Номер абонента". Совершается звонок.', function() {
                         tester.table.row.first.column.withHeader('Номер абонента').phoneLink.click();
 
                         tester.firstConnection.connectWebRTC();
@@ -648,7 +648,7 @@ tests.addTest(options => {
                         tester.firstConnection.callTrackHandler();
                         tester.numaRequest().anotherNumber().receiveResponse();
                     });
-                    it('Нажимаю на ссылку в колонке "ФИО контакта". Совершается звонок.', function() {
+                    xit('Нажимаю на ссылку в колонке "ФИО контакта". Совершается звонок.', function() {
                         tester.table.row.first.column.withHeader('ФИО контакта').phoneLink.click();
 
                         tester.firstConnection.connectWebRTC();
@@ -677,7 +677,7 @@ tests.addTest(options => {
                         tester.firstConnection.callTrackHandler();
                         tester.numaRequest().anotherNumber().receiveResponse();
                     });
-                    it('Нажимаю на кнопку второй страницы. Отправлен запрос второй страницы.', function() {
+                    xit('Нажимаю на кнопку второй страницы. Отправлен запрос второй страницы.', function() {
                         tester.table.pagingPanel.pageButton('2').click();
 
                         tester.callsRequest().fromFirstWeekDay().secondPage().receiveResponse();
@@ -709,7 +709,7 @@ tests.addTest(options => {
                             '1 2 15 строк Страница 10'
                         );
                     });
-                    it(
+                    xit(
                         'Выбираю другое количество строк на странице. Отправлен запрос истории звонков.',
                     function() {
                         tester.table.pagingPanel.select.click();
@@ -741,7 +741,7 @@ tests.addTest(options => {
                             '1 15 строк Страница 25'
                         );
                     });
-                    it('Поступил входящий звонок. Принимаю звонок. Звонок завершен.', function() {
+                    xit('Поступил входящий звонок. Принимаю звонок. Звонок завершен.', function() {
                         let incomingCall = tester.incomingCall().receive();
 
                         tester.slavesNotification().
@@ -856,6 +856,7 @@ tests.addTest(options => {
                         );
                     });
                 });
+                return;
                 describe('Есть звонки трансфера.', function() {
                     beforeEach(function() {
                         callsRequest = callsRequest.transferCall();
@@ -935,6 +936,7 @@ tests.addTest(options => {
                     );
                 });
             });
+            return;
             describe('Обновление комментария недоступно. Открываю раздел "История звонков".', function() {
                 beforeEach(function() {
                     permissionsRequest.disallowCallSessionCommentingUpdate().receiveResponse();
@@ -1265,6 +1267,7 @@ tests.addTest(options => {
                 tester.table.expectTextContentNotToHaveSubstring('Теги');
             });
         });
+        return;
         describe('Номера должны быть скрыты. Открываю историю звонков.', function() {
             let callsRequest;
 
@@ -1370,6 +1373,7 @@ tests.addTest(options => {
             });
         });
     });
+    return;
     it('Открываю историю звонков. Страница локализована.', function() {
         setNow('2019-12-19T12:10:06');
 
