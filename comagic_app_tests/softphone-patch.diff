@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 038c28a..b64ed18 100644
+index 5e990db..c244526 100644
 --- a/package.json
 +++ b/package.json
 @@ -20,7 +20,6 @@
@@ -36,7 +36,7 @@ index 038c28a..b64ed18 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 15bc103..dd738c5 100644
+index edbe99e..0319fa5 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -594,4 +594,5 @@ export const RootStore = types
