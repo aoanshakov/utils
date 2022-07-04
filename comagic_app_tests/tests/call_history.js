@@ -1292,7 +1292,7 @@ tests.addTest(options => {
                 tester.table.expectTextContentNotToHaveSubstring('Теги');
             });
             it(
-                'Просмотр тегов недоступен. Открываю раздел "История звонков". Теги не отображатся.',
+                'Редактирование тегов недоступно. Открываю раздел "История звонков". Теги не изменяются.',
             function() {
                 permissionsRequest.disallowTagManagementUpdate().receiveResponse();
 
@@ -1381,8 +1381,6 @@ tests.addTest(options => {
                     microphoneAccessGranted().
                     userDataFetched().
                     expectToBeSent();
-
-                reportGroupsRequest.receiveResponse();
 
                 registrationRequest.receiveResponse();
                 tester.slavesNotification().twoChannels().available().userDataFetched().
