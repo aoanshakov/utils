@@ -631,7 +631,7 @@ tests.addTest(options => {
                         ).expectToBeVisible();
                     });
                     it('Нажимаю на ссылку в колонке "Номер абонента". Совершается звонок.', function() {
-                        tester.table.row.first.column.withHeader('Номер абонента').phoneLink.click();
+                        tester.table.row.first.column.withHeader('Номер абонента').link.click();
 
                         tester.firstConnection.connectWebRTC();
                         tester.allowMediaInput();
@@ -660,7 +660,7 @@ tests.addTest(options => {
                         tester.numaRequest().anotherNumber().receiveResponse();
                     });
                     it('Нажимаю на ссылку в колонке "ФИО контакта". Совершается звонок.', function() {
-                        tester.table.row.first.column.withHeader('ФИО контакта').phoneLink.click();
+                        tester.table.row.first.column.withHeader('ФИО контакта').link.click();
 
                         tester.firstConnection.connectWebRTC();
                         tester.allowMediaInput();
@@ -796,6 +796,13 @@ tests.addTest(options => {
                         tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                         tester.marksRequest().receiveResponse();
                     });
+                    it('Отображена ссылка на страницу контакта в CRM.', function() {
+                        tester.table.row.first.column.withHeader('ФИО контакта').link.click();
+
+                        windowOpener.expectToHavePath(
+                            'https://comagicwidgets.amocrm.ru/contacts/detail/218401'
+                        );
+                    });
                     it('Отображена история звонков.', function() {
                         tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
 
@@ -816,6 +823,8 @@ tests.addTest(options => {
                         tester.table.pagingPanel.pageButton('1').expectToBePressed();
                         tester.table.pagingPanel.pageButton('2').expectNotToBePressed();
                         tester.table.pagingPanel.pageButton('3').expectNotToExist();
+
+                        tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.expectNotToExist();
 
                         tester.table.row.first.
                             expectNotToHaveClass('cmg-softphone-call-history-failed-call-row');

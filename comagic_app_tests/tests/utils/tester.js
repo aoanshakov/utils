@@ -124,7 +124,7 @@ define(() => function ({
         me.anchor = text => testersFactory.createAnchorTester(() =>
             utils.descendantOf(getRootElement()).matchesSelector('a').textEquals(text).find());
 
-        me.phoneLink = testersFactory.createDomElementTester(() =>
+        me.link = testersFactory.createDomElementTester(() =>
             utils.element(getRootElement()).querySelector('.cmg-softphone-call-history-phone-link'));
 
         me.textarea = testersFactory.createTextFieldTester(() =>
