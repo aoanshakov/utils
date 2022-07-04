@@ -994,6 +994,10 @@ define(() => function ({
 
     me.notProcessedCallsRequest = () => {
         const queryParams = {
+            date_from: '2019-12-16T00:00:00.000+03:00',
+            date_till: '2019-12-19T23:59:59.999+03:00',
+            from: undefined,
+            to: undefined,
             call_directions: 'in,out',
             call_types: 'external,internal',
             is_not_processed: 'null',

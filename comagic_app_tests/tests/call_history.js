@@ -616,8 +616,15 @@ tests.addTest(options => {
                     it('Нажимаю на кнопку скачивания записи. Открыт выпадающий список записей.', function() {
                         tester.table.row.atIndex(1).column.withHeader('Запись').downloadIcon.click();
 
-                        tester.select.option('baf9be6ace6b0cb2f9b0e1ed0738db1a.mp3').expectToBeVisible();
-                        tester.select.option('2fj923fholfr32hlf498f8h18f1hfl1c.mp3').expectToBeVisible();
+                        tester.select.option(
+                            '2019-12-18_18-08-25.522_from_74950230626_session_980925445_' +
+                            'baf9be6ace6b0cb2f9b0e1ed0738db1a_talk.mp3'
+                        ).expectToBeVisible();
+
+                        tester.select.option(
+                            '2019-12-18_18-08-25.522_from_74950230626_session_980925445_' +
+                            '2fj923fholfr32hlf498f8h18f1hfl1c_talk.mp3'
+                        ).expectToBeVisible();
                     });
                     it('Нажимаю на ссылку в колонке "Номер абонента". Совершается звонок.', function() {
                         tester.table.row.first.column.withHeader('Номер абонента').phoneLink.click();
