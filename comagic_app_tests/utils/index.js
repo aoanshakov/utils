@@ -11,12 +11,14 @@ const {
     applicationPatch,
     devApplicationPatch,
     chatsPatch,
+    corePatch,
     magicUiPatch,
     huskyPatch,
     softphonePatch,
     analyticsPatch,
     devSoftphonePatch,
     preCommitHook,
+    core,
     chats,
     magicUi,
     softphone,
@@ -54,6 +56,7 @@ const cda = `cd ${application} &&`,
     actions = {},
     chatOverridenFiles = 'src/models/RootStore.ts package.json src/history.ts src/App.tsx src/models/auth/AuthStore.ts',
     magicUiOverridenFiles = 'package.json',
+    coreOverridenFiles = magicUiOverridenFiles,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
@@ -158,6 +161,16 @@ const overriding = [{
         applicationPatch: magicUiPatch
     }
 }, {
+    application: core,
+    dev: {
+        overridenFiles: coreOverridenFiles,
+        applicationPatch: corePatch
+    },
+    test: {
+        overridenFiles: coreOverridenFiles,
+        applicationPatch: corePatch
+    }
+}, {
     application: softphone,
     dev: {
         overridenFiles: devSoftphoneOverridenFiles,
@@ -237,6 +250,7 @@ actions['patch-broadcast-channel'] = [`cd ${broadcastChannel} && patch -p1 < ${b
 actions['initialize'] = params => [
     appModule(['chats', chats, '']),
     appModule(['softphone', softphone, '']),
+    appModule(['core', core, '']),
     ['web/magic_ui', magicUi, '', misc],
     ['analytics/frontend', analytics, '', analyticsDir],
     ['web/sip_lib', sipLib, '', softphoneMisc],

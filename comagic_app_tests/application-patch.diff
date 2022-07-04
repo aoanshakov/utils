@@ -294,7 +294,7 @@ index 8c325253..6ab2001b 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index ca2ee8d5..aa4acf40 100644
+index ca2ee8d5..65b7066e 100644
 --- a/package.json
 +++ b/package.json
 @@ -59,8 +59,8 @@
@@ -308,7 +308,12 @@ index ca2ee8d5..aa4acf40 100644
      "url-loader": "^3.0.0",
      "webpack": "^5.72.0",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -73,9 +73,13 @@
+@@ -69,13 +69,17 @@
+     "webpack-merge": "^5.7.3"
+   },
+   "dependencies": {
+-    "@comagic/core": "^0.6.7",
++    "@comagic/core": "./misc/core",
      "@sentry/react": "^6.17.6",
      "@sentry/tracing": "^6.17.6",
      "ajv": "^8.8.2",
@@ -331,11 +336,13 @@ index ca2ee8d5..aa4acf40 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -98,7 +102,11 @@
+@@ -97,8 +101,12 @@
+     "react-dom": "^17.0.2",
      "stream-buffers": "^3.0.2",
      "react-flow-renderer": "^9.7.4",
-     "react-intl": "^5.15.8",
+-    "react-intl": "^5.15.8",
 -    "react-router-dom": "^5.2.0",
++    "react-intl": "5.13.2",
 +    "react-router": "5.2.1",
 +    "react-router-dom": "5.2.1",
 +    "simplebar-react": "^2.4.1",

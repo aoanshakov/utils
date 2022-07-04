@@ -45,6 +45,7 @@ tests.addTest(options => {
 
         describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
+                tester.notificationChannel().applyLeader().expectToBeSent();
                 accountRequest.receiveResponse();
 
                 const requests = ajax.inAnyOrder();
@@ -68,7 +69,10 @@ tests.addTest(options => {
                     tester.masterInfoMessage().receive();
                     tester.slavesNotification().expectToBeSent();
                     tester.slavesNotification().additional().expectToBeSent();
+
+                    tester.notificationChannel().tellIsLeader().expectToBeSent();
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
 
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
@@ -3527,7 +3531,10 @@ tests.addTest(options => {
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
 
-                    tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                    tester.settingsRequest().
+                        dontTriggerScrollRecalculation().
+                        allowNumberCapacitySelect().
+                        receiveResponse();
 
                     tester.othersNotification().widgetStateUpdate().fixedNumberCapacityRule().expectToBeSent();
                     tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
@@ -3574,6 +3581,8 @@ tests.addTest(options => {
                                 hidden().softphoneServerConnected().expectToBeSent();
 
                             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                            tester.notificationChannel().tellIsLeader().expectToBeSent();
+                            tester.notificationChannel().applyLeader().expectToBeSent();
 
                             tester.allowMediaInput();
                             tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().
@@ -3659,6 +3668,8 @@ tests.addTest(options => {
                         softphoneServerConnected().expectToBeSent();
 
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                    tester.notificationChannel().tellIsLeader().expectToBeSent();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
 
                     tester.allowMediaInput();
                     tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().
@@ -3727,7 +3738,10 @@ tests.addTest(options => {
                     tester.masterInfoMessage().receive();
                     tester.slavesNotification().expectToBeSent();
                     tester.slavesNotification().additional().visible().expectToBeSent();
+
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                    tester.notificationChannel().tellIsLeader().expectToBeSent();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
 
                     tester.statusesRequest().receiveResponse();
 
@@ -3828,7 +3842,10 @@ tests.addTest(options => {
                     tester.masterInfoMessage().receive();
                     tester.slavesNotification().expectToBeSent();
                     tester.slavesNotification().additional().visible().expectToBeSent();
+
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                    tester.notificationChannel().tellIsLeader().expectToBeSent();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
 
                     tester.statusesRequest().receiveResponse();
 
@@ -3946,6 +3963,8 @@ tests.addTest(options => {
                     tester.userName.putMouseOver();
                     tester.logoutButton.click();
 
+                    tester.notificationChannel().applyLeader().expectToBeSent();
+
                     tester.userLogoutRequest().receiveResponse();
                     tester.authLogoutRequest().receiveResponse();
 
@@ -3977,7 +3996,10 @@ tests.addTest(options => {
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
 
-                    tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                    tester.settingsRequest().
+                        dontTriggerScrollRecalculation().
+                        allowNumberCapacitySelect().
+                        receiveResponse();
 
                     tester.othersNotification().widgetStateUpdate().fixedNumberCapacityRule().expectToBeSent();
                     tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
@@ -4015,6 +4037,7 @@ tests.addTest(options => {
 
                 it('Фичефлаг софтфона включен. Кнопка софтфона отображена.', function() {
                     accountRequest.receiveResponse();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
 
                     tester.configRequest().softphone().receiveResponse();
 
@@ -4038,7 +4061,7 @@ tests.addTest(options => {
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
 
-                    tester.settingsRequest().receiveResponse();
+                    tester.settingsRequest().dontTriggerScrollRecalculation().receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
 
@@ -4106,6 +4129,7 @@ tests.addTest(options => {
                 });
                 it('Фичефлаг софтфона для руководителя включен. Кнопка софтфона отображена.', function() {
                     accountRequest.managerSoftphoneFeatureFlagEnabled().receiveResponse();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
 
                     tester.configRequest().softphone().receiveResponse();
 
@@ -4129,7 +4153,7 @@ tests.addTest(options => {
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
 
-                    tester.settingsRequest().receiveResponse();
+                    tester.settingsRequest().dontTriggerScrollRecalculation().receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
 
@@ -4194,6 +4218,7 @@ tests.addTest(options => {
                 });
                 it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
                     accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
 
                     tester.reportGroupsRequest().receiveResponse();
                     tester.reportsListRequest().receiveResponse();
@@ -4205,6 +4230,7 @@ tests.addTest(options => {
             });
             it('Софтфон недоступен. Кнопка софтфона скрыта.', function() {
                 accountRequest.softphoneUnavailable().receiveResponse();
+                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.reportGroupsRequest().receiveResponse();
                 tester.reportsListRequest().receiveResponse();
@@ -4215,6 +4241,7 @@ tests.addTest(options => {
             });
             it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
                 accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
+                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.reportGroupsRequest().receiveResponse();
                 tester.reportsListRequest().receiveResponse();
@@ -4235,6 +4262,7 @@ tests.addTest(options => {
                 isAlreadyAuthenticated: true
             });
 
+            tester.notificationChannel().applyLeader().expectToBeSent();
             tester.accountRequest().receiveResponse();
 
             const requests = ajax.inAnyOrder();
@@ -4254,9 +4282,13 @@ tests.addTest(options => {
             tester.configRequest().softphone().receiveResponse();
 
             tester.masterInfoMessage().receive();
+
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+
+            tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
 
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
@@ -4305,6 +4337,7 @@ tests.addTest(options => {
         setNow('2019-12-19T12:10:06');
 
         const tester = new Tester(options);
+        tester.notificationChannel().applyLeader().expectToBeSent();
 
         tester.input.withFieldLabel('Логин').fill('botusharova');
         tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -4333,7 +4366,10 @@ tests.addTest(options => {
         tester.masterInfoMessage().receive();
         tester.slavesNotification().expectToBeSent();
         tester.slavesNotification().additional().expectToBeSent();
+
+        tester.notificationChannel().tellIsLeader().expectToBeSent();
         tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+        tester.notificationChannel().applyLeader().expectToBeSent();
 
         tester.authCheckRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();
@@ -4382,6 +4418,7 @@ tests.addTest(options => {
         setNow('2019-12-19T12:10:06');
 
         const tester = new Tester(options);
+        tester.notificationChannel().applyLeader().expectToBeSent();
 
         tester.input.withFieldLabel('Логин').fill('botusharova');
         tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -4410,7 +4447,10 @@ tests.addTest(options => {
         tester.masterInfoMessage().receive();
         tester.slavesNotification().expectToBeSent();
         tester.slavesNotification().additional().expectToBeSent();
+
+        tester.notificationChannel().tellIsLeader().expectToBeSent();
         tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+        tester.notificationChannel().applyLeader().expectToBeSent();
 
         tester.authCheckRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();

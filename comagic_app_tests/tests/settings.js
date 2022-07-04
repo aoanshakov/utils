@@ -32,6 +32,7 @@ tests.addTest(options => {
             setNow('2019-12-19T12:10:06');
 
             tester = new Tester(options);
+            tester.notificationChannel().applyLeader().expectToBeSent();
 
             tester.input.withFieldLabel('Логин').fill('botusharova');
             tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -71,7 +72,10 @@ tests.addTest(options => {
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
@@ -464,6 +468,8 @@ tests.addTest(options => {
             tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
             
             tester.talkOptionsRequest().receiveResponse();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+
             tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().receiveResponse();
 
             notificationTester.grantPermission();
@@ -572,7 +578,11 @@ tests.addTest(options => {
             tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+
+            tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
 
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
@@ -807,7 +817,11 @@ tests.addTest(options => {
         tester.masterInfoMessage().receive();
         tester.slavesNotification().expectToBeSent();
         tester.slavesNotification().additional().expectToBeSent();
+
+        tester.notificationChannel().tellIsLeader().expectToBeSent();
         tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+        tester.notificationChannel().applyLeader().expectToBeSent();
+        tester.notificationChannel().applyLeader().expectToBeSent();
 
         tester.authCheckRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();

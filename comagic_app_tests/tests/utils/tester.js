@@ -1077,27 +1077,23 @@ define(() => function ({
                     respondSuccessfullyWith({
                         success: true,
                         data: [{
-                            component: 'default',
                             call_session_id: 980925444,
                             comment: null,
                             phone_book_contact_id: null,
                             direction: 'in',
                             duration: 20,
                             contact_name: null,
-                            is_failed: false,
                             mark_ids: [],
                             subscriber_number: '74950230625',
                             virtual_number: '74950230630',
                             start_time: '2019-12-19T08:03:02.522+03:00'
                         }, {
-                            component: 'default',
                             call_session_id: 980925445,
                             comment: null,
                             phone_book_contact_id: null,
                             direction: 'in',
                             duration: 24,
                             contact_name: null,
-                            is_failed: false,
                             mark_ids: [],
                             subscriber_number: '74950230626',
                             virtual_number: '74950230631',

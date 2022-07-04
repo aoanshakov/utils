@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 16f21db8..802d1afc 100644
+index 16f21db8..aa4c1e81 100644
 --- a/package.json
 +++ b/package.json
 @@ -11,9 +11,9 @@
@@ -36,7 +36,16 @@ index 16f21db8..802d1afc 100644
    },
    "peerDependencies": {
      "react": ">= 17.0.2",
-@@ -61,32 +69,24 @@
+@@ -49,7 +57,7 @@
+     "@storybook/addons": "^6.4.19",
+     "@storybook/builder-webpack5": "^6.4.19",
+     "@storybook/manager-webpack5": "^6.4.19",
+-    "@storybook/react": "^6.4.19",
++    "@storybook/react": "6.4.19",
+     "@storybook/theming": "^6.4.19",
+     "@svgr/core": "^5.5.0",
+     "@svgr/plugin-jsx": "^5.5.0",
+@@ -61,32 +69,23 @@
      "@types/react-dom": "^17.0.3",
      "@types/react-input-mask": "^2.0.5",
      "@types/react-resizable": "^1.7.2",
@@ -69,7 +78,6 @@ index 16f21db8..802d1afc 100644
 -    "ts-loader": "^9.1.1",
 -    "typescript": "^4.2.4",
 +    "ts-loader": "^8.0.17",
-+    "typescript": "^4.2.2",
      "webpack": "^5.36.2",
      "webpack-cli": "^4.6.0"
    }

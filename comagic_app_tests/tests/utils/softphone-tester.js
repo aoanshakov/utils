@@ -4594,31 +4594,14 @@ define(function () {
             return notification;
         });
 
-        {
-            let time = 0,
-                wasMaster;
+        const createBroadcastChannelTester = channelName => {
+            let time = 0;
 
-            const recentMessage = this.recentCrosstabMessage = () => {
+            const recentMessage = () => {
                 const message = broadcastChannels.recentMessage();
                 time = message.time;
                 return message;
             };
-
-            const receiveMessage = this.receiveCrosstabMessage = message => {
-                message.time = new Date().getTime() * 1000;
-
-                if (message.time <= time) {
-                    time ++;
-                    message.time = time;
-                }
-
-                broadcastChannels.channel('crosstab').receiveMessage(message);
-            };
-
-            const createCustomMessage = data => ({
-                type: 'message',
-                data
-            });
 
             const applyMessage = () => ({
                 type: 'internal',
@@ -4628,8 +4611,75 @@ define(function () {
                 }
             });
 
-            const receiveCustomMessage = data => receiveMessage(createCustomMessage(data)),
-                applyLeader = () => recentMessage().expectToContain(applyMessage());
+            return {
+                applyMessage,
+                recentMessage,
+                applyLeader: () => recentMessage().expectToContain(applyMessage()),
+
+                receiveMessage: message => {
+                    message.time = new Date().getTime() * 1000;
+
+                    if (message.time <= time) {
+                        time ++;
+                        message.time = time;
+                    }
+
+                    broadcastChannels.channel(channelName).receiveMessage(message);
+                },
+
+                tellIsLeader: () => recentMessage().expectToBeSentToChannel(channelName).expectToContain({
+                    type: 'internal',
+                    data: {
+                        context: 'leader',
+                        action: 'tell'
+                    }
+                })
+            };
+        };
+
+        {
+            const {
+                tellIsLeader,
+                applyLeader
+            } = createBroadcastChannelTester('notificationChannel');
+
+            this.notificationChannel = () => ({
+                applyLeader: () => ({
+                    expectToBeSent: () => {
+                        applyLeader();
+                        Promise.runAll(false, true);
+                    }
+                }),
+
+                tellIsLeader: () => ({
+                    expectToBeSent: () => {
+                        tellIsLeader();
+                        Promise.runAll(false, true);
+                    }
+                })
+            });
+        }
+
+        {
+            let wasMaster;
+
+            const {
+                recentMessage,
+                receiveMessage,
+                tellIsLeader,
+                applyMessage,
+                applyLeader
+            } = createBroadcastChannelTester('crosstab');
+
+            this.recentCrosstabMessage = recentMessage;
+            this.receiveCrosstabMessage = receiveMessage;
+
+            const createCustomMessage = data => ({
+                type: 'message',
+                data
+            });
+
+            const receiveCustomMessage = data => receiveMessage(createCustomMessage(data));
 
             const receiveLeaderDeath = () => receiveMessage({
                 type: 'internal',
@@ -5320,15 +5370,6 @@ define(function () {
 
                     wasMaster = true;
                 };
-
-                const tellIsLeader = () =>
-                    recentMessage().expectToBeSentToChannel('crosstab').expectToContain({
-                        type: 'internal',
-                        data: {
-                            context: 'leader',
-                            action: 'tell'
-                        }
-                    });
 
                 const receiveTellIsLeader = () => {
                     receiveMessage({

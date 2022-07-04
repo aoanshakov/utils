@@ -3227,7 +3227,12 @@ function JsTester_BroadcastChannelFactory (args) {
 
 function JsTester_BroadcastChannelTester (args) {
     var fireEvent = args.eventFirer,
-        channelName = args.channelName;
+        channelName = args.channelName,
+        broadcastChannelsToIgnore = args.broadcastChannelsToIgnore;
+
+    this.assumeSomeMessageMayBeSent = function () {
+        broadcastChannelsToIgnore.set(channelName);
+    };
 
     this.expectToExist = function () {
         if (!fireEvent) {
@@ -3250,7 +3255,8 @@ function JsTester_BroadcastChannelTester (args) {
 
 function JsTester_BroadcastChannelsTester (args) {
     var broadcastChannelMessages = args.broadcastChannelMessages,
-        broadcastChannelMessageEventFirers = args.broadcastChannelMessageEventFirers;
+        broadcastChannelMessageEventFirers = args.broadcastChannelMessageEventFirers,
+        broadcastChannelsToIgnore = args.broadcastChannelsToIgnore;
 
     this.recentMessage = function () {
         return broadcastChannelMessages.pop();
@@ -3259,7 +3265,8 @@ function JsTester_BroadcastChannelsTester (args) {
     this.channel = function (channelName) {
         return new JsTester_BroadcastChannelTester({
             eventFirer: broadcastChannelMessageEventFirers[channelName],
-            channelName: channelName
+            channelName: channelName,
+            broadcastChannelsToIgnore: broadcastChannelsToIgnore
         });
     };
 }
@@ -3385,6 +3392,7 @@ function JsTester_Tests (factory) {
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},
         broadcastChannelMessageEventFirers = {},
+        broadcastChannelsToIgnore = new Set(),
         BroadcastChannel = new JsTester_BroadcastChannelFactory({
             debug: debug,
             utils: utils,
@@ -3395,7 +3403,8 @@ function JsTester_Tests (factory) {
         }),
         broadcastChannelTester = new JsTester_BroadcastChannelsTester({
             broadcastChannelMessages: broadcastChannelMessages,
-            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers
+            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers,
+            broadcastChannelsToIgnore: broadcastChannelsToIgnore
         }),
         broadcastChannelMocker = new JsTester_BroadcastChannelMocker({
             broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers,
