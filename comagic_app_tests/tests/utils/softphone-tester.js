@@ -1146,6 +1146,18 @@ define(function () {
             };
 
             var me = {
+                disallowTagManagementUpdate: function () {
+                    data.tag_management.is_update = false;
+                    return this;
+                },
+                disallowTagManagementInsert: function () {
+                    data.tag_management.is_insert = false;
+                    return this;
+                },
+                disallowTagManagementDelete: function () {
+                    data.tag_management.is_delete = false;
+                    return this;
+                },
                 disallowTagManagementSelect: function () {
                     data.tag_management.is_select = null;
                     return this;
