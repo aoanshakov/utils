@@ -2000,7 +2000,8 @@ define(() => function ({
                     expectToHavePath('https://myint0.dev.uis.st/sup/auth/check').
                     expectToHaveHeaders({
                         Authorization: `Bearer ${token}`,
-                        'X-Auth-Type': 'jwt'
+                        'X-Auth-Type': 'jwt',
+                        'X-Widget-Id': utils.expectToBeString(),
                     });
 
                 return addResponseModifiers({

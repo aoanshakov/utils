@@ -6586,8 +6586,8 @@ function JsTests_StringExpectaion () {
             typeof actualValue != 'string'
         ) {
             throw new Error(
-                'Значением параметра ' + keyDescription + ' должна быть строка, однако значение параметра таково ' +
-                JSON.stringify(actualValue) + '.'
+                'Значением параметра ' + keyDescription + ' должна быть непустая строка, однако значение параметра ' +
+                'таково ' + JSON.stringify(actualValue) + '.'
             );
         }
     };
