@@ -994,6 +994,8 @@ define(() => function ({
 
     me.notProcessedCallsRequest = () => {
         const queryParams = {
+            offset: '0',
+            limit:  '10',
             date_from: '2019-12-16T00:00:00.000+03:00',
             date_till: '2019-12-19T23:59:59.999+03:00',
             from: undefined,
@@ -1323,7 +1325,7 @@ define(() => function ({
 
     me.callsRequest = () => {
         const params = {
-            start: undefined,
+            offset: undefined,
             limit: '100',
             search: '',
             is_strict_date_till: '0',
@@ -1431,7 +1433,7 @@ define(() => function ({
             anotherLimit() {
                 count = 15;
                 total = 15;
-                params.start = '0';
+                params.offset = '0';
                 params.limit = '25';
                 return this;
             },
@@ -1439,14 +1441,14 @@ define(() => function ({
             firstPage() {
                 count = 10;
                 total = 15;
-                params.start = '0';
+                params.offset = '0';
                 params.limit = '10';
                 return this;
             },
 
             secondPage() {
                 total = 15;
-                params.start = params.limit = '10';
+                params.offset = params.limit = '10';
 
                 getResponse = () => me.getCalls({
                     date: '2021-05-17T18:07:25',
