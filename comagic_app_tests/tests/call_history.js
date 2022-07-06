@@ -236,6 +236,11 @@ tests.addTest(options => {
 
                             tester.switchButton.expectToBeChecked();
 
+                            tester.table.row.first.
+                                expectToHaveClass('cmg-softphone-call-history-failed-call-row');
+                            tester.table.row.atIndex(1).
+                                expectNotToHaveClass('cmg-softphone-call-history-failed-call-row');
+
                             tester.table.expectTextContentToHaveSubstring(
                                 'Дата / время ' +
                                 'Номер абонента ' +

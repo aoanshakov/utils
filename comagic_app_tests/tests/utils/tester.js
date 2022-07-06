@@ -1086,7 +1086,8 @@ define(() => function ({
                             mark_ids: [],
                             subscriber_number: '74950230625',
                             virtual_number: '74950230630',
-                            start_time: '2019-12-19T08:03:02.522+03:00'
+                            start_time: '2019-12-19T08:03:02.522+03:00',
+                            is_lost: true
                         }, {
                             call_session_id: 980925445,
                             comment: null,
@@ -1097,7 +1098,8 @@ define(() => function ({
                             mark_ids: [],
                             subscriber_number: '74950230626',
                             virtual_number: '74950230631',
-                            start_time: '2019-12-19T10:13:02.529+03:00'
+                            start_time: '2019-12-19T10:13:02.529+03:00',
+                            is_lost: false
                         }]
                     });
 
