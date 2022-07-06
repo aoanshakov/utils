@@ -6,6 +6,9 @@ tests.addTest(args => {
 
         beforeEach(function() {
             tester && tester.destroy();
+
+            //Comagic.account.features = ['multitermial'];
+
             tester = new ServicesAtsSip(args);
 
             Comagic.Directory.load();

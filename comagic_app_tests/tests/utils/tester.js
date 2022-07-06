@@ -1276,6 +1276,7 @@ define(() => function ({
         const addResponseModifiers = me => {
             me.isFailed = () => (processors.push(data => data.forEach(item => (item.is_failed = true))), me);
             me.noContactName = () => (processors.push(data => (data[0].contact_name = null)), me);
+            me.noCrmContactLink = () => (processors.push(data => (data[0].crm_contact_link = null)), me);
 
             me.noCalls = () => {
                 getResponse = () => [];

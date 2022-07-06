@@ -1,17 +1,8 @@
 diff --git a/.venv/requirements.txt b/.venv/requirements.txt
-index ad6decd8c..2c5c96ca1 100644
+index e874b1c82..449ca15d2 100644
 --- a/.venv/requirements.txt
 +++ b/.venv/requirements.txt
-@@ -17,7 +17,7 @@ imgkit==1.0.1
- itsdangerous==0.23
- mandrill==1.0.56
- pdfkit==0.5.0
--psycopg2==2.6
-+psycopg2==2.7.4
- pytils==0.3
- pytz==2015.6
- redis==2.9.0
-@@ -33,9 +33,7 @@ xmltodict==0.8.3
+@@ -33,10 +33,8 @@ rtu_api==1.2
  pycrypto==2.6.1
  smtpapi==0.2.0
  pydub==0.15.0
@@ -21,4 +12,4 @@ index ad6decd8c..2c5c96ca1 100644
 -Wand==0.4.2
  xlrd==1.2.0
  feature-flags[simple]==0.4.0
-\ No newline at end of file
+ pyjwt==1.7.1

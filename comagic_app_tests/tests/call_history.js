@@ -1430,14 +1430,31 @@ tests.addTest(options => {
                     );
                 });
             });
-            it('Имя контакта не было получено. Оторажен номер.', function() {
-                callsRequest.noContactName().receiveResponse();
+            describe('Имя контакта не было получено.', function() {
+                beforeEach(function() {
+                    callsRequest = callsRequest.noContactName();
+                });
 
-                tester.table.expectTextContentToHaveSubstring(
-                    '19 дек 2019 08:03 ' +
-                    'Позвонить ' +
-                    'Позвонить '
-                );
+                it('Ссылка на страницу контакта не была получена.', function() {
+                    callsRequest.noCrmContactLink().receiveResponse();
+
+                    tester.table.expectTextContentToHaveSubstring(
+                        '19 дек 2019 08:03 ' +
+                        '' +
+                        'Позвонить ' +
+                        'Нецелевой контакт'
+                    );
+                });
+                it('Номер скрыт.', function() {
+                    callsRequest.receiveResponse();
+
+                    tester.table.expectTextContentToHaveSubstring(
+                        '19 дек 2019 08:03 ' +
+                        'Неизвестный номер ' +
+                        'Позвонить ' +
+                        'Нецелевой контакт'
+                    );
+                });
             });
         });
     });
