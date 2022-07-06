@@ -1214,6 +1214,113 @@ define(() => function ({
         };
     };
 
+    me.statsRequest = () => {
+        const data = {
+            status_1_duration: 61410,
+            status_2_duration: 84490,
+            status_3_duration: 104360,
+            status_4_duration: 34272,
+            status_5_duration: 13973,
+            not_at_work_duration: 7826,
+            auto_out_call_duration: 6822,
+            not_at_workplace_duration: 3422,
+            do_not_disturb_duration: 68372,
+            break_duration: 2482,
+            available_duration: 2083,
+            in_call_count: 5729,
+            out_call_count: 927,
+            in_failed_count: 52749,
+            in_success_count: 85297,
+            out_failed_count: 7283,
+            out_success_count: 6716,
+            employee_full_name: "Карадимова Веска Анастасовна",
+            in_avg_talk_duration: 5617,
+            in_sum_talk_duration: 17860,
+            out_avg_talk_duration: 2663,
+            out_sum_talk_duration: 9226,
+            status_40489_duration: 57895,
+            in_avg_answer_duration: 9373,
+            out_avg_answer_duration: 27763,
+            in_failed_transfer_count: 7627,
+            in_success_transfer_count: 273,
+            out_failed_transfer_count: 6723,
+            out_success_transfer_count: 57823,
+            in_call_count_details: {
+                cdr_ids: null
+            },
+            out_call_count_details: {
+                cdr_ids: null
+            },
+            in_failed_count_details: {
+                cdr_ids: null
+            },
+            in_success_count_details: {
+                cdr_ids: null
+            },
+            out_failed_count_details: {
+                cdr_ids: null
+            },
+            out_success_count_details: {
+                cdr_ids: null
+            },
+            in_avg_talk_duration_details: {
+                cdr_ids: null
+            },
+            in_sum_talk_duration_details: {
+                cdr_ids: null
+            },
+            out_avg_talk_duration_details: {
+                cdr_ids: null
+            },
+            out_sum_talk_duration_details: {
+                cdr_ids: null
+            },
+            in_avg_answer_duration_details: {
+                cdr_ids: null
+            },
+            out_avg_answer_duration_details: {
+                cdr_ids: null
+            },
+            in_failed_transfer_count_details: {
+                cdr_ids: null
+            },
+            in_success_transfer_count_details: {
+                cdr_ids: null
+            },
+            out_failed_transfer_count_details: {
+                cdr_ids: null
+            },
+            out_success_transfer_count_details: {
+                cdr_ids: null
+            }
+        };
+
+        const addResponseModifiers = me => (me.noInCallCount = () => (delete(data.in_call_count), me), me)
+
+        return addResponseModifiers({
+            expectToBeSent: () => {
+                const request = ajax.recentRequest().
+                    expectPathToContain('/sup/api/v1/employee_stats').
+                    expectToHaveMethod('GET').
+                    expectQueryToContain({
+                        date_from: '2019-12-19T00:00:00.000+03:00',
+                        date_to: '2019-12-19T12:10:07.000+03:00'
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith({data});
+                        Promise.runAll(false, true);
+                        spendTime(0);
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.callsRequest = () => {
         const params = {
             start: undefined,
