@@ -41,7 +41,12 @@ define(() => function ({
     window.crossTabCommunicatorCache = {};
     window.softphoneCrossTabCommunicatorCache = {};
 
+    me.ReactDOM = {
+        flushSync: () => null
+    };
+
     window.application.run({
+        setReactDOM: value => (me.ReactDOM = value),
         setEventBus: eventBus => {
             const events = {};
 
@@ -117,6 +122,8 @@ define(() => function ({
     Promise.runAll(false, true);
     spendTime(0);
     Promise.runAll(false, true);
+
+    me.ReactDOM.flushSync();
 
     me.history = history;
 
@@ -7404,6 +7411,11 @@ define(() => function ({
         window.setTimeout = setTimeout;
     };
 
+    me.dispatchResizeEvent = () => {
+        window.dispatchEvent(new Event('resize'));
+        spendTime(0);
+    };
+
     me.forceUpdate = () => utils.pressKey('k');
     me.body = testersFactory.createDomElementTester('body');
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
@@ -7509,6 +7521,7 @@ define(() => function ({
     me.otherChannelCallNotification = createRootTester('#cmg-another-sip-line-incoming-call-notification');
     me.bugButton = testersFactory.createDomElementTester('.cmg-bug-icon');
     me.notificationSection = testersFactory.createDomElementTester('.cm-chats--chat-notifications');
+    me.statusDurations = testersFactory.createDomElementTester('.cmg-softphone--call-stats-statuses-duration');
 
     {
         const tester = testersFactory.createDomElementTester('.ui-select-popup-header .ui-icon'),

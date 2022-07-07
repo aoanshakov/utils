@@ -6519,6 +6519,14 @@ function JsTester_DomElement (
                 actualHeight);
         }
     };
+    this.expectHeightToBeMoreThan = function (expectedHeight) {
+        var actualHeight = getBoundingClientRect().height;
+
+        if (actualHeight <= expectedHeight) {
+            throw new Error('Высота ' + getGenetiveDescription() + ' должна быть больше ' + expectedHeight + ', ' +
+                'тогда как она равна ' + actualHeight);
+        }
+    };
     this.expectToHaveWidth = function (expectedWidth) {
         var actualWidth = getBoundingClientRect().width;
 
