@@ -3322,6 +3322,13 @@ function JsTester_VisibilitySetter ({
 }
 
 function JsTester_Tests (factory) {
+    Object.defineProperty(window, 'performance', {
+        get: function () {
+            return {};
+        },
+        set: function () {}
+    }); 
+
     Object.defineProperty(window, 'ResizeObserver', {
         get: function () {
             return undefined;

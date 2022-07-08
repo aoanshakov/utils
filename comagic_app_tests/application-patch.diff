@@ -394,6 +394,20 @@ index fd0f39d9..6741d8aa 100644
  </body>
  </html>
 \ No newline at end of file
+diff --git a/scripts/dev.js b/scripts/dev.js
+index 54c1319c..abc75561 100644
+--- a/scripts/dev.js
++++ b/scripts/dev.js
+@@ -12,7 +12,8 @@ const compiler = webpack(configFactory);
+ const devServer = new WebpackDevServer(
+     {
+         port: parseInt(process.env.PORT, 10) || 8080,
+-        hot: true,
++        hot: false,
++        liveReload: false,
+         headers: { 'Access-Control-Allow-Origin': '*' },
+         historyApiFallback: true,
+     },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
 index 68f48551..66deb3d1 100644
 --- a/src/bootstrap.tsx
