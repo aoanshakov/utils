@@ -139,7 +139,7 @@ tests.addTest(options => {
                     let ringtoneRequest;
 
                     beforeEach(function() {
-                        tester.slider.click(25);
+                        tester.slider.click(26);
 
                         tester.othersNotification().
                             updateSettings().

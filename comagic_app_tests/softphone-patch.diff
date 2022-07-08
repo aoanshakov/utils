@@ -44,10 +44,28 @@ index f6632e9..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index dfa646c..01a56cb 100644
+index dfa646c..ed1c7ed 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -596,4 +596,5 @@ export const RootStore = types
+@@ -16,6 +16,7 @@ import { WebsocketStore } from './websocket/WebsocketStore';
+ import { StatusesStore } from './statuses/StatusesStore';
+ import { CallHistoryStore } from './call_history/CallHistoryStore';
+ import { CallStatsStore } from '@models/call_stats/CallStatsStore';
++import { intlMessages } from '../i18n';
+ 
+ import { setPrompterSipLine, addPendingCallToPrompt } from './prompter/actions';
+ 
+@@ -83,6 +84,9 @@ export const RootStore = types
+         callHistoryStore: types.optional(CallHistoryStore, {}),
+         callStatsStore: types.optional(CallStatsStore, {}),
+     })
++    .views(self => ({
++        i18n: key => intlMessages(self.configStore.REACT_APP_LOCALE)[key] 
++    }))
+     .actions(self => {
+         let initialState: RootInstanceSnapshotOut,
+             hasError = false,
+@@ -596,4 +600,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

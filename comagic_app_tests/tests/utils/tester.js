@@ -1242,7 +1242,7 @@ define(() => function ({
             in_success_count: 85297,
             out_failed_count: 7283,
             out_success_count: 6716,
-            employee_full_name: "Карадимова Веска Анастасовна",
+            employee_full_name: 'Карадимова Веска Анастасовна',
             in_avg_talk_duration: 5617,
             in_sum_talk_duration: 17860,
             out_avg_talk_duration: 2663,

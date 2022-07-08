@@ -4083,16 +4083,36 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
     };
 
     this.textEquals = function (desiredTextContent) {
-        isDesiredText = function (actualTextContent) {
-            return actualTextContent == desiredTextContent;
+        isDesiredText = function (actualTextContent, comparisons) {
+            const result = actualTextContent == desiredTextContent;
+
+            (comparisons || []).push(
+                `Строка ${
+                    JSON.stringify(actualTextContent)
+                } должна быть равна строке ${
+                    JSON.stringify(desiredTextContent)
+                }. Условие ${result ? '' : 'не '}удовлетворено.`
+            );
+
+            return result;
         };
 
         return this;
     };
 
     this.textContains = function (desiredTextContent) {
-        isDesiredText = function (actualTextContent) {
-            return actualTextContent.indexOf(desiredTextContent) != -1;
+        isDesiredText = function (actualTextContent, comparisons) {
+            const result = actualTextContent.indexOf(desiredTextContent) != -1;
+
+            (comparisons || []).push(
+                `Строка ${
+                    JSON.stringify(actualTextContent)
+                } должна содержать строку ${
+                    JSON.stringify(desiredTextContent)
+                }. Условие ${result ? '' : 'не '}удовлетворено.`
+            );
+
+            return result;
         };
 
         return this;
@@ -4109,7 +4129,8 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
             descendant,
             text,
             desiredDescendants = [],
-            allDescendants = [];
+            allDescendants = [],
+            comparisons = [];
 
         for (i = 0; i < length; i ++) {
             descendant = descendants[i];
@@ -4120,14 +4141,15 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
                 text: text
             });
 
-            if (isDesiredText(text)) {
+            if (isDesiredText(text, comparisons)) {
                 desiredDescendants.push(descendant);
             }
         }
 
         logEnabled && console.log({
-            allDescendants: allDescendants,
-            desiredDescendants: desiredDescendants
+            comparisons,
+            allDescendants,
+            desiredDescendants
         });
 
         return desiredDescendants;
@@ -6209,10 +6231,12 @@ function JsTester_DomElement (
 
         if (actualValue != expectedValue) {
             throw new Error(
-                'Атрибут "' + attributeName + '" ' + getGenetiveDescription() + ' ' + gender.should +
-                ' иметь значение "' + expectedValue + '"'
+                'Атрибут "' + attributeName + '" ' + getGenetiveDescription() + ' должен иметь значение "' +
+                expectedValue + '", а не "' + actualValue + '".'
             );
         }
+
+        return this;
     };
     this.expectToHaveAttribute = function (attributeName) {
         this.expectToBeVisible();
