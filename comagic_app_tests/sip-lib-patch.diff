@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index 3af80f4..c375f3b 100644
+index 7d3777b..2865cf2 100644
 --- a/package.json
 +++ b/package.json
-@@ -36,6 +36,6 @@
+@@ -35,6 +35,6 @@
      "webpack-cli": "^4.2.0",
      "babel-loader": "^8.0.4",
      "react-draggable": "^4.2.0",
