@@ -275,15 +275,6 @@ tests.addTest(options => {
                     tester.statsRequest().receiveResponse();
                 });
 
-                it('Открываю другой раздел. Растягиваю окно. Ошибка не происходит.', function() {
-                    tester.button('История звонков').click();
-
-                    tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
-                    tester.marksRequest().receiveResponse();
-
-                    document.querySelector('.cm-app').style = 'width: 2015px;';
-                    tester.dispatchResizeEvent();
-                });
                 it('Растягиваю окно. Кнопка разворачивания статусов скрыта.', function() {
                     document.querySelector('.cm-app').style = 'width: 2015px;';
                     tester.dispatchResizeEvent();
