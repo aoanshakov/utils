@@ -46,6 +46,8 @@ const {
     publisherDir,
     broadcastChannel,
     broadcastChannelPatch,
+    webpackDevServer,
+    webpackDevServerPatch,
     server,
     testsServerLog,
     testsServerPid
@@ -246,7 +248,10 @@ actions['modify-code'] = params => actions['restore-code']({}).
 
 const appModule = ([module, path, args]) => [`web/comagic_app_modules/${module}`, path, args, misc];
 
-actions['patch-broadcast-channel'] = [`cd ${broadcastChannel} && patch -p1 < ${broadcastChannelPatch}`];
+actions['patch-node-modules'] = [
+    [broadcastChannel, broadcastChannelPatch],
+    [webpackDevServer, webpackDevServerPatch]
+].map(([path, patch]) => `cd ${path} && patch -p1 < ${patch}`);
 
 actions['initialize'] = params => [
     appModule(['chats', chats, '']),
