@@ -239,6 +239,15 @@ tests.addTest(options => {
                     tester.statusDurations.expectToHaveHeight(48);
                 });
             });
+            it('Открываю статистику звонков. Статусов много. Статусы свернуты.', function() {
+                tester.button('Статистика звонков').click();
+                tester.statsRequest().receiveResponse();
+
+                statusesRequest.includesAutoCall().receiveResponse();
+
+                tester.statusDurations.expectToHaveHeight(48);
+                tester.button('Показать все статусы').expectToBeVisible();
+            });
             it('Статусов мало. Кнопка разворачивания статусов скрыта.', function() {
                 statusesRequest.receiveResponse();
 

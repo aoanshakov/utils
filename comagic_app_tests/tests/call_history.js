@@ -686,23 +686,15 @@ tests.addTest(options => {
                                 tester.callsRequest().fromFirstWeekDay().search('qwe12').firstPage().receiveResponse();
                                 tester.marksRequest().receiveResponse();
 
-                                /*
                                 tester.table.pagingPanel.pageButton('1').expectToBePressed();
                                 tester.table.pagingPanel.pageButton('2').expectNotToBePressed();
                                 tester.table.pagingPanel.pageButton('3').expectNotToExist();
-                                */
                             });
                             it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
                                 tester.radioButton('Все').click();
 
                                 tester.notProcessedCallsRequest().receiveResponse();
                                 tester.marksRequest().receiveResponse();
-
-                                /*
-                                tester.table.pagingPanel.pageButton('1').expectToBePressed();
-                                tester.table.pagingPanel.pageButton('2').expectNotToBePressed();
-                                tester.table.pagingPanel.pageButton('3').expectNotToExist();
-                                */
                             });
                             it('Отображена вторая страница.', function() {
                                 tester.table.pagingPanel.pageButton('1').expectNotToBePressed();
