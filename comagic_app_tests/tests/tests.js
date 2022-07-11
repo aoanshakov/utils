@@ -2607,6 +2607,10 @@ tests.addTest(options => {
                                                 tester.settingsButton.expectNotToExist();
                                                 tester.callStartingButton.expectNotToHaveAttribute('disabled');
 
+                                                tester.smallSizeButton.expectNotToExist();
+                                                tester.middleSizeButton.expectNotToExist();
+                                                tester.largeSizeButton.expectNotToExist();
+
                                                 utils.expectJSONObjectToContain(
                                                     localStorage.getItem('audioSettings'),
                                                     {

@@ -44,10 +44,81 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index a6ede12..664d18e 100644
+index a6ede12..e5406ee 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -600,4 +600,5 @@ export const RootStore = types
+@@ -2,7 +2,6 @@ import React from 'react';
+ import { eventBus } from '@comagic/core';
+ import { types, Instance, getSnapshot, applySnapshot, SnapshotOut } from 'mobx-state-tree';
+ import makeInspectable from 'mobx-devtools-mst';
+-import createSoftphoneReducer, { maybeHidePhoneNumber } from 'uis-softphone/reducer';
+ import createI18N from 'uis-softphone/common/createI18N';
+ import { authorization } from 'uis-softphone/authorization/actions';
+ import prompter, { checkPendingCallToPrompt } from './prompter/reducer';
+@@ -11,6 +10,7 @@ import createSoftphoneMiddleware from 'uis-softphone/middleware';
+ import thunkMiddleware from 'redux-thunk';
+ import { combineReducers, createStore, applyMiddleware } from 'redux';
+ import { AuthStore } from './auth/AuthStore';
++import { AppStore } from './app/AppStore';
+ import { EmployeesStore } from './employees/EmployeesStore';
+ import { WebsocketStore } from './websocket/WebsocketStore';
+ import { StatusesStore } from './statuses/StatusesStore';
+@@ -20,6 +20,11 @@ import { intlMessages } from '../i18n';
+ 
+ import { setPrompterSipLine, addPendingCallToPrompt } from './prompter/actions';
+ 
++import createSoftphoneReducer, {
++    maybeHidePhoneNumber,
++    isSoftphoneHigh 
++} from 'uis-softphone/reducer';
++
+ import {
+     toggleWidgetVisiblity,
+     setAxiosProcessor,
+@@ -32,6 +37,7 @@ import {
+     addNotificationToSession,
+     sendToWebsocket,
+     terminateSession,
++    doToggleCallInfoCollapsedness
+ } from 'uis-softphone/actions';
+ 
+ import { STATUSES_MANAGER_CREATED, HANDLE_WEBRTC_CREATED } from 'uis-softphone/authorization/constants';
+@@ -47,6 +53,7 @@ import {
+     HANDLE_LOGOUT,
+     SET_PERMISSIONS,
+     IS_TRUE,
++    BEFORE_TOGGLE_CALL_INFO_COLLAPSEDNESS
+ } from 'uis-softphone/constants';
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+@@ -77,6 +84,7 @@ const returnTrue = () => true,
+ export const RootStore = types
+     .model('RootStore', {
+         authStore: types.optional(AuthStore, {}),
++        appStore: types.optional(AppStore, {}),
+         configStore: types.optional(ConfigStore, {}),
+         employeesStore: types.optional(EmployeesStore, {}),
+         websocketStore: types.optional(WebsocketStore, {}),
+@@ -231,6 +239,9 @@ export const RootStore = types
+                 {},
+                 applyMiddleware(thunkMiddleware, createSoftphoneMiddleware(), store => next => action => {
+                     switch (action.type) {
++                        case BEFORE_TOGGLE_CALL_INFO_COLLAPSEDNESS:
++                            self.appStore.setNotLarge();
++                            break;
+                         case SET_PERMISSIONS:
+                             self.callHistoryStore.setPermissions(action.permissions);
+                             break;
+@@ -378,6 +389,8 @@ export const RootStore = types
+                 accountFetchedHandlers.push(handler);
+             };
+ 
++            self.isSoftphoneHigh = () => isSoftphoneHigh(getState());
++            self.toggleCallInfoCollapsedness = () => dispatch(doToggleCallInfoCollapsedness);
+             self.onDialpadKeyDown = (...args) => dispatch(onDialpadKeyDown(...args));
+             self.statusesStore.setStatusUpdator((statusId: number) => dispatch(setStatus(statusId)));
+             self.setDictonary = i18n.setDictonary;
+@@ -600,4 +613,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

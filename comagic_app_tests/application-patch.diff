@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 8c325253..fa429617 100644
+index 8c325253..04189f9c 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -7,11 +7,12 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -92,7 +92,7 @@ index 8c325253..fa429617 100644
 +});
 +
 +const iconsRegExp = new RegExp(
-+    ['', '(softphone|call_history|uis_webrtc', 'src)', 'icons', ''].join('\\' + path.sep)
++    ['', '(softphone|softphone', 'src|call_history|uis_webrtc', 'src)', 'icons', ''].join('\\' + path.sep)
 +);
 +
  module.exports = {

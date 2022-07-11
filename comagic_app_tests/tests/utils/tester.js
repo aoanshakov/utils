@@ -7515,6 +7515,20 @@ define(() => function ({
     me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
     me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
+
+    const createCollapsedessButton = className => {
+        const tester = testersFactory.createDomElementTester(`.${className}`);
+
+        tester.expectToBePressed = () => tester.expectToHaveClass('cmg-button-pressed');
+        tester.expectNotToBePressed = () => tester.expectNotToHaveClass('cmg-button-pressed');
+
+        return tester;
+    };
+
+    me.largeSizeButton = createCollapsedessButton('cmg-large-size-button');
+    me.middleSizeButton = createCollapsedessButton('cmg-middle-size-button');
+    me.smallSizeButton = createCollapsedessButton('cmg-small-size-button');
+
     me.settingsButton = testersFactory.createDomElementTester('.cmg-settings-button');
     me.hideButton = testersFactory.createDomElementTester('.cmg-hide-button');
     me.playerButton = testersFactory.createDomElementTester('.clct-audio-button');
