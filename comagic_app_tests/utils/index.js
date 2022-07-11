@@ -21,6 +21,7 @@ const {
     core,
     chats,
     magicUi,
+    magicUiTarget,
     softphone,
     analytics,
     analyticsDir,
@@ -252,6 +253,12 @@ actions['patch-node-modules'] = [
     [broadcastChannel, broadcastChannelPatch],
     [webpackDevServer, webpackDevServerPatch]
 ].map(([path, patch]) => `cd ${path} && patch -p1 < ${patch}`);
+
+actions['copy-magic-ui'] = [
+    rmVerbose(magicUiTarget),
+    `mkdir ${magicUiTarget}`,
+    `cp -r ${magicUi}/lib ${magicUi}/package.json ${magicUiTarget}`
+];
 
 actions['initialize'] = params => [
     appModule(['chats', chats, '']),

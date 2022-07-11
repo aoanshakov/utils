@@ -41,7 +41,18 @@ set listchars=tab:..
 syntax on
 set synmaxcol=200
 
+nnoremap ;oe :call <SID>OpenFileWithProblem()<cr>
+
+function! s:OpenFileWithProblem()
+    execute "normal!0\"jyt(f(lvt,\"kyf,lvt)\"ly:e \<c-r>j\<cr>:\<c-r>k\<cr>0:norm!\<c-r>ll\<cr>h"
+
+    let g:problemFilePath = @j
+    let g:lineNumber = @k
+    let g:charNumber = @l
+endfunction
+
 nnoremap - ;
+nnoremap ;so :so ~/.vimrc<cr>
 nnoremap ;bb ggO#!/bin/bash<cr><esc>:w<cr>:r!chmod +x <c-r>%<cr>
 nnoremap ;aj :!amocrm-build uis<cr> 
 nnoremap ;k{ mmvi{<esc>`<

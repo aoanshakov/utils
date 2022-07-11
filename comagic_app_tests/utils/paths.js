@@ -13,7 +13,8 @@ const src = '/usr/local/src',
     sipLib = `${softphoneMisc}/sip_lib`,
     sailsPgSession = `${tests}/sails_pg_session`,
     updaterConfig =`${updater}/config`,
-    publisherDir = `${tests}/publisher`;
+    publisherDir = `${tests}/publisher`,
+    softphone = `${misc}/softphone`;
 
 module.exports = {
     application,
@@ -47,7 +48,8 @@ module.exports = {
     misc,
     chats: `${misc}/chats`,
     magicUi: `${misc}/magic_ui`,
-    softphone: `${misc}/softphone`,
+    softphone,
+    magicUiTarget: `${softphone}/magic_ui`,
     core: `${misc}/core`,
     analyticsDir,
     analytics,
