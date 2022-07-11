@@ -4497,4 +4497,79 @@ tests.addTest(options => {
         tester.softphone.expectToBeCollapsed();
         tester.phoneField.expectToBeVisible();
     });
+    it('Идентификатор браузера сохранен. Открываю софтфон. Идентификатор браузера передается в запросах.', function() {
+        localStorage.setItem('uis-webrtc-browser-id', '2b5af1d8-108c-4527-aceb-c93614b8a0da');
+            
+        setNow('2019-12-19T12:10:06');
+
+        const tester = new Tester(options);
+        tester.notificationChannel().applyLeader().expectToBeSent();
+
+        tester.input.withFieldLabel('Логин').fill('botusharova');
+        tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+        tester.button('Войти').click();
+
+        tester.loginRequest().knownWidgetId().receiveResponse();
+        tester.accountRequest().receiveResponse();
+
+        const requests = ajax.inAnyOrder();
+
+        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+            accountRequest = tester.accountRequest().expectToBeSent(requests);
+
+        requests.expectToBeSent();
+
+        reportsListRequest.receiveResponse();
+        reportTypesRequest.receiveResponse();
+        accountRequest.receiveResponse();
+        reportGroupsRequest.receiveResponse();
+
+        tester.configRequest().softphone().receiveResponse();
+
+        tester.masterInfoMessage().receive();
+        tester.slavesNotification().expectToBeSent();
+        tester.slavesNotification().additional().expectToBeSent();
+
+        tester.notificationChannel().tellIsLeader().expectToBeSent();
+        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+        tester.notificationChannel().applyLeader().expectToBeSent();
+
+        tester.authCheckRequest().knownWidgetId().receiveResponse();
+        tester.statusesRequest().receiveResponse();
+
+        tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
+        tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+        tester.othersNotification().widgetStateUpdate().expectToBeSent();
+        tester.othersNotification().updateSettings().shouldPlayCallEndingSignal().anotherCustomRingtone().
+            expectToBeSent();
+
+        notificationTester.grantPermission();
+        tester.talkOptionsRequest().receiveResponse();
+        tester.permissionsRequest().receiveResponse();
+
+        tester.ringtoneRequest().receiveResponse();
+        fileReader.accomplishFileLoading(tester.secondRingtone);
+        mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
+
+        tester.connectEventsWebSocket();
+        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+        tester.connectSIPWebSocket();
+        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().expectToBeSent();
+
+        tester.authenticatedUserRequest().receiveResponse();
+        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().softphoneServerConnected().
+            expectToBeSent();
+
+        tester.registrationRequest().receiveResponse();
+        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().registered().
+            softphoneServerConnected().expectToBeSent();
+
+        tester.allowMediaInput();
+        tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
+    });
 });

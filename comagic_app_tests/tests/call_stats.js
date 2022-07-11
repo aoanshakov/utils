@@ -219,7 +219,7 @@ tests.addTest(options => {
 
             describe('Статусов много. Открываю статистику звонков.', function() {
                 beforeEach(function() {
-                    statusesRequest.many().receiveResponse();
+                    statusesRequest.includesAutoCall().receiveResponse();
 
                     tester.button('Статистика звонков').click();
                     tester.statsRequest().receiveResponse();
@@ -233,14 +233,14 @@ tests.addTest(options => {
                 });
                 it('Нажимаю на кнопку разворачивания статусов. Статусы развернуты.', function() {
                     tester.button('Показать все статусы').click();
-                    tester.statusDurations.expectHeightToBeMoreThan(96);
+                    tester.statusDurations.expectHeightToBeMoreThan(48);
                 });
                 it('Статусы свернуты.', function() {
-                    tester.statusDurations.expectToHaveHeight(96);
+                    tester.statusDurations.expectToHaveHeight(48);
                 });
             });
-            it('Статусов не слишком много. Кнопка разворачивания статусов скрыта.', function() {
-                statusesRequest.includesAutoCall().receiveResponse();
+            it('Статусов мало. Кнопка разворачивания статусов скрыта.', function() {
+                statusesRequest.receiveResponse();
 
                 tester.button('Статистика звонков').click();
                 tester.statsRequest().receiveResponse();
