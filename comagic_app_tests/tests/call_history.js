@@ -216,15 +216,11 @@ tests.addTest(options => {
                                 tester.notProcessedCallsRequest().isProcessedByAny().group().receiveResponse();
                                 tester.marksRequest().receiveResponse();
 
-                                tester.select.withValue('Отдел дистрибуции').click();
                                 tester.select.option('Отдел по работе с ключевыми клиентами').click();
 
                                 tester.notProcessedCallsRequest().isProcessedByAny().group().thirdGroup().
                                     receiveResponse();
                                 tester.marksRequest().receiveResponse();
-
-                                tester.select.withValue('Отдел дистрибуции, Отдел по работе с ключевыми клиентами').
-                                    click();
 
                                 tester.select.option('Отдел дистрибуции').expectToBeSelected();
                                 tester.select.option('Отдел региональных продаж').expectNotToBeSelected();
@@ -279,7 +275,6 @@ tests.addTest(options => {
                             describe('Проходит некоторое время.', function() {
                                 beforeEach(function() {
                                     spendTime(499);
-                                    Promise.runAll(false, true);
                                 });
 
                                 describe('Ввожу еще некоторые символы. ', function() {
@@ -289,7 +284,6 @@ tests.addTest(options => {
 
                                     it('Проходит некоторое время. История звонков не была запрошена.', function() {
                                         spendTime(1);
-                                        Promise.runAll(false, true);
                                     });
                                     it('Значение введено в поле поиска.', function() {
                                         tester.input.withPlaceholder('Имя или телефон').expectToHaveValue('qwe123');
@@ -297,7 +291,6 @@ tests.addTest(options => {
                                 });
                                 it('Проходит еще некоторое время. Отправлен запрос истории звонков.', function() {
                                     spendTime(1);
-                                    Promise.runAll(false, true);
 
                                     tester.callsRequest().fromFirstWeekDay().search('qwe12').firstPage().
                                         receiveResponse();
@@ -678,6 +671,67 @@ tests.addTest(options => {
                                 });
                             });
                         });
+                        describe('Нажимаю на кнопку второй страницы. Отправлен запрос второй страницы.', function() {
+                            beforeEach(function() {
+                                tester.table.pagingPanel.pageButton('2').click();
+
+                                tester.callsRequest().fromFirstWeekDay().secondPage().receiveResponse();
+                                tester.marksRequest().receiveResponse();
+                            });
+
+                            it('Ввожу значение в поле поиска. Отправлен запрос поиска.', function() {
+                                tester.input.withPlaceholder('Имя или телефон').input('qwe12');
+                                spendTime(500);
+
+                                tester.callsRequest().fromFirstWeekDay().search('qwe12').firstPage().receiveResponse();
+                                tester.marksRequest().receiveResponse();
+
+                                /*
+                                tester.table.pagingPanel.pageButton('1').expectToBePressed();
+                                tester.table.pagingPanel.pageButton('2').expectNotToBePressed();
+                                tester.table.pagingPanel.pageButton('3').expectNotToExist();
+                                */
+                            });
+                            it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
+                                tester.radioButton('Все').click();
+
+                                tester.notProcessedCallsRequest().receiveResponse();
+                                tester.marksRequest().receiveResponse();
+
+                                /*
+                                tester.table.pagingPanel.pageButton('1').expectToBePressed();
+                                tester.table.pagingPanel.pageButton('2').expectNotToBePressed();
+                                tester.table.pagingPanel.pageButton('3').expectNotToExist();
+                                */
+                            });
+                            it('Отображена вторая страница.', function() {
+                                tester.table.pagingPanel.pageButton('1').expectNotToBePressed();
+                                tester.table.pagingPanel.pageButton('2').expectToBePressed();
+                                tester.table.pagingPanel.pageButton('3').expectNotToExist();
+
+                                tester.table.expectTextContentToHaveSubstringsConsideringOrder(
+                                    'Дата / время ' +
+                                    'ФИО контакта ' +
+                                    'Номер абонента ' +
+                                    'Теги ' +
+                                    'Комментарий ' +
+                                    'Длительность ' +
+                                    'Запись ' +
+
+                                    '17 мая 2021 12:02 ' +
+                                    'Сотирова Атанаска ' +
+                                    '+7 (495) 023-06-27 ' +
+                                    '00:00:22',
+
+                                    '16 мая 2021 11:41 ' +
+                                    'Сотирова Атанаска ' +
+                                    '+7 (495) 023-06-27 ' +
+                                    '00:00:22 ' +
+
+                                    '1 2 15 строк Страница 10'
+                                );
+                            });
+                        });
                         it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
                             tester.radioButton('Все').click();
 
@@ -747,38 +801,6 @@ tests.addTest(options => {
                             
                             tester.firstConnection.callTrackHandler();
                             tester.numaRequest().anotherNumber().receiveResponse();
-                        });
-                        it('Нажимаю на кнопку второй страницы. Отправлен запрос второй страницы.', function() {
-                            tester.table.pagingPanel.pageButton('2').click();
-
-                            tester.callsRequest().fromFirstWeekDay().secondPage().receiveResponse();
-                            tester.marksRequest().receiveResponse();
-
-                            tester.table.pagingPanel.pageButton('1').expectNotToBePressed();
-                            tester.table.pagingPanel.pageButton('2').expectToBePressed();
-                            tester.table.pagingPanel.pageButton('3').expectNotToExist();
-
-                            tester.table.expectTextContentToHaveSubstringsConsideringOrder(
-                                'Дата / время ' +
-                                'ФИО контакта ' +
-                                'Номер абонента ' +
-                                'Теги ' +
-                                'Комментарий ' +
-                                'Длительность ' +
-                                'Запись ' +
-
-                                '17 мая 2021 12:02 ' +
-                                'Сотирова Атанаска ' +
-                                '+7 (495) 023-06-27 ' +
-                                '00:00:22',
-
-                                '16 мая 2021 11:41 ' +
-                                'Сотирова Атанаска ' +
-                                '+7 (495) 023-06-27 ' +
-                                '00:00:22 ' +
-
-                                '1 2 15 строк Страница 10'
-                            );
                         });
                         it(
                             'Выбираю другое количество строк на странице. Отправлен запрос истории звонков.',
