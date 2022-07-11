@@ -44,36 +44,10 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 36668a7..9918fef 100644
+index 96521bc..9918fef 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -99,7 +99,8 @@ export const RootStore = types
-         let initialState: RootInstanceSnapshotOut,
-             hasError = false,
-             doRequest = () => null,
--            doMaybeHidePhoneNumber = value => value;
-+            doMaybeHidePhoneNumber = value => value,
-+            getWidgetId = () => null;
-         const sizeChangeHandlers = [],
-             accountFetchedHandlers = [],
-             applicationChangeHandlers = [],
-@@ -210,6 +211,7 @@ export const RootStore = types
-                     createSlavesNotification: () => state => ({}),
-                     getWebRTCConfig: () => () => ({
-                         debugMode: localStorage.getItem('debugMode') == '1',
-+                        createWidgetIdGetter: () => () => getWidgetId(),
-                         ...(isSingleApp ? {
-                             userAgent: 'UIS Softphone Desktop',
-                             createFileLogger: () => ({
-@@ -396,6 +398,7 @@ export const RootStore = types
-             self.setDictonary = i18n.setDictonary;
-             self.setIncomingCallHandler = value => (handleIncomingCall = value);
-             self.setCallEndHandler = value => (handlerCallEnd = value);
-+            self.setWidgetIdGetter = value => (getWidgetId = value);
-             window.addEventListener('toggleSoftphoneVisiblity', () => dispatch(toggleWidgetVisiblity));
- 
-             removeSubscriptions();
-@@ -613,4 +616,5 @@ export const RootStore = types
+@@ -616,4 +616,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
