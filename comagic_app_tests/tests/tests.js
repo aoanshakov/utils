@@ -2323,6 +2323,14 @@ tests.addTest(options => {
                                                 tester.expectPingToBeSent();
                                                 spendTime(2000);
 
+                                                tester.slavesNotification().
+                                                    twoChannels().
+                                                    registered().
+                                                    webRTCServerConnected().
+                                                    microphoneAccessGranted().
+                                                    userDataFetched().
+                                                    expectToBeSent();
+
                                                 tester.softphone.expectToHaveTextContent(
                                                     'Устанавливается соединение...'
                                                 );
@@ -2351,6 +2359,14 @@ tests.addTest(options => {
                                                 spendTime(5000);
                                                 tester.expectPingToBeSent();
                                                 spendTime(2000);
+
+                                                tester.slavesNotification().
+                                                    twoChannels().
+                                                    webRTCServerConnected().
+                                                    microphoneAccessGranted().
+                                                    registered().
+                                                    userDataFetched().
+                                                    expectToBeSent();
 
                                                 tester.firstLineButton.expectToHaveClass('cmg-bottom-button-selected');
 
@@ -2526,6 +2542,7 @@ tests.addTest(options => {
                                             });
                                             it('От ведомой вкладки получен токен. Ничего не сломалось.', function() {
                                                 tester.masterInfoMessage().applyLeader().receive();
+                                                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
                                             });
                                             it(
                                                 'Получен запрос на выход из софтфона. Отображена форма авторизации.',
@@ -4329,6 +4346,8 @@ tests.addTest(options => {
             
         it('Статус сотрудника изменился. Отображен новый статус сотрудника.', function() {
             tester.notificationOfUserStateChanging().anotherStatus().receive();
+            tester.slavesNotification().userDataFetched().twoChannels().available().anotherStatus().expectToBeSent();
+
             tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
         });
         it('Отображен статус сотрудника.', function() {

@@ -211,17 +211,20 @@ tests.addTest(options => {
                             });
                             it('Выбираю группы. Отправлен запрос истории звонков.', function() {
                                 tester.select.withPlaceholder('Группы').click();
-
                                 tester.select.option('Отдел дистрибуции').click();
 
                                 tester.notProcessedCallsRequest().isProcessedByAny().group().receiveResponse();
                                 tester.marksRequest().receiveResponse();
 
+                                tester.select.withValue('Отдел дистрибуции').click();
                                 tester.select.option('Отдел по работе с ключевыми клиентами').click();
 
                                 tester.notProcessedCallsRequest().isProcessedByAny().group().thirdGroup().
                                     receiveResponse();
                                 tester.marksRequest().receiveResponse();
+
+                                tester.select.withValue('Отдел дистрибуции, Отдел по работе с ключевыми клиентами').
+                                    click();
 
                                 tester.select.option('Отдел дистрибуции').expectToBeSelected();
                                 tester.select.option('Отдел региональных продаж').expectNotToBeSelected();
@@ -480,8 +483,8 @@ tests.addTest(options => {
                                 });
                             });
                             it(
-                                'Изменяю фильтр по дате вручную. Нажимаю на кнопку "Применить". Отправлен запрос истории ' +
-                                'звонков.',
+                                'Изменяю фильтр по дате вручную. Нажимаю на кнопку "Применить". Отправлен запрос ' +
+                                'истории звонков.',
                             function() {
                                 tester.calendarField.popup.input.first.fill('15.11.2019').pressEnter();
                                 tester.calendarField.popup.input.atIndex(1).fill('18.12.2019').pressEnter();
@@ -708,10 +711,13 @@ tests.addTest(options => {
                         it('Нажимаю на кнопку скачивания записи. Открыт выпадающий список записей.', function() {
                             tester.table.row.atIndex(1).column.withHeader('Запись').downloadIcon.click();
 
-                            tester.select.option('2019-12-18_18-08-25.522_from_74950230626_session_980925445_1_talk.mp3').
-                                expectToBeVisible();
-                            tester.select.option('2019-12-18_18-08-25.522_from_74950230626_session_980925445_2_talk.mp3').
-                                expectToBeVisible();
+                            tester.select.option(
+                                '2019-12-18_18-08-25.522_from_74950230626_session_980925445_1_talk.mp3'
+                            ).expectToBeVisible();
+
+                            tester.select.option(
+                                '2019-12-18_18-08-25.522_from_74950230626_session_980925445_2_talk.mp3'
+                            ).expectToBeVisible();
                         });
                         it('Нажимаю на ссылку в колонке "Номер абонента". Совершается звонок.', function() {
                             tester.table.row.first.column.withHeader('Номер абонента').link.click();

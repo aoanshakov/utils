@@ -3858,6 +3858,8 @@ define(function () {
                             data: data
                         }
                     });
+
+                    Promise.runAll(false, true);
                 }
             };
         };
@@ -3997,57 +3999,47 @@ define(function () {
         this.startTryingToPingUnavailableSocket = function () {
             // 1-ая попытка
             spendTime(1000);
-            Promise.runAll(false, true);
             this.expectPingToBeSent();
 
             // 2-ая попытка
             spendTime(1001);
-            Promise.runAll(false, true);
             this.expectPingToBeSent();
 
             // 3-ая попытка
             spendTime(1003);
-            Promise.runAll(false, true);
             this.expectPingToBeSent();
 
             // 4-ая попытка
             spendTime(1009);
-            Promise.runAll(false, true);
             this.expectPingToBeSent();
 
             // 5-ая попытка
             spendTime(1026);
-            Promise.runAll(false, true);
             this.expectPingToBeSent();
         };
 
         this.continueTryingToPingUnavailableSocket = function () {
             // 6-ая попытка
             spendTime(1073);
-            Promise.runAll(false, true);
             this.expectPingToBeSent();
 
             // 7-ая попытка
             spendTime(1199);
-            Promise.runAll(false, true);
             this.expectPingToBeSent();
 
             // 8-ая попытка
             spendTime(1541);
-            Promise.runAll(false, true);
             this.expectPingToBeSent();
 
             // 9-ая попытка
             spendTime(2000);
             spendTime(471);
-            Promise.runAll(false, true);
             this.expectPingToBeSent();
         };
         
         this.finishTryingToPingUnavailableSocket = function () {
             spendTime(2000);
             spendTime(1000);
-            Promise.runAll(false, true);
 
             // 10-ая попытка
             spendTime(2000);
@@ -6078,6 +6070,7 @@ define(function () {
                             message.data.token = 'i9js2l68w8';
 
                             receiveMessage(message);
+                            Promise.runAll(false, true);
                         }
                     }),
                     tellIsLeader: () => ({

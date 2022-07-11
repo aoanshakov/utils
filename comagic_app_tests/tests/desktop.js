@@ -100,7 +100,7 @@ tests.addTest(options => {
                             authenticatedUserRequest.receiveResponse();
                         });
 
-                        xdescribe('Нажимаю на кнопку настроек.', function() {
+                        describe('Нажимаю на кнопку настроек.', function() {
                             beforeEach(function() {
                                 tester.settingsButton.click();
 
@@ -324,7 +324,6 @@ tests.addTest(options => {
                                 tester.largeSizeButton.expectToBePressed();
                             });
                         });
-                        return;
                         describe('Нажимаю на кнопку переключения на средний размер.', function() {
                             beforeEach(function() {
                                 tester.middleSizeButton.click();
@@ -363,8 +362,7 @@ tests.addTest(options => {
                                 tester.largeSizeButton.expectNotToBePressed();
                             });
                         });
-                        return;
-                        xdescribe('Раскрываю список статусов.', function() {
+                        describe('Раскрываю список статусов.', function() {
                             beforeEach(function() {
                                 tester.userName.click();
                             });
@@ -444,7 +442,7 @@ tests.addTest(options => {
                                 tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                             });
                         });
-                        xdescribe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
+                        describe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
                             let incomingCall;
 
                             beforeEach(function() {
@@ -510,7 +508,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        xdescribe('Нажимаю на кнопку дебага.', function() {
+                        describe('Нажимаю на кнопку дебага.', function() {
                             beforeEach(function() {
                                 tester.bugButton.click();
 
@@ -535,7 +533,7 @@ tests.addTest(options => {
                                 tester.spinner.expectToBeVisible();
                             });
                         });
-                        xdescribe('Открываю таблицу сотрудников. Токен истек.', function() {
+                        describe('Открываю таблицу сотрудников. Токен истек.', function() {
                             let refreshRequest;
 
                             beforeEach(function() {
@@ -657,7 +655,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        xdescribe('Открываю список номеров.', function() {
+                        describe('Открываю список номеров.', function() {
                             beforeEach(function() {
                                 windowSize.setHeight(212);
                                 tester.select.arrow.click();
@@ -692,7 +690,7 @@ tests.addTest(options => {
                                 tester.select.popup.expectToHaveHeight(204);
                             });
                         });
-                        xdescribe('Получено обновление.', function() {
+                        describe('Получено обновление.', function() {
                             beforeEach(function() {
                                 getPackage('electron').ipcRenderer.receiveMessage('update-downloaded');
                             });
@@ -708,7 +706,7 @@ tests.addTest(options => {
                                 tester.body.expectTextContentToHaveSubstring('Получено обновление');
                             });
                         });
-                        xit(
+                        it(
                             'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку "Выход". ' +
                             'Вхожу в софтфон заново. Удалось войти. Софтфон готов к работе.',
                         function() {
@@ -780,7 +778,7 @@ tests.addTest(options => {
                             tester.callStartingButton.expectNotToHaveAttribute('disabled');
                             tester.select.expectNotToExist();
                         });
-                        xit(
+                        it(
                             'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок. Отображено ' +
                             'сообщение о звонке.',
                         function() {
@@ -809,7 +807,7 @@ tests.addTest(options => {
                                 'Гигова Петранка Входящий...'
                             );
                         });
-                        xit('Открываю историю звонков. Открывается страница контакта.', function() {
+                        it('Открываю историю звонков. Открывается страница контакта.', function() {
                             tester.callsHistoryButton.click();
 
                             getPackage('electron').ipcRenderer.
@@ -826,7 +824,7 @@ tests.addTest(options => {
                             getPackage('electron').shell.
                                 expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
                         });
-                        xit('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
+                        it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
                             tester.dialpadVisibilityButton.click();
 
                             getPackage('electron').ipcRenderer.
@@ -842,15 +840,15 @@ tests.addTest(options => {
                             tester.statusesList.item('Не беспокоить').expectToBeSelected();
                             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                         });
-                        xit('Помещаю курсор над иконкой аккаунта. Список статусов не открывается.', function() {
+                        it('Помещаю курсор над иконкой аккаунта. Список статусов не открывается.', function() {
                             tester.userName.putMouseOver();
                             tester.statusesList.item('Не беспокоить').expectNotToExist();
                         });
-                        xit('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
+                        it('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
                             utils.pressKey('7');
                             tester.phoneField.expectToBeFocused();
                         });
-                        xit('Получена новая версия. Отправлено сообщение в бэк электрона.', function() {
+                        it('Получена новая версия. Отправлено сообщение в бэк электрона.', function() {
                             tester.applicationVersionChanged().receive();
 
                             getPackage('electron').ipcRenderer.
@@ -870,7 +868,6 @@ tests.addTest(options => {
                             getPackage('electron-log').expectToContain('$REACT_APP_AUTH_URL');
                         });
                     });
-                    return;
                     it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
                         authenticatedUserRequest.sipIsOffline().receiveResponse();
                         tester.userName.click();
@@ -878,7 +875,6 @@ tests.addTest(options => {
                         tester.statusesList.item('Не беспокоить').expectToBeSelected();
                     });
                 });
-                return;
                 it('Не удалось авторизоваться в софтфоне.', function() {
                     authCheckRequest.invalidToken().receiveResponse();
                     tester.userLogoutRequest().receiveResponse();
@@ -896,7 +892,6 @@ tests.addTest(options => {
                     tester.button('Войти').expectToBeVisible();
                 });
             });
-            return;
             it('Софтфон недоступен. Отображена форма аутентификации.', function() {
                 accountRequest.softphoneUnavailable().receiveResponse();
                 tester.userLogoutRequest().receiveResponse();
@@ -912,7 +907,6 @@ tests.addTest(options => {
                 tester.button('Войти').expectToBeVisible();
             });
         });
-        return;
         describe(
             'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
         function() {

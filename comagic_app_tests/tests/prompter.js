@@ -1002,6 +1002,8 @@ tests.addTest(options => {
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
                 tester.othersNotification().
                     widgetStateUpdate().
                     fixedNumberCapacityRule().
@@ -1013,8 +1015,6 @@ tests.addTest(options => {
                     expectToBeSent();
                 
                 tester.talkOptionsRequest().receiveResponse();
-
-                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.permissionsRequest().
                     allowNumberCapacitySelect().
@@ -1071,6 +1071,8 @@ tests.addTest(options => {
                         tester.statusesRequest().receiveResponse();
                         tester.settingsRequest().receiveResponse();
 
+                        tester.notificationChannel().tellIsLeader().expectToBeSent();
+
                         tester.othersNotification().
                             widgetStateUpdate().
                             expectToBeSent();
@@ -1081,8 +1083,6 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.talkOptionsRequest().receiveResponse();
-
-                        tester.notificationChannel().tellIsLeader().expectToBeSent();
 
                         tester.permissionsRequest().receiveResponse();
                         tester.authenticatedUserRequest().receiveResponse();
@@ -1198,6 +1198,8 @@ tests.addTest(options => {
                     tester.statusesRequest().receiveResponse();
                     tester.settingsRequest().receiveResponse();
 
+                    tester.notificationChannel().tellIsLeader().expectToBeSent();
+
                     tester.othersNotification().
                         widgetStateUpdate().
                         expectToBeSent();
@@ -1208,7 +1210,6 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.talkOptionsRequest().receiveResponse();
-                    tester.notificationChannel().tellIsLeader().expectToBeSent();
 
                     tester.permissionsRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();

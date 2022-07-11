@@ -464,12 +464,12 @@ tests.addTest(options => {
 
             tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
+            tester.notificationChannel().applyLeader().expectToBeSent();
+
             tester.othersNotification().widgetStateUpdate().fixedNumberCapacityRule().expectToBeSent();
             tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
             
             tester.talkOptionsRequest().receiveResponse();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-
             tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().receiveResponse();
 
             notificationTester.grantPermission();
