@@ -2885,7 +2885,10 @@ define(function () {
                         }
                     })
                 }),
-                receive: () => eventsWebSocket.receiveMessage(createMessage())
+                receive: () => {
+                    eventsWebSocket.receiveMessage(createMessage());
+                    Promise.runAll(false, true);
+                }
             };
         };
 

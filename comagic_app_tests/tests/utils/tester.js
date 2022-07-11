@@ -128,6 +128,9 @@ define(() => function ({
     me.history = history;
 
     const addTesters = (me, getRootElement) => {
+        me.spin = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
+            querySelector('.ui-spin-icon-default'));
+
         me.anchor = text => testersFactory.createAnchorTester(() =>
             utils.descendantOf(getRootElement()).matchesSelector('a').textEquals(text).find());
 

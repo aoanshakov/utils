@@ -3391,6 +3391,7 @@ function JsTester_Tests (factory) {
     var spendTime = function (time) {
         timeout.spendTime(time);
         interval.spendTime(time);
+        Promise.runAll(false, true);
     };
 
     var utils = factory.createUtils(debug),

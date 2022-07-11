@@ -44,10 +44,37 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 96521bc..9918fef 100644
+index 96521bc..f746b98 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -616,4 +616,5 @@ export const RootStore = types
+@@ -62,6 +62,8 @@ export type ConfigProps = {
+     REACT_APP_LOCALE: string;
+ };
+ 
++export const RECENT_REFRESH_DELAY = 1500;
++
+ export const ConfigStore = types
+     .model('ConfigStore', {
+         REACT_APP_LOCALE: types.optional(types.string, 'en'),
+@@ -250,6 +252,8 @@ export const RootStore = types
+                         case HANDLE_EVENT: {
+                             const { data } = action;
+ 
++                            data.name == 'call_session_finished' && self.callHistoryStore.refreshData(500);
++
+                             data.name == 'application_version_changed' &&
+                                 applicationChangeHandlers.forEach(handler => handler(data));
+ 
+@@ -286,7 +290,7 @@ export const RootStore = types
+                             break;
+                         case JSSIP_CALL_ENDED:
+                             handlerCallEnd(store.getState().settings.closeOnCallEnd);
+-                            self.callHistoryStore.refreshData();
++                            self.callHistoryStore.refreshData(RECENT_REFRESH_DELAY);
+                             break;
+                         case JSSIP_INBOUNDING_CALL_ENDED:
+                             dispatch(setPrompterSipLine(null));
+@@ -616,4 +620,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
