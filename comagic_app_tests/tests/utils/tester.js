@@ -7262,7 +7262,7 @@ define(() => function ({
                     expectPathToContain('$REACT_APP_AUTH_URL').
                     expectToHaveMethod('POST').
                     expectToHaveHeaders({
-                        'X-Widget-Id': xWidgetId,
+                        //'X-Widget-Id': xWidgetId,
                     }).
                     expectBodyToContain({
                         method: 'login',
