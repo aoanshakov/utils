@@ -4054,6 +4054,35 @@ define(function () {
 
         this.statusesRequest = function () {
             var data = [{
+                id: 7,
+                is_worktime: false,
+                mnemonic: 'removed',
+                name: 'Удаленный',
+                is_select_allowed: false,
+                icon: 'heart',
+                color: '#000',
+                priority: 8,
+                is_removed: true,
+                in_external_allowed_call_directions: [
+                    'in',
+                    'out'
+                ],
+                in_internal_allowed_call_directions: [
+                    'in',
+                    'out'
+                ],
+                out_external_allowed_call_directions: [
+                    'in',
+                    'out'
+                ],
+                out_internal_allowed_call_directions: [
+                    'in',
+                    'out'
+                ],
+                allowed_phone_protocols: [
+                    'SIP'
+                ]
+            }, {
                 id: 1,
                 is_worktime: true,
                 mnemonic: 'available',
@@ -4165,35 +4194,6 @@ define(function () {
                 icon: 'unknown',
                 color: null,
                 priority: 7,
-                in_external_allowed_call_directions: [
-                    'in',
-                    'out'
-                ],
-                in_internal_allowed_call_directions: [
-                    'in',
-                    'out'
-                ],
-                out_external_allowed_call_directions: [
-                    'in',
-                    'out'
-                ],
-                out_internal_allowed_call_directions: [
-                    'in',
-                    'out'
-                ],
-                allowed_phone_protocols: [
-                    'SIP'
-                ]
-            }, {
-                id: 7,
-                is_worktime: false,
-                mnemonic: 'removed',
-                name: 'Удаленный',
-                is_select_allowed: false,
-                icon: 'heart',
-                color: '#000',
-                priority: 8,
-                is_removed: true,
                 in_external_allowed_call_directions: [
                     'in',
                     'out'
