@@ -4529,7 +4529,7 @@ tests.addTest(options => {
 
         tester.button('Войти').click();
 
-        tester.loginRequest().knownWidgetId().receiveResponse();
+        tester.loginRequest().receiveResponse();
         tester.accountRequest().receiveResponse();
 
         const requests = ajax.inAnyOrder();

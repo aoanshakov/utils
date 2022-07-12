@@ -7244,18 +7244,11 @@ define(() => function ({
     };
 
     me.loginRequest = () => {
-        let xWidgetId = utils.expectToBeString();
-
         const response = {
             result: jwtToken 
         };
 
         return {
-            knownWidgetId() {
-                xWidgetId = '2b5af1d8-108c-4527-aceb-c93614b8a0da';
-                return this;
-            },
-
             anotherAuthorizationToken() {
                 response.result = anotherJwtToken;
                 return this;
@@ -7265,9 +7258,6 @@ define(() => function ({
                 ajax.recentRequest().
                     expectPathToContain('$REACT_APP_AUTH_URL').
                     expectToHaveMethod('POST').
-                    expectToHaveHeaders({
-                        //'X-Widget-Id': xWidgetId,
-                    }).
                     expectBodyToContain({
                         method: 'login',
                         params: {
