@@ -44,9 +44,28 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 41544b5..77d0046 100644
+index 41544b5..329ac01 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
+@@ -171,14 +171,14 @@ export const RootStore = types
+                 height: 0,
+             };
+ 
+-            const fireSizeChangeEvent = isSoftphoneHigh => {
++            const fireSizeChangeEvent = value => {
+                 const newSize = isAuthorized
+                     ? {
+                           width: 340,
+                           height: (
+-                              isSoftphoneHigh === undefined
+-                                  ? self.reduxStore.getState().softphone.isSoftphoneHigh
+-                                  : isSoftphoneHigh
++                              value === undefined
++                                  ? isSoftphoneHigh(self.reduxStore.getState())
++                                  : value
+                           )
+                               ? 568
+                               : 212,
 @@ -651,4 +651,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);

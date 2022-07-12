@@ -624,19 +624,10 @@ tests.addTest(options => {
                                     expectToBeSentToChannel('resize').
                                     expectToBeSentWithArguments({
                                         width: 340,
-                                        height: 212
-                                    });
-
-                                tester.configRequest().softphone().receiveResponse();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('resize').
-                                    expectToBeSentWithArguments({
-                                        width: 340,
                                         height: 568
                                     });
 
+                                tester.configRequest().softphone().receiveResponse();
                                 tester.authCheckRequest().receiveResponse();
 
                                 tester.usersRequest().receiveResponse(),
@@ -1424,6 +1415,51 @@ tests.addTest(options => {
             tester.registrationRequest().desktopSoftphone().receiveResponse();
 
             tester.phoneField.expectToHaveValue('Введите номер');
+        });
+        it('Ранее софтфон был раскрыт. Открываю софтфон. Он раскрыт.', function() {
+            localStorage.setItem('isSoftphoneHigh', 'true');
+
+            tester = new Tester({
+                ...options,
+                isAlreadyAuthenticated: true,
+                appName: 'softphone'
+            });
+
+            tester.configRequest().softphone().receiveResponse();
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('resize').
+                expectToBeSentWithArguments({
+                    width: 340,
+                    height: 568
+                });
+
+            getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
+
+            tester.accountRequest().receiveResponse();
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('feature-flags-fetched').
+                expectToBeSentWithArguments(['softphone']);
+
+            tester.authCheckRequest().receiveResponse();
+            tester.statusesRequest().receiveResponse();
+            tester.settingsRequest().receiveResponse();
+            notificationTester.grantPermission();
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+
+            tester.connectEventsWebSocket();
+            tester.connectSIPWebSocket();
+
+            tester.allowMediaInput();
+
+            tester.authenticatedUserRequest().receiveResponse();
+            tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+            tester.dialpadButton(1).expectToBeVisible();;
         });
     });
 });
