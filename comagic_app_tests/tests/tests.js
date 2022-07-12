@@ -4259,6 +4259,7 @@ tests.addTest(options => {
 
                 tester.button('Софтфон').expectNotToExist();
                 tester.button('История звонков').expectNotToExist();
+                tester.button('Статистика звонков').expectNotToExist();
             });
             it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
                 accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
@@ -4270,6 +4271,7 @@ tests.addTest(options => {
 
                 tester.button('Софтфон').expectNotToExist();
                 tester.button('История звонков').expectNotToExist();
+                tester.button('Статистика звонков').expectNotToExist();
             });
         });
     });
