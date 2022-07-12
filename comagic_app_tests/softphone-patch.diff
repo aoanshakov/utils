@@ -44,48 +44,10 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 55b648b..160573a 100644
+index 7a692dd..160573a 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -84,6 +84,7 @@ const returnTrue = () => true,
- 
- export const RootStore = types
-     .model('RootStore', {
-+        callCenterRole: types.optional(types.string, 'employee'),
-         isLarge: types.optional(types.boolean, false),
-         authStore: types.optional(AuthStore, {}),
-         configStore: types.optional(ConfigStore, {}),
-@@ -515,12 +516,14 @@ export const RootStore = types
- 
-                 self.handleAccountFetched = ({ accountStore, isSoftphoneAvailable, ...args }) => {
-                     authStore = args.authStore;
--                    const accessGranted = isSoftphoneAvailable(accountStore);
-+                    const accessGranted = isSoftphoneAvailable(accountStore),
-+                        account = accountStore.toJSON()?.account;
- 
-                     accessGranted && accountFetchedHandlers.forEach(handler => handler(accountStore));
-                     updateState({ accessGranted });
- 
--                    accountStore.toJSON()?.account?.app_id && isSingleApp && !accessGranted && logout();
-+                    account?.app_id && isSingleApp && !accessGranted && logout();
-+                    self.setCallCenterRole(account?.call_center_role);
-                 };
- 
-                 window.addEventListener('tokenChange', () => updateState(getTokenParams()));
-@@ -631,9 +634,12 @@ export const RootStore = types
-             handleLargenessChange();
-         };
- 
-+        const setCallCenterRole = value => (self.callCenterRole = value);
-+
-         return {
-             afterCreate,
-             resetStore,
-+            setCallCenterRole,
-             request,
-             setNotLarge,
-             setIsLarge,
-@@ -644,4 +650,5 @@ export const RootStore = types
+@@ -650,4 +650,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
