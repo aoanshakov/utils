@@ -489,36 +489,10 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d59fc225..7ab2a895 100644
+index 91b2f82f..7ab2a895 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -14,8 +14,6 @@ import { MenuStore } from '@models/menu/MenuStore';
- import { RootReportStore } from '@models/reports/RootReportStore';
- import { MarketplaceStore } from '@models/marketplace/MarketplaceStore';
- 
--import { createWidgetIdGetter } from '@uiscom/uis_webrtc';
--
- const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
- const ACCESS_TOKEN_INVALID = 'access_token_invalid';
- const LOGOUT_USER = 'logout.user';
-@@ -108,8 +106,6 @@ export const RootStore = types
-         let requestsToRefresh: RequestToRefresh[] = [];
-         let isRefreshRequesting = false;
- 
--        self.getWidgetId = () => null;
--
-         const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
-             const auth = getToken();
-             let method;
-@@ -181,7 +177,6 @@ export const RootStore = types
-         const setHttpRequestsDefault = () => {
-             axios.defaults.headers.post['Accept'] = 'application/json';
-             axios.defaults.headers.post['Content-Type'] = 'application/json';
--            //axios.defaults.headers['X-Widget-Id'] = self.getWidgetId();
- 
-             axios.interceptors.request.use(
-                 config => {
-@@ -216,7 +211,7 @@ export const RootStore = types
+@@ -211,7 +211,7 @@ export const RootStore = types
                  }
              );
  
@@ -527,19 +501,15 @@ index d59fc225..7ab2a895 100644
                  response => {
                      logRequest({response});
  
-@@ -277,10 +272,9 @@ export const RootStore = types
+@@ -272,6 +272,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
 +            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
              initialState = getSnapshot(self);
  
--            self.getWidgetId = createWidgetIdGetter();
--
              setHttpRequestsDefault();
- 
-             getIpcRender().on('logs_collected', (event, data) => self.handleLogsCollected(data));
-@@ -312,7 +306,8 @@ export type DependencyInjection = {
+@@ -305,7 +306,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
