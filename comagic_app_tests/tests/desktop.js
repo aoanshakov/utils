@@ -69,7 +69,7 @@ tests.addTest(options => {
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
                         expectToBeSentToChannel('feature-flags-fetched').
-                        expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                        expectToBeSentWithArguments(['softphone']);
 
                     authCheckRequest = tester.authCheckRequest().expectToBeSent();
                 });
@@ -428,7 +428,7 @@ tests.addTest(options => {
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
                                     expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                                    expectToBeSentWithArguments(['softphone']);
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
@@ -446,7 +446,7 @@ tests.addTest(options => {
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
                                     expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                                    expectToBeSentWithArguments(['softphone']);
 
                                 tester.statusesRequest().createExpectation().
                                     anotherAuthorizationToken().checkCompliance().receiveResponse();
@@ -617,7 +617,7 @@ tests.addTest(options => {
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
                                     expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                                    expectToBeSentWithArguments(['softphone']);
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
@@ -648,7 +648,7 @@ tests.addTest(options => {
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
                                     expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                                    expectToBeSentWithArguments(['softphone']);
 
                                 tester.statusesRequest().receiveResponse();
                                     
@@ -771,7 +771,7 @@ tests.addTest(options => {
                             getPackage('electron').ipcRenderer.
                                 recentlySentMessage().
                                 expectToBeSentToChannel('feature-flags-fetched').
-                                expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                                expectToBeSentWithArguments(['softphone']);
 
                             getPackage('electron').ipcRenderer.
                                 recentlySentMessage().
@@ -789,7 +789,7 @@ tests.addTest(options => {
                             getPackage('electron').ipcRenderer.
                                 recentlySentMessage().
                                 expectToBeSentToChannel('feature-flags-fetched').
-                                expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                                expectToBeSentWithArguments(['softphone']);
 
                             tester.statusesRequest().createExpectation().
                                 anotherAuthorizationToken().checkCompliance().receiveResponse();
@@ -929,7 +929,7 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
                     expectToBeSentToChannel('feature-flags-fetched').
-                    expectToBeSentWithArguments(['softphone',  undefined]);
+                    expectToBeSentWithArguments(['softphone']);
 
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
@@ -1004,7 +1004,7 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
                     expectToBeSentToChannel('feature-flags-fetched').
-                    expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                    expectToBeSentWithArguments(['softphone']);
 
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
@@ -1128,7 +1128,7 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
                     expectToBeSentToChannel('feature-flags-fetched').
-                    expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                    expectToBeSentWithArguments(['softphone']);
 
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
@@ -1210,7 +1210,7 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
                     expectToBeSentToChannel('feature-flags-fetched').
-                    expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                    expectToBeSentWithArguments(['softphone']);
 
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
@@ -1313,7 +1313,7 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
                     expectToBeSentToChannel('feature-flags-fetched').
-                    expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                    expectToBeSentWithArguments(['softphone']);
 
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
@@ -1406,7 +1406,7 @@ tests.addTest(options => {
             getPackage('electron').ipcRenderer.
                 recentlySentMessage().
                 expectToBeSentToChannel('feature-flags-fetched').
-                expectToBeSentWithArguments(['softphone', 'large_softphone', undefined]);
+                expectToBeSentWithArguments(['softphone']);
 
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
