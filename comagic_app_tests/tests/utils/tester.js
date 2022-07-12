@@ -1394,6 +1394,15 @@ define(() => function ({
             me.noContactName = () => (processors.push(data => (data[0].contact_name = null)), me);
             me.noCrmContactLink = () => (processors.push(data => (data[0].crm_contact_link = null)), me);
 
+            me.employeeName = () => {
+                processors.push(data => {
+                    data[0].contact_name = null;
+                    data[0].employee_name = 'Гяурова Марийка';
+                });
+
+                return me;
+            };
+
             me.noCalls = () => {
                 getResponse = () => [];
                 total = 0;

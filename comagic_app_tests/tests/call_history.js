@@ -232,7 +232,8 @@ tests.addTest(options => {
 
                                     tester.select.option('Отдел дистрибуции').expectToBeSelected();
                                     tester.select.option('Отдел региональных продаж').expectNotToBeSelected();
-                                    tester.select.option('Отдел по работе с ключевыми клиентами').expectToBeSelected(true);
+                                    tester.select.option('Отдел по работе с ключевыми клиентами').
+                                        expectToBeSelected(true);
                                 });
                                 it('Снимаю отметку со свитчбокса. Отправлен запрос истории звонков.', function() {
                                     tester.switchButton.click();
@@ -318,7 +319,8 @@ tests.addTest(options => {
                                 });
 
                                 describe(
-                                    'Нажимаю на кнопку удаления тег "Нецелевой контакт". Отправлен запрос удаления тега.',
+                                    'Нажимаю на кнопку удаления тег "Нецелевой контакт". Отправлен запрос удаления ' +
+                                    'тега.',
                                 function() {
                                     beforeEach(function() {
                                         tester.select.tag('Нецелевой контакт').closeButton.click();
@@ -679,7 +681,9 @@ tests.addTest(options => {
                                     });
                                 });
                             });
-                            describe('Нажимаю на кнопку второй страницы. Отправлен запрос второй страницы.', function() {
+                            describe(
+                                'Нажимаю на кнопку второй страницы. Отправлен запрос второй страницы.',
+                            function() {
                                 beforeEach(function() {
                                     tester.table.pagingPanel.pageButton('2').click();
 
@@ -691,7 +695,8 @@ tests.addTest(options => {
                                     tester.input.withPlaceholder('Имя или телефон').input('qwe12');
                                     spendTime(500);
 
-                                    tester.callsRequest().fromFirstWeekDay().search('qwe12').firstPage().receiveResponse();
+                                    tester.callsRequest().fromFirstWeekDay().search('qwe12').firstPage().
+                                        receiveResponse();
                                     tester.marksRequest().receiveResponse();
 
                                     tester.table.pagingPanel.pageButton('1').expectToBePressed();
@@ -953,16 +958,19 @@ tests.addTest(options => {
                             callsRequest.noContactName().receiveResponse();
 
                             tester.table.expectTextContentToHaveSubstring(
-                                'Дата / время ' +
-                                'ФИО контакта ' +
-                                'Номер абонента ' +
-                                'Теги ' +
-                                'Комментарий ' +
-                                'Длительность ' +
-                                'Запись ' +
-
                                 '19 дек 2019 08:03 ' +
                                 '+7 (495) 023-06-25 ' +
+                                '+7 (495) 023-06-25 ' +
+                                'Нецелевой контакт, Отложенный звонок ' +
+                                '00:00:20 ',
+                            );
+                        });
+                        it('В таблицу содержится звонок от сотрудника. Отображено имя сотрудника.', function() {
+                            callsRequest.employeeName().receiveResponse();
+
+                            tester.table.expectTextContentToHaveSubstring(
+                                '19 дек 2019 08:03 ' +
+                                'Гяурова Марийка ' +
                                 '+7 (495) 023-06-25 ' +
                                 'Нецелевой контакт, Отложенный звонок ' +
                                 '00:00:20 ',
@@ -1022,10 +1030,19 @@ tests.addTest(options => {
                             permissionsRequest.receiveResponse();
 
                             tester.connectEventsWebSocket();
-                            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                enabled().
+                                softphoneServerConnected().
+                                expectToBeSent();
 
                             tester.connectSIPWebSocket();
-                            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                webRTCServerConnected().
+                                softphoneServerConnected().
                                 expectToBeSent();
 
                             notificationTester.grantPermission();
@@ -1074,8 +1091,8 @@ tests.addTest(options => {
                             });
                         });
                         it(
-                            'Нажимаю на кнопку комментария там где комментария нет. Ввожу комментарий. Кнопка сохранения ' +
-                            'доступна.',
+                            'Нажимаю на кнопку комментария там где комментария нет. Ввожу комментарий. Кнопка ' +
+                            'сохранения доступна.',
                         function() {
                             tester.table.row.atIndex(1).column.withHeader('Комментарий').svg.click();
                             tester.modalWindow.textarea.fill('Другой комментарий');
