@@ -44,56 +44,10 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 7a692dd..679ece8 100644
+index 93d5fc1..679ece8 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -84,7 +84,10 @@ const returnTrue = () => true,
- 
- export const RootStore = types
-     .model('RootStore', {
--        callCenterRole: types.optional(types.string, 'employee'),
-+        account: types.optional(types.model('Account', {
-+            call_center_role:  types.optional(types.string, 'employee'),
-+            feature_flags: types.optional(types.array(types.string), []) 
-+        }), {}),
-         isLarge: types.optional(types.boolean, false),
-         authStore: types.optional(AuthStore, {}),
-         configStore: types.optional(ConfigStore, {}),
-@@ -95,7 +98,8 @@ export const RootStore = types
-         callStatsStore: types.optional(CallStatsStore, {}),
-     })
-     .views(self => ({
--        i18n: key => intlMessages(self.configStore.REACT_APP_LOCALE)[key] 
-+        i18n: key => intlMessages(self.configStore.REACT_APP_LOCALE)[key],
-+        hasFeature: key => self.account.feature_flags.includes(key)
-     }))
-     .actions(self => {
-         let initialState: RootInstanceSnapshotOut,
-@@ -523,7 +527,7 @@ export const RootStore = types
-                     updateState({ accessGranted });
- 
-                     account?.app_id && isSingleApp && !accessGranted && logout();
--                    self.setCallCenterRole(account?.call_center_role);
-+                    self.setAccount(account);
-                 };
- 
-                 window.addEventListener('tokenChange', () => updateState(getTokenParams()));
-@@ -634,12 +638,12 @@ export const RootStore = types
-             handleLargenessChange();
-         };
- 
--        const setCallCenterRole = value => (self.callCenterRole = value);
-+        const setAccount = account => (self.account = (account || {}));
- 
-         return {
-             afterCreate,
-             resetStore,
--            setCallCenterRole,
-+            setAccount,
-             request,
-             setNotLarge,
-             setIsLarge,
-@@ -650,4 +654,5 @@ export const RootStore = types
+@@ -654,4 +654,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
