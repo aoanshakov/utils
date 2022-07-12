@@ -251,6 +251,10 @@ tests.addTest(options => {
                                         width: 340,
                                         height: 568
                                     });
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('maximize');
                             });
 
                             describe('Нажимаю на кнопку переключения на большой размер.', function() {
@@ -269,6 +273,10 @@ tests.addTest(options => {
                                                 width: 340,
                                                 height: 212
                                             });
+
+                                        getPackage('electron').ipcRenderer.
+                                            recentlySentMessage().
+                                            expectToBeSentToChannel('unmaximize');
                                     });
 
                                     it(
@@ -289,6 +297,10 @@ tests.addTest(options => {
                                 describe('Нажимаю на кнопку переключения на средний размер.', function() {
                                     beforeEach(function() {
                                         tester.middleSizeButton.click();
+
+                                        getPackage('electron').ipcRenderer.
+                                            recentlySentMessage().
+                                            expectToBeSentToChannel('unmaximize');
                                     });
 
                                     it(
@@ -315,6 +327,25 @@ tests.addTest(options => {
                                     tester.middleSizeButton.expectNotToBePressed();
                                     tester.largeSizeButton.expectToBePressed();
                                 });
+                            });
+                            it('Нажимаю на кнопку диалпада. Кнопка маленького размера нажата.', function() {
+                                tester.dialpadVisibilityButton.click();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('unmaximize');
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 212
+                                    });
+
+                                tester.smallSizeButton.expectToBePressed();
+                                tester.middleSizeButton.expectNotToBePressed();
+                                tester.largeSizeButton.expectNotToBePressed();
                             });
                             it('Отображен диалпад.', function() {
                                 tester.dialpadButton(1).expectToBeVisible();;
