@@ -100,7 +100,7 @@ tests.addTest(options => {
                             authenticatedUserRequest.receiveResponse();
                         });
 
-                        describe('Нажимаю на кнопку настроек.', function() {
+                        xdescribe('Нажимаю на кнопку настроек.', function() {
                             beforeEach(function() {
                                 tester.settingsButton.click();
 
@@ -246,18 +246,32 @@ tests.addTest(options => {
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
+                                    expectToBeSentToChannel('feature-flags-fetched').
+                                    expectToBeSentWithArguments(['softphone']);
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('maximize');
+
+                                tester.configRequest().softphone().receiveResponse();
+                                tester.numberCapacityRequest().receiveResponse();
+                                tester.accountRequest().receiveResponse();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('feature-flags-fetched').
+                                    expectToBeSentWithArguments(['softphone']);
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
                                     expectToBeSentToChannel('resize').
                                     expectToBeSentWithArguments({
                                         width: 340,
                                         height: 568
                                     });
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('maximize');
                             });
 
-                            describe('Нажимаю на кнопку переключения на большой размер.', function() {
+                            xdescribe('Нажимаю на кнопку переключения на большой размер.', function() {
                                 beforeEach(function() {
                                     tester.largeSizeButton.click();
                                 });
@@ -328,7 +342,7 @@ tests.addTest(options => {
                                     tester.largeSizeButton.expectToBePressed();
                                 });
                             });
-                            it('Нажимаю на кнопку диалпада. Кнопка маленького размера нажата.', function() {
+                            xit('Нажимаю на кнопку диалпада. Кнопка маленького размера нажата.', function() {
                                 tester.dialpadVisibilityButton.click();
 
                                 getPackage('electron').ipcRenderer.
@@ -355,6 +369,7 @@ tests.addTest(options => {
                                 tester.largeSizeButton.expectToBePressed();
                             });
                         });
+                        return;
                         describe('Нажимаю на кнопку переключения на средний размер.', function() {
                             beforeEach(function() {
                                 tester.middleSizeButton.click();
@@ -890,6 +905,7 @@ tests.addTest(options => {
                             getPackage('electron-log').expectToContain('$REACT_APP_AUTH_URL');
                         });
                     });
+                    return;
                     it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
                         authenticatedUserRequest.sipIsOffline().receiveResponse();
                         tester.userName.click();
@@ -897,6 +913,7 @@ tests.addTest(options => {
                         tester.statusesList.item('Не беспокоить').expectToBeSelected();
                     });
                 });
+                return;
                 it('Не удалось авторизоваться в софтфоне.', function() {
                     authCheckRequest.invalidToken().receiveResponse();
                     tester.userLogoutRequest().receiveResponse();
@@ -914,6 +931,7 @@ tests.addTest(options => {
                     tester.button('Войти').expectToBeVisible();
                 });
             });
+            return;
             it('Большой софтфон недоступен. Кнопки размеров не отображены.', function() {
                 accountRequest.largeSoftphoneFeatureFlagDisabled().receiveResponse();
 
@@ -963,6 +981,7 @@ tests.addTest(options => {
                 tester.button('Войти').expectToBeVisible();
             });
         });
+        return;
         describe(
             'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
         function() {

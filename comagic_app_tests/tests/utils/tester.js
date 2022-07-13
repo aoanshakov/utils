@@ -7508,10 +7508,12 @@ define(() => function ({
     me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
 
     const createCollapsedessButton = className => {
-        const tester = testersFactory.createDomElementTester(`.${className}`);
+        const tester = testersFactory.createDomElementTester(`.${className}`),
+            click = tester.click.bind(tester);
 
         tester.expectToBePressed = () => tester.expectToHaveClass('cmg-button-pressed');
         tester.expectNotToBePressed = () => tester.expectNotToHaveClass('cmg-button-pressed');
+        tester.click = () => (click(), spendTime(0));
 
         return tester;
     };
