@@ -276,7 +276,7 @@ actions['initialize'] = params => [
 ).concat(!fs.existsSync(nodeModules) ?  [
     `chown -R root:root ${application}`,
     `${cda} npm install --verbose`
-].concat(actions['patch-broadcast-channel']).concat(actions['fix-permissions']) : []);
+].concat(actions['patch-node-modules']).concat(actions['fix-permissions']) : []);
 
 actions['remove-node-modules'] = overriding.map(({application}) => [
     rmVerbose(`${application}/node_modules`),

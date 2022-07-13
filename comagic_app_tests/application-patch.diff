@@ -489,30 +489,10 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 91b2f82f..bcf9ed25 100644
+index c6b00e42..bcf9ed25 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -64,7 +64,10 @@ const createSoftphoneStoreCreatingHandler = rootStore => {
-             }]
-         }));
- 
--        store.onLargenessChange(isLarge => getIpcRender().send(isLarge ? 'maximize' : 'unmaximize'));
-+        store.onLargenessChange(isLarge => {
-+            rootStore.setLarge(isLarge);
-+            getIpcRender().send(isLarge ? 'maximize' : 'unmaximize');
-+        });
- 
-         store.onAccountFetched(accountStore =>
-             getIpcRender().send('feature-flags-fetched', accountStore.toJSON()?.account?.feature_flags || []));
-@@ -92,6 +95,7 @@ window.addEventListener('error', function(event) {
- 
- export const RootStore = types
-     .model('RootStore', {
-+        isLarge: types.optional(types.boolean, false),
-         isGodMode: types.optional(types.boolean, isGodMode()),
-         isLogDownloading: types.optional(types.boolean, false),
-         authStore: types.optional(AuthStore, {}),
-@@ -211,7 +215,7 @@ export const RootStore = types
+@@ -215,7 +215,7 @@ export const RootStore = types
                  }
              );
  
@@ -521,7 +501,7 @@ index 91b2f82f..bcf9ed25 100644
                  response => {
                      logRequest({response});
  
-@@ -272,6 +276,7 @@ export const RootStore = types
+@@ -276,6 +276,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -529,24 +509,7 @@ index 91b2f82f..bcf9ed25 100644
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -284,6 +289,8 @@ export const RootStore = types
-             applySnapshot(self, initialState);
-         };
- 
-+        const setLarge = value => (self.isLarge = value);
-+
-         self.fileLogger = {
-             downloadLog: () => self.downloadLog(),
-             log
-@@ -292,6 +299,7 @@ export const RootStore = types
-         return {
-             afterCreate,
-             resetStore,
-+            setLarge,
-             downloadLog,
-             handleLogsCollected,
-             setSoftphoneStore: store => setSoftphoneStore(store) 
-@@ -305,7 +313,8 @@ export type DependencyInjection = {
+@@ -312,7 +313,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
