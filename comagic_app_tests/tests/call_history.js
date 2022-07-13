@@ -1659,7 +1659,7 @@ tests.addTest(options => {
 
         const tester = new Tester({
             ...options,
-            path: '/call-history',
+            path: '/softphone/call-history',
             isAlreadyAuthenticated: true
         });
 

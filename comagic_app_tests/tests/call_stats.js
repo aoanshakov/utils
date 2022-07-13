@@ -138,7 +138,7 @@ tests.addTest(options => {
                     tester.statsRequest().receiveResponse();
                 });
 
-                xit('Нажимаю на кнопку "Выгрузить отчёт". Совершается загрузка отчета.', function() {
+                it('Нажимаю на кнопку "Выгрузить отчёт". Совершается загрузка отчета.', function() {
                     tester.anchor('Выгрузить отчёт').
                         expectAttributeToHaveValue(
                             'download',
@@ -220,7 +220,6 @@ tests.addTest(options => {
                     );
                 });
             });
-            return;
             describe('Зафиксирую ширину окна.', function() {
                 beforeEach(function() {
                     document.querySelector('.cm-app').style = 'width: 1015px;';
@@ -267,7 +266,6 @@ tests.addTest(options => {
                 });
             });
         });
-        return;
         it('Пользователь является руководителем.', function() {
             accountRequest.manager().receiveResponse();
 

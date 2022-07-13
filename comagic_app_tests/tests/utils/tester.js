@@ -401,8 +401,14 @@ define(() => function ({
                 Promise.runAll(false, true);
             };
 
-            const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked';
+            const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked',
+                menuItemSelectedClass = 'src-components-main-menu-nav-item-styles-module__item-selected';
 
+            const menuItem = testersFactory.createDomElementTester(() =>
+                domElement.closest('.src-components-main-menu-nav-item-styles-module__item'));
+
+            tester.expectToBePressed = () => menuItem.expectToHaveClass(menuItemSelectedClass);
+            tester.expectNotToBePressed = () => menuItem.expectNotToHaveClass(menuItemSelectedClass);
             tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
             tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
             tester.expectToBeEnabled = () => fieldTester.expectNotToHaveClass('ui-switch-disabled');
@@ -7458,7 +7464,14 @@ define(() => function ({
 
     addTesters(me, () => document.body);
 
-    me.dialpadVisibilityButton = testersFactory.createDomElementTester('#cmg-dialpad-visibility-toggler');
+    me.dialpadVisibilityButton = (() => {
+        const tester = testersFactory.createDomElementTester('#cmg-dialpad-visibility-toggler'),
+            click = tester.click.bind(tester);
+
+        tester.click = () => (click(), spendTime(0));
+        return tester;
+    })();
+
     me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
     me.addressBookButton = testersFactory.createDomElementTester('#cmg-address-book-button');
     me.contactOpeningButton = testersFactory.createDomElementTester('#cmg-open-contact-button');

@@ -3030,6 +3030,23 @@ function JsTester_MutationObserverMocker (factory) {
     };
 }
 
+function JsTester_IntersectionObserver () {
+    this.observe = function () {};
+    this.unobserve = function () {};
+}
+
+function JsTester_IntersectionObserverMocker () {
+    var RealIntersectionObserver = window.IntersectionObserver;
+
+    this.replaceByFake = function () {
+        window.IntersectionObserver = JsTester_IntersectionObserver;
+    };
+
+    this.restoreReal = function () {
+        window.IntersectionObserver = RealIntersectionObserver;
+    };
+}
+
 function JsTester_ZipArchive () {
     return new Uint8Array([
         80,75,3,4,10,0,0,0,0,0,173,56,49,84,7,161,234,221,2,0,0,0,2,0,0,0,1,0,28,0,97,85,84,9,0,3,54,21,229,97,54,21,
@@ -3424,6 +3441,7 @@ function JsTester_Tests (factory) {
         }),
         mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
         mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
+        intersectionObserverMocker = new JsTester_IntersectionObserverMocker(),
         mutationObserverTester =  mutationObserverFactory.createTester(),
         hasFocus = new JsTester_Variable(),
         isBrowserHidden = new JsTester_Variable(),
@@ -3836,6 +3854,7 @@ function JsTester_Tests (factory) {
         utils.enableScrollingIntoView();
         broadcastChannelMocker.replaceByFake();
         mutationObserverMocker.replaceByFake();
+        intersectionObserverMocker.replaceByFake();
         fileReaderMocker.replaceByFake();
         execCommandReplacer.replaceByFake();
         blobReplacer.replaceByFake();
@@ -3872,6 +3891,7 @@ function JsTester_Tests (factory) {
         windowSize.reset();
         broadcastChannelMocker.restoreReal();
         mutationObserverMocker.restoreReal();
+        intersectionObserverMocker.restoreReal();
         fileReaderTester.expectNoFileToBeLoading();
         fileReaderMocker.restoreReal();
         execCommandReplacer.restoreReal();
