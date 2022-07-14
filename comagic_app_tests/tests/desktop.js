@@ -399,29 +399,6 @@ tests.addTest(options => {
                                     tester.button('IP-телефон').expectNotToBeChecked();
                                 });
                             });
-                            it('Нажимаю на кнопку диалпада. Кнопка маленького размера нажата.', function() {
-                                tester.dialpadVisibilityButton.click();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('unmaximize');
-
-                                tester.configRequest().softphone().receiveResponse();
-                                tester.numberCapacityRequest().receiveResponse();
-                                tester.accountRequest().receiveResponse();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('resize').
-                                    expectToBeSentWithArguments({
-                                        width: 340,
-                                        height: 212
-                                    });
-
-                                tester.smallSizeButton.expectToBePressed();
-                                tester.middleSizeButton.expectNotToBePressed();
-                                tester.largeSizeButton.expectNotToBePressed();
-                            });
                             it('Нажимаю на кнпоку "История звонков". Открыта история звонков.', function() {
                                 tester.button('История звонков').click();
 
@@ -438,6 +415,9 @@ tests.addTest(options => {
                                 tester.button('Статистика звонков').expectToBePressed();
                                 tester.button('История звонков').expectNotToBePressed();
                                 tester.button('Настройки').expectNotToBePressed();
+
+                                tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                                tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-pressed');
 
                                 tester.dialpadButton(1).expectToBeVisible();;
 
