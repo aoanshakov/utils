@@ -792,7 +792,7 @@ tests.addTest(options => {
     it('Открываю настройки софтфона. Страница локализована.', function() {
         const tester = new Tester({
             ...options,
-            path: '/settings/softphone',
+            path: '/softphone/settings',
             isAlreadyAuthenticated: true
         });
 

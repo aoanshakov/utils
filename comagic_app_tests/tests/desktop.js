@@ -152,6 +152,30 @@ tests.addTest(options => {
                                     tester.button('Запускать свернуто').expectNotToBeChecked();
                                 });
                             });
+                            it('Нажиман на кнопку большого размера. Отображен диалпад.', function() {
+                                tester.largeSizeButton.click();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('feature-flags-fetched').
+                                    expectToBeSentWithArguments(['softphone']);
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('maximize');
+
+                                tester.configRequest().softphone().receiveResponse();
+                                tester.statsRequest().receiveResponse();
+                                tester.numberCapacityRequest().receiveResponse();
+                                tester.accountRequest().receiveResponse();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('feature-flags-fetched').
+                                    expectToBeSentWithArguments(['softphone']);
+
+                                tester.dialpadButton(1).expectToBeVisible();;
+                            });
                             it(
                                 'Отмечаю свитчбокс "Автозапуск приложения". Отправлено сообщение о ' +
                                 'необходимости запускать приложение автоматически.',
@@ -410,8 +434,25 @@ tests.addTest(options => {
                                 tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                                 tester.marksRequest().receiveResponse();
                             });
-                            it('Отображен диалпад.', function() {
+                            it('Нажимаю на кнопку "Настройки". Открыта страница настроек.', function() {
+                                tester.button('Настройки').click();
+
+                                tester.button('Статистика звонков').expectNotToBePressed();
+                                tester.button('История звонков').expectNotToBePressed();
+                                tester.button('Настройки').expectToBePressed();
+
+                                tester.button('Текущее устройство').expectToBeChecked();
+                                tester.button('IP-телефон').expectNotToBeChecked();
+                            });
+                            it('Отображен большой софтфон.', function() {
+                                tester.button('Статистика звонков').expectToBePressed();
+                                tester.button('История звонков').expectNotToBePressed();
+                                tester.button('Настройки').expectNotToBePressed();
+
                                 tester.dialpadButton(1).expectToBeVisible();;
+
+                                tester.settingsButton.expectNotToExist();
+                                tester.callsHistoryButton.expectNotToExist();
 
                                 tester.smallSizeButton.expectNotToBePressed();
                                 tester.middleSizeButton.expectNotToBePressed();

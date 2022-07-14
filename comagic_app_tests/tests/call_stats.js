@@ -266,7 +266,10 @@ tests.addTest(options => {
                 });
             });
         });
-        it('Пользователь является руководителем.', function() {
+        it(
+            'Пользователь является руководителем. Открываю статистику по звонкам. Отображено время проведенное в ' +
+            'удаленном статусе.',
+        function() {
             accountRequest.manager().receiveResponse();
 
             const requests = ajax.inAnyOrder();
