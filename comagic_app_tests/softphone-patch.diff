@@ -44,18 +44,10 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 36398ea..89f3e06 100644
+index 77cc4b0..89f3e06 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -232,6 +232,7 @@ export const RootStore = types
-                         })
-                     }),
-                     ...createSoftphoneReducer({
-+                        shouldHideDialpadInIPTelephoneMode: () => !self.isLarge,
-                         shouldShowNotificationOutsideOfApplication: state =>
-                             Math.max(...['topSpace', 'bottomSpace'].map(name => state.softphone[name] || 0)) >= 80 &&
-                             !isSingleApp,
-@@ -667,4 +668,5 @@ export const RootStore = types
+@@ -668,4 +668,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
