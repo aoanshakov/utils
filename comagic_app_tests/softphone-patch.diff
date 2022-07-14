@@ -44,39 +44,10 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index f960ea5..2d1cf19 100644
+index 9ce6edb..2d1cf19 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -36,7 +36,9 @@ import {
-     addNotificationToSession,
-     sendToWebsocket,
-     terminateSession,
--    doToggleCallInfoCollapsedness
-+    doToggleCallInfoCollapsedness,
-+    makeSoftphoneHigh,
-+    openCallsPanel
- } from 'uis-softphone/actions';
- 
- import { STATUSES_MANAGER_CREATED, HANDLE_WEBRTC_CREATED } from 'uis-softphone/authorization/constants';
-@@ -630,7 +632,16 @@ export const RootStore = types
-                 return;
-             }
- 
--            !isSoftphoneHigh(self.reduxStore.getState()) && self.reduxStore.dispatch(doToggleCallInfoCollapsedness);
-+            const {dispatch, getState} = self.reduxStore,
-+                state = getState();
-+
-+            !isSoftphoneHigh(state) && dispatch(doToggleCallInfoCollapsedness);
-+
-+            if (['history', 'settings'].includes(state.softphone.openedPanel)) {
-+                dispatch(makeSoftphoneHigh(true));
-+                dispatch(openCallsPanel);
-+            }
-+
-             self.isLarge = true;
-             handleLargenessChange();
-         };
-@@ -651,4 +662,5 @@ export const RootStore = types
+@@ -662,4 +662,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
