@@ -294,7 +294,7 @@ index 8c325253..04189f9c 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index ca2ee8d5..d9812f25 100644
+index 3b468556..d9812f25 100644
 --- a/package.json
 +++ b/package.json
 @@ -59,8 +59,8 @@
@@ -331,7 +331,7 @@ index ca2ee8d5..d9812f25 100644
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash": "^4.17.20",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#dee5be778a2df043b4e560b630b37579f88f9666",
+-    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#int_2022_13.0",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
