@@ -44,10 +44,36 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 9ce6edb..2d1cf19 100644
+index 9ce6edb..85bbd27 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -662,4 +662,5 @@ export const RootStore = types
+@@ -527,6 +527,7 @@ export const RootStore = types
+ 
+                     account?.app_id && isSingleApp && !accessGranted && logout();
+                     self.setAccount(account);
++                    localStorage.getItem('isLarge') === 'true' && self.setIsLarge();
+                 };
+ 
+                 window.addEventListener('tokenChange', () => updateState(getTokenParams()));
+@@ -624,6 +625,8 @@ export const RootStore = types
+             }
+ 
+             self.isLarge = false;
++            localStorage.setItem('isLarge', 'false');
++
+             handleLargenessChange();
+         };
+ 
+@@ -643,6 +646,8 @@ export const RootStore = types
+             }
+ 
+             self.isLarge = true;
++            localStorage.setItem('isLarge', 'true');
++
+             handleLargenessChange();
+         };
+ 
+@@ -662,4 +667,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

@@ -1240,6 +1240,11 @@ define(() => function ({
     };
 
     me.statsRequest = () => {
+        const queryParams = {
+            date_from: '2019-12-19T00:00:00.000+03:00',
+            date_to: '2019-12-19T12:10:07.000+03:00'
+        };
+
         const data = {
             status_1_duration: 61410,
             status_2_duration: 84490,
@@ -1323,14 +1328,16 @@ define(() => function ({
         const addResponseModifiers = me => (me.noInCallCount = () => (delete(data.in_call_count), me), me)
 
         return addResponseModifiers({
+            secondEarlier() {
+                queryParams.date_to = '2019-12-19T12:10:06.000+03:00';
+                return this;
+            },
+
             expectToBeSent: (requests) => {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('/sup/api/v1/employee_stats').
                     expectToHaveMethod('GET').
-                    expectQueryToContain({
-                        date_from: '2019-12-19T00:00:00.000+03:00',
-                        date_to: '2019-12-19T12:10:07.000+03:00'
-                    });
+                    expectQueryToContain(queryParams);
 
                 return addResponseModifiers({
                     receiveResponse: () => {
@@ -1340,6 +1347,7 @@ define(() => function ({
                     }
                 });
             },
+
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
             }

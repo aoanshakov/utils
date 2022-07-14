@@ -24,12 +24,15 @@ tests.addTest(options => {
     describe('Открываю десктопное приложение софтфона.', function() {
         let tester;
 
+        beforeEach(function() {
+            setNow('2019-12-19T12:10:06');
+        });
+
         describe('Софтфон не должен отображаться поверх окон при входящем.', function() {
             let authenticatedUserRequest,
                 accountRequest;
 
             beforeEach(function() {
-                setNow('2019-12-19T12:10:06');
                 localStorage.setItem('clct:to_top_on_call', 'false');
 
                 tester = new Tester({
@@ -317,6 +320,13 @@ tests.addTest(options => {
                                         tester.smallSizeButton.expectToBePressed();
                                         tester.middleSizeButton.expectNotToBePressed();
                                         tester.largeSizeButton.expectNotToBePressed();
+
+                                        if (localStorage.getItem('isLarge') === 'true') {
+                                            throw new Error(
+                                                'В локальном хранилище должна быть сохранена ' +
+                                                'развернутость софтфона.'
+                                            );
+                                        }
                                     });
                                 });
                                 describe('Нажимаю на кнопку переключения на средний размер.', function() {
@@ -415,6 +425,12 @@ tests.addTest(options => {
                                 tester.smallSizeButton.expectNotToBePressed();
                                 tester.middleSizeButton.expectNotToBePressed();
                                 tester.largeSizeButton.expectToBePressed();
+
+                                if (localStorage.getItem('isLarge') !== 'true') {
+                                    throw new Error(
+                                        'В локальном хранилище должна быть сохранена максимизация софтфона.'
+                                    );
+                                }
                             });
                         });
                         describe('Нажимаю на кнопку переключения на средний размер.', function() {
@@ -917,6 +933,12 @@ tests.addTest(options => {
 
                             getPackage('electron-log').expectToContain('State changed');
                             getPackage('electron-log').expectToContain('$REACT_APP_AUTH_URL');
+
+                            if (localStorage.getItem('isLarge') === 'true') {
+                                throw new Error(
+                                    'В локальном хранилище должна быть сохранена максимизация софтфона.'
+                                );
+                            }
                         });
                     });
                     it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
@@ -1446,6 +1468,64 @@ tests.addTest(options => {
 
             tester.authenticatedUserRequest().receiveResponse();
             tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+            tester.dialpadButton(1).expectToBeVisible();;
+        });
+        it('Ранее софтфон был большим. Открываю софтфон. Он большой.', function() {
+            localStorage.setItem('isSoftphoneHigh', 'true');
+            localStorage.setItem('isLarge', 'true');
+
+            tester = new Tester({
+                ...options,
+                isAlreadyAuthenticated: true,
+                appName: 'softphone'
+            });
+
+            tester.configRequest().softphone().receiveResponse();
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('resize').
+                expectToBeSentWithArguments({
+                    width: 340,
+                    height: 568
+                });
+
+            getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
+
+            tester.accountRequest().receiveResponse();
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('maximize');
+
+            tester.authCheckRequest().receiveResponse();
+
+            const requests = ajax.inAnyOrder();
+
+            const statsRequest = tester.statsRequest().secondEarlier().expectToBeSent(requests),
+                accountRequest = tester.accountRequest().expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            statsRequest.receiveResponse();
+            accountRequest.receiveResponse();
+
+            tester.statusesRequest().receiveResponse();
+            tester.settingsRequest().receiveResponse();
+            notificationTester.grantPermission();
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+
+            tester.connectEventsWebSocket();
+            tester.connectSIPWebSocket();
+
+            tester.allowMediaInput();
+
+            tester.authenticatedUserRequest().receiveResponse();
+            tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+            tester.configRequest().softphone().receiveResponse();
 
             tester.dialpadButton(1).expectToBeVisible();;
         });
