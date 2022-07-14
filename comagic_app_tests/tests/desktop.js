@@ -368,6 +368,37 @@ tests.addTest(options => {
                                     tester.largeSizeButton.expectToBePressed();
                                 });
                             });
+                            describe('Нажимаю на кнопку "Настройки".', function() {
+                                beforeEach(function() {
+                                    tester.button('Настройки').click();
+                                });
+
+                                it(
+                                    'Нажимаю на кнопку "Софтфон или IP-телефон". Отмечена кнопка "IP-телефон".',
+                                function() {
+                                    tester.button('IP-телефон').click();
+                                    tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().receiveResponse();
+                                    tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
+
+                                    tester.registrationRequest().desktopSoftphone().expired().receiveResponse();
+                                    
+                                    spendTime(2000);
+                                    tester.webrtcWebsocket.finishDisconnecting();
+
+                                    tester.dialpadButton(1).expectToBeVisible();;
+
+                                    tester.button('Текущее устройство').expectNotToBeChecked();
+                                    tester.button('IP-телефон').expectToBeChecked();
+                                });
+                                it('Открыта страница настроек.', function() {
+                                    tester.button('Статистика звонков').expectNotToBePressed();
+                                    tester.button('История звонков').expectNotToBePressed();
+                                    tester.button('Настройки').expectToBePressed();
+
+                                    tester.button('Текущее устройство').expectToBeChecked();
+                                    tester.button('IP-телефон').expectNotToBeChecked();
+                                });
+                            });
                             it('Нажимаю на кнопку диалпада. Кнопка маленького размера нажата.', function() {
                                 tester.dialpadVisibilityButton.click();
 
@@ -396,16 +427,6 @@ tests.addTest(options => {
 
                                 tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                                 tester.marksRequest().receiveResponse();
-                            });
-                            it('Нажимаю на кнопку "Настройки". Открыта страница настроек.', function() {
-                                tester.button('Настройки').click();
-
-                                tester.button('Статистика звонков').expectNotToBePressed();
-                                tester.button('История звонков').expectNotToBePressed();
-                                tester.button('Настройки').expectToBePressed();
-
-                                tester.button('Текущее устройство').expectToBeChecked();
-                                tester.button('IP-телефон').expectNotToBeChecked();
                             });
                             it('Нажимаю на кнопку аккаунта. Отображена всплывающая панель.', function() {
                                 tester.userName.click();
