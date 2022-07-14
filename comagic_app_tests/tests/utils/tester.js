@@ -128,6 +128,18 @@ define(() => function ({
     me.history = history;
 
     const addTesters = (me, getRootElement) => {
+        me.userName = (tester => {
+            const putMouseOver = tester.putMouseOver.bind(tester),
+                click = tester.click.bind(tester);
+
+            tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector(
+            '.cm-user-only-account--username, .cm-chats--account-icon, .cm-chats--account--username'
+        )));
+
         me.spin = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
             querySelector('.ui-spin-icon-default'));
 
@@ -1311,8 +1323,8 @@ define(() => function ({
         const addResponseModifiers = me => (me.noInCallCount = () => (delete(data.in_call_count), me), me)
 
         return addResponseModifiers({
-            expectToBeSent: () => {
-                const request = ajax.recentRequest().
+            expectToBeSent: (requests) => {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('/sup/api/v1/employee_stats').
                     expectToHaveMethod('GET').
                     expectQueryToContain({
@@ -7569,18 +7581,6 @@ define(() => function ({
 
         return addTesters(me, () => row);
     })();
-
-    me.userName = (tester => {
-        const putMouseOver = tester.putMouseOver.bind(tester),
-            click = tester.click.bind(tester);
-
-        tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
-        tester.click = () => (click(), spendTime(0));
-
-        return tester;
-    })(testersFactory.createDomElementTester(
-        '.cm-user-only-account--username, .cm-chats--account-icon, .cm-chats--account--username'
-    ));
 
     me.statusesList = (() => {
         const selector = '.cm-chats--account-popup',

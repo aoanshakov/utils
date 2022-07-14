@@ -61,6 +61,65 @@ define(function () {
                 );
             };
         }
+        
+        function MessageProxy (methodCalls) {
+            this.expectNotToBeSent = () => {
+                methodCalls.push(message => message.expectNotToBeSent());
+                return this;
+            };
+
+            this.expectToBeSentToChannel = expectedChannel => {
+                methodCalls.push(message => message.expectToBeSentToChannel(expectedChannel));
+                return this;
+            };
+
+            this.expectToBeSentWithArguments = (...args) => {
+                methodCalls.push(message => message.expectToBeSentWithArguments(...args));
+                return this;
+            };
+        }
+
+        function MessagesInAnyOrder (messages) {
+            const recentMessages = new Set(),
+                tests = new Set();
+            
+            this.someSentMessage = () => {
+                const methodCalls = [];
+
+                recentMessages.add(messages.pop());
+                tests.add(methodCalls);
+
+                return new MessageProxy(methodCalls);
+            };
+
+            this.checkCompliance = () => {
+                while (tests.size) {
+                    const complient = Array.from(recentMessages).find(message => {
+                        const errors = Array.from(tests).map(methodCalls => {
+                            try {
+                                methodCalls.forEach(callMethod => callMethod(message));
+                            } catch (e) {
+                                return [methodCalls, e.message];
+                            }
+
+                            return [methodCalls, null];
+                        });
+
+                        const item = errors.find(([methodCalls, error]) => !error),
+                            isComplient = !!item;
+
+                        if (!isComplient) {
+                            throw new Error(errors.map(([methodCalls, error]) => error).join("\n\n"));
+                        }
+
+                        tests.delete(item[0]);
+                        return true;
+                    });
+
+                    recentMessages.delete(complient);
+                }
+            };
+        }
 
         return {
             'electron-log': {
@@ -97,6 +156,7 @@ define(function () {
                     }
                 },
                 ipcRenderer: {
+                    inAnyOrder: () => new MessagesInAnyOrder(messages),
                     receiveMessage: function (channel) {
                         var args = Array.prototype.slice.call(arguments, 0);
 

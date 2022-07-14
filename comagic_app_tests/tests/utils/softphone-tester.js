@@ -1080,8 +1080,8 @@ define(function () {
             }
 
             return addMethods({
-                expectToBeSent: function () {
-                    var request = ajax.recentRequest().
+                expectToBeSent: function (requests) {
+                    var request = (requests ? requests.someRequest() : ajax.recentRequest()).
                         expectPathToContain('/sup/api/v1/number_capacity/077368');
 
                     return addMethods({
@@ -1090,7 +1090,7 @@ define(function () {
                                 data: data 
                             });
 
-                            Promise.runAll();
+                            Promise.runAll(false, true);
                         }
                     });
                 },

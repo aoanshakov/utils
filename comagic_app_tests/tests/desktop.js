@@ -65,12 +65,6 @@ tests.addTest(options => {
 
                 beforeEach(function() {
                     accountRequest.receiveResponse();
-
-                    getPackage('electron').ipcRenderer.
-                        recentlySentMessage().
-                        expectToBeSentToChannel('feature-flags-fetched').
-                        expectToBeSentWithArguments(['softphone']);
-
                     authCheckRequest = tester.authCheckRequest().expectToBeSent();
                 });
 
@@ -152,13 +146,8 @@ tests.addTest(options => {
                                     tester.button('Запускать свернуто').expectNotToBeChecked();
                                 });
                             });
-                            it('Нажиман на кнопку большого размера. Отображен диалпад.', function() {
+                            it('Нажимаю на кнопку большого размера. Отображен диалпад.', function() {
                                 tester.largeSizeButton.click();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone']);
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
@@ -168,11 +157,6 @@ tests.addTest(options => {
                                 tester.statsRequest().receiveResponse();
                                 tester.numberCapacityRequest().receiveResponse();
                                 tester.accountRequest().receiveResponse();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone']);
 
                                 tester.dialpadButton(1).expectToBeVisible();;
                             });
@@ -268,24 +252,18 @@ tests.addTest(options => {
                             beforeEach(function() {
                                 tester.largeSizeButton.click();
 
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone']);
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('maximize');
-
                                 tester.configRequest().softphone().receiveResponse();
-                                tester.statsRequest().receiveResponse();
-                                tester.numberCapacityRequest().receiveResponse();
-                                tester.accountRequest().receiveResponse();
+                                const requests = ajax.inAnyOrder();
 
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone']);
+                                const statsRequest = tester.statsRequest().expectToBeSent(requests),
+                                    numberCapacityRequest = tester.numberCapacityRequest().expectToBeSent(requests),
+                                    accountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                                requests.expectToBeSent();
+
+                                statsRequest.receiveResponse();
+                                numberCapacityRequest.receiveResponse();
+                                accountRequest.receiveResponse();
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
@@ -294,6 +272,10 @@ tests.addTest(options => {
                                         width: 340,
                                         height: 568
                                     });
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('maximize');
                             });
 
                             describe('Нажимаю на кнопку переключения на большой размер.', function() {
@@ -307,21 +289,11 @@ tests.addTest(options => {
 
                                         getPackage('electron').ipcRenderer.
                                             recentlySentMessage().
-                                            expectToBeSentToChannel('feature-flags-fetched').
-                                            expectToBeSentWithArguments(['softphone']);
-
-                                        getPackage('electron').ipcRenderer.
-                                            recentlySentMessage().
                                             expectToBeSentToChannel('unmaximize');
 
                                         tester.configRequest().softphone().receiveResponse();
                                         tester.numberCapacityRequest().receiveResponse();
                                         tester.accountRequest().receiveResponse();
-
-                                        getPackage('electron').ipcRenderer.
-                                            recentlySentMessage().
-                                            expectToBeSentToChannel('feature-flags-fetched').
-                                            expectToBeSentWithArguments(['softphone']);
 
                                         getPackage('electron').ipcRenderer.
                                             recentlySentMessage().
@@ -353,21 +325,11 @@ tests.addTest(options => {
 
                                         getPackage('electron').ipcRenderer.
                                             recentlySentMessage().
-                                            expectToBeSentToChannel('feature-flags-fetched').
-                                            expectToBeSentWithArguments(['softphone']);
-
-                                        getPackage('electron').ipcRenderer.
-                                            recentlySentMessage().
                                             expectToBeSentToChannel('unmaximize');
 
                                         tester.configRequest().softphone().receiveResponse();
                                         tester.numberCapacityRequest().receiveResponse();
                                         tester.accountRequest().receiveResponse();
-
-                                        getPackage('electron').ipcRenderer.
-                                            recentlySentMessage().
-                                            expectToBeSentToChannel('feature-flags-fetched').
-                                            expectToBeSentWithArguments(['softphone']);
                                     });
 
                                     it(
@@ -400,21 +362,11 @@ tests.addTest(options => {
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
-                                    expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone']);
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
                                     expectToBeSentToChannel('unmaximize');
 
                                 tester.configRequest().softphone().receiveResponse();
                                 tester.numberCapacityRequest().receiveResponse();
                                 tester.accountRequest().receiveResponse();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone']);
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
@@ -444,7 +396,13 @@ tests.addTest(options => {
                                 tester.button('Текущее устройство').expectToBeChecked();
                                 tester.button('IP-телефон').expectNotToBeChecked();
                             });
+                            it('Нажимаю на кнопку аккаунта. Отображена всплывающая панель.', function() {
+                                tester.userName.click();
+                                tester.statusesList.expectTextContentToHaveSubstring('Ганева Стефка');
+                            });
                             it('Отображен большой софтфон.', function() {
+                                tester.softphone.userName.expectNotToExist();
+
                                 tester.button('Статистика звонков').expectToBePressed();
                                 tester.button('История звонков').expectNotToBePressed();
                                 tester.button('Настройки').expectNotToBePressed();
@@ -531,11 +489,6 @@ tests.addTest(options => {
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
-                                    expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone']);
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
                                     expectToBeSentToChannel('resize').
                                     expectToBeSentWithArguments({
                                         width: 340,
@@ -546,11 +499,6 @@ tests.addTest(options => {
 
                                 tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
                                 tester.accountRequest().anotherAuthorizationToken().receiveResponse();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone']);
 
                                 tester.statusesRequest().createExpectation().
                                     anotherAuthorizationToken().checkCompliance().receiveResponse();
@@ -720,11 +668,6 @@ tests.addTest(options => {
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
-                                    expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone']);
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
                                     expectToBeSentToChannel('resize').
                                     expectToBeSentWithArguments({
                                         width: 340,
@@ -739,14 +682,7 @@ tests.addTest(options => {
                                 tester.groupsRequest().receiveResponse();
 
                                 tester.accountRequest().receiveResponse();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('feature-flags-fetched').
-                                    expectToBeSentWithArguments(['softphone']);
-
                                 tester.statusesRequest().receiveResponse();
-                                    
                                 tester.settingsRequest().receiveResponse();
                                 tester.talkOptionsRequest().receiveResponse();
                                 tester.permissionsRequest().receiveResponse();
@@ -865,11 +801,6 @@ tests.addTest(options => {
 
                             getPackage('electron').ipcRenderer.
                                 recentlySentMessage().
-                                expectToBeSentToChannel('feature-flags-fetched').
-                                expectToBeSentWithArguments(['softphone']);
-
-                            getPackage('electron').ipcRenderer.
-                                recentlySentMessage().
                                 expectToBeSentToChannel('resize').
                                 expectToBeSentWithArguments({
                                     width: 340,
@@ -880,12 +811,6 @@ tests.addTest(options => {
 
                             tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
                             tester.accountRequest().anotherAuthorizationToken().receiveResponse();
-
-                            getPackage('electron').ipcRenderer.
-                                recentlySentMessage().
-                                expectToBeSentToChannel('feature-flags-fetched').
-                                expectToBeSentWithArguments(['softphone']);
-
                             tester.statusesRequest().createExpectation().
                                 anotherAuthorizationToken().checkCompliance().receiveResponse();
                             tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
@@ -1021,11 +946,6 @@ tests.addTest(options => {
             it('Большой софтфон недоступен. Кнопки размеров не отображены.', function() {
                 accountRequest.largeSoftphoneFeatureFlagDisabled().receiveResponse();
 
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
-                    expectToBeSentToChannel('feature-flags-fetched').
-                    expectToBeSentWithArguments(['softphone']);
-
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -1095,12 +1015,6 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
                 tester.accountRequest().receiveResponse();
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
-                    expectToBeSentToChannel('feature-flags-fetched').
-                    expectToBeSentWithArguments(['softphone']);
-
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
@@ -1219,12 +1133,6 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
                 tester.accountRequest().receiveResponse();
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
-                    expectToBeSentToChannel('feature-flags-fetched').
-                    expectToBeSentWithArguments(['softphone']);
-
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
@@ -1301,12 +1209,6 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
                 tester.accountRequest().receiveResponse();
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
-                    expectToBeSentToChannel('feature-flags-fetched').
-                    expectToBeSentWithArguments(['softphone']);
-
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
@@ -1404,12 +1306,6 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
                 tester.accountRequest().receiveResponse();
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
-                    expectToBeSentToChannel('feature-flags-fetched').
-                    expectToBeSentWithArguments(['softphone']);
-
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
@@ -1497,12 +1393,6 @@ tests.addTest(options => {
             getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
             tester.accountRequest().receiveResponse();
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('feature-flags-fetched').
-                expectToBeSentWithArguments(['softphone']);
-
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
@@ -1542,12 +1432,6 @@ tests.addTest(options => {
             getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
             tester.accountRequest().receiveResponse();
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('feature-flags-fetched').
-                expectToBeSentWithArguments(['softphone']);
-
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
