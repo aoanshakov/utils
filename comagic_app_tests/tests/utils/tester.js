@@ -141,7 +141,7 @@ define(() => function ({
         )));
 
         me.spin = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
-            querySelector('.ui-spin-icon-default'));
+            querySelector('.ui-spin-icon-default, .clct-spinner'));
 
         me.anchor = text => testersFactory.createAnchorTester(() =>
             utils.descendantOf(getRootElement()).matchesSelector('a').textEquals(text).find());
@@ -1420,6 +1420,13 @@ define(() => function ({
             me.noContactName = () => (processors.push(data => (data[0].contact_name = null)), me);
             me.noCrmContactLink = () => (processors.push(data => (data[0].crm_contact_link = null)), me);
 
+            me.serverError = () => {
+                receiveResponse = request =>
+                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+
+                return me;
+            };
+
             me.employeeName = () => {
                 processors.push(data => {
                     data[0].contact_name = null;
@@ -1445,6 +1452,18 @@ define(() => function ({
             };
 
             return me;
+        };
+
+        let receiveResponse = request => {
+            const data = getResponse(count);
+            processors.forEach(process => process(data));
+            total !== undefined && data.forEach(item => (item.total_count = total))
+
+            request.respondSuccessfullyWith({data});
+            Promise.runAll();
+            me.triggerScrollRecalculation();
+
+            spendTime(0);
         };
 
         return addResponseModifiers({
@@ -1511,15 +1530,7 @@ define(() => function ({
                     expectQueryToContain(params);
 
                 return addResponseModifiers({
-                    receiveResponse: () => {
-                        const data = getResponse(count);
-                        processors.forEach(process => process(data));
-                        total !== undefined && data.forEach(item => (item.total_count = total))
-
-                        request.respondSuccessfullyWith({data});
-                        Promise.runAll();
-                        me.triggerScrollRecalculation();
-                    }
+                    receiveResponse: () => (receiveResponse(request), spendTime(0))
                 });
             },
 

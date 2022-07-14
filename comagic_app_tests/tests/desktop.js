@@ -3,6 +3,7 @@ tests.addTest(options => {
         utils,
         Tester,
         spendTime,
+        addSecond,
         windowOpener,
         mediaStreamsTester,
         unload,
@@ -733,6 +734,60 @@ tests.addTest(options => {
                                 );
                             });
                         });
+                        describe('Открываю историю звонков.', function() {
+                            let callsRequest;
+
+                            beforeEach(function() {
+                                tester.callsHistoryButton.click();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 568
+                                    });
+
+                                callsRequest = tester.callsRequest().expectToBeSent();
+                                addSecond();
+                            });
+
+                            describe('Данные получены.', function() {
+                                beforeEach(function() {
+                                    callsRequest.receiveResponse();
+                                });
+
+                                it('Нажимаю на имя контакта. Открывается страница контакта.', function() {
+                                    tester.callsHistoryRow.withText('Гяурова Марийка').name.click();
+
+                                    getPackage('electron').shell.expectExternalUrlToBeOpened(
+                                        'https://comagicwidgets.amocrm.ru/contacts/detail/218401'
+                                    );
+                                });
+                                it('Спиннер скрыт.', function() {
+                                    getPackage('electron-log').expectToContain([
+                                        'Ajax request',
+                                        'URL "sup/api/v1/users/me/calls"',
+                                        'Time consumed 1000 ms'
+                                    ].join("\n"));
+
+                                    tester.spin.expectNotToExist();
+                                });
+                            });
+                            it('Не удалось получить данные. Спиннер скрыт.', function() {
+                                callsRequest.serverError().receiveResponse();
+                                tester.spin.expectNotToExist();
+
+                                getPackage('electron-log').expectToContain([
+                                    'Ajax request',
+                                    'URL "sup/api/v1/users/me/calls"',
+                                    'Time consumed 1000 ms'
+                                ].join("\n"));
+                            });
+                            it('Отображен спиннер.', function() {
+                                tester.spin.expectToBeVisible();
+                            });
+                        });
                         describe('Открываю список номеров.', function() {
                             beforeEach(function() {
                                 windowSize.setHeight(212);
@@ -873,23 +928,6 @@ tests.addTest(options => {
                             tester.softphone.expectTextContentToHaveSubstring(
                                 'Гигова Петранка Входящий...'
                             );
-                        });
-                        it('Открываю историю звонков. Открывается страница контакта.', function() {
-                            tester.callsHistoryButton.click();
-
-                            getPackage('electron').ipcRenderer.
-                                recentlySentMessage().
-                                expectToBeSentToChannel('resize').
-                                expectToBeSentWithArguments({
-                                    width: 340,
-                                    height: 568
-                                });
-
-                            tester.callsRequest().receiveResponse();
-                            tester.callsHistoryRow.withText('Гяурова Марийка').name.click();
-
-                            getPackage('electron').shell.
-                                expectExternalUrlToBeOpened('https://comagicwidgets.amocrm.ru/contacts/detail/218401');
                         });
                         it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
                             tester.dialpadVisibilityButton.click();
