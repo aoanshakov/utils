@@ -127,6 +127,22 @@ define(() => function ({
 
     me.history = history;
 
+    const createBottomButtonTester = tester => {
+        tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-button-disabled');
+        tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cmg-button-disabled');
+
+        return tester;
+    };
+
+    me.callsHistoryButton = (tester => {
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), Promise.runAll(false, true));
+
+        return createBottomButtonTester(tester);
+    })(testersFactory.createDomElementTester('.cmg-calls-history-button'));
+
+    me.settingsButton = createBottomButtonTester(testersFactory.createDomElementTester('.cmg-settings-button'));
+
     const addTesters = (me, getRootElement) => {
         me.userName = (tester => {
             const putMouseOver = tester.putMouseOver.bind(tester),
@@ -135,9 +151,9 @@ define(() => function ({
             tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
             tester.click = () => (click(), spendTime(0));
 
-            return tester;
+            return createBottomButtonTester(tester);
         })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector(
-            '.cm-user-only-account--username, .cm-chats--account-icon, .cm-chats--account--username'
+            '.cm-user-only-account--username, .cm-chats--account'
         )));
 
         me.spin = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
@@ -7486,13 +7502,6 @@ define(() => function ({
         };
     })();
 
-    me.callsHistoryButton = (tester => {
-        const click = tester.click.bind(tester);
-
-        tester.click = () => (click(), Promise.runAll(false, true));
-        return tester;
-    })(testersFactory.createDomElementTester('.cmg-calls-history-button'));
-
     addTesters(me, () => document.body);
 
     me.dialpadVisibilityButton = (() => {
@@ -7565,8 +7574,6 @@ define(() => function ({
     me.largeSizeButton = createCollapsedessButton('cmg-large-size-button');
     me.middleSizeButton = createCollapsedessButton('cmg-middle-size-button');
     me.smallSizeButton = createCollapsedessButton('cmg-small-size-button');
-
-    me.settingsButton = testersFactory.createDomElementTester('.cmg-settings-button');
     me.hideButton = testersFactory.createDomElementTester('.cmg-hide-button');
     me.playerButton = testersFactory.createDomElementTester('.clct-audio-button');
     me.otherChannelCallNotification = createRootTester('#cmg-another-sip-line-incoming-call-notification');
@@ -7581,6 +7588,13 @@ define(() => function ({
         tester.click = () => (click(), spendTime(0));
         me.arrowNextToSearchField = tester;
     }
+
+    me.leftMenu = (() => {
+        const getDomElement = () => utils.querySelector('.src-components-main-menu-styles-module__nav'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
 
     me.popover = (() => {
         const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),

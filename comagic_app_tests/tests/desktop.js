@@ -161,6 +161,7 @@ tests.addTest(options => {
                                 tester.statsRequest().receiveResponse();
                                 tester.numberCapacityRequest().receiveResponse();
                                 tester.accountRequest().receiveResponse();
+                                tester.accountRequest().receiveResponse();
 
                                 tester.dialpadButton(1).expectToBeVisible();;
                             });
@@ -261,13 +262,15 @@ tests.addTest(options => {
 
                                 const statsRequest = tester.statsRequest().expectToBeSent(requests),
                                     numberCapacityRequest = tester.numberCapacityRequest().expectToBeSent(requests),
-                                    accountRequest = tester.accountRequest().expectToBeSent(requests);
+                                    accountRequest = tester.accountRequest().expectToBeSent(requests),
+                                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
                                 requests.expectToBeSent();
 
                                 statsRequest.receiveResponse();
                                 numberCapacityRequest.receiveResponse();
                                 accountRequest.receiveResponse();
+                                secondAccountRequest.receiveResponse();
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
@@ -407,24 +410,27 @@ tests.addTest(options => {
                                 tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                                 tester.marksRequest().receiveResponse();
                             });
-                            it('Нажимаю на кнопку аккаунта. Отображена всплывающая панель.', function() {
-                                tester.userName.click();
+                            it('Нажимаю на кнопку аккаунта в меню. Отображена всплывающая панель.', function() {
+                                tester.leftMenu.userName.click();
                                 tester.statusesList.expectTextContentToHaveSubstring('Ганева Стефка');
                             });
+                            it('Нажимаю на кнопку аккаунта в софтфоне. Всплывающая панель не отображена .', function() {
+                                tester.softphone.userName.click();
+                                tester.statusesList.expectNotToExist();
+                            });
                             it('Отображен большой софтфон.', function() {
-                                tester.softphone.userName.expectNotToExist();
-
                                 tester.button('Статистика звонков').expectToBePressed();
                                 tester.button('История звонков').expectNotToBePressed();
                                 tester.button('Настройки').expectNotToBePressed();
 
+                                tester.dialpadButton(1).expectToBeVisible();;
+
                                 tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
                                 tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-pressed');
 
-                                tester.dialpadButton(1).expectToBeVisible();;
-
-                                tester.settingsButton.expectNotToExist();
-                                tester.callsHistoryButton.expectNotToExist();
+                                tester.settingsButton.expectToBeDisabled();
+                                tester.callsHistoryButton.expectToBeDisabled();
+                                tester.softphone.userName.expectToBeDisabled();
 
                                 tester.smallSizeButton.expectNotToBePressed();
                                 tester.middleSizeButton.expectNotToBePressed();
@@ -1567,6 +1573,7 @@ tests.addTest(options => {
             tester.registrationRequest().desktopSoftphone().receiveResponse();
 
             tester.configRequest().softphone().receiveResponse();
+            tester.accountRequest().receiveResponse();
 
             tester.dialpadButton(1).expectToBeVisible();;
         });
