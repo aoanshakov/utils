@@ -395,6 +395,8 @@ tests.addTest(options => {
                                     tester.button('История звонков').expectNotToBePressed();
                                     tester.button('Настройки').expectToBePressed();
 
+                                    tester.button('Автозапуск приложения').expectToBeVisible();
+
                                     tester.button('Текущее устройство').expectToBeChecked();
                                     tester.button('IP-телефон').expectNotToBeChecked();
                                 });

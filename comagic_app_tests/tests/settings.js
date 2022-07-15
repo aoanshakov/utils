@@ -450,6 +450,7 @@ tests.addTest(options => {
             it('Установлены настройки по умолчанию.', function() {
                 tester.button('Текущее устройство').expectToBeChecked();
                 tester.button('IP-телефон').expectNotToBeChecked();
+                tester.button('Автозапуск приложения').expectNotToExist();
             });
         });
         it(
