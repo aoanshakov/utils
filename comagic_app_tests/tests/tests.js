@@ -2107,6 +2107,44 @@ tests.addTest(options => {
                                                         );
                                                     });
                                                 });
+                                                it('Обновлен статус. Отображен обновленный статус.', function() {
+                                                    tester.statusChangedEvent().update().receive();
+
+                                                    tester.statusesList.expectTextContentToHaveSubstring(
+                                                        'Ганева Стефка ' +
+                                                        'Внутренний номер: 9119 ' +
+
+                                                        'Статусы ' +
+
+                                                        'Доступен ' +
+                                                        'Пауза ' +
+                                                        'Не беспокоить ' +
+                                                        'Нет на месте ' +
+                                                        'Нет на работе'
+                                                    );
+                                                });
+                                                it('Удален статус. Удаленный статус не отображается.', function() {
+                                                    tester.statusChangedEvent().remove().receive();
+
+                                                    tester.statusesList.expectTextContentToHaveSubstring(
+                                                        'Ганева Стефка ' +
+                                                        'Внутренний номер: 9119 ' +
+
+                                                        'Статусы ' +
+
+                                                        'Доступен ' +
+                                                        'Не беспокоить ' +
+                                                        'Нет на месте ' +
+                                                        'Нет на работе'
+                                                    );
+                                                });
+                                                it('Добавлен новый статус. Отображен добавленный статус.', function() {
+                                                    tester.statusChangedEvent().receive();
+
+                                                    tester.statusesList.item('Воронка').expectToBeVisible();
+                                                    tester.statusesList.item('Доступен').findElement('circle').
+                                                        expectToHaveStyle('fill', '#48b882');
+                                                });
                                                 it('Отображен список статусов.', function() {
                                                     tester.statusesList.item('Не беспокоить').expectToBeSelected();
                                                     tester.statusesList.item('Нет на месте').expectNotToBeSelected();

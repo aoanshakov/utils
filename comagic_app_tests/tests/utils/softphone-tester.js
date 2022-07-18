@@ -3864,6 +3864,109 @@ define(function () {
             };
         };
 
+        this.statusChangedEvent = () => {
+            const params = {
+                action: 'insert',
+                data: [{
+                    id: 848593,
+                    data: [{
+                        id: 848593,
+                        icon: 'funnel',
+                        name: 'Воронка',
+                        color: '#ff8f00',
+                        comment: null,
+                        mnemonic: null,
+                        priority: 18,
+                        is_removed: false,
+                        description: '',
+                        is_worktime: true,
+                        is_different: true,
+                        is_select_allowed: true,
+                        allowed_phone_protocols: [
+                            'PSTN',
+                            'SIP',
+                            'SIP_TRUNK',
+                            'FMC'
+                        ],
+                        is_auto_out_calls_ready: true,
+                        is_use_availability_in_group: true,
+                        in_external_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        in_internal_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        out_external_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ],
+                        out_internal_allowed_call_directions: [
+                            'in',
+                            'out'
+                        ]
+                    }],
+                    app_id: 4735
+                }]
+            };
+
+            return {
+                updateRemoved() {
+                    params.action = 'update';
+
+                    params.data = [{
+                        id: 7,
+                        data: [{
+                            id: 7,
+                            name: 'Ненужный'
+                        }]
+                    }];
+
+                    return this;
+                },
+
+                update() {
+                    params.action = 'update';
+
+                    params.data = [{
+                        id: 2,
+                        data: [{
+                            id: 2,
+                            name: 'Пауза'
+                        }]
+                    }];
+
+                    return this;
+                },
+
+                remove() {
+                    params.action = 'delete';
+
+                    params.data = [{
+                        id: 2,
+                        data: [{
+                            id: 2,
+                            is_removed: true
+                        }]
+                    }];
+
+                    return this;
+                },
+
+                receive: () => {
+                    eventsWebSocket.receiveMessage({
+                        type: 'event',
+                        id: 'e24bcc05529d4ae19674bd4163f0b6a7',
+                        name: 'status_changed',
+                        params
+                    });
+
+                    Promise.runAll(false, true);
+                }
+            }
+        };
+
         this.requestCallFinish = function () {
             sip.recentRequest().expectToHaveMethod('BYE').response().send();
             finishCall();
@@ -4844,7 +4947,7 @@ define(function () {
                         icon: 'top_right_arrow',
                         description: 'только исходящий обзвон',
                         is_worktime: true,
-                        id: 7,
+                        id: 20482,
                         mnemonic: 'auto_out_call',
                         in_external_allowed_call_directions: [],
                         in_internal_allowed_call_directions: [],

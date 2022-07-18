@@ -179,6 +179,10 @@ tests.addTest(options => {
                             '"Неуспешные, исходящие (трансферные)";"6723"',
                         ].join("\n"));
                 });
+                it('Добавлен новый статус. Отображен добавленный статус.', function() {
+                    tester.statusChangedEvent().receive();
+                    tester.body.expectTextContentToHaveSubstring('Воронка 00:00:00');
+                });
                 it('Отображена статистика звонков.', function() {
                     tester.body.expectTextContentToHaveSubstringsConsideringOrder(
                         'Доступен 17:03:30 ' +
