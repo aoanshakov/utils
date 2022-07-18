@@ -44,54 +44,10 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 77cc4b0..56705fa 100644
+index 96d292a..56705fa 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -45,7 +45,6 @@ import { STATUSES_MANAGER_CREATED, HANDLE_WEBRTC_CREATED } from 'uis-softphone/a
- 
- import {
-     INTERCEPT_REQUEST,
--    SET_STATUSES,
-     JSSIP_INBOUNDING_CALL_INCOMING,
-     JSSIP_CALL_ENDED,
-     JSSIP_INBOUNDING_CALL_ENDED,
-@@ -353,14 +352,31 @@ export const RootStore = types
- 
-                             break;
-                         }
--                        case SET_STATUSES:
--                            self.statusesStore.setStatuses(action.data || []);
--                            break;
-                         case STATUSES_MANAGER_CREATED:
--                            action.statusesManager.on('employeeChanged', employee =>
-+                            const { statusesManager } = action;
-+
-+                            statusesManager.on('employeeChanged', employee =>
-                                 self.employeesStore.setEmployee(employee)
-                             );
- 
-+                            statusesManager.on('statusesChanged', statuses => {
-+                                const changedStatuses = self.statusesStore.allStatuses.reduce(
-+                                    (statuses, status) => ((statuses[status.id] = status), statuses),
-+                                    {}
-+                                );
-+
-+                                statuses.forEach(status => {
-+                                    const { id } = status;
-+
-+                                    changedStatuses[id] = {
-+                                        ...(changedStatuses[id] || {}),
-+                                        ...status
-+                                    };
-+                                });
-+
-+                                self.statusesStore.setStatuses(Object.values(changedStatuses))
-+                            });
-+
-                             break;
-                         case INTERCEPT_REQUEST: {
-                             const { args, request } = action;
-@@ -668,4 +684,5 @@ export const RootStore = types
+@@ -684,4 +684,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
