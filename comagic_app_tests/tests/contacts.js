@@ -49,7 +49,7 @@ tests.addTest(options => {
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         });
 
-        xdescribe('Раздел контактов доступен. Открываю раздел контактов.', function() {
+        describe('Раздел контактов доступен. Открываю раздел контактов.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -138,7 +138,7 @@ tests.addTest(options => {
             });
         });
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {
-            accountRequest.visitorsFeatureFlagDisabled().receiveResponse();
+            accountRequest.contactsFeatureFlagDisabled().receiveResponse();
 
             const requests = ajax.inAnyOrder();
 
@@ -151,7 +151,7 @@ tests.addTest(options => {
 
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.visitorsFeatureFlagDisabled().receiveResponse();
+            secondAccountRequest.contactsFeatureFlagDisabled().receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.configRequest().softphone().receiveResponse();
