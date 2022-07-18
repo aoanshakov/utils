@@ -134,7 +134,7 @@ tests.addTest(options => {
             });
 
             it('Отображена страница контактов.', function() {
-                tests.body.expectToBeVisible('Hello world!');
+                tester.body.expectToBeVisible('Hello world!');
             });
         });
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {
