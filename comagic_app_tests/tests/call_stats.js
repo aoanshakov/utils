@@ -358,6 +358,7 @@ tests.addTest(options => {
             tester.statsRequest().receiveResponse();
 
             tester.body.expectTextContentToHaveSubstring('Удаленный 00:00:00');
+            tester.statusesDurationItem('Доступен').findElement('circle').expectToHaveStyle('fill', '#48b882');
         });
         it('Статистика по звонкам недоступна. Пункт меню скрыт.', function() {
             accountRequest.callStatsFeatureFlagDisabled().receiveResponse();

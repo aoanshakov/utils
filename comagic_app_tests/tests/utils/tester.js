@@ -604,6 +604,11 @@ define(() => function ({
         return me;
     };
 
+    me.statusesDurationItem = text => testersFactory.createDomElementTester(() => utils.descendantOfBody().
+        textEquals(text).
+        matchesSelector('.cmg-softphone--call-stats-status-duration .name').
+        find().closest('.cmg-softphone--call-stats-status-duration'));
+
     me.modalWindow = (() => {
         const getModalWindow = () => utils.querySelector('.clct-modal, .ui-modal'),
             windowTester = addTesters(testersFactory.createDomElementTester(getModalWindow), getModalWindow);
