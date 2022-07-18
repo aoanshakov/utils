@@ -7028,7 +7028,13 @@ define(() => function ({
                     app_state: 'active',
                     user_name: 'karadimova',
                     user_type: 'user',
-                    feature_flags: ['softphone', 'large_softphone', 'call_stats', 'call_history'],
+                    feature_flags: [
+                        'softphone',
+                        'large_softphone',
+                        'call_stats',
+                        'call_history',
+                        'visitors'
+                    ],
                     call_center_role: 'employee',
                     components: [
                         'operation',
@@ -7184,6 +7190,10 @@ define(() => function ({
             
             me.manager = () => (response.result.data.call_center_role = 'manager', me);
             me.softphoneFeatureFlagDisabled = () => ((response.result.data.feature_flags = []), me);
+
+            me.visitorsFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'visitors')), me);
 
             me.largeSoftphoneFeatureFlagDisabled = () =>
                 ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>

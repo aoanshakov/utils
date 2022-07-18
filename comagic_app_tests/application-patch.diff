@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 8c325253..04189f9c 100644
+index 8c325253..5b400648 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -7,11 +7,12 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -167,7 +167,7 @@ index 8c325253..04189f9c 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -346,17 +416,121 @@ module.exports = {
+@@ -346,17 +416,122 @@ module.exports = {
                      },
                  ],
              },
@@ -206,6 +206,7 @@ index 8c325253..04189f9c 100644
 -            '@lib': path.resolve(appDirectory, './src/components/lib'),
 -            '@hooks': path.resolve(appDirectory, './src/hooks'),
 +            ...createAliases(appDirectory),
++            'visitors/Root': `${miscDirectory}/visitors/src/Root.tsx`,
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
@@ -263,7 +264,7 @@ index 8c325253..04189f9c 100644
 +                const {
 +                    directory,
 +                    aliases
-+                } = subModules.concat(['softphone']).map(module => {
++                } = subModules.concat(['softphone', 'visitors']).map(module => {
 +                    const directory = `${miscDirectory}/${module}`;
 +
 +                    return {
@@ -294,7 +295,7 @@ index 8c325253..04189f9c 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 3b468556..d9812f25 100644
+index 3b468556..7c779b1a 100644
 --- a/package.json
 +++ b/package.json
 @@ -59,8 +59,8 @@
@@ -336,7 +337,7 @@ index 3b468556..d9812f25 100644
      "mobx": "^6.3.8",
      "mobx-react-lite": "^3.2.2",
      "mobx-state-tree": "^5.1.0",
-@@ -97,10 +101,14 @@
+@@ -97,10 +101,15 @@
      "react-dom": "^17.0.2",
      "stream-buffers": "^3.0.2",
      "react-flow-renderer": "^9.7.4",
@@ -348,6 +349,7 @@ index 3b468556..d9812f25 100644
 +    "simplebar-react": "^2.4.1",
 +    "softphone": "./misc/softphone",
 +    "string-hash": "^1.1.3",
++    "visitors": "./misc/visitors",
      "yup": "^0.28.1",
 -    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab"
 +    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc"
@@ -412,10 +414,10 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 68f48551..66deb3d1 100644
+index 68f48551..f69a2eb7 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -4,13 +4,16 @@ import ReactDOM from 'react-dom';
+@@ -4,13 +4,17 @@ import ReactDOM from 'react-dom';
  import { Router } from 'react-router-dom';
  import { IntlProvider } from 'react-intl';
  import moment from 'moment';
@@ -431,10 +433,11 @@ index 68f48551..66deb3d1 100644
 +import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
 +import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
 +import { createRootStore as createAnalyticsRootStore } from 'analytics/src/models/RootStore';
++import { createRootStore as createVisitorsRootStore } from 'visitors/src/models/RootStore';
  
  import history from './history';
  import { getIntlLocale, getIntlMessages } from './i18n';
-@@ -92,4 +95,39 @@ const Root: React.FC = observer(props => {
+@@ -92,4 +96,40 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -453,6 +456,7 @@ index 68f48551..66deb3d1 100644
 +        appName != 'softphone' && setChatsRootStore(createChatsRootStore());
 +        createSoftphoneRootStore();
 +        createAnalyticsRootStore();
++        createVisitorsRootStore();
 +        setHistory(history);
 +
 +        this.exit();
