@@ -112,16 +112,27 @@ tests.addTest(options => {
             describe('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
                 beforeEach(function() {
                     tester.spinWrapper.scrollIntoView();
-                    return;
-                    chatListRequest = tester.chatListRequest().expectToBeSent();
+                    chatListRequest = tester.chatListRequest().secondPage().expectToBeSent();
                 });
 
-                it('', function() {
-                });
-                return;
-                it('Получены данные для следующей старницы.', function() {
+                it(
+                    'Получены данные для следующей старницы. Прокручиваю список чатов до конца. Получены все чаты. ' +
+                    'Отображены все чаты.',
+                function() {
                     chatListRequest.receiveResponse();
                     tester.spinWrapper.scrollIntoView();
+                    tester.chatListRequest().thirdPage().receiveResponse();
+                    tester.spinWrapper.scrollIntoView();
+
+                    tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                        'Помакова Бисерка Драгановна 21 янв 2022 ' +
+                        'Привет 3',
+
+                        'Помакова Бисерка Драгановна 31 дек 2021 ' +
+                        'Сообщение #75'
+                    );
+
+                    tester.spin.expectNotToExist();
                 });
                 it('Прокручиваю список чатов до конца еще раз. Запрос следующей страницы не отправлен.', function() {
                     tester.spinWrapper.scrollIntoView();
@@ -130,7 +141,6 @@ tests.addTest(options => {
                     tester.spin.expectToBeVisible();
                 });
             });
-            return;
             it('Отображен список чатов.', function() {
                 tester.body.expectTextContentToHaveSubstring(
                     'Помакова Бисерка Драгановна 21 янв 2022 ' +
@@ -140,7 +150,6 @@ tests.addTest(options => {
                 tester.spin.expectNotToExist();
             });
         });
-        return;
         it('Чатов мало. Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен.', function() {
             countersRequest.singlePage().receiveResponse();
             tester.spinWrapper.scrollIntoView();

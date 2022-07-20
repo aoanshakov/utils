@@ -2296,7 +2296,9 @@ define(() => function ({
         const params = {
             statuses: ['new', undefined],
             limit: 30,
-            offset: 0
+            offset: 0,
+            scroll_from_date: null,
+            scroll_direction: 'down'
         };
 
         const initialData = [{
@@ -2346,7 +2348,8 @@ define(() => function ({
         const getAdditionalData = ({skipCount = 0, count}) => {
             const firstId = skipCount + 2718936,
                 lastId = count + firstId,
-                data = [];
+                data = [],
+                interval = (1000 * 60 * 60 * 6) + (5 * 1000 * 60) + (12 * 1000) + 231;
 
             let number = 1 + skipCount;
 
@@ -2354,7 +2357,9 @@ define(() => function ({
                 data.push({
                     chat_channel_id: 101,
                     chat_channel_type: 'telegram',
-                    date_time: (new Date('2022-01-19T17:25:22.098210')).getTime(),
+                    date_time: utils.formatDate(new Date(
+                        (new Date('2022-01-19T17:25:22.098210')).getTime() - interval * number
+                    )),
                     id,
                     context: null,
                     last_message: {
@@ -2411,6 +2416,28 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            secondPage() {
+                params.scroll_from_date = '2022-01-12T02:49:15.168+03:00';
+                
+                getData = () => getAdditionalData({
+                    count: 30,
+                    skipCount: 30
+                });
+
+                return this;
+            },
+
+            thirdPage() {
+                params.scroll_from_date = '2022-01-04T12:13:08.238+03:00';
+                
+                getData = () => getAdditionalData({
+                    count: 15,
+                    skipCount: 60
+                });
+
+                return this;
+            },
+
             active() {
                 params.statuses = ['active', undefined];
                 return this;
