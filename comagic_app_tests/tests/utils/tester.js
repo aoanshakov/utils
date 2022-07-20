@@ -1387,9 +1387,19 @@ define(() => function ({
             }
         };
 
+        const headers = {
+            Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
         const addResponseModifiers = me => (me.noInCallCount = () => (delete(data.in_call_count), me), me)
 
         return addResponseModifiers({
+            anotherAuthorizationToken() {
+                headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'
+                return this;
+            },
+
             secondEarlier() {
                 queryParams.date_to = '2019-12-19T12:10:06.000+03:00';
                 return this;
@@ -1398,6 +1408,7 @@ define(() => function ({
             expectToBeSent: (requests) => {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('/sup/api/v1/employee_stats').
+                    expectToHaveHeaders(headers).
                     expectToHaveMethod('GET').
                     expectQueryToContain(queryParams);
 

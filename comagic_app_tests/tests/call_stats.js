@@ -138,6 +138,112 @@ tests.addTest(options => {
                     tester.statsRequest().receiveResponse();
                 });
 
+                it(
+                    'Нажимаю на кнопку "Выход". Вхожу в лк заново. Запрошена статистика текущего авторизованного ' +
+                    'сотрудника.',
+                function() {
+                    tester.userName.putMouseOver();
+                    tester.logoutButton.click();
+
+                    tester.userLogoutRequest().receiveResponse();
+                    tester.masterInfoMessage().leaderDeath().expectToBeSent();
+
+                    tester.slavesNotification().
+                        userDataFetched().
+                        twoChannels().
+                        microphoneAccessGranted().
+                        destroyed().
+                        enabled().
+                        expectToBeSent();
+
+                    Promise.runAll(false, true);
+                    spendTime(0);
+                    Promise.runAll(false, true);
+                    spendTime(0);
+                    Promise.runAll(false, true);
+                    spendTime(0);
+
+                    tester.authLogoutRequest().receiveResponse();
+                    tester.eventsWebSocket.finishDisconnecting();
+                    tester.registrationRequest().expired().receiveResponse();
+
+                    spendTime(2000);
+                    tester.webrtcWebsocket.finishDisconnecting();
+
+                    tester.input.withFieldLabel('Логин').fill('botusharova');
+                    tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                    tester.button('Войти').click();
+
+                    tester.loginRequest().anotherAuthorizationToken().receiveResponse();
+                    tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+
+                    tester.configRequest().softphone().receiveResponse();
+
+                    tester.masterInfoMessage().receive();
+                    tester.slavesNotification().expectToBeSent();
+                    tester.slavesNotification().additional().expectToBeSent();
+                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                    const requests = ajax.inAnyOrder();
+
+                    const statsRequest = tester.statsRequest().
+                        anotherAuthorizationToken().expectToBeSent(requests);
+                    const secondAccountRequest = tester.accountRequest().
+                        anotherAuthorizationToken().expectToBeSent(requests);
+                    const authCheckRequest = tester.authCheckRequest().
+                        anotherAuthorizationToken().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    statsRequest.receiveResponse();
+                    secondAccountRequest.receiveResponse();
+                    authCheckRequest.receiveResponse();
+
+                    tester.reportGroupsRequest().anotherAuthorizationToken().
+                        receiveResponse();
+                    tester.reportsListRequest().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
+
+                    tester.statusesRequest().createExpectation().
+                        anotherAuthorizationToken().checkCompliance().receiveResponse();
+
+                    tester.settingsRequest().anotherAuthorizationToken().
+                        receiveResponse();
+
+                    tester.slavesNotification().twoChannels().enabled().
+                        expectToBeSent();
+
+                    tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                    tester.othersNotification().updateSettings().
+                        shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
+
+                    tester.connectEventsWebSocket(1);
+                    tester.slavesNotification().twoChannels().enabled().
+                        softphoneServerConnected().expectToBeSent();
+
+                    tester.connectSIPWebSocket(1);
+                    tester.slavesNotification().twoChannels().
+                        softphoneServerConnected().webRTCServerConnected().
+                        expectToBeSent();
+
+                    tester.authenticatedUserRequest().receiveResponse();
+                    tester.slavesNotification().userDataFetched().twoChannels().
+                        softphoneServerConnected().webRTCServerConnected().
+                        expectToBeSent();
+
+                    tester.registrationRequest().receiveResponse();
+                    tester.slavesNotification().userDataFetched().twoChannels().
+                        webRTCServerConnected().registered().softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.allowMediaInput();
+                    tester.slavesNotification().userDataFetched().twoChannels().
+                        available().expectToBeSent();
+                });
                 it('Нажимаю на кнопку "Выгрузить отчёт". Совершается загрузка отчета.', function() {
                     tester.anchor('Выгрузить отчёт').
                         expectAttributeToHaveValue(
