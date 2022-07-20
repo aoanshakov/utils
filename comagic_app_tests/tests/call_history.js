@@ -157,123 +157,136 @@ tests.addTest(options => {
                             });
 
                             describe('Нажимаю на кнопку "Необработанные".', function() {
+                                let notProcessedCallsRequest;
+
                                 beforeEach(function() {
                                     tester.radioButton('Необработанные').click();
 
                                     tester.groupsRequest().receiveResponse();
-                                    tester.notProcessedCallsRequest().isProcessedByAny().receiveResponse();
+                                    notProcessedCallsRequest = tester.notProcessedCallsRequest().isProcessedByAny().
+                                        expectToBeSent();
                                     tester.marksRequest().receiveResponse();
                                 });
 
-                                describe('Открываю выпадающий список "Звонки".', function() {
+                                describe('Данные получены.', function() {
                                     beforeEach(function() {
-                                        tester.select.withValue('Звонки: Все').click();
+                                        notProcessedCallsRequest.receiveResponse();
                                     });
 
-                                    it('Выбираю опцию "Внешние". Отправлен запрос истории звонков.', function() {
-                                        tester.select.option('Внешние').click();
+                                    describe('Открываю выпадающий список "Звонки".', function() {
+                                        beforeEach(function() {
+                                            tester.select.withValue('Звонки: Все').click();
+                                        });
 
-                                        tester.notProcessedCallsRequest().
-                                            isProcessedByAny().
-                                            external().
-                                            receiveResponse();
+                                        it('Выбираю опцию "Внешние". Отправлен запрос истории звонков.', function() {
+                                            tester.select.option('Внешние').click();
 
-                                        tester.marksRequest().receiveResponse();
+                                            tester.notProcessedCallsRequest().
+                                                isProcessedByAny().
+                                                external().
+                                                receiveResponse();
+
+                                            tester.marksRequest().receiveResponse();
+                                        });
+                                        it('Выбираю опцию "Внутренние". Отправлен запрос истории звонков.', function() {
+                                            tester.select.option('Внутренние').click();
+
+                                            tester.notProcessedCallsRequest().
+                                                isProcessedByAny().
+                                                internal().
+                                                receiveResponse();
+
+                                            tester.marksRequest().receiveResponse();
+                                        });
                                     });
-                                    it('Выбираю опцию "Внутренние". Отправлен запрос истории звонков.', function() {
-                                        tester.select.option('Внутренние').click();
+                                    describe('Открываю выпадающий список "Направления".', function() {
+                                        beforeEach(function() {
+                                            tester.select.withValue('Направления: Все').click();
+                                        });
 
-                                        tester.notProcessedCallsRequest().
-                                            isProcessedByAny().
-                                            internal().
-                                            receiveResponse();
+                                        it('Выбираю опцию "Входящие". Отправлен запрос истории звонков.', function() {
+                                            tester.select.option('Входящие').click();
 
+                                            tester.notProcessedCallsRequest().
+                                                isProcessedByAny().
+                                                incoming().
+                                                receiveResponse();
+
+                                            tester.marksRequest().receiveResponse();
+                                        });
+                                        it('Выбираю опцию "Исходящие". Отправлен запрос истории звонков.', function() {
+                                            tester.select.option('Исходящие').click();
+
+                                            tester.notProcessedCallsRequest().
+                                                isProcessedByAny().
+                                                outgoing().
+                                                receiveResponse();
+
+                                            tester.marksRequest().receiveResponse();
+                                        });
+                                    });
+                                    it('Выбираю группы. Отправлен запрос истории звонков.', function() {
+                                        tester.select.withPlaceholder('Группы').click();
+                                        tester.select.option('Отдел дистрибуции').click();
+
+                                        tester.notProcessedCallsRequest().isProcessedByAny().group().receiveResponse();
                                         tester.marksRequest().receiveResponse();
+
+                                        tester.select.option('Отдел по работе с ключевыми клиентами').click();
+
+                                        tester.notProcessedCallsRequest().isProcessedByAny().group().thirdGroup().
+                                            receiveResponse();
+                                        tester.marksRequest().receiveResponse();
+
+                                        tester.select.option('Отдел дистрибуции').expectToBeSelected();
+                                        tester.select.option('Отдел региональных продаж').expectNotToBeSelected();
+                                        tester.select.option('Отдел по работе с ключевыми клиентами').
+                                            expectToBeSelected(true);
+                                    });
+                                    it('Снимаю отметку со свитчбокса. Отправлен запрос истории звонков.', function() {
+                                        tester.switchButton.click();
+
+                                        tester.notProcessedCallsRequest().isNotProcessedByAny().receiveResponse();
+                                        tester.marksRequest().receiveResponse();
+
+                                        tester.switchButton.expectNotToBeChecked();
+                                    });
+                                    it('Отображена история звонков.', function() {
+                                        tester.radioButton('Мои').expectNotToBeSelected();
+                                        tester.radioButton('Все').expectNotToBeSelected();
+                                        tester.radioButton('Необработанные').expectToBeSelected();
+
+                                        tester.switchButton.expectToBeChecked();
+
+                                        tester.table.row.first.
+                                            expectToHaveClass('cmg-softphone-call-history-failed-call-row');
+                                        tester.table.row.atIndex(1).
+                                            expectNotToHaveClass('cmg-softphone-call-history-failed-call-row');
+
+                                        tester.table.expectTextContentToHaveSubstring(
+                                            'Дата / время ' +
+                                            'Номер абонента ' +
+                                            'Виртуальный номер ' +
+                                            'Теги ' +
+                                            'Комментарий ' +
+                                            'Длительность ' +
+                                            'Запись ' +
+
+                                            '19 дек 2019 08:03 ' +
+                                            '+7 (495) 023-06-25 ' +
+                                            '+7 (495) 023-06-30 ' +
+                                            '00:00:20 ' +
+
+                                            '19 дек 2019 10:13 ' +
+                                            '+7 (495) 023-06-26 ' +
+                                            '+7 (495) 023-06-31 ' +
+                                            '00:00:24'
+                                        );
                                     });
                                 });
-                                describe('Открываю выпадающий список "Направления".', function() {
-                                    beforeEach(function() {
-                                        tester.select.withValue('Направления: Все').click();
-                                    });
-
-                                    it('Выбираю опцию "Входящие". Отправлен запрос истории звонков.', function() {
-                                        tester.select.option('Входящие').click();
-
-                                        tester.notProcessedCallsRequest().
-                                            isProcessedByAny().
-                                            incoming().
-                                            receiveResponse();
-
-                                        tester.marksRequest().receiveResponse();
-                                    });
-                                    it('Выбираю опцию "Исходящие". Отправлен запрос истории звонков.', function() {
-                                        tester.select.option('Исходящие').click();
-
-                                        tester.notProcessedCallsRequest().
-                                            isProcessedByAny().
-                                            outgoing().
-                                            receiveResponse();
-
-                                        tester.marksRequest().receiveResponse();
-                                    });
-                                });
-                                it('Выбираю группы. Отправлен запрос истории звонков.', function() {
-                                    tester.select.withPlaceholder('Группы').click();
-                                    tester.select.option('Отдел дистрибуции').click();
-
-                                    tester.notProcessedCallsRequest().isProcessedByAny().group().receiveResponse();
-                                    tester.marksRequest().receiveResponse();
-
-                                    tester.select.option('Отдел по работе с ключевыми клиентами').click();
-
-                                    tester.notProcessedCallsRequest().isProcessedByAny().group().thirdGroup().
-                                        receiveResponse();
-                                    tester.marksRequest().receiveResponse();
-
-                                    tester.select.option('Отдел дистрибуции').expectToBeSelected();
-                                    tester.select.option('Отдел региональных продаж').expectNotToBeSelected();
-                                    tester.select.option('Отдел по работе с ключевыми клиентами').
-                                        expectToBeSelected(true);
-                                });
-                                it('Снимаю отметку со свитчбокса. Отправлен запрос истории звонков.', function() {
-                                    tester.switchButton.click();
-
-                                    tester.notProcessedCallsRequest().isNotProcessedByAny().receiveResponse();
-                                    tester.marksRequest().receiveResponse();
-
-                                    tester.switchButton.expectNotToBeChecked();
-                                });
-                                it('Отображена история звонков.', function() {
-                                    tester.radioButton('Мои').expectNotToBeSelected();
-                                    tester.radioButton('Все').expectNotToBeSelected();
-                                    tester.radioButton('Необработанные').expectToBeSelected();
-
-                                    tester.switchButton.expectToBeChecked();
-
-                                    tester.table.row.first.
-                                        expectToHaveClass('cmg-softphone-call-history-failed-call-row');
-                                    tester.table.row.atIndex(1).
-                                        expectNotToHaveClass('cmg-softphone-call-history-failed-call-row');
-
-                                    tester.table.expectTextContentToHaveSubstring(
-                                        'Дата / время ' +
-                                        'Номер абонента ' +
-                                        'Виртуальный номер ' +
-                                        'Теги ' +
-                                        'Комментарий ' +
-                                        'Длительность ' +
-                                        'Запись ' +
-
-                                        '19 дек 2019 08:03 ' +
-                                        '+7 (495) 023-06-25 ' +
-                                        '+7 (495) 023-06-30 ' +
-                                        '00:00:20 ' +
-
-                                        '19 дек 2019 10:13 ' +
-                                        '+7 (495) 023-06-26 ' +
-                                        '+7 (495) 023-06-31 ' +
-                                        '00:00:24'
-                                    );
+                                it('Не удалось получить данные. Таблица пуста.', function() {
+                                    notProcessedCallsRequest.serverError().receiveResponse();
+                                    tester.table.expectTextContentToHaveSubstring('Нет данных');
                                 });
                             });
                             describe('Ввожу значеие в поле поиска.', function() {
@@ -1275,7 +1288,10 @@ tests.addTest(options => {
                         tester.button('Сохранить').expectNotToHaveAttribute('disabled');
                     });
                 });
-                it('Статистика по всем звонкам недоступна. Открываю раздел "История звонков".', function() {
+                it(
+                    'Статистика по всем звонкам недоступна. Открываю раздел "История звонков". Вкладки "Все" и ' +
+                    '"Необработанные" заблокированы.',
+                function() {
                     permissionsRequest.disallowSoftphoneAllCallsStatSelect().receiveResponse();
 
                     tester.connectEventsWebSocket();
@@ -1313,6 +1329,10 @@ tests.addTest(options => {
 
                     tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                     tester.marksRequest().receiveResponse();
+
+                    tester.radioButton('Мои').expectToBeDisabled();
+                    tester.radioButton('Все').expectToBeDisabled();
+                    tester.radioButton('Необработанные').expectToBeDisabled();
                 });
                 it(
                     'Просмотр комментариев недоступен. Открываю раздел "История звонков". Комментарии не отображатся.',
@@ -1566,6 +1586,92 @@ tests.addTest(options => {
                     });
                 });
             });
+        });
+        it('У пользователя нет роли.', function() {
+            accountRequest.noCallCenterRole().receiveResponse();
+
+            const requests = ajax.inAnyOrder();
+
+            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            secondAccountRequest.noCallCenterRole().receiveResponse();
+            reportGroupsRequest.receiveResponse();
+
+            tester.configRequest().softphone().receiveResponse();
+
+            tester.slavesNotification().expectToBeSent();
+            tester.slavesNotification().additional().expectToBeSent();
+
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            spendTime(1000);
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            spendTime(1000);
+            tester.notificationChannel().tellIsLeader().expectToBeSent();
+
+            tester.authCheckRequest().receiveResponse();
+            tester.statusesRequest().receiveResponse();
+
+            settingsRequest = tester.settingsRequest().expectToBeSent();
+            tester.talkOptionsRequest().receiveResponse();
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
+            settingsRequest.receiveResponse();
+            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+            tester.othersNotification().widgetStateUpdate().expectToBeSent();
+            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            permissionsRequest.receiveResponse();
+
+            tester.connectEventsWebSocket();
+            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.connectSIPWebSocket();
+            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                expectToBeSent();
+
+            notificationTester.grantPermission();
+
+            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+            registrationRequest = tester.registrationRequest().expectToBeSent();
+
+            tester.allowMediaInput();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                expectToBeSent();
+
+            authenticatedUserRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                userDataFetched().
+                expectToBeSent();
+
+            registrationRequest.receiveResponse();
+            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.button('История звонков').click();
+
+            tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+            tester.marksRequest().receiveResponse();
+
+            tester.radioButton('Мои').expectToBeDisabled();
+            tester.radioButton('Все').expectToBeDisabled();
+            tester.radioButton('Необработанные').expectToBeDisabled();
         });
         it('История недоступна. Пункт меню скрыт.', function() {
             accountRequest.callHistoryFeatureFlagDisabled().receiveResponse();

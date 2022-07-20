@@ -392,6 +392,8 @@ define(() => function ({
 
             tester.expectToBeSelected = () => tester.expectToHaveClass('ui-radio-wrapper-checked');
             tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('ui-radio-wrapper-checked');
+            tester.expectToBeDisabled = () => tester.expectToHaveClass('ui-radio-wrapper-disabled');
+            tester.expectToBeEnabled = () => tester.expectNotToHaveClass('ui-radio-wrapper-disabled');
 
             return tester;
         };
@@ -1061,7 +1063,47 @@ define(() => function ({
 
         const addGroup = groupId => (queryParams.group_ids || (queryParams.group_ids = [])).push(groupId);
 
-        return {
+        let receiveResponse = request => request.respondSuccessfullyWith({
+            success: true,
+            data: [{
+                call_session_id: 980925444,
+                comment: null,
+                phone_book_contact_id: null,
+                direction: 'in',
+                duration: 20,
+                contact_name: null,
+                mark_ids: [],
+                subscriber_number: '74950230625',
+                virtual_number: '74950230630',
+                start_time: '2019-12-19T08:03:02.522+03:00',
+                is_lost: true
+            }, {
+                call_session_id: 980925445,
+                comment: null,
+                phone_book_contact_id: null,
+                direction: 'in',
+                duration: 24,
+                contact_name: null,
+                mark_ids: [],
+                subscriber_number: '74950230626',
+                virtual_number: '74950230631',
+                start_time: '2019-12-19T10:13:02.529+03:00',
+                is_lost: false
+            }]
+        });
+
+        const addResponseModifiers = me => {
+            me.serverError = () => {
+                receiveResponse = request =>
+                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+
+                return me;
+            };
+            
+            return me;
+        };
+
+        return addResponseModifiers({
             isNotProcessedByAny() {
                 this.notProcessed();
                 queryParams.is_processed_by_any = '0';
@@ -1121,45 +1163,28 @@ define(() => function ({
                 return this;
             },
 
-            receiveResponse() {
+            expectToBeSent() {
                 queryParams.group_ids && (queryParams.group_ids = queryParams.group_ids.join(','));
 
-                ajax.recentRequest().
+                const request = ajax.recentRequest().
                     expectPathToContain('/sup/api/v1/not_processed_calls').
                     expectToHaveMethod('GET').
-                    expectQueryToContain(queryParams).
-                    respondSuccessfullyWith({
-                        success: true,
-                        data: [{
-                            call_session_id: 980925444,
-                            comment: null,
-                            phone_book_contact_id: null,
-                            direction: 'in',
-                            duration: 20,
-                            contact_name: null,
-                            mark_ids: [],
-                            subscriber_number: '74950230625',
-                            virtual_number: '74950230630',
-                            start_time: '2019-12-19T08:03:02.522+03:00',
-                            is_lost: true
-                        }, {
-                            call_session_id: 980925445,
-                            comment: null,
-                            phone_book_contact_id: null,
-                            direction: 'in',
-                            duration: 24,
-                            contact_name: null,
-                            mark_ids: [],
-                            subscriber_number: '74950230626',
-                            virtual_number: '74950230631',
-                            start_time: '2019-12-19T10:13:02.529+03:00',
-                            is_lost: false
-                        }]
-                    });
+                    expectQueryToContain(queryParams);
 
-                Promise.runAll(false, true);
+                return addResponseModifiers({
+                    receiveResponse() {
+                        receiveResponse(request);
+
+                        Promise.runAll(false, true);
+                        spendTime(0);
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
             }
-        };
+        });
     };
 
     me.commentUpdatingRequest = () => {
@@ -7486,7 +7511,8 @@ define(() => function ({
                 return me;
             };
             
-            me.manager = () => (response.result.data.call_center_role = 'manager', me);
+            me.manager = () => ((response.result.data.call_center_role = 'manager'), me);
+            me.noCallCenterRole = () => ((response.result.data.call_center_role = null), me);
             
             me.softphoneFeatureFlagDisabled = () =>
                 ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
