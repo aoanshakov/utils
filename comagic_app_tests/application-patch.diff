@@ -513,10 +513,20 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 89b9fdb7..8e641d93 100644
+index 89b9fdb7..00a1ff88 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -212,7 +212,7 @@ export const RootStore = types
+@@ -64,6 +64,9 @@ const createSoftphoneStoreCreatingHandler = rootStore => {
+             }]
+         }));
+ 
++        getIpcRender().on('maximize', () => store.setIsLarge());
++        getIpcRender().on('unmaximize', () => store.setNotLarge());
++
+         store.onLargenessChange(isLarge => {
+             rootStore.setLarge(isLarge);
+             getIpcRender().send(isLarge ? 'maximize' : 'unmaximize');
+@@ -212,7 +215,7 @@ export const RootStore = types
                  }
              );
  
@@ -525,7 +535,7 @@ index 89b9fdb7..8e641d93 100644
                  response => {
                      logRequest({response});
  
-@@ -273,6 +273,7 @@ export const RootStore = types
+@@ -273,6 +276,7 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -533,7 +543,7 @@ index 89b9fdb7..8e641d93 100644
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -309,7 +310,8 @@ export type DependencyInjection = {
+@@ -309,7 +313,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

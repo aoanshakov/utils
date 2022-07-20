@@ -363,6 +363,25 @@ tests.addTest(options => {
                                         tester.largeSizeButton.expectNotToBePressed();
                                     });
                                 });
+                                it('Получено сообщение о минимизации. Софтфон открыт в среднем размере.', function() {
+                                    getPackage('electron').ipcRenderer.receiveMessage('unmaximize');
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
+                                        expectToBeSentToChannel('unmaximize');
+
+                                    tester.configRequest().softphone().receiveResponse();
+                                    tester.numberCapacityRequest().receiveResponse();
+                                    tester.accountRequest().receiveResponse();
+
+                                    tester.settingsButton.expectToBeEnabled();
+                                    tester.callsHistoryButton.expectToBeEnabled();
+                                    tester.softphone.userName.expectToBeEnabled();
+
+                                    tester.smallSizeButton.expectNotToBePressed();
+                                    tester.middleSizeButton.expectToBePressed();
+                                    tester.largeSizeButton.expectNotToBePressed();
+                                });
                                 it('Отображен диалпад.', function() {
                                     tester.dialpadButton(1).expectToBeVisible();;
 
@@ -403,6 +422,13 @@ tests.addTest(options => {
                                     tester.button('Текущее устройство').expectToBeChecked();
                                     tester.button('IP-телефон').expectNotToBeChecked();
                                 });
+                            });
+                            it('Получено сообщение о максимизации. Ничего не происходит.', function() {
+                                getPackage('electron').ipcRenderer.receiveMessage('maximize');
+
+                                tester.smallSizeButton.expectNotToBePressed();
+                                tester.middleSizeButton.expectNotToBePressed();
+                                tester.largeSizeButton.expectToBePressed();
                             });
                             it('Нажимаю на кнпоку "История звонков". Открыта история звонков.', function() {
                                 tester.button('История звонков').click();
@@ -969,6 +995,44 @@ tests.addTest(options => {
                                 recentlySentMessage().
                                 expectToBeSentToChannel('application-version-changed').
                                 expectToBeSentWithArguments('6.6.666');
+                        });
+                        it('Сотрудник развернул софтфон. Софтфон открыт в большом размере.', function() {
+                            getPackage('electron').ipcRenderer.receiveMessage('maximize');
+
+                            tester.configRequest().softphone().receiveResponse();
+                            const requests = ajax.inAnyOrder();
+
+                            const statsRequest = tester.statsRequest().expectToBeSent(requests),
+                                numberCapacityRequest = tester.numberCapacityRequest().expectToBeSent(requests),
+                                accountRequest = tester.accountRequest().expectToBeSent(requests),
+                                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                            requests.expectToBeSent();
+
+                            statsRequest.receiveResponse();
+                            numberCapacityRequest.receiveResponse();
+                            accountRequest.receiveResponse();
+                            secondAccountRequest.receiveResponse();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('maximize');
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('resize').
+                                expectToBeSentWithArguments({
+                                    width: 340,
+                                    height: 568
+                                });
+
+                            tester.settingsButton.expectToBeDisabled();
+                            tester.callsHistoryButton.expectToBeDisabled();
+                            tester.softphone.userName.expectToBeDisabled();
+
+                            tester.smallSizeButton.expectNotToBePressed();
+                            tester.middleSizeButton.expectNotToBePressed();
+                            tester.largeSizeButton.expectToBePressed();
                         });
                         it('Некие сообщения выведены в лог.', function() {
                             tester.phoneField.expectNotToBeFocused();
