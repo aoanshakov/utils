@@ -44,52 +44,10 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 4ecce7d..07e4b7e 100644
+index f9f42a7..07e4b7e 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -89,6 +89,7 @@ export const RootStore = types
-             call_center_role:  types.optional(types.maybeNull(types.string), 'employee'),
-             feature_flags: types.optional(types.array(types.string), []) 
-         }), {}),
-+        isSoftphoneAvailable: types.optional(types.boolean, false),
-         isLarge: types.optional(types.boolean, false),
-         authStore: types.optional(AuthStore, {}),
-         configStore: types.optional(ConfigStore, {}),
-@@ -114,7 +115,8 @@ export const RootStore = types
-             subscriptionRemovers = [],
-             subscribe = (...args) => subscriptionRemovers.push(eventBus.subscribe(...args)),
-             request = async (...args) => doRequest(...args),
--            maybeHidePhoneNumberMethod = (...args) => doMaybeHidePhoneNumber(...args);
-+            maybeHidePhoneNumberMethod = (...args) => doMaybeHidePhoneNumber(...args),
-+            setSoftphoneAvailable = value => (self.isSoftphoneAvailable = value);
- 
-         const removeSubscriptions = () => {
-             subscriptionRemovers.forEach(removeSubscription => removeSubscription());
-@@ -514,12 +516,15 @@ export const RootStore = types
-                                 shouldInitialize ? authorize() : changeAuthToken(token);
-                                 requests.forEach(action => action.request(action.args));
-                                 removeAllRequests();
-+
-+                                self.setSoftphoneAvailable(true);
-                             } else {
-                                 const {
-                                     sdk,
-                                     state: { destroyed },
-                                 } = getState().webRTC;
- 
-+                                self.setSoftphoneAvailable(false);
-                                 !destroyed && sdk && sdk.destroy();
-                                 removeAllRequests();
-                             }
-@@ -673,6 +678,7 @@ export const RootStore = types
-         return {
-             afterCreate,
-             resetStore,
-+            setSoftphoneAvailable,
-             setAccount,
-             request,
-             setNotLarge,
-@@ -684,4 +690,5 @@ export const RootStore = types
+@@ -690,4 +690,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
