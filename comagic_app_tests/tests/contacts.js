@@ -131,12 +131,14 @@ tests.addTest(options => {
                 statusesRequest.receiveResponse();
 
                 tester.button('Контакты').click();
+                tester.contactListRequest().receiveResponse();
             });
 
             it('Отображена страница контактов.', function() {
                 tester.body.expectToBeVisible('Hello world!');
             });
         });
+        return;
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {
             accountRequest.contactsFeatureFlagDisabled().receiveResponse();
 

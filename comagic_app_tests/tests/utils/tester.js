@@ -144,6 +144,14 @@ define(() => function ({
     me.settingsButton = createBottomButtonTester(testersFactory.createDomElementTester('.cmg-settings-button'));
 
     const addTesters = (me, getRootElement) => {
+        me.spinWrapper = (tester => {
+            const scrollIntoView = tester.scrollIntoView.bind(tester);
+            tester.scrollIntoView = () => (scrollIntoView(), spendTime(0));
+
+            return tester;
+        })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).
+            querySelector('.cm-chats--chats-list-spin-wrapper')));
+
         me.userName = (tester => {
             const putMouseOver = tester.putMouseOver.bind(tester),
                 click = tester.click.bind(tester);
@@ -711,7 +719,7 @@ define(() => function ({
             receiveResponse() {
                 ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectPathToContain('logic/operator').
+                    expectPathToContain('$REACT_APP_BASE_URL').
                     expectBodyToContain({
                         method: 'get_message_list',
                         params
@@ -729,7 +737,7 @@ define(() => function ({
         receiveResponse() {
             ajax.recentRequest().
                 expectToHaveMethod('PATCH').
-                expectPathToContain('logic/operator/status').
+                expectPathToContain('$REACT_APP_BASE_URL/status').
                 expectBodyToContain({
                     status: 2
                 }).respondSuccessfullyWith({
@@ -744,7 +752,7 @@ define(() => function ({
     me.changeMessageStatusRequest = () => ({
         expectToBeSent() {
             const request = ajax.recentRequest().
-                expectPathToContain('logic/operator').
+                expectPathToContain('$REACT_APP_BASE_URL').
                 expectBodyToContain({
                     method: 'change_message_status',
                     params: {
@@ -771,10 +779,10 @@ define(() => function ({
         }
     });
 
-    me.operatorOfflineMessageListRequest = () => ({
+    me.offlineMessageListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('logic/operator/offline_message/list').
+                expectPathToContain('$REACT_APP_BASE_URL/offline_message/list').
                 expectBodyToContain({
                     statuses: ['not_processed', 'processing'],
                     limit: 1000,
@@ -811,7 +819,7 @@ define(() => function ({
     });
 
     me.chatsWebSocket = (() => {
-        const getWebSocket = index => webSockets.getSocket('wss://lobarev.dev.uis.st/ws', index);
+        const getWebSocket = index => webSockets.getSocket('$REACT_APP_WS_URL', index);
 
         return {
             connect: () => getWebSocket(0).connect(),
@@ -2206,10 +2214,56 @@ define(() => function ({
         });
     };
 
+    me.chatChannelTypeListRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('$REACT_APP_BASE_URL/chat/channel_type/list').
+                expectToHaveMethod('GET');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        data: []
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.markListRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('$REACT_APP_BASE_URL/mark/list').
+                expectToHaveMethod('GET');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        data: []
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
     me.chatChannelListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('/logic/operator/chat/channel/list').
+                expectPathToContain('$REACT_APP_BASE_URL/chat/channel/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -2237,13 +2291,15 @@ define(() => function ({
     });
 
     me.chatListRequest = () => {
-        let params = {
-            statuses: ['new', 'active'],
-            limit: 1000,
+        let total = 75;
+
+        const params = {
+            statuses: ['new', undefined],
+            limit: 30,
             offset: 0
         };
 
-        let data = [{
+        const initialData = [{
             chat_channel_id: 101,
             chat_channel_type: 'telegram',
             date_time: '2022-01-21T16:24:21.098210',
@@ -2267,12 +2323,12 @@ define(() => function ({
         }, {
             chat_channel_id: 101,
             chat_channel_type: 'telegram',
-            date_time: '2022-01-22T17:25:22.098210',
+            date_time: '2022-01-20T17:25:22.098210',
             id: 2718936,
             context: null,
             last_message: {
                 message: 'Здравствуй',
-                date: '2022-06-24T16:04:26.000Z',
+                date: '2022-06-24T16:04:26.0003',
                 is_operator: false,
                 resource_type: null,
                 resource_name: null
@@ -2287,18 +2343,60 @@ define(() => function ({
             unread_message_count: 0
         }];
 
+        const getAdditionalData = ({skipCount = 0, count}) => {
+            const firstId = skipCount + 2718936,
+                lastId = count + firstId,
+                data = [];
+
+            let number = 1 + skipCount;
+
+            for (id = firstId; id < lastId; id ++) {
+                data.push({
+                    chat_channel_id: 101,
+                    chat_channel_type: 'telegram',
+                    date_time: (new Date('2022-01-19T17:25:22.098210')).getTime(),
+                    id,
+                    context: null,
+                    last_message: {
+                        message: `Сообщение #${number}`,
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['316', '579'],
+                    phone: null,
+                    site_id: 4663,
+                    status: 'active',
+                    visitor_id: 16479303,
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    unread_message_count: 0
+                });
+
+                number ++;
+            }
+
+            return data;
+        };
+
+        let getData = () => initialData.concat(getAdditionalData({
+            count: 28,
+            skipCount: 2
+        }));
+        
         function addResponseModifiers (me) {
             me.nothingFound = () => ((data = []), me);
 
             me.lastMessageFromOperator = () => {
-                data[0].last_message.is_operator = true;
+                initialData[0].last_message.is_operator = true;
                 return me;
             };
 
             me.lastMessageWithAttachment = () => {
-                data[0].last_message.resource_type = 'photo';
-                data[0].last_message.resource_name = 'heart.png';
-                data[0].last_message.message = '';
+                initialData[0].last_message.resource_type = 'photo';
+                initialData[0].last_message.resource_name = 'heart.png';
+                initialData[0].last_message.message = '';
 
                 return me;
             };
@@ -2313,6 +2411,16 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            active() {
+                params.statuses = ['active', undefined];
+                return this;
+            },
+
+            closed() {
+                params.statuses = ['closed', undefined];
+                return this;
+            },
+
             anotherChat() {
                 chat(2718936);
                 return this;
@@ -2325,7 +2433,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('/logic/operator').
+                    expectPathToContain('$REACT_APP_BASE_URL').
                     expectToHaveMethod('POST').
                     expectBodyToContain({
                         method: 'get_chat_list',
@@ -2337,9 +2445,9 @@ define(() => function ({
                         request.respondSuccessfullyWith({
                             result: {
                                 data: {
-                                    active_chat_count: 5,
-                                    new_chat_count: 2,
-                                    chats: data
+                                    active_chat_count: total,
+                                    new_chat_count: total,
+                                    chats: getData()
                                 }
                             } 
                         });
@@ -2359,7 +2467,7 @@ define(() => function ({
     me.operatorAccountRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('/logic/operator').
+                expectPathToContain('$REACT_APP_BASE_URL').
                 expectToHaveMethod('POST').
                 expectBodyToContain({
                     method: 'get_account',
@@ -2415,10 +2523,69 @@ define(() => function ({
         }
     });
 
-    me.operatorSiteListRequest = () => ({
+    me.messageTemplateListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('/logic/operator/site/list').
+                expectPathToContain('$REACT_APP_BASE_URL/message_template/list').
+                expectToHaveMethod('GET');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith([]);
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.countersRequest = () => {
+        let total = 75;
+        const addResponseModifiers = me => (me.singlePage = () => ((total = 30), me), me);
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'get_counters'
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: {
+                                data: {
+                                    new_chat_count: total,
+                                    active_chat_count: total,
+                                    active_with_unread_count: total,
+                                    closed_chat_count: total
+                                }
+                            }
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.siteListRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('$REACT_APP_BASE_URL/site/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -2440,10 +2607,10 @@ define(() => function ({
         }
     });
 
-    me.operatorListRequest = () => ({
+    me.listRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('/logic/operator/list').
+                expectPathToContain('$REACT_APP_BASE_URL/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -2473,10 +2640,10 @@ define(() => function ({
         }
     });
 
-    me.operatorStatusListRequest = () => ({
+    me.statusListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('/logic/operator/status/list').
+                expectPathToContain('$REACT_APP_BASE_URL/status/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -7014,8 +7181,107 @@ define(() => function ({
         return request;
     };
 
+    me.contactListRequest = () => {
+        let total = 250;
+
+        const initialData = [{
+            emails: 'toncheva@gmail.com',
+            first_name: 'Десислава',
+            full_name: 'Тончева Десислава Пламеновна',
+            id: 2512832,
+            last_name: 'Тончева',
+            patronymic: 'Пламеновна',
+            phones: '79055023552'
+        }, {
+            emails: 'balkanska@gmail.com',
+            first_name: 'Ралица',
+            full_name: 'Балканска Ралица Кубратовна',
+            id: 315378,
+            last_name: 'Балканска',
+            patronymic: 'Кубратовна',
+            phones: '2342342342300, 38758393745'
+        }];
+
+        const getAdditionalData = ({skipCount = 0, count}) => {
+            const firstId = skipCount + 315377,
+                lastId = count + firstId,
+                data = [];
+
+            let number = 1 + skipCount;
+
+            for (id = firstId; id < lastId; id ++) {
+                data.push({
+                    emails: 'paskaleva@gmail.com',
+                    first_name: 'Бисера',
+                    full_name: `Паскалева Бисера Илковна #${number}`,
+                    id: id,
+                    last_name: 'Паскалева',
+                    patronymic: 'Илковна',
+                    phones: '79162729533'
+                });
+
+                number ++;
+            }
+
+            return data;
+        };
+
+        let getData = () => initialData.concat(getAdditionalData({
+            count: 98,
+            skipCount: 2
+        }));
+
+        const addResponseModifiers = me => {
+            me.secondPage = () => ((getData = () => getAdditionalData({
+                count: 100,
+                skipCount: 100
+            })), me);
+
+            me.thirdPage = () => ((getData = () => getAdditionalData({
+                count: 50,
+                skipCount: 200
+            })), me);
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'get.contact_list',
+                        params: {}
+                    });
+
+                const me = addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith({
+                            result: {
+                                data: getData(),
+                                total
+                            }
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+
+                return me;
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.accountRequest = () => {
-        let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+        let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            method = 'getobj.account';
 
         const response = {
             result: {
@@ -7194,7 +7460,10 @@ define(() => function ({
             };
             
             me.manager = () => (response.result.data.call_center_role = 'manager', me);
-            me.softphoneFeatureFlagDisabled = () => ((response.result.data.feature_flags = []), me);
+            
+            me.softphoneFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'softphone')), me);
 
             me.contactsFeatureFlagDisabled = () =>
                 ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
@@ -7221,7 +7490,22 @@ define(() => function ({
             return me;
         };
 
+        let getAuthorizationHeader = () => ({
+            Authorization: `Bearer ${token}`,
+            'X-Auth-Type': 'jwt'
+        });
+
         return addResponseModifiers({
+            forChats() {
+                getAuthorizationHeader = () => ({
+                    'X-Auth-Token': token,
+                    'X-Auth-Type': 'jwt'
+                });
+
+                method = 'get_account';
+                return this;
+            },
+
             anotherAuthorizationToken() {
                 token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 return this;
@@ -7231,12 +7515,9 @@ define(() => function ({
                 let request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL').
                     expectToHaveMethod('POST').
-                    expectToHaveHeaders({
-                        Authorization: `Bearer ${token}`,
-                        'X-Auth-Type': 'jwt'
-                    }).
+                    expectToHaveHeaders(getAuthorizationHeader()).
                     expectBodyToContain({
-                        method: 'getobj.account',
+                        method,
                         params: {}
                     });
 

@@ -57,13 +57,19 @@ const {
 const cda = `cd ${application} &&`,
     cdc = `cd ${chats} &&`,
     actions = {},
-    chatOverridenFiles = 'src/models/RootStore.ts package.json src/history.ts src/App.tsx src/models/auth/AuthStore.ts',
     magicUiOverridenFiles = 'package.json',
     coreOverridenFiles = magicUiOverridenFiles,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
+
+const chatOverridenFiles = 'src/models/RootStore.ts ' +
+    'package.json ' +
+    'src/history.ts ' +
+    'src/App.tsx ' +
+    'src/models/auth/AuthStore.ts ' +
+    'src/utils/index.ts';
 
 const analyticsOverridenFiles = 'src/models/RootStore.ts src/models/reports/RootReportStore.ts ' +
     'src/components/ShadowContent.ts package.json';

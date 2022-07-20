@@ -2,8 +2,8 @@ function JsTester_Factory () {
     this.createDebugger = function () {
         return new JsTester_Debugger();
     };
-    this.createUtils = function (debug) {
-        return new JsTester_Utils(debug);
+    this.createUtils = function ({debug, intersectionObservations}) {
+        return new JsTester_Utils({debug, intersectionObservations});
     };
     this.createDomElementTester = function (
         domElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
@@ -3030,16 +3030,37 @@ function JsTester_MutationObserverMocker (factory) {
     };
 }
 
-function JsTester_IntersectionObserver () {
-    this.observe = function () {};
-    this.unobserve = function () {};
+function JsTester_IntersectionObserver ({
+    callback,
+    intersectionObservations
+}) {
+    var disableableFunction = new JsTester_DisableableFunction(callback);
+    callback = disableableFunction.createFunctionCaller();
+
+    this.observe = function (domElement) {
+        !intersectionObservations.has(domElement) && intersectionObservations.set(domElement, []);
+        intersectionObservations.get(domElement).push(callback);
+    };
+
+    this.unobserve = function () {
+        disableableFunction.disable();
+    };
 }
 
-function JsTester_IntersectionObserverMocker () {
+function JsTester_IntersectionObserverFactory (intersectionObservations) {
+    return function (callback) {
+        return new JsTester_IntersectionObserver({
+            callback,
+            intersectionObservations
+        });
+    };
+}
+
+function JsTester_IntersectionObserverMocker (FakeIntersectionObserver) {
     var RealIntersectionObserver = window.IntersectionObserver;
 
     this.replaceByFake = function () {
-        window.IntersectionObserver = JsTester_IntersectionObserver;
+        window.IntersectionObserver = FakeIntersectionObserver;
     };
 
     this.restoreReal = function () {
@@ -3338,6 +3359,12 @@ function JsTester_VisibilitySetter ({
     };
 }
 
+function JsTester_ResizeObserver () {
+    this.observe = () => null;
+    this.unobserve = () => null;
+    this.disconnect = () => null;
+}
+
 function JsTester_Tests (factory) {
     Object.defineProperty(window, 'performance', {
         get: function () {
@@ -3348,7 +3375,7 @@ function JsTester_Tests (factory) {
 
     Object.defineProperty(window, 'ResizeObserver', {
         get: function () {
-            return undefined;
+            return JsTester_ResizeObserver;
         },
         set: function () {}
     }); 
@@ -3411,7 +3438,8 @@ function JsTester_Tests (factory) {
         Promise.runAll(false, true);
     };
 
-    var utils = factory.createUtils(debug),
+    var intersectionObservations = new Map(),
+        utils = factory.createUtils({debug, intersectionObservations}),
         windowSize = new JsTester_WindowSize(spendTime),
         broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage(), true),
         broadcastChannelHandlers = {},
@@ -3441,7 +3469,8 @@ function JsTester_Tests (factory) {
         }),
         mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
         mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
-        intersectionObserverMocker = new JsTester_IntersectionObserverMocker(),
+        FakeIntersectionObserver = new JsTester_IntersectionObserverFactory(intersectionObservations),
+        intersectionObserverMocker = new JsTester_IntersectionObserverMocker(FakeIntersectionObserver),
         mutationObserverTester =  mutationObserverFactory.createTester(),
         hasFocus = new JsTester_Variable(),
         isBrowserHidden = new JsTester_Variable(),
@@ -4256,12 +4285,13 @@ function JsTester_Element ({
     };
 }
 
-function JsTester_Utils (debug) {
+function JsTester_Utils ({debug, intersectionObservations}) {
     var me = this,
         doNothing = function () {};
 
     function scrollIntoView (domElement) {
         domElement.scrollIntoView();
+        (intersectionObservations.get(domElement) || []).forEach(callback => callback([{isIntersecting: true}]));
     }
 
     this.toPercents = function (value) {
@@ -6398,14 +6428,23 @@ function JsTester_DomElement (
             );
         }
     };
-    this.expectToBeVisible = function () {
-        this.expectToExist();
+    function scrollIntoView () {
+        me.expectToExist();
 
         if (getDomElement().tagName.toLowerCase() == 'audio') {
-            return;
+            return false;
         }
 
         utils.scrollIntoView(getDomElement());
+        return true;
+    };
+    this.scrollIntoView = function () {
+        scrollIntoView();
+    };
+    this.expectToBeVisible = function () {
+        if (!scrollIntoView()) {
+            return;
+        }
 
         if (!utils.isVisible(getDomElement())) {
             throw new Error(

@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 403b917..cd20d8c 100644
+index b6b87b6..cd20d8c 100644
 --- a/package.json
 +++ b/package.json
 @@ -21,7 +21,6 @@
@@ -24,7 +24,7 @@ index 403b917..cd20d8c 100644
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "madge": "^5.0.1",
--    "magic-ui": "^1.19.15",
+-    "magic-ui": "^1.22.5",
      "mobx": "^6.3.8",
      "mobx-devtools-mst": "^0.9.30",
      "mobx-react-lite": "^3.2.2",
@@ -42,9 +42,18 @@ index 403b917..cd20d8c 100644
    }
  }
 diff --git a/src/App.tsx b/src/App.tsx
-index 01b5463..7585277 100644
+index 01b5463..8e269a6 100644
 --- a/src/App.tsx
 +++ b/src/App.tsx
+@@ -11,7 +11,7 @@ import chatsTemplatesStore from '@models/chats/ChatsTemplatesStore';
+ 
+ const App: React.FC = observer(() => {
+     const {
+-        authStore: { updateAuthState },
++        authStore: { updateAuthState, isAuthorized },
+         websocketStore,
+         chatListStore,
+         chatChannelsStore,
 @@ -45,11 +45,11 @@ const App: React.FC = observer(() => {
          };
      });
@@ -71,10 +80,10 @@ index 564e8ec..e156b1f 100644
 +const history = window.memoryHistory;
  export default history;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d71456e..00dd413 100644
+index 3dd796a..8844db1 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -67,7 +67,8 @@ export const RootStore = types
+@@ -109,7 +109,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -97,3 +106,66 @@ index 933fdb3..8e6f31d 100644
          windowId: types.optional(types.string, generateTraceId('local')),
      })
      .views(() => ({
+diff --git a/src/utils/index.ts b/src/utils/index.ts
+index dc04efe..371e2b8 100644
+--- a/src/utils/index.ts
++++ b/src/utils/index.ts
+@@ -105,8 +105,15 @@ type Options = {
+     'max-age'?: number;
+ };
+ 
++const isSoftphone = () => window.rootConfig?.appName == 'softphone',
++    prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
++
+ export function getCookie(name: string): string {
+-    const matches = new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)').exec(
++    if (isSoftphone()) {
++        return window.getElectronCookiesManager().getItem(name);
++    }
++
++    const matches = new RegExp('(?:^|; )' + prepareName(name) + '=([^;]*)').exec(
+         document.cookie
+     );
+ 
+@@ -114,6 +121,11 @@ export function getCookie(name: string): string {
+ }
+ 
+ export function setCookie(name: string, value: string, options: Options = {}): void {
++    if (isSoftphone()) {
++        window.getElectronCookiesManager().setItem(name, value);
++        return;
++    }
++
+     options = {
+         path: '/',
+         ...options,
+@@ -123,7 +135,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+         options.expires = options.expires.toUTCString();
+     }
+ 
+-    let updatedCookie = encodeURIComponent(name) + '=' + encodeURIComponent(value);
++    let updatedCookie = prepareName(name) + '=' + encodeURIComponent(value);
+ 
+     let optionKey: keyof Options;
+     for (optionKey in options) {
+@@ -131,7 +143,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+ 
+         const optionValue = options[optionKey];
+         if (optionValue !== true) {
+-            updatedCookie += '=' + (optionValue as string);
++            updatedCookie += '=' + optionValue;
+         }
+     }
+ 
+@@ -139,6 +151,11 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+ }
+ 
+ export function deleteCookie(name: string, options: Options = {}): void {
++    if (isSoftphone()) {
++        window.getElectronCookiesManager().removeItem(name);
++        return;
++    }
++
+     setCookie(name, '', {
+         'max-age': -1,
+         ...options,
