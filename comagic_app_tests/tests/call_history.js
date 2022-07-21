@@ -1884,16 +1884,14 @@ tests.addTest(options => {
         tester.notificationChannel().applyLeader().expectToBeSent();
         tester.notificationChannel().applyLeader().expectToBeSent();
 
-        tester.authCheckRequest().receiveResponse();
-
         tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
         tester.marksRequest().receiveResponse();
 
+        tester.authCheckRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();
-        
         tester.settingsRequest().receiveResponse();
-        tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
+        tester.slavesNotification().twoChannels().enabled().expectToBeSent();
         tester.othersNotification().widgetStateUpdate().expectToBeSent();
         tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
 

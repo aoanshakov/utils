@@ -4184,7 +4184,6 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.button('Софтфон').expectToBeVisible();
-                    tester.button('История звонков').expectToBeVisible();
                 });
                 it('Фичефлаг софтфона для руководителя включен. Кнопка софтфона отображена.', function() {
                     accountRequest.managerSoftphoneFeatureFlagEnabled().receiveResponse();
