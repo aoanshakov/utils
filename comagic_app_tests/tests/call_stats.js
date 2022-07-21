@@ -376,10 +376,7 @@ tests.addTest(options => {
                 });
             });
         });
-        it(
-            'Пользователь является руководителем. Открываю статистику по звонкам. Отображено время проведенное в ' +
-            'удаленном статусе.',
-        function() {
+        it('Пользователь является руководителем. Пункт меню скрыт.', function() {
             accountRequest.manager().receiveResponse();
 
             const requests = ajax.inAnyOrder();
@@ -460,11 +457,7 @@ tests.addTest(options => {
 
             statusesRequest.receiveResponse();
 
-            tester.button('Статистика звонков').click();
-            tester.statsRequest().receiveResponse();
-
-            tester.body.expectTextContentToHaveSubstring('Удаленный 00:00:00');
-            tester.statusesDurationItem('Доступен').findElement('circle').expectToHaveStyle('fill', '#48b882');
+            tester.button('Статистика звонков').expectNotToExist();
         });
         it('Статистика по звонкам недоступна. Пункт меню скрыт.', function() {
             accountRequest.callStatsFeatureFlagDisabled().receiveResponse();
@@ -474,13 +467,13 @@ tests.addTest(options => {
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().callStatsFeatureFlagDisabled().expectToBeSent(requests);
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.manager().receiveResponse();
+            secondAccountRequest.callStatsFeatureFlagDisabled().receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.configRequest().softphone().receiveResponse();

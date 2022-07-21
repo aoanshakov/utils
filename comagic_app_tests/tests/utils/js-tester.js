@@ -4291,8 +4291,12 @@ function JsTester_Utils ({debug, intersectionObservations}) {
 
     function scrollIntoView (domElement) {
         domElement.scrollIntoView();
-        (intersectionObservations.get(domElement) || []).forEach(callback => callback([{isIntersecting: true}]));
+        me.callIntersectionCallback(domElement, [{isIntersecting: true}]);
     }
+
+    this.callIntersectionCallback = function (domElement, entries) {
+        (intersectionObservations.get(domElement) || []).forEach(callback => callback(entries));
+    };
 
     this.toPercents = function (value) {
         return parseInt(value * 100, 0);

@@ -150,7 +150,7 @@ define(() => function ({
 
             return tester;
         })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).
-            querySelector('.cm-chats--chats-list-spin-wrapper')));
+            querySelector('.ui-infinite-scroll-spin-wrapper')));
 
         me.userName = (tester => {
             const putMouseOver = tester.putMouseOver.bind(tester),
@@ -578,11 +578,13 @@ define(() => function ({
                 const tester = testersFactory.createTextFieldTester(getInput),
                     fill = tester.fill.bind(tester),
                     input = tester.input.bind(tester),
-                    click = tester.click.bind(tester);
+                    click = tester.click.bind(tester),
+                    pressEnter = tester.pressEnter.bind(tester);
 
                 tester.click = () => (click(), spendTime(0), spendTime(0), tester);
                 tester.fill = value => (fill(value), Promise.runAll(false, true), tester); 
-                tester.input = value => (input(value), Promise.runAll(false, true)), tester; 
+                tester.input = value => (input(value), Promise.runAll(false, true), tester); 
+                tester.pressEnter = () => (pressEnter(), spendTime(0), tester);
 
                 tester.clearIcon = testersFactory.createDomElementTester(
                     () => getInput().closest('.ui-input').querySelector('.ui-input-suffix-close')
@@ -751,35 +753,54 @@ define(() => function ({
         }
     });
 
-    me.changeMessageStatusRequest = () => ({
-        expectToBeSent() {
-            const request = ajax.recentRequest().
-                expectPathToContain('$REACT_APP_BASE_URL').
-                expectBodyToContain({
-                    method: 'change_message_status',
-                    params: {
-                        chat_id: 2718935,
-                        message_id: 256085,
-                        status: 'delivered'
-                    }
-                });
+    me.changeMessageStatusRequest = () => {
+        const params = {
+            chat_id: 2718935,
+            message_id: 256085,
+            status: 'delivered'
+        };
 
-            return {
-                receiveResponse() {
-                    request.respondSuccessfullyWith({
-                        data: true
+        return {
+            anotherChat() {
+                params.chat_id = 7189362;
+                return this;
+            },
+
+            anotherMessage() {
+                params.message_id = 482058;
+                return this;
+            },
+
+            read() {
+                params.status = 'read';
+                return this;
+            },
+
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectBodyToContain({
+                        method: 'change_message_status',
+                        params
                     });
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                }
-            };
-        },
+                return {
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            data: true
+                        });
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                };
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
         }
-    });
+    };
 
     me.offlineMessageListRequest = () => ({
         expectToBeSent(requests) {
@@ -2334,6 +2355,148 @@ define(() => function ({
         }
     });
 
+    me.searchResultsRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'get_search_results',
+                        params: {
+                            search_string: 'Сообщение #75'
+                        }
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: {
+                                data: {
+                                    found_list: [{
+                                        chat_channel_id: 101,
+                                        chat_channel_state: null,
+                                        chat_channel_type: 'telegram',
+                                        date_time: '2020-01-20T17:25:22.098210',
+                                        id: 7189362,
+                                        employee_id: null,
+                                        is_chat_channel_active: false,
+                                        last_message: {
+                                            message: 'Сообщение #75',
+                                            date: '2022-06-24T16:04:26.0003',
+                                            is_operator: false,
+                                            resource_type: null,
+                                            resource_name: null
+                                        },
+                                        mark_ids: ['316', '579'],
+                                        phone: null,
+                                        site_id: 4663,
+                                        status: 'new',
+                                        visitor_id: 16479303,
+                                        visitor_name: 'Помакова Бисерка Драгановна',
+                                        visitor_type: 'omni',
+                                        account_id: null,
+                                        is_phone_auto_filled: false,
+                                        unread_message_count: 0
+                                    }]
+                                }
+                            } 
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.visitorCardRequest = () => {
+        const params = {
+            visitor_id: 16479303
+        };
+
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'get_visitor_card',
+                        params
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: {
+                                data: {
+                                    visitor_id: 16479303,
+                                    name: 'Помакова Бисерка Драгановна',
+                                    phones: ['79164725823'],
+                                    emails: ['pomakova@gmail.com'],
+                                    company: 'UIS',
+                                    comment: 'Некий посетитель'
+                                }
+                            } 
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.acceptChatRequest = () => {
+        const params = {
+            chat_id: 7189362,
+            visitor_id: 16479303
+        };
+
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'accept_chat',
+                        params
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: true 
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatListRequest = () => {
         let total = 75;
 
@@ -2454,9 +2617,11 @@ define(() => function ({
         }
 
         const chat = chat_id => {
+            params.scroll_direction = undefined;
+            params.scroll_from_date = undefined;
+            params.statuses = undefined;
             params.chat_id = chat_id;
             params.limit = 1;
-            params.statuses.push('closed');
         };
 
         return addResponseModifiers({
@@ -2492,6 +2657,39 @@ define(() => function ({
                 return this;
             },
 
+            thirdChat() {
+                chat(7189362);
+
+                getData = () => [{
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189362,
+                    employee_id: null,
+                    is_chat_channel_active: false,
+                    last_message: {
+                        message: 'Сообщение #75',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: [],
+                    phone: null,
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479303,
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: null,
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                }];
+
+                return this;
+            },
+
             anotherChat() {
                 chat(2718936);
                 return this;
@@ -2510,6 +2708,8 @@ define(() => function ({
                         method: 'get_chat_list',
                         params
                     });
+
+                spendTime(0);
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -7935,6 +8135,25 @@ define(() => function ({
         tester.expectToBePressed = () => tester.expectToHaveClass('cmg-button-pressed');
         tester.expectNotToBePressed = () => tester.expectNotToHaveClass('cmg-button-pressed');
         tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    };
+
+    me.chatListItem = text => {
+        const domElement = utils.descendantOfBody().
+            matchesSelector('.cm-chats--last-chat-message-text').
+            textContains(text).
+            find().
+            closest('.cm-chats--chats-list-item');
+
+        const tester = testersFactory.createDomElementTester(domElement);
+
+        const clickAreaTester = testersFactory.createDomElementTester(
+            domElement.querySelector('.cm-chats--chat-click-area')
+        );
+
+        const click = clickAreaTester.click.bind(clickAreaTester);
+        tester.click = click;
 
         return tester;
     };

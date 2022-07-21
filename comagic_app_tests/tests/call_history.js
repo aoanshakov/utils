@@ -1682,6 +1682,85 @@ tests.addTest(options => {
             tester.radioButton('Все').expectToBeDisabled();
             tester.radioButton('Необработанные').expectToBeDisabled();
         });
+        it('Пользователь является менеджером. Пункт меню скрыт.', function() {
+            accountRequest.manager().receiveResponse();
+
+            const requests = ajax.inAnyOrder();
+
+            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            secondAccountRequest.manager().receiveResponse();
+            reportGroupsRequest.receiveResponse();
+
+            tester.configRequest().softphone().receiveResponse();
+
+            tester.slavesNotification().expectToBeSent();
+            tester.slavesNotification().additional().expectToBeSent();
+
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            spendTime(1000);
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            spendTime(1000);
+            tester.notificationChannel().tellIsLeader().expectToBeSent();
+
+            tester.authCheckRequest().receiveResponse();
+            tester.statusesRequest().receiveResponse();
+
+            settingsRequest = tester.settingsRequest().expectToBeSent();
+            tester.talkOptionsRequest().receiveResponse();
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
+            settingsRequest.receiveResponse();
+            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+            tester.othersNotification().widgetStateUpdate().expectToBeSent();
+            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            permissionsRequest.receiveResponse();
+
+            tester.connectEventsWebSocket();
+            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.connectSIPWebSocket();
+            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                expectToBeSent();
+
+            notificationTester.grantPermission();
+
+            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+            registrationRequest = tester.registrationRequest().expectToBeSent();
+
+            tester.allowMediaInput();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                expectToBeSent();
+
+            authenticatedUserRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                userDataFetched().
+                expectToBeSent();
+
+            registrationRequest.receiveResponse();
+            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.button('История звонков').expectNotToExist();
+        });
         it('История недоступна. Пункт меню скрыт.', function() {
             accountRequest.callHistoryFeatureFlagDisabled().receiveResponse();
 

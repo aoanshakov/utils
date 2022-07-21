@@ -109,6 +109,41 @@ tests.addTest(options => {
                 countersRequest.receiveResponse();
             });
 
+            describe('Ввожу значение в поле поиска. Нажимаю на найденный чат.', function() {
+                let chatListRequest;
+                
+                beforeEach(function() {
+                    tester.input.fill('Сообщение #75');
+                    
+                    tester.input.pressEnter();
+                    tester.searchResultsRequest().receiveResponse();
+
+                    tester.chatListItem('Сообщение #75').click();
+                    chatListRequest = tester.chatListRequest().thirdChat().expectToBeSent();
+                });
+
+                describe('Получены данные чата.', function() {
+                    beforeEach(function() {
+                        chatListRequest.receiveResponse();
+                        tester.acceptChatRequest().receiveResponse();
+                        tester.visitorCardRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+                        tester.changeMessageStatusRequest().anotherChat().anotherMessage().read().receiveResponse();
+                    });
+
+                    it('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
+                        tester.spinWrapper.scrollIntoView();
+                        tester.chatListRequest().secondPage().receiveResponse();
+                    });
+                    it('Спиннер скрыт.', function() {
+                        tester.spin.expectNotToExist();
+                    });
+                });
+                it('Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен', function() {
+                    tester.spinWrapper.scrollIntoView();
+                    tester.spin.expectToBeVisible();
+                });
+            });
             describe('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
                 beforeEach(function() {
                     tester.spinWrapper.scrollIntoView();
@@ -158,7 +193,7 @@ tests.addTest(options => {
         });
         it('Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен.', function() {
             tester.spinWrapper.scrollIntoView();
-            tester.spin.expectNotToExist();
+            tester.spin.expectToBeVisible();
         });
     });
 });

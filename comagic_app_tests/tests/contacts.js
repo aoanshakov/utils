@@ -134,8 +134,16 @@ tests.addTest(options => {
                 tester.contactListRequest().receiveResponse();
             });
 
+            it('', function() {
+                tester.spinWrapper.scrollIntoView();
+                tester.contactListRequest().secondPage().receiveResponse();
+            });
+            return;
             it('Отображена страница контактов.', function() {
-                tester.body.expectToBeVisible('Hello world!');
+                tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                    'Тончева Десислава Пламеновна',
+                    'Паскалева Бисера Илковна #100'
+                );
             });
         });
         return;
