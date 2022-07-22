@@ -956,85 +956,261 @@ tests.addTest(options => {
                                                 tester.phoneField.fill('79161234567');
                                             });
 
-                                            describe(
-                                                'SIP-регистрация завершена. Нажимаю на кнпоку вызова.',
-                                            function() {
+                                            describe('SIP-регистрация завершена.', function() {
                                                 let numaRequest,
                                                     outboundCall;
 
                                                 beforeEach(function() {
                                                     registrationRequest.receiveResponse();
-                                                    tester.slavesNotification().userDataFetched().twoChannels().
-                                                        available().expectToBeSent();
 
-                                                    tester.callStartingButton.click();
-                                                    
-                                                    tester.firstConnection.connectWebRTC();
-                                                    tester.allowMediaInput();
-
-                                                    outboundCall = tester.outboundCall().expectToBeSent()
-                                                    tester.slavesNotification().available().userDataFetched().
-                                                        twoChannels().sending().expectToBeSent();
-
-                                                    outboundCall.setRinging();
-                                                    tester.slavesNotification().available().userDataFetched().
-                                                        twoChannels().progress().expectToBeSent();
-                                                    
-                                                    tester.firstConnection.callTrackHandler();
-
-                                                    numaRequest = tester.numaRequest().expectToBeSent();
+                                                    tester.slavesNotification().
+                                                        userDataFetched().
+                                                        twoChannels().
+                                                        available().
+                                                        expectToBeSent();
                                                 });
 
-                                                describe('Контакт не является сотрудником.', function() {
+                                                describe('Нажимаю на кнпоку вызова.', function() {
                                                     beforeEach(function() {
-                                                        numaRequest.receiveResponse();
+                                                        tester.callStartingButton.click();
+                                                        
+                                                        tester.firstConnection.connectWebRTC();
+                                                        tester.allowMediaInput();
+
+                                                        outboundCall = tester.outboundCall().expectToBeSent()
+                                                        tester.slavesNotification().available().userDataFetched().
+                                                            twoChannels().sending().expectToBeSent();
+
+                                                        outboundCall.setRinging();
+                                                        tester.slavesNotification().available().userDataFetched().
+                                                            twoChannels().progress().expectToBeSent();
+                                                        
+                                                        tester.firstConnection.callTrackHandler();
+
+                                                        numaRequest = tester.numaRequest().expectToBeSent();
                                                     });
 
-                                                    describe('Получены данные контакта.', function() {
-                                                        let outCallSessionEvent;
-
+                                                    describe('Контакт не является сотрудником.', function() {
                                                         beforeEach(function() {
-                                                            outCallSessionEvent = tester.outCallSessionEvent();
+                                                            numaRequest.receiveResponse();
                                                         });
 
-                                                        describe('Нет активных сделок.', function() {
-                                                            beforeEach(function() {
-                                                                outCallSessionEvent.receive();
+                                                        describe('Получены данные контакта.', function() {
+                                                            let outCallSessionEvent;
 
-                                                                tester.outCallSessionEvent().slavesNotification().
-                                                                    expectToBeSent();
+                                                            beforeEach(function() {
+                                                                outCallSessionEvent = tester.outCallSessionEvent();
                                                             });
 
-                                                            describe('Звонок принят.', function() {
+                                                            describe('Нет активных сделок.', function() {
                                                                 beforeEach(function() {
-                                                                    outboundCall.setAccepted();
+                                                                    outCallSessionEvent.receive();
 
-                                                                    tester.slavesNotification().
-                                                                        available().
-                                                                        userDataFetched().
-                                                                        twoChannels().
-                                                                        confirmed().
+                                                                    tester.outCallSessionEvent().slavesNotification().
                                                                         expectToBeSent();
                                                                 });
 
-                                                                describe('Поступил входящий звонок.', function() {
-                                                                    let incomingCall;
-
+                                                                describe('Звонок принят.', function() {
                                                                     beforeEach(function() {
-                                                                        incomingCall = tester.incomingCall().
-                                                                            thirdNumber().receive();
+                                                                        outboundCall.setAccepted();
 
                                                                         tester.slavesNotification().
                                                                             available().
                                                                             userDataFetched().
                                                                             twoChannels().
                                                                             confirmed().
+                                                                            expectToBeSent();
+                                                                    });
+
+                                                                    describe('Поступил входящий звонок.', function() {
+                                                                        let incomingCall;
+
+                                                                        beforeEach(function() {
+                                                                            incomingCall = tester.incomingCall().
+                                                                                thirdNumber().receive();
+
+                                                                            tester.slavesNotification().
+                                                                                available().
+                                                                                userDataFetched().
+                                                                                twoChannels().
+                                                                                confirmed().
+                                                                                secondChannel().
+                                                                                    incoming().
+                                                                                    progress().
+                                                                                    fifthPhoneNumber().
+                                                                                expectToBeSent();
+
+                                                                            tester.numaRequest().thirdNumber().
+                                                                                receiveResponse();
+
+                                                                            tester.outCallEvent().
+                                                                                anotherPerson().
+                                                                                receive();
+
+                                                                            tester.outCallEvent().
+                                                                                anotherPerson().
+                                                                                slavesNotification().
+                                                                                expectToBeSent();
+                                                                        });
+
+                                                                        it(
+                                                                            'Принимаю звонок на второй линии. ' +
+                                                                            'Отображаются данные о звонке.',
+                                                                        function() {
+                                                                            tester.otherChannelCallNotification.
+                                                                                callStartingButton.click();
+
+                                                                            tester.secondConnection.connectWebRTC();
+                                                                            tester.secondConnection.callTrackHandler();
+                                                                            tester.allowMediaInput();
+                                                                            tester.secondConnection.addCandidate();
+
+                                                                            incomingCall.expectOkToBeSent().
+                                                                                receiveResponse();
+
+                                                                            tester.slavesNotification().
+                                                                                available().
+                                                                                userDataFetched().
+                                                                                twoChannels().
+                                                                                confirmed().
+                                                                                secondChannel().
+                                                                                    incoming().
+                                                                                    confirmed().
+                                                                                    fifthPhoneNumber().
+                                                                                currentChannelIsSecond().
+                                                                                expectToBeSent();
+
+                                                                            audioDecodingTester.accomplishAudioDecoding();
+
+                                                                            tester.firstConnection.expectHoldMusicToPlay();
+                                                                            tester.secondConnection.
+                                                                                expectRemoteStreamToPlay();
+
+                                                                            tester.softphone.
+                                                                                expectTextContentToHaveSubstring(
+                                                                                    'Гигова Петранка ' +
+                                                                                    '+7 (916) 123-45-10 00:00'
+                                                                                );
+                                                                        });
+                                                                        it(
+                                                                            'Нажимаю на кнопку второй линии. Принимаю ' +
+                                                                            'звонок на второй линии. Отображаются данные ' +
+                                                                            'о звонке.',
+                                                                        function() {
+                                                                            tester.secondLineButton.click();
+
+                                                                            tester.slavesNotification().
+                                                                                available().
+                                                                                userDataFetched().
+                                                                                twoChannels().
+                                                                                confirmed().
+                                                                                secondChannel().
+                                                                                    incoming().
+                                                                                    progress().
+                                                                                    fifthPhoneNumber().
+                                                                                changedChannelToSecond().
+                                                                                expectToBeSent();
+
+                                                                            tester.callStartingButton.click();
+
+                                                                            tester.secondConnection.connectWebRTC();
+                                                                            tester.secondConnection.callTrackHandler();
+                                                                            tester.allowMediaInput();
+                                                                            tester.secondConnection.addCandidate();
+
+                                                                            incomingCall.expectOkToBeSent().
+                                                                                receiveResponse();
+
+                                                                            tester.slavesNotification().
+                                                                                available().
+                                                                                userDataFetched().
+                                                                                twoChannels().
+                                                                                confirmed().
+                                                                                secondChannel().
+                                                                                    incoming().
+                                                                                    confirmed().
+                                                                                    fifthPhoneNumber().
+                                                                                changedChannelToSecond().
+                                                                                wasInProgressAtTheMomentOfChannelChanging().
+                                                                                expectToBeSent();
+
+                                                                            audioDecodingTester.accomplishAudioDecoding();
+
+                                                                            tester.firstConnection.expectHoldMusicToPlay();
+                                                                            tester.secondConnection.
+                                                                                expectRemoteStreamToPlay();
+
+                                                                            tester.softphone.
+                                                                                expectTextContentToHaveSubstring(
+                                                                                    'Гигова Петранка ' +
+                                                                                    '+7 (916) 123-45-10 00:00'
+                                                                                );
+                                                                        });
+                                                                        it(
+                                                                            'Нажимаю на сообщение о звонке. Открыта ' +
+                                                                            'вторая линия.',
+                                                                        function() {
+                                                                            tester.otherChannelCallNotification.click();
+
+                                                                            tester.slavesNotification().
+                                                                                available().
+                                                                                userDataFetched().
+                                                                                twoChannels().
+                                                                                confirmed().
+                                                                                secondChannel().
+                                                                                    incoming().
+                                                                                    progress().
+                                                                                    fifthPhoneNumber().
+                                                                                changedChannelToSecond().
+                                                                                expectToBeSent();
+
+                                                                            tester.softphone.
+                                                                                expectTextContentToHaveSubstring(
+                                                                                    'Гигова Петранка ' +
+                                                                                    '+7 (916) 123-45-10'
+                                                                                );
+                                                                        });
+                                                                        it('Отображено сообщение о звонке.', function() {
+                                                                            tester.body.expectTextContentToHaveSubstring(
+                                                                                'Гигова Петранка Входящий...'
+                                                                            );
+
+                                                                            tester.otherChannelCallNotification.
+                                                                                callStartingButton.
+                                                                                expectNotToHaveClass('cmg-button-disabled');
+                                                                        });
+                                                                    });
+                                                                    it('Отображено имя, номер и таймер.', function() {
+                                                                        tester.outgoingIcon.expectToBeVisible();
+
+                                                                        tester.softphone.expectTextContentToHaveSubstring(
+                                                                            'Шалева Дора ' +
+                                                                            '+7 (916) 123-45-67 00:00'
+                                                                        );
+                                                                        
+                                                                        tester.body.expectTextContentToHaveSubstring(
+                                                                            'karadimova Не беспокоить'
+                                                                        );
+                                                                    });
+                                                                });
+                                                                describe('Поступил входящий звонок.', function() {
+                                                                    let incomingCall;
+
+                                                                    beforeEach(function() {
+                                                                        incomingCall = tester.incomingCall().thirdNumber().
+                                                                            receive();
+
+                                                                        tester.slavesNotification().
+                                                                            available().
+                                                                            userDataFetched().
+                                                                            twoChannels().
+                                                                            progress().
                                                                             secondChannel().
                                                                                 incoming().
                                                                                 progress().
                                                                                 fifthPhoneNumber().
                                                                             expectToBeSent();
-
+                                                                        
                                                                         tester.numaRequest().thirdNumber().
                                                                             receiveResponse();
 
@@ -1044,48 +1220,57 @@ tests.addTest(options => {
                                                                     });
 
                                                                     it(
-                                                                        'Принимаю звонок на второй линии. ' +
-                                                                        'Отображаются данные о звонке.',
+                                                                        'Вызываемый занят. Отображено сообщение о звонке.',
                                                                     function() {
-                                                                        tester.otherChannelCallNotification.
-                                                                            callStartingButton.click();
-
-                                                                        tester.secondConnection.connectWebRTC();
-                                                                        tester.secondConnection.callTrackHandler();
-                                                                        tester.allowMediaInput();
-                                                                        tester.secondConnection.addCandidate();
-
-                                                                        incomingCall.expectOkToBeSent().
-                                                                            receiveResponse();
+                                                                        outboundCall.receiveBusy();
 
                                                                         tester.slavesNotification().
                                                                             available().
                                                                             userDataFetched().
                                                                             twoChannels().
-                                                                            confirmed().
+                                                                            failed().
                                                                             secondChannel().
                                                                                 incoming().
-                                                                                confirmed().
+                                                                                progress().
                                                                                 fifthPhoneNumber().
-                                                                            currentChannelIsSecond().
                                                                             expectToBeSent();
 
-                                                                        audioDecodingTester.accomplishAudioDecoding();
-
-                                                                        tester.firstConnection.expectHoldMusicToPlay();
-                                                                        tester.secondConnection.
-                                                                            expectRemoteStreamToPlay();
-
-                                                                        tester.softphone.
-                                                                            expectTextContentToHaveSubstring(
-                                                                                'Гигова Петранка ' +
-                                                                                '+7 (916) 123-45-10 00:00'
-                                                                            );
+                                                                        tester.body.expectTextContentToHaveSubstring(
+                                                                            'Гигова Петранка Входящий...'
+                                                                        );
                                                                     });
                                                                     it(
-                                                                        'Нажимаю на кнопку второй линии. Принимаю ' +
-                                                                        'звонок на второй линии. Отображаются данные ' +
-                                                                        'о звонке.',
+                                                                        'Нажимаю на кнопку отклонения звонка на второй ' +
+                                                                        'линии.',
+                                                                    function() {
+                                                                        tester.otherChannelCallNotification.
+                                                                            stopCallButton.
+                                                                            click();
+
+                                                                        tester.slavesNotification().
+                                                                            available().
+                                                                            userDataFetched().
+                                                                            twoChannels().
+                                                                            progress().
+                                                                            secondChannel().
+                                                                                ended().
+                                                                            expectToBeSent();
+
+                                                                        incomingCall.expectTemporarilyUnavailableToBeSent();
+
+                                                                        tester.callSessionFinish().
+                                                                            thirdId().
+                                                                            slavesNotification().
+                                                                            expectToBeSent();
+
+                                                                        tester.softphone.expectToHaveTextContent(
+                                                                            'Шалева Дора ' +
+                                                                            '+7 (916) 123-45-67 00:00'
+                                                                        );
+                                                                    });
+                                                                    it(
+                                                                        'Нажимаю на кнопку второй линии. Кнпока принятия ' +
+                                                                        'звонка заблокирована.',
                                                                     function() {
                                                                         tester.secondLineButton.click();
 
@@ -1093,320 +1278,179 @@ tests.addTest(options => {
                                                                             available().
                                                                             userDataFetched().
                                                                             twoChannels().
-                                                                            confirmed().
+                                                                            progress().
                                                                             secondChannel().
                                                                                 incoming().
                                                                                 progress().
                                                                                 fifthPhoneNumber().
                                                                             changedChannelToSecond().
                                                                             expectToBeSent();
-
+                                                                        
                                                                         tester.callStartingButton.click();
 
-                                                                        tester.secondConnection.connectWebRTC();
-                                                                        tester.secondConnection.callTrackHandler();
-                                                                        tester.allowMediaInput();
-                                                                        tester.secondConnection.addCandidate();
-
-                                                                        incomingCall.expectOkToBeSent().
-                                                                            receiveResponse();
-
-                                                                        tester.slavesNotification().
-                                                                            available().
-                                                                            userDataFetched().
-                                                                            twoChannels().
-                                                                            confirmed().
-                                                                            secondChannel().
-                                                                                incoming().
-                                                                                confirmed().
-                                                                                fifthPhoneNumber().
-                                                                            changedChannelToSecond().
-                                                                            wasInProgressAtTheMomentOfChannelChanging().
-                                                                            expectToBeSent();
-
-                                                                        audioDecodingTester.accomplishAudioDecoding();
-
-                                                                        tester.firstConnection.expectHoldMusicToPlay();
-                                                                        tester.secondConnection.
-                                                                            expectRemoteStreamToPlay();
-
-                                                                        tester.softphone.
-                                                                            expectTextContentToHaveSubstring(
-                                                                                'Гигова Петранка ' +
-                                                                                '+7 (916) 123-45-10 00:00'
-                                                                            );
+                                                                        tester.callStartingButton.
+                                                                            expectToHaveAttribute('disabled');
                                                                     });
                                                                     it(
-                                                                        'Нажимаю на сообщение о звонке. Открыта ' +
-                                                                        'вторая линия.',
+                                                                        'Кнопка принятия звонка на второй линии ' +
+                                                                        'заблокирована.',
                                                                     function() {
-                                                                        tester.otherChannelCallNotification.click();
-
-                                                                        tester.slavesNotification().
-                                                                            available().
-                                                                            userDataFetched().
-                                                                            twoChannels().
-                                                                            confirmed().
-                                                                            secondChannel().
-                                                                                incoming().
-                                                                                progress().
-                                                                                fifthPhoneNumber().
-                                                                            changedChannelToSecond().
-                                                                            expectToBeSent();
-
-                                                                        tester.softphone.
-                                                                            expectTextContentToHaveSubstring(
-                                                                                'Гигова Петранка ' +
-                                                                                '+7 (916) 123-45-10'
-                                                                            );
-                                                                    });
-                                                                    it('Отображено сообщение о звонке.', function() {
-                                                                        tester.body.expectTextContentToHaveSubstring(
-                                                                            'Гигова Петранка Входящий...'
-                                                                        );
+                                                                        tester.otherChannelCallNotification.
+                                                                            callStartingButton.
+                                                                            click();
 
                                                                         tester.otherChannelCallNotification.
                                                                             callStartingButton.
-                                                                            expectNotToHaveClass('cmg-button-disabled');
+                                                                            expectToHaveClass('cmg-button-disabled');
+
+                                                                        tester.firstConnection.expectRemoteStreamToPlay();
+
+                                                                        tester.softphone.expectTextContentToHaveSubstring(
+                                                                            'Шалева Дора ' +
+                                                                            '+7 (916) 123-45-67 00:00'
+                                                                        );
                                                                     });
                                                                 });
-                                                                it('Отображено имя, номер и таймер.', function() {
-                                                                    tester.outgoingIcon.expectToBeVisible();
-
-                                                                    tester.softphone.expectTextContentToHaveSubstring(
-                                                                        'Шалева Дора ' +
-                                                                        '+7 (916) 123-45-67 00:00'
-                                                                    );
-                                                                    
-                                                                    tester.body.expectTextContentToHaveSubstring(
-                                                                        'karadimova Не беспокоить'
-                                                                    );
-                                                                });
-                                                            });
-                                                            describe('Поступил входящий звонок.', function() {
-                                                                let incomingCall;
-
-                                                                beforeEach(function() {
-                                                                    incomingCall = tester.incomingCall().thirdNumber().
-                                                                        receive();
+                                                                it(
+                                                                    'Нажимаю на кнопку остановки звонка. Ввожу тот же ' +
+                                                                    'самый номер. Отображается поле номера.',
+                                                                function() {
+                                                                    tester.stopCallButton.click();
 
                                                                     tester.slavesNotification().
                                                                         available().
                                                                         userDataFetched().
                                                                         twoChannels().
-                                                                        progress().
-                                                                        secondChannel().
-                                                                            incoming().
-                                                                            progress().
-                                                                            fifthPhoneNumber().
+                                                                        ended().
                                                                         expectToBeSent();
-                                                                    
-                                                                    tester.numaRequest().thirdNumber().
-                                                                        receiveResponse();
 
-                                                                    tester.outCallEvent().anotherPerson().receive();
-                                                                    tester.outCallEvent().anotherPerson().
+                                                                    outboundCall.expectCancelingRequestToBeSent();
+                                                                    tester.callSessionFinish().thirdId().
                                                                         slavesNotification().expectToBeSent();
+
+                                                                    tester.phoneField.fill('79161234567');
+
+                                                                    tester.phoneField.expectToHaveValue('79161234567');
                                                                 });
-
-                                                                it(
-                                                                    'Вызываемый занят. Отображено сообщение о звонке.',
-                                                                function() {
-                                                                    outboundCall.receiveBusy();
-
-                                                                    tester.slavesNotification().
-                                                                        available().
-                                                                        userDataFetched().
-                                                                        twoChannels().
-                                                                        failed().
-                                                                        secondChannel().
-                                                                            incoming().
-                                                                            progress().
-                                                                            fifthPhoneNumber().
-                                                                        expectToBeSent();
-
-                                                                    tester.body.expectTextContentToHaveSubstring(
-                                                                        'Гигова Петранка Входящий...'
-                                                                    );
-                                                                });
-                                                                it(
-                                                                    'Нажимаю на кнопку отклонения звонка на второй ' +
-                                                                    'линии.',
-                                                                function() {
-                                                                    tester.otherChannelCallNotification.
-                                                                        stopCallButton.
-                                                                        click();
-
-                                                                    tester.slavesNotification().
-                                                                        available().
-                                                                        userDataFetched().
-                                                                        twoChannels().
-                                                                        progress().
-                                                                        secondChannel().
-                                                                            ended().
-                                                                        expectToBeSent();
-
-                                                                    incomingCall.expectTemporarilyUnavailableToBeSent();
-
-                                                                    tester.callSessionFinish().
-                                                                        thirdId().
-                                                                        slavesNotification().
-                                                                        expectToBeSent();
-
-                                                                    tester.softphone.expectToHaveTextContent(
-                                                                        'Шалева Дора ' +
-                                                                        '+7 (916) 123-45-67 00:00'
-                                                                    );
-                                                                });
-                                                                it(
-                                                                    'Нажимаю на кнопку второй линии. Кнпока принятия ' +
-                                                                    'звонка заблокирована.',
-                                                                function() {
-                                                                    tester.secondLineButton.click();
-
-                                                                    tester.slavesNotification().
-                                                                        available().
-                                                                        userDataFetched().
-                                                                        twoChannels().
-                                                                        progress().
-                                                                        secondChannel().
-                                                                            incoming().
-                                                                            progress().
-                                                                            fifthPhoneNumber().
-                                                                        changedChannelToSecond().
-                                                                        expectToBeSent();
-                                                                    
-                                                                    tester.callStartingButton.click();
-
-                                                                    tester.callStartingButton.
-                                                                        expectToHaveAttribute('disabled');
-                                                                });
-                                                                it(
-                                                                    'Кнопка принятия звонка на второй линии ' +
-                                                                    'заблокирована.',
-                                                                function() {
-                                                                    tester.otherChannelCallNotification.
-                                                                        callStartingButton.
-                                                                        click();
-
-                                                                    tester.otherChannelCallNotification.
-                                                                        callStartingButton.
-                                                                        expectToHaveClass('cmg-button-disabled');
-
-                                                                    tester.firstConnection.expectRemoteStreamToPlay();
-
+                                                                it('Отображено имя, номер и таймер.', function() {
+                                                                    tester.softphone.expectToBeCollapsed();
+                                                                    tester.outgoingIcon.expectToBeVisible();
                                                                     tester.softphone.expectTextContentToHaveSubstring(
-                                                                        'Шалева Дора ' +
-                                                                        '+7 (916) 123-45-67 00:00'
+                                                                        'Шалева Дора +7 (916) 123-45-67 00:00'
                                                                     );
                                                                 });
                                                             });
                                                             it(
-                                                                'Нажимаю на кнопку остановки звонка. Ввожу тот же ' +
-                                                                'самый номер. Отображается поле номера.',
+                                                                'Есть активные сделки. Отображены активные сделки.',
                                                             function() {
-                                                                tester.stopCallButton.click();
-
-                                                                tester.slavesNotification().
-                                                                    available().
-                                                                    userDataFetched().
-                                                                    twoChannels().
-                                                                    ended().
-                                                                    expectToBeSent();
-
-                                                                outboundCall.expectCancelingRequestToBeSent();
-                                                                tester.callSessionFinish().thirdId().
+                                                                outCallSessionEvent.activeLeads().receive();
+                                                                tester.outCallSessionEvent().activeLeads().
                                                                     slavesNotification().expectToBeSent();
 
-                                                                tester.phoneField.fill('79161234567');
+                                                                tester.softphone.expectToBeExpanded();
 
-                                                                tester.phoneField.expectToHaveValue('79161234567');
-                                                            });
-                                                            it('Отображено имя, номер и таймер.', function() {
-                                                                tester.softphone.expectToBeCollapsed();
-                                                                tester.outgoingIcon.expectToBeVisible();
-                                                                tester.softphone.expectTextContentToHaveSubstring(
-                                                                    'Шалева Дора +7 (916) 123-45-67 00:00'
-                                                                );
+                                                                tester.anchor('По звонку с 79154394340').
+                                                                    expectHrefToHavePath(
+                                                                        'https://comagicwidgets.amocrm.ru/leads/detail/' +
+                                                                        '3003651'
+                                                                    );
                                                             });
                                                         });
-                                                        it(
-                                                            'Есть активные сделки. Отображены активные сделки.',
-                                                        function() {
-                                                            outCallSessionEvent.activeLeads().receive();
-                                                            tester.outCallSessionEvent().activeLeads().
+                                                        it('Данные контакта не найдены.', function() {
+                                                            tester.outCallSessionEvent().noName().receive();
+                                                            tester.outCallSessionEvent().noName().
                                                                 slavesNotification().expectToBeSent();
 
-                                                            tester.softphone.expectToBeExpanded();
-
-                                                            tester.anchor('По звонку с 79154394340').
-                                                                expectHrefToHavePath(
-                                                                    'https://comagicwidgets.amocrm.ru/leads/detail/' +
-                                                                    '3003651'
-                                                                );
+                                                            tester.outgoingIcon.expectToBeVisible();
+                                                            tester.softphone.expectTextContentToHaveSubstring(
+                                                                '+7 (916) 123-45-67 Исходящий звонок 00:00'
+                                                            );
+                                                        });
+                                                        it(
+                                                            'Отображен номер, таймер, направление и сообщение о поиске ' +
+                                                            'контакта.',
+                                                        function() {
+                                                            tester.outgoingIcon.expectToBeVisible();
+                                                            tester.softphone.expectTextContentToHaveSubstring(
+                                                                '+7 (916) 123-45-67 Поиск контакта... 00:00'
+                                                            );
                                                         });
                                                     });
-                                                    it('Данные контакта не найдены.', function() {
-                                                        tester.outCallSessionEvent().noName().receive();
-                                                        tester.outCallSessionEvent().noName().
-                                                            slavesNotification().expectToBeSent();
+                                                    describe('Контакт является сотрудником.', function() {
+                                                        beforeEach(function() {
+                                                            numaRequest.employeeNameIsFound().receiveResponse();
 
-                                                        tester.outgoingIcon.expectToBeVisible();
-                                                        tester.softphone.expectTextContentToHaveSubstring(
-                                                            '+7 (916) 123-45-67 Исходящий звонок 00:00'
-                                                        );
-                                                    });
-                                                    it(
-                                                        'Отображен номер, таймер, направление и сообщение о поиске ' +
-                                                        'контакта.',
-                                                    function() {
-                                                        tester.outgoingIcon.expectToBeVisible();
-                                                        tester.softphone.expectTextContentToHaveSubstring(
-                                                            '+7 (916) 123-45-67 Поиск контакта... 00:00'
-                                                        );
+                                                            tester.slavesNotification().
+                                                                additional().
+                                                                name().
+                                                                visible().
+                                                                expectToBeSent();
+                                                        });
+
+                                                        it(
+                                                            'Нажимаю на кнопку остановки звонка. Ввожу тот же самый ' +
+                                                            'номер. Отображается поле номера.',
+                                                        function() {
+                                                            tester.stopCallButton.click();
+
+                                                            tester.slavesNotification().
+                                                                available().
+                                                                userDataFetched().
+                                                                twoChannels().
+                                                                ended().
+                                                                expectToBeSent();
+
+                                                            outboundCall.expectCancelingRequestToBeSent();
+
+                                                            tester.callSessionFinish().thirdId().slavesNotification().
+                                                                expectToBeSent();
+
+                                                            tester.phoneField.fill('79161234567');
+
+                                                            tester.phoneField.expectToHaveValue('79161234567');
+                                                        });
+                                                        it('Отображено имя, номер и таймер.', function() {
+                                                            tester.outgoingIcon.expectToBeVisible();
+                                                            tester.softphone.expectToBeCollapsed();
+
+                                                            tester.softphone.expectTextContentToHaveSubstring(
+                                                                'Шалева Дора +7 (916) 123-45-67 00:00'
+                                                            );
+                                                        });
                                                     });
                                                 });
-                                                describe('Контакт является сотрудником.', function() {
-                                                    beforeEach(function() {
-                                                        numaRequest.employeeNameIsFound().receiveResponse();
+                                                it(
+                                                    'Нажимаю на клавишу Enter. Совершается исходящий звонок.',
+                                                function() {
+                                                    tester.phoneField.pressEnter();
 
-                                                        tester.slavesNotification().
-                                                            additional().
-                                                            name().
-                                                            visible().
-                                                            expectToBeSent();
-                                                    });
+                                                    tester.firstConnection.connectWebRTC();
+                                                    tester.allowMediaInput();
 
-                                                    it(
-                                                        'Нажимаю на кнопку остановки звонка. Ввожу тот же самый ' +
-                                                        'номер. Отображается поле номера.',
-                                                    function() {
-                                                        tester.stopCallButton.click();
+                                                    outboundCall = tester.outboundCall().expectToBeSent()
 
-                                                        tester.slavesNotification().
-                                                            available().
-                                                            userDataFetched().
-                                                            twoChannels().
-                                                            ended().
-                                                            expectToBeSent();
+                                                    tester.slavesNotification().
+                                                        available().
+                                                        userDataFetched().
+                                                        twoChannels().
+                                                        sending().
+                                                        expectToBeSent();
 
-                                                        outboundCall.expectCancelingRequestToBeSent();
+                                                    outboundCall.setRinging();
 
-                                                        tester.callSessionFinish().thirdId().slavesNotification().
-                                                            expectToBeSent();
+                                                    tester.slavesNotification().
+                                                        available().
+                                                        userDataFetched().
+                                                        twoChannels().
+                                                        progress().
+                                                        expectToBeSent();
 
-                                                        tester.phoneField.fill('79161234567');
+                                                    tester.firstConnection.callTrackHandler();
 
-                                                        tester.phoneField.expectToHaveValue('79161234567');
-                                                    });
-                                                    it('Отображено имя, номер и таймер.', function() {
-                                                        tester.outgoingIcon.expectToBeVisible();
-                                                        tester.softphone.expectToBeCollapsed();
+                                                    tester.numaRequest().receiveResponse();
 
-                                                        tester.softphone.expectTextContentToHaveSubstring(
-                                                            'Шалева Дора +7 (916) 123-45-67 00:00'
-                                                        );
-                                                    });
+                                                    tester.outCallSessionEvent().receive();
+                                                    tester.outCallSessionEvent().slavesNotification().expectToBeSent();
                                                 });
                                             });
                                             it('Нажимаю на кнопку удаления цифры. Цифра удалена.', function() {

@@ -696,6 +696,10 @@ tests.addTest(options => {
                                         tester.spin.expectToBeVisible();
                                     });
                                 });
+                                it('Нажимаю на клавишу Enter в поле поиска. Прием звонка не происходит.', function() {
+                                    tester.input.withPlaceholder('Имя или телефон').click();
+                                    tester.input.withPlaceholder('Имя или телефон').pressEnter();
+                                });
                             });
                             describe(
                                 'Нажимаю на кнопку второй страницы. Отправлен запрос второй страницы.',
