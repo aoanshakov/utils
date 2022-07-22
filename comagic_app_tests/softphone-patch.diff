@@ -44,18 +44,10 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index f9f42a7..74fd4c4 100644
+index 9c7229b..74fd4c4 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -524,6 +524,7 @@ export const RootStore = types
-                                     state: { destroyed },
-                                 } = getState().webRTC;
- 
-+                                self.callHistoryStore.setPermissions(null);
-                                 self.setSoftphoneAvailable(false);
-                                 !destroyed && sdk && sdk.destroy();
-                                 removeAllRequests();
-@@ -690,4 +691,5 @@ export const RootStore = types
+@@ -691,4 +691,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
