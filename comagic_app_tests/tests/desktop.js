@@ -5,6 +5,7 @@ tests.addTest(options => {
         spendTime,
         addSecond,
         windowOpener,
+        setFocus,
         mediaStreamsTester,
         unload,
         ajax,
@@ -599,23 +600,32 @@ tests.addTest(options => {
                                     expectToBeSentWithArguments(false);
                             });
 
-                            it(
-                                'Нажимаю на цифру. Звонок принят. Нажимаю на решетку. Отправляется DTMF. Звучит тон.',
-                            function() {
-                                utils.pressEnter();
+                            describe('Нажимаю на цифру. Звонок принят.', function() {
+                                beforeEach(function() {
+                                    utils.pressEnter();
 
-                                tester.firstConnection.connectWebRTC();
-                                tester.firstConnection.callTrackHandler();
+                                    tester.firstConnection.connectWebRTC();
+                                    tester.firstConnection.callTrackHandler();
 
-                                tester.allowMediaInput();
-                                tester.firstConnection.addCandidate();
-                                
-                                incomingCall.expectOkToBeSent().receiveResponse();
+                                    tester.allowMediaInput();
+                                    tester.firstConnection.addCandidate();
+                                    
+                                    incomingCall.expectOkToBeSent().receiveResponse();
+                                });
 
-                                utils.pressKey('7');
-                                tester.dtmf('7').send();
+                                it(
+                                    'Убираю фокус с окна. Нажимаю на кнопку диалпада. DTMF не отправляется. Тон не ' +
+                                    'звучит.',
+                                function() {
+                                    setFocus(false);
+                                    utils.pressKey('7');
+                                });
+                                it('Нажимаю на кнопку диалпада. Отправляется DTMF. Звучит тон.', function() {
+                                    utils.pressKey('7');
+                                    tester.dtmf('7').send();
 
-                                tester.expectToneSevenToPlay();
+                                    tester.expectToneSevenToPlay();
+                                });
                             });
                             it('Нажимаю на клавишу Esc. Звонок отклоняется.', function() {
                                 utils.pressEscape();

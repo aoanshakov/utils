@@ -3825,8 +3825,8 @@ function JsTester_Tests (factory) {
             notificationTester: notificationTester,
             blobsTester: blobsTester,
             copiedTextsTester: copiedTextsTester,
+            setFocus: hasFocus.createSetter(),
             setDocumentVisible: new JsTester_VisibilitySetter({
-                setFocus: hasFocus.createSetter(),
                 setBrowserHidden,
                 setBrowserVisible,
                 isBrowserHidden: isBrowserHidden.createGetter(),
