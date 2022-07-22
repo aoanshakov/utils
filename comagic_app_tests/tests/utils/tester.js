@@ -467,7 +467,7 @@ define(() => function ({
 
             tester.expectToBeChecked = () => tester.expectToHaveClass(checkedClass);
             tester.expectNotToBeChecked = () => tester.expectNotToHaveClass(checkedClass);
-            tester.expectToBeDisaled = () => tester.expectToHaveClass(disabledClass)
+            tester.expectToBeDisabled = () => tester.expectToHaveClass(disabledClass)
             tester.expectToBeEnabled = () => tester.expectNotToHaveClass(disabledClass)
 
             return tester;
@@ -540,7 +540,7 @@ define(() => function ({
                     return tester;
                 };
 
-                tester.expectToBeDisaled = () => selectTester.expectToHaveClass('ui-select-disabled');
+                tester.expectToBeDisabled = () => selectTester.expectToHaveClass('ui-select-disabled');
                 tester.expectToBeEnabled = () => selectTester.expectNotToHaveClass('ui-select-disabled');
 
                 return tester;
@@ -8087,7 +8087,7 @@ define(() => function ({
     me.employeeRow = text => (domElement => {
         const tester = testersFactory.createDomElementTester(domElement);
 
-        tester.expectToBeDisaled = () => tester.expectToHaveClass('cmg-disabled');
+        tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-disabled');
         tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cmg-disabled');
 
         tester.transferIcon = testersFactory.createDomElementTester(domElement.querySelector(

@@ -230,7 +230,7 @@ tests.addTest(options => {
                                                                             expectToBeSent();
 
                                                                         tester.employeeRow('Отдел дистрибуции').
-                                                                            expectToBeDisaled();
+                                                                            expectToBeDisabled();
                                                                     });
                                                                     it('Отображена таблица групп.', function() {
                                                                         tester.employeeRow('Отдел дистрибуции').
@@ -350,7 +350,7 @@ tests.addTest(options => {
                                                                     tester.employeeRow('Божилова Йовка').transferIcon.
                                                                         expectToBeVisible();
                                                                     tester.employeeRow('Божилова Йовка').
-                                                                        expectToBeDisaled();
+                                                                        expectToBeDisabled();
                                                                     tester.employeeRow('Шалева Дора').
                                                                         expectToBeEnabled();
                                                                 });
@@ -2357,7 +2357,7 @@ tests.addTest(options => {
                                                         userDataFetched().
                                                         expectToBeSent();
 
-                                                    tester.employeeRow('Шалева Дора').expectToBeDisaled();
+                                                    tester.employeeRow('Шалева Дора').expectToBeDisabled();
 
                                                     tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
                                                 });

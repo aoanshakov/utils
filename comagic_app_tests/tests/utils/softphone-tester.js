@@ -1213,6 +1213,7 @@ define(function () {
                             });
 
                             Promise.runAll();
+                            spendTime(0);
                         }
                     };
 

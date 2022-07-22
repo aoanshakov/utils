@@ -173,6 +173,131 @@ tests.addTest(options => {
                                         notProcessedCallsRequest.receiveResponse();
                                     });
 
+                                    describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
+                                        let permissionsRequest;
+
+                                        beforeEach(function() {
+                                            tester.userName.putMouseOver();
+                                            tester.logoutButton.click();
+
+                                            tester.userLogoutRequest().receiveResponse();
+                                            tester.masterInfoMessage().leaderDeath().expectToBeSent();
+
+                                            tester.slavesNotification().
+                                                userDataFetched().
+                                                twoChannels().
+                                                microphoneAccessGranted().
+                                                destroyed().
+                                                enabled().
+                                                expectToBeSent();
+
+                                            Promise.runAll(false, true);
+                                            spendTime(0);
+                                            Promise.runAll(false, true);
+                                            spendTime(0);
+                                            Promise.runAll(false, true);
+                                            spendTime(0);
+
+                                            tester.eventsWebSocket.finishDisconnecting();
+                                            tester.registrationRequest().expired().receiveResponse();
+
+                                            tester.authLogoutRequest().receiveResponse();
+
+                                            spendTime(2000);
+                                            tester.webrtcWebsocket.finishDisconnecting();
+
+                                            tester.input.withFieldLabel('Логин').fill('botusharova');
+                                            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                                            tester.button('Войти').click();
+
+                                            tester.loginRequest().anotherAuthorizationToken().receiveResponse();
+                                            tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+
+                                            tester.configRequest().softphone().receiveResponse();
+
+                                            tester.masterInfoMessage().receive();
+                                            tester.slavesNotification().expectToBeSent();
+                                            tester.slavesNotification().additional().expectToBeSent();
+                                            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                                            const requests = ajax.inAnyOrder();
+
+                                            const secondAccountRequest = tester.accountRequest().
+                                                anotherAuthorizationToken().expectToBeSent(requests);
+                                            const authCheckRequest = tester.authCheckRequest().
+                                                anotherAuthorizationToken().expectToBeSent(requests);
+
+                                            requests.expectToBeSent();
+
+                                            secondAccountRequest.receiveResponse();
+                                            authCheckRequest.receiveResponse();
+
+                                            tester.reportGroupsRequest().anotherAuthorizationToken().
+                                                receiveResponse();
+                                            tester.reportsListRequest().receiveResponse();
+                                            tester.reportTypesRequest().receiveResponse();
+
+                                            tester.statusesRequest().createExpectation().
+                                                anotherAuthorizationToken().checkCompliance().receiveResponse();
+
+                                            tester.settingsRequest().anotherAuthorizationToken().
+                                                receiveResponse();
+
+                                            tester.slavesNotification().twoChannels().enabled().
+                                                expectToBeSent();
+
+                                            tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                                            tester.othersNotification().updateSettings().
+                                                shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                                            tester.talkOptionsRequest().receiveResponse();
+                                            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+                                            tester.connectEventsWebSocket(1);
+                                            tester.slavesNotification().twoChannels().enabled().
+                                                softphoneServerConnected().expectToBeSent();
+
+                                            tester.connectSIPWebSocket(1);
+                                            tester.slavesNotification().twoChannels().
+                                                softphoneServerConnected().webRTCServerConnected().
+                                                expectToBeSent();
+
+                                            tester.authenticatedUserRequest().receiveResponse();
+                                            tester.slavesNotification().userDataFetched().twoChannels().
+                                                softphoneServerConnected().webRTCServerConnected().
+                                                expectToBeSent();
+
+                                            tester.registrationRequest().receiveResponse();
+                                            tester.slavesNotification().userDataFetched().twoChannels().
+                                                webRTCServerConnected().registered().softphoneServerConnected().
+                                                expectToBeSent();
+
+                                            tester.allowMediaInput();
+                                            tester.slavesNotification().userDataFetched().twoChannels().
+                                                available().expectToBeSent();
+                                        });
+
+                                        it(
+                                            'Получены права. Получены данные для таблицы истории. Вкладки "Все" и ' +
+                                            '"Необработанные" заблокированы.',
+                                        function() {
+                                            permissionsRequest.disallowSoftphoneAllCallsStatSelect().receiveResponse();
+
+                                            tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+                                            tester.marksRequest().receiveResponse();
+
+                                            tester.radioButton('Мои').expectToBeSelected();
+                                            tester.radioButton('Все').expectNotToBeSelected();
+                                            tester.radioButton('Необработанные').expectNotToBeSelected();
+
+                                            tester.radioButton('Мои').expectToBeDisabled();
+                                            tester.radioButton('Все').expectToBeDisabled();
+                                            tester.radioButton('Необработанные').expectToBeDisabled();
+                                        });
+                                        it('Таблица скрыта.', function() {
+                                            tester.table.expectNotToExist();
+                                        });
+                                    });
                                     describe('Открываю выпадающий список "Звонки".', function() {
                                         beforeEach(function() {
                                             tester.select.withValue('Звонки: Все').click();
@@ -876,10 +1001,10 @@ tests.addTest(options => {
                                 tester.radioButton('Все').expectNotToBeSelected();
                                 tester.radioButton('Необработанные').expectNotToBeSelected();
 
-                                tester.select.withValue('Звонки: Все').expectToBeDisaled();
-                                tester.select.withValue('Направления: Все').expectToBeDisaled();
-                                tester.select.withPlaceholder('Группы').expectToBeDisaled();
-                                tester.switchButton.expectToBeDisaled();
+                                tester.select.withValue('Звонки: Все').expectToBeDisabled();
+                                tester.select.withValue('Направления: Все').expectToBeDisabled();
+                                tester.select.withPlaceholder('Группы').expectToBeDisabled();
+                                tester.switchButton.expectToBeDisabled();
 
                                 tester.table.row.first.column.first.svg.
                                     expectToHaveClass('incoming_svg__cmg-direction-icon');
@@ -1600,7 +1725,7 @@ tests.addTest(options => {
                 });
             });
         });
-        it('У пользователя нет роли.', function() {
+        it('У пользователя нет роли. Вкладки "Все" и "Необработанные" заблокированы.', function() {
             accountRequest.noCallCenterRole().receiveResponse();
 
             const requests = ajax.inAnyOrder();
@@ -1852,75 +1977,113 @@ tests.addTest(options => {
             tester.button('История звонков').expectNotToExist();
         });
     });
-    it('Открываю историю звонков. Страница локализована.', function() {
-        setNow('2019-12-19T12:10:06');
+    describe('Открываю историю звонков.', function() {
+        let tester,
+            permissionsRequest;
 
-        const tester = new Tester({
-            ...options,
-            path: '/softphone/call-history',
-            isAlreadyAuthenticated: true
+        beforeEach(function() {
+            setNow('2019-12-19T12:10:06');
+
+            tester = new Tester({
+                ...options,
+                path: '/softphone/call-history',
+                isAlreadyAuthenticated: true
+            });
+
+            tester.accountRequest().receiveResponse();
+
+            const requests = ajax.inAnyOrder();
+
+            const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            reportGroupsRequest.receiveResponse();
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            secondAccountRequest.receiveResponse();
+
+            tester.configRequest().softphone().receiveResponse();
+
+            tester.masterInfoMessage().receive();
+            tester.slavesNotification().expectToBeSent();
+            tester.slavesNotification().additional().expectToBeSent();
+
+            tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+
+            tester.authCheckRequest().receiveResponse();
+            tester.statusesRequest().receiveResponse();
+            tester.settingsRequest().receiveResponse();
+
+            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+            tester.othersNotification().widgetStateUpdate().expectToBeSent();
+            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            notificationTester.grantPermission();
+            tester.talkOptionsRequest().receiveResponse();
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
+            tester.connectEventsWebSocket();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
+
+            tester.connectSIPWebSocket();
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
+                expectToBeSent();
+
+            tester.authenticatedUserRequest().receiveResponse();
+
+            tester.slavesNotification().
+                userDataFetched().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
+                expectToBeSent();
+            
+            tester.registrationRequest().receiveResponse();
+
+            tester.slavesNotification().
+                userDataFetched().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
+                registered().
+                expectToBeSent();
+
+            tester.allowMediaInput();
+
+            tester.slavesNotification().
+                userDataFetched().
+                twoChannels().
+                available().
+                expectToBeSent();
         });
 
-        tester.accountRequest().receiveResponse();
+        it('Получены права. Получены данные для таблицы истории. Страница локализована.', function() {
+            permissionsRequest.receiveResponse();
 
-        const requests = ajax.inAnyOrder();
+            tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+            tester.marksRequest().receiveResponse();
 
-        const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-            secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
-
-        requests.expectToBeSent();
-
-        reportGroupsRequest.receiveResponse();
-        reportsListRequest.receiveResponse();
-        reportTypesRequest.receiveResponse();
-        secondAccountRequest.receiveResponse();
-
-        tester.configRequest().softphone().receiveResponse();
-
-        tester.masterInfoMessage().receive();
-        tester.slavesNotification().expectToBeSent();
-        tester.slavesNotification().additional().expectToBeSent();
-
-        tester.notificationChannel().tellIsLeader().expectToBeSent();
-        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-        tester.notificationChannel().applyLeader().expectToBeSent();
-        tester.notificationChannel().applyLeader().expectToBeSent();
-
-        tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
-        tester.marksRequest().receiveResponse();
-
-        tester.authCheckRequest().receiveResponse();
-        tester.statusesRequest().receiveResponse();
-        tester.settingsRequest().receiveResponse();
-
-        tester.slavesNotification().twoChannels().enabled().expectToBeSent();
-        tester.othersNotification().widgetStateUpdate().expectToBeSent();
-        tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
-
-        notificationTester.grantPermission();
-        tester.talkOptionsRequest().receiveResponse();
-        tester.permissionsRequest().receiveResponse();
-
-        tester.connectEventsWebSocket();
-        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
-
-        tester.connectSIPWebSocket();
-        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().expectToBeSent();
-
-        tester.authenticatedUserRequest().receiveResponse();
-        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().softphoneServerConnected().
-            expectToBeSent();
-        
-        tester.registrationRequest().receiveResponse();
-        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().softphoneServerConnected().
-            registered().expectToBeSent();
-
-        tester.allowMediaInput();
-        tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
-
-        tester.body.expectTextContentToHaveSubstring('Скрыть обработанные другими группами');
-        tester.body.expectTextContentNotToHaveSubstring('Hide calls processed by another groups');
+            tester.body.expectTextContentToHaveSubstring('Скрыть обработанные другими группами');
+            tester.body.expectTextContentNotToHaveSubstring('Hide calls processed by another groups');
+        });
+        it('Таблица скрыта.', function() {
+            tester.table.expectNotToExist();
+        });
     });
 });
