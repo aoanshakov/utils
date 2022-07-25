@@ -8158,6 +8158,7 @@ define(() => function ({
         return tester;
     };
 
+    me.nameOrPhone = testersFactory.createDomElementTester('.cmg-name-or-phone-wrapper');
     me.largeSizeButton = createCollapsedessButton('cmg-large-size-button');
     me.middleSizeButton = createCollapsedessButton('cmg-middle-size-button');
     me.smallSizeButton = createCollapsedessButton('cmg-small-size-button');

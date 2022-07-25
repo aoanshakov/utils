@@ -494,7 +494,8 @@ function JsTester_MediaStreamWrapper (options) {
 }
 
 function JsTester_Variable () {
-    var value = arguments.length == 0 ? false : arguments[0];
+    var value = arguments.length == 0 ? false : arguments[0],
+        isLogEnabled = arguments[1];
 
     this.createGetter = function () {
         return function () {
@@ -503,7 +504,10 @@ function JsTester_Variable () {
     };
     this.createSetter = function () {
         return function (newValue) {
+            const isChanged = newValue !== value;
             value = newValue;
+
+            return isChanged
         };
     };
 }
@@ -3359,6 +3363,13 @@ function JsTester_VisibilitySetter ({
     };
 }
 
+function JsTester_FocusSetter (setFocus) {
+    return function (newValue) {
+        const isChanged = setFocus(newValue);
+        isChanged && window.dispatchEvent(new Event(newValue ? 'focus' : 'blur'));
+    }
+}
+
 function JsTester_ResizeObserver () {
     this.observe = () => null;
     this.unobserve = () => null;
@@ -3472,7 +3483,7 @@ function JsTester_Tests (factory) {
         FakeIntersectionObserver = new JsTester_IntersectionObserverFactory(intersectionObservations),
         intersectionObserverMocker = new JsTester_IntersectionObserverMocker(FakeIntersectionObserver),
         mutationObserverTester =  mutationObserverFactory.createTester(),
-        hasFocus = new JsTester_Variable(),
+        hasFocus = new JsTester_Variable(false, true),
         isBrowserHidden = new JsTester_Variable(),
         isBrowserVisible = new JsTester_Variable(true),
         setBrowserHidden = isBrowserHidden.createSetter(),
@@ -3825,7 +3836,7 @@ function JsTester_Tests (factory) {
             notificationTester: notificationTester,
             blobsTester: blobsTester,
             copiedTextsTester: copiedTextsTester,
-            setFocus: hasFocus.createSetter(),
+            setFocus: new JsTester_FocusSetter(hasFocus.createSetter()),
             setDocumentVisible: new JsTester_VisibilitySetter({
                 setBrowserHidden,
                 setBrowserVisible,

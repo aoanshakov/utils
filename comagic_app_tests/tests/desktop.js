@@ -254,6 +254,104 @@ tests.addTest(options => {
                                 tester.button('Запускать свернуто').expectToBeDisabled();
                             });
                         });
+                        describe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
+                            let incomingCall;
+
+                            beforeEach(function() {
+                                incomingCall = tester.incomingCall().receive();
+                                tester.numaRequest().receiveResponse();
+                                tester.outCallEvent().activeLeads().receive();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 568
+                                    });
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('incoming-call').
+                                    expectToBeSentWithArguments(false);
+                            });
+
+                            describe('Нажимаю на клавишу Enter. Звонок принят.', function() {
+                                beforeEach(function() {
+                                    utils.pressEnter();
+
+                                    tester.firstConnection.connectWebRTC();
+                                    tester.firstConnection.callTrackHandler();
+
+                                    tester.allowMediaInput();
+                                    tester.firstConnection.addCandidate();
+                                    
+                                    incomingCall.expectOkToBeSent().receiveResponse();
+                                });
+
+                                describe('Убираю фокус с окна.', function() {
+                                    beforeEach(function() {
+                                        setFocus(false);
+                                    });
+
+                                    describe('Фокусирую окно.', function() {
+                                        beforeEach(function() {
+                                            setFocus(true);
+                                        });
+
+                                        it(
+                                            'Совершаю клик. Нажимаю на кнопку диалпада. Отправляется DTMF. Звучит тон.',
+                                        function() {
+                                            tester.nameOrPhone.click();
+
+                                            utils.pressKey('7');
+                                            tester.dtmf('7').send();
+
+                                            tester.expectToneSevenToPlay();
+                                        });
+                                        it(
+                                            'Нажимаю на кнопку диалпада. DTMF не отправляется. Тон не звучит.',
+                                        function() {
+                                            utils.pressKey('7');
+                                        });
+                                    });
+                                    it('Нажимаю на кнопку диалпада. DTMF не отправляется. Тон не звучит.', function() {
+                                        utils.pressKey('7');
+                                    });
+                                });
+                                it('Нажимаю на кнопку диалпада. Отправляется DTMF. Звучит тон.', function() {
+                                    utils.pressKey('7');
+                                    tester.dtmf('7').send();
+
+                                    tester.expectToneSevenToPlay();
+                                });
+                            });
+                            it('Нажимаю на клавишу Esc. Звонок отклоняется.', function() {
+                                utils.pressEscape();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('call-end').
+                                    expectToBeSentWithArguments(true);
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 212
+                                    });
+
+                                incomingCall.expectTemporarilyUnavailableToBeSent();
+                            });
+                            it('Нажимаю на открытую сделку. Открывается страница сделки.', function() {
+                                tester.anchor('По звонку с 79154394340').click();
+
+                                getPackage('electron').shell.expectExternalUrlToBeOpened(
+                                    'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
+                                );
+                            });
+                        });
                         describe('Нажимаю на кнопку переключения на большой размер.', function() {
                             beforeEach(function() {
                                 tester.largeSizeButton.click();
@@ -576,81 +674,6 @@ tests.addTest(options => {
                             it('Отображены статусы.', function() {
                                 tester.statusesList.item('Не беспокоить').expectToBeSelected();
                                 tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
-                            });
-                        });
-                        describe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
-                            let incomingCall;
-
-                            beforeEach(function() {
-                                incomingCall = tester.incomingCall().receive();
-                                tester.numaRequest().receiveResponse();
-                                tester.outCallEvent().activeLeads().receive();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('resize').
-                                    expectToBeSentWithArguments({
-                                        width: 340,
-                                        height: 568
-                                    });
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('incoming-call').
-                                    expectToBeSentWithArguments(false);
-                            });
-
-                            describe('Нажимаю на цифру. Звонок принят.', function() {
-                                beforeEach(function() {
-                                    utils.pressEnter();
-
-                                    tester.firstConnection.connectWebRTC();
-                                    tester.firstConnection.callTrackHandler();
-
-                                    tester.allowMediaInput();
-                                    tester.firstConnection.addCandidate();
-                                    
-                                    incomingCall.expectOkToBeSent().receiveResponse();
-                                });
-
-                                it(
-                                    'Убираю фокус с окна. Нажимаю на кнопку диалпада. DTMF не отправляется. Тон не ' +
-                                    'звучит.',
-                                function() {
-                                    setFocus(false);
-                                    utils.pressKey('7');
-                                });
-                                it('Нажимаю на кнопку диалпада. Отправляется DTMF. Звучит тон.', function() {
-                                    utils.pressKey('7');
-                                    tester.dtmf('7').send();
-
-                                    tester.expectToneSevenToPlay();
-                                });
-                            });
-                            it('Нажимаю на клавишу Esc. Звонок отклоняется.', function() {
-                                utils.pressEscape();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('call-end').
-                                    expectToBeSentWithArguments(true);
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('resize').
-                                    expectToBeSentWithArguments({
-                                        width: 340,
-                                        height: 212
-                                    });
-
-                                incomingCall.expectTemporarilyUnavailableToBeSent();
-                            });
-                            it('Нажимаю на открытую сделку. Открывается страница сделки.', function() {
-                                tester.anchor('По звонку с 79154394340').click();
-
-                                getPackage('electron').shell.expectExternalUrlToBeOpened(
-                                    'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
-                                );
                             });
                         });
                         describe('Нажимаю на кнопку дебага.', function() {
