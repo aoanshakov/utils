@@ -6407,20 +6407,41 @@ define(function () {
         }
 
         this.settingsChangedMessage = function () {
-            var data = {};
+            const data = {};
+
+            const message = {
+                name: 'settings_changed',
+                params: {data}
+            };
 
             return {
+                anotherComment: function () {
+                    data.number_capacity_comment = 'Другой комментарий';
+                    return this;
+                },
                 sofphoneIsTurnedOff: function () {
                     data.is_use_widget_for_calls = false;
                     return this;
                 },
-                receive: function () {
-                    eventsWebSocket.receiveMessage({
-                        name: 'settings_changed',
-                        params: {
-                            data: data 
+                slavesNotification: function () {
+                    return {
+                        expectToBeSent: function () {
+                            me.recentCrosstabMessage().expectToContain({
+                                type: 'message',
+                                data: {
+                                    type: 'notify_slaves',
+                                    data: {
+                                        type: 'websocket_message',
+                                        message
+                                    }
+                                }
+                            });
                         }
-                    });
+                    };
+                },
+                receive: function () {
+                    eventsWebSocket.receiveMessage(message);
+                    spendTime(0);
                 }
             };
         };

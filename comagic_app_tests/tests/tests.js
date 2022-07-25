@@ -3170,7 +3170,6 @@ tests.addTest(options => {
                                         });
                                         it('Отображен выбранный номер телефона.', function() {
                                             tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
-
                                         });
                                     });
                                     it(
@@ -3266,6 +3265,45 @@ tests.addTest(options => {
                                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                             });
 
+                            describe('SIP-линия зарегистрирована.', function() {
+                                beforeEach(function() {
+                                    authenticatedUserRequest.receiveResponse();
+
+                                    tester.slavesNotification().
+                                        userDataFetched().
+                                        twoChannels().
+                                        available().
+                                        expectToBeSent();
+                                });
+
+                                describe('Раскрываю диалпад.', function() {
+                                    beforeEach(function() {
+                                        tester.dialpadVisibilityButton.click();
+                                    });
+
+                                    it('Изменился комментарий. Отображен новый комментарий к номеру.', function() {
+                                        tester.settingsChangedMessage().anotherComment().receive();
+
+                                        tester.othersNotification().
+                                            updateSettings().
+                                            shouldNotPlayCallEndingSignal().
+                                            expectToBeSent();
+
+                                        tester.settingsChangedMessage().
+                                            anotherComment().
+                                            slavesNotification().
+                                            expectToBeSent();
+
+                                        tester.softphone.expectTextContentToHaveSubstring('Другой комментарий');
+                                    });
+                                    it('Отображен комментарий к номеру.', function() {
+                                        tester.softphone.expectTextContentToHaveSubstring('Отдел консалтинга');
+                                    });
+                                });
+                                it('Отображен выбранный номер.', function() {
+                                    tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
+                                });
+                            });
                             it(
                                 'SIP-линия не зарегистрирована. Отображено сообщение о том, что SIP-линия не ' +
                                 'зарегистрирована.',
@@ -3280,13 +3318,6 @@ tests.addTest(options => {
 
                                     '+7 (495) 021-68-06'
                                 );
-                            });
-                            it('Отображен выбранный номер.', function() {
-                                authenticatedUserRequest.receiveResponse();
-                                tester.slavesNotification().userDataFetched().twoChannels().available().
-                                    expectToBeSent();
-
-                                tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
                             });
                         });
                         describe('В качестве устройства для приема звонков исползуется IP-телефон.', function() {
