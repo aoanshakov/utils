@@ -738,20 +738,6 @@ tests.addTest(options => {
                 tester.softphone.expectTextContentToHaveSubstring('Шалева Дора');
                 mediaStreamsTester.expectStreamsToPlay('data:audio/wav;base64,' + tester.thirdRingtone);
             });
-            it('Выбираю рингтон по умолчанию. Звучит рингтон.', function() {
-                tester.fieldRow('Мелодия звонка').select.arrow.click();
-                tester.select.option('По умолчанию').click();
-
-                tester.settingsUpdatingRequest().defaultRingtone().receiveResponse();
-                tester.settingsRequest().isNeedDisconnectSignal().receiveResponse();
-
-                tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldPlayCallEndingSignal().defaultRingtone().
-                    expectToBeSent();
-
-                mediaStreamsTester.expectStreamsToPlay(soundSources.incomingCall);
-                tester.fieldRow('Мелодия звонка').select.expectToHaveTextContent('По умолчанию');
-            });
             it('Выбранные настройки звука применены.', function() {
                 mediaStreamsTester.expectStreamsToPlay('data:audio/wav;base64,' + tester.secondRingtone);
                 mediaStreamsTester.expectVolumeToEqual('data:audio/wav;base64,' + tester.secondRingtone, 25);
