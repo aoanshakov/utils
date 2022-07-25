@@ -6406,6 +6406,51 @@ define(function () {
             };
         }
 
+        this.numberCapacityChangedEvent = function () {
+            const message = {
+                type: 'event',
+                name: 'number_capacity_changed',
+                params: {
+                    action: 'update',
+                    data: [{
+                        data: {
+                            number_capacity_comment: 'Другой комментарий'
+                        },
+                        employee_id: 20816
+                    }, {
+                        data: {
+                            number_capacity_comment: 'Совсем другой комментарий'
+                        },
+                        app_id: 1868,
+                        employee_id: 21514
+                    }]
+                }
+            };
+
+            return {
+                slavesNotification: function () {
+                    return {
+                        expectToBeSent: function () {
+                            me.recentCrosstabMessage().expectToContain({
+                                type: 'message',
+                                data: {
+                                    type: 'notify_slaves',
+                                    data: {
+                                        type: 'websocket_message',
+                                        message
+                                    }
+                                }
+                            });
+                        }
+                    };
+                },
+                receive: function () {
+                    eventsWebSocket.receiveMessage(message);
+                    spendTime(0);
+                }
+            };
+        };
+
         this.settingsChangedMessage = function () {
             const data = {};
 

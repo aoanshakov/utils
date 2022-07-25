@@ -3282,15 +3282,19 @@ tests.addTest(options => {
                                     });
 
                                     it('Изменился комментарий. Отображен новый комментарий к номеру.', function() {
-                                        tester.settingsChangedMessage().anotherComment().receive();
+                                        tester.numberCapacityChangedEvent().receive();
+
+                                        tester.othersNotification().
+                                            widgetStateUpdate().
+                                            fixedNumberCapacityRule().
+                                            expectToBeSent();
 
                                         tester.othersNotification().
                                             updateSettings().
                                             shouldNotPlayCallEndingSignal().
                                             expectToBeSent();
 
-                                        tester.settingsChangedMessage().
-                                            anotherComment().
+                                        tester.numberCapacityChangedEvent().
                                             slavesNotification().
                                             expectToBeSent();
 
