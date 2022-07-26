@@ -3259,7 +3259,7 @@ tests.addTest(options => {
                                 tester.slavesNotification().twoChannels().webRTCServerConnected().
                                     softphoneServerConnected().microphoneAccessGranted().expectToBeSent();
 
-                                tester.numberCapacityRequest().receiveResponse();
+                                tester.numberCapacityRequest().withComment().receiveResponse();
                                 
                                 tester.registrationRequest().receiveResponse();
                                 tester.slavesNotification().twoChannels().available().expectToBeSent();
@@ -3283,24 +3283,36 @@ tests.addTest(options => {
                                         tester.dialpadVisibilityButton.click();
                                     });
 
-                                    it('Изменился комментарий. Отображен новый комментарий к номеру.', function() {
-                                        tester.numberCapacityChangedEvent().receive();
+                                    describe('Изменился комментарий.', function() {
+                                        beforeEach(function() {
+                                            tester.numberCapacityChangedEvent().receive();
 
-                                        tester.othersNotification().
-                                            widgetStateUpdate().
-                                            fixedNumberCapacityRule().
-                                            expectToBeSent();
+                                            tester.othersNotification().
+                                                widgetStateUpdate().
+                                                fixedNumberCapacityRule().
+                                                expectToBeSent();
 
-                                        tester.othersNotification().
-                                            updateSettings().
-                                            shouldNotPlayCallEndingSignal().
-                                            expectToBeSent();
+                                            tester.othersNotification().
+                                                updateSettings().
+                                                shouldNotPlayCallEndingSignal().
+                                                expectToBeSent();
 
-                                        tester.numberCapacityChangedEvent().
-                                            slavesNotification().
-                                            expectToBeSent();
+                                            tester.numberCapacityChangedEvent().
+                                                slavesNotification().
+                                                expectToBeSent();
+                                        });
 
-                                        tester.softphone.expectTextContentToHaveSubstring('Другой комментарий');
+                                        it(
+                                            'Открываю выпадающий список номеров. Отображен новый комментарий.',
+                                        function() {
+                                            tester.select.arrow.click();
+
+                                            tester.select.option('+7 (495) 021-68-06 Другой комментарий').
+                                                expectToBeVisible();
+                                        });
+                                        it('Отображен новый комментарий к номеру.', function() {
+                                            tester.softphone.expectTextContentToHaveSubstring('Другой комментарий');
+                                        });
                                     });
                                     it('Отображен комментарий к номеру.', function() {
                                         tester.softphone.expectTextContentToHaveSubstring('Отдел консалтинга');

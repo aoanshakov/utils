@@ -1055,6 +1055,11 @@ define(function () {
             }];
 
             function addMethods (me) {
+                me.withComment = function () {
+                    data.filter(item => item.id == 124824).comment = 'Отдел консалтинга';
+                    return me;
+                };
+
                 me.setOnlyOneNumber = function () {
                     data = [{
                         id: 124824,
