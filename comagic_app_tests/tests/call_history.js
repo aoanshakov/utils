@@ -1094,9 +1094,7 @@ tests.addTest(options => {
                             'успешными звонками.',
                         function() {
                             callsRequest.isFailed().receiveResponse();
-
-                            tester.table.row.first.
-                                expectToHaveClass('cmg-softphone-call-history-failed-call-row');
+                            tester.table.row.first.expectToHaveClass('cmg-softphone-call-history-failed-call-row');
                         });
                         it('Записи для таблицы не были получены. Панель пагинации скрыта.', function() {
                             callsRequest.noCalls().receiveResponse();

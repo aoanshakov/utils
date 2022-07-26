@@ -8033,8 +8033,10 @@ define(() => function ({
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
     me.incomingIcon = testersFactory.createDomElementTester('.incoming_svg__cmg-direction-icon');
     me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
-    me.transferIncomingIcon = testersFactory.createDomElementTester('.transfer_incoming_svg__cmg-direction-icon');
     me.holdButton = testersFactory.createDomElementTester('.cmg-hold-button');
+
+    me.transferIncomingIcon = testersFactory.
+        createDomElementTester('.transfer_incoming_successful_svg__cmg-direction-icon');
 
     me.productsButton = testersFactory.
         createDomElementTester('.src-components-main-menu-products-styles-module__icon-container');

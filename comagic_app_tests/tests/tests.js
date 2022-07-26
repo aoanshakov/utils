@@ -1621,10 +1621,10 @@ tests.addTest(options => {
                                                             expectNotToHaveAttribute('disabled');
 
                                                         tester.callsHistoryRow.withText('Гяурова Марийка').directory.
-                                                            expectToHaveClass('cmg-direction-incoming');
+                                                            expectToHaveClass('incoming_svg__cmg-direction-icon');
 
                                                         tester.callsHistoryRow.withText('Манова Тома').directory.
-                                                            expectToHaveClass('cmg-direction-outgoing');
+                                                            expectToHaveClass('outgoing_svg__cmg-direction-icon');
 
                                                         tester.softphone.expectToBeExpanded();
                                                     });
@@ -1635,7 +1635,9 @@ tests.addTest(options => {
                                                     callsRequest.transferCall().receiveResponse();
 
                                                     tester.callsHistoryRow.withText('Гяурова Марийка').directory.
-                                                        expectToHaveClass('cmg-direction-transfer');
+                                                        expectToHaveClass(
+                                                            'transfer_incoming_successful_svg__cmg-direction-icon'
+                                                        );
                                                 });
                                                 it(
                                                     
