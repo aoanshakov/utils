@@ -3082,6 +3082,7 @@ tests.addTest(options => {
                                         describe('Раскрываю список номеров.', function() {
                                             beforeEach(function() {
                                                 tester.select.arrow.click();
+                                                tester.numberCapacityRequest().receiveResponse();
                                             });
 
                                             describe(
@@ -3227,6 +3228,8 @@ tests.addTest(options => {
                                     expectToBeSent();
 
                                 tester.select.arrow.click();
+                                tester.numberCapacityRequest().receiveResponse();
+
                                 tester.select.option('+7 (916) 123-89-29 Некий номер').click();
                             });
                         });
@@ -3283,36 +3286,24 @@ tests.addTest(options => {
                                         tester.dialpadVisibilityButton.click();
                                     });
 
-                                    describe('Изменился комментарий.', function() {
-                                        beforeEach(function() {
-                                            tester.numberCapacityChangedEvent().receive();
+                                    it('Изменился комментарий. Отображен новый комментарий к номеру.', function() {
+                                        tester.numberCapacityChangedEvent().receive();
 
-                                            tester.othersNotification().
-                                                widgetStateUpdate().
-                                                fixedNumberCapacityRule().
-                                                expectToBeSent();
+                                        tester.othersNotification().
+                                            widgetStateUpdate().
+                                            fixedNumberCapacityRule().
+                                            expectToBeSent();
 
-                                            tester.othersNotification().
-                                                updateSettings().
-                                                shouldNotPlayCallEndingSignal().
-                                                expectToBeSent();
+                                        tester.othersNotification().
+                                            updateSettings().
+                                            shouldNotPlayCallEndingSignal().
+                                            expectToBeSent();
 
-                                            tester.numberCapacityChangedEvent().
-                                                slavesNotification().
-                                                expectToBeSent();
-                                        });
+                                        tester.numberCapacityChangedEvent().
+                                            slavesNotification().
+                                            expectToBeSent();
 
-                                        it(
-                                            'Открываю выпадающий список номеров. Отображен новый комментарий.',
-                                        function() {
-                                            tester.select.arrow.click();
-
-                                            tester.select.option('+7 (495) 021-68-06 Другой комментарий').
-                                                expectToBeVisible();
-                                        });
-                                        it('Отображен новый комментарий к номеру.', function() {
-                                            tester.softphone.expectTextContentToHaveSubstring('Другой комментарий');
-                                        });
+                                        tester.softphone.expectTextContentToHaveSubstring('Другой комментарий');
                                     });
                                     it('Отображен комментарий к номеру.', function() {
                                         tester.softphone.expectTextContentToHaveSubstring('Отдел консалтинга');

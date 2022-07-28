@@ -859,7 +859,9 @@ tests.addTest(options => {
                         describe('Открываю список номеров.', function() {
                             beforeEach(function() {
                                 windowSize.setHeight(212);
+
                                 tester.select.arrow.click();
+                                tester.numberCapacityRequest().receiveResponse();
                             });
 
                             it('Нажимаю на кнопку сворачивания списка.', function() {
@@ -879,7 +881,9 @@ tests.addTest(options => {
                             function() {
                                 tester.select.arrow.click();
                                 windowSize.setHeight(568);
+
                                 tester.select.arrow.click();
+                                tester.numberCapacityRequest().receiveResponse();
 
                                 tester.select.popup.expectToHaveTopOffset(92);
                                 tester.select.popup.expectToHaveHeight(331);
