@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 18318f8..2d66e26 100644
+index cfbfd72..2d66e26 100644
 --- a/package.json
 +++ b/package.json
 @@ -20,7 +20,6 @@
@@ -38,7 +38,7 @@ index 18318f8..2d66e26 100644
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
      "yup": "^0.32.9",
--    "uis-softphone": "git+https://sip_lib:glpat-Xzs1ef2zY2QoxFSchj8P@gitlab.uis.dev/web/sip_lib.git#multitab-local",
+-    "uis-softphone": "git+https://sip_lib:glpat-Xzs1ef2zY2QoxFSchj8P@gitlab.uis.dev/web/sip_lib.git#1d49d651283b888e65cfd9b1a13004b0e14f3e0a",
 -    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab"
 +    "uis-softphone": "./misc/sip_lib"
    }
