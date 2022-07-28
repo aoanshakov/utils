@@ -1056,7 +1056,14 @@ define(function () {
 
             function addMethods (me) {
                 me.withComment = function () {
-                    data.filter(item => item.id == 124824).comment = 'Отдел консалтинга';
+                    data.find(item => item.id == 124824).comment = 'Отдел консалтинга';
+                    return me;
+                };
+
+                me.withLongComment = function () {
+                    data.find(item => item.id == 124824).comment = 'Кобыла и трупоглазые жабы искали цезию, нашли ' +
+                        'поздно утром свистящего хнаааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааа' +
+                        'ааааааааааа';
                     return me;
                 };
 

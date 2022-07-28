@@ -13,6 +13,7 @@ const {
     chatsPatch,
     corePatch,
     magicUiPatch,
+    magicUiLibPatch,
     huskyPatch,
     softphonePatch,
     analyticsPatch,
@@ -21,7 +22,8 @@ const {
     core,
     chats,
     magicUi,
-    magicUiTarget,
+    softphoneMagicUi,
+    sipLibMagiUi,
     softphone,
     analytics,
     analyticsDir,
@@ -227,6 +229,10 @@ actions['create-patch'] = params => getOverriding(params).reduce((result, {
     `if [ -e ${shadowContentTsxTarget} ]; then cp ${shadowContentTsxTarget} ${shadowContentTsxSource}; fi`
 ]);
 
+actions['create-magic-ui-lib-patch'] = params => [
+    `cd ${magicUi} && git diff -- ${magicUiOverridenFiles} > ${magicUiLibPatch}`
+];
+
 actions['restore-code'] = params => getOverriding(params).reduce((result, {
     application,
     overridenFiles
@@ -261,10 +267,13 @@ actions['patch-node-modules'] = [
 ].map(([path, patch]) => `cd ${path} && patch -p1 < ${patch}`);
 
 actions['copy-magic-ui'] = [
+    `cd ${magicUi} && git checkout ${magicUiOverridenFiles}`,
+    `cd ${magicUi} && patch -p1 < ${magicUiLibPatch}`
+].concat([softphoneMagicUi, sipLibMagiUi].reduce((result, magicUiTarget) => result.concat([
     rmVerbose(magicUiTarget),
     `mkdir ${magicUiTarget}`,
     `cp -r ${magicUi}/lib ${magicUi}/package.json ${magicUiTarget}`
-];
+]), []));
 
 actions['initialize'] = params => [
     appModule(['chats', chats, '']),

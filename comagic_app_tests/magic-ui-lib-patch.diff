@@ -1,0 +1,20 @@
+diff --git a/package.json b/package.json
+index 16f21db8..cf8ec5c7 100644
+--- a/package.json
++++ b/package.json
+@@ -25,7 +25,6 @@
+     "sass": "node scripts/sass.js",
+     "storybook": "start-storybook -p 6006 -s ./assets",
+     "build-storybook": "build-storybook",
+-    "prepare": "husky install",
+     "prebuild": "npm run svgr",
+     "lint": "tsc --noEmit && eslint src/**/*.{ts,tsx}",
+     "prettier": "prettier --write src/**/*.{ts,tsx}"
+@@ -76,7 +75,6 @@
+     "eslint-plugin-react": "^7.23.2",
+     "eslint-plugin-react-hooks": "^4.2.0",
+     "file-loader": "^6.2.0",
+-    "husky": "^6.0.0",
+     "mini-css-extract-plugin": "^1.6.0",
+     "prettier": "^2.2.1",
+     "react": "^17.0.2",
