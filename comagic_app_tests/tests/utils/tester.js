@@ -1084,44 +1084,48 @@ define(() => function ({
 
         const addGroup = groupId => (queryParams.group_ids || (queryParams.group_ids = [])).push(groupId);
 
+        const data = [{
+            call_session_id: 980925444,
+            call_type: 'external',
+            comment: null,
+            phone_book_contact_id: null,
+            direction: 'in',
+            duration: 20,
+            file_links: null,
+            contact_id: 839275,
+            contact_name: 'Тодорова Гера',
+            crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/218402',
+            mark_ids: [],
+            subscriber_number: '74950230625',
+            virtual_number: '74950230630',
+            start_time: '2019-12-19T08:03:02.522+03:00',
+            is_lost: true
+        }, {
+            call_session_id: 980925445,
+            call_type: 'external',
+            comment: null,
+            phone_book_contact_id: null,
+            direction: 'in',
+            duration: 24,
+            file_links: null,
+            contact_id: 839276,
+            contact_name: 'Михайлова Врабка',
+            crm_contact_link: null,
+            mark_ids: [],
+            subscriber_number: '74950230626',
+            virtual_number: '74950230631',
+            start_time: '2019-12-19T10:13:02.529+03:00',
+            is_lost: false
+        }];
+
         let receiveResponse = request => request.respondSuccessfullyWith({
             success: true,
-            data: [{
-                call_session_id: 980925444,
-                call_type: 'external',
-                comment: null,
-                phone_book_contact_id: null,
-                direction: 'in',
-                duration: 20,
-                file_links: null,
-                contact_id: 839275,
-                contact_name: 'Тодорова Гера',
-                crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/218402',
-                mark_ids: [],
-                subscriber_number: '74950230625',
-                virtual_number: '74950230630',
-                start_time: '2019-12-19T08:03:02.522+03:00',
-                is_lost: true
-            }, {
-                call_session_id: 980925445,
-                call_type: 'external',
-                comment: null,
-                phone_book_contact_id: null,
-                direction: 'in',
-                duration: 24,
-                file_links: null,
-                contact_id: 839276,
-                contact_name: 'Михайлова Врабка',
-                crm_contact_link: null,
-                mark_ids: [],
-                subscriber_number: '74950230626',
-                virtual_number: '74950230631',
-                start_time: '2019-12-19T10:13:02.529+03:00',
-                is_lost: false
-            }]
+            data
         });
 
         const addResponseModifiers = me => {
+            me.noContactName = () => (data[1].contact_name = null, me);
+
             me.serverError = () => {
                 receiveResponse = request =>
                     request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
