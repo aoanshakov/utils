@@ -2574,6 +2574,8 @@ define(function () {
                         ).
                         response().
                         setOk();
+
+                    spendTime(0);
                 }
             };
         };

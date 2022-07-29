@@ -44,10 +44,48 @@ index cfbfd72..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 01038e0..251174a 100644
+index 01038e0..a249b7f 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -692,4 +692,5 @@ export const RootStore = types
+@@ -6,6 +6,7 @@ import createI18N from 'uis-softphone/common/createI18N';
+ import { authorization } from 'uis-softphone/authorization/actions';
+ import prompter, { checkPendingCallToPrompt } from './prompter/reducer';
+ import { setStartApp, setStartMinimize } from 'uis-softphone/settings/actions';
++import { createFocusednessGetter as createDefaultFocusednessGetter, createObservable } from 'uis-softphone/utils';
+ import createSoftphoneMiddleware from 'uis-softphone/middleware';
+ import thunkMiddleware from 'redux-thunk';
+ import { combineReducers, createStore, applyMiddleware } from 'redux';
+@@ -81,7 +82,20 @@ export const ConfigStore = types
+     });
+ 
+ const returnTrue = () => true,
+-    shouldDisplayCallNotification = (phone, state) => !checkPendingCallToPrompt(state, phone);
++    shouldDisplayCallNotification = (phone, state) => !checkPendingCallToPrompt(state, phone),
++    body = createObservable(document.body);
++
++const createFocusednessGetter = () => {
++    let clicked = false;
++
++    body.removeEventListeners();
++    body.addEventListener('click', () => (clicked = true));
++
++    return createDefaultFocusednessGetter({
++        handleFocusChange: isFocused => !isFocused && (clicked = false),
++        shouldConsiderFocused: () => clicked
++    });
++};
+ 
+ export const RootStore = types
+     .model('RootStore', {
+@@ -233,6 +247,7 @@ export const RootStore = types
+                         })
+                     }),
+                     ...createSoftphoneReducer({
++                        createFocusednessGetter: isSingleApp ? createFocusednessGetter : createDefaultFocusednessGetter,
+                         shouldHideDialpadInIPTelephoneMode: () => !self.isLarge,
+                         shouldShowNotificationOutsideOfApplication: state =>
+                             Math.max(...['topSpace', 'bottomSpace'].map(name => state.softphone[name] || 0)) >= 80 &&
+@@ -692,4 +707,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

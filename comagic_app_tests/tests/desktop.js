@@ -305,7 +305,7 @@ tests.addTest(options => {
                                             tester.nameOrPhone.click();
 
                                             utils.pressKey('7');
-                                            tester.dtmf('7').send();
+                                            tester.dtmf('7').expectToBeSent();
 
                                             tester.expectToneSevenToPlay();
                                         });
@@ -321,7 +321,7 @@ tests.addTest(options => {
                                 });
                                 it('Нажимаю на кнопку диалпада. Отправляется DTMF. Звучит тон.', function() {
                                     utils.pressKey('7');
-                                    tester.dtmf('7').send();
+                                    tester.dtmf('7').expectToBeSent();
 
                                     tester.expectToneSevenToPlay();
                                 });

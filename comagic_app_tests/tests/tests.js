@@ -17,7 +17,8 @@ tests.addTest(options => {
         blobsTester,
         windowSize,
         notificationTester,
-        setDocumentVisible
+        setDocumentVisible,
+        setFocus
     } = options;
 
     const getPackage = Tester.createPackagesGetter(options);
@@ -425,6 +426,35 @@ tests.addTest(options => {
 
                                                             tester.microphoneButton.
                                                                 expectToHaveClass('clct-call-option--pressed');
+                                                        });
+                                                    });
+                                                    describe('Убираю фокус с окна. ', function() {
+                                                        beforeEach(function() {
+                                                            setFocus(false);
+                                                        });
+
+                                                        it(
+                                                            'Фокусирую окно. Нажимаю на кнопку диалпада. ' +
+                                                            'Отправляется DTMF. Звучит тон.',
+                                                        function() {
+                                                            setFocus(true);
+
+                                                            utils.pressKey('7');
+                                                            tester.dtmf('7').expectToBeSent();
+
+                                                            tester.slavesNotification().
+                                                                additional().
+                                                                visible().
+                                                                outCallEvent().
+                                                                dtmf('7').
+                                                                expectToBeSent();
+
+                                                            tester.expectToneSevenToPlay();
+                                                        });
+                                                        it(
+                                                            'Нажимаю на кнопку диалпада. DTMF не отправляется.',
+                                                        function() {
+                                                            utils.pressKey('7');
                                                         });
                                                     });
                                                     it('Нажимаю на кнопку удержания. Звонок удерживается.', function() {
