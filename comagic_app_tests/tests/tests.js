@@ -1744,8 +1744,14 @@ tests.addTest(options => {
                                                     tester.reportsListRequest().receiveResponse();
                                                     tester.reportTypesRequest().receiveResponse();
 
-                                                    tester.statusesRequest().createExpectation().
-                                                        anotherAuthorizationToken().checkCompliance().receiveResponse();
+                                                    tester.statusesRequest().
+                                                        createExpectation().
+                                                        anotherAuthorizationToken().
+                                                        checkCompliance().
+                                                        createResponse().
+                                                        noNotAtWorkplace().
+                                                        includesAutoCall().
+                                                        receive();
 
                                                     tester.settingsRequest().anotherAuthorizationToken().
                                                         receiveResponse();
@@ -1785,6 +1791,11 @@ tests.addTest(options => {
 
                                                     tester.callStartingButton.expectNotToHaveAttribute('disabled');
                                                     tester.button('Софтфон').expectToBeVisible();
+
+                                                    tester.userName.putMouseOver();
+
+                                                    tester.statusesList.item('Исходящий обзвон').expectToBeVisible();
+                                                    tester.statusesList.item('Нет на месте').expectNotToExist();
                                                 });
                                             });
                                             describe('Нажимаю на кнопку открытия диалпада.', function() {
@@ -3118,15 +3129,11 @@ tests.addTest(options => {
 
                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                         '+7 (916) 123-89-29 ' +
-                                                        'Некий номер ' +
                                                         'Некий номер'
                                                     );
                                                 });
                                                 it('Отображен выбранный номер.', function() {
-                                                    tester.softphone.expectToHaveTextContent(
-                                                        '+7 (916) 123-89-29 ' +
-                                                        'Некий номер'
-                                                    );
+                                                    tester.softphone.expectToHaveTextContent('+7 (916) 123-89-29');
                                                 });
                                             });
                                             describe('Ввожу номер в поле поиска.', function() {
@@ -3333,13 +3340,17 @@ tests.addTest(options => {
                                 'зарегистрирована.',
                             function() {
                                 authenticatedUserRequest.sipIsOffline().receiveResponse();
-                                tester.slavesNotification().userDataFetched().twoChannels().available().
+
+                                tester.slavesNotification().
+                                    userDataFetched().
+                                    twoChannels().
+                                    available().
                                     expectToBeSent();
 
                                 tester.softphone.expectToBeCollapsed();
+
                                 tester.softphone.expectToHaveTextContent(
                                     'Sip-линия не зарегистрирована ' +
-
                                     '+7 (495) 021-68-06'
                                 );
                             });
@@ -4136,7 +4147,7 @@ tests.addTest(options => {
                 });
                 it('Получен запрос выбора номера от другой вкладки.', function() {
                     tester.othersNotification().numberCapacityUpdate().receive();
-                    tester.select.expectToHaveTextContent('+7 (916) 123-89-29 Некий номер');
+                    tester.select.expectToHaveTextContent('+7 (916) 123-89-29');
                 });
                 it('Выбран другой статус. Отображен выбранный статус.', function() {
                     tester.slavesNotification().twoChannels().available().anotherStatus().receive();

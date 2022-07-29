@@ -4954,6 +4954,13 @@ define(function () {
                     return me;
                 };
 
+                me.noNotAtWorkplace = () => {
+                    const index = data.findIndex(({mnemonic}) => mnemonic == 'not_at_workplace');
+                    index != -1 && data.splice(index, 1);
+
+                    return me;
+                };
+
                 me.includesAutoCall = function () {
                     data.push({
                         color: '#e03c00',
@@ -5008,10 +5015,7 @@ define(function () {
                                 createResponse: function () {
                                     return addResponseModifiers({
                                         receive: function () {
-                                            request.respondSuccessfullyWith({
-                                                data: data 
-                                            });
-
+                                            request.respondSuccessfullyWith({data});
                                             Promise.runAll(false, true);
                                             spendTime(0);
                                         }
