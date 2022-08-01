@@ -3376,6 +3376,15 @@ function JsTester_ResizeObserver () {
     this.disconnect = () => null;
 }
 
+function JsTester_DownloadPreventer () {
+    const listener = event => event.target.tagName == 'A' &&
+        event.target.getAttribute('download') &&
+        event.preventDefault();
+
+    this.prevent = () => document.body.addEventListener('click', listener);
+    this.resume = () => document.body.removeEventListener('click', listener);
+}
+
 function JsTester_Tests (factory) {
     Object.defineProperty(window, 'performance', {
         get: function () {
@@ -3427,6 +3436,7 @@ function JsTester_Tests (factory) {
         cookieTester = new JsTester_CookieTester(cookie),
         storageMocker = new JsTester_StorageMocker(),
         timeoutLogger = new JsTester_Logger(),
+        downloadPreventer = new JsTester_DownloadPreventer(),
         debug = factory.createDebugger(),
         timeout = new JsTester_Timeout(
             'setTimeout',
@@ -3881,6 +3891,7 @@ function JsTester_Tests (factory) {
 
         setNow(null);
 
+        downloadPreventer.prevent();
         setBrowserHidden(false);
         setBrowserVisible(true);
         audioNodesConnection.reset();
@@ -3927,6 +3938,7 @@ function JsTester_Tests (factory) {
         var exceptions = [];
 
         this.restoreRealDelayedTasks();
+        downloadPreventer.resume();
         broadcastChannelTester.recentMessage().expectNotToExist(exceptions);
         windowSize.reset();
         broadcastChannelMocker.restoreReal();
@@ -5856,10 +5868,12 @@ function JsTester_Anchor (
 
     this.expectHrefToBeBlobWithSubstring = function (expectedSubstring) {
         getBlob().expectToHaveSubstring(expectedSubstring);
+        return this;
     };
 
     this.expectHrefToBeBlobWithContent = function (expectedContent) {
         getBlob().expectToHaveContent(expectedContent);
+        return this;
     };
 
     this.expectHrefToHavePath = function (expectedValue) {

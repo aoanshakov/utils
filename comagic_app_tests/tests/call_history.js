@@ -105,10 +105,19 @@ tests.addTest(options => {
                         permissionsRequest.receiveResponse();
 
                         tester.connectEventsWebSocket();
-                        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            enabled().
+                            softphoneServerConnected().
+                            expectToBeSent();
 
                         tester.connectSIPWebSocket();
-                        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            webRTCServerConnected().
+                            softphoneServerConnected().
                             expectToBeSent();
 
                         notificationTester.grantPermission();
@@ -136,7 +145,11 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         registrationRequest.receiveResponse();
-                        tester.slavesNotification().twoChannels().available().userDataFetched().
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            userDataFetched().
                             expectToBeSent();
 
                         tester.button('История звонков').click();
@@ -191,13 +204,6 @@ tests.addTest(options => {
                                                 enabled().
                                                 expectToBeSent();
 
-                                            Promise.runAll(false, true);
-                                            spendTime(0);
-                                            Promise.runAll(false, true);
-                                            spendTime(0);
-                                            Promise.runAll(false, true);
-                                            spendTime(0);
-
                                             tester.eventsWebSocket.finishDisconnecting();
                                             tester.registrationRequest().expired().receiveResponse();
 
@@ -244,37 +250,64 @@ tests.addTest(options => {
                                             tester.settingsRequest().anotherAuthorizationToken().
                                                 receiveResponse();
 
-                                            tester.slavesNotification().twoChannels().enabled().
+                                            tester.slavesNotification().
+                                                twoChannels().
+                                                enabled().
                                                 expectToBeSent();
 
-                                            tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                                            tester.othersNotification().updateSettings().
-                                                shouldNotPlayCallEndingSignal().expectToBeSent();
+                                            tester.othersNotification().
+                                                widgetStateUpdate().
+                                                expectToBeSent();
+
+                                            tester.othersNotification().
+                                                updateSettings().
+                                                shouldNotPlayCallEndingSignal().
+                                                expectToBeSent();
 
                                             tester.talkOptionsRequest().receiveResponse();
                                             permissionsRequest = tester.permissionsRequest().expectToBeSent();
                                             tester.connectEventsWebSocket(1);
-                                            tester.slavesNotification().twoChannels().enabled().
-                                                softphoneServerConnected().expectToBeSent();
+
+                                            tester.slavesNotification().
+                                                twoChannels().
+                                                enabled().
+                                                softphoneServerConnected().
+                                                expectToBeSent();
 
                                             tester.connectSIPWebSocket(1);
-                                            tester.slavesNotification().twoChannels().
-                                                softphoneServerConnected().webRTCServerConnected().
+
+                                            tester.slavesNotification().
+                                                twoChannels().
+                                                softphoneServerConnected().
+                                                webRTCServerConnected().
                                                 expectToBeSent();
 
                                             tester.authenticatedUserRequest().receiveResponse();
-                                            tester.slavesNotification().userDataFetched().twoChannels().
-                                                softphoneServerConnected().webRTCServerConnected().
+
+                                            tester.slavesNotification().
+                                                userDataFetched().
+                                                twoChannels().
+                                                softphoneServerConnected().
+                                                webRTCServerConnected().
                                                 expectToBeSent();
 
                                             tester.registrationRequest().receiveResponse();
-                                            tester.slavesNotification().userDataFetched().twoChannels().
-                                                webRTCServerConnected().registered().softphoneServerConnected().
+
+                                            tester.slavesNotification().
+                                                userDataFetched().
+                                                twoChannels().
+                                                webRTCServerConnected().
+                                                registered().
+                                                softphoneServerConnected().
                                                 expectToBeSent();
 
                                             tester.allowMediaInput();
-                                            tester.slavesNotification().userDataFetched().twoChannels().
-                                                available().expectToBeSent();
+
+                                            tester.slavesNotification().
+                                                userDataFetched().
+                                                twoChannels().
+                                                available().
+                                                expectToBeSent();
                                         });
 
                                         it(
@@ -286,13 +319,9 @@ tests.addTest(options => {
                                             tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                                             tester.marksRequest().receiveResponse();
 
-                                            tester.radioButton('Мои').expectToBeSelected();
-                                            tester.radioButton('Все').expectNotToBeSelected();
-                                            tester.radioButton('Необработанные').expectNotToBeSelected();
-
-                                            tester.radioButton('Мои').expectToBeDisabled();
-                                            tester.radioButton('Все').expectToBeDisabled();
-                                            tester.radioButton('Необработанные').expectToBeDisabled();
+                                            tester.radioButton('Мои').expectNotToExist();
+                                            tester.radioButton('Все').expectNotToExist();
+                                            tester.radioButton('Необработанные').expectNotToExist();
                                         });
                                         it('Таблица скрыта.', function() {
                                             tester.table.expectNotToExist();
@@ -354,24 +383,35 @@ tests.addTest(options => {
                                         tester.select.withPlaceholder('Группы').click();
                                         tester.select.option('Отдел дистрибуции').click();
 
-                                        tester.notProcessedCallsRequest().isProcessedByAny().group().receiveResponse();
+                                        tester.notProcessedCallsRequest().
+                                            isProcessedByAny().
+                                            group().
+                                            receiveResponse();
+
                                         tester.marksRequest().receiveResponse();
 
                                         tester.select.option('Отдел по работе с ключевыми клиентами').click();
 
-                                        tester.notProcessedCallsRequest().isProcessedByAny().group().thirdGroup().
+                                        tester.notProcessedCallsRequest().
+                                            isProcessedByAny().
+                                            group().
+                                            thirdGroup().
                                             receiveResponse();
+
                                         tester.marksRequest().receiveResponse();
 
                                         tester.select.option('Отдел дистрибуции').expectToBeSelected();
                                         tester.select.option('Отдел региональных продаж').expectNotToBeSelected();
                                         tester.select.option('Отдел по работе с ключевыми клиентами').
-                                            expectToBeSelected(true);
+                                            expectToBeSelected();
                                     });
                                     it('Снимаю отметку со свитчбокса. Отправлен запрос истории звонков.', function() {
                                         tester.switchButton.click();
 
-                                        tester.notProcessedCallsRequest().isNotProcessedByAny().receiveResponse();
+                                        tester.notProcessedCallsRequest().
+                                            isNotProcessedByAny().
+                                            receiveResponse();
+
                                         tester.marksRequest().receiveResponse();
 
                                         tester.switchButton.expectNotToBeChecked();
@@ -652,44 +692,6 @@ tests.addTest(options => {
                                     tester.calendarField.popup.input.atIndex(1).expectToHaveValue('19.12.2019');
                                 });
                             });
-                            describe('Нажимаю на кнопку проигрывания записи. Запись проигрывается.', function() {
-                                beforeEach(function() {
-                                    tester.table.row.first.column.withHeader('Запись').playIcon.click();
-                                    
-                                    tester.talkRecordRequest().receiveResponse();
-                                    audioDecodingTester.accomplishAudioDecoding();
-                                });
-
-                                describe('Нажимаю на кнопку закрытия плеера.', function() {
-                                    beforeEach(function() {
-                                        tester.closeButton.click();
-                                    });
-
-                                    it('Нажимаю на кнопку проигрывания записи. Плеер отображается.', function() {
-                                        tester.table.row.first.column.withHeader('Запись').playIcon.click();
-                                        tester.audioPlayer.expectToBeVisible();
-                                    });
-                                    it('Плеер скрыт.', function() {
-                                        tester.audioPlayer.expectNotToExist();
-                                    });
-                                });
-                                it('Меняю громкость. Плеер отображается.', function() {
-                                    tester.audioPlayer.button.atIndex(1).putMouseOver();
-                                    tester.slider.click(50, 25);
-                                    
-                                    tester.audioPlayer.expectToBeVisible();
-                                });
-                                it('Меняю скорость. Плеер отображается.', function() {
-                                    tester.audioPlayer.button.atIndex(2).putMouseOver();
-                                    tester.select.option('1.25').click();
-
-                                    tester.audioPlayer.expectToBeVisible();
-                                });
-                                it('Кликаю на элемент вне плеера. Плеер скрыт.', function() {
-                                    tester.input.withPlaceholder('Имя или телефон').click();
-                                    tester.audioPlayer.expectNotToExist();
-                                });
-                            });
                             describe('Нажимаю на кнопку комментария.', function() {
                                 beforeEach(function() {
                                     tester.table.row.first.column.withHeader('Комментарий').svg.click();
@@ -847,8 +849,12 @@ tests.addTest(options => {
                                     tester.input.withPlaceholder('Имя или телефон').input('qwe12');
                                     spendTime(500);
 
-                                    tester.callsRequest().fromFirstWeekDay().search('qwe12').firstPage().
+                                    tester.callsRequest().
+                                        fromFirstWeekDay().
+                                        search('qwe12').
+                                        firstPage().
                                         receiveResponse();
+
                                     tester.marksRequest().receiveResponse();
 
                                     tester.table.pagingPanel.pageButton('1').expectToBePressed();
@@ -887,6 +893,101 @@ tests.addTest(options => {
 
                                         '1 2 Всего записей 15 Страница 10'
                                     );
+                                });
+                            });
+                            describe('Нажимаю на кнопку проигрывания записи. Запись проигрывается.', function() {
+                                beforeEach(function() {
+                                    tester.table.row.first.column.withHeader('Запись').playIcon.click();
+                                    
+                                    tester.talkRecordRequest().receiveResponse();
+                                    audioDecodingTester.accomplishAudioDecoding();
+                                });
+
+                                describe('Нажимаю на кнопку закрытия плеера.', function() {
+                                    beforeEach(function() {
+                                        tester.closeButton.click();
+                                    });
+
+                                    it('Нажимаю на кнопку проигрывания записи. Плеер отображается.', function() {
+                                        tester.table.row.first.column.withHeader('Запись').playIcon.click();
+                                        tester.audioPlayer.expectToBeVisible();
+                                    });
+                                    it('Плеер скрыт.', function() {
+                                        tester.audioPlayer.expectNotToExist();
+                                    });
+                                });
+                                it('Меняю громкость. Плеер отображается.', function() {
+                                    tester.audioPlayer.button.atIndex(1).putMouseOver();
+                                    tester.slider.click(50, 25);
+                                    
+                                    tester.audioPlayer.expectToBeVisible();
+                                });
+                                it('Меняю скорость. Плеер отображается.', function() {
+                                    tester.audioPlayer.button.atIndex(2).putMouseOver();
+                                    tester.select.option('1.25').click();
+
+                                    tester.audioPlayer.expectToBeVisible();
+                                });
+                                it('Нажимаю на кнопку скачивания записи. Запись скачивается.', function() {
+                                    tester.audioPlayer.anchor.click();
+                                    tester.talkRecordRequest().receiveResponse();
+
+                                    tester.audioPlayer.anchor.
+                                        expectHrefToBeBlobWithContent('29f2f28ofjowf829f').
+                                        expectAttributeToHaveValue(
+                                            'download',
+                                            '2019-12-19_08-03-02.522_from_74950230625_session_980925444_talk.mp3'
+                                        );
+                                });
+                                it('Кликаю на элемент вне плеера. Плеер скрыт.', function() {
+                                    tester.input.withPlaceholder('Имя или телефон').click();
+                                    tester.audioPlayer.expectNotToExist();
+                                });
+                            });
+                            describe('Имя скачиваемой записи читаемо.', function() {
+                                beforeEach(function() {
+                                    tester.table.row.atIndex(1).column.withHeader('Запись').playIcon.click();
+
+                                    tester.talkRecordRequest().second().receiveResponse();
+                                    tester.talkRecordRequest().third().receiveResponse();
+
+                                    audioDecodingTester.accomplishAudioDecoding();
+                                    audioDecodingTester.accomplishAudioDecoding();
+
+                                    tester.audioPlayer.button.atIndex(3).putMouseOver();
+                                });
+
+                                it('Нажимаю на первую опцию списка записей. Запись скачивается.', function() {
+                                    tester.anchor(
+                                        '2019-12-18_18-08-25.522_from_74950230626_session_980925445_1_talk.mp3'
+                                    ).click();
+
+                                    tester.talkRecordRequest().second().receiveResponse();
+
+                                    tester.anchor(
+                                        '2019-12-18_18-08-25.522_from_74950230626_session_980925445_1_talk.mp3'
+                                    ).
+                                        expectAttributeToHaveValue(
+                                            'download',
+                                            '2019-12-18_18-08-25.522_from_74950230626_session_980925445_1_talk.mp3'
+                                        ).
+                                        expectHrefToBeBlobWithContent('j7927g028hhs084kf');
+                                });
+                                it('Нажимаю на вторую опцию списка записей. Запись скачивается.', function() {
+                                    tester.anchor(
+                                        '2019-12-18_18-08-25.522_from_74950230626_session_980925445_2_talk.mp3'
+                                    ).click();
+
+                                    tester.talkRecordRequest().third().receiveResponse();
+
+                                    tester.anchor(
+                                        '2019-12-18_18-08-25.522_from_74950230626_session_980925445_2_talk.mp3'
+                                    ).
+                                        expectAttributeToHaveValue(
+                                            'download',
+                                            '2019-12-18_18-08-25.522_from_74950230626_session_980925445_2_talk.mp3'
+                                        ).
+                                        expectHrefToBeBlobWithContent('h398j0184hhls0283');
                                 });
                             });
                             it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
@@ -1010,9 +1111,16 @@ tests.addTest(options => {
                                 tester.select.withPlaceholder('Группы').expectToBeDisabled();
                                 tester.switchButton.expectToBeDisabled();
 
-                                tester.table.row.first.column.first.svg.
+                                tester.table.
+                                    row.first.
+                                    column.first.
+                                    svg.
                                     expectToHaveClass('incoming_svg__cmg-direction-icon');
-                                tester.table.row.atIndex(1).column.first.svg.
+
+                                tester.table.
+                                    row.atIndex(1).
+                                    column.first.
+                                    svg.
                                     expectToHaveClass('outgoing_svg__cmg-direction-icon');
 
                                 tester.table.pagingPanel.pageButton('1').expectToBePressed();
@@ -1467,9 +1575,9 @@ tests.addTest(options => {
                     tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                     tester.marksRequest().receiveResponse();
 
-                    tester.radioButton('Мои').expectToBeDisabled();
-                    tester.radioButton('Все').expectToBeDisabled();
-                    tester.radioButton('Необработанные').expectToBeDisabled();
+                    tester.radioButton('Мои').expectNotToExist();
+                    tester.radioButton('Все').expectNotToExist();
+                    tester.radioButton('Необработанные').expectNotToExist();
                 });
                 it(
                     'Просмотр комментариев недоступен. Открываю раздел "История звонков". Комментарии не отображатся.',
@@ -1806,9 +1914,15 @@ tests.addTest(options => {
             tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
             tester.marksRequest().receiveResponse();
 
-            tester.radioButton('Мои').expectToBeDisabled();
-            tester.radioButton('Все').expectToBeDisabled();
-            tester.radioButton('Необработанные').expectToBeDisabled();
+            tester.select.withValue('Звонки: Все').expectNotToExist();
+            tester.select.withValue('Направления: Все').expectNotToExist();
+            tester.select.withPlaceholder('Группы').expectNotToExist();
+
+            tester.radioButton('Мои').expectNotToExist();
+            tester.radioButton('Все').expectNotToExist();
+            tester.radioButton('Необработанные').expectNotToExist();
+
+            tester.body.expectTextContentNotToHaveSubstring('Скрыть обработанные другими группами');
         });
         it('Пользователь является менеджером. Пункт меню скрыт.', function() {
             accountRequest.manager().receiveResponse();

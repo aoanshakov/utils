@@ -147,7 +147,11 @@ tests.addTest(options => {
                                     describe('SIP-регистрация завершена.', function() {
                                         beforeEach(function() {
                                             registrationRequest.receiveResponse();
-                                            tester.slavesNotification().twoChannels().available().userDataFetched().
+
+                                            tester.slavesNotification().
+                                                twoChannels().
+                                                available().
+                                                userDataFetched().
                                                 expectToBeSent();
                                         });
 
@@ -157,8 +161,13 @@ tests.addTest(options => {
                                             beforeEach(function() {
                                                 incomingCall = tester.incomingCall().receive();
 
-                                                tester.slavesNotification().twoChannels().available().incoming().
-                                                    progress().userDataFetched().expectToBeSent();
+                                                tester.slavesNotification().
+                                                    twoChannels().
+                                                    available().
+                                                    incoming().
+                                                    progress().
+                                                    userDataFetched().
+                                                    expectToBeSent();
 
                                                 tester.numaRequest().receiveResponse();
                                             });
@@ -180,8 +189,14 @@ tests.addTest(options => {
                                                         tester.firstConnection.addCandidate();
 
                                                         incomingCall.expectOkToBeSent().receiveResponse();
-                                                        tester.slavesNotification().available().userDataFetched().
-                                                            twoChannels().incoming().confirmed().expectToBeSent();
+
+                                                        tester.slavesNotification().
+                                                            available().
+                                                            userDataFetched().
+                                                            twoChannels().
+                                                            incoming().
+                                                            confirmed().
+                                                            expectToBeSent();
                                                     });
 
                                                     describe('Нажимаю на кнопку трансфера.', function() {

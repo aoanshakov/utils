@@ -170,6 +170,11 @@ define(() => function ({
         me.anchor = text => testersFactory.createAnchorTester(() =>
             utils.descendantOf(getRootElement()).matchesSelector('a').textEquals(text).find());
 
+        (() => {
+            const tester = testersFactory.createAnchorTester(() => utils.element(getRootElement()).querySelector('a'));
+            Object.entries(tester).forEach(([methodName, method]) => (me.anchor[methodName] = method.bind(tester)));
+        })();
+
         me.link = testersFactory.createDomElementTester(() =>
             utils.element(getRootElement()).querySelector('.cmg-softphone-call-history-phone-link'));
 
@@ -1284,27 +1289,40 @@ define(() => function ({
     };
 
     me.talkRecordRequest = () => {
-        let path = 'https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/';
+        let path = 'https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/',
+            response = '29f2f28ofjowf829f';
 
         return {
             setFullRecord() {
                 path = 'https://proxy.dev.uis.st:9099/files/session/1378329557/a463d88a0e55599eba24c3f4638fc17c';
+                response = 'jh38470284j25802f';
                 return this;
             },
 
             setSecond() {
                 path = 'https://app.comagic.ru/system/media/talk/1306955705/baf9be6ace6b0cb2f9b0e1ed0738db1a/';
+                response = 'j7927g028hhs084kf';
                 return this;
             },
 
             setThird() {
                 path = 'https://app.comagic.ru/system/media/talk/2938571928/2fj923fholfr32hlf498f8h18f1hfl1c/';
+                response = 'h398j0184hhls0283';
                 return this;
             },
 
             setFourth() {
                 path = 'https://app.comagic.ru/system/media/talk/2938571928/298jfr28h923jf89h92g2lo3829woghc/';
+                response = 'g818h9j3938403j33';
                 return this;
+            },
+
+            second() {
+                return this.setSecond();
+            },
+
+            third() {
+                return this.setThird();
             },
 
             receiveResponse() {
@@ -1318,7 +1336,7 @@ define(() => function ({
 
                 return {
                     receiveResponse() {
-                        request.respondSuccessfullyWith('29f2f28ofjowf829f');
+                        request.respondSuccessfullyWith(response);
                         Promise.runAll(false, true);
                     }
                 };
