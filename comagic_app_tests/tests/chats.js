@@ -31,6 +31,7 @@ tests.addTest(options => {
             registrationRequest,
             statsRequest,
             statusesRequest,
+            chatListRequest,
             countersRequest;
 
         beforeEach(function() {
@@ -99,100 +100,109 @@ tests.addTest(options => {
             tester.markListRequest().receiveResponse();
             tester.chatChannelTypeListRequest().receiveResponse();
             tester.offlineMessageListRequest().receiveResponse();
-            tester.chatListRequest().receiveResponse();
+            chatListRequest = tester.chatListRequest().expectToBeSent();
             tester.chatListRequest().active().receiveResponse();
             tester.chatListRequest().closed().receiveResponse();
         });
 
-        describe('Чатов много.', function() {
+        xdescribe('Получены данные чата.', function() {
             beforeEach(function() {
-                countersRequest.receiveResponse();
+                chatListRequest.receiveResponse();
             });
 
-            describe('Ввожу значение в поле поиска. Нажимаю на найденный чат.', function() {
-                let chatListRequest;
-                
+            describe('Чатов много.', function() {
                 beforeEach(function() {
-                    tester.input.fill('Сообщение #75');
-                    
-                    tester.input.pressEnter();
-                    tester.searchResultsRequest().receiveResponse();
-
-                    tester.chatListItem('Сообщение #75').click();
-                    chatListRequest = tester.chatListRequest().thirdChat().expectToBeSent();
+                    countersRequest.receiveResponse();
                 });
 
-                describe('Получены данные чата.', function() {
+                describe('Ввожу значение в поле поиска. Нажимаю на найденный чат.', function() {
                     beforeEach(function() {
-                        chatListRequest.receiveResponse();
-                        tester.acceptChatRequest().receiveResponse();
-                        tester.visitorCardRequest().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
-                        tester.changeMessageStatusRequest().anotherChat().anotherMessage().read().receiveResponse();
+                        tester.input.fill('Сообщение #75');
+                        
+                        tester.input.pressEnter();
+                        tester.searchResultsRequest().receiveResponse();
+
+                        tester.chatListItem('Сообщение #75').click();
+                        chatListRequest = tester.chatListRequest().thirdChat().expectToBeSent();
                     });
 
-                    it('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
-                        tester.spinWrapper.scrollIntoView();
-                        tester.chatListRequest().secondPage().receiveResponse();
+                    describe('Получены данные чата.', function() {
+                        beforeEach(function() {
+                            chatListRequest.receiveResponse();
+                            tester.acceptChatRequest().receiveResponse();
+                            tester.visitorCardRequest().receiveResponse();
+                            tester.messageListRequest().receiveResponse();
+                            tester.changeMessageStatusRequest().anotherChat().anotherMessage().read().receiveResponse();
+                        });
+
+                        it('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
+                            tester.spinWrapper.scrollIntoView();
+                            tester.chatListRequest().secondPage().receiveResponse();
+                        });
+                        it('Спиннер скрыт.', function() {
+                            tester.spin.expectNotToExist();
+                        });
                     });
-                    it('Спиннер скрыт.', function() {
+                    it('Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен', function() {
+                        tester.spinWrapper.scrollIntoView();
+                        tester.spin.expectToBeVisible();
+                    });
+                });
+                describe('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
+                    beforeEach(function() {
+                        tester.spinWrapper.scrollIntoView();
+                        chatListRequest = tester.chatListRequest().secondPage().expectToBeSent();
+                    });
+
+                    it(
+                        'Получены данные для следующей старницы. Прокручиваю список чатов до конца. Получены все ' +
+                        'чаты. Отображены все чаты.',
+                    function() {
+                        chatListRequest.receiveResponse();
+                        tester.spinWrapper.scrollIntoView();
+                        tester.chatListRequest().thirdPage().receiveResponse();
+                        tester.spinWrapper.scrollIntoView();
+
+                        tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                            'Помакова Бисерка Драгановна 21 янв 2022 ' +
+                            'Привет 3',
+
+                            'Помакова Бисерка Драгановна 31 дек 2021 ' +
+                            'Сообщение #75'
+                        );
+
                         tester.spin.expectNotToExist();
                     });
+                    it(
+                        'Прокручиваю список чатов до конца еще раз. Запрос следующей страницы не отправлен.',
+                    function() {
+                        tester.spinWrapper.scrollIntoView();
+                    });
+                    it('Отображен спиннер.', function() {
+                        tester.spin.expectToBeVisible();
+                    });
                 });
-                it('Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен', function() {
-                    tester.spinWrapper.scrollIntoView();
-                    tester.spin.expectToBeVisible();
-                });
-            });
-            describe('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
-                beforeEach(function() {
-                    tester.spinWrapper.scrollIntoView();
-                    chatListRequest = tester.chatListRequest().secondPage().expectToBeSent();
-                });
-
-                it(
-                    'Получены данные для следующей старницы. Прокручиваю список чатов до конца. Получены все чаты. ' +
-                    'Отображены все чаты.',
-                function() {
-                    chatListRequest.receiveResponse();
-                    tester.spinWrapper.scrollIntoView();
-                    tester.chatListRequest().thirdPage().receiveResponse();
-                    tester.spinWrapper.scrollIntoView();
-
-                    tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                it('Отображен список чатов.', function() {
+                    tester.body.expectTextContentToHaveSubstring(
                         'Помакова Бисерка Драгановна 21 янв 2022 ' +
-                        'Привет 3',
-
-                        'Помакова Бисерка Драгановна 31 дек 2021 ' +
-                        'Сообщение #75'
+                        'Привет 3'
                     );
 
                     tester.spin.expectNotToExist();
                 });
-                it('Прокручиваю список чатов до конца еще раз. Запрос следующей страницы не отправлен.', function() {
-                    tester.spinWrapper.scrollIntoView();
-                });
-                it('Отображен спиннер.', function() {
-                    tester.spin.expectToBeVisible();
-                });
             });
-            it('Отображен список чатов.', function() {
-                tester.body.expectTextContentToHaveSubstring(
-                    'Помакова Бисерка Драгановна 21 янв 2022 ' +
-                    'Привет 3'
-                );
+            it('Чатов мало. Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен.', function() {
+                countersRequest.singlePage().receiveResponse();
+                tester.spinWrapper.scrollIntoView();
 
                 tester.spin.expectNotToExist();
             });
+            it('Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен.', function() {
+                tester.spinWrapper.scrollIntoView();
+                tester.spin.expectToBeVisible();
+            });
         });
-        it('Чатов мало. Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен.', function() {
-            countersRequest.singlePage().receiveResponse();
-            tester.spinWrapper.scrollIntoView();
-
-            tester.spin.expectNotToExist();
-        });
-        it('Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен.', function() {
-            tester.spinWrapper.scrollIntoView();
+        it('Отображен спиннер.', function() {
             tester.spin.expectToBeVisible();
         });
     });

@@ -1202,6 +1202,43 @@ tests.addTest(options => {
                             });
                         });
                         it(
+                            'Идентфикатор сессии дублируется. Нажимаю на кнопку второй страницы. Отправлен запрос ' +
+                            'второй страницы. Отображена вторая страница.',
+                        function() {
+                            callsRequest.duplicatedCallSessionId().receiveResponse();
+
+                            tester.table.pagingPanel.pageButton('2').click();
+
+                            tester.callsRequest().fromFirstWeekDay().secondPage().receiveResponse();
+                            tester.marksRequest().receiveResponse();
+
+                            tester.table.pagingPanel.pageButton('1').expectNotToBePressed();
+                            tester.table.pagingPanel.pageButton('2').expectToBePressed();
+                            tester.table.pagingPanel.pageButton('3').expectNotToExist();
+
+                            tester.table.expectTextContentToHaveSubstringsConsideringOrder(
+                                'Дата / время ' +
+                                'ФИО контакта ' +
+                                'Номер абонента ' +
+                                'Теги ' +
+                                'Комментарий ' +
+                                'Длительность ' +
+                                'Запись ' +
+
+                                '17 мая 2021 12:02 ' +
+                                'Сотирова Атанаска ' +
+                                '+7 (495) 023-06-27 ' +
+                                '00:00:22',
+
+                                '16 мая 2021 11:41 ' +
+                                'Сотирова Атанаска ' +
+                                '+7 (495) 023-06-27 ' +
+                                '00:00:22 ' +
+
+                                '1 2 Всего записей 15 Страница 10'
+                            );
+                        });
+                        it(
                             'Есть неуспешные звонки. Строки с неуспешными звонками внешне отличаются от строк с ' +
                             'успешными звонками.',
                         function() {

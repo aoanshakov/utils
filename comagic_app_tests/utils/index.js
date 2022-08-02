@@ -1,8 +1,10 @@
-const {Args, isOneOf, isTrue} = require('./arguments'),
+const {Args, isOneOf, isTrue, isInteger} = require('./arguments'),
     fs = require('fs'),
     execute = require('./execute'),
     rm = require('./rm'),
-    mkdir = require('./mkdir');
+    mkdir = require('./mkdir'),
+    https = require('https'),
+    { JSDOM } = require("jsdom");
 
 const {
     application,
@@ -53,7 +55,10 @@ const {
     webpackDevServerPatch,
     server,
     testsServerLog,
-    testsServerPid
+    testsServerPid,
+    femaleNames,
+    contactList,
+    maleNames
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -324,13 +329,131 @@ actions['run-server'] = params => actions['initialize'](params).concat([
     `${cda} npm run dev`
 ]);
 
+const generateContactList = () => {
+    const parseNames = ({
+        url,
+        keyName
+    }) => (fs.readFileSync(url) + '').split("\n").filter(name => !!name).map(name => {
+        name = name.split(' ');
+        name = name.slice(name.length - 2);
+
+        return {
+            first_name: name[0],
+            last_name: name[1]
+        };
+    }).reduce((names, name) => (names[name[keyName]] = name, names), {});
+
+    const femaleNamesContent = parseNames({
+        url: femaleNames,
+        keyName: 'last_name'
+    });
+
+    const maleNamesContent = parseNames({
+        url: maleNames,
+        keyName: 'first_name'
+    });
+
+    const items = Object.values(femaleNamesContent).map((item, index) => {
+        item = {
+            ...item,
+            id: 1689273 + index,
+            email_list: [],
+            messenger_list: [],
+            organization_name: 'UIS',
+            phone_list: ['79162729533'],
+            group_list: [] ,
+            personal_manager_id: 8539841,
+            patronymic: (name => name ? `${name}овна` : '')(Object.keys(maleNamesContent)[index]),
+        };
+
+        item.full_name = ['last_name', 'first_name', 'patronymic'].map(name => item[name]).join(' ')
+        return item;
+    });
+
+    return items;
+};
+
+actions['generate-contact-list'] = [() => {
+    let items = generateContactList();
+
+    items.sort(({full_name: a}, {full_name: b}) => a.localeCompare(b));
+
+    items = items.
+        map(
+            item => Object.entries(item).map(([key, value]) => `    ${key}: ${JSON.stringify(value)}`).join(",\n")
+        ).
+        map(
+            item => `{\n${item}\n}`
+        ).
+        join(", ");
+
+    fs.writeFileSync(
+        contactList,
+        `data = [${items}];`.split('"').join("'")
+    );
+}];
+
+actions['make-female-names-unique'] = [() => fs.writeFileSync(
+    femaleNames,
+    generateContactList().map(({first_name, last_name}) => [first_name, last_name].join(' ')).concat(['']).join("\n")
+)];
+
+actions['generate-names'] = ({
+    count = 1,
+    gender = 'female'
+}) => [() => {
+    if (!count) {
+        console.log('Не указано количество имен, которое должно быть сгенерировано.');
+        return;
+    }
+
+    console.log(`Должно быть сгенерировано ${count} имен.`);
+
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    const url = `https://generatefakename.com/ru/name/${gender}/bg/bg`;
+
+    const generateName = (iteration = 0) => {
+        const stream = fs.createWriteStream(gender == 'female' ? femaleNames : maleNames, {
+            flags:'a'
+        });
+
+        console.log(`Отправляю ${iteration + 1}-й запрос по URL ${url}.`);
+
+        const request = https.request(url, response => {
+            let result = '';
+
+            console.log(`Получаю имена по URL ${url}.`);
+            response.on('data', chunk => (result += chunk));
+
+            response.on('end', () => {
+                const name = (new JSDOM(result)).window.document.querySelector('.panel-body h3')?.textContent;
+                console.log(`Получено имя "${name}"`);
+
+                stream.write(name + "\n") 
+                iteration == (count - 1) ? stream.end() : generateName(iteration + 1);
+            });
+        })
+
+        request.on('error', error => console.error(error));
+        request.end();
+    };
+
+    generateName();
+}];
+
 const {action, ...params} = (new Args({
     action: {
         validate: isOneOf.apply(null, Object.keys(actions))
     },
     dev: {
         validate: isTrue
-    }
+    },
+    count: {
+        validate: isInteger
+    },
+    gender: {
+        validate: isOneOf.apply(null, ['female', 'male'])
+    },
 })).createObjectFromArgsArray(process.argv);
 
 if (!action) {

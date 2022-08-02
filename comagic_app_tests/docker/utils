@@ -19,8 +19,8 @@ do
     shift
 done
 
-cd /usr/local/src/tests
-node utils/index.js $arguments
+cd /usr/local/src/tests/utils
+node index.js $arguments
 
 if [ -z "$NESTED_BASH_IS_RUNNING" ] && [ $shouldExit -eq 0 ]
 then

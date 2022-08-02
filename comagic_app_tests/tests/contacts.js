@@ -50,6 +50,8 @@ tests.addTest(options => {
         });
 
         describe('Раздел контактов доступен. Открываю раздел контактов.', function() {
+            let contactListRequest;
+
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -131,19 +133,52 @@ tests.addTest(options => {
                 statusesRequest.receiveResponse();
 
                 tester.button('Контакты').click();
-                tester.contactListRequest().receiveResponse();
+                contactListRequest = tester.contactListRequest().expectToBeSent();
             });
 
-            it('', function() {
-                tester.spinWrapper.scrollIntoView();
-                tester.contactListRequest().secondPage().receiveResponse();
+            xdescribe('Получены данные для списка контактов.', function() {
+                beforeEach(function() {
+                    contactListRequest.receiveResponse();
+                });
+
+                describe(
+                    'Прокручиваю список контактов до конца. Запрошена следующая страница списка контактов.',
+                function() {
+                    beforeEach(function() {
+                        tester.spinWrapper.scrollIntoView();
+                        contactListRequest = tester.contactListRequest().secondPage().expectToBeSent();
+                    });
+
+                    xit('Получены данные для списка контактов. Отображен список контаков.', function() {
+                        contactListRequest.receiveResponse();
+
+                        tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                            'Тончева Десислава Пламеновна',
+                            'Паскалева Бисера Илковна #100',
+                            'Паскалева Бисера Илковна #200'
+                        );
+
+                        tester.spin.expectNotToExist();
+                    });
+                    it('Отображен спиннер.', function() {
+                        tester.spin.expectToBeVisible();
+                    });
+                });
+                it('Отображена страница контактов.', function() {
+                    tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                        'Тончева Десислава Пламеновна',
+                        'Паскалева Бисера Илковна #100'
+                    );
+
+                    tester.spin.expectNotToExist();
+                });
+            });
+            it('Получены разные имена.', function() {
+                contactListRequest.differentNames().receiveResponse();
             });
             return;
-            it('Отображена страница контактов.', function() {
-                tester.body.expectTextContentToHaveSubstringsConsideringOrder(
-                    'Тончева Десислава Пламеновна',
-                    'Паскалева Бисера Илковна #100'
-                );
+            it('Отображен спиннер.', function() {
+                tester.spin.expectToBeVisible();
             });
         });
         return;

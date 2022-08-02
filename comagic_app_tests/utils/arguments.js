@@ -34,6 +34,17 @@ module.exports.isString = (key, value) => {
     return value;
 };
 
+module.exports.isInteger = (key, value) => {
+    value = value ? `${value}` : '';
+    const convertedValue = parseInt(value, 0);
+
+    if (`${convertedValue}` !== value) {
+        throw new Error(`Value of argument "${key}" should be integer`);
+    }
+
+    return convertedValue;
+};
+
 module.exports.isPath = (key, value) => {
     value = module.exports.isString(key, value);
 

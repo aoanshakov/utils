@@ -512,7 +512,7 @@ tests.addTest(options => {
                                     tester.button('IP-телефон').expectToBeChecked();
                                 });
                                 it('Открыта страница настроек.', function() {
-                                    tester.button('Статистика звонков').expectNotToBePressed();
+                                    tester.button('Статистика').expectNotToBePressed();
                                     tester.button('История звонков').expectNotToBePressed();
                                     tester.button('Настройки').expectToBePressed();
 
@@ -544,7 +544,7 @@ tests.addTest(options => {
                                 tester.statusesList.expectNotToExist();
                             });
                             it('Отображен большой софтфон.', function() {
-                                tester.button('Статистика звонков').expectToBePressed();
+                                tester.button('Статистика').expectToBePressed();
                                 tester.button('История звонков').expectNotToBePressed();
                                 tester.button('Настройки').expectNotToBePressed();
 
