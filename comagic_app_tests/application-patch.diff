@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 64299acc..c4e65baf 100644
+index 64299acc..9af0c361 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -7,11 +7,12 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -206,7 +206,7 @@ index 64299acc..c4e65baf 100644
 -            '@lib': path.resolve(appDirectory, './src/components/lib'),
 -            '@hooks': path.resolve(appDirectory, './src/hooks'),
 +            ...createAliases(appDirectory),
-+            'contacts/Root': `${miscDirectory}/contacts/src/Root.tsx`,
++            'contacts/Root': `${miscDirectory}/contacts/src/Wrapper.tsx`,
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
