@@ -5083,15 +5083,14 @@ function JsTester_Request (request, utils, callStack) {
 
         return this;
     };
-    function respond (args) {
-        var responseObject = args.responseObject,
-            status = args.status;
-
+    function respond ({status, responseObject, ...args}) {
         request.respondWith({
             status: status,
-            responseText: typeof responseObject == 'string' ? responseObject : JSON.stringify(responseObject)
+            responseText: typeof responseObject == 'string' ? responseObject : JSON.stringify(responseObject),
+            ...args
         });
     }
+    this.respond = respond;
     this.respondUnsuccessfullyWith = function (responseObject) {
         respond({
             responseObject: responseObject,

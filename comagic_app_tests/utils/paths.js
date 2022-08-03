@@ -70,5 +70,6 @@ module.exports = {
     updaterLog: `${tests}/updater.log`,
     publisherDir,
     assets: `${tests}/assets`,
-    publisher: `${publisherDir}/index.js`
+    publisher: `${publisherDir}/index.js`,
+    contactsMagicUi: `${misc}/contacts/magic_ui`,
 };

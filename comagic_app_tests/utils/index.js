@@ -24,6 +24,7 @@ const {
     core,
     chats,
     magicUi,
+    contactsMagicUi,
     softphoneMagicUi,
     sipLibMagiUi,
     softphone,
@@ -274,7 +275,11 @@ actions['patch-node-modules'] = [
 actions['copy-magic-ui'] = [
     `cd ${magicUi} && git checkout ${magicUiOverridenFiles}`,
     `cd ${magicUi} && patch -p1 < ${magicUiLibPatch}`
-].concat([softphoneMagicUi, sipLibMagiUi].reduce((result, magicUiTarget) => result.concat([
+].concat([
+    softphoneMagicUi,
+    sipLibMagiUi,
+    contactsMagicUi
+].reduce((result, magicUiTarget) => result.concat([
     rmVerbose(magicUiTarget),
     `mkdir ${magicUiTarget}`,
     `cp -r ${magicUi}/lib ${magicUi}/package.json ${magicUiTarget}`
@@ -363,7 +368,8 @@ const generateContactList = () => {
             phone_list: ['79162729533'],
             group_list: [] ,
             personal_manager_id: 8539841,
-            patronymic: (name => name ? `${name}овна` : '')(Object.keys(maleNamesContent)[index]),
+            patronymic: ((name => name ? `${name}овна` : '')(Object.keys(maleNamesContent)[index])).
+                split(/оо|ао|ио/).join('о'),
         };
 
         item.full_name = ['last_name', 'first_name', 'patronymic'].map(name => item[name]).join(' ')

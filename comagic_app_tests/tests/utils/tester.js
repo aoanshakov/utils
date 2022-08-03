@@ -7475,12 +7475,15 @@ define(() => function ({
         return request;
     };
 
-    me.contactListRequest = () => {
-        let total = 250;
+    me.phoneBookContactsRequest = () => {
+        let total = 250,
+            token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
 
         const params = {
-            limit: 100,
-            offset: 0
+            limit: '100',
+            from_id: undefined,
+            scroll_direction: 'forward',
+            search: undefined
         };
 
         const initialData = [{
@@ -7530,7 +7533,22 @@ define(() => function ({
             skipCount: 2
         }));
 
+        let respond = request => request.respondSuccessfullyWith({
+            data: getData(),
+            total
+        });
+
         const addResponseModifiers = me => {
+            me.accessTokenExpired = () => {
+                respond = request => request.respond({
+                    status: 401,
+                    statusText: 'access_token_expired',
+                    responseText: ''
+                });
+
+                return me;
+            };
+
             me.differentNames = () => ((getData = () => [{
                 first_name: 'Берислава',
                 last_name: 'Балканска',
@@ -7541,8 +7559,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Силагиовна',
-                full_name: 'Балканска Берислава Силагиовна'
+                patronymic: 'Силаговна',
+                full_name: 'Балканска Берислава Силаговна'
             }, {
                 first_name: 'Грета',
                 last_name: 'Бележкова',
@@ -7565,8 +7583,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Еньоовна',
-                full_name: 'Белоконска-Вражалска Калиса Еньоовна'
+                patronymic: 'Еньовна',
+                full_name: 'Белоконска-Вражалска Калиса Еньовна'
             }, {
                 first_name: 'Джиневра',
                 last_name: 'Вампирска',
@@ -7577,8 +7595,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Еринаовна',
-                full_name: 'Вампирска Джиневра Еринаовна'
+                patronymic: 'Ериновна',
+                full_name: 'Вампирска Джиневра Ериновна'
             }, {
                 first_name: 'Дилмана',
                 last_name: 'Васовa',
@@ -7589,8 +7607,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Златиовна',
-                full_name: 'Васовa Дилмана Златиовна'
+                patronymic: 'Златовна',
+                full_name: 'Васовa Дилмана Златовна'
             }, {
                 first_name: 'Пелина',
                 last_name: 'Габровлиева',
@@ -7613,8 +7631,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Колонинаовна',
-                full_name: 'Градинарова Дея Колонинаовна'
+                patronymic: 'Колониновна',
+                full_name: 'Градинарова Дея Колониновна'
             }, {
                 first_name: 'Станиела',
                 last_name: 'Дачева',
@@ -7637,8 +7655,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Геньоовна',
-                full_name: 'Ждракова Щедра Геньоовна'
+                patronymic: 'Геньовна',
+                full_name: 'Ждракова Щедра Геньовна'
             }, {
                 first_name: 'Малена',
                 last_name: 'Илиева',
@@ -7649,8 +7667,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Боилаовна',
-                full_name: 'Илиева Малена Боилаовна'
+                patronymic: 'Боиловна',
+                full_name: 'Илиева Малена Боиловна'
             }, {
                 first_name: 'Доча',
                 last_name: 'Йоткова',
@@ -7685,8 +7703,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Петракиовна',
-                full_name: 'Кокошкова Алексиа Петракиовна'
+                patronymic: 'Петраковна',
+                full_name: 'Кокошкова Алексиа Петраковна'
             }, {
                 first_name: 'Максимилияна',
                 last_name: 'Контопишева',
@@ -7697,8 +7715,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Божоовна',
-                full_name: 'Контопишева Максимилияна Божоовна'
+                patronymic: 'Божовна',
+                full_name: 'Контопишева Максимилияна Божовна'
             }, {
                 first_name: 'Стоянка',
                 last_name: 'Коритарова',
@@ -7769,8 +7787,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Левчоовна',
-                full_name: 'Курухубева Любина Левчоовна'
+                patronymic: 'Левчовна',
+                full_name: 'Курухубева Любина Левчовна'
             }, {
                 first_name: 'Аксентия',
                 last_name: 'Кучкуделова',
@@ -7805,8 +7823,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Веткоовна',
-                full_name: 'Мангъфова Гълъбица Веткоовна'
+                patronymic: 'Ветковна',
+                full_name: 'Мангъфова Гълъбица Ветковна'
             }, {
                 first_name: 'Миранза',
                 last_name: 'Многознаева',
@@ -7865,8 +7883,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Златьоовна',
-                full_name: 'Певецова Симона Златьоовна'
+                patronymic: 'Златьовна',
+                full_name: 'Певецова Симона Златьовна'
             }, {
                 first_name: 'Щедра',
                 last_name: 'Пенджакова',
@@ -7889,8 +7907,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Ърчоовна',
-                full_name: 'Пищовколева Гюргя Ърчоовна'
+                patronymic: 'Ърчовна',
+                full_name: 'Пищовколева Гюргя Ърчовна'
             }, {
                 first_name: 'Богдалина',
                 last_name: 'Плюнкова',
@@ -7901,8 +7919,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Ламбоовна',
-                full_name: 'Плюнкова Богдалина Ламбоовна'
+                patronymic: 'Ламбовна',
+                full_name: 'Плюнкова Богдалина Ламбовна'
             }, {
                 first_name: 'Цветилена',
                 last_name: 'Плюцова',
@@ -7949,8 +7967,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Рогенаовна',
-                full_name: 'Пътечкова Жичка Рогенаовна'
+                patronymic: 'Рогеновна',
+                full_name: 'Пътечкова Жичка Рогеновна'
             }, {
                 first_name: 'Касиди',
                 last_name: 'Сапунджиева',
@@ -7961,8 +7979,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Ромеоовна',
-                full_name: 'Сапунджиева Касиди Ромеоовна'
+                patronymic: 'Ромеовна',
+                full_name: 'Сапунджиева Касиди Ромеовна'
             }, {
                 first_name: 'Любослава',
                 last_name: 'Скринска',
@@ -7997,8 +8015,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Генчоовна',
-                full_name: 'Сопаджиева Миглена Генчоовна'
+                patronymic: 'Генчовна',
+                full_name: 'Сопаджиева Миглена Генчовна'
             }, {
                 first_name: 'Заека',
                 last_name: 'Стойкова',
@@ -8009,8 +8027,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Ирмаовна',
-                full_name: 'Стойкова Заека Ирмаовна'
+                patronymic: 'Ирмовна',
+                full_name: 'Стойкова Заека Ирмовна'
             }, {
                 first_name: 'Нани',
                 last_name: 'Таралингова',
@@ -8021,8 +8039,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Героовна',
-                full_name: 'Таралингова Нани Героовна'
+                patronymic: 'Геровна',
+                full_name: 'Таралингова Нани Геровна'
             }, {
                 first_name: 'Върбунка',
                 last_name: 'Тодорова',
@@ -8033,8 +8051,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Киркоовна',
-                full_name: 'Тодорова Върбунка Киркоовна'
+                patronymic: 'Кирковна',
+                full_name: 'Тодорова Върбунка Кирковна'
             }, {
                 first_name: 'Флорика',
                 last_name: 'Точева-Клопова',
@@ -8045,8 +8063,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Филкоовна',
-                full_name: 'Точева-Клопова Флорика Филкоовна'
+                patronymic: 'Филковна',
+                full_name: 'Точева-Клопова Флорика Филковна'
             }, {
                 first_name: 'Оливера',
                 last_name: 'Чанлиева',
@@ -8069,8 +8087,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Фориовна',
-                full_name: 'Червенкова Адра Фориовна'
+                patronymic: 'Форовна',
+                full_name: 'Червенкова Адра Форовна'
             }, {
                 first_name: 'Симона',
                 last_name: 'Чукова',
@@ -8093,8 +8111,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Захоовна',
-                full_name: 'Чупетловска Комара Захоовна'
+                patronymic: 'Заховна',
+                full_name: 'Чупетловска Комара Заховна'
             }, {
                 first_name: 'Патриотка',
                 last_name: 'Шестакова',
@@ -8105,8 +8123,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Златкоовна',
-                full_name: 'Шестакова Патриотка Златкоовна'
+                patronymic: 'Златковна',
+                full_name: 'Шестакова Патриотка Златковна'
             }, {
                 first_name: 'Делиана',
                 last_name: 'Шкембова',
@@ -8117,8 +8135,8 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Харалампиовна',
-                full_name: 'Шкембова Делиана Харалампиовна'
+                patronymic: 'Хараламповна',
+                full_name: 'Шкембова Делиана Хараламповна'
             }, {
                 first_name: 'Мелъди',
                 last_name: 'Яркова',
@@ -8129,16 +8147,26 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 group_list: [],
                 personal_manager_id: 8539841,
-                patronymic: 'Хрисоовна',
-                full_name: 'Яркова Мелъди Хрисоовна'
+                patronymic: 'Хрисовна',
+                full_name: 'Яркова Мелъди Хрисовна'
             }]), me);
 
             return me;
         };
 
         return addResponseModifiers({
+            anotherAuthorizationToken() {
+                token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+
+            search() {
+                params.search = 'пас';
+                return this;
+            },
+
             secondPage() {
-                params.offset = 100;
+                params.from_id = '315476';
 
                 getData = () => getAdditionalData({
                     count: 100,
@@ -8149,7 +8177,7 @@ define(() => function ({
             },
 
             thirdPage() {
-                params.offset = 200;
+                params.from_id = '315576';
 
                 getData = () => getAdditionalData({
                     count: 50,
@@ -8161,21 +8189,17 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL').
-                    expectToHaveMethod('POST').
-                    expectBodyToContain({
-                        method: 'get.contact_list',
-                        params
-                    });
+                    expectPathToContain('$REACT_APP_BASE_URL/phone_book/contacts').
+                    expectToHaveMethod('GET').
+                    expectToHaveHeaders({
+                        'X-Auth-Token': token,
+                        'X-Auth-Type': 'jwt'
+                    }).
+                    expectQueryToContain(params);
 
                 const me = addResponseModifiers({
                     receiveResponse: () => {
-                        request.respondSuccessfullyWith({
-                            result: {
-                                data: getData(),
-                                total
-                            }
-                        });
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)
