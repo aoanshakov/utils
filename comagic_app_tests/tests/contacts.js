@@ -172,19 +172,19 @@ tests.addTest(options => {
                                     tester.spinWrapper.scrollIntoView();
                                     tester.phoneBookContactsRequest().search().secondPage().receiveResponse();
 
-                                    tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                                    tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
                                         'Тончева Десислава Пламеновна',
                                         'Паскалева Бисера Илковна #100',
                                         'Паскалева Бисера Илковна #200'
                                     );
                                 });
                                 it('Отображен список контаков.', function() {
-                                    tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                                    tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
                                         'Тончева Десислава Пламеновна',
                                         'Паскалева Бисера Илковна #100'
                                     );
 
-                                    tester.body.expectTextContentNotToHaveSubstring(
+                                    tester.contactList.expectTextContentNotToHaveSubstring(
                                         'Паскалева Бисера Илковна #200'
                                     );
                                 });
@@ -194,7 +194,7 @@ tests.addTest(options => {
                             });
                         });
                         it('Отображен список контаков.', function() {
-                            tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                            tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
                                 'Тончева Десислава Пламеновна',
                                 'Паскалева Бисера Илковна #100',
                                 'Паскалева Бисера Илковна #200'
@@ -209,7 +209,7 @@ tests.addTest(options => {
                     });
                 });
                 it('Отображена страница контактов.', function() {
-                    tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                    tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
                         'Тончева Десислава Пламеновна',
                         'Паскалева Бисера Илковна #100'
                     );
@@ -217,21 +217,34 @@ tests.addTest(options => {
                     tester.spin.expectNotToExist();
                 });
             });
-            it('Получены разные имена. Имена сгруппированы по первым буквам.', function() {
-                phoneBookContactsRequest.differentNames().receiveResponse();
+            describe('Получены разные имена.', function() {
+                beforeEach(function() {
+                    phoneBookContactsRequest.differentNames().receiveResponse();
+                });
 
-                tester.body.expectTextContentToHaveSubstring(
-                    'Б ' +
+                it('Нажимаю на имя. Имя выделено.', function() {
+                    tester.contactList.item('Бележкова Грета Ервиновна').click();
 
-                    'Балканска Берислава Силаговна ' +
-                    'Бележкова Грета Ервиновна ' +
-                    'Белоконска-Вражалска Калиса Еньовна ' +
+                    tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
+                    tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
+                });
+                it('Имена сгруппированы по первым буквам.', function() {
+                    tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
+                    tester.contactList.item('Бележкова Грета Ервиновна').expectNotToBeSelected();
 
-                    'В ' +
+                    tester.contactList.expectTextContentToHaveSubstring(
+                        'Б ' +
 
-                    'Вампирска Джиневра Ериновна ' +
-                    'Васовa Дилмана Златовна'
-                );
+                        'Балканска Берислава Силаговна ' +
+                        'Бележкова Грета Ервиновна ' +
+                        'Белоконска-Вражалска Калиса Еньовна ' +
+
+                        'В ' +
+
+                        'Вампирска Джиневра Ериновна ' +
+                        'Васовa Дилмана Златовна'
+                    );
+                });
             });
             it('Токен авторизации истек. Токен обновлен. Отправлен повторный запрос контактов.', function() {
                 phoneBookContactsRequest.accessTokenExpired().receiveResponse();

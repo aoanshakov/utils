@@ -34,6 +34,8 @@ const {
     softphoneMisc,
     sipLib,
     sipLibPatch,
+    contacts,
+    contactsPatch,
     uisWebRTC,
     packageLockJson,
     stub,
@@ -68,6 +70,7 @@ const cda = `cd ${application} &&`,
     magicUiOverridenFiles = 'package.json',
     coreOverridenFiles = magicUiOverridenFiles,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
+    contactsOverridenFiles = magicUiOverridenFiles,
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
@@ -217,6 +220,16 @@ const overriding = [{
     test: {
         overridenFiles: analyticsOverridenFiles,
         applicationPatch: analyticsPatch
+    }
+}, {
+    application: contacts,
+    dev: {
+        overridenFiles: contactsOverridenFiles,
+        applicationPatch: contactsPatch
+    },
+    test: {
+        overridenFiles: contactsOverridenFiles,
+        applicationPatch: contactsPatch
     }
 }];
 

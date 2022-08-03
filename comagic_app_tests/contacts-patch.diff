@@ -1,0 +1,12 @@
+diff --git a/package.json b/package.json
+index 733a4d4..28fe74b 100644
+--- a/package.json
++++ b/package.json
+@@ -64,7 +64,6 @@
+     "formik": "^2.2.9",
+     "history": "^4.10.1",
+     "madge": "^5.0.1",
+-    "magic-ui": "./magic_ui",
+     "mobx": "^6.3.8",
+     "mobx-devtools-mst": "^0.9.30",
+     "mobx-react-lite": "^3.2.2",

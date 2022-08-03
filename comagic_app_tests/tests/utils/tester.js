@@ -8826,6 +8826,25 @@ define(() => function ({
         return tester;
     };
 
+    me.contactList = (() => {
+        const tester = testersFactory.createDomElementTester('.cm-contacts-list-wrapper');
+
+        tester.item = name => {
+            const tester =  testersFactory.createDomElementTester(() => utils.
+                descendantOfBody().
+                matchesSelector('.cm-contacts-list-item').
+                textEquals(name).
+                find());
+
+            tester.expectToBeSelected = () => tester.expectToHaveClass('cm-contacts-list-item-selected');
+            tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-contacts-list-item-selected');
+
+            return tester;
+        };
+
+        return tester;
+    })();
+
     me.nameOrPhone = testersFactory.createDomElementTester('.cmg-name-or-phone-wrapper');
     me.largeSizeButton = createCollapsedessButton('cmg-large-size-button');
     me.middleSizeButton = createCollapsedessButton('cmg-middle-size-button');

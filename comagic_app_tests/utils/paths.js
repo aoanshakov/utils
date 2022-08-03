@@ -14,7 +14,8 @@ const src = '/usr/local/src',
     sailsPgSession = `${tests}/sails_pg_session`,
     updaterConfig =`${updater}/config`,
     publisherDir = `${tests}/publisher`,
-    softphone = `${misc}/softphone`;
+    softphone = `${misc}/softphone`,
+    contacts = `${misc}/contacts`;
 
 module.exports = {
     application,
@@ -45,6 +46,7 @@ module.exports = {
     magicUiLibPatch: `${tests}/magic-ui-lib-patch.diff`,
     softphonePatch: `${tests}/softphone-patch.diff`,
     analyticsPatch: `${tests}/analytics-patch.diff`,
+    contactsPatch: `${tests}/contacts-patch.diff`,
     devSoftphonePatch: `${tests}/dev-softphone-patch.diff`,
     sipLibPatch: `${tests}/sip-lib-patch.diff`,
     huskyPatch: `${tests}/husky-patch.diff`,
@@ -71,5 +73,6 @@ module.exports = {
     publisherDir,
     assets: `${tests}/assets`,
     publisher: `${publisherDir}/index.js`,
-    contactsMagicUi: `${misc}/contacts/magic_ui`,
+    contactsMagicUi: `${contacts}/magic_ui`,
+    contacts
 };
