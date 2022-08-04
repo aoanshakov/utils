@@ -8,7 +8,8 @@ RUN apt-get install -y \
     curl \
     git \
     flake8 \
-    tidy
+    tidy \
+    rsync
 
 RUN sed -i -e 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen && \
     echo 'LANG="ru_RU.UTF-8"'>/etc/default/locale && \
