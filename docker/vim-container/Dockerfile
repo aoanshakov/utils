@@ -9,7 +9,8 @@ RUN apt-get install -y \
     git \
     flake8 \
     tidy \
-    rsync
+    rsync \
+    zip
 
 RUN sed -i -e 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen && \
     echo 'LANG="ru_RU.UTF-8"'>/etc/default/locale && \
@@ -18,7 +19,9 @@ RUN sed -i -e 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen && \
 
 ENV LANG ru_RU.UTF-8
 
-RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_15.x | bash -
 RUN apt-get install -y nodejs
+
+RUN npm set registry http://npm.dev.uis.st:80
 
 ENTRYPOINT [ "bash" ]

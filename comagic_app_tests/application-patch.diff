@@ -414,10 +414,10 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 68f48551..4b407c4b 100644
+index 68f48551..386057ee 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -4,13 +4,19 @@ import ReactDOM from 'react-dom';
+@@ -4,13 +4,17 @@ import ReactDOM from 'react-dom';
  import { Router } from 'react-router-dom';
  import { IntlProvider } from 'react-intl';
  import moment from 'moment';
@@ -434,12 +434,10 @@ index 68f48551..4b407c4b 100644
 +import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
 +import { createRootStore as createAnalyticsRootStore } from 'analytics/src/models/RootStore';
 +import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
-+
-+import List from 'contacts/src/contact-list/List';
  
  import history from './history';
  import { getIntlLocale, getIntlMessages } from './i18n';
-@@ -92,4 +98,58 @@ const Root: React.FC = observer(props => {
+@@ -92,4 +96,49 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -447,16 +445,7 @@ index 68f48551..4b407c4b 100644
 +const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
 +    Window = ({children}) => <div className="cm-test-window">{children}</div>;
 +
-+const units = {
-+    infiniteScroll: () => {
-+        const [data, setData] = useState((new Array(100)).fill(null).map((_, index) => ({
-+            id: index + 1,
-+            full_name: `Item #${index + 1}`
-+        })));
-+
-+        return <Window><List data={data} /></Window>;
-+    }
-+};
++const units = {};
 +
 +window.application = {
 +    run({
