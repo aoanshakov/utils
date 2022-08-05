@@ -50,7 +50,7 @@ tests.addTest(options => {
         });
 
         describe('Раздел контактов доступен. Открываю раздел контактов.', function() {
-            let phoneBookContactsRequest;
+            let contactsRequest;
 
             beforeEach(function() {
                 accountRequest.receiveResponse();
@@ -133,12 +133,12 @@ tests.addTest(options => {
                 statusesRequest.receiveResponse();
 
                 tester.button('Контакты').click();
-                phoneBookContactsRequest = tester.phoneBookContactsRequest().expectToBeSent();
+                contactsRequest = tester.contactsRequest().expectToBeSent();
             });
 
             describe('Получены данные для списка контактов.', function() {
                 beforeEach(function() {
-                    phoneBookContactsRequest.receiveResponse();
+                    contactsRequest.receiveResponse();
                 });
 
                 describe(
@@ -146,12 +146,12 @@ tests.addTest(options => {
                 function() {
                     beforeEach(function() {
                         tester.spinWrapper.scrollIntoView();
-                        phoneBookContactsRequest = tester.phoneBookContactsRequest().secondPage().expectToBeSent();
+                        contactsRequest = tester.contactsRequest().secondPage().expectToBeSent();
                     });
 
                     describe('Получены данные для списка контактов.', function() {
                         beforeEach(function() {
-                            phoneBookContactsRequest.receiveResponse();
+                            contactsRequest.receiveResponse();
                         });
                         
                         describe('Ввожу значение в поле поиска.', function() {
@@ -162,7 +162,7 @@ tests.addTest(options => {
                             describe('Проходит некоторое время. Отправлен запрос контактов.', function() {
                                 beforeEach(function() {
                                     spendTime(500);
-                                    tester.phoneBookContactsRequest().search().receiveResponse();
+                                    tester.contactsRequest().search().receiveResponse();
                                 });
 
                                 it(
@@ -170,7 +170,7 @@ tests.addTest(options => {
                                     'контактов.',
                                 function() {
                                     tester.spinWrapper.scrollIntoView();
-                                    tester.phoneBookContactsRequest().search().secondPage().receiveResponse();
+                                    tester.contactsRequest().search().secondPage().receiveResponse();
 
                                     tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
                                         'Тончева Десислава Пламеновна',
@@ -193,6 +193,15 @@ tests.addTest(options => {
                                 tester.input.expectToHaveValue('пас');
                             });
                         });
+                        it(
+                            'Прокручиваю список контактов до последней страницы. Прокручиваю список ' +
+                            'контактов до конца. Запрос следующей страницы не был отправлен.',
+                        function() {
+                            tester.spinWrapper.scrollIntoView();
+                            tester.contactsRequest().thirdPage().receiveResponse();
+
+                            tester.spinWrapper.scrollIntoView();
+                        });
                         it('Отображен список контаков.', function() {
                             tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
                                 'Тончева Десислава Пламеновна',
@@ -208,6 +217,17 @@ tests.addTest(options => {
                         tester.spin.expectToBeVisible();
                     });
                 });
+                it(
+                    'Ввожу значение в поле поиска. Не удалось получить данные. Запрос не отправляется повторно.',
+                function() {
+                    tester.input.fill('пас');
+                    spendTime(500);
+
+                    tester.contactsRequest().search().failed().receiveResponse();
+                    tester.spinWrapper.scrollIntoView();
+
+                    tester.spin.expectNotToExist();
+                });
                 it('Отображена страница контактов.', function() {
                     tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
                         'Тончева Десислава Пламеновна',
@@ -219,7 +239,7 @@ tests.addTest(options => {
             });
             describe('Получены разные имена.', function() {
                 beforeEach(function() {
-                    phoneBookContactsRequest.differentNames().receiveResponse();
+                    contactsRequest.differentNames().receiveResponse();
                 });
 
                 it('Нажимаю на имя. Имя выделено.', function() {
@@ -247,10 +267,10 @@ tests.addTest(options => {
                 });
             });
             it('Токен авторизации истек. Токен обновлен. Отправлен повторный запрос контактов.', function() {
-                phoneBookContactsRequest.accessTokenExpired().receiveResponse();
+                contactsRequest.accessTokenExpired().receiveResponse();
                 tester.refreshRequest().receiveResponse();
 
-                tester.phoneBookContactsRequest().anotherAuthorizationToken().receiveResponse();
+                tester.contactsRequest().anotherAuthorizationToken().receiveResponse();
             });
             it('Отображен спиннер.', function() {
                 tester.spin.expectToBeVisible();

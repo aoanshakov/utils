@@ -7475,7 +7475,7 @@ define(() => function ({
         return request;
     };
 
-    me.phoneBookContactsRequest = () => {
+    me.contactsRequest = () => {
         let total = 250,
             token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
 
@@ -7539,6 +7539,19 @@ define(() => function ({
         });
 
         const addResponseModifiers = me => {
+            me.noData = () => {
+                total = 0;
+                getData = () => [];
+                return me;
+            };
+
+            me.failed = () => {
+                respond = request =>
+                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+
+                return me;
+            };
+            
             me.accessTokenExpired = () => {
                 respond = request => request.respond({
                     status: 401,
@@ -8189,7 +8202,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/phone_book/contacts').
+                    expectPathToContain('$REACT_APP_BASE_URL/contacts').
                     expectToHaveMethod('GET').
                     expectToHaveHeaders({
                         'X-Auth-Token': token,

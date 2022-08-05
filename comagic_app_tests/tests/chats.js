@@ -105,7 +105,7 @@ tests.addTest(options => {
             tester.chatListRequest().closed().receiveResponse();
         });
 
-        xdescribe('Получены данные чата.', function() {
+        describe('Получены данные чата.', function() {
             beforeEach(function() {
                 chatListRequest.receiveResponse();
             });
