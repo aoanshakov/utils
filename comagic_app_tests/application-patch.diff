@@ -502,58 +502,588 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d5eb547b..00a1ff88 100644
+index d5eb547b..d991d4b8 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -215,7 +215,7 @@ export const RootStore = types
-                 }
-             );
+@@ -1,318 +1,49 @@
+ import React from 'react';
+-import { applySnapshot, getSnapshot, Instance, SnapshotOut, types } from 'mobx-state-tree';
+-import axios, { AxiosRequestConfig } from 'axios';
+-import moment from 'moment';
+-import * as fileSaver from 'file-saver';
+-import { AccountStore, projectsData, NotificationStore } from '@comagic/core';
++import { Instance, SnapshotOut, types } from 'mobx-state-tree';
++import { projectsData } from '@comagic/core';
++import { cancelPendingRequests } from '@/rpc/httpRpc';
++import { getProject } from '@/i18n';
  
+ import { GOD_MODE } from '@/config';
+ import { httpRpc, httpRpcAuth } from '@/rpc';
+-import { HttpRpc } from '@/rpc/httpRpc';
+ 
+-import { AuthStore, getToken } from '@models/auth/AuthStore';
+ import { MenuStore } from '@models/menu/MenuStore';
+ import { RootReportStore } from '@models/reports/RootReportStore';
+ import { MarketplaceStore } from '@models/marketplace/MarketplaceStore';
+ 
+-const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
+-const ACCESS_TOKEN_INVALID = 'access_token_invalid';
+-const LOGOUT_USER = 'logout.user';
++import { RootStore as BasicRootStore } from '@comagic/core/src/models/host/DesktopRootStore';
+ 
+ const isGodMode = () => {
+     return localStorage.getItem(GOD_MODE) === '*';
+ };
+ 
+-type HttpRpcErrorModel = {
+-    code: number;
+-    message: string;
+-    data: any;
+-    request: any | null;
+-};
+-
+-type RequestToRefresh = (nextResolve: boolean) => void;
+-
+-const getIpcRender = () => (
+-    window.rootConfig?.appName == 'softphone' &&
+-    ((window.require || (() => null))('electron')?.ipcRenderer)
+-) || {
+-    on: () => null,
+-    send: () => null
+-};
+-
+-const createSoftphoneStoreCreatingHandler = rootStore => {
+-    let handleStoreCreating = store => {
+-        [{
+-            channelName: 'checkautolauncher',
+-            paramName: 'isStartApp',
+-            setParamValue: 'setStartApp'
+-        }, {
+-            channelName: 'checkstartminimize',
+-            paramName: 'isStartMinimize',
+-            setParamValue: 'setStartMinimize'
+-        }].forEach(({channelName, paramName, setParamValue}) =>
+-            getIpcRender().on(channelName, (event, data) => store[setParamValue]((data || {})[paramName])));
+-
+-        getIpcRender().send('app-ready');
+-
+-        getIpcRender().on('update-downloaded', () => store.showMessage({
+-            id: 'update-downloaded',
+-            title: 'Update received',
+-            buttons: [{
+-                id: 'update',
+-                text: 'Update',
+-                handler: () => getIpcRender().send('quit-and-install')
+-            }]
+-        }));
+-
+-        getIpcRender().on('maximize', () => store.setIsLarge());
+-        getIpcRender().on('unmaximize', () => store.setNotLarge());
+-
+-        store.onLargenessChange(isLarge => {
+-            rootStore.setLarge(isLarge);
+-            getIpcRender().send(isLarge ? 'maximize' : 'unmaximize');
+-        });
+-
+-        store.onApplicationChangeChanger(data => getIpcRender().send(
+-            'application-version-changed',
+-            data?.params?.application_version
+-        ));
+-
+-        store.onSizeChange(size => getIpcRender().send('resize', size));
+-        handleStoreCreating = () => null;
+-    };
+-
+-    return store => handleStoreCreating(store);
+-};
+-
+-const log = (...messages) => getIpcRender().send('log', messages.map(
+-    message => typeof message == 'object' ? JSON.stringify(message) : `${message}`
+-).join(' ').trim());
+-
+-window.addEventListener('error', function(event) {
+-    log(((error => error ? (error + '') : '')(event?.error?.stack || event?.message)).trim())
+-    return false;
+-});
+-
+-export const RootStore = types
+-    .model('RootStore', {
++export const RootStore = BasicRootStore.named('RootStore')
++    .props({
+         isLarge: types.optional(types.boolean, false),
+         isGodMode: types.optional(types.boolean, isGodMode()),
+-        isLogDownloading: types.optional(types.boolean, false),
+-        authStore: types.optional(AuthStore, {}),
+-        accountStore: types.optional(AccountStore, {}),
+         menuStore: types.optional(MenuStore, {}),
+         reportStore: types.optional(RootReportStore, {}),
+         marketplaceStore: types.optional(MarketplaceStore, {}),
+-        notificationStore: types.optional(NotificationStore, {}),
+     })
+     .actions(self => {
+-        let initialState: RootInstanceSnapshotOut;
+-        let requestsToRefresh: RequestToRefresh[] = [];
+-        let isRefreshRequesting = false;
+-
+-        const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
+-            const auth = getToken();
+-            let method;
+-            try {
+-                method = JSON.parse(config.data).method;
+-            } catch {
+-                // REST case
+-            }
+-            if (!auth || method === LOGOUT_USER) {
+-                return Promise.reject(error);
+-            }
+-
+-            if (!isRefreshRequesting) {
+-                isRefreshRequesting = true;
+-
+-                self.authStore
+-                    .fetchRefresh()
+-                    .then(() => {
+-                        requestsToRefresh.forEach(cb => cb(true));
+-                    })
+-                    .catch(() => {
+-                        requestsToRefresh.forEach(cb => cb(false));
+-                    })
+-                    .finally(() => {
+-                        requestsToRefresh = [];
+-                        isRefreshRequesting = false;
+-                    });
+-            }
+-
+-            return new Promise((resolve, reject) => {
+-                const requestToRefresh = (resolveNext: boolean) => {
+-                    if (resolveNext) {
+-                        resolve(axios(config));
+-                    }
+-
+-                    reject(error);
+-                };
+-
+-                requestsToRefresh.push(requestToRefresh);
+-            });
+-        };
+-
+-        const logRequest = ({
+-            response: r,
+-            isError
+-        }) => {
+-            if (!r) {
+-                return;
+-            }
+-
+-            const {
+-                data: response,
+-                config: {
+-                    data,
+-                    url,
+-                    method
+-                }
+-            } = r;
+-
+-            log([
+-                'Ajax request',
+-                `URL "${url}"`,
+-                `Method "${method}"`,
+-                `Parameters ${typeof data == 'object' ? JSON.stringify(data) : data}`,
+-                `${isError ? 'Error' : 'Response'} ${JSON.stringify(response)}`
+-            ].join("\n"));
+-        };
+-
+-        const setHttpRequestsDefault = () => {
+-            axios.defaults.headers.post['Accept'] = 'application/json';
+-            axios.defaults.headers.post['Content-Type'] = 'application/json';
+-
+-            axios.interceptors.request.use(
+-                config => {
+-                    const auth = getToken();
+-
+-                    if (auth) {
+-                        const { jwt } = auth;
+-                        const headers = config.headers;
+-
+-                        // todo проблема с РМР - протестировали на БОЮ =)
+-                        // let configData = config.data;
+-                        //
+-                        // if (typeof configData === 'string') {
+-                        //     configData = JSON.parse(configData);
+-                        // }
+-                        //
+-                        // const method = configData?.method;
+-                        // if (method) {
+-                        //     headers['Authorization'] = `Bearer ${jwt}`;
+-                        // } else {
+-                        //     headers['X-Auth-Token'] = jwt;
+-                        // }
+-                        headers['Authorization'] = `Bearer ${jwt}`;
+-                        headers['X-Auth-Token'] = jwt;
+-                        headers['X-Auth-Type'] = 'jwt';
+-                    }
+-
+-                    return config;
+-                },
+-                error => {
+-                    return Promise.reject(error);
+-                }
+-            );
+-
 -            axios.interceptors.response.use(
-+            window.axiosInterceptors = axios.interceptors.response.use(
-                 response => {
-                     logRequest({response});
+-                response => {
+-                    logRequest({response});
+-
+-                    if (response.data.error) {
+-                        const {
+-                            config,
+-                            data: { error },
+-                        } = response;
+-                        const errorMnemonic = error?.data?.mnemonic;
+-
+-                        if (errorMnemonic === ACCESS_TOKEN_EXPIRED) {
+-                            return refreshAccessToken(error, config);
+-                        } else if (errorMnemonic === ACCESS_TOKEN_INVALID) {
+-                            self.authStore.logout();
+-
+-                            return Promise.reject(error);
+-                        }
+-                    }
+-
+-                    return response;
+-                },
+-                error => {
+-                    logRequest({
+-                        response: error.response,
+-                        isError: true
+-                    });
+-
+-                    if (error?.response?.status === 401) {
+-                        const errorMnemonic = error.response.data.split(' ').slice(-1)[0];
+-                        if (errorMnemonic === ACCESS_TOKEN_EXPIRED) {
+-                            return refreshAccessToken(error, error.response.config);
+-                        } else if (
+-                            errorMnemonic === ACCESS_TOKEN_INVALID ||
+-                            error.response.data === '401: "Authorization" header not found'
+-                        ) {
+-                            self.authStore.logout();
+-                        }
+-                    }
+-
+-                    return Promise.reject(error);
+-                }
+-            );
+-        };
+-
+-        let setSoftphoneStore = () => null;
+-
+-        const downloadLog = () => {
+-            self.isLogDownloading = true;
+-            getIpcRender().send('collect_logs');
+-        };
+-
+-        const handleLogsCollected = data => {
+-            self.isLogDownloading = false;
+-
+-            fileSaver.saveAs(new Blob([data], {
+-                type: 'application/zip'
+-            }), `Softphone.${moment().format('YYYYMMDD.HHmmss.SSS')}.log.zip`)
+-        };
+-
+-        const afterCreate = () => {
+-            initialState = getSnapshot(self);
+-
+-            setHttpRequestsDefault();
+-
+-            getIpcRender().on('logs_collected', (event, data) => self.handleLogsCollected(data));
+-            setSoftphoneStore = createSoftphoneStoreCreatingHandler(self);
+-        };
+-
+-        const resetStore = () => {
+-            applySnapshot(self, initialState);
+-        };
+-
+         const setLarge = value => (self.isLarge = value);
+-
+-        self.fileLogger = {
+-            downloadLog: () => self.downloadLog(),
+-            log
+-        };
+-
+-        return {
+-            afterCreate,
+-            resetStore,
+-            setLarge,
+-            downloadLog,
+-            handleLogsCollected,
+-            setSoftphoneStore: store => setSoftphoneStore(store) 
+-        };
++        return { setLarge };
+     });
  
-@@ -276,6 +276,7 @@ export const RootStore = types
-         };
- 
-         const afterCreate = () => {
-+            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
-             initialState = getSnapshot(self);
- 
-             setHttpRequestsDefault();
-@@ -312,7 +313,8 @@ export type DependencyInjection = {
+-export type DependencyInjection = {
+-    httpRpc: HttpRpc;
+-    httpRpcAuth: HttpRpc;
+-};
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
 -export const rootStore = RootStore.create({}, { httpRpc, httpRpcAuth });
++
 +export let rootStore;
-+export const createRootStore = () => (rootStore = RootStore.create({}, { httpRpc, httpRpcAuth }));
++
++export const createRootStore = () => (rootStore = RootStore.create({}, {
++    appName: window.rootConfig?.appName,
++    httpRpc,
++    httpRpcAuth,
++    getProject,
++    cancelPendingRequests,
++    AUTH_KEY: process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_COOKIE',
++}));
  
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index e6dd1223..21ca7ec0 100644
+deleted file mode 100644
+index e6dd1223..00000000
 --- a/src/models/auth/AuthStore.ts
-+++ b/src/models/auth/AuthStore.ts
-@@ -95,7 +95,7 @@ const removeToken = (skipLocalStorage = false) => {
- 
- export const AuthStore = Loader.named('AuthStore')
-     .props({
++++ /dev/null
+@@ -1,235 +0,0 @@
+-import { flow, getEnv, getRoot, types } from 'mobx-state-tree';
+-import axios from 'axios';
+-
+-import { RootStore } from '../RootStore';
+-import { Loader } from '../shared';
+-import { getProject } from '@/i18n';
+-import { getCookie, setCookie, deleteCookie } from '@/utils';
+-import { cancelPendingRequests } from '@/rpc/httpRpc';
+-import { generateTraceId } from '@/utils';
+-import { Options } from '@/utils/cookie';
+-import { cancelAnalyticPendingRequests } from '@/rpc/httpRpcAnalytic';
+-
+-export type LoginUser = {
+-    login: string;
+-    password: string;
+-    dont_keep_me_signed_in: boolean;
+-};
+-
+-type Auth = {
+-    jwt: string;
+-    refresh: string;
+-};
+-
+-const AUTH_KEY = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_COOKIE';
+-
+-const getCookieDomain = () => {
+-    return window.location.hostname
+-        .split('.')
+-        .slice(-2)
+-        .join('.');
+-};
+-
+-export const getToken = (): Auth => {
+-    const token = getCookie(AUTH_KEY);
+-
+-    if (!token) return;
+-
+-    return JSON.parse(token);
+-};
+-
+-const setToken = (auth: Auth, dontKeepMeSignedIn = false) => {
+-    const options = {
+-        secure: true,
+-        domain: getCookieDomain(),
+-    } as Options;
+-    if (!dontKeepMeSignedIn) {
+-        const twoWeeks = new Date(Date.now() + 2 * 7 * 24 * 60 * 60 * 1000);
+-        options.expires = twoWeeks;
+-    }
+-    setCookie(AUTH_KEY, JSON.stringify(auth), options);
+-
+-    window.dispatchEvent(new Event('tokenChange'));
+-};
+-
+-type JwtPayload = {
+-    app_id: number;
+-    user_id: number;
+-    exp: number;
+-};
+-
+-const getJwtPayload = (): JwtPayload => {
+-    const token = getToken();
+-
+-    if (!token) {
+-        return null;
+-    }
+-
+-    const jwt = token.jwt;
+-
+-    if (!jwt) {
+-        return null;
+-    }
+-
+-    const jwtPayload = jwt.split('.')[1];
+-
+-    if (!jwtPayload) {
+-        return null;
+-    }
+-
+-    return JSON.parse(atob(jwtPayload));
+-};
+-
+-const removeToken = (skipLocalStorage = false) => {
+-    if (!skipLocalStorage) {
+-        deleteCookie(AUTH_KEY, { secure: true, domain: getCookieDomain() });
+-        sessionStorage.removeItem(AUTH_KEY);
+-        sessionStorage.removeItem('access_token');
+-    }
+-
+-    delete axios.defaults.headers.common['Authorization'];
+-    delete axios.defaults.headers.common['X-Auth-Type'];
+-
+-    window.dispatchEvent(new Event('tokenRemove'));
+-};
+-
+-export const AuthStore = Loader.named('AuthStore')
+-    .props({
 -        isAuthorized: types.optional(types.boolean, Boolean(getToken())),
-+        isAuthorized: types.optional(types.boolean, false),
-         isTokenRefreshing: types.optional(types.boolean, false),
-         windowId: types.optional(types.string, generateTraceId('local')),
-     })
-@@ -189,6 +189,8 @@ export const AuthStore = Loader.named('AuthStore')
-         });
- 
-         const afterCreate = () => {
-+            setAuthorized(Boolean(getToken()));
-+
-             window.addEventListener('doLogoutUser', (event: CustomEvent) => {
-                 const eventWindowId = event.detail;
-                 if (eventWindowId !== authStore.windowId) {
+-        isTokenRefreshing: types.optional(types.boolean, false),
+-        windowId: types.optional(types.string, generateTraceId('local')),
+-    })
+-    .actions(self => {
+-        const { httpRpcAuth } = getEnv(self);
+-        const { authStore, accountStore, notificationStore } = getRoot<typeof RootStore>(self);
+-
+-        const setAuthorized = (isAuthorized: boolean) => {
+-            self.isAuthorized = isAuthorized;
+-        };
+-
+-        const setIsTokenRefreshing = (value: boolean) => {
+-            self.isTokenRefreshing = value;
+-        };
+-
+-        const cancelNotifications = () => {
+-            notificationStore.stackingNotificationInstance?.destroyAll();
+-            notificationStore.cancelNotifications();
+-        };
+-
+-        const logout = (skipLocalStorage = false) => {
+-            cancelNotifications();
+-            setAuthorized(false);
+-            cancelPendingRequests('canceled by logout');
+-            cancelAnalyticPendingRequests('canceled by logout');
+-            removeToken(skipLocalStorage);
+-            self.setLoading(false);
+-        };
+-
+-        const fetchLoginUser = flow(function*({
+-            login,
+-            password,
+-            dont_keep_me_signed_in: dontKeepMeSignedIn,
+-        }: LoginUser) {
+-            self.setLoading(true);
+-
+-            try {
+-                const token = getToken();
+-                const old_jwt = token?.jwt;
+-
+-                const auth = yield httpRpcAuth('login', {
+-                    login,
+-                    password,
+-                    project: getProject(),
+-                    old_jwt,
+-                });
+-
+-                setToken(auth, dontKeepMeSignedIn);
+-                setAuthorized(true);
+-            } catch (e) {
+-                removeToken();
+-
+-                return Promise.reject(e);
+-            } finally {
+-                self.setLoading(false);
+-            }
+-        });
+-
+-        const fetchRefresh = flow(function*() {
+-            try {
+-                setIsTokenRefreshing(true);
+-
+-                const auth = getToken();
+-
+-                const nextAuth = yield httpRpcAuth('refresh', auth);
+-
+-                setToken(nextAuth);
+-            } catch (e) {
+-                void fetchLogoutUser();
+-                return Promise.reject(e);
+-            } finally {
+-                setIsTokenRefreshing(false);
+-            }
+-        });
+-
+-        const fetchLogoutUser = flow(function*() {
+-            self.setLoading(true);
+-
+-            try {
+-                const token = getToken();
+-                const jwt = token?.jwt;
+-
+-                yield httpRpcAuth('logout', {
+-                    jwt,
+-                });
+-            } catch (e) {
+-                return Promise.reject(e);
+-            } finally {
+-                logout();
+-            }
+-        });
+-
+-        const afterCreate = () => {
+-            window.addEventListener('doLogoutUser', (event: CustomEvent) => {
+-                const eventWindowId = event.detail;
+-                if (eventWindowId !== authStore.windowId) {
+-                    void authStore.logout(true);
+-                }
+-            });
+-            window.addEventListener('doRefreshToken', (event: CustomEvent) => {
+-                const eventWindowId = event.detail;
+-                if (eventWindowId !== authStore.windowId) {
+-                    authStore
+-                        .fetchRefresh()
+-                        .then(() => {
+-                            const tokenRefreshedEvent = new Event('tokenRefreshed');
+-                            window.dispatchEvent(tokenRefreshedEvent);
+-                        })
+-                        .catch(e => console.error(e));
+-                }
+-            });
+-
+-            window.setInterval(() => {
+-                if (authStore.isAuthorized) {
+-                    const payload = getJwtPayload();
+-
+-                    if (payload) {
+-                        const jwtUserId = payload.user_id;
+-                        const accountStoreUserId = accountStore.account.user_id;
+-
+-                        if (accountStoreUserId !== null && jwtUserId !== accountStoreUserId) {
+-                            window.location.href = '/';
+-                        }
+-                    }
+-                }
+-            }, 1000);
+-        };
+-
+-        return {
+-            fetchLoginUser,
+-            fetchLogoutUser,
+-            fetchRefresh,
+-            logout,
+-            setIsTokenRefreshing,
+-            afterCreate,
+-        };
+-    });
 diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
 index 8c0a28d7..ce190fe9 100644
 --- a/src/rpc/httpRpc.ts
