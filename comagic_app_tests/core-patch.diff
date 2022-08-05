@@ -1,11 +1,11 @@
 diff --git a/package.json b/package.json
-index 15fbbfc..04e5820 100644
+index cd3c0a4..55c3efc 100644
 --- a/package.json
 +++ b/package.json
 @@ -1,9 +1,9 @@
  {
    "name": "@comagic/core",
-   "version": "0.6.9",
+   "version": "0.7.0",
 -  "main": "lib/index.js",
 +  "main": "src/index.ts",
    "files": [
