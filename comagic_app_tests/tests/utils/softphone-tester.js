@@ -2584,7 +2584,7 @@ define(function () {
             return {};
         };
 
-        this.outboundCall = function () {
+        this.outgoingCall = function () {
             var phoneNumber = '79161234567',
                 sip_login = '077368',
                 me = this,

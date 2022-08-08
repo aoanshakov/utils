@@ -1003,7 +1003,7 @@ tests.addTest(options => {
 
                                             describe('SIP-регистрация завершена.', function() {
                                                 let numaRequest,
-                                                    outboundCall;
+                                                    outgoingCall;
 
                                                 beforeEach(function() {
                                                     registrationRequest.receiveResponse();
@@ -1022,11 +1022,11 @@ tests.addTest(options => {
                                                         tester.firstConnection.connectWebRTC();
                                                         tester.allowMediaInput();
 
-                                                        outboundCall = tester.outboundCall().expectToBeSent()
+                                                        outgoingCall = tester.outgoingCall().expectToBeSent()
                                                         tester.slavesNotification().available().userDataFetched().
                                                             twoChannels().sending().expectToBeSent();
 
-                                                        outboundCall.setRinging();
+                                                        outgoingCall.setRinging();
                                                         tester.slavesNotification().available().userDataFetched().
                                                             twoChannels().progress().expectToBeSent();
                                                         
@@ -1057,7 +1057,7 @@ tests.addTest(options => {
 
                                                                 describe('Звонок принят.', function() {
                                                                     beforeEach(function() {
-                                                                        outboundCall.setAccepted();
+                                                                        outgoingCall.setAccepted();
 
                                                                         tester.slavesNotification().
                                                                             available().
@@ -1279,7 +1279,7 @@ tests.addTest(options => {
                                                                         'Вызываемый занят. Отображено сообщение о ' +
                                                                         'звонке.',
                                                                     function() {
-                                                                        outboundCall.receiveBusy();
+                                                                        outgoingCall.receiveBusy();
 
                                                                         tester.slavesNotification().
                                                                             available().
@@ -1384,7 +1384,7 @@ tests.addTest(options => {
                                                                         ended().
                                                                         expectToBeSent();
 
-                                                                    outboundCall.expectCancelingRequestToBeSent();
+                                                                    outgoingCall.expectCancelingRequestToBeSent();
                                                                     tester.callSessionFinish().thirdId().
                                                                         slavesNotification().expectToBeSent();
 
@@ -1460,7 +1460,7 @@ tests.addTest(options => {
                                                                 ended().
                                                                 expectToBeSent();
 
-                                                            outboundCall.expectCancelingRequestToBeSent();
+                                                            outgoingCall.expectCancelingRequestToBeSent();
 
                                                             tester.callSessionFinish().thirdId().slavesNotification().
                                                                 expectToBeSent();
@@ -1487,7 +1487,7 @@ tests.addTest(options => {
                                                     tester.firstConnection.connectWebRTC();
                                                     tester.allowMediaInput();
 
-                                                    outboundCall = tester.outboundCall().expectToBeSent()
+                                                    outgoingCall = tester.outgoingCall().expectToBeSent()
 
                                                     tester.slavesNotification().
                                                         available().
@@ -1496,7 +1496,7 @@ tests.addTest(options => {
                                                         sending().
                                                         expectToBeSent();
 
-                                                    outboundCall.setRinging();
+                                                    outgoingCall.setRinging();
 
                                                     tester.slavesNotification().
                                                         available().
@@ -1642,13 +1642,13 @@ tests.addTest(options => {
 
                                                         tester.numaRequest().anotherNumber().receiveResponse();
 
-                                                        const outboundCall = tester.outboundCall().
+                                                        const outgoingCall = tester.outgoingCall().
                                                             setNumberFromCallsGrid().expectToBeSent();
 
                                                         tester.slavesNotification().available().userDataFetched().
                                                             twoChannels().sending().thirdPhoneNumber().expectToBeSent();
 
-                                                        outboundCall.setRinging();
+                                                        outgoingCall.setRinging();
                                                         tester.slavesNotification().available().userDataFetched().
                                                             twoChannels().progress().thirdPhoneNumber().
                                                             expectToBeSent();
@@ -1997,7 +1997,7 @@ tests.addTest(options => {
                                                     });
                                                 });
                                                 describe('Совершаю исходящий звонок.', function() {
-                                                    let outboundCall,
+                                                    let outgoingCall,
                                                         outCallSessionEvent;
 
                                                     beforeEach(function() {
@@ -2007,11 +2007,11 @@ tests.addTest(options => {
                                                         tester.firstConnection.connectWebRTC();
                                                         tester.allowMediaInput();
 
-                                                        outboundCall = tester.outboundCall().start();
+                                                        outgoingCall = tester.outgoingCall().start();
                                                         tester.slavesNotification().available().userDataFetched().
                                                             twoChannels().sending().expectToBeSent();
 
-                                                        outboundCall.setRinging();
+                                                        outgoingCall.setRinging();
                                                         tester.slavesNotification().available().userDataFetched().
                                                             twoChannels().progress().expectToBeSent();
 
@@ -2652,11 +2652,11 @@ tests.addTest(options => {
                                                 tester.firstConnection.connectWebRTC();
                                                 tester.allowMediaInput();
 
-                                                const outboundCall = tester.outboundCall().intercept().start();
+                                                const outgoingCall = tester.outgoingCall().intercept().start();
                                                 tester.slavesNotification().available().userDataFetched().twoChannels().
                                                     intercept().sending().expectToBeSent();
 
-                                                outboundCall.setRinging();
+                                                outgoingCall.setRinging();
                                                 tester.slavesNotification().available().userDataFetched().twoChannels().
                                                     intercept().progress().expectToBeSent();
 
@@ -2683,7 +2683,7 @@ tests.addTest(options => {
                                                 tester.firstConnection.connectWebRTC();
                                                 tester.allowMediaInput();
 
-                                                tester.outboundCall().expectToBeSent()
+                                                tester.outgoingCall().expectToBeSent()
 
                                                 tester.slavesNotification().available().userDataFetched().twoChannels().
                                                     sending().expectToBeSent();

@@ -982,7 +982,7 @@ tests.addTest(options => {
                             tester.firstConnection.connectWebRTC();
                             tester.allowMediaInput();
 
-                            tester.outboundCall().start().setRinging().setAccepted();
+                            tester.outgoingCall().start().setRinging().setAccepted();
                             tester.firstConnection.callTrackHandler();
 
                             tester.numaRequest().receiveResponse();

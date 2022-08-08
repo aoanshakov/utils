@@ -8649,6 +8649,12 @@ define(() => function ({
         };
     };
 
+    me.outgoingCallEvent = () => ({
+        dispatch: () => {
+            me.eventBus.broadcast('outgoing_call', '79161234567');
+        }
+    });
+
     me.ipcPrompterCallAwaitMessage = () => {
         let data = null;
         

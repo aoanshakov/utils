@@ -228,6 +228,37 @@ tests.addTest(options => {
 
                     tester.spin.expectNotToExist();
                 });
+                it('Вызвано событие исходящего звонка. Совершается исходящий звонок.', function() {
+                    tester.outgoingCallEvent().dispatch();
+
+                    tester.firstConnection.connectWebRTC();
+                    tester.allowMediaInput();
+
+                    const outgoingCall = tester.outgoingCall().expectToBeSent()
+
+                    tester.slavesNotification().
+                        available().
+                        userDataFetched().
+                        twoChannels().
+                        sending().
+                        expectToBeSent();
+
+                    outgoingCall.setRinging();
+
+                    tester.slavesNotification().
+                        available().
+                        userDataFetched().
+                        twoChannels().
+                        progress().
+                        expectToBeSent();
+
+                    tester.firstConnection.callTrackHandler();
+
+                    tester.numaRequest().receiveResponse();
+
+                    tester.outCallSessionEvent().receive();
+                    tester.outCallSessionEvent().slavesNotification().expectToBeSent();
+                });
                 it('Отображена страница контактов.', function() {
                     tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
                         'Тончева Десислава Пламеновна',

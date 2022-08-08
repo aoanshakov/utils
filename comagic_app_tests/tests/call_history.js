@@ -1037,7 +1037,7 @@ tests.addTest(options => {
                                 tester.firstConnection.connectWebRTC();
                                 tester.allowMediaInput();
 
-                                const outboundCall = tester.outboundCall().setNumberFromCallsGrid().expectToBeSent();
+                                const outgoingCall = tester.outgoingCall().setNumberFromCallsGrid().expectToBeSent();
 
                                 tester.slavesNotification().
                                     available().
@@ -1047,7 +1047,7 @@ tests.addTest(options => {
                                     sending().
                                     expectToBeSent();
 
-                                outboundCall.setRinging();
+                                outgoingCall.setRinging();
 
                                 tester.slavesNotification().
                                     thirdPhoneNumber().
