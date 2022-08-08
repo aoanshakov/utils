@@ -352,7 +352,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        xdescribe('Нажимаю на кнопку переключения на большой размер.', function() {
+                        describe('Нажимаю на кнопку переключения на большой размер.', function() {
                             beforeEach(function() {
                                 tester.largeSizeButton.click();
 
@@ -389,7 +389,7 @@ tests.addTest(options => {
                                     tester.largeSizeButton.click();
                                 });
 
-                                describe('Нажимаю на кнопку переключения на маленький размер.', function() {
+                                xdescribe('Нажимаю на кнопку переключения на маленький размер.', function() {
                                     beforeEach(function() {
                                         tester.smallSizeButton.click();
 
@@ -432,7 +432,7 @@ tests.addTest(options => {
                                         }
                                     });
                                 });
-                                describe('Нажимаю на кнопку переключения на средний размер.', function() {
+                                xdescribe('Нажимаю на кнопку переключения на средний размер.', function() {
                                     beforeEach(function() {
                                         tester.middleSizeButton.click();
 
@@ -462,7 +462,7 @@ tests.addTest(options => {
                                         tester.largeSizeButton.expectNotToBePressed();
                                     });
                                 });
-                                it('Получено сообщение о минимизации. Софтфон открыт в среднем размере.', function() {
+                                xit('Получено сообщение о минимизации. Софтфон открыт в среднем размере.', function() {
                                     getPackage('electron').ipcRenderer.receiveMessage('unmaximize');
 
                                     getPackage('electron').ipcRenderer.
@@ -489,6 +489,7 @@ tests.addTest(options => {
                                     tester.largeSizeButton.expectToBePressed();
                                 });
                             });
+                            return;
                             describe('Нажимаю на кнопку "Настройки".', function() {
                                 beforeEach(function() {
                                     tester.button('Настройки').click();
@@ -568,7 +569,8 @@ tests.addTest(options => {
                                 }
                             });
                         });
-                        xdescribe('Нажимаю на кнопку переключения на средний размер.', function() {
+                        return;
+                        describe('Нажимаю на кнопку переключения на средний размер.', function() {
                             beforeEach(function() {
                                 tester.middleSizeButton.click();
                                 tester.middleSizeButton.click();
@@ -606,7 +608,7 @@ tests.addTest(options => {
                                 tester.largeSizeButton.expectNotToBePressed();
                             });
                         });
-                        xdescribe('Раскрываю список статусов.', function() {
+                        describe('Раскрываю список статусов.', function() {
                             beforeEach(function() {
                                 tester.userName.click();
                             });
@@ -676,7 +678,7 @@ tests.addTest(options => {
                                 tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                             });
                         });
-                        xdescribe('Нажимаю на кнопку дебага.', function() {
+                        describe('Нажимаю на кнопку дебага.', function() {
                             beforeEach(function() {
                                 tester.bugButton.click();
 
@@ -701,7 +703,7 @@ tests.addTest(options => {
                                 tester.spinner.expectToBeVisible();
                             });
                         });
-                        xdescribe('Открываю таблицу сотрудников. Токен истек.', function() {
+                        describe('Открываю таблицу сотрудников. Токен истек.', function() {
                             let refreshRequest;
 
                             beforeEach(function() {
@@ -802,7 +804,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        xdescribe('Открываю историю звонков.', function() {
+                        describe('Открываю историю звонков.', function() {
                             let callsRequest;
 
                             beforeEach(function() {
@@ -856,7 +858,7 @@ tests.addTest(options => {
                                 tester.spin.expectToBeVisible();
                             });
                         });
-                        xdescribe('Открываю список номеров.', function() {
+                        describe('Открываю список номеров.', function() {
                             beforeEach(function() {
                                 windowSize.setHeight(212);
 
@@ -895,7 +897,7 @@ tests.addTest(options => {
                                 tester.select.popup.expectToHaveHeight(204);
                             });
                         });
-                        xdescribe('Получено обновление.', function() {
+                        describe('Получено обновление.', function() {
                             beforeEach(function() {
                                 getPackage('electron').ipcRenderer.receiveMessage('update-downloaded');
                             });
@@ -911,7 +913,7 @@ tests.addTest(options => {
                                 tester.body.expectTextContentToHaveSubstring('Получено обновление');
                             });
                         });
-                        xit(
+                        it(
                             'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку "Выход". ' +
                             'Вхожу в софтфон заново. Удалось войти. Софтфон готов к работе.',
                         function() {
@@ -972,7 +974,7 @@ tests.addTest(options => {
                             tester.callStartingButton.expectNotToHaveAttribute('disabled');
                             tester.select.expectNotToExist();
                         });
-                        xit(
+                        it(
                             'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок. Отображено ' +
                             'сообщение о звонке.',
                         function() {
@@ -1001,7 +1003,7 @@ tests.addTest(options => {
                                 'Гигова Петранка Входящий...'
                             );
                         });
-                        xit('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
+                        it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
                             tester.dialpadVisibilityButton.click();
 
                             getPackage('electron').ipcRenderer.
@@ -1017,15 +1019,15 @@ tests.addTest(options => {
                             tester.statusesList.item('Не беспокоить').expectToBeSelected();
                             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                         });
-                        xit('Помещаю курсор над иконкой аккаунта. Список статусов не открывается.', function() {
+                        it('Помещаю курсор над иконкой аккаунта. Список статусов не открывается.', function() {
                             tester.userName.putMouseOver();
                             tester.statusesList.item('Не беспокоить').expectNotToExist();
                         });
-                        xit('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
+                        it('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
                             utils.pressKey('7');
                             tester.phoneField.expectToBeFocused();
                         });
-                        xit('Получена новая версия. Отправлено сообщение в бэк электрона.', function() {
+                        it('Получена новая версия. Отправлено сообщение в бэк электрона.', function() {
                             tester.applicationVersionChanged().receive();
 
                             getPackage('electron').ipcRenderer.
@@ -1033,7 +1035,7 @@ tests.addTest(options => {
                                 expectToBeSentToChannel('application-version-changed').
                                 expectToBeSentWithArguments('6.6.666');
                         });
-                        xit('Сотрудник развернул софтфон. Софтфон открыт в большом размере.', function() {
+                        it('Сотрудник развернул софтфон. Софтфон открыт в большом размере.', function() {
                             getPackage('electron').ipcRenderer.receiveMessage('maximize');
 
                             tester.configRequest().softphone().receiveResponse();

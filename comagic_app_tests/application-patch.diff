@@ -502,10 +502,10 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d5eb547b..d991d4b8 100644
+index d5eb547b..aa57ca4b 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -1,318 +1,49 @@
+@@ -1,318 +1,44 @@
  import React from 'react';
 -import { applySnapshot, getSnapshot, Instance, SnapshotOut, types } from 'mobx-state-tree';
 -import axios, { AxiosRequestConfig } from 'axios';
@@ -608,9 +608,9 @@ index d5eb547b..d991d4b8 100644
 -
 -export const RootStore = types
 -    .model('RootStore', {
+-        isLarge: types.optional(types.boolean, false),
 +export const RootStore = BasicRootStore.named('RootStore')
 +    .props({
-         isLarge: types.optional(types.boolean, false),
          isGodMode: types.optional(types.boolean, isGodMode()),
 -        isLogDownloading: types.optional(types.boolean, false),
 -        authStore: types.optional(AuthStore, {}),
@@ -619,8 +619,8 @@ index d5eb547b..d991d4b8 100644
          reportStore: types.optional(RootReportStore, {}),
          marketplaceStore: types.optional(MarketplaceStore, {}),
 -        notificationStore: types.optional(NotificationStore, {}),
-     })
-     .actions(self => {
+-    })
+-    .actions(self => {
 -        let initialState: RootInstanceSnapshotOut;
 -        let requestsToRefresh: RequestToRefresh[] = [];
 -        let isRefreshRequesting = false;
@@ -803,7 +803,7 @@ index d5eb547b..d991d4b8 100644
 -            applySnapshot(self, initialState);
 -        };
 -
-         const setLarge = value => (self.isLarge = value);
+-        const setLarge = value => (self.isLarge = value);
 -
 -        self.fileLogger = {
 -            downloadLog: () => self.downloadLog(),
@@ -818,7 +818,6 @@ index d5eb547b..d991d4b8 100644
 -            handleLogsCollected,
 -            setSoftphoneStore: store => setSoftphoneStore(store) 
 -        };
-+        return { setLarge };
      });
  
 -export type DependencyInjection = {

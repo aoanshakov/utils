@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index 544fb9d..b6b4bf5 100644
+index eac92d9..a1059c9 100644
 --- a/package.json
 +++ b/package.json
-@@ -62,7 +62,6 @@
+@@ -63,7 +63,6 @@
      "axios": "^0.24.0",
      "classnames": "^2.3.1",
      "formik": "^2.2.9",

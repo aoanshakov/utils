@@ -44,10 +44,72 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index a802ef0..a249b7f 100644
+index a802ef0..24dbdfd 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -707,4 +707,5 @@ export const RootStore = types
+@@ -123,7 +123,8 @@ export const RootStore = types
+             doRequest = () => null,
+             doMaybeHidePhoneNumber = value => value;
+         const sizeChangeHandlers = [],
+-            largenessChangeHandlers = [],
++            maximizationHandlers = [],
++            unmaximizeHandlers = [],
+             accountFetchedHandlers = [],
+             applicationChangeHandlers = [],
+             subscriptionRemovers = [],
+@@ -146,7 +147,8 @@ export const RootStore = types
+                 enablingHandlers = [];
+             hasError = false;
+             subscriptionRemovers = [];
+-            largenessChangeHandlers.splice(0, largenessChangeHandlers.length);
++            maximizationHandlers.splice(0, maximizationHandlers.length);
++            unmaximizeHandlers.splice(0, unmaximizeHandlers.length);
+ 
+             let authStore,
+                 call = () => null,
+@@ -653,10 +655,12 @@ export const RootStore = types
+                 );
+         };
+ 
+-        self.onLargenessChange = handler => largenessChangeHandlers.push(handler);
++        self.onLargenessChange = handler => maximizationHandlers.push(handler);
+ 
+-        const resetStore = () => applySnapshot(self, initialState),
+-            handleLargenessChange = () => largenessChangeHandlers.forEach(handle => handle(self.isLarge));
++        const resetStore = () => applySnapshot(self, initialState);
++
++        const handleLargenessChange = () => (self.isLarge ? maximizationHandlers : unmaximizeHandlers).
++            forEach(handle => handle());
+ 
+         const setNotLarge = () => {
+             if (!self.isLarge) {
+@@ -690,14 +694,25 @@ export const RootStore = types
+             handleLargenessChange();
+         };
+ 
++        const setLarge = value => value ? self.setIsLarge() : self.setNotLarge();
+         const setAccount = account => (self.account = (account || {}));
+ 
++        self.addEventListener = (eventName, listener) => eventName == 'resize' ?
++            self.onSizeChange(listener) : (
++                eventName == 'maximize' ?
++                    maximizationHandlers :
++                    eventName == 'unmaximize' ?
++                        unmaximizeHandlers :
++                        []
++            ).push(listener)
++
+         return {
+             afterCreate,
+             resetStore,
+             setSoftphoneAvailable,
+             setAccount,
+             request,
++            setLarge,
+             setNotLarge,
+             setIsLarge,
+             maybeHidePhoneNumber: maybeHidePhoneNumberMethod 
+@@ -707,4 +722,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
