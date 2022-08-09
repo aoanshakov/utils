@@ -400,10 +400,31 @@ index fd0f39d9..6741d8aa 100644
  </html>
 \ No newline at end of file
 diff --git a/scripts/dev.js b/scripts/dev.js
-index 54c1319c..abc75561 100644
+index 54c1319c..94add9fd 100644
 --- a/scripts/dev.js
 +++ b/scripts/dev.js
-@@ -12,7 +12,8 @@ const compiler = webpack(configFactory);
+@@ -2,17 +2,27 @@
+ 
+ process.env.NODE_ENV = 'development';
+ 
++const { Args, isString } = require('./arguments');
+ const webpack = require('webpack');
+ const WebpackDevServer = require('webpack-dev-server');
+-
+ const configFactory = require('../config/webpack.config.js');
+ 
+-const compiler = webpack(configFactory);
++const params = (new Args({
++    entry: {
++        validate: isString
++    },
++})).createObjectFromArgsArray(process.argv);
++
++const compiler = webpack({
++    ...configFactory,
++    ...params
++});
+ 
  const devServer = new WebpackDevServer(
      {
          port: parseInt(process.env.PORT, 10) || 8080,
@@ -414,80 +435,120 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 68f48551..386057ee 100644
+index 68f48551..4fda9bbb 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -4,13 +4,17 @@ import ReactDOM from 'react-dom';
- import { Router } from 'react-router-dom';
- import { IntlProvider } from 'react-intl';
- import moment from 'moment';
+@@ -1,95 +1,24 @@
+-import React, { useState } from 'react';
+-import { observer } from 'mobx-react-lite';
++import React from 'react';
+ import ReactDOM from 'react-dom';
+-import { Router } from 'react-router-dom';
+-import { IntlProvider } from 'react-intl';
+-import moment from 'moment';
 -import { CoreProvider } from '@comagic/core';
-+import { CoreProvider, eventBus } from '@comagic/core';
- import * as Sentry from '@sentry/react';
- import { Integrations } from '@sentry/tracing';
+-import * as Sentry from '@sentry/react';
+-import { Integrations } from '@sentry/tracing';
  
- import { useMountEffect } from '@hooks';
+-import { useMountEffect } from '@hooks';
++import Root from '@comagic/core/src/components/bootstrap';
  
--import { Provider, rootStore } from '@models/RootStore';
-+import { Provider, rootStore, createRootStore } from '@models/RootStore';
-+import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
-+import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
-+import { createRootStore as createAnalyticsRootStore } from 'analytics/src/models/RootStore';
-+import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
++import { useMst } from '@/hooks';
+ import { Provider, rootStore } from '@models/RootStore';
  
  import history from './history';
- import { getIntlLocale, getIntlMessages } from './i18n';
-@@ -92,4 +96,49 @@ const Root: React.FC = observer(props => {
-     );
- });
+-import { getIntlLocale, getIntlMessages } from './i18n';
++import { intl } from './i18n';
  
+ import App from './App';
+ 
+-import './global';
+-import { createPureHistory, loadTheme } from './utils';
+-
+-const sentryDSN = process.env.SENTRY_DSN;
+-
+-if (sentryDSN) {
+-    Sentry.init({
+-        dsn: sentryDSN,
+-        integrations: [
+-            new Integrations.BrowserTracing({
+-                startTransactionOnLocationChange: false,
+-            }),
+-        ],
+-        tracesSampleRate: 1.0,
+-        beforeSend: (event, hint) => {
+-            if (
+-                hint &&
+-                hint.originalException &&
+-                typeof hint.originalException !== 'string' &&
+-                'message' in hint.originalException
+-            ) {
+-                const { message } = hint.originalException;
+-                const ignoreErrors = ['Invalid JWT', 'Access token has been expired', 'canceled by'];
+-                const hasError = ignoreErrors.some(e => message.startsWith(e));
+-
+-                if (hasError) {
+-                    return null;
+-                }
+-            }
+-
+-            return event;
+-        },
+-    });
+-}
+-
+-const Root: React.FC = observer(props => {
+-    const { accountStore, notificationStore } = rootStore;
+-    const {
+-        projectData: { locale },
+-    } = accountStore;
+-    const [themeLoaded, setThemeLoaded] = useState(false);
+-    const query = new URLSearchParams(history.location.search);
+-    const theme = query.get('theme');
+-
+-    /**
+-     * Создаем историю для нормального функционирования связки Route/Popup
+-     */
+-    useMountEffect(() => {
+-        void loadTheme(theme).then(() => {
+-            setThemeLoaded(true);
+-        });
+-        createPureHistory();
+-        moment.updateLocale('ru', {
+-            monthsShort: {
+-                format: 'янв_фев_мар_апр_мая_июн_июл_авг_сен_окт_ноя_дек'.split('_'),
+-                standalone: 'Янв_Фев_Мар_Апр_Май_Июн_Июл_Авг_Сен_Окт_Ноя_Дек'.split('_'),
+-            },
+-        });
+-    });
+-
+-    if (!themeLoaded) return null;
+-
+-    return (
+-        <CoreProvider isHostApp accountStore={accountStore} locale={locale} notificationStore={notificationStore}>
+-            <Provider value={rootStore}>
+-                <Router history={history}>
+-                    <IntlProvider locale={getIntlLocale(locale)} messages={getIntlMessages(locale)}>
+-                        <App {...(props || {})} />
+-                    </IntlProvider>
+-                </Router>
+-            </Provider>
+-        </CoreProvider>
+-    );
+-});
+-
 -ReactDOM.render(<Root {...(window.rootConfig || {})}/>, document.getElementById('root'));
-+const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
-+    Window = ({children}) => <div className="cm-test-window">{children}</div>;
-+
-+const units = {};
-+
-+window.application = {
-+    run({
-+        setReactDOM = () => null,
-+        setEventBus = () => null,
-+        setHistory = () => null,
-+        setChatsRootStore = () => null,
-+        appName = ''
-+    }) {
-+        const Unit = units[appName];
-+
-+        if (!Unit) {
-+            setReactDOM(ReactDOM);
-+            setEventBus(eventBus);
-+            createRootStore();
-+            !appName && setChatsRootStore(createChatsRootStore());
-+            createSoftphoneRootStore();
-+            createAnalyticsRootStore();
-+            createContactsRootStore();
-+            setHistory(history);
-+        }
-+         
-+        this.exit();
-+
-+        const container = document.createElement('div');
-+        container.id = 'root';
-+        document.body.appendChild(container);
-+
-+        ReactDOM.render(Unit ? <TestBody><Unit /></TestBody> : <Root appName={appName} />, container);
-+    },
-+
-+    exit() {
-+        const container = document.getElementById('root');
-+
-+        if (!container) {
-+            return;
-+        }
-+
-+        container.firstChild && ReactDOM.unmountComponentAtNode(container);
-+        container.remove();
-+    }
-+};
++ReactDOM.render(<Root
++    {...(window.rootConfig || {})}
++    {...({
++        history,
++        appName,
++        Provider,
++        rootStore,
++        useMst,
++        i18n: intl
++    })}
++><App /></Root>, document.getElementById('root'));
 diff --git a/src/history.ts b/src/history.ts
 index 33bf6a02..fe524735 100644
 --- a/src/history.ts
@@ -502,7 +563,7 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d5eb547b..aa57ca4b 100644
+index d5eb547b..ad50b7f4 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -1,318 +1,44 @@
@@ -515,7 +576,7 @@ index d5eb547b..aa57ca4b 100644
 +import { Instance, SnapshotOut, types } from 'mobx-state-tree';
 +import { projectsData } from '@comagic/core';
 +import { cancelPendingRequests } from '@/rpc/httpRpc';
-+import { getProject } from '@/i18n';
++import { intl } from '@/i18n';
  
  import { GOD_MODE } from '@/config';
  import { httpRpc, httpRpcAuth } from '@/rpc';
@@ -835,7 +896,7 @@ index d5eb547b..aa57ca4b 100644
 +    appName: window.rootConfig?.appName,
 +    httpRpc,
 +    httpRpcAuth,
-+    getProject,
++    i18n: intl,
 +    cancelPendingRequests,
 +    AUTH_KEY: process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_COOKIE',
 +}));

@@ -409,6 +409,7 @@ define(() => function ({
             '.clct-c-button, ' +
             '.ui-radio-content, ' +
             '.cmg-switch-label, ' +
+            '.misc-core-src-components-styles-module__label, ' +
             '.src-components-main-menu-nav-item-styles-module__label, ' +
             '.src-components-main-menu-settings-styles-module__label, ' +
             '.src-components-main-menu-menu-link-styles-module__item a';
@@ -445,11 +446,11 @@ define(() => function ({
             };
 
             const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked',
-                menuItemSelectedClass = 'src-components-main-menu-nav-item-styles-module__item-selected';
+                menuItemSelectedClass = 'misc-core-src-components-styles-module__item-selected';
 
             const menuItem = testersFactory.createDomElementTester(() =>
-                domElement.closest('.src-components-main-menu-nav-item-styles-module__item'));
-
+                domElement.closest('.misc-core-src-components-styles-module__item'));
+            
             tester.expectToBePressed = () => menuItem.expectToHaveClass(menuItemSelectedClass);
             tester.expectNotToBePressed = () => menuItem.expectNotToHaveClass(menuItemSelectedClass);
             tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);

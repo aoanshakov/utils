@@ -61,7 +61,7 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
                     expectToBeSentToChannel('app-ready');
-
+                    
                 accountRequest = tester.accountRequest().expectToBeSent();
             });
 
@@ -384,12 +384,12 @@ tests.addTest(options => {
                                     expectToBeSentToChannel('maximize');
                             });
 
-                            describe('Нажимаю на кнопку переключения на большой размер.', function() {
+                            xdescribe('Нажимаю на кнопку переключения на большой размер.', function() {
                                 beforeEach(function() {
                                     tester.largeSizeButton.click();
                                 });
 
-                                xdescribe('Нажимаю на кнопку переключения на маленький размер.', function() {
+                                describe('Нажимаю на кнопку переключения на маленький размер.', function() {
                                     beforeEach(function() {
                                         tester.smallSizeButton.click();
 
@@ -432,7 +432,7 @@ tests.addTest(options => {
                                         }
                                     });
                                 });
-                                xdescribe('Нажимаю на кнопку переключения на средний размер.', function() {
+                                describe('Нажимаю на кнопку переключения на средний размер.', function() {
                                     beforeEach(function() {
                                         tester.middleSizeButton.click();
 
@@ -462,7 +462,7 @@ tests.addTest(options => {
                                         tester.largeSizeButton.expectNotToBePressed();
                                     });
                                 });
-                                xit('Получено сообщение о минимизации. Софтфон открыт в среднем размере.', function() {
+                                it('Получено сообщение о минимизации. Софтфон открыт в среднем размере.', function() {
                                     getPackage('electron').ipcRenderer.receiveMessage('unmaximize');
 
                                     getPackage('electron').ipcRenderer.
@@ -489,8 +489,7 @@ tests.addTest(options => {
                                     tester.largeSizeButton.expectToBePressed();
                                 });
                             });
-                            return;
-                            describe('Нажимаю на кнопку "Настройки".', function() {
+                            xdescribe('Нажимаю на кнопку "Настройки".', function() {
                                 beforeEach(function() {
                                     tester.button('Настройки').click();
                                 });
@@ -523,24 +522,24 @@ tests.addTest(options => {
                                     tester.button('IP-телефон').expectNotToBeChecked();
                                 });
                             });
-                            it('Получено сообщение о максимизации. Ничего не происходит.', function() {
+                            xit('Получено сообщение о максимизации. Ничего не происходит.', function() {
                                 getPackage('electron').ipcRenderer.receiveMessage('maximize');
 
                                 tester.smallSizeButton.expectNotToBePressed();
                                 tester.middleSizeButton.expectNotToBePressed();
                                 tester.largeSizeButton.expectToBePressed();
                             });
-                            it('Нажимаю на кнпоку "История звонков". Открыта история звонков.', function() {
+                            xit('Нажимаю на кнпоку "История звонков". Открыта история звонков.', function() {
                                 tester.button('История звонков').click();
 
                                 tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                                 tester.marksRequest().receiveResponse();
                             });
-                            it('Нажимаю на кнопку аккаунта в меню. Отображена всплывающая панель.', function() {
+                            xit('Нажимаю на кнопку аккаунта в меню. Отображена всплывающая панель.', function() {
                                 tester.leftMenu.userName.click();
                                 tester.statusesList.expectTextContentToHaveSubstring('Ганева Стефка');
                             });
-                            it('Нажимаю на кнопку аккаунта в софтфоне. Всплывающая панель не отображена .', function() {
+                            xit('Нажимаю на кнопку аккаунта в софтфоне. Всплывающая панель не отображена .', function() {
                                 tester.softphone.userName.click();
                                 tester.statusesList.expectNotToExist();
                             });

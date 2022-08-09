@@ -44,7 +44,7 @@ index 18318f8..2d66e26 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index a802ef0..24dbdfd 100644
+index a69bcc1..24d75e9 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -123,7 +123,8 @@ export const RootStore = types
@@ -67,7 +67,7 @@ index a802ef0..24dbdfd 100644
  
              let authStore,
                  call = () => null,
-@@ -653,10 +655,12 @@ export const RootStore = types
+@@ -654,10 +656,12 @@ export const RootStore = types
                  );
          };
  
@@ -83,7 +83,7 @@ index a802ef0..24dbdfd 100644
  
          const setNotLarge = () => {
              if (!self.isLarge) {
-@@ -690,14 +694,25 @@ export const RootStore = types
+@@ -691,14 +695,25 @@ export const RootStore = types
              handleLargenessChange();
          };
  
@@ -109,7 +109,7 @@ index a802ef0..24dbdfd 100644
              setNotLarge,
              setIsLarge,
              maybeHidePhoneNumber: maybeHidePhoneNumberMethod 
-@@ -707,4 +722,5 @@ export const RootStore = types
+@@ -708,4 +723,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

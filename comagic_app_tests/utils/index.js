@@ -344,7 +344,7 @@ actions['run-server'] = params => actions['initialize'](params).concat([
     `cp ${nginxConfig} /etc/nginx/nginx.conf`,
     'service nginx start',
     `node ${server} > ${testsServerLog} 2>&1 &`,
-    `${cda} npm run dev`
+    `${cda} npm run dev -- --entry ./src/tests.tsx`
 ]);
 
 const generateContactList = () => {
