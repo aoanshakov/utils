@@ -1271,6 +1271,10 @@ tests.addTest(options => {
                                 '00:00:20 ',
                             );
                         });
+                        it('В таблице содержится чилийский номер. Номер сформатирован корректно.', function() {
+                            callsRequest.chilePhoneNumber().receiveResponse();
+                            tester.table.expectTextContentToHaveSubstring(' +56 (123) 45-6789 ');
+                        });
                         it('Общее количество записей не было получено. Отображена история звонков.', function() {
                             callsRequest.noTotal().receiveResponse();
 

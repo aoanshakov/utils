@@ -1532,6 +1532,7 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.chilePhoneNumber = () => ((processors.push(data => (data[0].number = '56123456789'))), me)
             me.duplicatedCallSessionId = () => (processors.push(data => (data[1].call_session_id = 980925444)), me);
             me.isFailed = () => (processors.push(data => data.forEach(item => (item.is_failed = true))), me);
             me.noContactName = () => (processors.push(data => (data[0].contact_name = null)), me);
