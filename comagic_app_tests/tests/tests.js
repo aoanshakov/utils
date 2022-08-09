@@ -472,14 +472,41 @@ tests.addTest(options => {
                                                             utils.pressKey('7');
                                                         });
                                                     });
-                                                    it('Нажимаю на кнопку удержания. Звонок удерживается.', function() {
-                                                        tester.holdButton.click();
-                                                        tester.slavesNotification().available().userDataFetched().
-                                                            twoChannels().incoming().confirmed().holded().
-                                                            expectToBeSent();
+                                                    describe('Нажимаю на кнопку удержания.', function() {
+                                                        beforeEach(function() {
+                                                            tester.holdButton.click();
+                                                            
+                                                            tester.slavesNotification().
+                                                                available().
+                                                                userDataFetched().
+                                                                twoChannels().
+                                                                incoming().
+                                                                confirmed().
+                                                                holded().
+                                                                expectToBeSent();
 
-                                                        audioDecodingTester.accomplishAudioDecoding();
-                                                        tester.firstConnection.expectHoldMusicToPlay();
+                                                            audioDecodingTester.accomplishAudioDecoding();
+                                                        });
+
+                                                        it(
+                                                            'Нажимаю на кнопку удержания. Разговор продолжается.',
+                                                        function() {
+                                                            tester.holdButton.click();
+
+                                                            tester.slavesNotification().
+                                                                available().
+                                                                userDataFetched().
+                                                                twoChannels().
+                                                                incoming().
+                                                                confirmed().
+                                                                expectToBeSent();
+
+                                                            tester.firstConnection.expectRemoteStreamToPlay();
+                                                        });
+                                                        it('Звонок удерживается.', function() {
+                                                            tester.firstConnection.expectHoldMusicToPlay();
+                                                            tester.expectNoSoundToPlay();
+                                                        });
                                                     });
                                                     it('Отображено направление и номер.', function() {
                                                         tester.microphoneButton.
