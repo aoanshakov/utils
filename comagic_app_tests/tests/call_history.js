@@ -1106,10 +1106,10 @@ tests.addTest(options => {
                                 tester.radioButton('Все').expectNotToBeSelected();
                                 tester.radioButton('Необработанные').expectNotToBeSelected();
 
-                                tester.select.withValue('Звонки: Все').expectToBeDisabled();
-                                tester.select.withValue('Направления: Все').expectToBeDisabled();
-                                tester.select.withPlaceholder('Группы').expectToBeDisabled();
-                                tester.switchButton.expectToBeDisabled();
+                                tester.select.withValue('Звонки: Все').expectNotToExist();
+                                tester.select.withValue('Направления: Все').expectNotToExist();
+                                tester.select.withPlaceholder('Группы').expectNotToExist();
+                                tester.switchButton.expectNotToExist();
 
                                 tester.table.
                                     row.first.
@@ -2233,8 +2233,8 @@ tests.addTest(options => {
             tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
             tester.marksRequest().receiveResponse();
 
-            tester.body.expectTextContentToHaveSubstring('Скрыть обработанные другими группами');
-            tester.body.expectTextContentNotToHaveSubstring('Hide calls processed by another groups');
+            tester.body.expectTextContentToHaveSubstring('Необработанные');
+            tester.body.expectTextContentNotToHaveSubstring('Unprocessed');
         });
         it('Таблица скрыта.', function() {
             tester.table.expectNotToExist();

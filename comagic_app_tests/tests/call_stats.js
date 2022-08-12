@@ -134,7 +134,7 @@ tests.addTest(options => {
                 beforeEach(function() {
                     statusesRequest.receiveResponse();
 
-                    tester.button('Статистика звонков').click();
+                    tester.button('Статистика').click();
                     tester.statsRequest().receiveResponse();
                 });
 
@@ -339,7 +339,7 @@ tests.addTest(options => {
                     beforeEach(function() {
                         statusesRequest.includesAutoCall().receiveResponse();
 
-                        tester.button('Статистика звонков').click();
+                        tester.button('Статистика').click();
                         tester.statsRequest().receiveResponse();
                     });
 
@@ -358,7 +358,7 @@ tests.addTest(options => {
                     });
                 });
                 it('Открываю статистику звонков. Статусов много. Статусы свернуты.', function() {
-                    tester.button('Статистика звонков').click();
+                    tester.button('Статистика').click();
                     tester.statsRequest().receiveResponse();
 
                     statusesRequest.includesAutoCall().receiveResponse();
@@ -369,7 +369,7 @@ tests.addTest(options => {
                 it('Статусов мало. Кнопка разворачивания статусов скрыта.', function() {
                     statusesRequest.receiveResponse();
 
-                    tester.button('Статистика звонков').click();
+                    tester.button('Статистика').click();
                     tester.statsRequest().receiveResponse();
 
                     tester.button('Показать все статусы').expectNotToExist();
@@ -457,7 +457,7 @@ tests.addTest(options => {
 
             statusesRequest.receiveResponse();
 
-            tester.button('Статистика звонков').expectNotToExist();
+            tester.button('Статистика').expectNotToExist();
         });
         it('Статистика по звонкам недоступна. Пункт меню скрыт.', function() {
             accountRequest.callStatsFeatureFlagDisabled().receiveResponse();
@@ -540,7 +540,7 @@ tests.addTest(options => {
 
             statusesRequest.receiveResponse();
 
-            tester.button('Статистика звонков').expectNotToExist();
+            tester.button('Статистика').expectNotToExist();
         });
     });
 });
