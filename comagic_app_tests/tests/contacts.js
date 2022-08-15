@@ -49,7 +49,7 @@ tests.addTest(options => {
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         });
 
-        describe('Раздел контактов доступен. Открываю раздел контактов.', function() {
+        describe('Раздел контактов доступен.', function() {
             let contactsRequest;
 
             beforeEach(function() {
@@ -131,180 +131,247 @@ tests.addTest(options => {
                 tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
 
                 statusesRequest.receiveResponse();
-
-                tester.button('Контакты').click();
-                contactsRequest = tester.contactsRequest().expectToBeSent();
             });
 
-            describe('Получены данные для списка контактов.', function() {
+            describe('Открываю раздел контактов.', function() {
                 beforeEach(function() {
-                    contactsRequest.receiveResponse();
+                    tester.button('Контакты').click();
+                    contactsRequest = tester.contactsRequest().expectToBeSent();
                 });
 
-                describe(
-                    'Прокручиваю список контактов до конца. Запрошена следующая страница списка контактов.',
-                function() {
+                describe('Получены данные для списка контактов.', function() {
                     beforeEach(function() {
-                        tester.spinWrapper.scrollIntoView();
-                        contactsRequest = tester.contactsRequest().secondPage().expectToBeSent();
+                        contactsRequest.receiveResponse();
                     });
 
-                    describe('Получены данные для списка контактов.', function() {
+                    describe(
+                        'Прокручиваю список контактов до конца. Запрошена следующая страница списка контактов.',
+                    function() {
                         beforeEach(function() {
-                            contactsRequest.receiveResponse();
+                            tester.spinWrapper.scrollIntoView();
+                            contactsRequest = tester.contactsRequest().secondPage().expectToBeSent();
                         });
-                        
-                        describe('Ввожу значение в поле поиска.', function() {
+
+                        describe('Получены данные для списка контактов.', function() {
                             beforeEach(function() {
-                                tester.input.fill('пас');
+                                contactsRequest.receiveResponse();
                             });
-
-                            describe('Проходит некоторое время. Отправлен запрос контактов.', function() {
+                            
+                            describe('Ввожу значение в поле поиска.', function() {
                                 beforeEach(function() {
-                                    spendTime(500);
-                                    tester.contactsRequest().search().receiveResponse();
+                                    tester.input.fill('пас');
                                 });
 
-                                it(
-                                    'Прокручиваю список контактов до конца. Запрошена следующая страница списка ' +
-                                    'контактов.',
-                                function() {
-                                    tester.spinWrapper.scrollIntoView();
-                                    tester.contactsRequest().search().secondPage().receiveResponse();
+                                describe('Проходит некоторое время. Отправлен запрос контактов.', function() {
+                                    beforeEach(function() {
+                                        spendTime(500);
+                                        tester.contactsRequest().search().receiveResponse();
+                                    });
 
-                                    tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
-                                        'Тончева Десислава Пламеновна',
-                                        'Паскалева Бисера Илковна #100',
-                                        'Паскалева Бисера Илковна #200'
-                                    );
+                                    it(
+                                        'Прокручиваю список контактов до конца. Запрошена следующая страница списка ' +
+                                        'контактов.',
+                                    function() {
+                                        tester.spinWrapper.scrollIntoView();
+                                        tester.contactsRequest().search().secondPage().receiveResponse();
+
+                                        tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
+                                            'Тончева Десислава Пламеновна',
+                                            'Паскалева Бисера Илковна #100',
+                                            'Паскалева Бисера Илковна #200'
+                                        );
+                                    });
+                                    it('Отображен список контаков.', function() {
+                                        tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
+                                            'Тончева Десислава Пламеновна',
+                                            'Паскалева Бисера Илковна #100'
+                                        );
+
+                                        tester.contactList.expectTextContentNotToHaveSubstring(
+                                            'Паскалева Бисера Илковна #200'
+                                        );
+                                    });
                                 });
-                                it('Отображен список контаков.', function() {
-                                    tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
-                                        'Тончева Десислава Пламеновна',
-                                        'Паскалева Бисера Илковна #100'
-                                    );
-
-                                    tester.contactList.expectTextContentNotToHaveSubstring(
-                                        'Паскалева Бисера Илковна #200'
-                                    );
+                                it('Значение введено.', function() {
+                                    tester.input.expectToHaveValue('пас');
                                 });
                             });
-                            it('Значение введено.', function() {
-                                tester.input.expectToHaveValue('пас');
+                            it(
+                                'Прокручиваю список контактов до последней страницы. Прокручиваю список ' +
+                                'контактов до конца. Запрос следующей страницы не был отправлен.',
+                            function() {
+                                tester.spinWrapper.scrollIntoView();
+                                tester.contactsRequest().thirdPage().receiveResponse();
+
+                                tester.spinWrapper.scrollIntoView();
+                            });
+                            it('Отображен список контаков.', function() {
+                                tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
+                                    'Тончева Десислава Пламеновна',
+                                    'Паскалева Бисера Илковна #100',
+                                    'Паскалева Бисера Илковна #200'
+                                );
+
+                                tester.input.expectToHaveValue('');
+                                tester.spin.expectNotToExist();
                             });
                         });
-                        it(
-                            'Прокручиваю список контактов до последней страницы. Прокручиваю список ' +
-                            'контактов до конца. Запрос следующей страницы не был отправлен.',
-                        function() {
-                            tester.spinWrapper.scrollIntoView();
-                            tester.contactsRequest().thirdPage().receiveResponse();
-
-                            tester.spinWrapper.scrollIntoView();
+                        it('Отображен спиннер.', function() {
+                            tester.spin.expectToBeVisible();
                         });
-                        it('Отображен список контаков.', function() {
-                            tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
-                                'Тончева Десислава Пламеновна',
-                                'Паскалева Бисера Илковна #100',
-                                'Паскалева Бисера Илковна #200'
+                    });
+                    it(
+                        'Ввожу значение в поле поиска. Не удалось получить данные. Запрос не отправляется повторно.',
+                    function() {
+                        tester.input.fill('пас');
+                        spendTime(500);
+
+                        tester.contactsRequest().search().failed().receiveResponse();
+                        tester.spinWrapper.scrollIntoView();
+
+                        tester.spin.expectNotToExist();
+                    });
+                    it('Вызвано событие исходящего звонка. Совершается исходящий звонок.', function() {
+                        tester.outgoingCallEvent().dispatch();
+
+                        tester.firstConnection.connectWebRTC();
+                        tester.allowMediaInput();
+
+                        const outgoingCall = tester.outgoingCall().expectToBeSent()
+
+                        tester.slavesNotification().
+                            available().
+                            userDataFetched().
+                            twoChannels().
+                            sending().
+                            expectToBeSent();
+
+                        outgoingCall.setRinging();
+
+                        tester.slavesNotification().
+                            available().
+                            userDataFetched().
+                            twoChannels().
+                            progress().
+                            expectToBeSent();
+
+                        tester.firstConnection.callTrackHandler();
+
+                        tester.numaRequest().receiveResponse();
+
+                        tester.outCallSessionEvent().receive();
+                        tester.outCallSessionEvent().slavesNotification().expectToBeSent();
+                    });
+                    it('Отображена страница контактов.', function() {
+                        tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
+                            'Тончева Десислава Пламеновна',
+                            'Паскалева Бисера Илковна #100'
+                        );
+
+                        tester.spin.expectNotToExist();
+                    });
+                });
+                describe('Получены разные имена.', function() {
+                    beforeEach(function() {
+                        contactsRequest.differentNames().receiveResponse();
+                    });
+
+                    describe('Нажимаю на имя.', function() {
+                        beforeEach(function() {
+                            tester.contactList.item('Бележкова Грета Ервиновна').click();
+                            tester.contactRequest().receiveResponse();
+                        });
+
+                        it('Нажимаю на другое имя. Запрошен другой контакт.', function() {
+                            tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
+                            tester.contactRequest().anotherContact().receiveResponse();
+                        });
+                        it('Имя выделено. Отображен контакт.', function() {
+                            tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
+                            tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'ФИО ' +
+                                'Грета Бележкова ' +
+
+                                'Номера ' +
+                                '79162729533 ' +
+
+                                'E-Mail ' +
+                                'endlesssprinп.of@comagic.dev ' +
+
+                                'Мессенджеры ' +
+                                '+7 (928) 381 09-88 ' +
+                                '+7 (928) 381 09-28'
                             );
-
-                            tester.input.expectToHaveValue('');
-                            tester.spin.expectNotToExist();
                         });
                     });
-                    it('Отображен спиннер.', function() {
-                        tester.spin.expectToBeVisible();
+                    it('Имена сгруппированы по первым буквам.', function() {
+                        tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
+                        tester.contactList.item('Бележкова Грета Ервиновна').expectNotToBeSelected();
+
+                        tester.contactList.expectTextContentToHaveSubstring(
+                            'Б ' +
+
+                            'Балканска Берислава Силаговна ' +
+                            'Бележкова Грета Ервиновна ' +
+                            'Белоконска-Вражалска Калиса Еньовна ' +
+
+                            'В ' +
+
+                            'Вампирска Джиневра Ериновна ' +
+                            'Васовa Дилмана Златовна'
+                        );
                     });
                 });
-                it(
-                    'Ввожу значение в поле поиска. Не удалось получить данные. Запрос не отправляется повторно.',
-                function() {
-                    tester.input.fill('пас');
-                    spendTime(500);
+                it('Токен авторизации истек. Токен обновлен. Отправлен повторный запрос контактов.', function() {
+                    contactsRequest.accessTokenExpired().receiveResponse();
+                    tester.refreshRequest().receiveResponse();
 
-                    tester.contactsRequest().search().failed().receiveResponse();
-                    tester.spinWrapper.scrollIntoView();
-
-                    tester.spin.expectNotToExist();
+                    tester.contactsRequest().anotherAuthorizationToken().receiveResponse();
                 });
-                it('Вызвано событие исходящего звонка. Совершается исходящий звонок.', function() {
-                    tester.outgoingCallEvent().dispatch();
-
-                    tester.firstConnection.connectWebRTC();
-                    tester.allowMediaInput();
-
-                    const outgoingCall = tester.outgoingCall().expectToBeSent()
-
-                    tester.slavesNotification().
-                        available().
-                        userDataFetched().
-                        twoChannels().
-                        sending().
-                        expectToBeSent();
-
-                    outgoingCall.setRinging();
-
-                    tester.slavesNotification().
-                        available().
-                        userDataFetched().
-                        twoChannels().
-                        progress().
-                        expectToBeSent();
-
-                    tester.firstConnection.callTrackHandler();
-
-                    tester.numaRequest().receiveResponse();
-
-                    tester.outCallSessionEvent().receive();
-                    tester.outCallSessionEvent().slavesNotification().expectToBeSent();
-                });
-                it('Отображена страница контактов.', function() {
-                    tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
-                        'Тончева Десислава Пламеновна',
-                        'Паскалева Бисера Илковна #100'
-                    );
-
-                    tester.spin.expectNotToExist();
+                it('Отображен спиннер.', function() {
+                    tester.spin.expectToBeVisible();
                 });
             });
-            describe('Получены разные имена.', function() {
-                beforeEach(function() {
-                    contactsRequest.differentNames().receiveResponse();
-                });
+            it('Поступил входящий звонок. Нажимаю на кнопку открытия контакта. Контакт открыт.', function() {
+                tester.incomingCall().receive();
 
-                it('Нажимаю на имя. Имя выделено.', function() {
-                    tester.contactList.item('Бележкова Грета Ервиновна').click();
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    incoming().
+                    progress().
+                    userDataFetched().
+                    expectToBeSent();
 
-                    tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
-                    tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
-                });
-                it('Имена сгруппированы по первым буквам.', function() {
-                    tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
-                    tester.contactList.item('Бележкова Грета Ервиновна').expectNotToBeSelected();
+                tester.numaRequest().receiveResponse();
 
-                    tester.contactList.expectTextContentToHaveSubstring(
-                        'Б ' +
+                tester.outCallEvent().knownContact().receive();
+                tester.outCallEvent().knownContact().slavesNotification().expectToBeSent();
 
-                        'Балканска Берислава Силаговна ' +
-                        'Бележкова Грета Ервиновна ' +
-                        'Белоконска-Вражалска Калиса Еньовна ' +
+                tester.contactOpeningButton.click();
 
-                        'В ' +
+                tester.contactsRequest().differentNames().receiveResponse();
+                tester.contactRequest().receiveResponse();
 
-                        'Вампирска Джиневра Ериновна ' +
-                        'Васовa Дилмана Златовна'
-                    );
-                });
-            });
-            it('Токен авторизации истек. Токен обновлен. Отправлен повторный запрос контактов.', function() {
-                contactsRequest.accessTokenExpired().receiveResponse();
-                tester.refreshRequest().receiveResponse();
+                tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
+                tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
 
-                tester.contactsRequest().anotherAuthorizationToken().receiveResponse();
-            });
-            it('Отображен спиннер.', function() {
-                tester.spin.expectToBeVisible();
+                tester.body.expectTextContentToHaveSubstring(
+                    'ФИО ' +
+                    'Грета Бележкова ' +
+
+                    'Номера ' +
+                    '79162729533 ' +
+
+                    'E-Mail ' +
+                    'endlesssprinп.of@comagic.dev ' +
+
+                    'Мессенджеры ' +
+                    '+7 (928) 381 09-88 ' +
+                    '+7 (928) 381 09-28'
+                );
             });
         });
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {

@@ -10,3 +10,14 @@ index eac92d9..a1059c9 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.5",
+diff --git a/src/history.ts b/src/history.ts
+index 564e8ec..e156b1f 100644
+--- a/src/history.ts
++++ b/src/history.ts
+@@ -1,5 +1,2 @@
+-import { createBrowserHistory } from 'history';
+-
+-const history = createBrowserHistory();
+-
++const history = window.memoryHistory;
+ export default history;

@@ -1751,6 +1751,7 @@ define(() => function ({
             auto_call_campaign_name: null,
             organization_name: 'ООО "Некая Организация"',
             contact_full_name: 'Шалева Дора',
+            contact_id: null,
             crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/382030',
             first_call: true,
             is_transfer: false,
@@ -1767,6 +1768,12 @@ define(() => function ({
         });
 
         return {
+            knownContact: function () {
+                params.contact_id = 1689283;
+                params.crm_contact_link = null;
+                return this;
+            },
+            
             anotherContactNumber: function () {
                 params.contact_phone_number = '79161234570';
                 return this;
@@ -7476,6 +7483,55 @@ define(() => function ({
         return request;
     };
 
+    me.contactRequest = () => {
+        const addResponseModifiers = me => me;
+        let id = 1689283;
+
+        return addResponseModifiers({
+            anotherContact() {
+                id = 1689290;
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain(`$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith({
+                            data: {
+                                first_name: 'Грета',
+                                last_name: 'Бележкова',
+                                id: 1689283,
+                                email_list: ['endlesssprinп.of@comagic.dev'],
+                                messenger_list: [
+                                    { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
+                                    { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
+                                ],
+                                organization_name: 'UIS',
+                                phone_list: ['79162729533'],
+                                group_list: [],
+                                personal_manager_id: 8539841,
+                                patronymic: 'Ервиновна',
+                                full_name: 'Бележкова Грета Ервиновна'
+                            }
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.contactsRequest = () => {
         let total = 250,
             token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
@@ -8770,7 +8826,14 @@ define(() => function ({
 
     me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
     me.addressBookButton = testersFactory.createDomElementTester('#cmg-address-book-button');
-    me.contactOpeningButton = testersFactory.createDomElementTester('#cmg-open-contact-button');
+
+    me.contactOpeningButton = (() => {
+        const tester = testersFactory.createDomElementTester('#cmg-open-contact-button'),
+            click = tester.click.bind(tester);
+
+        tester.click = () => (click(), spendTime(0));
+        return tester;
+    })();
 
     me.employeeRow = text => (domElement => {
         const tester = testersFactory.createDomElementTester(domElement);
@@ -8856,6 +8919,9 @@ define(() => function ({
                 textEquals(name).
                 find());
 
+            const click = tester.click.bind(tester);
+
+            tester.click = () => (click(), spendTime(0));
             tester.expectToBeSelected = () => tester.expectToHaveClass('cm-contacts-list-item-selected');
             tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-contacts-list-item-selected');
 

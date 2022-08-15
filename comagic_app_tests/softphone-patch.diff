@@ -43,6 +43,17 @@ index 18318f8..2d66e26 100644
 +    "uis-softphone": "./misc/sip_lib"
    }
  }
+diff --git a/src/history.ts b/src/history.ts
+index 564e8ec..e156b1f 100644
+--- a/src/history.ts
++++ b/src/history.ts
+@@ -1,5 +1,2 @@
+-import { createBrowserHistory } from 'history';
+-
+-const history = createBrowserHistory();
+-
++const history = window.memoryHistory;
+ export default history;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
 index 8f0f7d0..17a9b68 100644
 --- a/src/models/RootStore.ts

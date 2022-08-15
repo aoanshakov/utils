@@ -70,8 +70,8 @@ const cda = `cd ${application} &&`,
     magicUiOverridenFiles = 'package.json',
     coreOverridenFiles = magicUiOverridenFiles,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
-    contactsOverridenFiles = magicUiOverridenFiles,
-    softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
+    contactsOverridenFiles = 'package.json src/history.ts',
+    softphoneOverridenFiles = 'src/models/RootStore.ts package.json src/history.ts',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
 
