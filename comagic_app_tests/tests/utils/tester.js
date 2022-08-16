@@ -175,8 +175,15 @@ define(() => function ({
             Object.entries(tester).forEach(([methodName, method]) => (me.anchor[methodName] = method.bind(tester)));
         })();
 
-        me.link = testersFactory.createDomElementTester(() =>
-            utils.element(getRootElement()).querySelector('.cmg-softphone-call-history-phone-link'));
+        me.link = (() => {
+            const tester = testersFactory.createDomElementTester(() =>
+                utils.element(getRootElement()).querySelector('.cmg-softphone-call-history-phone-link'));
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         me.textarea = testersFactory.createTextFieldTester(() =>
             utils.element(getRootElement()).querySelector('textarea'));
@@ -445,6 +452,7 @@ define(() => function ({
             };
 
             const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked',
+                disabledClass = isSwitch ? 'ui-switch-disabled' : 'ui-button-disabled',
                 menuItemSelectedClass = 'src-components-main-menu-nav-item-styles-module__item-selected';
 
             const menuItem = testersFactory.createDomElementTester(() =>
@@ -454,8 +462,14 @@ define(() => function ({
             tester.expectNotToBePressed = () => menuItem.expectNotToHaveClass(menuItemSelectedClass);
             tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
             tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
-            tester.expectToBeEnabled = () => fieldTester.expectNotToHaveClass('ui-switch-disabled');
-            tester.expectToBeDisabled = () => fieldTester.expectToHaveClass('ui-switch-disabled');
+
+            tester.expectToBeEnabled = () => isSwitch ?
+                fieldTester.expectNotToHaveClass(disabledClass) :
+                tester.expectNotToHaveAttribute('disabled');
+
+            tester.expectToBeDisabled = () => isSwitch ?
+                fieldTester.expectToHaveClass(disabledClass) :
+                tester.expectToHaveAttribute('disabled');
             
             return tester;
         };
@@ -584,15 +598,20 @@ define(() => function ({
                     fill = tester.fill.bind(tester),
                     input = tester.input.bind(tester),
                     click = tester.click.bind(tester),
-                    pressEnter = tester.pressEnter.bind(tester);
+                    pressEnter = tester.pressEnter.bind(tester),
+                    getUiInput = () => (getInput() || new JsTester_NoElement()).closest('.ui-input'),
+                    uiInputTester = testersFactory.createDomElementTester(getUiInput);
 
                 tester.click = () => (click(), spendTime(0), spendTime(0), tester);
                 tester.fill = value => (fill(value), Promise.runAll(false, true), tester); 
                 tester.input = value => (input(value), Promise.runAll(false, true), tester); 
                 tester.pressEnter = () => (pressEnter(), spendTime(0), tester);
 
+                tester.expectNotToHaveError = () => uiInputTester.expectNotToHaveClass('ui-input-error');
+                tester.expectToHaveError = () => uiInputTester.expectToHaveClass('ui-input-error');
+
                 tester.clearIcon = testersFactory.createDomElementTester(
-                    () => getInput().closest('.ui-input').querySelector('.ui-input-suffix-close')
+                    () => getUiInput().querySelector('.ui-input-suffix-close')
                 );
 
                 return tester;
@@ -1514,6 +1533,7 @@ define(() => function ({
             phone_book_contact_id: null,
             direction: 'out',
             duration: 21,
+            contact_id: 1689283,
             contact_name: 'Манова Тома',
             crm_contact_link: null,
             is_failed: false,
@@ -7532,6 +7552,79 @@ define(() => function ({
         });
     };
 
+    me.contactUpdatingRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectPathToContain(`$REACT_APP_BASE_URL/contacts/1689283`).
+                    expectToHaveMethod('PATCH').
+                    expectBodyToContain({
+                        first_name: 'Грета',
+                        last_name: 'Неделчева',
+                        email_list: ['endlesssprinп.of@comagic.dev'],
+                        messenger_list: [
+                            { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
+                            { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
+                        ],
+                        organization_name: 'UIS',
+                        phone_list: ['79162729533'],
+                        group_list: [],
+                        personal_manager_id: 8539841,
+                        patronymic: 'Ервиновна'
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith({
+                            data: true 
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.contactCreatingRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectPathToContain(`$REACT_APP_BASE_URL/contacts`).
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        last_name: 'Неделчева'
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith({
+                            data: true 
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.contactsRequest = () => {
         let total = 250,
             token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
@@ -8851,6 +8944,29 @@ define(() => function ({
 
         return tester;
     })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
+
+    me.contactBar = (() => {
+        const getContactBar = () => utils.querySelector('.cmg-softphone-contact-bar'),
+            tester = testersFactory.createDomElementTester(getContactBar);
+
+        tester.closeButton = testersFactory.createDomElementTester(() =>
+            getContactBar().querySelector('.cmg-softphone-contact-bar-title svg'));
+
+        tester.section = label => {
+            const getDomElement = () => utils.descendantOf(getContactBar()).
+                matchesSelector('.cm-contacts-contact-bar-section-header').
+                textContains(label).
+                find().
+                closest('.cm-contacts-contact-bar-section');
+
+            const tester = testersFactory.createDomElementTester(getDomElement);
+            
+            addTesters(tester, getDomElement);
+            return tester;
+        };
+
+        return tester;
+    })();
 
     me.softphone = (getRootElement => {
         const tester = addTesters(

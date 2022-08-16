@@ -2,9 +2,7 @@ function JsTester_Factory () {
     this.createDebugger = function () {
         return new JsTester_Debugger();
     };
-    this.createUtils = function ({debug, intersectionObservations}) {
-        return new JsTester_Utils({debug, intersectionObservations});
-    };
+    this.createUtils = (...args) => new JsTester_Utils(...args);
     this.createDomElementTester = function (
         domElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
         genetiveDescription
@@ -3096,6 +3094,8 @@ function JsTester_WindowSize (spendTime) {
         redefineProperty = () => null;
     };
 
+    this.getOriginalHeight = () => originalInnerHeight;
+
     this.setHeight = function (value) {
         redefineProperty();
         innerHeight = value;
@@ -3460,8 +3460,8 @@ function JsTester_Tests (factory) {
     };
 
     var intersectionObservations = new Map(),
-        utils = factory.createUtils({debug, intersectionObservations}),
         windowSize = new JsTester_WindowSize(spendTime),
+        utils = factory.createUtils({debug, intersectionObservations, windowSize}),
         broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage(), true),
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},
@@ -4308,7 +4308,7 @@ function JsTester_Element ({
     };
 }
 
-function JsTester_Utils ({debug, intersectionObservations}) {
+function JsTester_Utils ({debug, intersectionObservations, windowSize}) {
     var me = this,
         doNothing = function () {};
 
@@ -4360,6 +4360,8 @@ function JsTester_Utils ({debug, intersectionObservations}) {
     this.disableScrollingIntoView = function () {
         maybeScrollIntoView = doNothing;
     };
+
+    this.getWindowHeight = () => windowSize.getOriginalHeight();
 
     this.scrollIntoView = function (domElement) {
         maybeScrollIntoView(domElement);
@@ -6456,10 +6458,12 @@ function JsTester_DomElement (
             );
         }
     };
-    function scrollIntoView () {
+    function isAudio () {
         me.expectToExist();
-
-        if (getDomElement().tagName.toLowerCase() == 'audio') {
+        return getDomElement().tagName.toLowerCase() == 'audio';
+    }
+    function scrollIntoView () {
+        if (isAudio()) {
             return false;
         }
 
@@ -6470,9 +6474,15 @@ function JsTester_DomElement (
         scrollIntoView();
     };
     this.expectToBeVisible = function () {
-        if (!scrollIntoView()) {
+        if (!isAudio()) {
             return;
         }
+
+        const domElement = getDomElement();
+
+        parseInt((domElement.getClientRects() || {}).y, 0) || 0;
+
+        scrollIntoView();
 
         if (!utils.isVisible(getDomElement())) {
             throw new Error(

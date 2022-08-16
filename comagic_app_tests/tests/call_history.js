@@ -169,7 +169,7 @@ tests.addTest(options => {
                                 callsRequest.receiveResponse();
                             });
 
-                            describe('Нажимаю на кнопку "Необработанные".', function() {
+                            xdescribe('Нажимаю на кнопку "Необработанные".', function() {
                                 let notProcessedCallsRequest;
 
                                 beforeEach(function() {
@@ -464,7 +464,7 @@ tests.addTest(options => {
                                     tester.table.expectTextContentToHaveSubstring('Нет данных');
                                 });
                             });
-                            describe('Ввожу значеие в поле поиска.', function() {
+                            xdescribe('Ввожу значеие в поле поиска.', function() {
                                 beforeEach(function() {
                                     tester.input.withPlaceholder('Имя или телефон').input('qwe12');
                                 });
@@ -501,7 +501,7 @@ tests.addTest(options => {
                                     tester.input.withPlaceholder('Имя или телефон').expectToHaveValue('qwe12');
                                 });
                             });
-                            describe('Нажимаю на кнопку тегов.', function() {
+                            xdescribe('Нажимаю на кнопку тегов.', function() {
                                 beforeEach(function() {
                                     tester.table.row.first.column.withHeader('Теги').svg.click();
                                 });
@@ -590,7 +590,7 @@ tests.addTest(options => {
                                     tester.select.option('Отложенный звонок').expectToBeSelected();
                                 });
                             });
-                            describe('Открываю окно добавления комментария.', function() {
+                            xdescribe('Открываю окно добавления комментария.', function() {
                                 beforeEach(function() {
                                     tester.
                                         table.
@@ -647,7 +647,7 @@ tests.addTest(options => {
                                     tester.button('Сохранить').expectToHaveAttribute('disabled');
                                 });
                             });
-                            describe('Открываю календарь', function() {
+                            xdescribe('Открываю календарь', function() {
                                 beforeEach(function() {
                                     tester.calendarField.click();
                                 });
@@ -692,7 +692,7 @@ tests.addTest(options => {
                                     tester.calendarField.popup.input.atIndex(1).expectToHaveValue('19.12.2019');
                                 });
                             });
-                            describe('Нажимаю на кнопку комментария.', function() {
+                            xdescribe('Нажимаю на кнопку комментария.', function() {
                                 beforeEach(function() {
                                     tester.table.row.first.column.withHeader('Комментарий').svg.click();
                                 });
@@ -753,7 +753,7 @@ tests.addTest(options => {
                                         expectNotToExist();
                                 });
                             });
-                            describe('Поступил входящий звонок.', function() {
+                            xdescribe('Поступил входящий звонок.', function() {
                                 let incomingCall;
 
                                 beforeEach(function() {
@@ -835,7 +835,7 @@ tests.addTest(options => {
                                     tester.input.withPlaceholder('Имя или телефон').pressEnter();
                                 });
                             });
-                            describe(
+                            xdescribe(
                                 'Нажимаю на кнопку второй страницы. Отправлен запрос второй страницы.',
                             function() {
                                 beforeEach(function() {
@@ -895,7 +895,7 @@ tests.addTest(options => {
                                     );
                                 });
                             });
-                            describe('Нажимаю на кнопку проигрывания записи. Запись проигрывается.', function() {
+                            xdescribe('Нажимаю на кнопку проигрывания записи. Запись проигрывается.', function() {
                                 beforeEach(function() {
                                     tester.table.row.first.column.withHeader('Запись').playIcon.click();
                                     
@@ -944,7 +944,7 @@ tests.addTest(options => {
                                     tester.audioPlayer.expectNotToExist();
                                 });
                             });
-                            describe('Имя скачиваемой записи читаемо.', function() {
+                            xdescribe('Имя скачиваемой записи читаемо.', function() {
                                 beforeEach(function() {
                                     tester.table.row.atIndex(1).column.withHeader('Запись').playIcon.click();
 
@@ -990,6 +990,45 @@ tests.addTest(options => {
                                         expectHrefToBeBlobWithContent('h398j0184hhls0283');
                                 });
                             });
+                            describe('Нажимаю на имя контакта.', function() {
+                                beforeEach(function() {
+                                    tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.click();
+                                    tester.contactRequest().receiveResponse();
+                                });
+                                
+                                xit('Нажимаю на иконку с крестиком. Карточка контакта скрыта.', function() {
+                                    tester.contactBar.closeButton.click();
+                                    tester.contactBar.expectNotToExist();
+                                });
+                                it(
+                                    'Измению значение поля. Нажимаю на кнпоку "Сохранить контакт". Отправлен запрос ' +
+                                    'обновления контакта.',
+                                function() {
+                                    tester.contactBar.section('ФИО').svg.click();
+                                    tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
+
+                                    tester.button('Сохранить контакт').click();
+                                    tester.contactUpdatingRequest().receiveResponse();
+                                });
+                                return;
+                                it('Открыта карточка контакта.', function() {
+                                    tester.contactBar.expectTextContentToHaveSubstring(
+                                        'ФИО ' +
+                                        'Грета Бележкова ' +
+
+                                        'Номера ' +
+                                        '79162729533 ' +
+
+                                        'E-Mail ' +
+                                        'endlesssprinп.of@comagic.dev ' +
+
+                                        'Мессенджеры ' +
+                                        '+7 (928) 381 09-88 ' +
+                                        '+7 (928) 381 09-28'
+                                    );
+                                });
+                            });
+                            return;
                             it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
                                 tester.radioButton('Все').click();
 
@@ -1179,6 +1218,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
+                        return;
                         describe('Есть звонки трансфера.', function() {
                             beforeEach(function() {
                                 callsRequest = callsRequest.transferCall();
@@ -1199,6 +1239,72 @@ tests.addTest(options => {
                                     expectToHaveClass('transfer_incoming_successful_svg__cmg-direction-icon');
                                 tester.table.row.atIndex(1).column.first.svg.
                                     expectToHaveClass('transfer_outgoing_successful_svg__cmg-direction-icon');
+                            });
+                        });
+                        describe('Имя контакта не было получено.', function() {
+                            beforeEach(function() {
+                                callsRequest.
+                                    noContactName().
+                                    noCrmContactLink().
+                                    receiveResponse();
+                            });
+
+                            describe('Нажимаю на номер телефона.', function() {
+                                beforeEach(function() {
+                                    tester.table.row.first.column.withHeader('ФИО контакта').link.click();
+                                });
+
+                                describe('Открываю поля ФИО.', function() {
+                                    beforeEach(function() {
+                                        tester.contactBar.section('ФИО').svg.click();
+                                    });
+
+                                    describe(
+                                        'Ввожу значение в поле фамилии. Поле фамилии не отмечено как невалидное. ' +
+                                        'Нажимаю на кнопку "Создать контакт". Отправлен запрос создания контакта.',
+                                    function() {
+                                        let contactCreatingRequest;
+
+                                        beforeEach(function() {
+                                            tester.input.withPlaceholder('Фамилия (Обязательное поле)').
+                                                fill('Неделчева');
+
+                                            tester.input.withPlaceholder('Фамилия (Обязательное поле)').
+                                                expectNotToHaveError();
+                                            tester.input.withPlaceholder('Имя').expectNotToHaveError();
+
+                                            tester.button('Создать контакт').click();
+                                            contactCreatingRequest = tester.contactCreatingRequest().expectToBeSent();
+                                        });
+
+                                        it('Получен ответ на запрос. Спиннер скрыт.', function() {
+                                            contactCreatingRequest.receiveResponse();
+                                            tester.spin.expectNotToExist();
+                                        });
+                                        it('Отображен спиннер.', function() {
+                                            tester.spin.expectToBeVisible();
+                                        });
+                                    });
+                                    it('Поле фамилии отмечено как невалидное.', function() {
+                                        tester.input.withPlaceholder('Фамилия (Обязательное поле)').expectToHaveError();
+                                        tester.input.withPlaceholder('Имя').expectNotToHaveError();
+                                    });
+                                });
+                                it('Открывается форма создания контакта.', function() {
+                                    tester.contactBar.expectTextContentToHaveSubstring(
+                                        'ФИО ' +
+                                        '74950230625 ' +
+
+                                        'Номера ' +
+                                        '74950230625 '
+                                    );
+
+                                    tester.button('Создать контакт').expectToBeDisabled();
+                                });
+                            });
+                            it('Оторажен номер.', function() {
+                                tester.table.row.first.column.withHeader('ФИО контакта').link.
+                                    expectToHaveTextContent('+7 (495) 023-06-25');
                             });
                         });
                         it(
@@ -1249,17 +1355,6 @@ tests.addTest(options => {
                             callsRequest.noCalls().receiveResponse();
                             tester.table.pagingPanel.expectNotToExist();
                         });
-                        it('Имя контакта не было получено. Оторажен номер.', function() {
-                            callsRequest.noContactName().receiveResponse();
-
-                            tester.table.expectTextContentToHaveSubstring(
-                                '19 дек 2019 08:03 ' +
-                                '+7 (495) 023-06-25 ' +
-                                '+7 (495) 023-06-25 ' +
-                                'Нецелевой контакт, Отложенный звонок ' +
-                                '00:00:20 ',
-                            );
-                        });
                         it('В таблицу содержится звонок от сотрудника. Отображено имя сотрудника.', function() {
                             callsRequest.employeeName().receiveResponse();
 
@@ -1305,6 +1400,7 @@ tests.addTest(options => {
                             tester.spin.expectToBeVisible();
                         });
                     });
+                    return;
                     describe('Звонки получены.', function() {
                         beforeEach(function() {
                             callsRequest.receiveResponse();
@@ -1319,6 +1415,7 @@ tests.addTest(options => {
                         });
                     });
                 });
+                return;
                 describe('Обновление комментария недоступно.', function() {
                     beforeEach(function() {
                         permissionsRequest = permissionsRequest.disallowCallSessionCommentingUpdate();
@@ -1753,6 +1850,7 @@ tests.addTest(options => {
                     tester.select.option('Генератор лидов').click();
                 });
             });
+            return;
             describe('Номера должны быть скрыты. Открываю историю звонков.', function() {
                 let callsRequest;
 
@@ -1873,6 +1971,7 @@ tests.addTest(options => {
                 });
             });
         });
+        return;
         it('У пользователя нет роли. Вкладки "Все" и "Необработанные" заблокированы.', function() {
             accountRequest.noCallCenterRole().receiveResponse();
 
@@ -2131,6 +2230,7 @@ tests.addTest(options => {
             tester.button('История звонков').expectNotToExist();
         });
     });
+return;
     describe('Открываю историю звонков.', function() {
         let tester,
             permissionsRequest;
