@@ -144,6 +144,16 @@ define(() => function ({
     me.settingsButton = createBottomButtonTester(testersFactory.createDomElementTester('.cmg-settings-button'));
 
     const addTesters = (me, getRootElement) => {
+        me.dropdownTrigger = (() => {
+            const tester = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
+                querySelector('.ui-dropdown-trigger'));
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
+
         me.spinWrapper = (tester => {
             const scrollIntoView = tester.scrollIntoView.bind(tester);
             tester.scrollIntoView = () => (scrollIntoView(), spendTime(0));
@@ -1552,6 +1562,7 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.shortPhoneNumber = () => ((processors.push(data => (data[0].number = '56123'))), me)
             me.chilePhoneNumber = () => ((processors.push(data => (data[0].number = '56123456789'))), me)
             me.duplicatedCallSessionId = () => (processors.push(data => (data[1].call_session_id = 980925444)), me);
             me.isFailed = () => (processors.push(data => data.forEach(item => (item.is_failed = true))), me);
@@ -1771,7 +1782,6 @@ define(() => function ({
             auto_call_campaign_name: null,
             organization_name: 'ООО "Некая Организация"',
             contact_full_name: 'Шалева Дора',
-            contact_id: null,
             crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/382030',
             first_call: true,
             is_transfer: false,
@@ -7553,27 +7563,59 @@ define(() => function ({
     };
 
     me.contactUpdatingRequest = () => {
-        const addResponseModifiers = me => me;
+        const addResponseModifiers = me => me,
+            processors = [];
+        let bodyParams = {};
 
         return addResponseModifiers({
+            completeData() {
+                bodyParams = {
+                    first_name: 'Грета',
+                    last_name: 'Бележкова',
+                    email_list: ['endlesssprinп.of@comagic.dev', undefined],
+                    messenger_list: [
+                        { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
+                        { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
+                        undefined
+                    ],
+                    organization_name: 'UIS',
+                    phone_list: ['79162729533', undefined],
+                    group_list: [undefined],
+                    personal_manager_id: 8539841,
+                    patronymic: 'Ервиновна',
+                };
+
+                return this;
+            },
+
+            anotherName() {
+                processors.push(bodyParams => {
+                    bodyParams.first_name = 'Роза';
+                    bodyParams.last_name = 'Неделчева';
+                    bodyParams.patronymic = 'Ангеловна';
+                });
+
+                return this;
+            },
+
+            anotherPhoneNumber() {
+                processors.push(bodyParams => (bodyParams.phone_list[0] = '79162729534'));
+                return this;
+            },
+
+            twoPhoneNumbers() {
+                processors.push(bodyParams =>
+                    (bodyParams.phone_list = [bodyParams.phone_list[0], '79162729534', undefined]));
+                return this;
+            },
+            
             expectToBeSent() {
+                processors.forEach(process => process(bodyParams));
+
                 const request = ajax.recentRequest().
                     expectPathToContain(`$REACT_APP_BASE_URL/contacts/1689283`).
-                    expectToHaveMethod('PATCH').
-                    expectBodyToContain({
-                        first_name: 'Грета',
-                        last_name: 'Неделчева',
-                        email_list: ['endlesssprinп.of@comagic.dev'],
-                        messenger_list: [
-                            { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
-                            { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
-                        ],
-                        organization_name: 'UIS',
-                        phone_list: ['79162729533'],
-                        group_list: [],
-                        personal_manager_id: 8539841,
-                        patronymic: 'Ервиновна'
-                    });
+                    expectToHaveMethod('PUT').
+                    expectBodyToContain(bodyParams);
 
                 return addResponseModifiers({
                     receiveResponse: () => {
@@ -7603,13 +7645,14 @@ define(() => function ({
                     expectPathToContain(`$REACT_APP_BASE_URL/contacts`).
                     expectToHaveMethod('POST').
                     expectBodyToContain({
-                        last_name: 'Неделчева'
+                        last_name: 'Неделчева',
+                        phone_list: ['74950230625', undefined]
                     });
 
                 return addResponseModifiers({
                     receiveResponse: () => {
                         request.respondSuccessfullyWith({
-                            data: true 
+                            contact_id: 1689283
                         });
 
                         Promise.runAll(false, true);
@@ -8946,22 +8989,40 @@ define(() => function ({
     })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
 
     me.contactBar = (() => {
-        const getContactBar = () => utils.querySelector('.cmg-softphone-contact-bar'),
-            tester = testersFactory.createDomElementTester(getContactBar);
+        const getContactBar = () => {
+            let contactBar = utils.querySelector('.cmg-softphone-contact-bar');
+            contactBar instanceof JsTester_NoElement && (contactBar = utils.querySelector('.cm-contacts-contact-bar'));
+
+            return contactBar;
+        };
+
+        const tester = testersFactory.createDomElementTester(getContactBar);
 
         tester.closeButton = testersFactory.createDomElementTester(() =>
             getContactBar().querySelector('.cmg-softphone-contact-bar-title svg'));
 
         tester.section = label => {
-            const getDomElement = () => utils.descendantOf(getContactBar()).
+            const getSectionElement = () => utils.descendantOf(getContactBar()).
                 matchesSelector('.cm-contacts-contact-bar-section-header').
                 textContains(label).
                 find().
                 closest('.cm-contacts-contact-bar-section');
 
-            const tester = testersFactory.createDomElementTester(getDomElement);
+            const tester = testersFactory.createDomElementTester(getSectionElement);
+
+            tester.option = text => {
+                const getOptionElement = () => utils.descendantOf(getSectionElement()).
+                    textEquals(text).
+                    matchesSelector('.cm-contacts-contact-bar-section-option').
+                    find();
+
+                const tester = testersFactory.createDomElementTester(getOptionElement);
+
+                addTesters(tester, getOptionElement);
+                return tester;
+            };
             
-            addTesters(tester, getDomElement);
+            addTesters(tester, getSectionElement);
             return tester;
         };
 

@@ -282,6 +282,36 @@ tests.addTest(options => {
                             tester.contactRequest().receiveResponse();
                         });
 
+                        it(
+                            'Изменяю значение полей имени. Нажимаю на кнопку "Сохранить". Отправлен запрос ' +
+                            'обновления контакта.',
+                        function() {
+                            tester.contactBar.section('ФИО').svg.click();
+
+                            tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
+                            tester.input.withPlaceholder('Имя').fill('Роза');
+                            tester.input.withPlaceholder('Отчество').fill('Ангеловна');
+
+                            tester.button('Сохранить').click();
+                            tester.contactUpdatingRequest().completeData().anotherName().receiveResponse();
+                        });
+                        it('Изменяю номер телефона. Отправлен запрос обновления контакта.', function() {
+                            tester.contactBar.section('Номера').option('79162729533').putMouseOver();
+                            tester.contactBar.section('Номера').option('79162729533').dropdownTrigger.click();
+                            tester.select.option('Редактировать').click();
+
+                            tester.contactBar.section('Номера').input.fill('79162729534').pressEnter();
+                            tester.contactUpdatingRequest().completeData().anotherPhoneNumber().receiveResponse();
+                        });
+                        it(
+                            'Добавляю поле для ввода номера телефона. Ввожу номер телефона. Отправлен запрос ' +
+                            'обновления контакта.',
+                        function() {
+                            tester.contactBar.section('Номера').svg.click();
+                            tester.contactBar.section('Номера').input.fill('79162729534').pressEnter();
+
+                            tester.contactUpdatingRequest().completeData().twoPhoneNumbers().receiveResponse();
+                        });
                         it('Нажимаю на другое имя. Запрошен другой контакт.', function() {
                             tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
                             tester.contactRequest().anotherContact().receiveResponse();
@@ -289,6 +319,8 @@ tests.addTest(options => {
                         it('Имя выделено. Отображен контакт.', function() {
                             tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
                             tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
+
+                            tester.button('Создать контакт').expectNotToExist();
 
                             tester.body.expectTextContentToHaveSubstring(
                                 'ФИО ' +

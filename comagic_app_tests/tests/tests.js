@@ -4521,6 +4521,106 @@ tests.addTest(options => {
                 tester.button('Статистика звонков').expectNotToExist();
                 tester.button('Контакты').expectNotToExist();
             });
+            it('Раздел контактов недоступен. Кнопка открытия контакта заблокирована.', function() {
+                accountRequest.contactsFeatureFlagDisabled().receiveResponse();
+
+                const requests = ajax.inAnyOrder();
+
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+                secondAccountRequest.contactsFeatureFlagDisabled().receiveResponse();
+                reportGroupsRequest.receiveResponse();
+
+                tester.configRequest().softphone().receiveResponse();
+
+                tester.slavesNotification().expectToBeSent();
+                tester.slavesNotification().additional().expectToBeSent();
+
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                spendTime(1000);
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                spendTime(1000);
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
+
+                tester.authCheckRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+
+                settingsRequest = tester.settingsRequest().expectToBeSent();
+                tester.talkOptionsRequest().receiveResponse();
+
+                settingsRequest.receiveResponse();
+                tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
+                tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                permissionsRequest.receiveResponse();
+
+                tester.connectEventsWebSocket();
+                tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                tester.connectSIPWebSocket();
+                tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                    expectToBeSent();
+
+                notificationTester.grantPermission();
+
+                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                tester.allowMediaInput();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    expectToBeSent();
+
+                authenticatedUserRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    userDataFetched().
+                    expectToBeSent();
+
+                registrationRequest.receiveResponse();
+                tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                statusesRequest.receiveResponse();
+
+                tester.incomingCall().receive();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    incoming().
+                    progress().
+                    userDataFetched().
+                    expectToBeSent();
+
+                tester.numaRequest().receiveResponse();
+
+                tester.outCallEvent().knownContact().receive();
+                tester.outCallEvent().knownContact().slavesNotification().expectToBeSent();
+
+                tester.contactOpeningButton.click();
+
+                tester.contactOpeningButton.expectToHaveClass('cmg-button-disabled');
+                windowOpener.expectNoWindowToBeOpened();
+            });
             it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
                 accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
                 tester.notificationChannel().applyLeader().expectToBeSent();

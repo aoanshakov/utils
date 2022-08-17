@@ -996,19 +996,19 @@ tests.addTest(options => {
                                     tester.contactRequest().receiveResponse();
                                 });
                                 
+                                it('Изменяю имя. Отправлен запрос обновления контакта.', function() {
+                                    tester.contactBar.section('ФИО').svg.click();
+
+                                    tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
+                                    tester.input.withPlaceholder('Имя').fill('Роза');
+                                    tester.input.withPlaceholder('Отчество').fill('Ангеловна');
+
+                                    tester.button('Сохранить').click();
+                                    tester.contactUpdatingRequest().completeData().anotherName().receiveResponse();
+                                });
                                 it('Нажимаю на иконку с крестиком. Карточка контакта скрыта.', function() {
                                     tester.contactBar.closeButton.click();
                                     tester.contactBar.expectNotToExist();
-                                });
-                                it(
-                                    'Измению значение поля. Нажимаю на кнпоку "Сохранить контакт". Отправлен запрос ' +
-                                    'обновления контакта.',
-                                function() {
-                                    tester.contactBar.section('ФИО').svg.click();
-                                    tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
-
-                                    tester.button('Сохранить контакт').click();
-                                    tester.contactUpdatingRequest().receiveResponse();
                                 });
                                 it('Открыта карточка контакта.', function() {
                                     tester.contactBar.expectTextContentToHaveSubstring(
@@ -1164,8 +1164,6 @@ tests.addTest(options => {
                                 tester.table.pagingPanel.pageButton('2').expectNotToBePressed();
                                 tester.table.pagingPanel.pageButton('3').expectNotToExist();
 
-                                tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.expectNotToExist();
-
                                 tester.table.row.first.
                                     expectNotToHaveClass('cmg-softphone-call-history-failed-call-row');
 
@@ -1274,9 +1272,26 @@ tests.addTest(options => {
                                             contactCreatingRequest = tester.contactCreatingRequest().expectToBeSent();
                                         });
 
-                                        it('Получен ответ на запрос. Спиннер скрыт.', function() {
-                                            contactCreatingRequest.receiveResponse();
-                                            tester.spin.expectNotToExist();
+                                        describe('Получен ответ на запрос.', function() {
+                                            beforeEach(function() {
+                                                contactCreatingRequest.receiveResponse();
+                                            });
+
+                                            it(
+                                                'Ввожу имя и отчество. Нажимаю на кнопку "Сохранить". Отправлен ' +
+                                                'запрос обновления контакта.',
+                                            function() {
+                                                tester.input.withPlaceholder('Имя').fill('Роза');
+                                                tester.input.withPlaceholder('Отчество').fill('Ангеловна');
+
+                                                tester.button('Сохранить').click();
+
+                                                tester.contactUpdatingRequest().anotherName().receiveResponse();
+                                            });
+                                            it('Спиннер скрыт.', function() {
+                                                tester.spin.expectNotToExist();
+                                                tester.button('Создать контакт').expectNotToExist();
+                                            });
                                         });
                                         it('Отображен спиннер.', function() {
                                             tester.spin.expectToBeVisible();
@@ -1362,6 +1377,10 @@ tests.addTest(options => {
                                 'Нецелевой контакт, Отложенный звонок ' +
                                 '00:00:20 ',
                             );
+                        });
+                        it('В таблице содержится короткий номер. Номер не сформатирован.', function() {
+                            callsRequest.shortPhoneNumber().receiveResponse();
+                            tester.table.expectTextContentToHaveSubstring('56123');
                         });
                         it('В таблице содержится чилийский номер. Номер сформатирован корректно.', function() {
                             callsRequest.chilePhoneNumber().receiveResponse();
@@ -2153,7 +2172,7 @@ tests.addTest(options => {
 
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.manager().receiveResponse();
+            secondAccountRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.configRequest().softphone().receiveResponse();
@@ -2221,6 +2240,100 @@ tests.addTest(options => {
             statusesRequest.receiveResponse();
 
             tester.button('История звонков').expectNotToExist();
+        });
+        it(
+            'Контакты недоступны. Открываю историю звонков. Ссылка на редактирование контакта не отображается.',
+        function() {
+            accountRequest.contactsFeatureFlagDisabled().receiveResponse();
+
+            const requests = ajax.inAnyOrder();
+
+            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
+
+            const secondAccountRequest = tester.accountRequest().
+                contactsFeatureFlagDisabled().
+                expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            secondAccountRequest.receiveResponse();
+            reportGroupsRequest.receiveResponse();
+
+            tester.configRequest().softphone().receiveResponse();
+
+            tester.slavesNotification().expectToBeSent();
+            tester.slavesNotification().additional().expectToBeSent();
+
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            spendTime(1000);
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            spendTime(1000);
+            tester.notificationChannel().tellIsLeader().expectToBeSent();
+
+            tester.authCheckRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+
+            settingsRequest = tester.settingsRequest().expectToBeSent();
+            tester.talkOptionsRequest().receiveResponse();
+
+            settingsRequest.receiveResponse();
+            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
+            tester.othersNotification().widgetStateUpdate().expectToBeSent();
+            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            permissionsRequest.receiveResponse();
+
+            tester.connectEventsWebSocket();
+            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.connectSIPWebSocket();
+            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                expectToBeSent();
+
+            notificationTester.grantPermission();
+
+            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+            registrationRequest = tester.registrationRequest().expectToBeSent();
+
+            tester.allowMediaInput();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                expectToBeSent();
+
+            authenticatedUserRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                userDataFetched().
+                expectToBeSent();
+
+            registrationRequest.receiveResponse();
+            tester.slavesNotification().twoChannels().available().userDataFetched().
+                expectToBeSent();
+
+            statusesRequest.receiveResponse();
+
+            tester.button('История звонков').click();
+
+            tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+            tester.marksRequest().receiveResponse();
+
+            tester.table.row.first.column.withHeader('ФИО контакта').link.expectToBeVisible();
+            tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.expectNotToExist();
         });
     });
     describe('Открываю историю звонков.', function() {
