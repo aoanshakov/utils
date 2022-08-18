@@ -744,11 +744,6 @@ tests.addTest(options => {
                                                 tester.outCallEvent().noName().noCrmContactLink().slavesNotification().
                                                     expectToBeSent();
 
-                                                tester.contactOpeningButton.click();
-
-                                                tester.contactOpeningButton.expectToHaveClass('cmg-button-disabled');
-                                                windowOpener.expectNoWindowToBeOpened();
-
                                                 tester.incomingIcon.expectToBeVisible();
                                                 tester.softphone.expectTextContentToHaveSubstring(
                                                     '+7 (916) 123-45-67 Входящий звонок'

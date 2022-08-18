@@ -1266,7 +1266,6 @@ tests.addTest(options => {
 
                                             tester.input.withPlaceholder('Фамилия (Обязательное поле)').
                                                 expectNotToHaveError();
-                                            tester.input.withPlaceholder('Имя').expectNotToHaveError();
 
                                             tester.button('Создать контакт').click();
                                             contactCreatingRequest = tester.contactCreatingRequest().expectToBeSent();
@@ -1291,6 +1290,9 @@ tests.addTest(options => {
                                             it('Спиннер скрыт.', function() {
                                                 tester.spin.expectNotToExist();
                                                 tester.button('Создать контакт').expectNotToExist();
+
+                                                tester.input.withPlaceholder('Фамилия (Обязательное поле)').
+                                                    expectNotToHaveError();
                                             });
                                         });
                                         it('Отображен спиннер.', function() {

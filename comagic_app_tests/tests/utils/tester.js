@@ -7517,9 +7517,40 @@ define(() => function ({
         const addResponseModifiers = me => me;
         let id = 1689283;
 
+        const response = {
+            first_name: 'Грета',
+            last_name: 'Бележкова',
+            id: 1689283,
+            email_list: ['endlesssprinп.of@comagic.dev'],
+            messenger_list: [
+                { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
+                { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
+            ],
+            organization_name: 'UIS',
+            phone_list: ['79162729533'],
+            group_list: [],
+            personal_manager_id: 8539841,
+            patronymic: 'Ервиновна',
+            full_name: 'Бележкова Грета Ервиновна'
+        };
+
         return addResponseModifiers({
             anotherContact() {
-                id = 1689290;
+                id = response.id = 1689290;
+
+                response.first_name = 'Калиса';
+                response.last_name = 'Белоконска-Вражалска';
+                response.email_list = ['belokonska-vrazhelska@gmail.com'];
+                response.organization_name = 'UIS';
+                response.phone_list = ['79162729534'];
+                response.patronymic = 'Еньовна';
+                response.full_name = 'Белоконска-Вражалска Калиса Еньовна';
+
+                response.messenger_list = [
+                    { type: 'whatsapp', phone: '+7 (928) 381 09-89' },
+                    { type: 'whatsapp', phone: '+7 (928) 381 09-29' },
+                ];
+
                 return this;
             },
 
@@ -7530,24 +7561,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse: () => {
-                        request.respondSuccessfullyWith({
-                            data: {
-                                first_name: 'Грета',
-                                last_name: 'Бележкова',
-                                id: 1689283,
-                                email_list: ['endlesssprinп.of@comagic.dev'],
-                                messenger_list: [
-                                    { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
-                                    { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
-                                ],
-                                organization_name: 'UIS',
-                                phone_list: ['79162729533'],
-                                group_list: [],
-                                personal_manager_id: 8539841,
-                                patronymic: 'Ервиновна',
-                                full_name: 'Бележкова Грета Ервиновна'
-                            }
-                        });
+                        request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -7565,9 +7579,15 @@ define(() => function ({
     me.contactUpdatingRequest = () => {
         const addResponseModifiers = me => me,
             processors = [];
-        let bodyParams = {};
+        let bodyParams = {},
+            id = 1689283;
 
         return addResponseModifiers({
+            anotherContactId() {
+                id = 1789283;
+                return this;
+            },
+
             completeData() {
                 bodyParams = {
                     first_name: 'Грета',
@@ -7599,13 +7619,19 @@ define(() => function ({
             },
 
             anotherPhoneNumber() {
-                processors.push(bodyParams => (bodyParams.phone_list[0] = '79162729534'));
+                processors.push(bodyParams => (bodyParams.phone_list = ['79162729534', undefined]));
                 return this;
             },
 
             twoPhoneNumbers() {
                 processors.push(bodyParams =>
-                    (bodyParams.phone_list = [bodyParams.phone_list[0], '79162729534', undefined]));
+                    (bodyParams.phone_list = ['79162729533', '79162729534', undefined]));
+                return this;
+            },
+
+            twoEmails() {
+                processors.push(bodyParams =>
+                    (bodyParams.email_list = ['endlesssprinп.of@comagic.dev', 'belezhkova@gmail.com', undefined]));
                 return this;
             },
             
@@ -7613,7 +7639,7 @@ define(() => function ({
                 processors.forEach(process => process(bodyParams));
 
                 const request = ajax.recentRequest().
-                    expectPathToContain(`$REACT_APP_BASE_URL/contacts/1689283`).
+                    expectPathToContain(`$REACT_APP_BASE_URL/contacts/${id}`).
                     expectToHaveMethod('PUT').
                     expectBodyToContain(bodyParams);
 
@@ -7637,23 +7663,35 @@ define(() => function ({
     };
 
     me.contactCreatingRequest = () => {
-        const addResponseModifiers = me => me;
+        const response = {
+            contact_id: 1689283
+        };
+
+        const bodyParams = {
+            last_name: 'Неделчева',
+            phone_list: ['74950230625', undefined]
+        };
+
+        const addResponseModifiers = me => {
+            me.anotherContactId = () => ((response.contact_id = 1789283), me);
+            return me;
+        };
 
         return addResponseModifiers({
+            anotherPhoneNumber() {
+                bodyParams.phone_list[0] = '79161234567';
+                return this;
+            },
+
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectPathToContain(`$REACT_APP_BASE_URL/contacts`).
                     expectToHaveMethod('POST').
-                    expectBodyToContain({
-                        last_name: 'Неделчева',
-                        phone_list: ['74950230625', undefined]
-                    });
+                    expectBodyToContain(bodyParams);
 
                 return addResponseModifiers({
                     receiveResponse: () => {
-                        request.respondSuccessfullyWith({
-                            contact_id: 1689283
-                        });
+                        request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
                         spendTime(0)

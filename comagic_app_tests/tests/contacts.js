@@ -312,9 +312,30 @@ tests.addTest(options => {
 
                             tester.contactUpdatingRequest().completeData().twoPhoneNumbers().receiveResponse();
                         });
+                        it('Добавляю поле для E-Mail. Ввожу E-Mail. Отправлен запрос обновления контакта.', function() {
+                            tester.contactBar.section('E-Mail').svg.click();
+                            tester.contactBar.section('E-Mail').input.fill('belezhkova@gmail.com').pressEnter();
+
+                            tester.contactUpdatingRequest().completeData().twoEmails().receiveResponse();
+                        });
                         it('Нажимаю на другое имя. Запрошен другой контакт.', function() {
                             tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
                             tester.contactRequest().anotherContact().receiveResponse();
+
+                            tester.contactBar.expectTextContentToHaveSubstring(
+                                'ФИО ' +
+                                'Калиса Белоконска-Вражалска ' +
+
+                                'Номера ' +
+                                '79162729534 ' +
+
+                                'E-Mail ' +
+                                'belokonska-vrazhelska@gmail.com ' +
+
+                                'Мессенджеры ' +
+                                '+7 (928) 381 09-89 ' +
+                                '+7 (928) 381 09-29'
+                            );
                         });
                         it('Имя выделено. Отображен контакт.', function() {
                             tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
@@ -322,7 +343,7 @@ tests.addTest(options => {
 
                             tester.button('Создать контакт').expectNotToExist();
 
-                            tester.body.expectTextContentToHaveSubstring(
+                            tester.contactBar.expectTextContentToHaveSubstring(
                                 'ФИО ' +
                                 'Грета Бележкова ' +
 
@@ -366,44 +387,113 @@ tests.addTest(options => {
                     tester.spin.expectToBeVisible();
                 });
             });
-            it('Поступил входящий звонок. Нажимаю на кнопку открытия контакта. Контакт открыт.', function() {
-                tester.incomingCall().receive();
+            describe('Поступил входящий звонок.', function() {
+                let outCallEvent;
 
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
-                    incoming().
-                    progress().
-                    userDataFetched().
-                    expectToBeSent();
+                beforeEach(function() {
+                    tester.incomingCall().receive();
 
-                tester.numaRequest().receiveResponse();
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        progress().
+                        userDataFetched().
+                        expectToBeSent();
 
-                tester.outCallEvent().knownContact().receive();
-                tester.outCallEvent().knownContact().slavesNotification().expectToBeSent();
+                    tester.numaRequest().receiveResponse();
 
-                tester.contactOpeningButton.click();
+                    outCallEvent = tester.outCallEvent();
+                });
 
-                tester.contactsRequest().differentNames().receiveResponse();
-                tester.contactRequest().receiveResponse();
+                describe('Контакт не найден. Нажимаю на кнопку открытия контакта.', function() {
+                    beforeEach(function() {
+                        outCallEvent.noCrmContactLink().receive();
+                        tester.outCallEvent().noCrmContactLink().slavesNotification().expectToBeSent();
 
-                tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
-                tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
+                        tester.contactOpeningButton.click();
+                        tester.contactsRequest().differentNames().receiveResponse();
+                    });
 
-                tester.body.expectTextContentToHaveSubstring(
-                    'ФИО ' +
-                    'Грета Бележкова ' +
+                    describe('Открываю поля имени.', function() {
+                        beforeEach(function() {
+                            tester.contactBar.section('ФИО').svg.click();
+                        });
 
-                    'Номера ' +
-                    '79162729533 ' +
+                        describe(
+                            'Заполняю поле фамилии. Нажимаю на кнопку "Создать контакт". Создан контакт.',
+                        function() {
+                            beforeEach(function() {
+                                tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
 
-                    'E-Mail ' +
-                    'endlesssprinп.of@comagic.dev ' +
+                                tester.button('Создать контакт').click();
 
-                    'Мессенджеры ' +
-                    '+7 (928) 381 09-88 ' +
-                    '+7 (928) 381 09-28'
-                );
+                                tester.contactCreatingRequest().
+                                    anotherPhoneNumber().
+                                    anotherContactId().
+                                    receiveResponse();
+                            });
+
+                            it(
+                                'Заполняю остальные поля. Нажимаю на кнпоку "Сохранить". В списке изменено имя ' +
+                                'контакта.',
+                            function() {
+                                tester.input.withPlaceholder('Имя').fill('Роза');
+                                tester.input.withPlaceholder('Отчество').fill('Ангеловна');
+
+                                tester.button('Сохранить').click();
+
+                                tester.contactUpdatingRequest().
+                                    anotherName().
+                                    anotherContactId().
+                                    receiveResponse();
+
+                                tester.contactList.item('Неделчева Роза Ангеловна').expectToBeVisible();
+                            });
+                            it('В списке отображен новый контакт.', function() {
+                                tester.contactList.item('Неделчева').expectToBeSelected();
+                            });
+                        });
+                        it('Поля имени пусты.', function() {
+                            tester.input.withPlaceholder('Фамилия (Обязательное поле)').expectToHaveValue('');
+                            tester.input.withPlaceholder('Имя').expectToHaveValue('');
+                            tester.input.withPlaceholder('Отчество').expectToHaveValue('');
+                        });
+                    });
+                    it('Открыта форма создания контакта.', function() {
+                        tester.contactBar.expectTextContentToHaveSubstring(
+                            'Номера ' +
+                            '79161234567 '
+                        );
+                    });
+                });
+                it('Контакт найден. Нажимаю на кнопку открытия контакта. Контакт открыт.', function() {
+                    outCallEvent.knownContact().receive();
+                    tester.outCallEvent().knownContact().slavesNotification().expectToBeSent();
+
+                    tester.contactOpeningButton.click();
+
+                    tester.contactsRequest().differentNames().receiveResponse();
+                    tester.contactRequest().receiveResponse();
+
+                    tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
+                    tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
+
+                    tester.body.expectTextContentToHaveSubstring(
+                        'ФИО ' +
+                        'Грета Бележкова ' +
+
+                        'Номера ' +
+                        '79162729533 ' +
+
+                        'E-Mail ' +
+                        'endlesssprinп.of@comagic.dev ' +
+
+                        'Мессенджеры ' +
+                        '+7 (928) 381 09-88 ' +
+                        '+7 (928) 381 09-28'
+                    );
+                });
             });
         });
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {
