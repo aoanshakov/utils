@@ -1304,6 +1304,10 @@ tests.addTest(options => {
                                         tester.input.withPlaceholder('Имя').expectNotToHaveError();
                                     });
                                 });
+                                it('Добавляю почту. Запрос сохранения контакта не был отправлен.', function() {
+                                    tester.contactBar.section('E-Mail').svg.click();
+                                    tester.contactBar.section('E-Mail').input.fill('nedelcheva@gmail.com').pressEnter();
+                                });
                                 it('Открывается форма создания контакта.', function() {
                                     tester.contactBar.expectTextContentToHaveSubstring(
                                         'ФИО ' +

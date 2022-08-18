@@ -7561,7 +7561,10 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse: () => {
-                        request.respondSuccessfullyWith(response);
+                        request.respondSuccessfullyWith({
+                            data: [response],
+                            total_count: 1
+                        });
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -7626,6 +7629,11 @@ define(() => function ({
             twoPhoneNumbers() {
                 processors.push(bodyParams =>
                     (bodyParams.phone_list = ['79162729533', '79162729534', undefined]));
+                return this;
+            },
+
+            noPhoneNumbers() {
+                processors.push(bodyParams => (bodyParams.phone_list = [undefined]));
                 return this;
             },
 
@@ -7707,7 +7715,7 @@ define(() => function ({
     };
 
     me.contactsRequest = () => {
-        let total = 250,
+        let total_count = 250,
             token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
 
         const params = {
@@ -7766,12 +7774,28 @@ define(() => function ({
 
         let respond = request => request.respondSuccessfullyWith({
             data: getData(),
-            total
+            total_count
         });
 
         const addResponseModifiers = me => {
+            me.oneItem = () => {
+                total_count = 1;
+
+                getData = () => [{
+                    emails: 'paskaleva@gmail.com',
+                    first_name: 'Бисера',
+                    full_name: 'Паскалева Бисера Илковна',
+                    id: id,
+                    last_name: 'Паскалева',
+                    patronymic: 'Илковна',
+                    phones: '79162729533'
+                }];
+
+                return me;
+            };
+
             me.noData = () => {
-                total = 0;
+                total_count = 0;
                 getData = () => [];
                 return me;
             };

@@ -165,31 +165,41 @@ tests.addTest(options => {
                                 describe('Проходит некоторое время. Отправлен запрос контактов.', function() {
                                     beforeEach(function() {
                                         spendTime(500);
-                                        tester.contactsRequest().search().receiveResponse();
+                                        contactsRequest = tester.contactsRequest().search().expectToBeSent();
                                     });
 
-                                    it(
-                                        'Прокручиваю список контактов до конца. Запрошена следующая страница списка ' +
-                                        'контактов.',
-                                    function() {
-                                        tester.spinWrapper.scrollIntoView();
-                                        tester.contactsRequest().search().secondPage().receiveResponse();
+                                    describe('Получены контакты.', function() {
+                                        beforeEach(function() {
+                                            contactsRequest.receiveResponse();
+                                        });
 
-                                        tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
-                                            'Тончева Десислава Пламеновна',
-                                            'Паскалева Бисера Илковна #100',
-                                            'Паскалева Бисера Илковна #200'
-                                        );
+                                        it(
+                                            'Прокручиваю список контактов до конца. Запрошена следующая страница ' +
+                                            'списка контактов.',
+                                        function() {
+                                            tester.spinWrapper.scrollIntoView();
+                                            tester.contactsRequest().search().secondPage().receiveResponse();
+
+                                            tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
+                                                'Тончева Десислава Пламеновна',
+                                                'Паскалева Бисера Илковна #100',
+                                                'Паскалева Бисера Илковна #200'
+                                            );
+                                        });
+                                        it('Отображен список контаков.', function() {
+                                            tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
+                                                'Тончева Десислава Пламеновна',
+                                                'Паскалева Бисера Илковна #100'
+                                            );
+
+                                            tester.contactList.expectTextContentNotToHaveSubstring(
+                                                'Паскалева Бисера Илковна #200'
+                                            );
+                                        });
                                     });
-                                    it('Отображен список контаков.', function() {
-                                        tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
-                                            'Тончева Десислава Пламеновна',
-                                            'Паскалева Бисера Илковна #100'
-                                        );
-
-                                        tester.contactList.expectTextContentNotToHaveSubstring(
-                                            'Паскалева Бисера Илковна #200'
-                                        );
+                                    it('Получен только один контакт. Отображен только один контакт.', function() {
+                                        contactsRequest.oneItem().receiveResponse();
+                                        tester.contactList.expectToHaveTextContent('П Паскалева Бисера Илковна');
                                     });
                                 });
                                 it('Значение введено.', function() {
@@ -282,6 +292,25 @@ tests.addTest(options => {
                             tester.contactRequest().receiveResponse();
                         });
 
+                        describe('Открываю меню номера.', function() {
+                            beforeEach(function() {
+                                tester.contactBar.section('Номера').option('79162729533').putMouseOver();
+                                tester.contactBar.section('Номера').option('79162729533').dropdownTrigger.click();
+                            });
+
+                            it('Удаляю номер. Номер удален.', function() {
+                                tester.select.option('Удалить').click();
+                                tester.contactUpdatingRequest().completeData().noPhoneNumbers().receiveResponse();
+
+                                tester.contactBar.section('Номера').option('79162729533').expectNotToExist();
+                            });
+                            it('Изменяю номер телефона. Отправлен запрос обновления контакта.', function() {
+                                tester.select.option('Редактировать').click();
+
+                                tester.contactBar.section('Номера').input.fill('79162729534').pressEnter();
+                                tester.contactUpdatingRequest().completeData().anotherPhoneNumber().receiveResponse();
+                            });
+                        });
                         it(
                             'Изменяю значение полей имени. Нажимаю на кнопку "Сохранить". Отправлен запрос ' +
                             'обновления контакта.',
@@ -294,14 +323,6 @@ tests.addTest(options => {
 
                             tester.button('Сохранить').click();
                             tester.contactUpdatingRequest().completeData().anotherName().receiveResponse();
-                        });
-                        it('Изменяю номер телефона. Отправлен запрос обновления контакта.', function() {
-                            tester.contactBar.section('Номера').option('79162729533').putMouseOver();
-                            tester.contactBar.section('Номера').option('79162729533').dropdownTrigger.click();
-                            tester.select.option('Редактировать').click();
-
-                            tester.contactBar.section('Номера').input.fill('79162729534').pressEnter();
-                            tester.contactUpdatingRequest().completeData().anotherPhoneNumber().receiveResponse();
                         });
                         it(
                             'Добавляю поле для ввода номера телефона. Ввожу номер телефона. Отправлен запрос ' +
