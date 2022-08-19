@@ -10,14 +10,3 @@ index 8d77570..b946ecf 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.5",
-diff --git a/src/history.ts b/src/history.ts
-deleted file mode 100644
-index 564e8ec..0000000
---- a/src/history.ts
-+++ /dev/null
-@@ -1,5 +0,0 @@
--import { createBrowserHistory } from 'history';
--
--const history = createBrowserHistory();
--
--export default history;
