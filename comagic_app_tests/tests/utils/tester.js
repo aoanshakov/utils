@@ -1925,6 +1925,11 @@ define(() => function ({
                 return this;
             },
 
+            fourthPhoneNumber: function() {
+                numa = 79162729533; 
+                return this;
+            },
+
             thirdNumber: function () {
                 numa = 79161234510;
                 return this;
@@ -9049,6 +9054,11 @@ define(() => function ({
 
         return tester;
     })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
+
+    me.chatHistory = (() => {
+        const tester = testersFactory.createDomElementTester('.cm-chats--chat-panel-history-dragdrop');
+        return tester;
+    })();
 
     me.contactBar = (() => {
         const getContactBar = () => {

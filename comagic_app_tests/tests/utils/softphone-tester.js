@@ -2629,6 +2629,10 @@ define(function () {
                     phoneNumber = '79161234569';
                     return this;
                 },
+                fifthPhoneNumber: function () {
+                    phoneNumber = '79162729533';
+                    return this;
+                },
                 expectInviteMessageBodyToEqual: function (expectedBody) {
                     checkBody = function (request) {
                         request.expectToHaveBody(expectedBody);
@@ -6042,6 +6046,11 @@ define(function () {
                     anotherPhoneNumber: function () {
                         updateChannel(channel);
                         phoneNumbers[channel] = '79161234569';
+                        return this;
+                    },
+                    sixthPhoneNumber: function () {
+                        updateChannel(channel);
+                        phoneNumbers[channel] = '79162729533';
                         return this;
                     },
                     fifthPhoneNumber: function () {

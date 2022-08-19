@@ -3425,25 +3425,44 @@ tests.addTest(options => {
                         describe('В качестве устройства для приема звонков исползуется IP-телефон.', function() {
                             beforeEach(function() {
                                 settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
-                                tester.slavesNotification().twoChannels().disabled().expectToBeSent();
 
-                                tester.othersNotification().widgetStateUpdate().isNotUsingWidgetForCalls().
-                                    fixedNumberCapacityRule().expectToBeSent();
-                                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    disabled().
+                                    expectToBeSent();
+
+                                tester.othersNotification().
+                                    widgetStateUpdate().
+                                    isNotUsingWidgetForCalls().
+                                    fixedNumberCapacityRule().
+                                    expectToBeSent();
+
+                                tester.othersNotification().
+                                    updateSettings().
+                                    shouldNotPlayCallEndingSignal().
                                     expectToBeSent();
 
                                 notificationTester.grantPermission();
                                 permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
 
                                 tester.connectEventsWebSocket();
-                                tester.slavesNotification().softphoneServerConnected().twoChannels().disabled().
+
+                                tester.slavesNotification().
+                                    softphoneServerConnected().
+                                    twoChannels().
+                                    disabled().
                                     expectToBeSent();
 
                                 tester.numberCapacityRequest().receiveResponse();
 
                                 tester.authenticatedUserRequest().receiveResponse();
-                                tester.slavesNotification().userDataFetched().softphoneServerConnected().twoChannels().
-                                    disabled().expectToBeSent();
+
+                                tester.slavesNotification().
+                                    userDataFetched().
+                                    softphoneServerConnected().
+                                    twoChannels().
+                                    disabled().
+                                    expectToBeSent();
                             });
 
                             describe('Получена неокончательная информация о звонке. Автоответ включен.', function() {

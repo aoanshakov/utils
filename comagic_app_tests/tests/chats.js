@@ -139,7 +139,12 @@ tests.addTest(options => {
                             tester.spinWrapper.scrollIntoView();
                             tester.chatListRequest().secondPage().receiveResponse();
                         });
-                        it('Спиннер скрыт.', function() {
+                        it('Отображены сообщения чата.', function() {
+                            tester.chatHistory.expectToHaveTextContent(
+                                '10 февраля 2020 ' +
+                                'Привет 12:13 Ответить'
+                            );
+
                             tester.spin.expectNotToExist();
                         });
                     });
