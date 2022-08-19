@@ -72,7 +72,7 @@ tests.addTest(options => {
                 receiveResponse();
 
             tester.reportGroupsRequest().receiveResponse();
-            tester.reportsListRequest().receiveResponse(),
+            tester.reportsListRequest().allRequests().receiveResponse(),
             tester.reportTypesRequest().receiveResponse();
 
             /*
