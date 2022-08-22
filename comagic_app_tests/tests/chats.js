@@ -79,6 +79,10 @@ tests.addTest(options => {
             tester.siteListRequest().receiveResponse();
             tester.messageTemplateListRequest().receiveResponse();
 
+            tester.chatsWebSocket.connect();
+            tester.chatsInitMessage().expectToBeSent();
+            tester.chatSettingsRequest().receiveResponse();
+            
             tester.accountRequest().
                 forChats().
                 softphoneFeatureFlagDisabled().
@@ -91,9 +95,6 @@ tests.addTest(options => {
                 operatorWorkplaceAvailable().
                 receiveResponse();
             
-            tester.chatsWebSocket.connect();
-            tester.chatsInitMessage().expectToBeSent();
-
             countersRequest = tester.countersRequest().expectToBeSent();
             tester.chatChannelListRequest().receiveResponse();
             tester.siteListRequest().receiveResponse();
@@ -142,7 +143,9 @@ tests.addTest(options => {
                         it('Отображены сообщения чата.', function() {
                             tester.chatHistory.expectToHaveTextContent(
                                 '10 февраля 2020 ' +
-                                'Привет 12:13 Ответить'
+
+                                'Привет 12:13 Ответить ' +
+                                'Здравствуйте 12:12 Ответить'
                             );
 
                             tester.spin.expectNotToExist();

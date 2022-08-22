@@ -80,7 +80,7 @@ const chatOverridenFiles = 'src/models/RootStore.ts ' +
     'src/history.ts ' +
     'src/App.tsx ' +
     'src/models/auth/AuthStore.ts ' +
-    'src/utils/index.ts';
+    'src/utils/index.tsx';
 
 const analyticsOverridenFiles = 'src/models/RootStore.ts src/models/reports/RootReportStore.ts ' +
     'src/components/ShadowContent.ts package.json';

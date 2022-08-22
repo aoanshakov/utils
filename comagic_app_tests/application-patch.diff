@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index c6b40f7d..137be298 100644
+index c6b40f7d..59c87759 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -7,11 +7,12 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -167,7 +167,7 @@ index c6b40f7d..137be298 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -352,17 +422,123 @@ module.exports = {
+@@ -352,17 +422,124 @@ module.exports = {
                      },
                  ],
              },
@@ -218,6 +218,7 @@ index c6b40f7d..137be298 100644
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
 +            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
++            'chats/HistoryLogWrapped': 'chats/src/components/chats/chat-panel/HistoryLogWrapped.tsx',
 +            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
 +            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
 +            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,

@@ -717,6 +717,21 @@ define(() => function ({
         };
 
         let data = [{
+            id: 482057,
+            source: 'visitor',
+            text: 'Здравствуйте',
+            date: '2020-02-10 12:12:14',
+            status: 'delivered',
+            chat_id: 2718935,
+            reply_to: null,
+            resource: null,
+            reourceName: null,
+            employee_id: 20816,
+            employee_name: 'Карадимова Веска Анастасовна',
+            visitor_name: 'Помакова Бисерка Драгановна',
+            front_message_uuid: '228gj24og824jgo9d',
+            error_mnemonic: null
+        }, {
             id: 482058,
             source: 'operator',
             text: 'Привет',
@@ -801,7 +816,7 @@ define(() => function ({
             },
 
             anotherMessage() {
-                params.message_id = 482058;
+                params.message_id = 482057;
                 return this;
             },
 
@@ -2391,6 +2406,29 @@ define(() => function ({
         }
     });
 
+    me.chatSettingsRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('$REACT_APP_BASE_URL/settings').
+                expectToHaveMethod('GET');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        is_contact_form_available: false
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
     me.chatChannelListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
@@ -2763,6 +2801,12 @@ define(() => function ({
             
             chat() {
                 chat(2718935);
+                return this;
+            },
+
+            chatForReport() {
+                chat(2718935);
+                params.statuses = ['new', 'active', 'closed', undefined];
                 return this;
             },
 
@@ -7584,6 +7628,119 @@ define(() => function ({
         });
     };
 
+/*
+
+      "data": {
+        "chat_id": 0,
+        "is_operator": false,
+        "message_text": "string",
+        "operator_name": "string",
+        "resource": {
+          "duration": 0,
+          "file_name": "string",
+          "height": 0,
+          "id": 0,
+          "mime_type": "string",
+          "size": 0,
+          "type": "audio",
+          "width": 0
+        }
+      },
+      "event_time": "2022-08-22T07:04:59.153Z",
+      "event_type": "chat_message",
+      "id": 0
+
+*/
+    me.contactEventsRequest = () => {
+        const addResponseModifiers = me => me;
+        let id = 1689283;
+
+        const response = {
+            data: [{
+                id: 482057,
+                event_time: '2020-02-10 12:12:14',
+                event_type: 'chat_message',
+                data: {
+                    chat_id: 2718935,
+                    is_operator: false,
+                    message_text: 'Здравствуйте',
+                    operator_name: 'Карадимова Веска Анастасовна',
+                }
+            }, {
+                id: 482058,
+                event_time: '2020-02-10 12:13:14',
+                event_type: 'chat_message',
+                data: {
+                    chat_id: 2718935,
+                    is_operator: true,
+                    message_text: 'Привет',
+                    operator_name: 'Карадимова Веска Анастасовна'
+                }
+            }, {
+                id: 482060,
+                event_time: '2020-02-10 12:14:14',
+                event_type: 'call',
+                data: {
+                    direction: 'incoming',
+                    talk_duration: 42820,
+                    talk_record_file_link:
+                        'https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/'
+                }
+            }, {
+                id: 482060,
+                event_time: '2020-02-10 12:15:14',
+                event_type: 'chat_message',
+                data: {
+                    chat_id: 2718935,
+                    is_operator: true,
+                    message_text: '',
+                    operator_name: 'Карадимова Веска Анастасовна',
+                    resource: {
+                        id: 5829572,
+                        type: 'photo',
+                        mime_type: 'image/png',
+                        file_name: 'heart.png',
+                        size: 925,
+                        width: 48,
+                        height: 48,
+                        duration: null
+                    }
+                }
+            }]
+        };
+
+        return addResponseModifiers({
+            anotherContact() {
+                id = 1689290;
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain(`$REACT_APP_BASE_URL/contacts/${id}/events`).
+                    expectQueryToContain({
+                        limit: '100',
+                        scroll_direction: 'backward'
+                    }).
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.contactUpdatingRequest = () => {
         const addResponseModifiers = me => me,
             processors = [];
@@ -9056,7 +9213,7 @@ define(() => function ({
     })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
 
     me.chatHistory = (() => {
-        const tester = testersFactory.createDomElementTester('.cm-chats--chat-panel-history-dragdrop');
+        const tester = testersFactory.createDomElementTester('.cm-chats--chat-panel-history');
         return tester;
     })();
 
