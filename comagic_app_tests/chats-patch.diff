@@ -107,7 +107,7 @@ index 933fdb3..8e6f31d 100644
      })
      .views(() => ({
 diff --git a/src/utils/index.tsx b/src/utils/index.tsx
-index c4c74fa..3fa4646 100644
+index 5251532..7fbb291 100644
 --- a/src/utils/index.tsx
 +++ b/src/utils/index.tsx
 @@ -1,8 +1,8 @@
@@ -185,6 +185,6 @@ index c4c74fa..3fa4646 100644
  
  export function parseLinks(text: string): React.ReactNode[] {
 +    return text;
-     text = text
+     text = `${text || ''}`
          .split(/\n/)
          .map(phrase =>

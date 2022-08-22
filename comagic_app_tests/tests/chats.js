@@ -128,27 +128,49 @@ tests.addTest(options => {
                     });
 
                     describe('Получены данные чата.', function() {
+                        let messageListRequest;
+
                         beforeEach(function() {
                             chatListRequest.receiveResponse();
                             tester.acceptChatRequest().receiveResponse();
                             tester.visitorCardRequest().receiveResponse();
-                            tester.messageListRequest().receiveResponse();
-                            tester.changeMessageStatusRequest().anotherChat().anotherMessage().read().receiveResponse();
+                            messageListRequest = tester.messageListRequest().expectToBeSent();
                         });
 
-                        xit('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
-                            tester.spinWrapper.scrollIntoView();
-                            tester.chatListRequest().secondPage().receiveResponse();
+                        xdescribe('Сообщение немного.', function() {
+                            beforeEach(function() {
+                                messageListRequest.receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    anotherChat().
+                                    anotherMessage().
+                                    read().
+                                    receiveResponse();
+                            });
+
+                            xit('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
+                                tester.spinWrapper.scrollIntoView();
+                                tester.chatListRequest().secondPage().receiveResponse();
+                            });
+                            it('Отображены сообщения чата.', function() {
+                                tester.chatHistory.expectToHaveTextContent(
+                                    '10 февраля 2020 ' +
+
+                                    'Привет 12:13 Ответить ' +
+                                    'Здравствуйте 12:12 Ответить'
+                                );
+
+                                tester.spin.expectNotToExist();
+                            });
                         });
-                        it('Отображены сообщения чата.', function() {
-                            tester.chatHistory.expectToHaveTextContent(
-                                '10 февраля 2020 ' +
+                        it('Сообщение много.', function() {
+                            messageListRequest.firstPage().receiveResponse();
 
-                                'Привет 12:13 Ответить ' +
-                                'Здравствуйте 12:12 Ответить'
-                            );
-
-                            tester.spin.expectNotToExist();
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                thirdMessage().
+                                read().
+                                receiveResponse();
                         });
                     });
                     return;

@@ -748,7 +748,68 @@ define(() => function ({
             error_mnemonic: null
         }];
 
-        return {
+        const getPage = i => {
+            const interval = (1000 * 60 * 60 * 6) + (5 * 1000 * 60) + (12 * 1000) + 231,
+                length = i + 50;
+            data = [];
+
+            let date = new Date('2019-12-19T12:00:00');
+            date = new Date(date.getTime() - (interval * 0));
+
+            for (; i < length; i ++) {
+                const index = i * 2,
+                    number = i + 1;
+
+                date = new Date(date.getTime() + interval);
+
+                data.push({
+                    id: 492057 + index,
+                    source: 'visitor',
+                    text: `Пинг # ${number}`,
+                    date: utils.formatDate(date),
+                    status: 'delivered',
+                    chat_id: 2718935,
+                    reply_to: null,
+                    resource: null,
+                    reourceName: null,
+                    employee_id: 20816,
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    front_message_uuid: '228gj24og824jgo9d',
+                    error_mnemonic: null
+                });
+
+                date = new Date(date.getTime() + interval);
+
+                data.push({
+                    id: 492058 + index,
+                    source: 'operator',
+                    text: `Понг # ${number}`,
+                    date: utils.formatDate(date),
+                    status: 'delivered',
+                    chat_id: 2718935,
+                    reply_to: null,
+                    resource: null,
+                    resourceName: null,
+                    employee_id: 20816,
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    front_message_uuid: '228gj24og824jgo8d',
+                    error_mnemonic: null
+                });
+            }
+
+            data.reverse();
+
+            return me;
+        };
+
+        const addResponseModifiers = me => {
+            me.firstPage = () => (getPage(50), me);
+            return me;
+        };
+
+        return addResponseModifiers({
             anotherChat() {
                 params = {
                     chat_id: 2718936
@@ -769,21 +830,28 @@ define(() => function ({
                 return this;
             },
 
-            receiveResponse() {
-                ajax.recentRequest().
-                    expectToHaveMethod('POST').
-                    expectPathToContain('$REACT_APP_BASE_URL').
-                    expectBodyToContain({
-                        method: 'get_message_list',
-                        params
-                    }).respondSuccessfullyWith({
-                        result: {data}
-                    });
+            expectToBeSent() {
+                return addResponseModifiers({
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectToHaveMethod('POST').
+                            expectPathToContain('$REACT_APP_BASE_URL').
+                            expectBodyToContain({
+                                method: 'get_message_list',
+                                params
+                            }).respondSuccessfullyWith({
+                                result: {data}
+                            });
 
-                Promise.runAll(false, true);
-                spendTime(0)
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
             }
-        };
+        });
     };
 
     me.operatorStatusUpdateRequest = () => ({
@@ -817,6 +885,11 @@ define(() => function ({
 
             anotherMessage() {
                 params.message_id = 482057;
+                return this;
+            },
+
+            thirdMessage() {
+                params.message_id = 492255;
                 return this;
             },
 
@@ -7605,7 +7678,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain(`$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
                     expectToHaveMethod('GET');
 
                 return addResponseModifiers({
@@ -7628,37 +7701,14 @@ define(() => function ({
         });
     };
 
-/*
-
-      "data": {
-        "chat_id": 0,
-        "is_operator": false,
-        "message_text": "string",
-        "operator_name": "string",
-        "resource": {
-          "duration": 0,
-          "file_name": "string",
-          "height": 0,
-          "id": 0,
-          "mime_type": "string",
-          "size": 0,
-          "type": "audio",
-          "width": 0
-        }
-      },
-      "event_time": "2022-08-22T07:04:59.153Z",
-      "event_type": "chat_message",
-      "id": 0
-
-*/
-    me.contactEventsRequest = () => {
+    me.contactCommunicationsRequest = () => {
         const addResponseModifiers = me => me;
         let id = 1689283;
 
         const response = {
             data: [{
                 id: 482057,
-                event_time: '2020-02-10 12:12:14',
+                start_time: '2020-02-10 12:12:14',
                 event_type: 'chat_message',
                 data: {
                     chat_id: 2718935,
@@ -7668,7 +7718,7 @@ define(() => function ({
                 }
             }, {
                 id: 482058,
-                event_time: '2020-02-10 12:13:14',
+                start_time: '2020-02-10 12:13:14',
                 event_type: 'chat_message',
                 data: {
                     chat_id: 2718935,
@@ -7678,7 +7728,7 @@ define(() => function ({
                 }
             }, {
                 id: 482060,
-                event_time: '2020-02-10 12:14:14',
+                start_time: '2020-02-10 12:14:14',
                 event_type: 'call',
                 data: {
                     direction: 'incoming',
@@ -7688,7 +7738,7 @@ define(() => function ({
                 }
             }, {
                 id: 482060,
-                event_time: '2020-02-10 12:15:14',
+                start_time: '2020-02-10 12:15:14',
                 event_type: 'chat_message',
                 data: {
                     chat_id: 2718935,
@@ -7717,9 +7767,10 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain(`$REACT_APP_BASE_URL/contacts/${id}/events`).
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/communications`).
                     expectQueryToContain({
                         limit: '100',
+                        from_start_time: '2019-12-19T12:10:07.000+03:00',
                         scroll_direction: 'backward'
                     }).
                     expectToHaveMethod('GET');
@@ -7809,7 +7860,7 @@ define(() => function ({
                 processors.forEach(process => process(bodyParams));
 
                 const request = ajax.recentRequest().
-                    expectPathToContain(`$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
                     expectToHaveMethod('PUT').
                     expectBodyToContain(bodyParams);
 
@@ -7855,7 +7906,7 @@ define(() => function ({
 
             expectToBeSent() {
                 const request = ajax.recentRequest().
-                    expectPathToContain(`$REACT_APP_BASE_URL/contacts`).
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts`).
                     expectToHaveMethod('POST').
                     expectBodyToContain(bodyParams);
 
@@ -7883,6 +7934,7 @@ define(() => function ({
         const params = {
             limit: '100',
             from_id: undefined,
+            from_full_name: undefined,
             scroll_direction: 'forward',
             search: undefined
         };
@@ -8597,6 +8649,7 @@ define(() => function ({
 
             secondPage() {
                 params.from_id = '315476';
+                params.from_full_name = 'Паскалева Бисера Илковна #100';
 
                 getData = () => getAdditionalData({
                     count: 100,
@@ -8608,6 +8661,7 @@ define(() => function ({
 
             thirdPage() {
                 params.from_id = '315576';
+                params.from_full_name = 'Паскалева Бисера Илковна #200';
 
                 getData = () => getAdditionalData({
                     count: 50,
@@ -8619,7 +8673,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/contacts').
+                    expectToHavePath('$REACT_APP_BASE_URL/contacts').
                     expectToHaveMethod('GET').
                     expectToHaveHeaders({
                         'X-Auth-Token': token,
