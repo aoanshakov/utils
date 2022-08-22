@@ -15,7 +15,8 @@ const src = '/usr/local/src',
     updaterConfig =`${updater}/config`,
     publisherDir = `${tests}/publisher`,
     softphone = `${misc}/softphone`,
-    contacts = `${misc}/contacts`;
+    contacts = `${misc}/contacts`,
+    chats = `${misc}/chats`;
 
 module.exports = {
     application,
@@ -52,8 +53,9 @@ module.exports = {
     huskyPatch: `${tests}/husky-patch.diff`,
     updaterPatch: `${tests}/updater-patch.diff`,
     misc,
-    chats: `${misc}/chats`,
     magicUi: `${misc}/magic_ui`,
+    chats,
+    chatsMagicUi: `${chats}/magic_ui`,
     softphone,
     softphoneMagicUi: `${softphone}/magic_ui`,
     core: `${misc}/core`,

@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 0179978..e932977 100644
+index f40d08d..e932977 100644
 --- a/package.json
 +++ b/package.json
 @@ -24,7 +24,6 @@
@@ -24,7 +24,7 @@ index 0179978..e932977 100644
      "history": "^4.10.1",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
--    "magic-ui": "^1.22.12",
+-    "magic-ui": "./magic_ui",
      "mobx": "^6.3.8",
      "mobx-devtools-mst": "^0.9.30",
      "mobx-react-lite": "^3.2.2",
@@ -80,46 +80,10 @@ index 564e8ec..e156b1f 100644
 +const history = window.memoryHistory;
  export default history;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 9b1e7e0..4e977a7 100644
+index 3310411..4e977a7 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -19,6 +19,7 @@ import { ChatsSearchStore } from '@models/chats/ChatsSearchStore';
- import ChatsTemplatesStore from '@models/chats/ChatsTemplatesStore';
- import { CrossTabCommunicator } from '@uiscom/uis_webrtc';
- import OperatorSettingsStore from '@models/operator-settings';
-+import { intlMessages } from '../i18n';
- 
- export const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
- export const REFRESH_TOKEN_EXPIRED = 'refresh_token_expired';
-@@ -45,7 +46,11 @@ export const RootStore = types
-         notificationsStore: types.optional(NotificationsStore, {}),
-         chatPendingMessagesStore: types.optional(ChatPendingMessagesStore, {}),
-         operatorSettingsStore: types.optional(OperatorSettingsStore, {}),
-+        locale: types.optional(types.string, 'en')
-     })
-+    .views(self => ({
-+        formatMessage: key => intlMessages(self.locale)[key] || key,
-+    }))
-     .actions(self => {
-         let initialState: RootInstanceSnapshotOut;
- 
-@@ -65,6 +70,8 @@ export const RootStore = types
-             applySnapshot(self, initialState);
-         };
- 
-+        const setLocale = locale => (self.locale = locale);
-+
-         const init = async () => {
-             await self.accountStore.fetchGetObjAccount();
-             await self.chatListStore.setCountersAreLoading(true);
-@@ -105,13 +112,14 @@ export const RootStore = types
-             void init();
-         };
- 
--        return { afterCreate, resetStore, resetAfterError, init };
-+        return { afterCreate, resetStore, resetAfterError, init, setLocale };
-     });
- 
+@@ -118,7 +118,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

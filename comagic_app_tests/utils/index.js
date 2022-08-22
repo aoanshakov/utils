@@ -24,6 +24,7 @@ const {
     core,
     chats,
     magicUi,
+    chatsMagicUi,
     contactsMagicUi,
     softphoneMagicUi,
     sipLibMagiUi,
@@ -289,6 +290,7 @@ actions['copy-magic-ui'] = [
     `cd ${magicUi} && git checkout ${magicUiOverridenFiles}`,
     `cd ${magicUi} && patch -p1 < ${magicUiLibPatch}`
 ].concat([
+    chatsMagicUi,
     softphoneMagicUi,
     sipLibMagiUi,
     contactsMagicUi
