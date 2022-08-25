@@ -107,7 +107,7 @@ index 933fdb3..8e6f31d 100644
      })
      .views(() => ({
 diff --git a/src/utils/index.tsx b/src/utils/index.tsx
-index 5251532..4e5f0a9 100644
+index 1ad1397..4e5f0a9 100644
 --- a/src/utils/index.tsx
 +++ b/src/utils/index.tsx
 @@ -1,8 +1,8 @@
@@ -121,22 +121,7 @@ index 5251532..4e5f0a9 100644
  import moment from 'moment';
  import short from 'short-uuid';
  import { intl } from '@/i18n';
-@@ -70,10 +70,14 @@ export const formatMessageDatetime = (datetime: Date | string): string => {
- };
- 
- export const isDatesEqual = (a: Date, b: Date): boolean => {
-+    a = moment(a).toDate();
-+    b = moment(b).toDate();
-+
-     return a.getDay() === b.getDay() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
- };
- 
- export const formatMessageDate = (date: Date): string => {
-+    date = moment(date).toDate();
-     const dm = moment(date).format('D MMMM');
-     const currentDate = new Date();
-     return date.getFullYear() != currentDate.getFullYear() ? `${dm} ${date.getFullYear()}` : dm;
-@@ -109,8 +113,15 @@ type Options = {
+@@ -113,8 +113,15 @@ type Options = {
      'max-age'?: number;
  };
  
@@ -153,7 +138,7 @@ index 5251532..4e5f0a9 100644
          document.cookie
      );
  
-@@ -118,6 +129,11 @@ export function getCookie(name: string): string {
+@@ -122,6 +129,11 @@ export function getCookie(name: string): string {
  }
  
  export function setCookie(name: string, value: string, options: Options = {}): void {
@@ -165,7 +150,7 @@ index 5251532..4e5f0a9 100644
      options = {
          path: '/',
          ...options,
-@@ -127,7 +143,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -131,7 +143,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
          options.expires = options.expires.toUTCString();
      }
  
@@ -174,7 +159,7 @@ index 5251532..4e5f0a9 100644
  
      let optionKey: keyof Options;
      for (optionKey in options) {
-@@ -135,7 +151,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -139,7 +151,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
  
          const optionValue = options[optionKey];
          if (optionValue !== true) {
@@ -183,7 +168,7 @@ index 5251532..4e5f0a9 100644
          }
      }
  
-@@ -143,6 +159,11 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -147,6 +159,11 @@ export function setCookie(name: string, value: string, options: Options = {}): v
  }
  
  export function deleteCookie(name: string, options: Options = {}): void {
@@ -195,7 +180,7 @@ index 5251532..4e5f0a9 100644
      setCookie(name, '', {
          'max-age': -1,
          ...options,
-@@ -186,6 +207,7 @@ function generateUrl(url: string): string {
+@@ -190,6 +207,7 @@ function generateUrl(url: string): string {
  }
  
  export function parseLinks(text: string): React.ReactNode[] {
