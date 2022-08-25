@@ -137,7 +137,7 @@ tests.addTest(options => {
                             messageListRequest = tester.messageListRequest().expectToBeSent();
                         });
 
-                        xdescribe('Сообщение немного.', function() {
+                        describe('Сообщение немного.', function() {
                             beforeEach(function() {
                                 messageListRequest.receiveResponse();
 
@@ -148,7 +148,7 @@ tests.addTest(options => {
                                     receiveResponse();
                             });
 
-                            xit('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
+                            it('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
                                 tester.spinWrapper.scrollIntoView();
                                 tester.chatListRequest().secondPage().receiveResponse();
                             });
@@ -173,13 +173,11 @@ tests.addTest(options => {
                                 receiveResponse();
                         });
                     });
-                    return;
                     it('Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен', function() {
                         tester.spinWrapper.scrollIntoView();
                         tester.spin.expectToBeVisible();
                     });
                 });
-                return;
                 describe('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
                     beforeEach(function() {
                         tester.spinWrapper.scrollIntoView();
@@ -223,7 +221,6 @@ tests.addTest(options => {
                     tester.spin.expectNotToExist();
                 });
             });
-            return;
             it('Чатов мало. Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен.', function() {
                 countersRequest.singlePage().receiveResponse();
                 tester.spinWrapper.scrollIntoView();
@@ -235,7 +232,6 @@ tests.addTest(options => {
                 tester.spin.expectToBeVisible();
             });
         });
-        return;
         it('Отображен спиннер.', function() {
             tester.spin.expectToBeVisible();
         });

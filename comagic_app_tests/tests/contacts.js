@@ -155,9 +155,9 @@ tests.addTest(options => {
                                     contactsRequest.receiveResponse();
                                 });
                                 
-                                describe('Ввожу значение в поле поиска.',
-                                    function() {
+                                describe('Ввожу значение в поле поиска.', function() {
                                     beforeEach(function() {
+                                        tester.contactList.item('Тончева Десислава Пламеновна').scrollIntoView();
                                         tester.input.fill('пас');
                                     });
 
@@ -176,6 +176,9 @@ tests.addTest(options => {
                                                 'Прокручиваю список контактов до конца. Запрошена следующая страница ' +
                                                 'списка контактов.',
                                             function() {
+                                                tester.contactList.item('Тончева Десислава Пламеновна').
+                                                    scrollIntoView();
+
                                                 tester.spinWrapper.scrollIntoView();
                                                 tester.contactsRequest().search().secondPage().receiveResponse();
 
@@ -213,6 +216,13 @@ tests.addTest(options => {
                                     tester.contactsRequest().thirdPage().receiveResponse();
 
                                     tester.spinWrapper.scrollIntoView();
+
+                                    tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
+                                        'Тончева Десислава Пламеновна',
+                                        'Паскалева Бисера Илковна #100',
+                                        'Паскалева Бисера Илковна #200',
+                                        'Паскалева Бисера Илковна #250'
+                                    );
                                 });
                                 it('Отображен список контаков.', function() {
                                     tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
@@ -287,144 +297,229 @@ tests.addTest(options => {
                         });
 
                         describe('Нажимаю на имя.', function() {
+                            let contactCommunicationsRequest;
+
                             beforeEach(function() {
                                 tester.contactList.item('Бележкова Грета Ервиновна').click();
 
-                                tester.contactCommunicationsRequest().receiveResponse();
+                                contactCommunicationsRequest = tester.contactCommunicationsRequest().expectToBeSent();
                                 tester.contactRequest().receiveResponse();
                             });
 
-                            describe('Открываю меню номера.', function() {
+                            describe('Сообщений немного.', function() {
                                 beforeEach(function() {
-                                    tester.contactBar.section('Телефоны').option('79162729533').putMouseOver();
-                                    tester.contactBar.section('Телефоны').option('79162729533').dropdownTrigger.click();
+                                    contactCommunicationsRequest.receiveResponse();
                                 });
+                                
+                                describe('Открываю меню номера.', function() {
+                                    beforeEach(function() {
+                                        tester.contactBar.section('Телефоны').option('79162729533').putMouseOver();
 
-                                it('Удаляю номер. Номер удален.', function() {
-                                    tester.select.option('Удалить').click();
-                                    tester.contactUpdatingRequest().completeData().noPhoneNumbers().receiveResponse();
+                                        tester.contactBar.section('Телефоны').option('79162729533').dropdownTrigger.
+                                            click();
+                                    });
 
-                                    tester.contactBar.section('Телефоны').option('79162729533').expectNotToExist();
+                                    it('Удаляю номер. Номер удален.', function() {
+                                        tester.select.option('Удалить').click();
+
+                                        tester.contactUpdatingRequest().completeData().noPhoneNumbers().
+                                            receiveResponse();
+
+                                        tester.contactBar.section('Телефоны').option('79162729533').expectNotToExist();
+                                    });
+                                    it('Изменяю номер телефона. Отправлен запрос обновления контакта.', function() {
+                                        tester.select.option('Редактировать').click();
+
+                                        tester.contactBar.section('Телефоны').input.fill('79162729534').pressEnter();
+
+                                        tester.contactUpdatingRequest().completeData().anotherPhoneNumber().
+                                            receiveResponse();
+                                    });
                                 });
-                                it('Изменяю номер телефона. Отправлен запрос обновления контакта.', function() {
-                                    tester.select.option('Редактировать').click();
+                                it(
+                                    'Изменяю значение полей имени. Нажимаю на кнопку "Сохранить". Отправлен запрос ' +
+                                    'обновления контакта.',
+                                function() {
+                                    tester.contactBar.section('ФИО').svg.click();
 
+                                    tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
+                                    tester.input.withPlaceholder('Имя').fill('Роза');
+                                    tester.input.withPlaceholder('Отчество').fill('Ангеловна');
+
+                                    tester.button('Сохранить').click();
+                                    tester.contactUpdatingRequest().completeData().anotherName().receiveResponse();
+                                });
+                                it(
+                                    'Добавляю поле для ввода номера телефона. Ввожу номер телефона. Отправлен запрос ' +
+                                    'обновления контакта.',
+                                function() {
+                                    tester.contactBar.section('Телефоны').svg.click();
                                     tester.contactBar.section('Телефоны').input.fill('79162729534').pressEnter();
 
-                                    tester.contactUpdatingRequest().completeData().anotherPhoneNumber().
-                                        receiveResponse();
+                                    tester.contactUpdatingRequest().completeData().twoPhoneNumbers().receiveResponse();
+                                });
+                                it(
+                                    'Добавляю поле для E-Mail. Ввожу E-Mail. Отправлен запрос обновления контакта.',
+                                function() {
+                                    tester.contactBar.section('E-Mail').svg.click();
+                                    tester.contactBar.section('E-Mail').input.fill('belezhkova@gmail.com').pressEnter();
+
+                                    tester.contactUpdatingRequest().completeData().twoEmails().receiveResponse();
+                                });
+                                it('Нажимаю на другое имя. Запрошен другой контакт.', function() {
+                                    tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
+
+                                    tester.contactCommunicationsRequest().anotherContact().receiveResponse();
+                                    tester.contactRequest().anotherContact().receiveResponse();
+
+                                    tester.contactBar.expectTextContentToHaveSubstring(
+                                        'ФИО ' +
+                                        'Белоконска-Вражалска Калиса Еньовна ' +
+
+                                        'Телефоны ' +
+                                        '79162729534 ' +
+
+                                        'E-Mail ' +
+                                        'belokonska-vrazhelska@gmail.com ' +
+
+                                        'Мессенджеры ' +
+                                        '+7 (928) 381 09-89 ' +
+                                        '+7 (928) 381 09-29'
+                                    );
+                                });
+                                it('Нажимаю на номер телефона. Совершается звонок.', function() {
+                                    tester.contactBar.section('Телефоны').anchor('79162729533').click();
+
+                                    tester.firstConnection.connectWebRTC();
+                                    tester.allowMediaInput();
+
+                                    const outgoingCall = tester.outgoingCall().fifthPhoneNumber().expectToBeSent();
+
+                                    tester.slavesNotification().
+                                        available().
+                                        userDataFetched().
+                                        twoChannels().
+                                        sending().
+                                        sixthPhoneNumber().
+                                        expectToBeSent();
+
+                                    outgoingCall.setRinging();
+
+                                    tester.slavesNotification().
+                                        available().
+                                        userDataFetched().
+                                        twoChannels().
+                                        progress().
+                                        sixthPhoneNumber().
+                                        expectToBeSent();
+                                    
+                                    tester.firstConnection.callTrackHandler();
+                                    tester.numaRequest().fourthPhoneNumber().receiveResponse();
+
+                                    tester.softphone.expectTextContentToHaveSubstring('+7 (916) 272-95-33');
+                                });
+                                it('Имя выделено. Отображен контакт. Отображена история коммуникаций.', function() {
+                                    tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
+                                    tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
+
+                                    tester.chatHistory.expectToHaveTextContent(
+                                        '10 февраля 2020 ' +
+
+                                        'Здравствуйте 12:12 ' +
+                                        'Привет 12:13 ' +
+
+                                        'https://app.comagic.ru/system/media/talk/1306955705/' +
+                                            '3667abf2738dfa0a95a7f421b8493d3c/ 12:14 ' +
+
+                                        'png 925 B heart.png 12:15'
+                                    );
+
+                                    tester.contactBar.expectTextContentToHaveSubstring(
+                                        'ФИО ' +
+                                        'Бележкова Грета Ервиновна ' +
+
+                                        'Телефоны ' +
+                                        '79162729533 ' +
+
+                                        'E-Mail ' +
+                                        'endlesssprinп.of@comagic.dev ' +
+
+                                        'Мессенджеры ' +
+                                        '+7 (928) 381 09-88 ' +
+                                        '+7 (928) 381 09-28'
+                                    );
+
+                                    tester.button('Создать контакт').expectNotToExist();
                                 });
                             });
-                            it(
-                                'Изменяю значение полей имени. Нажимаю на кнопку "Сохранить". Отправлен запрос ' +
-                                'обновления контакта.',
-                            function() {
-                                tester.contactBar.section('ФИО').svg.click();
+                            describe('Сообщений много.', function() {
+                                beforeEach(function() {
+                                    contactCommunicationsRequest.firstPage().receiveResponse();
+                                });
 
-                                tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
-                                tester.input.withPlaceholder('Имя').fill('Роза');
-                                tester.input.withPlaceholder('Отчество').fill('Ангеловна');
+                                describe('Прокручиваю наверх.', function() {
+                                    beforeEach(function() {
+                                        tester.chatHistory.spinWrapper.scrollIntoView();
+                                        tester.contactCommunicationsRequest().secondPage().receiveResponse();
+                                    });
+                                    
+                                    it(
+                                        'Выбираю другой контакт. Его история коммуникаций пуста. События не ' +
+                                        'отображены.',
+                                    function() {
+                                        tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
 
-                                tester.button('Сохранить').click();
-                                tester.contactUpdatingRequest().completeData().anotherName().receiveResponse();
-                            });
-                            it(
-                                'Добавляю поле для ввода номера телефона. Ввожу номер телефона. Отправлен запрос ' +
-                                'обновления контакта.',
-                            function() {
-                                tester.contactBar.section('Телефоны').svg.click();
-                                tester.contactBar.section('Телефоны').input.fill('79162729534').pressEnter();
+                                        tester.contactCommunicationsRequest().anotherContact().receiveResponse();
+                                        tester.contactRequest().anotherContact().receiveResponse();
 
-                                tester.contactUpdatingRequest().completeData().twoPhoneNumbers().receiveResponse();
-                            });
-                            it(
-                                'Добавляю поле для E-Mail. Ввожу E-Mail. Отправлен запрос обновления контакта.',
-                            function() {
-                                tester.contactBar.section('E-Mail').svg.click();
-                                tester.contactBar.section('E-Mail').input.fill('belezhkova@gmail.com').pressEnter();
+                                        tester.chatHistory.expectToHaveTextContent(
+                                            '10 февраля 2020 ' +
 
-                                tester.contactUpdatingRequest().completeData().twoEmails().receiveResponse();
-                            });
-                            it('Нажимаю на другое имя. Запрошен другой контакт.', function() {
-                                tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
+                                            'Здравствуйте 12:12 ' +
+                                            'Привет 12:13 ' +
 
-                                tester.contactCommunicationsRequest().anotherContact().receiveResponse();
-                                tester.contactRequest().anotherContact().receiveResponse();
+                                            'https://app.comagic.ru/system/media/talk/1306955705/' +
+                                                '3667abf2738dfa0a95a7f421b8493d3c/ 12:14 ' +
 
-                                tester.contactBar.expectTextContentToHaveSubstring(
-                                    'ФИО ' +
-                                    'Белоконска-Вражалска Калиса Еньовна ' +
+                                            'png 925 B heart.png 12:15'
+                                        );
+                                    });
+                                    it('Получена следующая страница.', function() {
+                                        tester.chatHistory.expectTextContentToHaveSubstringsConsideringOrder(
+                                            '30 октября 2019 ' +
 
-                                    'Телефоны ' +
-                                    '79162729534 ' +
+                                            'Пинг # 1 00:44 ' +
+                                                'Понг # 1 06:49 ',
 
-                                    'E-Mail ' +
-                                    'belokonska-vrazhelska@gmail.com ' +
+                                            '18 декабря 2019 ' +
 
-                                    'Мессенджеры ' +
-                                    '+7 (928) 381 09-89 ' +
-                                    '+7 (928) 381 09-29'
-                                );
-                            });
-                            it('Нажимаю на номер телефона. Совершается звонок.', function() {
-                                tester.contactBar.section('Телефоны').anchor('79162729533').click();
+                                            'Пинг # 98 05:33 ' +
+                                                'Понг # 98 11:39 ' +
+                                            'Пинг # 99 17:44 ' +
+                                                'Понг # 99 23:49 ' +
 
-                                tester.firstConnection.connectWebRTC();
-                                tester.allowMediaInput();
+                                            '19 декабря 2019 ' +
 
-                                const outgoingCall = tester.outgoingCall().fifthPhoneNumber().expectToBeSent();
+                                            'Пинг # 100 05:54 ' +
+                                                'Понг # 100 12:00'
+                                        );
+                                    });
+                                });
+                                it('Следующая страница не была запрошена.', function() {
+                                    tester.chatHistory.expectTextContentToHaveSubstring(
+                                        '18 декабря 2019 ' +
 
-                                tester.slavesNotification().
-                                    available().
-                                    userDataFetched().
-                                    twoChannels().
-                                    sending().
-                                    sixthPhoneNumber().
-                                    expectToBeSent();
+                                        'Пинг # 98 05:33 ' +
+                                            'Понг # 98 11:39 ' +
+                                        'Пинг # 99 17:44 ' +
+                                            'Понг # 99 23:49 ' +
 
-                                outgoingCall.setRinging();
+                                        '19 декабря 2019 ' +
 
-                                tester.slavesNotification().
-                                    available().
-                                    userDataFetched().
-                                    twoChannels().
-                                    progress().
-                                    sixthPhoneNumber().
-                                    expectToBeSent();
-                                
-                                tester.firstConnection.callTrackHandler();
-                                tester.numaRequest().fourthPhoneNumber().receiveResponse();
-
-                                tester.softphone.expectTextContentToHaveSubstring('+7 (916) 272-95-33');
-                            });
-                            it('Имя выделено. Отображен контакт. Отображена история коммуникаций.', function() {
-                                tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
-                                tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
-
-                                tester.chatHistory.expectToHaveTextContent(
-                                    'Здравствуйте 12:12 ' +
-                                    'Привет 12:13 ' +
-                                    'https://app.comagic.ru/system/media/talk/1306955705/' +
-                                        '3667abf2738dfa0a95a7f421b8493d3c/ 12:14 ' +
-                                    'png 925 B heart.png 12:15'
-                                );
-
-                                tester.contactBar.expectTextContentToHaveSubstring(
-                                    'ФИО ' +
-                                    'Бележкова Грета Ервиновна ' +
-
-                                    'Телефоны ' +
-                                    '79162729533 ' +
-
-                                    'E-Mail ' +
-                                    'endlesssprinп.of@comagic.dev ' +
-
-                                    'Мессенджеры ' +
-                                    '+7 (928) 381 09-88 ' +
-                                    '+7 (928) 381 09-28'
-                                );
-
-                                tester.button('Создать контакт').expectNotToExist();
+                                        'Пинг # 100 05:54 ' +
+                                            'Понг # 100 12:00'
+                                    );
+                                });
                             });
                         });
                         it('Имена сгруппированы по первым буквам.', function() {
@@ -450,6 +545,9 @@ tests.addTest(options => {
                         tester.refreshRequest().receiveResponse();
 
                         tester.contactsRequest().anotherAuthorizationToken().receiveResponse();
+                    });
+                    it('Не удалось получить данные. Запрос не отправлен повторно.', function() {
+                        contactsRequest.failed().receiveResponse();
                     });
                     it('Отображен спиннер.', function() {
                         tester.spin.expectToBeVisible();

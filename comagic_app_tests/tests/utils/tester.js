@@ -10,6 +10,7 @@ define(() => function ({
     appName = '',
     webSockets,
     path = '/',
+    intersectionObservable,
     image
 }) {
     let history,
@@ -143,6 +144,47 @@ define(() => function ({
 
     me.settingsButton = createBottomButtonTester(testersFactory.createDomElementTester('.cmg-settings-button'));
 
+    const intersection = new Map();
+
+    const runSpinWrapperIntersectionCallback = (domElement, shouldRunCallback = () => true) => {
+        const list = domElement.closest(
+            '.cm-contacts-module-list, ' +
+            '.cm-chats--chats-list-container, ' +
+            '.cm-chats--chat-panel-history'
+        );
+
+        if (!list) {
+            return;
+        }
+
+        const listRect = list.getBoundingClientRect(),
+            spinWrapperRect = domElement.getBoundingClientRect();
+
+        const isIntersecting = !(
+            (spinWrapperRect.top < listRect.top && spinWrapperRect.bottom < listRect.top) ||
+            (spinWrapperRect.top > listRect.bottom && spinWrapperRect.bottom > listRect.bottom)
+        );
+
+        const value = shouldRunCallback(isIntersecting);
+
+        intersection.set(domElement, isIntersecting);
+        value && intersectionObservable(domElement).runCallback([{ isIntersecting }]);
+    };
+
+    const maybeRunSpinWrapperIntersectionCallback = domElement => runSpinWrapperIntersectionCallback(
+        domElement,
+        isIntersecting => intersection.get(domElement) !== isIntersecting
+    );
+
+    const getSpinWrapper = (getRootElement = () => document.body) => utils.element(getRootElement()).
+        querySelector('.ui-infinite-scroll-spin-wrapper');
+
+    const getContactListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-contacts-list-wrapper')),
+        getChatListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-chats--chats-list'));
+
+    const getContactCommunicationsSpinWrapper = () =>
+        getSpinWrapper(() => utils.querySelector('.cm-chats--chat-panel-history'));
+
     const addTesters = (me, getRootElement) => {
         me.dropdownTrigger = (() => {
             const tester = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
@@ -154,13 +196,23 @@ define(() => function ({
             return tester;
         })();
 
-        me.spinWrapper = (tester => {
-            const scrollIntoView = tester.scrollIntoView.bind(tester);
-            tester.scrollIntoView = () => (scrollIntoView(), spendTime(0));
+        me.spinWrapper = (() => {
+            const getDomElement = () => getSpinWrapper(getRootElement);
+
+            const tester = testersFactory.createDomElementTester(getDomElement),
+                scrollIntoView = tester.scrollIntoView.bind(tester);
+
+            intersectionObservable(getDomElement).onObserve(runSpinWrapperIntersectionCallback);
+
+            tester.scrollIntoView = () => {
+                scrollIntoView();
+
+                maybeRunSpinWrapperIntersectionCallback(getDomElement());
+                spendTime(0);
+            };
 
             return tester;
-        })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).
-            querySelector('.ui-infinite-scroll-spin-wrapper')));
+        })();
 
         me.userName = (tester => {
             const putMouseOver = tester.putMouseOver.bind(tester),
@@ -2908,6 +2960,8 @@ define(() => function ({
 
                         Promise.runAll(false, true);
                         spendTime(0)
+
+                        maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
                     }
                 });
             },
@@ -7702,8 +7756,13 @@ define(() => function ({
     };
 
     me.contactCommunicationsRequest = () => {
-        const addResponseModifiers = me => me;
         let id = 1689283;
+
+        const queryParams = {
+            limit: '100',
+            from_start_time: '2019-12-19T12:10:07.000+03:00',
+            scroll_direction: 'backward'
+        };
 
         const response = {
             data: [{
@@ -7759,7 +7818,87 @@ define(() => function ({
             }]
         };
 
+        const getPage = ({
+            end,
+            total,
+            count
+        }) => {
+            const interval = (1000 * 60 * 60 * 6) + (5 * 1000 * 60) + (12 * 1000) + 231,
+                data = [],
+                start = end - count;
+            
+            let i = start;
+
+            let date = new Date('2019-12-19T12:00:00');
+            date = new Date(date.getTime() - (interval * (total - start) * 2));
+
+            for (; i < end; i ++) {
+                const index = i * 2,
+                    number = i + 1;
+
+                date = new Date(date.getTime() + interval);
+
+                data.push({
+                    id: 492057 + index,
+                    start_time: utils.formatDate(date),
+                    event_type: 'chat_message',
+                    data: {
+                        chat_id: 2718935,
+                        is_operator: false,
+                        message_text: `Пинг # ${number}`,
+                        operator_name: 'Карадимова Веска Анастасовна',
+                    }
+                });
+
+                date = new Date(date.getTime() + interval);
+
+                data.push({
+                    id: 492058 + index,
+                    start_time: utils.formatDate(date),
+                    event_type: 'chat_message',
+                    data: {
+                        chat_id: 2718935,
+                        is_operator: true,
+                        message_text: `Понг # ${number}`,
+                        operator_name: 'Карадимова Веска Анастасовна',
+                    }
+                });
+            }
+
+            return data;
+        };
+
+        const addResponseModifiers = me => {
+            me.noData = () => {
+                response.data = [];
+                return me;
+            };
+
+            me.firstPage = () => {
+                response.data = getPage({
+                    end: 100,
+                    total: 100,
+                    count: 50
+                });
+
+                return me;
+            };
+
+            return me;
+        };
+
         return addResponseModifiers({
+            secondPage() {
+                response.data = getPage({
+                    end: 50,
+                    total: 100,
+                    count: 50
+                });
+
+                queryParams.from_start_time = '2019-11-24T09:24:49.131+03:00'
+                return this;
+            },
+
             anotherContact() {
                 id = 1689290;
                 return this;
@@ -7768,11 +7907,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/communications`).
-                    expectQueryToContain({
-                        limit: '100',
-                        from_start_time: '2019-12-19T12:10:07.000+03:00',
-                        scroll_direction: 'backward'
-                    }).
+                    expectQueryToContain(queryParams).
                     expectToHaveMethod('GET');
 
                 return addResponseModifiers({
@@ -7782,6 +7917,8 @@ define(() => function ({
                         Promise.runAll(false, true);
                         spendTime(0)
                         spendTime(0)
+
+                        maybeRunSpinWrapperIntersectionCallback(getContactCommunicationsSpinWrapper());
                     }
                 });
             },
@@ -8671,6 +8808,15 @@ define(() => function ({
                 return this;
             },
 
+            fourthPage() {
+                params.from_id = '315626';
+                params.from_full_name = 'Паскалева Бисера Илковна #250';
+
+                getData = () => [];
+
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath('$REACT_APP_BASE_URL/contacts').
@@ -8688,6 +8834,8 @@ define(() => function ({
                         Promise.runAll(false, true);
                         spendTime(0)
                         spendTime(0)
+
+                        maybeRunSpinWrapperIntersectionCallback(getSpinWrapper());
                     }
                 });
 
@@ -9266,10 +9414,14 @@ define(() => function ({
         return tester;
     })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
 
-    me.chatHistory = (() => {
-        const tester = testersFactory.createDomElementTester('.cm-chats--chat-panel-history');
+    const addCommunicationPanelTestingMethods = selector => {
+        const getDomElement = () => utils.querySelector(selector),
+            tester = addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement);
+
         return tester;
-    })();
+    };
+
+    me.chatHistory = addCommunicationPanelTestingMethods('.cm-chats--chat-panel-history');
 
     me.contactBar = (() => {
         const getContactBar = () => {
@@ -9363,8 +9515,15 @@ define(() => function ({
             domElement.querySelector('.cm-chats--chat-click-area')
         );
 
-        const click = clickAreaTester.click.bind(clickAreaTester);
+        const click = clickAreaTester.click.bind(clickAreaTester),
+            scrollIntoView = tester.scrollIntoView.bind(tester);
+
         tester.click = click;
+
+        tester.scrollIntoView = () => {
+            scrollIntoView();
+            maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
+        };
 
         return tester;
     };
@@ -9379,11 +9538,17 @@ define(() => function ({
                 textEquals(name).
                 find());
 
-            const click = tester.click.bind(tester);
+            const click = tester.click.bind(tester),
+                scrollIntoView = tester.scrollIntoView.bind(tester);
 
             tester.click = () => (click(), spendTime(0));
             tester.expectToBeSelected = () => tester.expectToHaveClass('cm-contacts-list-item-selected');
             tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-contacts-list-item-selected');
+
+            tester.scrollIntoView = () => {
+                scrollIntoView();
+                maybeRunSpinWrapperIntersectionCallback(getContactListSpinWrapper());
+            };
 
             return tester;
         };
