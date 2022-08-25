@@ -8077,14 +8077,6 @@ define(() => function ({
         };
 
         const initialData = [{
-            emails: 'toncheva@gmail.com',
-            first_name: 'Десислава',
-            full_name: 'Тончева Десислава Пламеновна',
-            id: 2512832,
-            last_name: 'Тончева',
-            patronymic: 'Пламеновна',
-            phones: '79055023552'
-        }, {
             emails: 'balkanska@gmail.com',
             first_name: 'Ралица',
             full_name: 'Балканска Ралица Кубратовна',
@@ -8092,6 +8084,14 @@ define(() => function ({
             last_name: 'Балканска',
             patronymic: 'Кубратовна',
             phones: '2342342342300, 38758393745'
+        }, {
+            emails: 'toncheva@gmail.com',
+            first_name: 'Десислава',
+            full_name: 'Тончева Десислава Пламеновна',
+            id: 2512832,
+            last_name: 'Тончева',
+            patronymic: 'Пламеновна',
+            phones: '79055023552'
         }];
 
         const getAdditionalData = ({skipCount = 0, count}) => {
@@ -8105,7 +8105,8 @@ define(() => function ({
                 data.push({
                     emails: 'paskaleva@gmail.com',
                     first_name: 'Бисера',
-                    full_name: `Паскалева Бисера Илковна #${number}`,
+                    full_name:
+                        `Паскалева Бисера Илковна #${new Array(3 - (number + '').length).fill(0).join('')}${number}`,
                     id: id,
                     last_name: 'Паскалева',
                     patronymic: 'Илковна',
