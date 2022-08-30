@@ -1013,9 +1013,9 @@ tests.addTest(options => {
                                 it('Открыта карточка контакта.', function() {
                                     tester.contactBar.expectTextContentToHaveSubstring(
                                         'ФИО ' +
-                                        'Грета Бележкова ' +
+                                        'Бележкова Грета Ервиновна ' +
 
-                                        'Номера ' +
+                                        'Телефоны ' +
                                         '79162729533 ' +
 
                                         'E-Mail ' +
@@ -1274,6 +1274,7 @@ tests.addTest(options => {
                                         describe('Получен ответ на запрос.', function() {
                                             beforeEach(function() {
                                                 contactCreatingRequest.receiveResponse();
+                                                tester.contactBar.section('ФИО').svg.click();
                                             });
 
                                             it(
@@ -1313,7 +1314,7 @@ tests.addTest(options => {
                                         'ФИО ' +
                                         '74950230625 ' +
 
-                                        'Номера ' +
+                                        'Телефоны ' +
                                         '74950230625 '
                                     );
 

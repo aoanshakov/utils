@@ -80,10 +80,10 @@ index 564e8ec..e156b1f 100644
 +const history = window.memoryHistory;
  export default history;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3310411..4e977a7 100644
+index 4457fa5..05b069d 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -118,7 +118,8 @@ export const RootStore = types
+@@ -120,7 +120,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -107,7 +107,7 @@ index 933fdb3..8e6f31d 100644
      })
      .views(() => ({
 diff --git a/src/utils/index.tsx b/src/utils/index.tsx
-index 1ad1397..4e5f0a9 100644
+index 21f1760..e42a88b 100644
 --- a/src/utils/index.tsx
 +++ b/src/utils/index.tsx
 @@ -1,8 +1,8 @@

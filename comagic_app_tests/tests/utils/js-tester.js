@@ -6068,8 +6068,9 @@ function JsTester_InputElement (
     }
 
     function clear () {
+        me.click();
+
         runAsText(domElement => {
-            me.click();
             setSelectionRange(0, domElement.value.length);
             pressDelete();
         });
@@ -6256,6 +6257,9 @@ function JsTester_NoElement () {
         }
     });
 
+    this.dispatchEvent = function () {
+        throw new Error('Элемент должен существовать');
+    };
     this.closest = function () {
         return new JsTester_NoElement();
     };

@@ -265,7 +265,39 @@ define(() => function ({
             return tester;
         };
 
-        me.playIcon = getSvg('.play_svg__cmg-icon');
+        me.audio = (() => {
+            const getAudioElement = () => getRootElement().querySelector('audio');
+
+            const me = {
+                play: () => (getAudioElement().dispatchEvent(new Event('play')), me),
+                time: value => {
+                    const audioElement = getAudioElement();
+
+                    Object.defineProperty(audioElement, 'currentTime', {
+                        set: () => null,
+                        get: () => value
+                    });
+
+                    audioElement.dispatchEvent(new Event('timeupdate'));
+                    return me;
+                },
+                duration: value => {
+                    const audioElement = getAudioElement();
+
+                    Object.defineProperty(audioElement, 'duration', {
+                        set: () => null,
+                        get: () => value
+                    });
+
+                    audioElement.dispatchEvent(new Event('durationchange'));
+                    return me;
+                }
+            };
+
+            return me;
+        })();
+
+        me.playIcon = getSvg('.play_svg__cmg-icon, .cm-chats--audio-player--main-button svg');
         me.downloadIcon = getSvg('.download_svg__cmg-icon');
         me.svg = getSvg('svg');
 
@@ -761,6 +793,33 @@ define(() => function ({
 
     me.expectChatsStoreToContain = expectedContent => {
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
+    };
+
+    me.resourcePayloadRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('GET').
+                    expectPathToContain('$REACT_APP_BASE_URL/resource/payload').
+                    expectQueryToContain({
+                        id: '5829572'
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith('glg5lg5j8mcrj3o8f');
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
     };
 
     me.messageListRequest = () => {
@@ -7768,7 +7827,7 @@ define(() => function ({
             data: [{
                 id: 482057,
                 start_time: '2020-02-10 12:12:14',
-                event_type: 'chat_message',
+                communication_type: 'chat_message',
                 data: {
                     chat_id: 2718935,
                     is_operator: false,
@@ -7778,7 +7837,7 @@ define(() => function ({
             }, {
                 id: 482058,
                 start_time: '2020-02-10 12:13:14',
-                event_type: 'chat_message',
+                communication_type: 'chat_message',
                 data: {
                     chat_id: 2718935,
                     is_operator: true,
@@ -7788,9 +7847,9 @@ define(() => function ({
             }, {
                 id: 482060,
                 start_time: '2020-02-10 12:14:14',
-                event_type: 'call',
+                communication_type: 'call',
                 data: {
-                    direction: 'incoming',
+                    direction: 'in',
                     talk_duration: 42820,
                     talk_record_file_link:
                         'https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/'
@@ -7798,7 +7857,7 @@ define(() => function ({
             }, {
                 id: 482060,
                 start_time: '2020-02-10 12:15:14',
-                event_type: 'chat_message',
+                communication_type: 'chat_message',
                 data: {
                     chat_id: 2718935,
                     is_operator: true,
@@ -7841,7 +7900,7 @@ define(() => function ({
                 data.push({
                     id: 492057 + index,
                     start_time: utils.formatDate(date),
-                    event_type: 'chat_message',
+                    communication_type: 'chat_message',
                     data: {
                         chat_id: 2718935,
                         is_operator: false,
@@ -7855,7 +7914,7 @@ define(() => function ({
                 data.push({
                     id: 492058 + index,
                     start_time: utils.formatDate(date),
-                    event_type: 'chat_message',
+                    communication_type: 'chat_message',
                     data: {
                         chat_id: 2718935,
                         is_operator: true,
@@ -7869,6 +7928,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.noTalkRecordFileLink = () => {
+                response.data[2].data.talk_record_file_link = null;
+                return me;
+            };
+
             me.noData = () => {
                 response.data = [];
                 return me;
@@ -7912,6 +7976,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse: () => {
+                        Array.isArray(response.data) && response.data.reverse();
                         request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
@@ -8781,7 +8846,7 @@ define(() => function ({
             },
 
             search() {
-                params.search = 'пас';
+                params.search = 'паска';
                 return this;
             },
 
@@ -9419,6 +9484,23 @@ define(() => function ({
         const getDomElement = () => utils.querySelector(selector),
             tester = addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement);
 
+        tester.message = {
+            atTime: desiredTime => {
+                const getMessageElement = () => utils.descendantOf(getDomElement()).
+                    matchesSelector('.cm-chats--chat-history-message-time').
+                    textEquals(desiredTime).
+                    find().
+                    closest('.cm-chats--chat-history-message');
+
+                const tester = testersFactory.createDomElementTester(getMessageElement);
+
+                tester.preview = testersFactory.createDomElementTester(() =>
+                    getMessageElement().querySelector('.cm-chats--preview'));
+
+                return addTesters(tester, getMessageElement);
+            }
+        };
+
         return tester;
     };
 
@@ -9435,7 +9517,7 @@ define(() => function ({
         const tester = testersFactory.createDomElementTester(getContactBar);
 
         tester.closeButton = testersFactory.createDomElementTester(() =>
-            getContactBar().querySelector('.cmg-softphone-contact-bar-title svg'));
+            getContactBar().querySelector('.cm-contacts-contact-bar-title svg'));
 
         tester.section = label => {
             const getSectionElement = () => utils.descendantOf(getContactBar()).
