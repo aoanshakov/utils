@@ -148,11 +148,60 @@ tests.addTest(options => {
                                     receiveResponse();
                             });
 
+                            describe('Раскрываю панель "Заметки".', function() {
+                                beforeEach(function() {
+                                    tester.collapsablePanel('Заметки').title.click();
+                                });
+
+                                it('Измению теги. Отправлен запрос изменения тегов.', function() {
+                                    tester.collapsablePanel('Заметки').content.tagField.button.click();
+                                    tester.select.option('Продажа').click();
+                                    tester.visitorPanel.input.atIndex(2).click();
+
+                                    tester.chatMarkingRequest().receiveResponse();
+                                    tester.chatListRequest().thirdChat().receiveResponse();
+                                });
+                                it('Оторажены заметки.', function() {
+                                    tester.collapsablePanel('Заметки').content.tagField.putMouseOver();
+                                    tester.tooltip.expectToHaveTextContent('Нереализованная сделка, Продажа');
+                                });
+                            });
+                            it(
+                                'Раскрываю панель "Дополнительная информация". Оторажена дополнительная информация.',
+                            function() {
+                                tester.collapsablePanel('Дополнительная информация').title.click();
+                                tester.chatInfoRequest().receiveResponse();
+
+                                tester.collapsablePanel('Дополнительная информация').title.click();
+
+                                tester.collapsablePanel('Дополнительная информация').content.expectToHaveTextContent(
+                                    'Канал ' +
+                                    'Некое имя канала ' +
+                                    
+                                    'Источник входа ' +
+                                    'Некиий источник трафика ' +
+
+                                    'Рекламная кампания ' +
+                                    'Некая рекламная кампания ' +
+
+                                    'UTM метки ' +
+
+                                    'Source yandex_direct ' +
+                                    'Medium smm ' +
+                                    'Concept some_concept ' +
+                                    'Campaign deyskie_igrushki ' +
+                                    'Expid 67183125-2 ' +
+                                    'Referrer example-source.com ' +
+                                    'Term gde_kupit_igrushki'
+                                );
+                            });
                             it('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
                                 tester.spinWrapper.scrollIntoView();
                                 tester.chatListRequest().secondPage().receiveResponse();
                             });
                             it('Отображены сообщения чата.', function() {
+                                tester.chatHistory.message.atTime('12:13').expectToBeDelivered();
+
                                 tester.chatHistory.expectToHaveTextContent(
                                     '10 февраля 2020 ' +
 
@@ -160,8 +209,29 @@ tests.addTest(options => {
                                     'Здравствуйте 12:12 Ответить'
                                 );
 
+                                tester.visitorPanel.input.first.expectToHaveValue('Помакова Бисерка Драгановна');
+                                tester.visitorPanel.input.atIndex(1).expectToHaveValue('79164725823');
+                                tester.visitorPanel.input.atIndex(2).expectToHaveValue('pomakova@gmail.com');
+
                                 tester.spin.expectNotToExist();
                             });
+                        });
+                        it(
+                            'Получен ответ на сообщение. Отображено сообщение на которое отвечает пользователь.',
+                        function() {
+                            messageListRequest.reply().receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                anotherMessage().
+                                read().
+                                receiveResponse();
+
+                            tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
+                                'Помакова Бисерка Драгановна ' +
+                                'Как дела? ' +
+                                'Привет 12:13 Ответить'
+                            );
                         });
                         it('Сообщение много.', function() {
                             messageListRequest.firstPage().receiveResponse();

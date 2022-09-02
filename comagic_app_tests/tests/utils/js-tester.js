@@ -3949,7 +3949,7 @@ function JsTester_Tests (factory) {
     };
     this.beforeEach = function () {
         window.URL.createObjectURL = function (object) {
-            return location.href + '#' + object.id;
+            return location.href + '#' + (typeof object == 'string' ? object : object.id);
         };
 
         setNow(null);
@@ -4360,11 +4360,19 @@ function JsTester_Element ({
     var oldGetElement = getElement;
     var getElement = utils.makeFunction(getElement);
 
-    function querySelectorAll (selector) {
-        return (getElement() || new JsTester_NoElement()).querySelectorAll(selector);
-    }
+    function querySelectorAll (selector, logEnabled) {
+        const element = getElement(),
+            result = (getElement() || new JsTester_NoElement()).querySelectorAll(selector);
 
-    this.querySelector = function (selector) {
+        logEnabled && console.log({
+            element,
+            result
+        });
+
+        return result;
+    }
+    this.querySelector = function (selector, logEnabled) {
+        const elements = querySelectorAll(selector, logEnabled);
         return utils.getVisibleSilently(querySelectorAll(selector)) || new JsTester_NoElement();
     };
 
@@ -5837,6 +5845,14 @@ function JsTester_UrlAttributeTester (args) {
         return tester;
     }
 
+    this.expectToHaveHash = function (expectedHash) {
+        const actualHash = parseUrl().hash;
+
+        if (actualHash != expectedHash) {
+            throw new Error(`Ожидается хэш "${expectedHash}", а не ${actualHash}`);
+        }
+    };
+
     this.expectToHavePath = function (expectedValue) {
         testPath({
             isComplyingExcpectation: function (actualPath) {
@@ -5922,6 +5938,11 @@ function JsTester_Anchor (
 
         return blobsTester.getAt(id);
     }
+
+    this.expectHrefToHaveHash = function (expectedHash) {
+        urlTester.expectToHaveHash(expectedHash);
+        return this;
+    };
 
     this.expectHrefToBeBlobWithSubstrings = function (expectedSubstrings) {
         getBlob().expectToHaveSubstrings(expectedSubstrings);
@@ -6256,6 +6277,8 @@ function JsTester_NoElement () {
             };
         }
     });
+
+    this.addEventListener = () => null;
 
     this.dispatchEvent = function () {
         throw new Error('Элемент должен существовать');

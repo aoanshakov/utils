@@ -137,7 +137,7 @@ tests.addTest(options => {
                         contactsRequest = tester.contactsRequest().expectToBeSent();
                     });
 
-                    xdescribe('Получены данные для списка контактов.', function() {
+                    describe('Получены данные для списка контактов.', function() {
                         beforeEach(function() {
                             contactsRequest.receiveResponse();
                         });
@@ -157,7 +157,7 @@ tests.addTest(options => {
                                 
                                 describe('Ввожу значение в поле поиска.', function() {
                                     beforeEach(function() {
-                                        tester.contactList.item('Тончева Десислава Пламеновна').scrollIntoView();
+                                        tester.contactList.item('Анчева Десислава Пламеновна').scrollIntoView();
                                         tester.input.fill('паска');
                                     });
 
@@ -176,21 +176,21 @@ tests.addTest(options => {
                                                 'Прокручиваю список контактов до конца. Запрошена следующая страница ' +
                                                 'списка контактов.',
                                             function() {
-                                                tester.contactList.item('Тончева Десислава Пламеновна').
+                                                tester.contactList.item('Анчева Десислава Пламеновна').
                                                     scrollIntoView();
 
                                                 tester.spinWrapper.scrollIntoView();
                                                 tester.contactsRequest().search().secondPage().receiveResponse();
 
                                                 tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
-                                                    'Тончева Десислава Пламеновна',
+                                                    'Анчева Десислава Пламеновна',
                                                     'Паска лева Бисера Илковна #100',
                                                     'Паска лева Бисера Илковна #200'
                                                 );
                                             });
                                             it('Отображен список контаков.', function() {
                                                 tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
-                                                    'Тончева Десислава Пламеновна',
+                                                    'Анчева Десислава Пламеновна',
                                                     'Паска лева Бисера Илковна #100'
                                                 );
 
@@ -218,7 +218,7 @@ tests.addTest(options => {
                                     tester.spinWrapper.scrollIntoView();
 
                                     tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
-                                        'Тончева Десислава Пламеновна',
+                                        'Анчева Десислава Пламеновна',
                                         'Паскалева Бисера Илковна #100',
                                         'Паскалева Бисера Илковна #200',
                                         'Паскалева Бисера Илковна #250'
@@ -226,7 +226,7 @@ tests.addTest(options => {
                                 });
                                 it('Отображен список контаков.', function() {
                                     tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
-                                        'Тончева Десислава Пламеновна',
+                                        'Анчева Десислава Пламеновна',
                                         'Паскалева Бисера Илковна #100',
                                         'Паскалева Бисера Илковна #200'
                                     );
@@ -284,7 +284,7 @@ tests.addTest(options => {
                         });
                         it('Отображена страница контактов.', function() {
                             tester.contactList.expectTextContentToHaveSubstringsConsideringOrder(
-                                'Тончева Десислава Пламеновна',
+                                'Анчева Десислава Пламеновна',
                                 'Паскалева Бисера Илковна #100'
                             );
 
@@ -311,7 +311,7 @@ tests.addTest(options => {
                                     contactCommunicationsRequest.receiveResponse();
                                 });
                                 
-                                xdescribe('Открываю меню номера.', function() {
+                                describe('Открываю меню номера.', function() {
                                     beforeEach(function() {
                                         tester.contactBar.section('Телефоны').option('79162729533').putMouseOver();
 
@@ -336,7 +336,36 @@ tests.addTest(options => {
                                             receiveResponse();
                                     });
                                 });
-                                xit(
+                                describe('Нажимаю на кнопку проигрывания записи звонка.', function() {
+                                    beforeEach(function() {
+                                        tester.chatHistory.message.atTime('12:14').playIcon.click();
+
+                                        tester.talkRecordRequest().receiveResponse();
+                                        audioDecodingTester.accomplishAudioDecoding();
+                                    });
+
+                                    it(
+                                        'Обновлена длительность и время. Запись проигрывается. Отображено ' +
+                                        'обновленное время и длительность.',
+                                    function() {
+                                        tester.chatHistory.message.atTime('12:14').audio.
+                                            duration(674).
+                                            time(337).
+                                            play();
+
+                                        tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
+                                            'Запись звонка ' +
+                                            '05:37 / 11:14 12:14'
+                                        );
+                                    });
+                                    it('Отображена длительность.', function() {
+                                        tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
+                                            'Запись звонка ' +
+                                            '53:40 12:14'
+                                        );
+                                    });
+                                });
+                                it(
                                     'Изменяю значение полей имени. Нажимаю на кнопку "Сохранить". Отправлен запрос ' +
                                     'обновления контакта.',
                                 function() {
@@ -349,7 +378,7 @@ tests.addTest(options => {
                                     tester.button('Сохранить').click();
                                     tester.contactUpdatingRequest().completeData().anotherName().receiveResponse();
                                 });
-                                xit(
+                                it(
                                     'Добавляю поле для ввода номера телефона. Ввожу номер телефона. Отправлен запрос ' +
                                     'обновления контакта.',
                                 function() {
@@ -358,7 +387,7 @@ tests.addTest(options => {
 
                                     tester.contactUpdatingRequest().completeData().twoPhoneNumbers().receiveResponse();
                                 });
-                                xit(
+                                it(
                                     'Добавляю поле для E-Mail. Ввожу E-Mail. Отправлен запрос обновления контакта.',
                                 function() {
                                     tester.contactBar.section('E-Mail').svg.click();
@@ -366,7 +395,7 @@ tests.addTest(options => {
 
                                     tester.contactUpdatingRequest().completeData().twoEmails().receiveResponse();
                                 });
-                                xit('Нажимаю на другое имя. Запрошен другой контакт.', function() {
+                                it('Нажимаю на другое имя. Запрошен другой контакт.', function() {
                                     tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
 
                                     tester.contactCommunicationsRequest().anotherContact().receiveResponse();
@@ -387,7 +416,7 @@ tests.addTest(options => {
                                         '+7 (928) 381 09-29'
                                     );
                                 });
-                                xit('Нажимаю на номер телефона. Совершается звонок.', function() {
+                                it('Нажимаю на номер телефона. Совершается звонок.', function() {
                                     tester.contactBar.section('Телефоны').anchor('79162729533').click();
 
                                     tester.firstConnection.connectWebRTC();
@@ -418,53 +447,36 @@ tests.addTest(options => {
 
                                     tester.softphone.expectTextContentToHaveSubstring('+7 (916) 272-95-33');
                                 });
-                                describe('Нажимаю на кнопку проигрывания записи звонка.', function() {
-                                    beforeEach(function() {
-                                        tester.chatHistory.message.atTime('12:14').playIcon.click();
-
-                                        tester.talkRecordRequest().receiveResponse();
-                                        audioDecodingTester.accomplishAudioDecoding();
-                                    });
-
-                                    it(
-                                        'Обновлена длительность и время. Запись проигрывается. Отображено ' +
-                                        'обновленное время и длительность.',
-                                    function() {
-                                        tester.chatHistory.message.atTime('12:14').audio.
-                                            duration(674).
-                                            time(337).
-                                            play();
-
-                                        tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
-                                            'Запись звонка ' +
-                                            '05:37 / 11:14 12:14'
-                                        );
-                                    });
-                                    return;
-                                    it('Отображена длительность.', function() {
-                                        tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
-                                            'Запись звонка ' +
-                                            '53:40 12:14'
-                                        );
-                                    });
-                                });
-                                return;
                                 it('Нажимаю на превью вложения. Вложение скачивается.', function() {
                                     tester.chatHistory.message.atTime('12:15').preview.click();
-                                    tester.resourcePayloadRequest().expectToBeSent();
+                                    tester.resourcePayloadRequest().receiveResponse();
+
+                                    tester.chatHistory.message.atTime('12:15').downloadedFile.
+                                        expectToHaveName('heart.png').
+                                        expectToHaveContent('glg5lg5j8mcrj3o8f');
+                                });
+                                it('Нажимаю на кнопку скачивания. Запись скачивается.', function() {
+                                    tester.chatHistory.message.atTime('12:14').downloadIcon.click();
+                                    tester.talkRecordRequest().receiveResponse();
+
+                                    tester.chatHistory.message.atTime('12:14').downloadedFile.
+                                        expectToHaveName(
+                                            '2020-02-10_12-14-14.000_from_79161234567_session_482060_talk.mp3'
+                                        ).
+                                        expectToHaveContent('29f2f28ofjowf829f');
                                 });
                                 it('Имя выделено. Отображен контакт. Отображена история коммуникаций.', function() {
                                     tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
                                     tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
+
+                                    tester.chatHistory.message.atTime('12:13').expectToHaveNoStatus();
 
                                     tester.chatHistory.expectToHaveTextContent(
                                         '10 февраля 2020 ' +
 
                                         'Здравствуйте 12:12 ' +
                                         'Привет 12:13 ' +
-
-                                        '00:00 12:14 ' +
-
+                                        'Входящий звонок Запись звонка 53:40 12:14 ' +
                                         'png 925 B heart.png 12:15'
                                     );
 
@@ -486,7 +498,6 @@ tests.addTest(options => {
                                     tester.button('Создать контакт').expectNotToExist();
                                 });
                             });
-                            return;
                             describe('Сообщений много.', function() {
                                 beforeEach(function() {
                                     contactCommunicationsRequest.firstPage().receiveResponse();
@@ -512,9 +523,7 @@ tests.addTest(options => {
 
                                             'Здравствуйте 12:12 ' +
                                             'Привет 12:13 ' +
-
-                                            '00:00 12:14 ' +
-
+                                            'Входящий звонок Запись звонка 53:40 12:14 ' +
                                             'png 925 B heart.png 12:15'
                                         );
                                     });
@@ -555,6 +564,18 @@ tests.addTest(options => {
                                     );
                                 });
                             });
+                            it('Получено сообщение с аудио-вложением.', function() {
+                                contactCommunicationsRequest.audioAttachment().receiveResponse();
+
+                                tester.chatHistory.message.atTime('12:14').ellipsisButton.click();
+                                tester.button('Скачать').click();
+
+                                tester.resourcePayloadRequest().anotherFile().receiveResponse();
+
+                                tester.chatHistory.message.atTime('12:14').downloadedFile.
+                                    expectToHaveName('call.mp3').
+                                    expectToHaveContent('8gj23o2u4g2j829sk');
+                            });
                             it('URL записи звонка не был получен. Отображено сообщение о входящем звонке.', function() {
                                 contactCommunicationsRequest.noTalkRecordFileLink().receiveResponse();
 
@@ -570,7 +591,6 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        return;
                         it('Имена сгруппированы по первым буквам.', function() {
                             tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
                             tester.contactList.item('Бележкова Грета Ервиновна').expectNotToBeSelected();
@@ -589,7 +609,6 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    return;
                     it('Токен авторизации истек. Токен обновлен. Отправлен повторный запрос контактов.', function() {
                         contactsRequest.accessTokenExpired().receiveResponse();
                         tester.refreshRequest().receiveResponse();
@@ -603,7 +622,6 @@ tests.addTest(options => {
                         tester.spin.expectToBeVisible();
                     });
                 });
-                return;
                 describe('Поступил входящий звонок.', function() {
                     let outCallEvent;
 
@@ -716,7 +734,6 @@ tests.addTest(options => {
                     });
                 });
             });
-            return;
             it('Выбрано другое устройство для управления звонками.', function() {
                 settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
 
@@ -764,7 +781,6 @@ tests.addTest(options => {
                 tester.softphone.expectTextContentToHaveSubstring('Используется на другом устройстве');
             });
         });
-        return;
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {
             accountRequest.contactsFeatureFlagDisabled().receiveResponse();
 

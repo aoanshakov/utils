@@ -186,6 +186,69 @@ define(() => function ({
         getSpinWrapper(() => utils.querySelector('.cm-chats--chat-panel-history'));
 
     const addTesters = (me, getRootElement) => {
+        !me.tagField && Object.defineProperty(me, 'tagField', {
+            set: () => null,
+            get: () => {
+                const getDomElement = () =>
+                    utils.element(getRootElement()).querySelector('.cm-chats--additional-info-panel-tags-edit');
+
+                const tester = testersFactory.createDomElementTester(getDomElement);
+
+                const containerTester = testersFactory.createDomElementTester(
+                    () => utils.element(getDomElement()).
+                        querySelector('.cm-chats--additional-info-panel-tags-container')
+                );
+
+                addTesters(tester, getDomElement);
+
+                tester.button = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => utils.element(getDomElement()).
+                            querySelector('.cm-chats--additional-info-panel-tags-edit-icon')
+                    );
+
+                    const click = tester.click.bind(tester);
+
+                    tester.click = () => {
+                        click();
+
+                        spendTime(1000);
+                        spendTime(1000);
+                        spendTime(1000);
+                        spendTime(1000);
+                        spendTime(1000);
+                    };
+
+                    return tester;
+                })();
+
+                tester.putMouseOver = () => (containerTester.putMouseOver(), spendTime(100), spendTime(0));
+                return tester;
+            }
+        });
+
+        me.collapsablePanel = title => {
+            const getTitle = () => utils.descendantOf(getRootElement()).
+                matchesSelector('.cm-chats--title').
+                textEquals(title).
+                find();
+
+            const getPanel = () => getTitle().closest('.cm-chats--collapse'),
+                getContent = () => getPanel().querySelector('.cm-chats--collapse-content'),
+                tester = testersFactory.createDomElementTester(getPanel);
+
+            tester.title = (() => {
+                const tester = testersFactory.createDomElementTester(getTitle),
+                    click = tester.click.bind(tester);
+
+                tester.click = () => (click(), spendTime(0));
+                return tester;
+            })();
+
+            tester.content = addTesters(testersFactory.createDomElementTester(getContent), getContent);
+            return tester;
+        };
+
         me.dropdownTrigger = (() => {
             const tester = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
                 querySelector('.ui-dropdown-trigger'));
@@ -251,7 +314,7 @@ define(() => function ({
             utils.element(getRootElement()).querySelector('textarea'));
 
         const getSvg = selector => {
-            const tester = testersFactory.createDomElementTester(() =>
+            const tester = testersFactory.createAnchorTester(() =>
                 utils.element(getRootElement()).querySelector(selector));
 
             const click = tester.click.bind(tester);
@@ -271,14 +334,18 @@ define(() => function ({
             const me = {
                 play: () => (getAudioElement().dispatchEvent(new Event('play')), me),
                 time: value => {
-                    const audioElement = getAudioElement();
+                    const audioElement = getAudioElement(),
+                        dispatchEvent = () => audioElement.dispatchEvent(new Event('timeupdate'));
 
                     Object.defineProperty(audioElement, 'currentTime', {
-                        set: () => null,
+                        set: newValue => {
+                            value = newValue;
+                            dispatchEvent();
+                        },
                         get: () => value
                     });
 
-                    audioElement.dispatchEvent(new Event('timeupdate'));
+                    dispatchEvent();
                     return me;
                 },
                 duration: value => {
@@ -298,7 +365,7 @@ define(() => function ({
         })();
 
         me.playIcon = getSvg('.play_svg__cmg-icon, .cm-chats--audio-player--main-button svg');
-        me.downloadIcon = getSvg('.download_svg__cmg-icon');
+        me.downloadIcon = getSvg('.download_svg__cmg-icon, .cm-contacts-communications-download-button');
         me.svg = getSvg('svg');
 
         me.table = (() => {
@@ -631,8 +698,12 @@ define(() => function ({
                 };
                 
                 tester.option = text => {
-                    const option = utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find(),
-                        tester = testersFactory.createDomElementTester(option),
+                    const option = utils.descendantOfBody().
+                        matchesSelector('.ui-list-option, .cm-chats--tags-option').
+                        textEquals(text).
+                        find();
+
+                    const tester = testersFactory.createDomElementTester(option),
                         click = tester.click.bind(tester),
                         checkbox = option.querySelector('.ui-checkbox');
 
@@ -734,6 +805,8 @@ define(() => function ({
         return me;
     };
 
+    me.tooltip = testersFactory.createDomElementTester('.ui-tooltip-inner');
+
     me.statusesDurationItem = text => testersFactory.createDomElementTester(() => utils.descendantOfBody().
         textEquals(text).
         matchesSelector('.cmg-softphone--call-stats-status-duration .name').
@@ -795,21 +868,58 @@ define(() => function ({
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
     };
 
-    me.resourcePayloadRequest = () => {
+    me.chatMarkingRequest = () => {
         const addResponseModifiers = me => me;
 
         return addResponseModifiers({
             expectToBeSent() {
                 const request = ajax.recentRequest().
-                    expectToHaveMethod('GET').
-                    expectPathToContain('$REACT_APP_BASE_URL/resource/payload').
-                    expectQueryToContain({
-                        id: '5829572'
+                    expectToHaveMethod('POST').
+                    expectToHavePath('$REACT_APP_BASE_URL/chat/mark').
+                    expectBodyToContain({
+                        id: 7189362,
+                        mark_ids: [587, undefined]
                     });
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith('glg5lg5j8mcrj3o8f');
+                        request.respondSuccessfullyWith({
+                            result: true
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    }
+
+    me.resourcePayloadRequest = () => {
+        const addResponseModifiers = me => me;
+
+        let id = '5829572',
+            response = 'glg5lg5j8mcrj3o8f';
+
+        return addResponseModifiers({
+            anotherFile() {
+                id = '5829573';
+                response = '8gj23o2u4g2j829sk';
+                return this;
+            },
+
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('GET').
+                    expectPathToContain('$REACT_APP_BASE_URL/resource/payload').
+                    expectQueryToContain({ id });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -917,6 +1027,28 @@ define(() => function ({
 
         const addResponseModifiers = me => {
             me.firstPage = () => (getPage(50), me);
+
+            me.reply = () => {
+                data[1].reply_to = {
+                    id: 482061,
+                    source: 'visitor',
+                    text: 'Как дела?',
+                    date: '2020-01-10 12:10:16',
+                    status: 'delivered',
+                    chat_id: 2718935,
+                    reply_to: null,
+                    resource: null,
+                    reourceName: null,
+                    employee_id: 20816,
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    front_message_uuid: '8g28929d8j44jgo9d',
+                    error_mnemonic: null
+                };
+
+                return me;
+            };
+
             return me;
         };
 
@@ -1118,7 +1250,7 @@ define(() => function ({
                     is_operator: false,
                     resource_type: null
                 },
-                mark_ids: ['316', '579'],
+                mark_ids: ['587', '212'],
                 phone: null,
                 site_id: 4663,
                 status: 'active',
@@ -2576,7 +2708,17 @@ define(() => function ({
             return {
                 receiveResponse() {
                     request.respondSuccessfullyWith({
-                        data: []
+                        data: [{
+                            id: 587,
+                            name: 'Нереализованная сделка',
+                            is_system: true,
+                            rating: 3
+                        }, {
+                            id: 212,
+                            name: 'Продажа',
+                            is_system: true,
+                            rating: 5
+                        }]
                     });
 
                     Promise.runAll(false, true);
@@ -2678,7 +2820,7 @@ define(() => function ({
                                             resource_type: null,
                                             resource_name: null
                                         },
-                                        mark_ids: ['316', '579'],
+                                        mark_ids: ['587', '212'],
                                         phone: null,
                                         site_id: 4663,
                                         status: 'new',
@@ -2726,14 +2868,12 @@ define(() => function ({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
                             result: {
-                                data: {
-                                    visitor_id: 16479303,
-                                    name: 'Помакова Бисерка Драгановна',
-                                    phones: ['79164725823'],
-                                    emails: ['pomakova@gmail.com'],
-                                    company: 'UIS',
-                                    comment: 'Некий посетитель'
-                                }
+                                visitor_id: 16479303,
+                                name: 'Помакова Бисерка Драгановна',
+                                phones: ['79164725823'],
+                                emails: ['pomakova@gmail.com'],
+                                company: 'UIS',
+                                comment: 'Некий посетитель'
                             } 
                         });
 
@@ -2785,6 +2925,47 @@ define(() => function ({
         });
     };
 
+    me.chatInfoRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/chat/info').
+                    expectToHaveMethod('GET').
+                    expectQueryToContain({
+                        chat_id: '7189362'
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            chat_channel_name: 'Некое имя канала',
+                            traffic_source: 'Некиий источник трафика',
+                            enter_page_url: 'https://somedomain.com/path/to/page',
+                            enter_page_domain: 'somedomain.com',
+                            utm_medium: 'smm',
+                            utm_source: 'yandex_direct',
+                            utm_campaign: 'deyskie_igrushki',
+                            utm_term: 'gde_kupit_igrushki',
+                            utm_referrer: 'example-source.com',
+                            utm_expid: '67183125-2',
+                            utm_concept: 'some_concept',
+                            ac_name: 'Некая рекламная кампания'
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatListRequest = () => {
         let total = 75;
 
@@ -2809,7 +2990,7 @@ define(() => function ({
                 resource_type: null,
                 resource_name: null
             },
-            mark_ids: ['316', '579'],
+            mark_ids: ['587', '212'],
             phone: null,
             site_id: 4663,
             status: 'new',
@@ -2830,7 +3011,7 @@ define(() => function ({
                 resource_type: null,
                 resource_name: null
             },
-            mark_ids: ['316', '579'],
+            mark_ids: ['587', '212'],
             phone: null,
             site_id: 4663,
             status: 'active',
@@ -2864,7 +3045,7 @@ define(() => function ({
                         resource_type: null,
                         resource_name: null
                     },
-                    mark_ids: ['316', '579'],
+                    mark_ids: ['587', '212'],
                     phone: null,
                     site_id: 4663,
                     status: 'active',
@@ -2963,7 +3144,7 @@ define(() => function ({
                         resource_type: null,
                         resource_name: null
                     },
-                    mark_ids: [],
+                    mark_ids: ['587', '212'],
                     phone: null,
                     site_id: 4663,
                     status: 'new',
@@ -7851,6 +8032,7 @@ define(() => function ({
                 data: {
                     direction: 'in',
                     talk_duration: 42820,
+                    number: '79161234567',
                     talk_record_file_link:
                         'https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/'
                 }
@@ -7928,6 +8110,29 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.audioAttachment = () => {
+                response.data[2].communication_type = 'chat_message';
+
+                response.data[2].data = {
+                    chat_id: 2718935,
+                    is_operator: true,
+                    message_text: '',
+                    operator_name: 'Карадимова Веска Анастасовна',
+                    resource: {
+                        id: 5829573,
+                        type: 'audio',
+                        mime_type: 'audio/mpeg',
+                        file_name: 'call.mp3',
+                        size: 925,
+                        width: null,
+                        height: null,
+                        duration: 42820
+                    }
+                };
+
+                return me;
+            };
+
             me.noTalkRecordFileLink = () => {
                 response.data[2].data.talk_record_file_link = null;
                 return me;
@@ -7980,6 +8185,7 @@ define(() => function ({
                         request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
+                        spendTime(0)
                         spendTime(0)
                         spendTime(0)
 
@@ -8150,11 +8356,11 @@ define(() => function ({
             patronymic: 'Кубратовна',
             phones: '2342342342300, 38758393745'
         }, {
-            emails: 'toncheva@gmail.com',
+            emails: 'ancheva@gmail.com',
             first_name: 'Десислава',
-            full_name: 'Тончева Десислава Пламеновна',
+            full_name: 'Анчева Десислава Пламеновна',
             id: 2512832,
-            last_name: 'Тончева',
+            last_name: 'Анчева',
             patronymic: 'Пламеновна',
             phones: '79055023552'
         }];
@@ -9481,8 +9687,10 @@ define(() => function ({
     })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
 
     const addCommunicationPanelTestingMethods = selector => {
-        const getDomElement = () => utils.querySelector(selector),
-            tester = addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement);
+        const getDomElement = () => utils.querySelector(selector, true),
+            tester = addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement),
+            downloadAnchors = new Set(),
+            noElement = new JsTester_NoElement();
 
         tester.message = {
             atTime: desiredTime => {
@@ -9494,8 +9702,51 @@ define(() => function ({
 
                 const tester = testersFactory.createDomElementTester(getMessageElement);
 
+                tester.expectToBeDelivered = () => testersFactory.createDomElementTester(
+                    () => getMessageElement().querySelector('.cm-chats--chat-history-message-text')
+                ).expectToHaveClass('cm-chats--is-delivered-message');
+                    
+                tester.expectToHaveNoStatus = () => testersFactory.createDomElementTester(
+                    () => getMessageElement().querySelector('.cm-chats--chat-history-message-text')
+                ).expectToHaveClass('cm-chats--is-unknown-message');
+
                 tester.preview = testersFactory.createDomElementTester(() =>
                     getMessageElement().querySelector('.cm-chats--preview'));
+
+                tester.ellipsisButton = testersFactory.createDomElementTester(
+                    () => getMessageElement().querySelector('.cm-chats--download-popup-button')
+                );
+
+                const downloadAnchor = Array.prototype.find.call(
+                    getMessageElement().querySelectorAll('a'),
+                    domElement => domElement.style.display == 'none'
+                ) || noElement;
+
+                if (!downloadAnchors.has(downloadAnchor)) {
+                    downloadAnchors.add(downloadAnchor);
+                    downloadAnchor.addEventListener('click', event => event.preventDefault());
+                }
+
+                downloadAnchorTester = testersFactory.createAnchorTester(downloadAnchor);
+
+                tester.downloadedFile = {
+                    expectToHaveName: expectedName => {
+                        (downloadAnchor == noElement ? tester.downloadIcon : downloadAnchorTester).
+                            expectAttributeToHaveValue('download', expectedName);
+
+                        return tester.downloadedFile;
+                    },
+
+                    expectToHaveContent: expectedContent => {
+                        if (downloadAnchor == noElement) {
+                            tester.downloadIcon.expectHrefToBeBlobWithContent(expectedContent);
+                        } else {
+                            downloadAnchorTester.expectHrefToHaveHash(expectedContent);
+                        }
+
+                        return tester.downloadedFile;
+                    }
+                };
 
                 return addTesters(tester, getMessageElement);
             }
@@ -9505,6 +9756,13 @@ define(() => function ({
     };
 
     me.chatHistory = addCommunicationPanelTestingMethods('.cm-chats--chat-panel-history');
+
+    me.visitorPanel = (() => {
+        const getDomElement = () => utils.querySelector('.cm-chats--visitor-info-panel'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
 
     me.contactBar = (() => {
         const getContactBar = () => {

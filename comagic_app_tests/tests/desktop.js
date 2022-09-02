@@ -895,6 +895,88 @@ tests.addTest(options => {
                                 tester.select.popup.expectToHaveHeight(204);
                             });
                         });
+                        describe(
+                            'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок.',
+                        function() {
+                            beforeEach(function() {
+                                tester.phoneField.fill('79161234567');
+                                tester.callStartingButton.click();
+
+                                tester.firstConnection.connectWebRTC();
+                                tester.allowMediaInput();
+
+                                tester.outgoingCall().start().setRinging().setAccepted();
+                                tester.firstConnection.callTrackHandler();
+
+                                tester.numaRequest().receiveResponse();
+                                tester.outCallSessionEvent().receive();
+
+                                tester.incomingCall().thirdNumber().receive();
+                                tester.numaRequest().thirdNumber().receiveResponse();
+                                tester.outCallEvent().anotherPerson().receive();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('incoming-call').
+                                    expectToBeSentWithArguments(false);
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 276
+                                    });
+                            });
+
+                            it('Нажимаю на кнопку большого размера.', function() {
+                                tester.largeSizeButton.click();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('maximize');
+
+                                tester.configRequest().softphone().receiveResponse();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 632
+                                    });
+
+                                const requests = ajax.inAnyOrder();
+
+                                const statsRequest = tester.statsRequest().expectToBeSent(requests),
+                                    numberCapacityRequest = tester.numberCapacityRequest().expectToBeSent(requests),
+                                    accountRequest = tester.accountRequest().expectToBeSent(requests),
+                                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                                requests.expectToBeSent();
+
+                                statsRequest.receiveResponse();
+                                numberCapacityRequest.receiveResponse();
+                                accountRequest.receiveResponse();
+                                secondAccountRequest.receiveResponse();
+                            });
+                            it('Нажимаю на кнопку диалпада. Обновлен размер.', function() {
+                                tester.dialpadVisibilityButton.click();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 632
+                                    });
+                            });
+                            it('Отображено сообщение о звонке.', function() {
+                                tester.softphone.expectTextContentToHaveSubstring(
+                                    'Гигова Петранка Входящий (2-ая линия)...'
+                                );
+                            });
+                        });
                         describe('Получено обновление.', function() {
                             beforeEach(function() {
                                 getPackage('electron').ipcRenderer.receiveMessage('update-downloaded');
@@ -971,35 +1053,6 @@ tests.addTest(options => {
                             tester.phoneField.fill('79161234567');
                             tester.callStartingButton.expectNotToHaveAttribute('disabled');
                             tester.select.expectNotToExist();
-                        });
-                        it(
-                            'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок. Отображено ' +
-                            'сообщение о звонке.',
-                        function() {
-                            tester.phoneField.fill('79161234567');
-                            tester.callStartingButton.click();
-
-                            tester.firstConnection.connectWebRTC();
-                            tester.allowMediaInput();
-
-                            tester.outgoingCall().start().setRinging().setAccepted();
-                            tester.firstConnection.callTrackHandler();
-
-                            tester.numaRequest().receiveResponse();
-                            tester.outCallSessionEvent().receive();
-
-                            tester.incomingCall().thirdNumber().receive();
-                            tester.numaRequest().thirdNumber().receiveResponse();
-                            tester.outCallEvent().anotherPerson().receive();
-
-                            getPackage('electron').ipcRenderer.
-                                recentlySentMessage().
-                                expectToBeSentToChannel('incoming-call').
-                                expectToBeSentWithArguments(false);
-
-                            tester.softphone.expectTextContentToHaveSubstring(
-                                'Гигова Петранка Входящий...'
-                            );
                         });
                         it('Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.', function() {
                             tester.dialpadVisibilityButton.click();

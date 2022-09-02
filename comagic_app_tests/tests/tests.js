@@ -592,7 +592,7 @@ tests.addTest(options => {
                                                         expectToBeSent();
 
                                                     tester.body.expectTextContentToHaveSubstring(
-                                                        'Гигова Петранка Входящий...'
+                                                        'Гигова Петранка Входящий (2-ая линия)...'
                                                     );
                                                 });
                                                 it('Нажимаю на кнопку открытия контакта.', function() {
@@ -1246,7 +1246,8 @@ tests.addTest(options => {
                                                                         function() {
                                                                             tester.body.
                                                                                 expectTextContentToHaveSubstring(
-                                                                                    'Гигова Петранка Входящий...'
+                                                                                    'Гигова Петранка ' +
+                                                                                    'Входящий (2-ая линия)...'
                                                                                 );
 
                                                                             tester.otherChannelCallNotification.
@@ -1315,7 +1316,7 @@ tests.addTest(options => {
                                                                             expectToBeSent();
 
                                                                         tester.body.expectTextContentToHaveSubstring(
-                                                                            'Гигова Петранка Входящий...'
+                                                                            'Гигова Петранка Входящий (2-ая линия)...'
                                                                         );
                                                                     });
                                                                     it(

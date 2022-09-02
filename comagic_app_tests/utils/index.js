@@ -297,7 +297,7 @@ actions['copy-magic-ui'] = [
 ].reduce((result, magicUiTarget) => result.concat([
     rmVerbose(magicUiTarget),
     `mkdir ${magicUiTarget}`,
-    `cp -r ${magicUi}/lib ${magicUi}/package.json ${magicUiTarget}`
+    `cp -rv ${magicUi}/lib ${magicUi}/package.json ${magicUiTarget}`
 ]), []));
 
 actions['initialize'] = params => [
