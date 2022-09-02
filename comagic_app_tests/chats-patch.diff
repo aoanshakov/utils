@@ -1,16 +1,18 @@
 diff --git a/package.json b/package.json
-index f40d08d..e932977 100644
+index f40d08d..34dc9ab 100644
 --- a/package.json
 +++ b/package.json
-@@ -24,7 +24,6 @@
+@@ -22,9 +22,6 @@
+     "@types/dompurify": "^2.3.3",
+     "@types/htmlparser2": "^3.10.3",
      "@types/node": "^14.14.37",
-     "@types/react": "^17.0.2",
-     "@types/react-dom": "^17.0.1",
+-    "@types/react": "^17.0.2",
+-    "@types/react-dom": "^17.0.1",
 -    "@types/react-router-dom": "^5.1.6",
      "@types/uuid": "^8.3.1",
      "@types/yup": "^0.29.11",
      "@typescript-eslint/eslint-plugin": "^4.16.1",
-@@ -56,8 +55,7 @@
+@@ -56,8 +53,7 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
@@ -20,7 +22,7 @@ index f40d08d..e932977 100644
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -69,7 +67,6 @@
+@@ -69,19 +65,13 @@
      "history": "^4.10.1",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
@@ -28,10 +30,10 @@ index f40d08d..e932977 100644
      "mobx": "^6.3.8",
      "mobx-devtools-mst": "^0.9.30",
      "mobx-react-lite": "^3.2.2",
-@@ -77,11 +74,8 @@
+     "mobx-state-tree": "^5.0.5",
      "moment": "^2.29.1",
-     "react": "^17.0.2",
-     "react-dom": "^17.0.2",
+-    "react": "^17.0.2",
+-    "react-dom": "^17.0.2",
 -    "react-intl": "^5.22.0",
 -    "react-router-dom": "^5.2.0",
      "short-uuid": "^4.2.0",
@@ -107,7 +109,7 @@ index 933fdb3..8e6f31d 100644
      })
      .views(() => ({
 diff --git a/src/utils/index.tsx b/src/utils/index.tsx
-index 21f1760..e42a88b 100644
+index af48314..fc10827 100644
 --- a/src/utils/index.tsx
 +++ b/src/utils/index.tsx
 @@ -1,8 +1,8 @@
@@ -186,5 +188,5 @@ index 21f1760..e42a88b 100644
  export function parseLinks(text: string): React.ReactNode[] {
 +    return text;
      text = `${text || ''}`
-         .split(/\n/)
-         .map(phrase =>
+         .split(' ')
+         .map(string => (isUrl(string) ? generateUrl(string) : string))

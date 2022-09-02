@@ -54,6 +54,8 @@ const {
     publisher,
     publisherDir,
     broadcastChannel,
+    scheduler,
+    schedulerPatch,
     broadcastChannelPatch,
     webpackDevServer,
     webpackDevServerPatch,
@@ -283,7 +285,8 @@ const appModule = ([module, path, args]) => [`web/comagic_app_modules/${module}`
 
 actions['patch-node-modules'] = [
     [broadcastChannel, broadcastChannelPatch],
-    [webpackDevServer, webpackDevServerPatch]
+    [webpackDevServer, webpackDevServerPatch],
+    [scheduler, schedulerPatch]
 ].map(([path, patch]) => `cd ${path} && patch -p1 < ${patch}`);
 
 actions['copy-magic-ui'] = [
@@ -314,7 +317,8 @@ actions['initialize'] = params => [
 ] : [])).reduce((result, item) => result.concat(item), []).concat(
     actions['modify-code'](params)
 ).concat(!fs.existsSync(nodeModules) ?  [
-    `chown -R root:root ${application}`,
+    `chown -Rv root:root ${application}`,
+    `${cda} npm set registry http://npm.dev.uis.st:80`,
     `${cda} npm install --verbose`
 ].concat(actions['patch-node-modules']).concat(actions['fix-permissions']) : []);
 

@@ -1,0 +1,29 @@
+diff --git a/cjs/scheduler.development.js b/cjs/scheduler.development.js
+index 21bfb25..b5e1f28 100644
+--- a/cjs/scheduler.development.js
++++ b/cjs/scheduler.development.js
+@@ -576,7 +576,7 @@ if (typeof localSetImmediate === 'function') {
+ } else {
+   // We should only fallback here in non-browser environments.
+   schedulePerformWorkUntilDeadline = function () {
+-    localSetTimeout(performWorkUntilDeadline, 0);
++    setTimeout(performWorkUntilDeadline, 0);
+   };
+ }
+ 
+@@ -590,13 +590,13 @@ function requestHostCallback(callback) {
+ }
+ 
+ function requestHostTimeout(callback, ms) {
+-  taskTimeoutID = localSetTimeout(function () {
++  taskTimeoutID = setTimeout(function () {
+     callback(exports.unstable_now());
+   }, ms);
+ }
+ 
+ function cancelHostTimeout() {
+-  localClearTimeout(taskTimeoutID);
++  clearTimeout(taskTimeoutID);
+   taskTimeoutID = -1;
+ }
+ 
