@@ -125,6 +125,8 @@ define(() => function ({
     Promise.runAll(false, true);
 
     me.ReactDOM.flushSync();
+    spendTime(0);
+    spendTime(0);
 
     me.history = history;
 
@@ -137,12 +139,19 @@ define(() => function ({
 
     me.callsHistoryButton = (tester => {
         const click = tester.click.bind(tester);
-        tester.click = () => (click(), Promise.runAll(false, true));
+        tester.click = () => (click(), spendTime(0));
 
         return createBottomButtonTester(tester);
     })(testersFactory.createDomElementTester('.cmg-calls-history-button'));
 
-    me.settingsButton = createBottomButtonTester(testersFactory.createDomElementTester('.cmg-settings-button'));
+    me.settingsButton = (() => {
+        const tester = createBottomButtonTester(testersFactory.createDomElementTester('.cmg-settings-button'));
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
 
     const intersection = new Map();
 
@@ -254,7 +263,7 @@ define(() => function ({
                 querySelector('.ui-dropdown-trigger'));
 
             const click = tester.click.bind(tester);
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             return tester;
         })();
@@ -282,7 +291,7 @@ define(() => function ({
                 click = tester.click.bind(tester);
 
             tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             return createBottomButtonTester(tester);
         })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector(
@@ -292,8 +301,16 @@ define(() => function ({
         me.spin = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
             querySelector('.ui-spin-icon-default, .clct-spinner'));
 
-        me.anchor = text => testersFactory.createAnchorTester(() =>
-            utils.descendantOf(getRootElement()).matchesSelector('a').textEquals(text).find());
+        me.anchor = text => (() => {
+            const tester = testersFactory.createAnchorTester(
+                () => utils.descendantOf(getRootElement()).matchesSelector('a').textEquals(text).find()
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         (() => {
             const tester = testersFactory.createAnchorTester(() => utils.element(getRootElement()).querySelector('a'));
@@ -305,7 +322,7 @@ define(() => function ({
                 utils.element(getRootElement()).querySelector('.cmg-softphone-call-history-phone-link'));
 
             const click = tester.click.bind(tester);
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
 
             return tester;
         })();
@@ -329,10 +346,23 @@ define(() => function ({
         };
 
         me.audio = (() => {
-            const getAudioElement = () => getRootElement().querySelector('audio');
+            const getAudioElement = () => {
+                const audioElement = getRootElement().querySelector('audio');
+
+                if (!audioElement) {
+                    throw new Error('Аудио-элемент должен существовать.');
+                }
+
+                return audioElement;
+            };
 
             const me = {
-                play: () => (getAudioElement().dispatchEvent(new Event('play')), me),
+                play: () => {
+                    getAudioElement().dispatchEvent(new Event('play'));
+                    spendTime(0);
+
+                    return me;
+                },
                 time: value => {
                     const audioElement = getAudioElement(),
                         dispatchEvent = () => audioElement.dispatchEvent(new Event('timeupdate'));
@@ -340,12 +370,16 @@ define(() => function ({
                     Object.defineProperty(audioElement, 'currentTime', {
                         set: newValue => {
                             value = newValue;
+
                             dispatchEvent();
+                            spendTime(0);
                         },
                         get: () => value
                     });
 
                     dispatchEvent();
+                    spendTime(0);
+
                     return me;
                 },
                 duration: value => {
@@ -357,6 +391,8 @@ define(() => function ({
                     });
 
                     audioElement.dispatchEvent(new Event('durationchange'));
+                    spendTime(0);
+
                     return me;
                 }
             };
@@ -485,7 +521,7 @@ define(() => function ({
                         find());
 
                     const click = tester.click.bind(tester);
-                    tester.click = () => (click(), spendTime(0));
+                    tester.click = () => (click(), spendTime(0), spendTime(0));
                     
                     return tester;
                 };
@@ -497,13 +533,21 @@ define(() => function ({
             popupTester.secondMonthPanel = getMonthPanel(1);
             popupTester.thirdMonthPanel = getMonthPanel(2);
 
-            popupTester.leftButton = testersFactory.createDomElementTester(() =>
-                getPopup().querySelector('.ui-date-range-picker-header-nav-icon-left'));
+            popupTester.leftButton = (() => {
+                const tester = testersFactory.createDomElementTester(
+                    () => getPopup().querySelector('.ui-date-range-picker-header-nav-icon-left')
+                );
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(0), spendTime(0));
+
+                return tester;
+            })();
             popupTester.rightButton = testersFactory.createDomElementTester(() =>
                 getPopup().querySelector('.ui-date-range-picker-header-nav-icon-right'));
 
             tester.expectToHaveValue = inputTester.expectToHaveValue.bind(inputTester);
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             Object.defineProperty(tester, 'popup', {
                 get: function () {
@@ -541,8 +585,16 @@ define(() => function ({
             }
         });
 
-        me.stopCallButton = testersFactory.createDomElementTester(() =>
-            rootTester.querySelector('.cmg-call-button-stop'));
+        me.stopCallButton = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => rootTester.querySelector('.cmg-call-button-stop')
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         me.callStartingButton = testersFactory.createDomElementTester(() =>
             rootTester.querySelector('.cmg-call-button-start'));
@@ -661,12 +713,12 @@ define(() => function ({
                 const selectTester = testersFactory.createDomElementTester(() =>
                     getSelectField(filter).closest('.ui-select'));
 
-                tester.click = () => (click(), spendTime(0));
+                tester.click = () => (click(), spendTime(0), spendTime(0));
 
                 tester.arrow = (tester => {
                     const click = tester.click.bind(tester);
 
-                    tester.click = () => (click(), spendTime(0));
+                    tester.click = () => (click(), spendTime(0), spendTime(0));
                     return tester;
                 })(testersFactory.createDomElementTester(
                     () => getSelectField(filter).closest('.ui-select-container').querySelector('.ui-icon svg')
@@ -760,6 +812,7 @@ define(() => function ({
 
             const addMethods = getInput => {
                 const tester = testersFactory.createTextFieldTester(getInput),
+                    clear = tester.clear.bind(tester),
                     fill = tester.fill.bind(tester),
                     input = tester.input.bind(tester),
                     click = tester.click.bind(tester),
@@ -768,16 +821,23 @@ define(() => function ({
                     uiInputTester = testersFactory.createDomElementTester(getUiInput);
 
                 tester.click = () => (click(), spendTime(0), spendTime(0), tester);
-                tester.fill = value => (fill(value), Promise.runAll(false, true), tester); 
-                tester.input = value => (input(value), Promise.runAll(false, true), tester); 
+                tester.fill = value => (clear(), spendTime(0), fill(value), spendTime(0), spendTime(0), tester);
+                tester.input = value => (input(value), spendTime(0), tester); 
                 tester.pressEnter = () => (pressEnter(), spendTime(0), tester);
 
                 tester.expectNotToHaveError = () => uiInputTester.expectNotToHaveClass('ui-input-error');
                 tester.expectToHaveError = () => uiInputTester.expectToHaveClass('ui-input-error');
 
-                tester.clearIcon = testersFactory.createDomElementTester(
-                    () => getUiInput().querySelector('.ui-input-suffix-close')
-                );
+                tester.clearIcon = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => getUiInput().querySelector('.ui-input-suffix-close')
+                    );
+
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0), spendTime(0));
+
+                    return tester;
+                })();
 
                 return tester;
             };
@@ -825,6 +885,7 @@ define(() => function ({
             tester.click = () => {
                 click();
                 windowTester.endTransition();
+                spendTime(0);
             };
 
             return tester;
@@ -1609,10 +1670,12 @@ define(() => function ({
                     expectBodyToContain(bodyParams).
                     respondSuccessfullyWith(true);
 
-                Promise.runAll(false, true);
+                spendTime(0);
 
                 utils.isVisible(utils.querySelector('.clct-modal, .ui-modal')) &&
                     mainTester.modalWindow.endTransition();
+
+                spendTime(0);
             }
         };
     };
@@ -1643,7 +1706,7 @@ define(() => function ({
                     expectPathToContain(`/sup/api/v1/users/me/calls/980925444/marks/${id}`).
                     respondSuccessfullyWith(true);
 
-                Promise.runAll(false, true);
+                spendTime(0);
             }
         };
     };
@@ -1698,6 +1761,7 @@ define(() => function ({
                     receiveResponse() {
                         request.respondSuccessfullyWith(response);
                         Promise.runAll(false, true);
+                        spendTime(0);
                     }
                 };
             }
@@ -2010,7 +2074,7 @@ define(() => function ({
                     expectQueryToContain(params);
 
                 return addResponseModifiers({
-                    receiveResponse: () => (receiveResponse(request), spendTime(0))
+                    receiveResponse: () => (receiveResponse(request), spendTime(0), spendTime(0))
                 });
             },
 
@@ -2078,7 +2142,7 @@ define(() => function ({
 
             receive() {
                 me.eventsWebSocket.receiveMessage(createMessage());
-                Promise.runAll(false, true);
+                spendTime(0);
             }
         };
     };
@@ -2211,13 +2275,13 @@ define(() => function ({
 
                 return {
                     expectToBeSent: () => me.recentCrosstabMessage().expectToContain(notification),
-                    receive: () => me.receiveCrosstabMessage(notification)
+                    receive: () => (me.receiveCrosstabMessage(notification), spendTime(0))
                 };
             },
 
             receive: () => {
                 me.eventsWebSocket.receiveMessage(createMessage());
-                Promise.runAll(false, true);
+                spendTime(0);
             } 
         };
     };
@@ -3593,6 +3657,7 @@ define(() => function ({
 
                         Promise.runAll(false, true);
                         spendTime(0)
+                        spendTime(0);
                     }
                 };
             },
@@ -9370,6 +9435,8 @@ define(() => function ({
                         Promise.runAll(false, true);
                         spendTime(0)
                         spendTime(0)
+                        spendTime(0);
+                        spendTime(0);
                     }
                 });
 
@@ -9609,7 +9676,15 @@ define(() => function ({
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
     me.incomingIcon = testersFactory.createDomElementTester('.incoming_svg__cmg-direction-icon');
     me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
-    me.holdButton = testersFactory.createDomElementTester('.cmg-hold-button');
+
+    me.holdButton = (() => {
+        const tester = testersFactory.createDomElementTester('.cmg-hold-button');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
 
     me.transferIncomingIcon = testersFactory.
         createDomElementTester('.transfer_incoming_successful_svg__cmg-direction-icon');
@@ -9620,7 +9695,7 @@ define(() => function ({
     me.transferButton = (tester => {
         const click = tester.click.bind(tester);
 
-        tester.click = () => (click(), Promise.runAll(false, true));
+        tester.click = () => (click(), spendTime(0));
         return tester;
     })(testersFactory.createDomElementTester('#cmg-transfer-button'));
 
@@ -9659,13 +9734,21 @@ define(() => function ({
     })();
 
     me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
-    me.addressBookButton = testersFactory.createDomElementTester('#cmg-address-book-button');
+
+    me.addressBookButton = (() => {
+        const tester = testersFactory.createDomElementTester('#cmg-address-book-button');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
 
     me.contactOpeningButton = (() => {
         const tester = testersFactory.createDomElementTester('#cmg-open-contact-button'),
             click = tester.click.bind(tester);
 
-        tester.click = () => (click(), spendTime(0));
+        tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
         return tester;
     })();
 
@@ -9713,9 +9796,16 @@ define(() => function ({
                 tester.preview = testersFactory.createDomElementTester(() =>
                     getMessageElement().querySelector('.cm-chats--preview'));
 
-                tester.ellipsisButton = testersFactory.createDomElementTester(
-                    () => getMessageElement().querySelector('.cm-chats--download-popup-button')
-                );
+                tester.ellipsisButton = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => getMessageElement().querySelector('.cm-chats--download-popup-button')
+                    );
+
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0));
+
+                    return tester;
+                })();
 
                 const downloadAnchor = Array.prototype.find.call(
                     getMessageElement().querySelectorAll('a'),
@@ -9774,8 +9864,16 @@ define(() => function ({
 
         const tester = testersFactory.createDomElementTester(getContactBar);
 
-        tester.closeButton = testersFactory.createDomElementTester(() =>
-            getContactBar().querySelector('.cm-contacts-contact-bar-title svg'));
+        tester.closeButton = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => getContactBar().querySelector('.cm-contacts-contact-bar-title svg')
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         tester.section = label => {
             const getSectionElement = () => utils.descendantOf(getContactBar()).
@@ -9792,7 +9890,12 @@ define(() => function ({
                     matchesSelector('.cm-contacts-contact-bar-section-option').
                     find();
 
-                const tester = testersFactory.createDomElementTester(getOptionElement);
+                const tester = testersFactory.createDomElementTester(getOptionElement),
+                    click = tester.click.bind(tester),
+                    putMouseOver = tester.putMouseOver.bind(tester);
+
+                tester.click = () => (click(), spendTime(0));
+                tester.putMouseOver = () => (putMouseOver(), spendTime(0));
 
                 addTesters(tester, getOptionElement);
                 return tester;
@@ -9823,14 +9926,22 @@ define(() => function ({
         );
 
         const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0));
+        tester.click = () => (click(), spendTime(0), spendTime(0));
 
         return tester;
     })();
 
     me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
-    me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
+
+    me.collapsednessToggleButton = (() => {
+        const tester = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
 
     const createCollapsedessButton = className => {
         const tester = testersFactory.createDomElementTester(`.${className}`),
@@ -9882,7 +9993,7 @@ define(() => function ({
             const click = tester.click.bind(tester),
                 scrollIntoView = tester.scrollIntoView.bind(tester);
 
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
             tester.expectToBeSelected = () => tester.expectToHaveClass('cm-contacts-list-item-selected');
             tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-contacts-list-item-selected');
 
@@ -9901,12 +10012,44 @@ define(() => function ({
     me.largeSizeButton = createCollapsedessButton('cmg-large-size-button');
     me.middleSizeButton = createCollapsedessButton('cmg-middle-size-button');
     me.smallSizeButton = createCollapsedessButton('cmg-small-size-button');
-    me.hideButton = testersFactory.createDomElementTester('.cmg-hide-button');
-    me.playerButton = testersFactory.createDomElementTester('.clct-audio-button');
-    me.otherChannelCallNotification = createRootTester('#cmg-another-sip-line-incoming-call-notification');
-    me.bugButton = testersFactory.createDomElementTester('.cmg-bug-icon');
     me.notificationSection = testersFactory.createDomElementTester('.cm-chats--chat-notifications');
     me.statusDurations = testersFactory.createDomElementTester('.cmg-softphone--call-stats-statuses-duration');
+
+    me.otherChannelCallNotification = (() => {
+        const tester = createRootTester('#cmg-another-sip-line-incoming-call-notification');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
+
+    me.hideButton = (() => {
+        const tester = testersFactory.createDomElementTester('.cmg-hide-button');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
+
+    me.playerButton = (() => {
+        const tester = testersFactory.createDomElementTester('.clct-audio-button');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
+
+    me.bugButton = (() => {
+        const tester = testersFactory.createDomElementTester('.cmg-bug-icon');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
 
     {
         const tester = testersFactory.createDomElementTester('.ui-select-popup-header .ui-icon'),
@@ -9956,7 +10099,7 @@ define(() => function ({
                 click = tester.click.bind(tester),
                 isSelected = () => !!domElement.querySelectorAll('.ui-icon')[1];
 
-            tester.click = () => (click(), Promise.runAll(false, true));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             const expectToBeVisible = tester.expectToBeVisible.bind(tester);
 

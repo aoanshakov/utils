@@ -302,8 +302,14 @@ tests.addTest(options => {
                             beforeEach(function() {
                                 tester.contactList.item('Бележкова Грета Ервиновна').click();
 
-                                contactCommunicationsRequest = tester.contactCommunicationsRequest().expectToBeSent();
-                                tester.contactRequest().receiveResponse();
+                                const requests = ajax.inAnyOrder();
+
+                                contactCommunicationsRequest = tester.contactCommunicationsRequest().
+                                    expectToBeSent(requests);
+                                const contactRequest = tester.contactRequest().expectToBeSent(requests);
+
+                                requests.expectToBeSent();
+                                contactRequest.receiveResponse();
                             });
 
                             describe('Сообщений немного.', function() {
@@ -313,9 +319,15 @@ tests.addTest(options => {
                                 
                                 describe('Открываю меню номера.', function() {
                                     beforeEach(function() {
-                                        tester.contactBar.section('Телефоны').option('79162729533').putMouseOver();
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            option('79162729533').
+                                            putMouseOver();
 
-                                        tester.contactBar.section('Телефоны').option('79162729533').dropdownTrigger.
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            option('79162729533').
+                                            dropdownTrigger.
                                             click();
                                     });
 
@@ -325,14 +337,23 @@ tests.addTest(options => {
                                         tester.contactUpdatingRequest().completeData().noPhoneNumbers().
                                             receiveResponse();
 
-                                        tester.contactBar.section('Телефоны').option('79162729533').expectNotToExist();
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            option('79162729533').
+                                            expectNotToExist();
                                     });
                                     it('Изменяю номер телефона. Отправлен запрос обновления контакта.', function() {
                                         tester.select.option('Редактировать').click();
 
-                                        tester.contactBar.section('Телефоны').input.fill('79162729534').pressEnter();
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            input.
+                                            fill('79162729534').
+                                            pressEnter();
 
-                                        tester.contactUpdatingRequest().completeData().anotherPhoneNumber().
+                                        tester.contactUpdatingRequest().
+                                            completeData().
+                                            anotherPhoneNumber().
                                             receiveResponse();
                                     });
                                 });
@@ -637,7 +658,6 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.numaRequest().receiveResponse();
-
                         outCallEvent = tester.outCallEvent();
                     });
 
@@ -774,8 +794,15 @@ tests.addTest(options => {
 
                 tester.contactList.item('Бележкова Грета Ервиновна').click();
 
-                tester.contactCommunicationsRequest().receiveResponse();
-                tester.contactRequest().receiveResponse();
+                const requests = ajax.inAnyOrder();
+
+                const contactCommunicationsRequest = tester.contactCommunicationsRequest().expectToBeSent(requests),
+                    contactRequest = tester.contactRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                contactCommunicationsRequest.receiveResponse();
+                contactRequest.receiveResponse();
 
                 tester.contactBar.section('Телефоны').anchor('79162729533').click();
                 tester.softphone.expectTextContentToHaveSubstring('Используется на другом устройстве');

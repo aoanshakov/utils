@@ -1,0 +1,26 @@
+diff --git a/dist/FileSaver.js b/dist/FileSaver.js
+index e07c980..e2e97fe 100644
+--- a/dist/FileSaver.js
++++ b/dist/FileSaver.js
+@@ -76,6 +76,8 @@
+ 
+ 
+   function click(node) {
++    return;
++
+     try {
+       node.dispatchEvent(new MouseEvent('click'));
+     } catch (e) {
+diff --git a/package.json b/package.json
+index 36398ae..b41744a 100644
+--- a/package.json
++++ b/package.json
+@@ -2,7 +2,7 @@
+   "name": "file-saver",
+   "version": "2.0.5",
+   "description": "An HTML5 saveAs() FileSaver implementation",
+-  "main": "dist/FileSaver.min.js",
++  "main": "dist/FileSaver.js",
+   "files": [
+     "dist/FileSaver.js",
+     "dist/FileSaver.min.js",

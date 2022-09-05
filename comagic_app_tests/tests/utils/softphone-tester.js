@@ -39,15 +39,37 @@ define(function () {
         }
 
         this.innerContainer = testersFactory.createDomElementTester('#cmg-inner-container');
-        this.microphoneButton = testersFactory.createDomElementTester('.cmg-microphone-button');
 
-        this.firstLineButton = testersFactory.createDomElementTester(function () {
-            return getSipLineButton(0);
-        });
+        this.microphoneButton = (() => {
+            const tester = testersFactory.createDomElementTester('.cmg-microphone-button');
 
-        this.secondLineButton = testersFactory.createDomElementTester(function () {
-            return getSipLineButton(1);
-        });
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
+
+        this.firstLineButton = (() => {
+            const tester = testersFactory.createDomElementTester(function () {
+                return getSipLineButton(0);
+            });
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
+
+        this.secondLineButton = (() => {
+            const tester = testersFactory.createDomElementTester(function () {
+                return getSipLineButton(1);
+            });
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         this.expectMicrophoneDeviceIdToEqual = function (mediaStream, expectedDeviceId) {
             var actualDeviceId = mediaStream.getAudioTracks()[0].getSettings().deviceId;
@@ -307,7 +329,7 @@ define(function () {
                     element.scrollTop = top;
                     element.dispatchEvent(event);
 
-                    Promise.runAll(false, true);
+                    spendTime(0);
                 }
             };
         };
@@ -534,6 +556,7 @@ define(function () {
                             });
 
                             Promise.runAll(false, true);
+                            spendTime(0);
                         },
                     };
                 },
@@ -599,7 +622,8 @@ define(function () {
                                 data: user 
                             });
 
-                            Promise.runAll();
+                            spendTime(0);
+                            spendTime(0);
                         }
                     });
                 },
@@ -1103,7 +1127,8 @@ define(function () {
                                 data: data 
                             });
 
-                            Promise.runAll(false, true);
+                            spendTime(0);
+                            spendTime(0);
                         }
                     });
                 },
@@ -1367,6 +1392,7 @@ define(function () {
 
         this.disconnectEventsWebSocket = function (index) {
             webSockets.getSocket(/sup\/ws\/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0$/, index || 0).disconnect();
+            spendTime(0);
         };
 
         function getWebRtcSocket (index) {
@@ -2389,7 +2415,9 @@ define(function () {
         this.allowMediaInput = function () {
             var localMediaStream = userMedia.allowMediaInput();
 
-            Promise.runAll();
+            spendTime(0);
+            spendTime(0);
+
             return localMediaStream;
         };
 
@@ -2515,7 +2543,7 @@ define(function () {
                                 copyHeader('Contact').
                                 send();
 
-                            Promise.runAll(false, true);
+                            spendTime(0);
                         }
                     };
                 },
@@ -2528,7 +2556,14 @@ define(function () {
             };
         };
 
-        this.phoneField = testersFactory.createTextFieldTester('.cmg-input');
+        this.phoneField = (() => {
+            const tester = testersFactory.createTextFieldTester('.cmg-input');
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         this.registrationRequest = this.requestRegistration;
 
@@ -3696,7 +3731,7 @@ define(function () {
                         setCallReceiverLogin('077368').
                         receive();
 
-                    Promise.runAll(false, true);
+                    spendTime(0);
 
                     eventsWebSocket.receiveMessage({
                         name: 'employee_changed',
@@ -3879,7 +3914,7 @@ define(function () {
                         }
                     });
 
-                    Promise.runAll(false, true);
+                    spendTime(0);
                 }
             };
         };
@@ -3982,7 +4017,7 @@ define(function () {
                         params
                     });
 
-                    Promise.runAll(false, true);
+                    spendTime(0);
                 }
             }
         };
@@ -5652,7 +5687,7 @@ define(function () {
                     },
                     receive: function () {
                         receiveMessage(createNotification());
-                        Promise.runAll(false, true);
+                        spendTime(0);
                     }
                 }, data);
 

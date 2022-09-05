@@ -1249,7 +1249,7 @@ function JsTester_MediaStreamsPlayingExpectationFactory (mediaStreamTracks) {
     };
 }
 
-function JsTester_MediaStreamsTester (options) {
+function JsTester_MediaStreamsTester ({spendTime, ...options}) {
     var createMediaStreamsPlayingExpectaion = options.mediaStreamsPlayingExpectaionFactory,
         playingMediaStreams = options.playingMediaStreams,
         mediaStreams = options.mediaStreams,
@@ -1265,6 +1265,7 @@ function JsTester_MediaStreamsTester (options) {
 
     this.setIsAbleToPlayThough = function (mediaStream) {
         mediaStreams.setIsAbleToPlayThough(mediaStream);
+        spendTime(0);
     };
 
     this.expectNoStreamToPlay = function () {
@@ -1659,14 +1660,20 @@ function JsTester_AudioContextMock (args) {
     };
 }
 
-function JsTester_AudioDecodingTester (audioDecodingTasks, factory) {
+function JsTester_AudioDecodingTester ({
+    audioDecodingTasks,
+    factory,
+    spendTime
+}) {
     this.failToDecodeAudio = function () {
         audioDecodingTasks.pop().failure();
         Promise.runAll(false, true);
     };
     this.accomplishAudioDecoding = function () {
         audioDecodingTasks.pop().callback();
-        Promise.runAll(false, true);
+
+        spendTime(0);
+        spendTime(0);
     };
     this.expectAudioDecodingToHappen = function () {
         audioDecodingTasks.pop();
@@ -1703,7 +1710,11 @@ function JsTester_AudioContextFactory (args) {
         ));
     };
     this.createAudioDecodingTester = function () {
-        return new JsTester_AudioDecodingTester(audioDecodingTasks, this);
+        return new JsTester_AudioDecodingTester({
+            audioDecodingTasks,
+            spendTime: args.spendTime,
+            factory: this
+        });
     };
     this.createAudioContext = function () {
         return new JsTester_AudioContextMock(args);
@@ -3154,6 +3165,7 @@ function JsTester_WindowSize (spendTime) {
         innerHeight = value;
         window.dispatchEvent(new Event('resize'));
         spendTime(0);
+        spendTime(0);
     };
 
     this.reset = function () {
@@ -3513,7 +3525,7 @@ function JsTester_Tests (factory) {
     };
 
     var windowSize = new JsTester_WindowSize(spendTime),
-        utils = factory.createUtils({debug, windowSize}),
+        utils = factory.createUtils({debug, windowSize, spendTime}),
         broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage(), true),
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},
@@ -3705,6 +3717,7 @@ function JsTester_Tests (factory) {
         testsExecutionBeginingHandlers = [],
         checkRTCConnectionState = rtcConnectionStateChecker.createValueCaller(),
         mediaStreamsTester = new JsTester_MediaStreamsTester({
+            spendTime,
             mediaStreamsPlayingExpectaionFactory: new JsTester_MediaStreamsPlayingExpectationFactory(mediaStreamTracks),
             playingMediaStreams: playingMediaStreams,
             mediaStreams: mediaStreams
@@ -3736,16 +3749,17 @@ function JsTester_Tests (factory) {
             trackToDestination: trackToDestination
         }),
         audioContextFactory = new JsTester_AudioContextFactory({
-            mediaStreamSourceToMediaStream: mediaStreamSourceToMediaStream,
-            audioNodesConnection: audioNodesConnection,
-            mediaStreams: mediaStreams,
-            bufferToContent: bufferToContent,
-            destinationToSource: destinationToSource,
-            trackToDestination: trackToDestination,
-            playingOscillators: playingOscillators,
-            tracksCreationCallStacks: tracksCreationCallStacks,
-            debug: debug,
-            utils: utils
+            mediaStreamSourceToMediaStream,
+            audioNodesConnection,
+            mediaStreams,
+            bufferToContent,
+            destinationToSource,
+            trackToDestination,
+            playingOscillators,
+            tracksCreationCallStacks,
+            spendTime,
+            debug,
+            utils
         }),
         audioDecodingTester = audioContextFactory.createAudioDecodingTester(),
         audioContextReplacer = new JsTester_AudioContextReplacer(audioContextFactory),
@@ -4381,7 +4395,7 @@ function JsTester_Element ({
     };
 }
 
-function JsTester_Utils ({debug, windowSize}) {
+function JsTester_Utils ({debug, windowSize, spendTime}) {
     var me = this,
         doNothing = function () {};
 
@@ -4554,6 +4568,7 @@ function JsTester_Utils ({debug, windowSize}) {
     };
     this.pressEscape = function (target) {
         this.pressSpecialKey(target, 27);
+        spendTime(0);
     };
     this.pressEnter = function (target) {
         this.pressSpecialKey(target, 13, undefined, undefined, 'Enter');
@@ -6209,7 +6224,7 @@ function JsTester_InputElement (
     };
     this.fill = function (value) {
         clear();
-
+        
         setSelectionRange(0, 0);
         input(value);
     };

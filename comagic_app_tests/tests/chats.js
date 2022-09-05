@@ -63,15 +63,24 @@ tests.addTest(options => {
             spendTime(1000);
             tester.notificationChannel().tellIsLeader().expectToBeSent();
 
-            tester.accountRequest().
+            const requests = ajax.inAnyOrder();
+
+            const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
+
+            const secondAccountRequest = tester.accountRequest().
                 forChats().
                 softphoneFeatureFlagDisabled().
                 operatorWorkplaceAvailable().
-                receiveResponse();
+                expectToBeSent(requests);
 
-            tester.reportGroupsRequest().receiveResponse();
-            tester.reportsListRequest().receiveResponse(),
-            tester.reportTypesRequest().receiveResponse();
+            requests.expectToBeSent();
+
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            secondAccountRequest.receiveResponse();
+            reportGroupsRequest.receiveResponse();
 
             tester.chatChannelListRequest().receiveResponse();
             tester.statusListRequest().receiveResponse();

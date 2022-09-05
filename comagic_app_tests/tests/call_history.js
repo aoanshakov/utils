@@ -45,24 +45,6 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        it('', function() {
-            accountRequest.receiveResponse();
-
-            tester.reportGroupsRequest().receiveResponse();
-            tester.reportsListRequest().expectToBeSent();
-            tester.reportTypesRequest().expectToBeSent();
-            tester.accountRequest().receiveResponse();
-        });
-        return;
-        it('', function() {
-            accountRequest.receiveResponse();
-
-            //tester.accountRequest().expectToBeSent();
-            tester.reportGroupsRequest().expectToBeSent();
-            tester.reportsListRequest().expectToBeSent();
-            tester.reportTypesRequest().expectToBeSent();
-        });
-        return;
         describe('История звонков доступна.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
@@ -71,18 +53,15 @@ tests.addTest(options => {
 
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);//,
-                    //secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
-                //secondAccountRequest.receiveResponse();
+                secondAccountRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
-
-                //tester.accountRequest().receiveResponse();
-                return;
 
                 tester.configRequest().softphone().receiveResponse();
 
@@ -103,11 +82,6 @@ tests.addTest(options => {
                 permissionsRequest = tester.permissionsRequest().expectToBeSent();
             });
 
-            it('', function() {
-            });
-            it('', function() {
-            });
-            return;
             describe('Номера не должны быть скрыты.', function() {
                 beforeEach(function() {
                     settingsRequest.receiveResponse();
@@ -353,7 +327,6 @@ tests.addTest(options => {
                                             tester.table.expectNotToExist();
                                         });
                                     });
-                                    return;
                                     describe('Открываю выпадающий список "Звонки".', function() {
                                         beforeEach(function() {
                                             tester.select.withValue('Звонки: Все').click();
@@ -476,7 +449,6 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
-                                return;
                                 it('Нет имени. Отображен номер вместо имени.', function() {
                                     notProcessedCallsRequest.noContactName().receiveResponse();
 
@@ -492,7 +464,6 @@ tests.addTest(options => {
                                     tester.table.expectTextContentToHaveSubstring('Нет данных');
                                 });
                             });
-                            return;
                             describe('Ввожу значеие в поле поиска.', function() {
                                 beforeEach(function() {
                                     tester.input.withPlaceholder('Имя или телефон').input('qwe12');
@@ -1008,7 +979,7 @@ tests.addTest(options => {
                                     ).click();
 
                                     tester.talkRecordRequest().third().receiveResponse();
-
+                                    
                                     tester.anchor(
                                         '2019-12-18_18-08-25.522_from_74950230626_session_980925445_2_talk.mp3'
                                     ).
@@ -1243,7 +1214,6 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        return;
                         describe('Есть звонки трансфера.', function() {
                             beforeEach(function() {
                                 callsRequest = callsRequest.transferCall();
@@ -1284,50 +1254,56 @@ tests.addTest(options => {
                                         tester.contactBar.section('ФИО').svg.click();
                                     });
 
-                                    describe(
-                                        'Ввожу значение в поле фамилии. Поле фамилии не отмечено как невалидное. ' +
-                                        'Нажимаю на кнопку "Создать контакт". Отправлен запрос создания контакта.',
-                                    function() {
+                                    describe('Ввожу значение в поле фамилии.', function() {
                                         let contactCreatingRequest;
 
                                         beforeEach(function() {
                                             tester.input.withPlaceholder('Фамилия (Обязательное поле)').
                                                 fill('Неделчева');
+                                        });
+                                        
+                                        describe(
+                                            'Нажимаю на кнопку "Создать контакт". Отправлен запрос создания контакта.',
+                                        function() {
+                                            beforeEach(function() {
+                                                tester.button('Создать контакт').click();
 
+                                                contactCreatingRequest = tester.contactCreatingRequest().
+                                                    expectToBeSent();
+                                            });
+
+                                            describe('Получен ответ на запрос.', function() {
+                                                beforeEach(function() {
+                                                    contactCreatingRequest.receiveResponse();
+                                                    tester.contactBar.section('ФИО').svg.click();
+                                                });
+
+                                                it(
+                                                    'Ввожу имя и отчество. Нажимаю на кнопку "Сохранить". Отправлен ' +
+                                                    'запрос обновления контакта.',
+                                                function() {
+                                                    tester.input.withPlaceholder('Имя').fill('Роза');
+                                                    tester.input.withPlaceholder('Отчество').fill('Ангеловна');
+
+                                                    tester.button('Сохранить').click();
+
+                                                    tester.contactUpdatingRequest().anotherName().receiveResponse();
+                                                });
+                                                it('Спиннер скрыт.', function() {
+                                                    tester.spin.expectNotToExist();
+                                                    tester.button('Создать контакт').expectNotToExist();
+
+                                                    tester.input.withPlaceholder('Фамилия (Обязательное поле)').
+                                                        expectNotToHaveError();
+                                                });
+                                            });
+                                            it('Отображен спиннер.', function() {
+                                                tester.spin.expectToBeVisible();
+                                            });
+                                        });
+                                        it('Поле фамилии не отмечено как невалидное.', function() {
                                             tester.input.withPlaceholder('Фамилия (Обязательное поле)').
                                                 expectNotToHaveError();
-
-                                            tester.button('Создать контакт').click();
-                                            contactCreatingRequest = tester.contactCreatingRequest().expectToBeSent();
-                                        });
-
-                                        describe('Получен ответ на запрос.', function() {
-                                            beforeEach(function() {
-                                                contactCreatingRequest.receiveResponse();
-                                                tester.contactBar.section('ФИО').svg.click();
-                                            });
-
-                                            it(
-                                                'Ввожу имя и отчество. Нажимаю на кнопку "Сохранить". Отправлен ' +
-                                                'запрос обновления контакта.',
-                                            function() {
-                                                tester.input.withPlaceholder('Имя').fill('Роза');
-                                                tester.input.withPlaceholder('Отчество').fill('Ангеловна');
-
-                                                tester.button('Сохранить').click();
-
-                                                tester.contactUpdatingRequest().anotherName().receiveResponse();
-                                            });
-                                            it('Спиннер скрыт.', function() {
-                                                tester.spin.expectNotToExist();
-                                                tester.button('Создать контакт').expectNotToExist();
-
-                                                tester.input.withPlaceholder('Фамилия (Обязательное поле)').
-                                                    expectNotToHaveError();
-                                            });
-                                        });
-                                        it('Отображен спиннер.', function() {
-                                            tester.spin.expectToBeVisible();
                                         });
                                     });
                                     it('Поле фамилии отмечено как невалидное.', function() {
@@ -1453,7 +1429,6 @@ tests.addTest(options => {
                             tester.spin.expectToBeVisible();
                         });
                     });
-                    return;
                     describe('Звонки получены.', function() {
                         beforeEach(function() {
                             callsRequest.receiveResponse();
@@ -1468,7 +1443,6 @@ tests.addTest(options => {
                         });
                     });
                 });
-                return;
                 describe('Обновление комментария недоступно.', function() {
                     beforeEach(function() {
                         permissionsRequest = permissionsRequest.disallowCallSessionCommentingUpdate();
@@ -1903,7 +1877,6 @@ tests.addTest(options => {
                     tester.select.option('Генератор лидов').click();
                 });
             });
-            return;
             describe('Номера должны быть скрыты. Открываю историю звонков.', function() {
                 let callsRequest;
 
@@ -2024,7 +1997,6 @@ tests.addTest(options => {
                 });
             });
         });
-        return;
         it('У пользователя нет роли. Вкладки "Все" и "Необработанные" заблокированы.', function() {
             accountRequest.noCallCenterRole().receiveResponse();
 
@@ -2377,7 +2349,6 @@ tests.addTest(options => {
             tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.expectNotToExist();
         });
     });
-return;
     describe('Открываю историю звонков.', function() {
         let tester,
             permissionsRequest;

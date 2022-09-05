@@ -396,8 +396,13 @@ tests.addTest(options => {
                                                         beforeEach(function() {
                                                             tester.microphoneButton.click();
 
-                                                            tester.slavesNotification().available().userDataFetched().
-                                                                twoChannels().incoming().confirmed().muted().
+                                                            tester.slavesNotification().
+                                                                available().
+                                                                userDataFetched().
+                                                                twoChannels().
+                                                                incoming().
+                                                                confirmed().
+                                                                muted().
                                                                 expectToBeSent();
                                                         });
 
@@ -407,12 +412,22 @@ tests.addTest(options => {
                                                         function() {
                                                             incomingCall.receiveBye();
 
-                                                            tester.slavesNotification().available().userDataFetched().
-                                                                twoChannels().ended().expectToBeSent();
+                                                            tester.slavesNotification().
+                                                                available().
+                                                                userDataFetched().
+                                                                twoChannels().
+                                                                ended().
+                                                                expectToBeSent();
 
                                                             incomingCall = tester.incomingCall().receive();
-                                                            tester.slavesNotification().available().userDataFetched().
-                                                                twoChannels().incoming().progress().expectToBeSent();
+
+                                                            tester.slavesNotification().
+                                                                available().
+                                                                userDataFetched().
+                                                                twoChannels().
+                                                                incoming().
+                                                                progress().
+                                                                expectToBeSent();
 
                                                             tester.numaRequest().receiveResponse();
 
@@ -428,8 +443,14 @@ tests.addTest(options => {
                                                             tester.secondConnection.addCandidate();
 
                                                             incomingCall.expectOkToBeSent().receiveResponse();
-                                                            tester.slavesNotification().available().userDataFetched().
-                                                                twoChannels().incoming().confirmed().expectToBeSent();
+
+                                                            tester.slavesNotification().
+                                                                available().
+                                                                userDataFetched().
+                                                                twoChannels().
+                                                                incoming().
+                                                                confirmed().
+                                                                expectToBeSent();
 
                                                             tester.microphoneButton.
                                                                 expectNotToHaveClass('clct-call-option--pressed');
@@ -1622,7 +1643,9 @@ tests.addTest(options => {
                                                             'Кнопка звонка заблокирована. Отображено сообщение о ' +
                                                             'разрыве сети.',
                                                         function() {
-                                                            tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.
+                                                            tester.callsHistoryRow.
+                                                                withText('Гяурова Марийка').
+                                                                callIcon.
                                                                 expectToHaveAttribute('disabled');
 
                                                             tester.softphone.expectTextContentToHaveSubstring(
@@ -1978,8 +2001,14 @@ tests.addTest(options => {
                                                         tester.firstConnection.addCandidate();
 
                                                         incomingCall.expectOkToBeSent().receiveResponse();
-                                                        tester.slavesNotification().available().userDataFetched().
-                                                            twoChannels().incoming().confirmed().expectToBeSent();
+
+                                                        tester.slavesNotification().
+                                                            available().
+                                                            userDataFetched().
+                                                            twoChannels().
+                                                            incoming().
+                                                            confirmed().
+                                                            expectToBeSent();
 
                                                         tester.dialpadButton(1).expectNotToHaveAttribute('disabled');;
                                                     });
@@ -2048,8 +2077,10 @@ tests.addTest(options => {
                                                         beforeEach(function() {
                                                             outCallSessionEvent.activeLeads().receive();
 
-                                                            tester.outCallSessionEvent().activeLeads().
-                                                                slavesNotification().expectToBeSent();
+                                                            tester.outCallSessionEvent().
+                                                                activeLeads().
+                                                                slavesNotification().
+                                                                expectToBeSent();
                                                         });
 
                                                         describe('Нажимаю на кнопку сворачивания.', function() {
@@ -2075,11 +2106,12 @@ tests.addTest(options => {
                                                         });
                                                         it('Отображены открытые сделки.', function() {
                                                             tester.softphone.expectToBeExpanded();
-                                                            tester.anchor('По звонку с 79154394340').
-                                                                expectHrefToHavePath(
-                                                                    'https://comagicwidgets.amocrm.ru/leads/detail/' +
-                                                                    '3003651'
-                                                                );
+
+                                                            tester.anchor(
+                                                                'По звонку с 79154394340'
+                                                            ).expectHrefToHavePath(
+                                                                'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
+                                                            );
 
                                                             tester.dialpadVisibilityButton.
                                                                 expectToHaveClass('cmg-button-disabled');
@@ -2500,6 +2532,7 @@ tests.addTest(options => {
                                                 spendTime(5000);
                                                 tester.expectPingToBeSent();
                                                 spendTime(2000);
+                                                spendTime(0);
 
                                                 tester.slavesNotification().
                                                     twoChannels().
@@ -2537,6 +2570,7 @@ tests.addTest(options => {
                                                 spendTime(5000);
                                                 tester.expectPingToBeSent();
                                                 spendTime(2000);
+                                                spendTime(0);
 
                                                 tester.slavesNotification().
                                                     twoChannels().
@@ -3528,8 +3562,7 @@ tests.addTest(options => {
                                 tester.outCallSessionEvent().slavesNotification().expectToBeSent();
 
                                 tester.outgoingIcon.expectToBeVisible();
-                                tester.softphone.
-                                    expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67');
+                                tester.softphone.expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67');
                             });
                             it('Отбражен выпадающий список номеров.', function() {
                                 tester.select.expectToHaveTextContent('+7 (495) 021-68-06');

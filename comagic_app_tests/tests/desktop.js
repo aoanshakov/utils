@@ -99,162 +99,7 @@ tests.addTest(options => {
                             authenticatedUserRequest.receiveResponse();
                         });
 
-                        describe('Нажимаю на кнопку настроек.', function() {
-                            beforeEach(function() {
-                                tester.settingsButton.click();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('resize').
-                                    expectToBeSentWithArguments({
-                                        width: 340,
-                                        height: 568
-                                    });
-                            });
-                            
-                            describe('Софтфон должен запускаться автоматически.', function() {
-                                beforeEach(function() {
-                                    getPackage('electron').ipcRenderer.receiveMessage('checkautolauncher', {
-                                        isStartApp: true
-                                    });
-                                });
-
-                                it(
-                                    'Отмечаю переключатель "Запускать свернуто". Отправлено событие о необходимости ' +
-                                    'запускать софтфон свернуто.',
-                                function() {
-                                    tester.button('Запускать свернуто').click();
-
-                                    getPackage('electron').ipcRenderer.
-                                        recentlySentMessage().
-                                        expectToBeSentToChannel('startminimizechange').
-                                        expectToBeSentWithArguments(true);
-
-                                    tester.button('Открывать во время звонка').expectNotToBeChecked();
-                                    tester.button('Автозапуск приложения').expectToBeChecked();
-                                    tester.button('Запускать свернуто').expectToBeChecked();
-                                });
-                                it('Приложение должно запускаться свернутым.', function() {
-                                    getPackage('electron').ipcRenderer.receiveMessage('checkstartminimize', {
-                                        isStartMinimize: true
-                                    });
-
-                                    tester.button('Открывать во время звонка').expectNotToBeChecked();
-                                    tester.button('Автозапуск приложения').expectToBeChecked();
-                                    tester.button('Запускать свернуто').expectToBeChecked();
-                                });
-                                it('Форма настроек корректно заполнена.', function() {
-                                    tester.button('Открывать во время звонка').expectNotToBeChecked();
-                                    tester.button('Автозапуск приложения').expectToBeChecked();
-
-                                    tester.button('Запускать свернуто').expectToBeEnabled();
-                                    tester.button('Запускать свернуто').expectNotToBeChecked();
-                                });
-                            });
-                            it('Нажимаю на кнопку большого размера. Отображен диалпад.', function() {
-                                tester.largeSizeButton.click();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('maximize');
-
-                                tester.configRequest().softphone().receiveResponse();
-                                tester.statsRequest().receiveResponse();
-                                tester.numberCapacityRequest().receiveResponse();
-                                tester.accountRequest().receiveResponse();
-                                tester.accountRequest().receiveResponse();
-
-                                tester.dialpadButton(1).expectToBeVisible();;
-                            });
-                            it(
-                                'Отмечаю свитчбокс "Автозапуск приложения". Отправлено сообщение о ' +
-                                'необходимости запускать приложение автоматически.',
-                            function() {
-                                tester.button('Автозапуск приложения').click();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('autolauncherchange').
-                                    expectToBeSentWithArguments(true);
-
-                                tester.button('Открывать во время звонка').expectNotToBeChecked();
-                                tester.button('Автозапуск приложения').expectToBeChecked();
-                                tester.button('Запускать свернуто').expectNotToBeChecked();
-                            });
-                            it(
-                                'Отмечаю свитчбокс "Открывать во время звонка". Значение параметра сохранено.',
-                            function() {
-                                tester.button('Открывать во время звонка').click();
-
-                                tester.button('Открывать во время звонка').expectToBeChecked();
-                                tester.button('Автозапуск приложения').expectNotToBeChecked();
-                                tester.button('Запускать свернуто').expectNotToBeChecked();
-
-                                if (localStorage.getItem('clct:to_top_on_call') !== 'true') {
-                                    throw new Error(
-                                        'Значение параметра "Открывать во время звонка" должно быть сохранено.'
-                                    );
-                                }
-                            });
-                            it('Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".', function() {
-                                tester.button('Автоматически').click();
-                                tester.settingsUpdatingRequest().autoSetStatus().receiveResponse();
-                                tester.settingsRequest().autoSetStatus().receiveResponse();
-
-                                tester.fieldRow('При входе').select.arrow.click();
-                                tester.select.option('Перерыв').click();
-                                tester.settingsUpdatingRequest().pauseOnLogin().receiveResponse();
-                                tester.settingsRequest().autoSetStatus().pauseOnLogin().receiveResponse();
-
-                                tester.fieldRow('При выходе').select.arrow.click();
-                                tester.select.option('Не беспокоить').click();
-                                tester.settingsUpdatingRequest().dontDisturbOnLogout().receiveResponse();
-                                tester.settingsRequest().autoSetStatus().pauseOnLogin().dontDisturbOnLogout().
-                                    receiveResponse();
-                            });
-                            it(
-                                'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или IP-телефон". ' +
-                                'Отмечена кнопка "IP-телефон".',
-                            function() {
-                                tester.button('IP-телефон').click();
-                                tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().receiveResponse();
-                                tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
-
-                                tester.registrationRequest().desktopSoftphone().expired().receiveResponse();
-                                
-                                spendTime(2000);
-                                tester.webrtcWebsocket.finishDisconnecting();
-
-                                tester.button('Текущее устройство').expectNotToBeChecked();
-                                tester.button('IP-телефон').expectToBeChecked();
-                            });
-                            it(
-                                'Прошло некоторое время. Сервер событий не отвечает. Отображено сообщение об ' +
-                                'установке соединения.',
-                            function() {
-                                spendTime(5000);
-                                tester.expectPingToBeSent();
-                                spendTime(2000);
-
-                                tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
-                            });
-                            it('Открываю вкладку "Звук". Отображены настройки звука.', function() {
-                                tester.button('Звук').click();
-                                tester.body.expectTextContentToHaveSubstring('Громкость звонка 100%');
-                            });
-                            it('Форма настроек заполнена правильно.', function() {
-                                tester.button('Текущее устройство').expectToBeChecked();
-                                tester.button('IP-телефон').expectNotToBeChecked();
-
-                                tester.button('Открывать во время звонка').expectNotToBeChecked();
-                                tester.button('Скрывать после звонка').expectToBeChecked();
-                                tester.button('Автозапуск приложения').expectNotToBeChecked();
-
-                                tester.button('Запускать свернуто').expectNotToBeChecked();
-                                tester.button('Запускать свернуто').expectToBeDisabled();
-                            });
-                        });
-                        describe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
+                        xdescribe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
                             let incomingCall;
 
                             beforeEach(function() {
@@ -331,16 +176,16 @@ tests.addTest(options => {
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
-                                    expectToBeSentToChannel('call-end').
-                                    expectToBeSentWithArguments(true);
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
                                     expectToBeSentToChannel('resize').
                                     expectToBeSentWithArguments({
                                         width: 340,
                                         height: 212
                                     });
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('call-end').
+                                    expectToBeSentWithArguments(true);
 
                                 incomingCall.expectTemporarilyUnavailableToBeSent();
                             });
@@ -352,7 +197,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        describe('Нажимаю на кнопку переключения на большой размер.', function() {
+                        xdescribe('Нажимаю на кнопку переключения на большой размер.', function() {
                             beforeEach(function() {
                                 tester.largeSizeButton.click();
 
@@ -568,7 +413,7 @@ tests.addTest(options => {
                                 }
                             });
                         });
-                        describe('Нажимаю на кнопку переключения на средний размер.', function() {
+                        xdescribe('Нажимаю на кнопку переключения на средний размер.', function() {
                             beforeEach(function() {
                                 tester.middleSizeButton.click();
                                 tester.middleSizeButton.click();
@@ -606,7 +451,7 @@ tests.addTest(options => {
                                 tester.largeSizeButton.expectNotToBePressed();
                             });
                         });
-                        describe('Раскрываю список статусов.', function() {
+                        xdescribe('Раскрываю список статусов.', function() {
                             beforeEach(function() {
                                 tester.userName.click();
                             });
@@ -676,7 +521,7 @@ tests.addTest(options => {
                                 tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                             });
                         });
-                        describe('Нажимаю на кнопку дебага.', function() {
+                        xdescribe('Нажимаю на кнопку дебага.', function() {
                             beforeEach(function() {
                                 tester.bugButton.click();
 
@@ -686,10 +531,10 @@ tests.addTest(options => {
                             });
 
                             it('Логи собраны. Загружается архив с логами. Спиннер скрыт.', function() {
-                                tester.disableTimeout(() => getPackage('electron').ipcRenderer.receiveMessage(
+                                getPackage('electron').ipcRenderer.receiveMessage(
                                     'logs_collected',
                                     new JsTester_ZipArchive()
-                                ));
+                                );
 
                                 blobsTester.getLast().
                                     expectToHaveType('application/zip').
@@ -701,7 +546,7 @@ tests.addTest(options => {
                                 tester.spinner.expectToBeVisible();
                             });
                         });
-                        describe('Открываю таблицу сотрудников. Токен истек.', function() {
+                        xdescribe('Открываю таблицу сотрудников. Токен истек.', function() {
                             let refreshRequest;
 
                             beforeEach(function() {
@@ -802,7 +647,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        describe('Открываю историю звонков.', function() {
+                        xdescribe('Открываю историю звонков.', function() {
                             let callsRequest;
 
                             beforeEach(function() {
@@ -856,7 +701,7 @@ tests.addTest(options => {
                                 tester.spin.expectToBeVisible();
                             });
                         });
-                        describe('Открываю список номеров.', function() {
+                        xdescribe('Открываю список номеров.', function() {
                             beforeEach(function() {
                                 windowSize.setHeight(212);
 
@@ -917,19 +762,19 @@ tests.addTest(options => {
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
-                                    expectToBeSentToChannel('incoming-call').
-                                    expectToBeSentWithArguments(false);
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
                                     expectToBeSentToChannel('resize').
                                     expectToBeSentWithArguments({
                                         width: 340,
                                         height: 276
                                     });
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('incoming-call').
+                                    expectToBeSentWithArguments(false);
                             });
 
-                            it('Нажимаю на кнопку большого размера.', function() {
+                            xit('Нажимаю на кнопку большого размера.', function() {
                                 tester.largeSizeButton.click();
 
                                 getPackage('electron').ipcRenderer.
@@ -960,7 +805,7 @@ tests.addTest(options => {
                                 accountRequest.receiveResponse();
                                 secondAccountRequest.receiveResponse();
                             });
-                            it('Нажимаю на кнопку диалпада. Обновлен размер.', function() {
+                            xit('Нажимаю на кнопку диалпада. Обновлен размер.', function() {
                                 tester.dialpadVisibilityButton.click();
 
                                 getPackage('electron').ipcRenderer.
@@ -977,6 +822,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
+                        return;
                         describe('Получено обновление.', function() {
                             beforeEach(function() {
                                 getPackage('electron').ipcRenderer.receiveMessage('update-downloaded');
@@ -1106,15 +952,15 @@ tests.addTest(options => {
 
                             getPackage('electron').ipcRenderer.
                                 recentlySentMessage().
-                                expectToBeSentToChannel('maximize');
-
-                            getPackage('electron').ipcRenderer.
-                                recentlySentMessage().
                                 expectToBeSentToChannel('resize').
                                 expectToBeSentWithArguments({
                                     width: 340,
                                     height: 568
                                 });
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('maximize');
 
                             tester.settingsButton.expectToBeDisabled();
                             tester.callsHistoryButton.expectToBeDisabled();
@@ -1142,6 +988,7 @@ tests.addTest(options => {
                             }
                         });
                     });
+                    return;
                     it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
                         authenticatedUserRequest.sipIsOffline().receiveResponse();
                         tester.userName.click();
@@ -1149,6 +996,7 @@ tests.addTest(options => {
                         tester.statusesList.item('Не беспокоить').expectToBeSelected();
                     });
                 });
+                return;
                 it('Не удалось авторизоваться в софтфоне.', function() {
                     authCheckRequest.invalidToken().receiveResponse();
                     tester.userLogoutRequest().receiveResponse();
@@ -1166,6 +1014,7 @@ tests.addTest(options => {
                     tester.button('Войти').expectToBeVisible();
                 });
             });
+            return;
             it('Большой софтфон недоступен. Кнопки размеров не отображены.', function() {
                 accountRequest.largeSoftphoneFeatureFlagDisabled().receiveResponse();
 
@@ -1210,6 +1059,7 @@ tests.addTest(options => {
                 tester.button('Войти').expectToBeVisible();
             });
         });
+        return;
         describe(
             'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
         function() {
