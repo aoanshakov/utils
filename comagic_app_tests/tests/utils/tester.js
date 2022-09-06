@@ -1859,7 +1859,16 @@ define(() => function ({
             'X-Auth-Type': 'jwt'
         };
 
-        const addResponseModifiers = me => (me.noInCallCount = () => (delete(data.in_call_count), me), me)
+        const addResponseModifiers = me => {
+            me.noInCallCount = () => (delete(data.in_call_count), me);
+
+            me.anotherAvailableStatusDuration = () => {
+                data.status_1_duration = 61410 + 24 * 60 * 60;
+                return me;
+            };
+
+            return me
+        };
 
         return addResponseModifiers({
             anotherAuthorizationToken() {
@@ -1901,7 +1910,7 @@ define(() => function ({
             search: '',
             is_strict_date_till: '0',
             with_names: undefined,
-            from: undefined,
+            from: '2019-09-19T00:00:00.000+03:00',
             to: '2019-12-19T23:59:59.999+03:00',
             call_directions: undefined,
             call_types: undefined,
@@ -2011,6 +2020,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            fromHalfOfTheYearAgo() {
+                params.from = '2019-06-19T00:00:00.000+03:00';
+                return this;
+            },
+
             fromFirstWeekDay() {
                 params.from = '2019-12-16T00:00:00.000+03:00';
                 return this;
@@ -8097,7 +8111,7 @@ define(() => function ({
                 data: {
                     direction: 'in',
                     talk_duration: 42820,
-                    number: '79161234567',
+                    numa: '79161234567',
                     talk_record_file_link:
                         'https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/'
                 }
@@ -8250,9 +8264,10 @@ define(() => function ({
                         request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
-                        spendTime(0)
-                        spendTime(0)
-                        spendTime(0)
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
 
                         maybeRunSpinWrapperIntersectionCallback(getContactCommunicationsSpinWrapper());
                     }
@@ -9327,6 +9342,13 @@ define(() => function ({
                         },
                         {
                             'unit_id': 'softphone_login',
+                            'is_delete': true,
+                            'is_insert': true,
+                            'is_select': true,
+                            'is_update': true,
+                        },
+                        {
+                            'unit_id': 'address_book',
                             'is_delete': true,
                             'is_insert': true,
                             'is_select': true,

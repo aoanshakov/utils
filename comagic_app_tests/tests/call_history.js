@@ -1136,6 +1136,21 @@ tests.addTest(options => {
                                     'https://comagicwidgets.amocrm.ru/contacts/detail/218401'
                                 );
                             });
+                            it('Получено событие скрытия номеров.', function() {
+                                tester.entityChangedEvent().isNeedHideNumbers().receive();
+
+                                tester.othersNotification().
+                                    updateSettings().
+                                    shouldNotPlayCallEndingSignal().
+                                    expectToBeSent();
+                                
+                                tester.entityChangedEvent().isNeedHideNumbers().slavesNotification().expectToBeSent();
+                                
+                                tester.table.expectTextContentToHaveSubstring(
+                                    'Гяурова Марийка ' +
+                                    'Позвонить'
+                                );
+                            });
                             it('Отображена история звонков.', function() {
                                 tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
 

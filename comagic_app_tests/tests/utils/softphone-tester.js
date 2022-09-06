@@ -6514,6 +6514,47 @@ define(function () {
             };
         };
 
+        this.entityChangedEvent = function () {
+            const message = {
+                name: 'entity_changed',
+                type: 'event',
+                params: {
+                    data: {}
+                }
+            };
+
+            return {
+                isNeedHideNumbers: function () {
+                    message.params.data.is_need_hide_numbers = true;
+                    return this;
+                },
+                isNotNeedHideNumbers: function () {
+                    message.params.data.is_need_hide_numbers = false;
+                    return this;
+                },
+                slavesNotification: function () {
+                    return {
+                        expectToBeSent: function () {
+                            me.recentCrosstabMessage().expectToContain({
+                                type: 'message',
+                                data: {
+                                    type: 'notify_slaves',
+                                    data: {
+                                        type: 'websocket_message',
+                                        message
+                                    }
+                                }
+                            });
+                        }
+                    };
+                },
+                receive: function () {
+                    eventsWebSocket.receiveMessage(message);
+                    spendTime(0);
+                }
+            };
+        };
+
         this.settingsChangedMessage = function () {
             const data = {};
 

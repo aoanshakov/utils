@@ -1735,6 +1735,32 @@ tests.addTest(options => {
                                                         tester.softphone.expectToBeExpanded();
                                                     });
                                                 });
+                                                describe('Не было ни одного звонка за три месяца.', function() {
+                                                    beforeEach(function() {
+                                                        callsRequest.noCalls().receiveResponse();
+
+                                                        callsRequest = tester.callsRequest().
+                                                            fromHalfOfTheYearAgo().
+                                                            expectToBeSent();
+                                                    });
+
+                                                    it('Найдены звонки за полгода. Звонки отображены.', function() {
+                                                        callsRequest.receiveResponse();
+
+                                                        tester.softphone.
+                                                            expectTextContentToHaveSubstring('Гяурова Марийка 08:03');
+                                                    });
+                                                    it(
+                                                        'Не было ни одного звонка за полгода. Отображено сообщение ' +
+                                                        'об отсутствии звонков.',
+                                                    function() {
+                                                        callsRequest.noCalls().receiveResponse();
+
+                                                        tester.softphone.expectToHaveTextContent(
+                                                            'Совершите звонок для отображения истории'
+                                                        );
+                                                    });
+                                                });
                                                 it(
                                                     'Звонок является трансфером. Отображена иконка трансфера.',
                                                 function() {
@@ -1744,17 +1770,6 @@ tests.addTest(options => {
                                                         expectToHaveClass(
                                                             'transfer_incoming_successful_svg__cmg-direction-icon'
                                                         );
-                                                });
-                                                it(
-                                                    
-                                                    'Не было ни одного звонка. Отображено сообщение об отсутствии ' +
-                                                    'звонков.',
-                                                function() {
-                                                    callsRequest.noCalls().receiveResponse();
-
-                                                    tester.softphone.expectToHaveTextContent(
-                                                        'Совершите звонок для отображения истории'
-                                                    );
                                                 });
                                             });
                                             describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
