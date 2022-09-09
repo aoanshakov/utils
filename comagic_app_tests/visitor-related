@@ -1,0 +1,35 @@
+get_message_list
+offline_message/list
+create_transfer
+new_message (ws)
+new_chat (ws)
+supervisor_workplace_notification (event)
+get_search_results
+get_visitor_card
+accept_chat
+close_chat
+get_chat_list
+get.communications (analytics)
+get.person_events (analytics)
+get.deals (analytics)
+get.leads (analytics)
+
+ChatMessaagesStore
+ReportChatMessagesStore
+OfflineMessagesStore
+ChatTransfersStore
+ChatsListStore
+NotificationWrapper
+models/shared/visitor/index.ts
+analytics/frontend/src/models/reports/CommunicationsStore.ts
+analytics/frontend/src/models/shared/dashboards/planned-actual/index.ts
+analytics/frontend/src/reports/customer-card/customer-history/customer-history-entry/history-entry-common/events/VisitEvent.tsx
+
+chats/src/components/chats/chat-notifications/chat-notification.tsx
+chats/src/components/chats/chat-notifications/force-transfer-notification-donor.tsx
+chats/src/components/chats/chat-notifications/force-transfer-notification-recipient.tsx
+chats/src/models/notifications/NotificationsStore.ts
+chats/src/components/chats/chat-notifications/offline-message-notification.tsx
+chats/src/components/chats/chat-notifications/transfer-notification.tsx
+
+./gitlab.uis.dev/comagic_app/misc/chats/src/components/chats/chat-panel/Header.tsx|10| <

@@ -134,7 +134,7 @@ tests.addTest(options => {
                 beforeEach(function() {
                     statusesRequest.receiveResponse();
 
-                    tester.button('Статистика звонков').click();
+                    tester.button('Статистика').click();
                     tester.statsRequest().receiveResponse();
                 });
 
@@ -255,7 +255,7 @@ tests.addTest(options => {
 
                             '"Статус - Доступен";"17:03:30"',
                             '"Статус - Перерыв";"23:28:10"',
-                            '"Статус - Не беспокоить";"04:59:20"',
+                            '"Статус - Не беспокоить";"28:59:20"',
                             '"Статус - Нет на месте";"09:31:12"',
                             '"Статус - Нет на работе";"03:52:53"',
                             '"Статус - Неизвестно";"00:00:00"',
@@ -293,7 +293,7 @@ tests.addTest(options => {
                     tester.body.expectTextContentToHaveSubstringsConsideringOrder(
                         'Доступен 17:03:30 ' +
                         'Перерыв 23:28:10 ' +
-                        'Не беспокоить 04:59:20 ' +
+                        'Не беспокоить 28:59:20 ' +
                         'Нет на месте 09:31:12 ' +
                         'Нет на работе 03:52:53 ' +
                         'Неизвестно 00:00:00 ',
@@ -339,7 +339,7 @@ tests.addTest(options => {
                     beforeEach(function() {
                         statusesRequest.includesAutoCall().receiveResponse();
 
-                        tester.button('Статистика звонков').click();
+                        tester.button('Статистика').click();
                         tester.statsRequest().receiveResponse();
                     });
 
@@ -358,7 +358,7 @@ tests.addTest(options => {
                     });
                 });
                 it('Открываю статистику звонков. Статусов много. Статусы свернуты.', function() {
-                    tester.button('Статистика звонков').click();
+                    tester.button('Статистика').click();
                     tester.statsRequest().receiveResponse();
 
                     statusesRequest.includesAutoCall().receiveResponse();
@@ -369,7 +369,7 @@ tests.addTest(options => {
                 it('Статусов мало. Кнопка разворачивания статусов скрыта.', function() {
                     statusesRequest.receiveResponse();
 
-                    tester.button('Статистика звонков').click();
+                    tester.button('Статистика').click();
                     tester.statsRequest().receiveResponse();
 
                     tester.button('Показать все статусы').expectNotToExist();
@@ -457,7 +457,7 @@ tests.addTest(options => {
 
             statusesRequest.receiveResponse();
 
-            tester.button('Статистика звонков').expectNotToExist();
+            tester.button('Статистика').expectNotToExist();
         });
         it('Статистика по звонкам недоступна. Пункт меню скрыт.', function() {
             accountRequest.callStatsFeatureFlagDisabled().receiveResponse();
@@ -540,7 +540,7 @@ tests.addTest(options => {
 
             statusesRequest.receiveResponse();
 
-            tester.button('Статистика звонков').expectNotToExist();
+            tester.button('Статистика').expectNotToExist();
         });
     });
 });

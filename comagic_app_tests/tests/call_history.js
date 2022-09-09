@@ -33,6 +33,9 @@ tests.addTest(options => {
 
             tester = new Tester(options);
 
+            tester.masterInfoMessage().receive();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
             tester.input.withFieldLabel('Логин').fill('botusharova');
             tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
@@ -40,9 +43,6 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             accountRequest = tester.accountRequest().expectToBeSent();
-
-            tester.masterInfoMessage().receive();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         });
 
         describe('История звонков доступна.', function() {
@@ -164,6 +164,60 @@ tests.addTest(options => {
                             marksRequest.receiveResponse();
                         });
 
+                        describe('Имя контакта не было получено.', function() {
+                            beforeEach(function() {
+                                callsRequest.
+                                    noContactName().
+                                    noCrmContactLink().
+                                    receiveResponse();
+                            });
+
+                            describe('Нажимаю на номер телефона.', function() {
+                                beforeEach(function() {
+                                    tester.table.row.first.column.withHeader('ФИО контакта').link.click();
+                                    tester.usersRequest().forContacts().receiveResponse();
+                                });
+
+                                it(
+                                    'Открываю поля ФИО. Ввожу значение в поле фамилии. Нажимаю на кнопку "Создать ' +
+                                    'контакт". Форма контакта скрыта.',
+                                function() {
+                                    tester.contactBar.section('ФИО').svg.click();
+                                    tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
+
+                                    tester.button('Создать контакт').click();
+
+                                    tester.contactCreatingRequest().receiveResponse();
+
+                                    tester.callsRequest().
+                                        fromFirstWeekDay().
+                                        firstPage().
+                                        noCrmContactLink().
+                                        receiveResponse();
+
+                                    tester.marksRequest().receiveResponse();
+
+                                    tester.contactBar.expectNotToExist();
+                                });
+                                it('Добавляю почту. Запрос сохранения контакта не был отправлен.', function() {
+                                    tester.contactBar.section('E-Mail').svg.click();
+                                    tester.contactBar.section('E-Mail').input.fill('nedelcheva@gmail.com').pressEnter();
+                                });
+                                it('Открывается форма создания контакта.', function() {
+                                    tester.contactBar.expectTextContentToHaveSubstring(
+                                        'ФИО ' +
+                                        '74950230625 ' +
+
+                                        'Телефоны ' +
+                                        '74950230625 '
+                                    );
+                                });
+                            });
+                            it('Оторажен номер.', function() {
+                                tester.table.row.first.column.withHeader('ФИО контакта').link.
+                                    expectToHaveTextContent('+7 (495) 023-06-25');
+                            });
+                        });
                         describe('Все звонки успешны.', function() {
                             beforeEach(function() {
                                 callsRequest.receiveResponse();
@@ -979,7 +1033,7 @@ tests.addTest(options => {
                                     ).click();
 
                                     tester.talkRecordRequest().third().receiveResponse();
-
+                                    
                                     tester.anchor(
                                         '2019-12-18_18-08-25.522_from_74950230626_session_980925445_2_talk.mp3'
                                     ).
@@ -988,6 +1042,48 @@ tests.addTest(options => {
                                             '2019-12-18_18-08-25.522_from_74950230626_session_980925445_2_talk.mp3'
                                         ).
                                         expectHrefToBeBlobWithContent('h398j0184hhls0283');
+                                });
+                            });
+                            describe('Нажимаю на имя контакта.', function() {
+                                beforeEach(function() {
+                                    tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.click();
+
+                                    tester.usersRequest().forContacts().receiveResponse();
+                                    tester.contactRequest().receiveResponse();
+                                });
+                                
+                                it('Изменяю имя. Отправлен запрос обновления контакта.', function() {
+                                    tester.contactBar.section('ФИО').svg.click();
+
+                                    tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
+                                    tester.input.withPlaceholder('Имя').fill('Роза');
+                                    tester.input.withPlaceholder('Отчество').fill('Ангеловна');
+
+                                    tester.button('Сохранить').click();
+
+                                    tester.contactUpdatingRequest().completeData().anotherName().receiveResponse();
+                                    tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+                                    tester.marksRequest().receiveResponse();
+                                });
+                                it('Нажимаю на иконку с крестиком. Карточка контакта скрыта.', function() {
+                                    tester.contactBar.closeButton.click();
+                                    tester.contactBar.expectNotToExist();
+                                });
+                                it('Открыта карточка контакта.', function() {
+                                    tester.contactBar.expectTextContentToHaveSubstring(
+                                        'ФИО ' +
+                                        'Бележкова Грета Ервиновна ' +
+
+                                        'Телефоны ' +
+                                        '79162729533 ' +
+
+                                        'E-Mail ' +
+                                        'endlesssprinп.of@comagic.dev ' +
+
+                                        'Мессенджеры ' +
+                                        '+7 (928) 381 09-88 ' +
+                                        '+7 (928) 381 09-28'
+                                    );
                                 });
                             });
                             it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
@@ -1037,7 +1133,7 @@ tests.addTest(options => {
                                 tester.firstConnection.connectWebRTC();
                                 tester.allowMediaInput();
 
-                                const outboundCall = tester.outboundCall().setNumberFromCallsGrid().expectToBeSent();
+                                const outgoingCall = tester.outgoingCall().setNumberFromCallsGrid().expectToBeSent();
 
                                 tester.slavesNotification().
                                     available().
@@ -1047,7 +1143,7 @@ tests.addTest(options => {
                                     sending().
                                     expectToBeSent();
 
-                                outboundCall.setRinging();
+                                outgoingCall.setRinging();
 
                                 tester.slavesNotification().
                                     thirdPhoneNumber().
@@ -1099,6 +1195,43 @@ tests.addTest(options => {
                                     'https://comagicwidgets.amocrm.ru/contacts/detail/218401'
                                 );
                             });
+                            it('Получено событие скрытия номеров. Номера скрыты.', function() {
+                                tester.employeeChangedEvent().
+                                    isNeedHideNumbers().
+                                    receive();
+
+                                tester.othersNotification().
+                                    updateSettings().
+                                    shouldNotPlayCallEndingSignal().
+                                    expectToBeSent();
+
+                                tester.employeeChangedEvent().
+                                    isNeedHideNumbers().
+                                    slavesNotification().
+                                    expectToBeSent();
+
+                                tester.table.expectTextContentToHaveSubstring(
+                                    'Гяурова Марийка ' +
+                                    'Позвонить'
+                                );
+                            });
+                            it('Получено событие скрытия номеров у другого сотрудника. Номера отображены.', function() {
+                                tester.employeeChangedEvent().
+                                    isAnotherEmployee().
+                                    isNeedHideNumbers().
+                                    receive();
+
+                                tester.employeeChangedEvent().
+                                    isNeedHideNumbers().
+                                    isAnotherEmployee().
+                                    slavesNotification().
+                                    expectToBeSent();
+                                
+                                tester.table.expectTextContentToHaveSubstring(
+                                    'Гяурова Марийка ' +
+                                    '+7 (495) 023-06-25'
+                                );
+                            });
                             it('Отображена история звонков.', function() {
                                 tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
 
@@ -1106,10 +1239,10 @@ tests.addTest(options => {
                                 tester.radioButton('Все').expectNotToBeSelected();
                                 tester.radioButton('Необработанные').expectNotToBeSelected();
 
-                                tester.select.withValue('Звонки: Все').expectToBeDisabled();
-                                tester.select.withValue('Направления: Все').expectToBeDisabled();
-                                tester.select.withPlaceholder('Группы').expectToBeDisabled();
-                                tester.switchButton.expectToBeDisabled();
+                                tester.select.withValue('Звонки: Все').expectNotToExist();
+                                tester.select.withValue('Направления: Все').expectNotToExist();
+                                tester.select.withPlaceholder('Группы').expectNotToExist();
+                                tester.switchButton.expectNotToExist();
 
                                 tester.table.
                                     row.first.
@@ -1126,8 +1259,6 @@ tests.addTest(options => {
                                 tester.table.pagingPanel.pageButton('1').expectToBePressed();
                                 tester.table.pagingPanel.pageButton('2').expectNotToBePressed();
                                 tester.table.pagingPanel.pageButton('3').expectNotToExist();
-
-                                tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.expectNotToExist();
 
                                 tester.table.row.first.
                                     expectNotToHaveClass('cmg-softphone-call-history-failed-call-row');
@@ -1249,17 +1380,6 @@ tests.addTest(options => {
                             callsRequest.noCalls().receiveResponse();
                             tester.table.pagingPanel.expectNotToExist();
                         });
-                        it('Имя контакта не было получено. Оторажен номер.', function() {
-                            callsRequest.noContactName().receiveResponse();
-
-                            tester.table.expectTextContentToHaveSubstring(
-                                '19 дек 2019 08:03 ' +
-                                '+7 (495) 023-06-25 ' +
-                                '+7 (495) 023-06-25 ' +
-                                'Нецелевой контакт, Отложенный звонок ' +
-                                '00:00:20 ',
-                            );
-                        });
                         it('В таблицу содержится звонок от сотрудника. Отображено имя сотрудника.', function() {
                             callsRequest.employeeName().receiveResponse();
 
@@ -1270,6 +1390,14 @@ tests.addTest(options => {
                                 'Нецелевой контакт, Отложенный звонок ' +
                                 '00:00:20 ',
                             );
+                        });
+                        it('В таблице содержится короткий номер. Номер не сформатирован.', function() {
+                            callsRequest.shortPhoneNumber().receiveResponse();
+                            tester.table.expectTextContentToHaveSubstring('56123');
+                        });
+                        it('В таблице содержится чилийский номер. Номер сформатирован корректно.', function() {
+                            callsRequest.chilePhoneNumber().receiveResponse();
+                            tester.table.expectTextContentToHaveSubstring(' +56 (123) 45-6789 ');
                         });
                         it('Общее количество записей не было получено. Отображена история звонков.', function() {
                             callsRequest.noTotal().receiveResponse();
@@ -2057,7 +2185,7 @@ tests.addTest(options => {
 
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.manager().receiveResponse();
+            secondAccountRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.configRequest().softphone().receiveResponse();
@@ -2125,6 +2253,100 @@ tests.addTest(options => {
             statusesRequest.receiveResponse();
 
             tester.button('История звонков').expectNotToExist();
+        });
+        it(
+            'Контакты недоступны. Открываю историю звонков. Ссылка на редактирование контакта не отображается.',
+        function() {
+            accountRequest.contactsFeatureFlagDisabled().receiveResponse();
+
+            const requests = ajax.inAnyOrder();
+
+            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
+
+            const secondAccountRequest = tester.accountRequest().
+                contactsFeatureFlagDisabled().
+                expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            secondAccountRequest.receiveResponse();
+            reportGroupsRequest.receiveResponse();
+
+            tester.configRequest().softphone().receiveResponse();
+
+            tester.slavesNotification().expectToBeSent();
+            tester.slavesNotification().additional().expectToBeSent();
+
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            spendTime(1000);
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            spendTime(1000);
+            tester.notificationChannel().tellIsLeader().expectToBeSent();
+
+            tester.authCheckRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+
+            settingsRequest = tester.settingsRequest().expectToBeSent();
+            tester.talkOptionsRequest().receiveResponse();
+
+            settingsRequest.receiveResponse();
+            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
+            tester.othersNotification().widgetStateUpdate().expectToBeSent();
+            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            permissionsRequest.receiveResponse();
+
+            tester.connectEventsWebSocket();
+            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.connectSIPWebSocket();
+            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                expectToBeSent();
+
+            notificationTester.grantPermission();
+
+            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+            registrationRequest = tester.registrationRequest().expectToBeSent();
+
+            tester.allowMediaInput();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                expectToBeSent();
+
+            authenticatedUserRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                userDataFetched().
+                expectToBeSent();
+
+            registrationRequest.receiveResponse();
+            tester.slavesNotification().twoChannels().available().userDataFetched().
+                expectToBeSent();
+
+            statusesRequest.receiveResponse();
+
+            tester.button('История звонков').click();
+
+            tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+            tester.marksRequest().receiveResponse();
+
+            tester.table.row.first.column.withHeader('ФИО контакта').link.expectToBeVisible();
+            tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.expectNotToExist();
         });
     });
     describe('Открываю историю звонков.', function() {
@@ -2229,8 +2451,8 @@ tests.addTest(options => {
             tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
             tester.marksRequest().receiveResponse();
 
-            tester.body.expectTextContentToHaveSubstring('Скрыть обработанные другими группами');
-            tester.body.expectTextContentNotToHaveSubstring('Hide calls processed by another groups');
+            tester.body.expectTextContentToHaveSubstring('Необработанные');
+            tester.body.expectTextContentNotToHaveSubstring('Unprocessed');
         });
         it('Таблица скрыта.', function() {
             tester.table.expectNotToExist();

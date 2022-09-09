@@ -24,6 +24,7 @@ const {
     core,
     chats,
     magicUi,
+    chatsMagicUi,
     contactsMagicUi,
     softphoneMagicUi,
     sipLibMagiUi,
@@ -52,6 +53,10 @@ const {
     updaterLog,
     publisher,
     publisherDir,
+    fileSaver,
+    fileSaverPatch,
+    scheduler,
+    schedulerPatch,
     broadcastChannel,
     broadcastChannelPatch,
     webpackDevServer,
@@ -70,7 +75,7 @@ const cda = `cd ${application} &&`,
     magicUiOverridenFiles = 'package.json',
     coreOverridenFiles = magicUiOverridenFiles,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
-    contactsOverridenFiles = magicUiOverridenFiles,
+    contactsOverridenFiles = 'package.json',
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
@@ -80,7 +85,7 @@ const chatOverridenFiles = 'src/models/RootStore.ts ' +
     'src/history.ts ' +
     'src/App.tsx ' +
     'src/models/auth/AuthStore.ts ' +
-    'src/utils/index.ts';
+    'src/utils/index.tsx';
 
 const analyticsOverridenFiles = 'src/models/RootStore.ts src/models/reports/RootReportStore.ts ' +
     'src/components/ShadowContent.ts package.json';
@@ -282,20 +287,23 @@ const appModule = ([module, path, args]) => [`web/comagic_app_modules/${module}`
 
 actions['patch-node-modules'] = [
     [broadcastChannel, broadcastChannelPatch],
-    [webpackDevServer, webpackDevServerPatch]
+    [webpackDevServer, webpackDevServerPatch],
+    [scheduler, schedulerPatch],
+    [fileSaver, fileSaverPatch]
 ].map(([path, patch]) => `cd ${path} && patch -p1 < ${patch}`);
 
 actions['copy-magic-ui'] = [
     `cd ${magicUi} && git checkout ${magicUiOverridenFiles}`,
     `cd ${magicUi} && patch -p1 < ${magicUiLibPatch}`
 ].concat([
+    chatsMagicUi,
     softphoneMagicUi,
     sipLibMagiUi,
     contactsMagicUi
 ].reduce((result, magicUiTarget) => result.concat([
     rmVerbose(magicUiTarget),
     `mkdir ${magicUiTarget}`,
-    `cp -r ${magicUi}/lib ${magicUi}/package.json ${magicUiTarget}`
+    `cp -rv ${magicUi}/lib ${magicUi}/package.json ${magicUiTarget}`
 ]), []));
 
 actions['initialize'] = params => [
@@ -312,7 +320,8 @@ actions['initialize'] = params => [
 ] : [])).reduce((result, item) => result.concat(item), []).concat(
     actions['modify-code'](params)
 ).concat(!fs.existsSync(nodeModules) ?  [
-    `chown -R root:root ${application}`,
+    //`chown -Rv root:root ${application}`,
+    `${cda} npm set registry http://npm.dev.uis.st:80`,
     `${cda} npm install --verbose`
 ].concat(actions['patch-node-modules']).concat(actions['fix-permissions']) : []);
 

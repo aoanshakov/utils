@@ -10,11 +10,13 @@ define(() => function ({
     appName = '',
     webSockets,
     path = '/',
+    intersectionObservable,
     image
 }) {
     let history,
         eventBus,
-        chatsRootStore;
+        chatsRootStore,
+        notification;
     const mainTester = me;
 
     const jwtToken = {
@@ -111,8 +113,11 @@ define(() => function ({
         },
         setHistory: value => (history = value),
         setChatsRootStore: value => (chatsRootStore = value),
+        setNotification: value => (notification = value),
         appName
     });
+
+    notification.destroyAll();
 
     me.history = history;
     history.replace(path);
@@ -124,6 +129,8 @@ define(() => function ({
     Promise.runAll(false, true);
 
     me.ReactDOM.flushSync();
+    spendTime(0);
+    spendTime(0);
 
     me.history = history;
 
@@ -136,28 +143,159 @@ define(() => function ({
 
     me.callsHistoryButton = (tester => {
         const click = tester.click.bind(tester);
-        tester.click = () => (click(), Promise.runAll(false, true));
+        tester.click = () => (click(), spendTime(0));
 
         return createBottomButtonTester(tester);
     })(testersFactory.createDomElementTester('.cmg-calls-history-button'));
 
-    me.settingsButton = createBottomButtonTester(testersFactory.createDomElementTester('.cmg-settings-button'));
+    me.settingsButton = (() => {
+        const tester = createBottomButtonTester(testersFactory.createDomElementTester('.cmg-settings-button'));
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
+
+    const intersection = new Map();
+
+    const runSpinWrapperIntersectionCallback = (domElement, shouldRunCallback = () => true) => {
+        const list = domElement.closest(
+            '.cm-contacts-module-list, ' +
+            '.cm-chats--chats-list-container, ' +
+            '.cm-chats--chat-panel-history'
+        );
+
+        if (!list) {
+            return;
+        }
+
+        const listRect = list.getBoundingClientRect(),
+            spinWrapperRect = domElement.getBoundingClientRect();
+
+        const isIntersecting = !(
+            (spinWrapperRect.top < listRect.top && spinWrapperRect.bottom < listRect.top) ||
+            (spinWrapperRect.top > listRect.bottom && spinWrapperRect.bottom > listRect.bottom)
+        );
+
+        const value = shouldRunCallback(isIntersecting);
+
+        intersection.set(domElement, isIntersecting);
+        value && intersectionObservable(domElement).runCallback([{ isIntersecting }]);
+    };
+
+    const maybeRunSpinWrapperIntersectionCallback = domElement => runSpinWrapperIntersectionCallback(
+        domElement,
+        isIntersecting => intersection.get(domElement) !== isIntersecting
+    );
+
+    const getSpinWrapper = (getRootElement = () => document.body) => utils.element(getRootElement()).
+        querySelector('.ui-infinite-scroll-spin-wrapper');
+
+    const getContactListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-contacts-list-wrapper')),
+        getChatListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-chats--chats-list'));
+
+    const getContactCommunicationsSpinWrapper = () =>
+        getSpinWrapper(() => utils.querySelector('.cm-chats--chat-panel-history'));
 
     const addTesters = (me, getRootElement) => {
-        me.spinWrapper = (tester => {
-            const scrollIntoView = tester.scrollIntoView.bind(tester);
-            tester.scrollIntoView = () => (scrollIntoView(), spendTime(0));
+        !me.tagField && Object.defineProperty(me, 'tagField', {
+            set: () => null,
+            get: () => {
+                const getDomElement = () =>
+                    utils.element(getRootElement()).querySelector('.cm-chats--additional-info-panel-tags-edit');
+
+                const tester = testersFactory.createDomElementTester(getDomElement);
+
+                const containerTester = testersFactory.createDomElementTester(
+                    () => utils.element(getDomElement()).
+                        querySelector('.cm-chats--additional-info-panel-tags-container')
+                );
+
+                addTesters(tester, getDomElement);
+
+                tester.button = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => utils.element(getDomElement()).
+                            querySelector('.cm-chats--additional-info-panel-tags-edit-icon')
+                    );
+
+                    const click = tester.click.bind(tester);
+
+                    tester.click = () => {
+                        click();
+
+                        spendTime(1000);
+                        spendTime(1000);
+                        spendTime(1000);
+                        spendTime(1000);
+                        spendTime(1000);
+                    };
+
+                    return tester;
+                })();
+
+                tester.putMouseOver = () => (containerTester.putMouseOver(), spendTime(100), spendTime(0));
+                return tester;
+            }
+        });
+
+        me.collapsablePanel = title => {
+            const getTitle = () => utils.descendantOf(getRootElement()).
+                matchesSelector('.cm-chats--title').
+                textEquals(title).
+                find();
+
+            const getPanel = () => getTitle().closest('.cm-chats--collapse'),
+                getContent = () => getPanel().querySelector('.cm-chats--collapse-content'),
+                tester = testersFactory.createDomElementTester(getPanel);
+
+            tester.title = (() => {
+                const tester = testersFactory.createDomElementTester(getTitle),
+                    click = tester.click.bind(tester);
+
+                tester.click = () => (click(), spendTime(0));
+                return tester;
+            })();
+
+            tester.content = addTesters(testersFactory.createDomElementTester(getContent), getContent);
+            return tester;
+        };
+
+        me.dropdownTrigger = (() => {
+            const tester = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
+                querySelector('.ui-dropdown-trigger'));
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             return tester;
-        })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).
-            querySelector('.ui-infinite-scroll-spin-wrapper')));
+        })();
+
+        me.spinWrapper = (() => {
+            const getDomElement = () => getSpinWrapper(getRootElement);
+
+            const tester = testersFactory.createDomElementTester(getDomElement),
+                scrollIntoView = tester.scrollIntoView.bind(tester);
+
+            intersectionObservable(getDomElement).onObserve(runSpinWrapperIntersectionCallback);
+
+            tester.scrollIntoView = () => {
+                scrollIntoView();
+
+                maybeRunSpinWrapperIntersectionCallback(getDomElement());
+                spendTime(0);
+            };
+
+            return tester;
+        })();
 
         me.userName = (tester => {
             const putMouseOver = tester.putMouseOver.bind(tester),
                 click = tester.click.bind(tester);
 
             tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             return createBottomButtonTester(tester);
         })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector(
@@ -167,22 +305,37 @@ define(() => function ({
         me.spin = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
             querySelector('.ui-spin-icon-default, .clct-spinner'));
 
-        me.anchor = text => testersFactory.createAnchorTester(() =>
-            utils.descendantOf(getRootElement()).matchesSelector('a').textEquals(text).find());
+        me.anchor = text => (() => {
+            const tester = testersFactory.createAnchorTester(
+                () => utils.descendantOf(getRootElement()).matchesSelector('a').textEquals(text).find()
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         (() => {
             const tester = testersFactory.createAnchorTester(() => utils.element(getRootElement()).querySelector('a'));
             Object.entries(tester).forEach(([methodName, method]) => (me.anchor[methodName] = method.bind(tester)));
         })();
 
-        me.link = testersFactory.createDomElementTester(() =>
-            utils.element(getRootElement()).querySelector('.cmg-softphone-call-history-phone-link'));
+        me.link = (() => {
+            const tester = testersFactory.createDomElementTester(() =>
+                utils.element(getRootElement()).querySelector('.cmg-softphone-call-history-phone-link'));
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
+
+            return tester;
+        })();
 
         me.textarea = testersFactory.createTextFieldTester(() =>
             utils.element(getRootElement()).querySelector('textarea'));
 
         const getSvg = selector => {
-            const tester = testersFactory.createDomElementTester(() =>
+            const tester = testersFactory.createAnchorTester(() =>
                 utils.element(getRootElement()).querySelector(selector));
 
             const click = tester.click.bind(tester);
@@ -196,8 +349,63 @@ define(() => function ({
             return tester;
         };
 
-        me.playIcon = getSvg('.play_svg__cmg-icon');
-        me.downloadIcon = getSvg('.download_svg__cmg-icon');
+        me.audio = (() => {
+            const getAudioElement = () => {
+                const audioElement = getRootElement().querySelector('audio');
+
+                if (!audioElement) {
+                    throw new Error('Аудио-элемент должен существовать.');
+                }
+
+                return audioElement;
+            };
+
+            const me = {
+                play: () => {
+                    getAudioElement().dispatchEvent(new Event('play'));
+                    spendTime(0);
+
+                    return me;
+                },
+                time: value => {
+                    const audioElement = getAudioElement(),
+                        dispatchEvent = () => audioElement.dispatchEvent(new Event('timeupdate'));
+
+                    Object.defineProperty(audioElement, 'currentTime', {
+                        set: newValue => {
+                            value = newValue;
+
+                            dispatchEvent();
+                            spendTime(0);
+                        },
+                        get: () => value
+                    });
+
+                    dispatchEvent();
+                    spendTime(0);
+
+                    return me;
+                },
+                duration: value => {
+                    const audioElement = getAudioElement();
+
+                    Object.defineProperty(audioElement, 'duration', {
+                        set: () => null,
+                        get: () => value
+                    });
+
+                    audioElement.dispatchEvent(new Event('durationchange'));
+                    spendTime(0);
+
+                    return me;
+                }
+            };
+
+            return me;
+        })();
+
+        me.playIcon = getSvg('.play_svg__cmg-icon, .cm-chats--audio-player--main-button svg');
+        me.downloadIcon = getSvg('.download_svg__cmg-icon, .cm-contacts-communications-download-button');
         me.svg = getSvg('svg');
 
         me.table = (() => {
@@ -317,7 +525,7 @@ define(() => function ({
                         find());
 
                     const click = tester.click.bind(tester);
-                    tester.click = () => (click(), spendTime(0));
+                    tester.click = () => (click(), spendTime(0), spendTime(0));
                     
                     return tester;
                 };
@@ -329,13 +537,21 @@ define(() => function ({
             popupTester.secondMonthPanel = getMonthPanel(1);
             popupTester.thirdMonthPanel = getMonthPanel(2);
 
-            popupTester.leftButton = testersFactory.createDomElementTester(() =>
-                getPopup().querySelector('.ui-date-range-picker-header-nav-icon-left'));
+            popupTester.leftButton = (() => {
+                const tester = testersFactory.createDomElementTester(
+                    () => getPopup().querySelector('.ui-date-range-picker-header-nav-icon-left')
+                );
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(0), spendTime(0));
+
+                return tester;
+            })();
             popupTester.rightButton = testersFactory.createDomElementTester(() =>
                 getPopup().querySelector('.ui-date-range-picker-header-nav-icon-right'));
 
             tester.expectToHaveValue = inputTester.expectToHaveValue.bind(inputTester);
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             Object.defineProperty(tester, 'popup', {
                 get: function () {
@@ -373,8 +589,16 @@ define(() => function ({
             }
         });
 
-        me.stopCallButton = testersFactory.createDomElementTester(() =>
-            rootTester.querySelector('.cmg-call-button-stop'));
+        me.stopCallButton = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => rootTester.querySelector('.cmg-call-button-stop')
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         me.callStartingButton = testersFactory.createDomElementTester(() =>
             rootTester.querySelector('.cmg-call-button-start'));
@@ -442,10 +666,11 @@ define(() => function ({
 
                 Promise.runAll(false, true);
                 spendTime(0);
-                Promise.runAll(false, true);
+                spendTime(0);
             };
 
             const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked',
+                disabledClass = isSwitch ? 'ui-switch-disabled' : 'ui-button-disabled',
                 menuItemSelectedClass = 'misc-core-src-components-styles-module__item-selected';
 
             const menuItem = testersFactory.createDomElementTester(() =>
@@ -455,8 +680,14 @@ define(() => function ({
             tester.expectNotToBePressed = () => menuItem.expectNotToHaveClass(menuItemSelectedClass);
             tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
             tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
-            tester.expectToBeEnabled = () => fieldTester.expectNotToHaveClass('ui-switch-disabled');
-            tester.expectToBeDisabled = () => fieldTester.expectToHaveClass('ui-switch-disabled');
+
+            tester.expectToBeEnabled = () => isSwitch ?
+                fieldTester.expectNotToHaveClass(disabledClass) :
+                tester.expectNotToHaveAttribute('disabled');
+
+            tester.expectToBeDisabled = () => isSwitch ?
+                fieldTester.expectToHaveClass(disabledClass) :
+                tester.expectToHaveAttribute('disabled');
             
             return tester;
         };
@@ -487,20 +718,29 @@ define(() => function ({
                 const selectTester = testersFactory.createDomElementTester(() =>
                     getSelectField(filter).closest('.ui-select'));
 
-                tester.click = () => (click(), spendTime(0));
+                tester.click = () => (click(), spendTime(0), spendTime(0));
 
                 tester.arrow = (tester => {
                     const click = tester.click.bind(tester);
 
-                    tester.click = () => (click(), spendTime(0));
+                    tester.click = () => (click(), spendTime(0), spendTime(0));
                     return tester;
                 })(testersFactory.createDomElementTester(
                     () => getSelectField(filter).closest('.ui-select-container').querySelector('.ui-icon svg')
                 ));
 
-                tester.popup = testersFactory.createDomElementTester(() => (
-                    utils.getVisibleSilently(document.querySelectorAll('.ui-select-popup')) || new JsTester_NoElement()
-                ).closest('div'));
+                !tester.popup && (tester.popup = Object.defineProperty(tester, 'popup', {
+                    set: () => null,
+                    get: () => {
+                        const getDomElement = () => (
+                            utils.getVisibleSilently(document.querySelectorAll('.ui-select-popup')) ||
+                            new JsTester_NoElement()
+                        ).closest('div');
+
+                        const tester = testersFactory.createDomElementTester(getDomElement)
+                        return addTesters(tester, getDomElement);
+                    } 
+                }));
 
                 tester.tag = text => {
                     const getTag = () =>  utils.descendantOf(getRootElement()).
@@ -524,12 +764,21 @@ define(() => function ({
                 };
                 
                 tester.option = text => {
-                    const option = utils.descendantOfBody().matchesSelector('.ui-list-option').textEquals(text).find(),
-                        tester = testersFactory.createDomElementTester(option),
+                    const option = utils.descendantOfBody().
+                        matchesSelector('.ui-list-option, .cm-chats--tags-option').
+                        textEquals(text).
+                        find();
+
+                    const tester = testersFactory.createDomElementTester(option),
                         click = tester.click.bind(tester),
                         checkbox = option.querySelector('.ui-checkbox');
 
                     tester.click = () => (click(), Promise.runAll(false, true), spendTime(0), spendTime(0), tester);
+
+                    const disabledClassName = 'ui-list-option-disabled';
+
+                    tester.expectToBeDisabled = () => tester.expectToHaveClass(disabledClassName);
+                    tester.expectToBeEnabled = () => tester.expectNotToHaveClass(disabledClassName);
 
                     tester.expectToBeSelected = logEnabled => {
                         if (!checkbox.classList.contains('ui-checkbox-checked')) {
@@ -582,19 +831,33 @@ define(() => function ({
 
             const addMethods = getInput => {
                 const tester = testersFactory.createTextFieldTester(getInput),
+                    clear = tester.clear.bind(tester),
                     fill = tester.fill.bind(tester),
                     input = tester.input.bind(tester),
                     click = tester.click.bind(tester),
-                    pressEnter = tester.pressEnter.bind(tester);
+                    pressEnter = tester.pressEnter.bind(tester),
+                    getUiInput = () => (getInput() || new JsTester_NoElement()).closest('.ui-input'),
+                    uiInputTester = testersFactory.createDomElementTester(getUiInput);
 
+                tester.clear = () => (clear(), spendTime(0), spendTime(0));
                 tester.click = () => (click(), spendTime(0), spendTime(0), tester);
-                tester.fill = value => (fill(value), Promise.runAll(false, true), tester); 
-                tester.input = value => (input(value), Promise.runAll(false, true), tester); 
+                tester.fill = value => (clear(), spendTime(0), fill(value), spendTime(0), spendTime(0), tester);
+                tester.input = value => (input(value), spendTime(0), tester); 
                 tester.pressEnter = () => (pressEnter(), spendTime(0), tester);
 
-                tester.clearIcon = testersFactory.createDomElementTester(
-                    () => getInput().closest('.ui-input').querySelector('.ui-input-suffix-close')
-                );
+                tester.expectNotToHaveError = () => uiInputTester.expectNotToHaveClass('ui-input-error');
+                tester.expectToHaveError = () => uiInputTester.expectToHaveClass('ui-input-error');
+
+                tester.clearIcon = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => getUiInput().querySelector('.ui-input-suffix-close')
+                    );
+
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0), spendTime(0));
+
+                    return tester;
+                })();
 
                 return tester;
             };
@@ -622,6 +885,8 @@ define(() => function ({
         return me;
     };
 
+    me.tooltip = testersFactory.createDomElementTester('.ui-tooltip-inner');
+
     me.statusesDurationItem = text => testersFactory.createDomElementTester(() => utils.descendantOfBody().
         textEquals(text).
         matchesSelector('.cmg-softphone--call-stats-status-duration .name').
@@ -640,6 +905,7 @@ define(() => function ({
             tester.click = () => {
                 click();
                 windowTester.endTransition();
+                spendTime(0);
             };
 
             return tester;
@@ -683,12 +949,91 @@ define(() => function ({
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
     };
 
+    me.chatMarkingRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectToHavePath('$REACT_APP_BASE_URL/chat/mark').
+                    expectBodyToContain({
+                        id: 7189362,
+                        mark_ids: [587, undefined]
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: true
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    }
+
+    me.resourcePayloadRequest = () => {
+        const addResponseModifiers = me => me;
+
+        let id = '5829572',
+            response = 'glg5lg5j8mcrj3o8f';
+
+        return addResponseModifiers({
+            anotherFile() {
+                id = '5829573';
+                response = '8gj23o2u4g2j829sk';
+                return this;
+            },
+
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('GET').
+                    expectPathToContain('$REACT_APP_BASE_URL/resource/payload').
+                    expectQueryToContain({ id });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.messageListRequest = () => {
         let params = {
             visitor_id: 16479303
         };
 
         let data = [{
+            id: 482057,
+            source: 'visitor',
+            text: 'Здравствуйте',
+            date: '2020-02-10 12:12:14',
+            status: 'delivered',
+            chat_id: 2718935,
+            reply_to: null,
+            resource: null,
+            reourceName: null,
+            employee_id: 20816,
+            employee_name: 'Карадимова Веска Анастасовна',
+            visitor_name: 'Помакова Бисерка Драгановна',
+            front_message_uuid: '228gj24og824jgo9d',
+            error_mnemonic: null
+        }, {
             id: 482058,
             source: 'operator',
             text: 'Привет',
@@ -705,7 +1050,90 @@ define(() => function ({
             error_mnemonic: null
         }];
 
-        return {
+        const getPage = i => {
+            const interval = (1000 * 60 * 60 * 6) + (5 * 1000 * 60) + (12 * 1000) + 231,
+                length = i + 50;
+            data = [];
+
+            let date = new Date('2019-12-19T12:00:00');
+            date = new Date(date.getTime() - (interval * 0));
+
+            for (; i < length; i ++) {
+                const index = i * 2,
+                    number = i + 1;
+
+                date = new Date(date.getTime() + interval);
+
+                data.push({
+                    id: 492057 + index,
+                    source: 'visitor',
+                    text: `Пинг # ${number}`,
+                    date: utils.formatDate(date),
+                    status: 'delivered',
+                    chat_id: 2718935,
+                    reply_to: null,
+                    resource: null,
+                    reourceName: null,
+                    employee_id: 20816,
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    front_message_uuid: '228gj24og824jgo9d',
+                    error_mnemonic: null
+                });
+
+                date = new Date(date.getTime() + interval);
+
+                data.push({
+                    id: 492058 + index,
+                    source: 'operator',
+                    text: `Понг # ${number}`,
+                    date: utils.formatDate(date),
+                    status: 'delivered',
+                    chat_id: 2718935,
+                    reply_to: null,
+                    resource: null,
+                    resourceName: null,
+                    employee_id: 20816,
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    front_message_uuid: '228gj24og824jgo8d',
+                    error_mnemonic: null
+                });
+            }
+
+            data.reverse();
+
+            return me;
+        };
+
+        const addResponseModifiers = me => {
+            me.firstPage = () => (getPage(50), me);
+
+            me.reply = () => {
+                data[1].reply_to = {
+                    id: 482061,
+                    source: 'visitor',
+                    text: 'Как дела?',
+                    date: '2020-01-10 12:10:16',
+                    status: 'delivered',
+                    chat_id: 2718935,
+                    reply_to: null,
+                    resource: null,
+                    reourceName: null,
+                    employee_id: 20816,
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    front_message_uuid: '8g28929d8j44jgo9d',
+                    error_mnemonic: null
+                };
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
             anotherChat() {
                 params = {
                     chat_id: 2718936
@@ -726,21 +1154,28 @@ define(() => function ({
                 return this;
             },
 
-            receiveResponse() {
-                ajax.recentRequest().
-                    expectToHaveMethod('POST').
-                    expectPathToContain('$REACT_APP_BASE_URL').
-                    expectBodyToContain({
-                        method: 'get_message_list',
-                        params
-                    }).respondSuccessfullyWith({
-                        result: {data}
-                    });
+            expectToBeSent() {
+                return addResponseModifiers({
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectToHaveMethod('POST').
+                            expectPathToContain('$REACT_APP_BASE_URL').
+                            expectBodyToContain({
+                                method: 'get_message_list',
+                                params
+                            }).respondSuccessfullyWith({
+                                result: {data}
+                            });
 
-                Promise.runAll(false, true);
-                spendTime(0)
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
             }
-        };
+        });
     };
 
     me.operatorStatusUpdateRequest = () => ({
@@ -773,7 +1208,12 @@ define(() => function ({
             },
 
             anotherMessage() {
-                params.message_id = 482058;
+                params.message_id = 482057;
+                return this;
+            },
+
+            thirdMessage() {
+                params.message_id = 492255;
                 return this;
             },
 
@@ -891,7 +1331,7 @@ define(() => function ({
                     is_operator: false,
                     resource_type: null
                 },
-                mark_ids: ['316', '579'],
+                mark_ids: ['587', '212'],
                 phone: null,
                 site_id: 4663,
                 status: 'active',
@@ -1250,10 +1690,12 @@ define(() => function ({
                     expectBodyToContain(bodyParams).
                     respondSuccessfullyWith(true);
 
-                Promise.runAll(false, true);
+                spendTime(0);
 
                 utils.isVisible(utils.querySelector('.clct-modal, .ui-modal')) &&
                     mainTester.modalWindow.endTransition();
+
+                spendTime(0);
             }
         };
     };
@@ -1284,7 +1726,7 @@ define(() => function ({
                     expectPathToContain(`/sup/api/v1/users/me/calls/980925444/marks/${id}`).
                     respondSuccessfullyWith(true);
 
-                Promise.runAll(false, true);
+                spendTime(0);
             }
         };
     };
@@ -1339,6 +1781,7 @@ define(() => function ({
                     receiveResponse() {
                         request.respondSuccessfullyWith(response);
                         Promise.runAll(false, true);
+                        spendTime(0);
                     }
                 };
             }
@@ -1436,7 +1879,16 @@ define(() => function ({
             'X-Auth-Type': 'jwt'
         };
 
-        const addResponseModifiers = me => (me.noInCallCount = () => (delete(data.in_call_count), me), me)
+        const addResponseModifiers = me => {
+            me.noInCallCount = () => (delete(data.in_call_count), me);
+
+            me.anotherAvailableStatusDuration = () => {
+                data.status_1_duration = 61410 + 24 * 60 * 60;
+                return me;
+            };
+
+            return me
+        };
 
         return addResponseModifiers({
             anotherAuthorizationToken() {
@@ -1478,7 +1930,7 @@ define(() => function ({
             search: '',
             is_strict_date_till: '0',
             with_names: undefined,
-            from: undefined,
+            from: '2019-09-19T00:00:00.000+03:00',
             to: '2019-12-19T23:59:59.999+03:00',
             call_directions: undefined,
             call_types: undefined,
@@ -1515,6 +1967,7 @@ define(() => function ({
             phone_book_contact_id: null,
             direction: 'out',
             duration: 21,
+            contact_id: 1689283,
             contact_name: 'Манова Тома',
             crm_contact_link: null,
             is_failed: false,
@@ -1533,6 +1986,8 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.shortPhoneNumber = () => ((processors.push(data => (data[0].number = '56123'))), me)
+            me.chilePhoneNumber = () => ((processors.push(data => (data[0].number = '56123456789'))), me)
             me.duplicatedCallSessionId = () => (processors.push(data => (data[1].call_session_id = 980925444)), me);
             me.isFailed = () => (processors.push(data => data.forEach(item => (item.is_failed = true))), me);
             me.noContactName = () => (processors.push(data => (data[0].contact_name = null)), me);
@@ -1585,6 +2040,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            fromHalfOfTheYearAgo() {
+                params.from = '2019-06-19T00:00:00.000+03:00';
+                return this;
+            },
+
             fromFirstWeekDay() {
                 params.from = '2019-12-16T00:00:00.000+03:00';
                 return this;
@@ -1648,7 +2108,7 @@ define(() => function ({
                     expectQueryToContain(params);
 
                 return addResponseModifiers({
-                    receiveResponse: () => (receiveResponse(request), spendTime(0))
+                    receiveResponse: () => (receiveResponse(request), spendTime(0), spendTime(0))
                 });
             },
 
@@ -1716,7 +2176,7 @@ define(() => function ({
 
             receive() {
                 me.eventsWebSocket.receiveMessage(createMessage());
-                Promise.runAll(false, true);
+                spendTime(0);
             }
         };
     };
@@ -1767,6 +2227,12 @@ define(() => function ({
         });
 
         return {
+            knownContact: function () {
+                params.contact_id = 1689283;
+                params.crm_contact_link = null;
+                return this;
+            },
+            
             anotherContactNumber: function () {
                 params.contact_phone_number = '79161234570';
                 return this;
@@ -1843,13 +2309,13 @@ define(() => function ({
 
                 return {
                     expectToBeSent: () => me.recentCrosstabMessage().expectToContain(notification),
-                    receive: () => me.receiveCrosstabMessage(notification)
+                    receive: () => (me.receiveCrosstabMessage(notification), spendTime(0))
                 };
             },
 
             receive: () => {
                 me.eventsWebSocket.receiveMessage(createMessage());
-                Promise.runAll(false, true);
+                spendTime(0);
             } 
         };
     };
@@ -1885,6 +2351,11 @@ define(() => function ({
         return {
             intercept: function () {
                 numa = 88;
+                return this;
+            },
+
+            fourthPhoneNumber: function() {
+                numa = 79162729533; 
                 return this;
             },
 
@@ -2335,7 +2806,40 @@ define(() => function ({
             return {
                 receiveResponse() {
                     request.respondSuccessfullyWith({
-                        data: []
+                        data: [{
+                            id: 587,
+                            name: 'Нереализованная сделка',
+                            is_system: true,
+                            rating: 3
+                        }, {
+                            id: 212,
+                            name: 'Продажа',
+                            is_system: true,
+                            rating: 5
+                        }]
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.chatSettingsRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('$REACT_APP_BASE_URL/settings').
+                expectToHaveMethod('GET');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        is_contact_form_available: false
                     });
 
                     Promise.runAll(false, true);
@@ -2414,7 +2918,7 @@ define(() => function ({
                                             resource_type: null,
                                             resource_name: null
                                         },
-                                        mark_ids: ['316', '579'],
+                                        mark_ids: ['587', '212'],
                                         phone: null,
                                         site_id: 4663,
                                         status: 'new',
@@ -2462,14 +2966,12 @@ define(() => function ({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
                             result: {
-                                data: {
-                                    visitor_id: 16479303,
-                                    name: 'Помакова Бисерка Драгановна',
-                                    phones: ['79164725823'],
-                                    emails: ['pomakova@gmail.com'],
-                                    company: 'UIS',
-                                    comment: 'Некий посетитель'
-                                }
+                                visitor_id: 16479303,
+                                name: 'Помакова Бисерка Драгановна',
+                                phones: ['79164725823'],
+                                emails: ['pomakova@gmail.com'],
+                                company: 'UIS',
+                                comment: 'Некий посетитель'
                             } 
                         });
 
@@ -2521,6 +3023,47 @@ define(() => function ({
         });
     };
 
+    me.chatInfoRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/chat/info').
+                    expectToHaveMethod('GET').
+                    expectQueryToContain({
+                        chat_id: '7189362'
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            chat_channel_name: 'Некое имя канала',
+                            traffic_source: 'Некиий источник трафика',
+                            enter_page_url: 'https://somedomain.com/path/to/page',
+                            enter_page_domain: 'somedomain.com',
+                            utm_medium: 'smm',
+                            utm_source: 'yandex_direct',
+                            utm_campaign: 'deyskie_igrushki',
+                            utm_term: 'gde_kupit_igrushki',
+                            utm_referrer: 'example-source.com',
+                            utm_expid: '67183125-2',
+                            utm_concept: 'some_concept',
+                            ac_name: 'Некая рекламная кампания'
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatListRequest = () => {
         let total = 75;
 
@@ -2545,7 +3088,7 @@ define(() => function ({
                 resource_type: null,
                 resource_name: null
             },
-            mark_ids: ['316', '579'],
+            mark_ids: ['587', '212'],
             phone: null,
             site_id: 4663,
             status: 'new',
@@ -2566,7 +3109,7 @@ define(() => function ({
                 resource_type: null,
                 resource_name: null
             },
-            mark_ids: ['316', '579'],
+            mark_ids: ['587', '212'],
             phone: null,
             site_id: 4663,
             status: 'active',
@@ -2600,7 +3143,7 @@ define(() => function ({
                         resource_type: null,
                         resource_name: null
                     },
-                    mark_ids: ['316', '579'],
+                    mark_ids: ['587', '212'],
                     phone: null,
                     site_id: 4663,
                     status: 'active',
@@ -2699,7 +3242,7 @@ define(() => function ({
                         resource_type: null,
                         resource_name: null
                     },
-                    mark_ids: [],
+                    mark_ids: ['587', '212'],
                     phone: null,
                     site_id: 4663,
                     status: 'new',
@@ -2721,6 +3264,12 @@ define(() => function ({
             
             chat() {
                 chat(2718935);
+                return this;
+            },
+
+            chatForReport() {
+                chat(2718935);
+                params.statuses = ['new', 'active', 'closed', undefined];
                 return this;
             },
 
@@ -2749,6 +3298,8 @@ define(() => function ({
 
                         Promise.runAll(false, true);
                         spendTime(0)
+
+                        maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
                     }
                 });
             },
@@ -3140,6 +3691,7 @@ define(() => function ({
 
                         Promise.runAll(false, true);
                         spendTime(0)
+                        spendTime(0);
                     }
                 };
             },
@@ -7476,26 +8028,441 @@ define(() => function ({
         return request;
     };
 
-    me.phoneBookContactsRequest = () => {
-        let total = 250,
+    me.contactRequest = () => {
+        const addResponseModifiers = me => me;
+        let id = 1689283;
+
+        const response = {
+            first_name: 'Грета',
+            last_name: 'Бележкова',
+            id: 1689283,
+            email_list: ['endlesssprinп.of@comagic.dev'],
+            messenger_list: [
+                { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
+                { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
+            ],
+            organization_name: 'UIS',
+            phone_list: ['79162729533'],
+            group_list: [],
+            personal_manager_id: 583783,
+            patronymic: 'Ервиновна',
+            full_name: 'Бележкова Грета Ервиновна'
+        };
+
+        const processors = [];
+
+        return addResponseModifiers({
+            noPersonalManager() {
+                processors.push(() => (response.personal_manager_id = null));
+                return this;
+            },
+
+            anotherContact() {
+                id = response.id = 1689290;
+
+                response.first_name = 'Калиса';
+                response.last_name = 'Белоконска-Вражалска';
+                response.email_list = ['belokonska-vrazhelska@gmail.com'];
+                response.organization_name = 'UIS';
+                response.phone_list = ['79162729534'];
+                response.patronymic = 'Еньовна';
+                response.full_name = 'Белоконска-Вражалска Калиса Еньовна';
+                response.personal_manager_id = 79582;
+
+                response.messenger_list = [
+                    { type: 'whatsapp', phone: '+7 (928) 381 09-89' },
+                    { type: 'whatsapp', phone: '+7 (928) 381 09-29' },
+                ];
+
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        processors.forEach(process => process());
+
+                        request.respondSuccessfullyWith({
+                            data: [response],
+                            total_count: 1
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.contactCommunicationsRequest = () => {
+        let id = 1689283;
+
+        const queryParams = {
+            limit: '100',
+            from_start_time: '2019-12-19T12:10:07.000+03:00',
+            scroll_direction: 'backward'
+        };
+
+        const response = {
+            data: [{
+                id: 482057,
+                start_time: '2020-02-10 12:12:14',
+                communication_type: 'chat_message',
+                data: {
+                    chat_id: 2718935,
+                    is_operator: false,
+                    message_text: 'Здравствуйте',
+                    operator_name: 'Карадимова Веска Анастасовна',
+                }
+            }, {
+                id: 482058,
+                start_time: '2020-02-10 12:13:14',
+                communication_type: 'chat_message',
+                data: {
+                    chat_id: 2718935,
+                    is_operator: true,
+                    message_text: 'Привет',
+                    operator_name: 'Карадимова Веска Анастасовна'
+                }
+            }, {
+                id: 482060,
+                start_time: '2020-02-10 12:14:14',
+                communication_type: 'call',
+                data: {
+                    direction: 'in',
+                    talk_duration: 42820,
+                    numa: '79161234567',
+                    talk_record_file_link:
+                        'https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/'
+                }
+            }, {
+                id: 482060,
+                start_time: '2020-02-10 12:15:14',
+                communication_type: 'chat_message',
+                data: {
+                    chat_id: 2718935,
+                    is_operator: true,
+                    message_text: '',
+                    operator_name: 'Карадимова Веска Анастасовна',
+                    resource: {
+                        id: 5829572,
+                        type: 'photo',
+                        mime_type: 'image/png',
+                        file_name: 'heart.png',
+                        size: 925,
+                        width: 48,
+                        height: 48,
+                        duration: null
+                    }
+                }
+            }]
+        };
+
+        const getPage = ({
+            end,
+            total,
+            count
+        }) => {
+            const interval = (1000 * 60 * 60 * 6) + (5 * 1000 * 60) + (12 * 1000) + 231,
+                data = [],
+                start = end - count;
+            
+            let i = start;
+
+            let date = new Date('2019-12-19T12:00:00');
+            date = new Date(date.getTime() - (interval * (total - start) * 2));
+
+            for (; i < end; i ++) {
+                const index = i * 2,
+                    number = i + 1;
+
+                date = new Date(date.getTime() + interval);
+
+                data.push({
+                    id: 492057 + index,
+                    start_time: utils.formatDate(date),
+                    communication_type: 'chat_message',
+                    data: {
+                        chat_id: 2718935,
+                        is_operator: false,
+                        message_text: `Пинг # ${number}`,
+                        operator_name: 'Карадимова Веска Анастасовна',
+                    }
+                });
+
+                date = new Date(date.getTime() + interval);
+
+                data.push({
+                    id: 492058 + index,
+                    start_time: utils.formatDate(date),
+                    communication_type: 'chat_message',
+                    data: {
+                        chat_id: 2718935,
+                        is_operator: true,
+                        message_text: `Понг # ${number}`,
+                        operator_name: 'Карадимова Веска Анастасовна',
+                    }
+                });
+            }
+
+            return data;
+        };
+
+        const addResponseModifiers = me => {
+            me.audioAttachment = () => {
+                response.data[2].communication_type = 'chat_message';
+
+                response.data[2].data = {
+                    chat_id: 2718935,
+                    is_operator: true,
+                    message_text: '',
+                    operator_name: 'Карадимова Веска Анастасовна',
+                    resource: {
+                        id: 5829573,
+                        type: 'audio',
+                        mime_type: 'audio/mpeg',
+                        file_name: 'call.mp3',
+                        size: 925,
+                        width: null,
+                        height: null,
+                        duration: 42820
+                    }
+                };
+
+                return me;
+            };
+
+            me.noTalkRecordFileLink = () => {
+                response.data[2].data.talk_record_file_link = null;
+                return me;
+            };
+
+            me.noData = () => {
+                response.data = [];
+                return me;
+            };
+
+            me.firstPage = () => {
+                response.data = getPage({
+                    end: 100,
+                    total: 100,
+                    count: 50
+                });
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            secondPage() {
+                response.data = getPage({
+                    end: 50,
+                    total: 100,
+                    count: 50
+                });
+
+                queryParams.from_start_time = '2019-11-24T09:24:49.131+03:00'
+                return this;
+            },
+
+            anotherContact() {
+                id = 1689290;
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/communications`).
+                    expectQueryToContain(queryParams).
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        Array.isArray(response.data) && response.data.reverse();
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+
+                        maybeRunSpinWrapperIntersectionCallback(getContactCommunicationsSpinWrapper());
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.contactUpdatingRequest = () => {
+        const addResponseModifiers = me => me,
+            processors = [];
+        let bodyParams = {},
+            id = 1689283;
+
+        return addResponseModifiers({
+            anotherContactId() {
+                id = 1789283;
+                return this;
+            },
+
+            completeData() {
+                bodyParams = {
+                    first_name: 'Грета',
+                    last_name: 'Бележкова',
+                    email_list: ['endlesssprinп.of@comagic.dev', undefined],
+                    messenger_list: [
+                        { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
+                        { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
+                        undefined
+                    ],
+                    organization_name: 'UIS',
+                    phone_list: ['79162729533', undefined],
+                    group_list: [undefined],
+                    personal_manager_id: 583783,
+                    patronymic: 'Ервиновна',
+                };
+
+                return this;
+            },
+
+            anotherPersonalManager() {
+                processors.push(bodyParams => (bodyParams.personal_manager_id = 82756));
+                return this;
+            },
+
+            anotherName() {
+                processors.push(bodyParams => {
+                    bodyParams.first_name = 'Роза';
+                    bodyParams.last_name = 'Неделчева';
+                    bodyParams.patronymic = 'Ангеловна';
+                });
+
+                return this;
+            },
+
+            anotherPhoneNumber() {
+                processors.push(bodyParams => (bodyParams.phone_list = ['79162729534', undefined]));
+                return this;
+            },
+
+            twoPhoneNumbers() {
+                processors.push(bodyParams =>
+                    (bodyParams.phone_list = ['79162729533', '79162729534', undefined]));
+                return this;
+            },
+
+            noPhoneNumbers() {
+                processors.push(bodyParams => (bodyParams.phone_list = [undefined]));
+                return this;
+            },
+
+            twoEmails() {
+                processors.push(bodyParams =>
+                    (bodyParams.email_list = ['endlesssprinп.of@comagic.dev', 'belezhkova@gmail.com', undefined]));
+                return this;
+            },
+            
+            expectToBeSent() {
+                processors.forEach(process => process(bodyParams));
+
+                const request = ajax.recentRequest().
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHaveMethod('PUT').
+                    expectBodyToContain(bodyParams);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith({
+                            data: true 
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.contactCreatingRequest = () => {
+        const response = {
+            contact_id: 1689283
+        };
+
+        const bodyParams = {
+            last_name: 'Неделчева',
+            phone_list: ['74950230625', undefined]
+        };
+
+        const addResponseModifiers = me => {
+            me.anotherContactId = () => ((response.contact_id = 1789283), me);
+            return me;
+        };
+
+        return addResponseModifiers({
+            anotherPhoneNumber() {
+                bodyParams.phone_list[0] = '79161234567';
+                return this;
+            },
+
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts`).
+                    expectToHaveMethod('POST').
+                    expectBodyToContain(bodyParams);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.contactsRequest = () => {
+        let total_count = 250,
             token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
 
         const params = {
             limit: '100',
             from_id: undefined,
+            from_full_name: undefined,
             scroll_direction: 'forward',
             search: undefined
         };
 
         const initialData = [{
-            emails: 'toncheva@gmail.com',
-            first_name: 'Десислава',
-            full_name: 'Тончева Десислава Пламеновна',
-            id: 2512832,
-            last_name: 'Тончева',
-            patronymic: 'Пламеновна',
-            phones: '79055023552'
-        }, {
             emails: 'balkanska@gmail.com',
             first_name: 'Ралица',
             full_name: 'Балканска Ралица Кубратовна',
@@ -7503,6 +8470,14 @@ define(() => function ({
             last_name: 'Балканска',
             patronymic: 'Кубратовна',
             phones: '2342342342300, 38758393745'
+        }, {
+            emails: 'ancheva@gmail.com',
+            first_name: 'Десислава',
+            full_name: 'Анчева Десислава Пламеновна',
+            id: 2512832,
+            last_name: 'Анчева',
+            patronymic: 'Пламеновна',
+            phones: '79055023552'
         }];
 
         const getAdditionalData = ({skipCount = 0, count}) => {
@@ -7516,7 +8491,8 @@ define(() => function ({
                 data.push({
                     emails: 'paskaleva@gmail.com',
                     first_name: 'Бисера',
-                    full_name: `Паскалева Бисера Илковна #${number}`,
+                    full_name:
+                        `Паскалева Бисера Илковна #${new Array(3 - (number + '').length).fill(0).join('')}${number}`,
                     id: id,
                     last_name: 'Паскалева',
                     patronymic: 'Илковна',
@@ -7536,10 +8512,39 @@ define(() => function ({
 
         let respond = request => request.respondSuccessfullyWith({
             data: getData(),
-            total
+            total_count
         });
 
         const addResponseModifiers = me => {
+            me.oneItem = () => {
+                total_count = 1;
+
+                getData = () => [{
+                    emails: 'paskaleva@gmail.com',
+                    first_name: 'Бисера',
+                    full_name: 'Паскалева Бисера Илковна',
+                    id: id,
+                    last_name: 'Паскалева',
+                    patronymic: 'Илковна',
+                    phones: '79162729533'
+                }];
+
+                return me;
+            };
+
+            me.noData = () => {
+                total_count = 0;
+                getData = () => [];
+                return me;
+            };
+
+            me.failed = () => {
+                respond = request =>
+                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+
+                return me;
+            };
+            
             me.accessTokenExpired = () => {
                 respond = request => request.respond({
                     status: 401,
@@ -8162,12 +9167,13 @@ define(() => function ({
             },
 
             search() {
-                params.search = 'пас';
+                params.search = 'паска';
                 return this;
             },
 
             secondPage() {
                 params.from_id = '315476';
+                params.from_full_name = 'Паскалева Бисера Илковна #100';
 
                 getData = () => getAdditionalData({
                     count: 100,
@@ -8179,6 +9185,7 @@ define(() => function ({
 
             thirdPage() {
                 params.from_id = '315576';
+                params.from_full_name = 'Паскалева Бисера Илковна #200';
 
                 getData = () => getAdditionalData({
                     count: 50,
@@ -8188,9 +9195,18 @@ define(() => function ({
                 return this;
             },
 
+            fourthPage() {
+                params.from_id = '315626';
+                params.from_full_name = 'Паскалева Бисера Илковна #250';
+
+                getData = () => [];
+
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/phone_book/contacts').
+                    expectToHavePath('$REACT_APP_BASE_URL/contacts').
                     expectToHaveMethod('GET').
                     expectToHaveHeaders({
                         'X-Auth-Token': token,
@@ -8205,6 +9221,793 @@ define(() => function ({
                         Promise.runAll(false, true);
                         spendTime(0)
                         spendTime(0)
+
+                        maybeRunSpinWrapperIntersectionCallback(getSpinWrapper());
+                    }
+                });
+
+                return me;
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.contactsRequest = () => {
+        let total_count = 250,
+            token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+
+        const params = {
+            limit: '100',
+            from_id: undefined,
+            from_full_name: undefined,
+            scroll_direction: 'forward',
+            search: undefined
+        };
+
+        const initialData = [{
+            emails: 'balkanska@gmail.com',
+            first_name: 'Ралица',
+            full_name: 'Балканска Ралица Кубратовна',
+            id: 315378,
+            last_name: 'Балканска',
+            patronymic: 'Кубратовна',
+            phones: '2342342342300, 38758393745'
+        }, {
+            emails: 'ancheva@gmail.com',
+            first_name: 'Десислава',
+            full_name: 'Анчева Десислава Пламеновна',
+            id: 2512832,
+            last_name: 'Анчева',
+            patronymic: 'Пламеновна',
+            phones: '79055023552'
+        }];
+
+        const getAdditionalData = ({skipCount = 0, count}) => {
+            const firstId = skipCount + 315377,
+                lastId = count + firstId,
+                data = [];
+
+            let number = 1 + skipCount;
+
+            for (id = firstId; id < lastId; id ++) {
+                data.push({
+                    emails: 'paskaleva@gmail.com',
+                    first_name: 'Бисера',
+                    full_name:
+                        `Паскалева Бисера Илковна #${new Array(3 - (number + '').length).fill(0).join('')}${number}`,
+                    id: id,
+                    last_name: 'Паскалева',
+                    patronymic: 'Илковна',
+                    phones: '79162729533'
+                });
+
+                number ++;
+            }
+
+            return data;
+        };
+
+        let getData = () => initialData.concat(getAdditionalData({
+            count: 98,
+            skipCount: 2
+        }));
+
+        let respond = request => request.respondSuccessfullyWith({
+            data: getData(),
+            total_count
+        });
+
+        const addResponseModifiers = me => {
+            me.oneItem = () => {
+                total_count = 1;
+
+                getData = () => [{
+                    emails: 'paskaleva@gmail.com',
+                    first_name: 'Бисера',
+                    full_name: 'Паскалева Бисера Илковна',
+                    id: id,
+                    last_name: 'Паскалева',
+                    patronymic: 'Илковна',
+                    phones: '79162729533'
+                }];
+
+                return me;
+            };
+
+            me.noData = () => {
+                total_count = 0;
+                getData = () => [];
+                return me;
+            };
+
+            me.failed = () => {
+                respond = request =>
+                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+
+                return me;
+            };
+            
+            me.accessTokenExpired = () => {
+                respond = request => request.respond({
+                    status: 401,
+                    statusText: 'access_token_expired',
+                    responseText: ''
+                });
+
+                return me;
+            };
+
+            me.differentNames = () => ((getData = () => [{
+                first_name: 'Берислава',
+                last_name: 'Балканска',
+                id: 1689299,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Силаговна',
+                full_name: 'Балканска Берислава Силаговна'
+            }, {
+                first_name: 'Грета',
+                last_name: 'Бележкова',
+                id: 1689283,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Ервиновна',
+                full_name: 'Бележкова Грета Ервиновна'
+            }, {
+                first_name: 'Калиса',
+                last_name: 'Белоконска-Вражалска',
+                id: 1689290,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Еньовна',
+                full_name: 'Белоконска-Вражалска Калиса Еньовна'
+            }, {
+                first_name: 'Джиневра',
+                last_name: 'Вампирска',
+                id: 1689277,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Ериновна',
+                full_name: 'Вампирска Джиневра Ериновна'
+            }, {
+                first_name: 'Дилмана',
+                last_name: 'Васовa',
+                id: 1689276,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Златовна',
+                full_name: 'Васовa Дилмана Златовна'
+            }, {
+                first_name: 'Пелина',
+                last_name: 'Габровлиева',
+                id: 1689308,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Левовна',
+                full_name: 'Габровлиева Пелина Левовна'
+            }, {
+                first_name: 'Дея',
+                last_name: 'Градинарова',
+                id: 1689298,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Колониновна',
+                full_name: 'Градинарова Дея Колониновна'
+            }, {
+                first_name: 'Станиела',
+                last_name: 'Дачева',
+                id: 1689317,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Йоан-Александъровна',
+                full_name: 'Дачева Станиела Йоан-Александъровна'
+            }, {
+                first_name: 'Щедра',
+                last_name: 'Ждракова',
+                id: 1689319,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Геньовна',
+                full_name: 'Ждракова Щедра Геньовна'
+            }, {
+                first_name: 'Малена',
+                last_name: 'Илиева',
+                id: 1689306,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Боиловна',
+                full_name: 'Илиева Малена Боиловна'
+            }, {
+                first_name: 'Доча',
+                last_name: 'Йоткова',
+                id: 1689309,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Галиеновна',
+                full_name: 'Йоткова Доча Галиеновна'
+            }, {
+                first_name: 'Станиела',
+                last_name: 'Катърова',
+                id: 1689293,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Севелиновна',
+                full_name: 'Катърова Станиела Севелиновна'
+            }, {
+                first_name: 'Алексиа',
+                last_name: 'Кокошкова',
+                id: 1689287,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Петраковна',
+                full_name: 'Кокошкова Алексиа Петраковна'
+            }, {
+                first_name: 'Максимилияна',
+                last_name: 'Контопишева',
+                id: 1689304,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Божовна',
+                full_name: 'Контопишева Максимилияна Божовна'
+            }, {
+                first_name: 'Стоянка',
+                last_name: 'Коритарова',
+                id: 1689274,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Лиляновна',
+                full_name: 'Коритарова Стоянка Лиляновна'
+            }, {
+                first_name: 'Заека',
+                last_name: 'Кривошапкова',
+                id: 1689292,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Яниславовна',
+                full_name: 'Кривошапкова Заека Яниславовна'
+            }, {
+                first_name: 'Никоела',
+                last_name: 'Крушовска',
+                id: 1689302,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Флориановна',
+                full_name: 'Крушовска Никоела Флориановна'
+            }, {
+                first_name: 'Гримяна',
+                last_name: 'Куртажова',
+                id: 1689301,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Елвисовна',
+                full_name: 'Куртажова Гримяна Елвисовна'
+            }, {
+                first_name: 'Адрианиа',
+                last_name: 'Куртакова',
+                id: 1689300,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Владиленовна',
+                full_name: 'Куртакова Адрианиа Владиленовна'
+            }, {
+                first_name: 'Любина',
+                last_name: 'Курухубева',
+                id: 1689289,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Левчовна',
+                full_name: 'Курухубева Любина Левчовна'
+            }, {
+                first_name: 'Аксентия',
+                last_name: 'Кучкуделова',
+                id: 1689282,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Золтановна',
+                full_name: 'Кучкуделова Аксентия Золтановна'
+            }, {
+                first_name: 'Върбунка',
+                last_name: 'Луланкова',
+                id: 1689321,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Ованесовна',
+                full_name: 'Луланкова Върбунка Ованесовна'
+            }, {
+                first_name: 'Гълъбица',
+                last_name: 'Мангъфова',
+                id: 1689280,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Ветковна',
+                full_name: 'Мангъфова Гълъбица Ветковна'
+            }, {
+                first_name: 'Миранза',
+                last_name: 'Многознаева',
+                id: 1689275,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Денизовна',
+                full_name: 'Многознаева Миранза Денизовна'
+            }, {
+                first_name: 'Цветилена',
+                last_name: 'Муева',
+                id: 1689318,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Елиасовна',
+                full_name: 'Муева Цветилена Елиасовна'
+            }, {
+                first_name: 'Лариса',
+                last_name: 'Мустакова',
+                id: 1689314,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Христофоровна',
+                full_name: 'Мустакова Лариса Христофоровна'
+            }, {
+                first_name: 'Луна',
+                last_name: 'Пачаръзка',
+                id: 1689286,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Пантюовна',
+                full_name: 'Пачаръзка Луна Пантюовна'
+            }, {
+                first_name: 'Симона',
+                last_name: 'Певецова',
+                id: 1689296,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Златьовна',
+                full_name: 'Певецова Симона Златьовна'
+            }, {
+                first_name: 'Щедра',
+                last_name: 'Пенджакова',
+                id: 1689295,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Хавтелиновна',
+                full_name: 'Пенджакова Щедра Хавтелиновна'
+            }, {
+                first_name: 'Гюргя',
+                last_name: 'Пищовколева',
+                id: 1689310,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Ърчовна',
+                full_name: 'Пищовколева Гюргя Ърчовна'
+            }, {
+                first_name: 'Богдалина',
+                last_name: 'Плюнкова',
+                id: 1689303,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Ламбовна',
+                full_name: 'Плюнкова Богдалина Ламбовна'
+            }, {
+                first_name: 'Цветилена',
+                last_name: 'Плюцова',
+                id: 1689294,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Хорозовна',
+                full_name: 'Плюцова Цветилена Хорозовна'
+            }, {
+                first_name: 'Люляна',
+                last_name: 'Пръндачка',
+                id: 1689278,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Марушовна',
+                full_name: 'Пръндачка Люляна Марушовна'
+            }, {
+                first_name: 'Дорина',
+                last_name: 'Първанова',
+                id: 1689312,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Теодосийовна',
+                full_name: 'Първанова Дорина Теодосийовна'
+            }, {
+                first_name: 'Жичка',
+                last_name: 'Пътечкова',
+                id: 1689311,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Рогеновна',
+                full_name: 'Пътечкова Жичка Рогеновна'
+            }, {
+                first_name: 'Касиди',
+                last_name: 'Сапунджиева',
+                id: 1689313,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Ромеовна',
+                full_name: 'Сапунджиева Касиди Ромеовна'
+            }, {
+                first_name: 'Любослава',
+                last_name: 'Скринска',
+                id: 1689316,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Албертовна',
+                full_name: 'Скринска Любослава Албертовна'
+            }, {
+                first_name: 'Наташа',
+                last_name: 'Сланинкова',
+                id: 1689291,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Петринеловна',
+                full_name: 'Сланинкова Наташа Петринеловна'
+            }, {
+                first_name: 'Миглена',
+                last_name: 'Сопаджиева',
+                id: 1689285,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Генчовна',
+                full_name: 'Сопаджиева Миглена Генчовна'
+            }, {
+                first_name: 'Заека',
+                last_name: 'Стойкова',
+                id: 1689322,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Ирмовна',
+                full_name: 'Стойкова Заека Ирмовна'
+            }, {
+                first_name: 'Нани',
+                last_name: 'Таралингова',
+                id: 1689305,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Геровна',
+                full_name: 'Таралингова Нани Геровна'
+            }, {
+                first_name: 'Върбунка',
+                last_name: 'Тодорова',
+                id: 1689297,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Кирковна',
+                full_name: 'Тодорова Върбунка Кирковна'
+            }, {
+                first_name: 'Флорика',
+                last_name: 'Точева-Клопова',
+                id: 1689273,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Филковна',
+                full_name: 'Точева-Клопова Флорика Филковна'
+            }, {
+                first_name: 'Оливера',
+                last_name: 'Чанлиева',
+                id: 1689281,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Якововна',
+                full_name: 'Чанлиева Оливера Якововна'
+            }, {
+                first_name: 'Адра',
+                last_name: 'Червенкова',
+                id: 1689315,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Форовна',
+                full_name: 'Червенкова Адра Форовна'
+            }, {
+                first_name: 'Симона',
+                last_name: 'Чукова',
+                id: 1689320,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Гелемировна',
+                full_name: 'Чукова Симона Гелемировна'
+            }, {
+                first_name: 'Комара',
+                last_name: 'Чупетловска',
+                id: 1689307,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Заховна',
+                full_name: 'Чупетловска Комара Заховна'
+            }, {
+                first_name: 'Патриотка',
+                last_name: 'Шестакова',
+                id: 1689288,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Златковна',
+                full_name: 'Шестакова Патриотка Златковна'
+            }, {
+                first_name: 'Делиана',
+                last_name: 'Шкембова',
+                id: 1689284,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Хараламповна',
+                full_name: 'Шкембова Делиана Хараламповна'
+            }, {
+                first_name: 'Мелъди',
+                last_name: 'Яркова',
+                id: 1689279,
+                email_list: [],
+                messenger_list: [],
+                organization_name: 'UIS',
+                phone_list: ['79162729533'],
+                group_list: [],
+                personal_manager_id: 8539841,
+                patronymic: 'Хрисовна',
+                full_name: 'Яркова Мелъди Хрисовна'
+            }]), me);
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            anotherAuthorizationToken() {
+                token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+
+            search() {
+                params.search = 'паска';
+                return this;
+            },
+
+            secondPage() {
+                params.from_id = '315476';
+                params.from_full_name = 'Паскалева Бисера Илковна #100';
+
+                getData = () => getAdditionalData({
+                    count: 100,
+                    skipCount: 100
+                });
+
+                return this;
+            },
+
+            thirdPage() {
+                params.from_id = '315576';
+                params.from_full_name = 'Паскалева Бисера Илковна #200';
+
+                getData = () => getAdditionalData({
+                    count: 50,
+                    skipCount: 200
+                });
+
+                return this;
+            },
+
+            fourthPage() {
+                params.from_id = '315626';
+                params.from_full_name = 'Паскалева Бисера Илковна #250';
+
+                getData = () => [];
+
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath('$REACT_APP_BASE_URL/contacts').
+                    expectToHaveMethod('GET').
+                    expectToHaveHeaders({
+                        'X-Auth-Token': token,
+                        'X-Auth-Type': 'jwt'
+                    }).
+                    expectQueryToContain(params);
+
+                const me = addResponseModifiers({
+                    receiveResponse: () => {
+                        respond(request);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+
+                        maybeRunSpinWrapperIntersectionCallback(getSpinWrapper());
                     }
                 });
 
@@ -8363,6 +10166,13 @@ define(() => function ({
                             'is_insert': true,
                             'is_select': true,
                             'is_update': true,
+                        },
+                        {
+                            'unit_id': 'address_book',
+                            'is_delete': true,
+                            'is_insert': true,
+                            'is_select': true,
+                            'is_update': true,
                         }
                     ],
                     is_agent_app: false
@@ -8426,6 +10236,14 @@ define(() => function ({
             me.softphoneUnavailable = () => ((response.result.data.permissions =
                 response.result.data.permissions.filter(({unit_id}) => unit_id != 'softphone_login')), me);
 
+            me.addressBookUpdatingUnavailable = () => {
+                (response.result.data.permissions.find(
+                    ({ unit_id }) => unit_id == 'address_book'
+                ) || {}).is_update = false;
+
+                return me;
+            };
+
             return me;
         };
 
@@ -8467,6 +10285,8 @@ define(() => function ({
                         Promise.runAll(false, true);
                         spendTime(0)
                         spendTime(0)
+                        spendTime(0);
+                        spendTime(0);
                     }
                 });
 
@@ -8637,6 +10457,12 @@ define(() => function ({
         };
     };
 
+    me.outgoingCallEvent = () => ({
+        dispatch: () => {
+            me.eventBus.broadcast('outgoing_call', '79161234567');
+        }
+    });
+
     me.ipcPrompterCallAwaitMessage = () => {
         let data = null;
         
@@ -8700,7 +10526,15 @@ define(() => function ({
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
     me.incomingIcon = testersFactory.createDomElementTester('.incoming_svg__cmg-direction-icon');
     me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
-    me.holdButton = testersFactory.createDomElementTester('.cmg-hold-button');
+
+    me.holdButton = (() => {
+        const tester = testersFactory.createDomElementTester('.cmg-hold-button');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
 
     me.transferIncomingIcon = testersFactory.
         createDomElementTester('.transfer_incoming_successful_svg__cmg-direction-icon');
@@ -8711,7 +10545,7 @@ define(() => function ({
     me.transferButton = (tester => {
         const click = tester.click.bind(tester);
 
-        tester.click = () => (click(), Promise.runAll(false, true));
+        tester.click = () => (click(), spendTime(0));
         return tester;
     })(testersFactory.createDomElementTester('#cmg-transfer-button'));
 
@@ -8750,8 +10584,23 @@ define(() => function ({
     })();
 
     me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
-    me.addressBookButton = testersFactory.createDomElementTester('#cmg-address-book-button');
-    me.contactOpeningButton = testersFactory.createDomElementTester('#cmg-open-contact-button');
+
+    me.addressBookButton = (() => {
+        const tester = testersFactory.createDomElementTester('#cmg-address-book-button');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
+
+    me.contactOpeningButton = (() => {
+        const tester = testersFactory.createDomElementTester('#cmg-open-contact-button'),
+            click = tester.click.bind(tester);
+
+        tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
+        return tester;
+    })();
 
     me.employeeRow = text => (domElement => {
         const tester = testersFactory.createDomElementTester(domElement);
@@ -8769,6 +10618,166 @@ define(() => function ({
 
         return tester;
     })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
+
+    const addCommunicationPanelTestingMethods = selector => {
+        const getDomElement = () => utils.querySelector(selector, true),
+            tester = addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement),
+            downloadAnchors = new Set(),
+            noElement = new JsTester_NoElement();
+
+        tester.message = {
+            atTime: desiredTime => {
+                const getMessageElement = () => utils.descendantOf(getDomElement()).
+                    matchesSelector('.cm-chats--chat-history-message-time').
+                    textEquals(desiredTime).
+                    find().
+                    closest('.cm-chats--chat-history-message');
+
+                const tester = testersFactory.createDomElementTester(getMessageElement);
+
+                tester.expectToBeDelivered = () => testersFactory.createDomElementTester(
+                    () => getMessageElement().querySelector('.cm-chats--chat-history-message-text')
+                ).expectToHaveClass('cm-chats--is-delivered-message');
+                    
+                tester.expectToHaveNoStatus = () => testersFactory.createDomElementTester(
+                    () => getMessageElement().querySelector('.cm-chats--chat-history-message-text')
+                ).expectToHaveClass('cm-chats--is-unknown-message');
+
+                tester.preview = testersFactory.createDomElementTester(() =>
+                    getMessageElement().querySelector('.cm-chats--preview'));
+
+                tester.ellipsisButton = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => getMessageElement().querySelector('.cm-chats--download-popup-button')
+                    );
+
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0));
+
+                    return tester;
+                })();
+
+                const downloadAnchor = Array.prototype.find.call(
+                    getMessageElement().querySelectorAll('a'),
+                    domElement => domElement.style.display == 'none'
+                ) || noElement;
+
+                if (!downloadAnchors.has(downloadAnchor)) {
+                    downloadAnchors.add(downloadAnchor);
+                    downloadAnchor.addEventListener('click', event => event.preventDefault());
+                }
+
+                downloadAnchorTester = testersFactory.createAnchorTester(downloadAnchor);
+
+                tester.downloadedFile = {
+                    expectToHaveName: expectedName => {
+                        (downloadAnchor == noElement ? tester.downloadIcon : downloadAnchorTester).
+                            expectAttributeToHaveValue('download', expectedName);
+
+                        return tester.downloadedFile;
+                    },
+
+                    expectToHaveContent: expectedContent => {
+                        if (downloadAnchor == noElement) {
+                            tester.downloadIcon.expectHrefToBeBlobWithContent(expectedContent);
+                        } else {
+                            downloadAnchorTester.expectHrefToHaveHash(expectedContent);
+                        }
+
+                        return tester.downloadedFile;
+                    }
+                };
+
+                return addTesters(tester, getMessageElement);
+            }
+        };
+
+        return tester;
+    };
+
+    me.chatHistory = addCommunicationPanelTestingMethods('.cm-chats--chat-panel-history');
+
+    me.visitorPanel = (() => {
+        const getDomElement = () => utils.querySelector('.cm-chats--visitor-info-panel'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
+
+    me.contactBar = (() => {
+        const getContactBar = () => {
+            let contactBar = utils.querySelector('.cmg-softphone-contact-bar');
+            contactBar instanceof JsTester_NoElement && (contactBar = utils.querySelector('.cm-contacts-contact-bar'));
+
+            return contactBar;
+        };
+
+        const tester = testersFactory.createDomElementTester(getContactBar);
+
+        tester.closeButton = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => getContactBar().querySelector('.cm-contacts-contact-bar-title svg')
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
+
+        tester.section = label => {
+            const getSectionElement = () => utils.descendantOf(getContactBar()).
+                matchesSelector('.cm-contacts-contact-bar-section-header').
+                textContains(label).
+                find().
+                closest('.cm-contacts-contact-bar-section');
+
+            const tester = testersFactory.createDomElementTester(getSectionElement);
+
+            tester.option = text => {
+                const getOptionElement = () => utils.descendantOf(getSectionElement()).
+                    textEquals(text).
+                    matchesSelector('.cm-contacts-contact-bar-section-option').
+                    find();
+
+                const tester = testersFactory.createDomElementTester(getOptionElement),
+                    click = tester.click.bind(tester),
+                    putMouseOver = tester.putMouseOver.bind(tester);
+
+                tester.click = () => (click(), spendTime(0));
+                tester.putMouseOver = () => (putMouseOver(), spendTime(0));
+
+                tester.toolsIcon = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => utils.element(getOptionElement()).
+                            querySelector('.cm-contacts-contact-bar-option-tools svg')
+                    );
+
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0), spendTime(0));
+
+                    return tester;
+                })();
+
+                addTesters(tester, getOptionElement);
+                return tester;
+            };
+
+            const getContentElement = () => utils.element(getSectionElement()).
+                querySelector('.cm-contacts-contact-bar-section-content');
+
+            const getHeaderElement = () => utils.element(getSectionElement()).
+                querySelector('.cm-contacts-contact-bar-section-header');
+
+            tester.content = addTesters(testersFactory.createDomElementTester(getContentElement), getContentElement);
+            tester.header = addTesters(testersFactory.createDomElementTester(getHeaderElement), getHeaderElement);
+            
+            addTesters(tester, getSectionElement);
+            return tester;
+        };
+
+        return tester;
+    })();
 
     me.softphone = (getRootElement => {
         const tester = addTesters(
@@ -8788,14 +10797,22 @@ define(() => function ({
         );
 
         const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0));
+        tester.click = () => (click(), spendTime(0), spendTime(0));
 
         return tester;
     })();
 
     me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
-    me.collapsednessToggleButton = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
+
+    me.collapsednessToggleButton = (() => {
+        const tester = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
 
     const createCollapsedessButton = className => {
         const tester = testersFactory.createDomElementTester(`.${className}`),
@@ -8821,8 +10838,15 @@ define(() => function ({
             domElement.querySelector('.cm-chats--chat-click-area')
         );
 
-        const click = clickAreaTester.click.bind(clickAreaTester);
+        const click = clickAreaTester.click.bind(clickAreaTester),
+            scrollIntoView = tester.scrollIntoView.bind(tester);
+
         tester.click = click;
+
+        tester.scrollIntoView = () => {
+            scrollIntoView();
+            maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
+        };
 
         return tester;
     };
@@ -8837,8 +10861,17 @@ define(() => function ({
                 textEquals(name).
                 find());
 
+            const click = tester.click.bind(tester),
+                scrollIntoView = tester.scrollIntoView.bind(tester);
+
+            tester.click = () => (click(), spendTime(0), spendTime(0));
             tester.expectToBeSelected = () => tester.expectToHaveClass('cm-contacts-list-item-selected');
             tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-contacts-list-item-selected');
+
+            tester.scrollIntoView = () => {
+                scrollIntoView();
+                maybeRunSpinWrapperIntersectionCallback(getContactListSpinWrapper());
+            };
 
             return tester;
         };
@@ -8850,12 +10883,44 @@ define(() => function ({
     me.largeSizeButton = createCollapsedessButton('cmg-large-size-button');
     me.middleSizeButton = createCollapsedessButton('cmg-middle-size-button');
     me.smallSizeButton = createCollapsedessButton('cmg-small-size-button');
-    me.hideButton = testersFactory.createDomElementTester('.cmg-hide-button');
-    me.playerButton = testersFactory.createDomElementTester('.clct-audio-button');
-    me.otherChannelCallNotification = createRootTester('#cmg-another-sip-line-incoming-call-notification');
-    me.bugButton = testersFactory.createDomElementTester('.cmg-bug-icon');
     me.notificationSection = testersFactory.createDomElementTester('.cm-chats--chat-notifications');
     me.statusDurations = testersFactory.createDomElementTester('.cmg-softphone--call-stats-statuses-duration');
+
+    me.otherChannelCallNotification = (() => {
+        const tester = createRootTester('#cmg-another-sip-line-incoming-call-notification');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
+
+    me.hideButton = (() => {
+        const tester = testersFactory.createDomElementTester('.cmg-hide-button');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
+
+    me.playerButton = (() => {
+        const tester = testersFactory.createDomElementTester('.clct-audio-button');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
+
+    me.bugButton = (() => {
+        const tester = testersFactory.createDomElementTester('.cmg-bug-icon');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
+
+        return tester;
+    })();
 
     {
         const tester = testersFactory.createDomElementTester('.ui-select-popup-header .ui-icon'),
@@ -8905,7 +10970,7 @@ define(() => function ({
                 click = tester.click.bind(tester),
                 isSelected = () => !!domElement.querySelectorAll('.ui-icon')[1];
 
-            tester.click = () => (click(), Promise.runAll(false, true));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             const expectToBeVisible = tester.expectToBeVisible.bind(tester);
 

@@ -2,9 +2,7 @@ function JsTester_Factory () {
     this.createDebugger = function () {
         return new JsTester_Debugger();
     };
-    this.createUtils = function ({debug, intersectionObservations}) {
-        return new JsTester_Utils({debug, intersectionObservations});
-    };
+    this.createUtils = (...args) => new JsTester_Utils(...args);
     this.createDomElementTester = function (
         domElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
         genetiveDescription
@@ -1251,7 +1249,7 @@ function JsTester_MediaStreamsPlayingExpectationFactory (mediaStreamTracks) {
     };
 }
 
-function JsTester_MediaStreamsTester (options) {
+function JsTester_MediaStreamsTester ({spendTime, ...options}) {
     var createMediaStreamsPlayingExpectaion = options.mediaStreamsPlayingExpectaionFactory,
         playingMediaStreams = options.playingMediaStreams,
         mediaStreams = options.mediaStreams,
@@ -1267,6 +1265,7 @@ function JsTester_MediaStreamsTester (options) {
 
     this.setIsAbleToPlayThough = function (mediaStream) {
         mediaStreams.setIsAbleToPlayThough(mediaStream);
+        spendTime(0);
     };
 
     this.expectNoStreamToPlay = function () {
@@ -1661,14 +1660,20 @@ function JsTester_AudioContextMock (args) {
     };
 }
 
-function JsTester_AudioDecodingTester (audioDecodingTasks, factory) {
+function JsTester_AudioDecodingTester ({
+    audioDecodingTasks,
+    factory,
+    spendTime
+}) {
     this.failToDecodeAudio = function () {
         audioDecodingTasks.pop().failure();
         Promise.runAll(false, true);
     };
     this.accomplishAudioDecoding = function () {
         audioDecodingTasks.pop().callback();
-        Promise.runAll(false, true);
+
+        spendTime(0);
+        spendTime(0);
     };
     this.expectAudioDecodingToHappen = function () {
         audioDecodingTasks.pop();
@@ -1705,7 +1710,11 @@ function JsTester_AudioContextFactory (args) {
         ));
     };
     this.createAudioDecodingTester = function () {
-        return new JsTester_AudioDecodingTester(audioDecodingTasks, this);
+        return new JsTester_AudioDecodingTester({
+            audioDecodingTasks,
+            spendTime: args.spendTime,
+            factory: this
+        });
     };
     this.createAudioContext = function () {
         return new JsTester_AudioContextMock(args);
@@ -2930,8 +2939,14 @@ function JsTester_AudioProcessingTester (args) {
 }
 
 function JsTester_DisableableFunction (fn) {
+    const originalFn = fn;
+
     this.disable = function () {
         fn = function () {};
+    };
+
+    this.enable = function () {
+        fn = originalFn;
     };
 
     this.createFunctionCaller = function () {
@@ -3036,26 +3051,40 @@ function JsTester_MutationObserverMocker (factory) {
 
 function JsTester_IntersectionObserver ({
     callback,
-    intersectionObservations
+    intersectionObservations,
+    intersectionObservationHandlers
 }) {
-    var disableableFunction = new JsTester_DisableableFunction(callback);
-    callback = disableableFunction.createFunctionCaller();
-
     this.observe = function (domElement) {
-        !intersectionObservations.has(domElement) && intersectionObservations.set(domElement, []);
-        intersectionObservations.get(domElement).push(callback);
+        !intersectionObservations.has(domElement) && intersectionObservations.set(domElement, new Set());
+        intersectionObservations.get(domElement).add(callback);
+
+        Promise.resolve().then(() => {
+            const uniqueHandlers = new Set();
+
+            intersectionObservationHandlers.forEach(
+                (handlers, getDomElement) =>
+                    domElement && getDomElement() == domElement &&
+                    handlers.forEach(handle => uniqueHandlers.add(handle))
+            );
+
+            uniqueHandlers.forEach(handle => handle(domElement));
+        });
     };
 
-    this.unobserve = function () {
-        disableableFunction.disable();
+    this.unobserve = function (domElement) {
+        intersectionObservations.get(domElement)?.delete(callback);
     };
 }
 
-function JsTester_IntersectionObserverFactory (intersectionObservations) {
+function JsTester_IntersectionObserverFactory ({
+    intersectionObservations,
+    intersectionObservationHandlers
+}) {
     return function (callback) {
         return new JsTester_IntersectionObserver({
             callback,
-            intersectionObservations
+            intersectionObservations,
+            intersectionObservationHandlers
         });
     };
 }
@@ -3069,6 +3098,39 @@ function JsTester_IntersectionObserverMocker (FakeIntersectionObserver) {
 
     this.restoreReal = function () {
         window.IntersectionObserver = RealIntersectionObserver;
+    };
+}
+
+function JsTester_IntersectionObservableTester ({
+    utils,
+    getDomElement,
+    intersectionObservations,
+    intersectionObservationHandlers
+}) {
+    getDomElement = utils.makeDomElementGetter(getDomElement);
+
+    this.onObserve = function (handler) {
+        !intersectionObservationHandlers.has(getDomElement) && intersectionObservationHandlers.set(getDomElement, []);
+        intersectionObservationHandlers.get(getDomElement).push(handler);
+    };
+    
+    this.runCallback = function (entries) {
+        (intersectionObservations.get(getDomElement()) || []).forEach(callback => callback(entries));
+    };
+}
+
+function JsTester_IntersectionObservablesTester ({
+    utils,
+    intersectionObservations,
+    intersectionObservationHandlers
+}) {
+    return function (getDomElement) {
+        return new JsTester_IntersectionObservableTester({
+            utils,
+            getDomElement,
+            intersectionObservations,
+            intersectionObservationHandlers
+        });
     };
 }
 
@@ -3096,10 +3158,13 @@ function JsTester_WindowSize (spendTime) {
         redefineProperty = () => null;
     };
 
+    this.getOriginalHeight = () => originalInnerHeight;
+
     this.setHeight = function (value) {
         redefineProperty();
         innerHeight = value;
         window.dispatchEvent(new Event('resize'));
+        spendTime(0);
         spendTime(0);
     };
 
@@ -3459,9 +3524,8 @@ function JsTester_Tests (factory) {
         Promise.runAll(false, true);
     };
 
-    var intersectionObservations = new Map(),
-        utils = factory.createUtils({debug, intersectionObservations}),
-        windowSize = new JsTester_WindowSize(spendTime),
+    var windowSize = new JsTester_WindowSize(spendTime),
+        utils = factory.createUtils({debug, windowSize, spendTime}),
         broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage(), true),
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},
@@ -3490,7 +3554,17 @@ function JsTester_Tests (factory) {
         }),
         mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
         mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
-        FakeIntersectionObserver = new JsTester_IntersectionObserverFactory(intersectionObservations),
+        intersectionObservations = new Map(),
+        intersectionObservationHandlers = new Map(),
+        FakeIntersectionObserver = new JsTester_IntersectionObserverFactory({
+            intersectionObservations,
+            intersectionObservationHandlers
+        }),
+        intersectionObservablesTester = new JsTester_IntersectionObservablesTester({
+            utils,
+            intersectionObservations,
+            intersectionObservationHandlers
+        }),
         intersectionObserverMocker = new JsTester_IntersectionObserverMocker(FakeIntersectionObserver),
         mutationObserverTester =  mutationObserverFactory.createTester(),
         hasFocus = new JsTester_Variable(false, true),
@@ -3643,6 +3717,7 @@ function JsTester_Tests (factory) {
         testsExecutionBeginingHandlers = [],
         checkRTCConnectionState = rtcConnectionStateChecker.createValueCaller(),
         mediaStreamsTester = new JsTester_MediaStreamsTester({
+            spendTime,
             mediaStreamsPlayingExpectaionFactory: new JsTester_MediaStreamsPlayingExpectationFactory(mediaStreamTracks),
             playingMediaStreams: playingMediaStreams,
             mediaStreams: mediaStreams
@@ -3674,16 +3749,17 @@ function JsTester_Tests (factory) {
             trackToDestination: trackToDestination
         }),
         audioContextFactory = new JsTester_AudioContextFactory({
-            mediaStreamSourceToMediaStream: mediaStreamSourceToMediaStream,
-            audioNodesConnection: audioNodesConnection,
-            mediaStreams: mediaStreams,
-            bufferToContent: bufferToContent,
-            destinationToSource: destinationToSource,
-            trackToDestination: trackToDestination,
-            playingOscillators: playingOscillators,
-            tracksCreationCallStacks: tracksCreationCallStacks,
-            debug: debug,
-            utils: utils
+            mediaStreamSourceToMediaStream,
+            audioNodesConnection,
+            mediaStreams,
+            bufferToContent,
+            destinationToSource,
+            trackToDestination,
+            playingOscillators,
+            tracksCreationCallStacks,
+            spendTime,
+            debug,
+            utils
         }),
         audioDecodingTester = audioContextFactory.createAudioDecodingTester(),
         audioContextReplacer = new JsTester_AudioContextReplacer(audioContextFactory),
@@ -3816,6 +3892,7 @@ function JsTester_Tests (factory) {
             mutationObserverMocker: mutationObserverMocker,
             fileReader: fileReaderTester,
             triggerMutation: mutationObserverTester,
+            intersectionObservable: intersectionObservablesTester,
             cookie: cookieTester,
             ajax: ajaxTester,
             fetch: fetchTester,
@@ -3886,11 +3963,13 @@ function JsTester_Tests (factory) {
     };
     this.beforeEach = function () {
         window.URL.createObjectURL = function (object) {
-            return location.href + '#' + object.id;
+            return location.href + '#' + (typeof object == 'string' ? object : object.id);
         };
 
         setNow(null);
 
+        intersectionObservations.clear();
+        intersectionObservationHandlers.clear();
         downloadPreventer.prevent();
         setBrowserHidden(false);
         setBrowserVisible(true);
@@ -4295,11 +4374,19 @@ function JsTester_Element ({
     var oldGetElement = getElement;
     var getElement = utils.makeFunction(getElement);
 
-    function querySelectorAll (selector) {
-        return (getElement() || new JsTester_NoElement()).querySelectorAll(selector);
-    }
+    function querySelectorAll (selector, logEnabled) {
+        const element = getElement(),
+            result = (getElement() || new JsTester_NoElement()).querySelectorAll(selector);
 
-    this.querySelector = function (selector) {
+        logEnabled && console.log({
+            element,
+            result
+        });
+
+        return result;
+    }
+    this.querySelector = function (selector, logEnabled) {
+        const elements = querySelectorAll(selector, logEnabled);
         return utils.getVisibleSilently(querySelectorAll(selector)) || new JsTester_NoElement();
     };
 
@@ -4308,18 +4395,13 @@ function JsTester_Element ({
     };
 }
 
-function JsTester_Utils ({debug, intersectionObservations}) {
+function JsTester_Utils ({debug, windowSize, spendTime}) {
     var me = this,
         doNothing = function () {};
 
     function scrollIntoView (domElement) {
         domElement.scrollIntoView();
-        me.callIntersectionCallback(domElement, [{isIntersecting: true}]);
     }
-
-    this.callIntersectionCallback = function (domElement, entries) {
-        (intersectionObservations.get(domElement) || []).forEach(callback => callback(entries));
-    };
 
     this.toPercents = function (value) {
         return parseInt(value * 100, 0);
@@ -4360,6 +4442,8 @@ function JsTester_Utils ({debug, intersectionObservations}) {
     this.disableScrollingIntoView = function () {
         maybeScrollIntoView = doNothing;
     };
+
+    this.getWindowHeight = () => windowSize.getOriginalHeight();
 
     this.scrollIntoView = function (domElement) {
         maybeScrollIntoView(domElement);
@@ -4484,6 +4568,7 @@ function JsTester_Utils ({debug, intersectionObservations}) {
     };
     this.pressEscape = function (target) {
         this.pressSpecialKey(target, 27);
+        spendTime(0);
     };
     this.pressEnter = function (target) {
         this.pressSpecialKey(target, 13, undefined, undefined, 'Enter');
@@ -5775,6 +5860,14 @@ function JsTester_UrlAttributeTester (args) {
         return tester;
     }
 
+    this.expectToHaveHash = function (expectedHash) {
+        const actualHash = parseUrl().hash;
+
+        if (actualHash != expectedHash) {
+            throw new Error(`Ожидается хэш "${expectedHash}", а не ${actualHash}`);
+        }
+    };
+
     this.expectToHavePath = function (expectedValue) {
         testPath({
             isComplyingExcpectation: function (actualPath) {
@@ -5861,6 +5954,11 @@ function JsTester_Anchor (
         return blobsTester.getAt(id);
     }
 
+    this.expectHrefToHaveHash = function (expectedHash) {
+        urlTester.expectToHaveHash(expectedHash);
+        return this;
+    };
+
     this.expectHrefToBeBlobWithSubstrings = function (expectedSubstrings) {
         getBlob().expectToHaveSubstrings(expectedSubstrings);
     };
@@ -5917,65 +6015,67 @@ function JsTester_InputElement (
     }
 
     function input (value) {
-        var length = value.length,
-            i = 0,
-            inputElement = getDomElement(),
-            oldValue = inputElement.value,
-            beforeCursor = oldValue.substr(0, inputElement.selectionStart),
-            afterCursor = oldValue.substr(inputElement.selectionEnd),
-            cursorPosition = beforeCursor.length,
-            inputedValue = '';
+        runAsText(domElement => {
+            var length = value.length,
+                i = 0,
+                oldValue = domElement.value,
+                beforeCursor = oldValue.substr(0, domElement.selectionStart),
+                afterCursor = oldValue.substr(domElement.selectionEnd),
+                cursorPosition = beforeCursor.length,
+                inputedValue = '';
 
-        var update = function () {
-            nativeSetValue(beforeCursor + inputedValue + afterCursor);
-            inputElement.setSelectionRange(cursorPosition, cursorPosition);
-        };
-
-        var CharacterAppender = function (character) {
-            return function () {
-                inputedValue += character;
-                cursorPosition ++;
+            var update = function () {
                 nativeSetValue(beforeCursor + inputedValue + afterCursor);
-                inputElement.setSelectionRange(cursorPosition, cursorPosition);
+                setSelectionRange(cursorPosition, cursorPosition);
             };
-        };
-        
-        if (inputElement.readOnly || inputElement.disabled) {
-            throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
-                ' для редактирования.');
-        }
 
-        for (i = 0; i < length; i ++) {
-            utils.pressKey(value[i], inputElement, new CharacterAppender(value[i]));
-        }
+            var CharacterAppender = function (character) {
+                return function () {
+                    inputedValue += character;
+                    cursorPosition ++;
+                    nativeSetValue(beforeCursor + inputedValue + afterCursor);
+                    setSelectionRange(cursorPosition, cursorPosition);
+                };
+            };
+            
+            if (domElement.readOnly || domElement.disabled) {
+                throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
+                    ' для редактирования.');
+            }
 
-        fireChange();
+            for (i = 0; i < length; i ++) {
+                utils.pressKey(value[i], domElement, new CharacterAppender(value[i]));
+            }
+
+            fireChange();
+        });
     }
 
     function erase (updateBeforeCursor, updateAfterCursor, keyCode) {
-        var inputElement = getDomElement(),
-            oldValue = inputElement.value,
-            selectionStart = inputElement.selectionStart,
-            selectionEnd = inputElement.selectionEnd,
-            beforeCursor = oldValue.substr(0, selectionStart),
-            afterCursor = oldValue.substr(selectionEnd);
-        
-        if (inputElement.readOnly || inputElement.disabled) {
-            throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
-                ' для редактирования.');
-        }
+        runAsText(domElement => {
+            var oldValue = domElement.value,
+                selectionStart = domElement.selectionStart,
+                selectionEnd = domElement.selectionEnd,
+                beforeCursor = oldValue.substr(0, selectionStart),
+                afterCursor = oldValue.substr(selectionEnd);
+            
+            if (domElement.readOnly || domElement.disabled) {
+                throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
+                    ' для редактирования.');
+            }
 
-        if (selectionStart == selectionEnd) {
-            beforeCursor = updateBeforeCursor(beforeCursor);
-            afterCursor = updateAfterCursor(afterCursor);
-        }
+            if (selectionStart == selectionEnd) {
+                beforeCursor = updateBeforeCursor(beforeCursor);
+                afterCursor = updateAfterCursor(afterCursor);
+            }
 
-        utils.pressSpecialKey(inputElement, keyCode, function () {
-            nativeSetValue(beforeCursor + afterCursor);
-            fireChange();
-        }, function () {
-            var cursorPosition = beforeCursor.length;
-            inputElement.setSelectionRange(cursorPosition, cursorPosition);
+            utils.pressSpecialKey(domElement, keyCode, function () {
+                nativeSetValue(beforeCursor + afterCursor);
+                fireChange();
+            }, function () {
+                var cursorPosition = beforeCursor.length;
+                setSelectionRange(cursorPosition, cursorPosition);
+            });
         });
     }
 
@@ -5987,10 +6087,31 @@ function JsTester_InputElement (
         }, 46);
     }
 
+    function runAsText (callback) {
+        me.expectToExist();
+
+        const domElement = getDomElement(),
+            type = domElement.type;
+
+        if (type == 'number') {
+            domElement.type = 'text';
+        }
+
+        callback(domElement);
+        domElement.type = type;
+    }
+
+    function setSelectionRange (...args) {
+        runAsText(domElement => domElement.setSelectionRange(...args));
+    }
+
     function clear () {
         me.click();
-        getDomElement().setSelectionRange(0, getDomElement().value.length);
-        pressDelete();
+
+        runAsText(domElement => {
+            setSelectionRange(0, domElement.value.length);
+            pressDelete();
+        });
     }
 
     function getErrorIcon () {
@@ -6067,7 +6188,7 @@ function JsTester_InputElement (
     };
     this.select = function (selectionStart, selectionEnd) {
         this.click();
-        getDomElement().setSelectionRange(selectionStart, selectionEnd);
+        setSelectionRange(selectionStart, selectionEnd);
     };
     this.paste = function (value) {
         var length = value.length,
@@ -6081,7 +6202,7 @@ function JsTester_InputElement (
 
         var setValue = function () {
             nativeSetValue(beforeCursor + value + afterCursor);
-            inputElement.setSelectionRange(cursorPosition, cursorPosition);
+            setSelectionRange(cursorPosition, cursorPosition);
         };
 
         this.click();
@@ -6105,8 +6226,8 @@ function JsTester_InputElement (
     };
     this.fill = function (value) {
         clear();
-
-        getDomElement().setSelectionRange(0, 0);
+        
+        setSelectionRange(0, 0);
         input(value);
     };
     this.clear = function () {
@@ -6174,6 +6295,11 @@ function JsTester_NoElement () {
         }
     });
 
+    this.addEventListener = () => null;
+
+    this.dispatchEvent = function () {
+        throw new Error('Элемент должен существовать');
+    };
     this.closest = function () {
         return new JsTester_NoElement();
     };
@@ -6456,10 +6582,12 @@ function JsTester_DomElement (
             );
         }
     };
-    function scrollIntoView () {
+    function isAudio () {
         me.expectToExist();
-
-        if (getDomElement().tagName.toLowerCase() == 'audio') {
+        return getDomElement().tagName.toLowerCase() == 'audio';
+    }
+    function scrollIntoView () {
+        if (isAudio()) {
             return false;
         }
 
@@ -6470,9 +6598,15 @@ function JsTester_DomElement (
         scrollIntoView();
     };
     this.expectToBeVisible = function () {
-        if (!scrollIntoView()) {
+        if (!isAudio()) {
             return;
         }
+
+        const domElement = getDomElement();
+
+        parseInt((domElement.getClientRects() || {}).y, 0) || 0;
+
+        scrollIntoView();
 
         if (!utils.isVisible(getDomElement())) {
             throw new Error(

@@ -1,16 +1,18 @@
 diff --git a/package.json b/package.json
-index b6b87b6..cd20d8c 100644
+index f40d08d..34dc9ab 100644
 --- a/package.json
 +++ b/package.json
-@@ -21,7 +21,6 @@
+@@ -22,9 +22,6 @@
+     "@types/dompurify": "^2.3.3",
+     "@types/htmlparser2": "^3.10.3",
      "@types/node": "^14.14.37",
-     "@types/react": "^17.0.2",
-     "@types/react-dom": "^17.0.1",
+-    "@types/react": "^17.0.2",
+-    "@types/react-dom": "^17.0.1",
 -    "@types/react-router-dom": "^5.1.6",
      "@types/uuid": "^8.3.1",
      "@types/yup": "^0.29.11",
      "@typescript-eslint/eslint-plugin": "^4.16.1",
-@@ -53,8 +52,7 @@
+@@ -56,8 +53,7 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
@@ -20,18 +22,18 @@ index b6b87b6..cd20d8c 100644
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -64,7 +62,6 @@
-     "formik": "^2.2.9",
+@@ -69,19 +65,13 @@
      "history": "^4.10.1",
+     "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
--    "magic-ui": "^1.22.5",
+-    "magic-ui": "./magic_ui",
      "mobx": "^6.3.8",
      "mobx-devtools-mst": "^0.9.30",
      "mobx-react-lite": "^3.2.2",
-@@ -72,11 +69,8 @@
+     "mobx-state-tree": "^5.0.5",
      "moment": "^2.29.1",
-     "react": "^17.0.2",
-     "react-dom": "^17.0.2",
+-    "react": "^17.0.2",
+-    "react-dom": "^17.0.2",
 -    "react-intl": "^5.22.0",
 -    "react-router-dom": "^5.2.0",
      "short-uuid": "^4.2.0",
@@ -42,10 +44,10 @@ index b6b87b6..cd20d8c 100644
    }
  }
 diff --git a/src/App.tsx b/src/App.tsx
-index 01b5463..8e269a6 100644
+index 43db4d8..6a8f91e 100644
 --- a/src/App.tsx
 +++ b/src/App.tsx
-@@ -11,7 +11,7 @@ import chatsTemplatesStore from '@models/chats/ChatsTemplatesStore';
+@@ -9,7 +9,7 @@ import './App.less';
  
  const App: React.FC = observer(() => {
      const {
@@ -54,7 +56,7 @@ index 01b5463..8e269a6 100644
          websocketStore,
          chatListStore,
          chatChannelsStore,
-@@ -45,11 +45,11 @@ const App: React.FC = observer(() => {
+@@ -42,11 +42,11 @@ const App: React.FC = observer(() => {
          };
      });
  
@@ -80,10 +82,10 @@ index 564e8ec..e156b1f 100644
 +const history = window.memoryHistory;
  export default history;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3dd796a..8844db1 100644
+index 4457fa5..05b069d 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -109,7 +109,8 @@ export const RootStore = types
+@@ -120,7 +120,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -106,11 +108,22 @@ index 933fdb3..8e6f31d 100644
          windowId: types.optional(types.string, generateTraceId('local')),
      })
      .views(() => ({
-diff --git a/src/utils/index.ts b/src/utils/index.ts
-index dc04efe..371e2b8 100644
---- a/src/utils/index.ts
-+++ b/src/utils/index.ts
-@@ -105,8 +105,15 @@ type Options = {
+diff --git a/src/utils/index.tsx b/src/utils/index.tsx
+index af48314..fc10827 100644
+--- a/src/utils/index.tsx
++++ b/src/utils/index.tsx
+@@ -1,8 +1,8 @@
+ import React from 'react';
+ import { renderToStaticMarkup } from 'react-dom/server';
+ import cn from 'classnames';
+-import parse, { attributesToProps, domToReact, DOMNode } from 'html-react-parser';
+-import DOMPurify from 'dompurify';
++//import parse, { attributesToProps, domToReact, DOMNode } from 'html-react-parser';
++//import DOMPurify from 'dompurify';
+ import moment from 'moment';
+ import short from 'short-uuid';
+ import { intl } from '@/i18n';
+@@ -113,8 +113,15 @@ type Options = {
      'max-age'?: number;
  };
  
@@ -127,7 +140,7 @@ index dc04efe..371e2b8 100644
          document.cookie
      );
  
-@@ -114,6 +121,11 @@ export function getCookie(name: string): string {
+@@ -122,6 +129,11 @@ export function getCookie(name: string): string {
  }
  
  export function setCookie(name: string, value: string, options: Options = {}): void {
@@ -139,7 +152,7 @@ index dc04efe..371e2b8 100644
      options = {
          path: '/',
          ...options,
-@@ -123,7 +135,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -131,7 +143,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
          options.expires = options.expires.toUTCString();
      }
  
@@ -148,7 +161,7 @@ index dc04efe..371e2b8 100644
  
      let optionKey: keyof Options;
      for (optionKey in options) {
-@@ -131,7 +143,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -139,7 +151,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
  
          const optionValue = options[optionKey];
          if (optionValue !== true) {
@@ -157,7 +170,7 @@ index dc04efe..371e2b8 100644
          }
      }
  
-@@ -139,6 +151,11 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -147,6 +159,11 @@ export function setCookie(name: string, value: string, options: Options = {}): v
  }
  
  export function deleteCookie(name: string, options: Options = {}): void {
@@ -169,3 +182,11 @@ index dc04efe..371e2b8 100644
      setCookie(name, '', {
          'max-age': -1,
          ...options,
+@@ -190,6 +207,7 @@ function generateUrl(url: string): string {
+ }
+ 
+ export function parseLinks(text: string): React.ReactNode[] {
++    return text;
+     text = `${text || ''}`
+         .split(' ')
+         .map(string => (isUrl(string) ? generateUrl(string) : string))

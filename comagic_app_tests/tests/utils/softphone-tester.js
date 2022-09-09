@@ -39,15 +39,37 @@ define(function () {
         }
 
         this.innerContainer = testersFactory.createDomElementTester('#cmg-inner-container');
-        this.microphoneButton = testersFactory.createDomElementTester('.cmg-microphone-button');
 
-        this.firstLineButton = testersFactory.createDomElementTester(function () {
-            return getSipLineButton(0);
-        });
+        this.microphoneButton = (() => {
+            const tester = testersFactory.createDomElementTester('.cmg-microphone-button');
 
-        this.secondLineButton = testersFactory.createDomElementTester(function () {
-            return getSipLineButton(1);
-        });
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
+
+        this.firstLineButton = (() => {
+            const tester = testersFactory.createDomElementTester(function () {
+                return getSipLineButton(0);
+            });
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
+
+        this.secondLineButton = (() => {
+            const tester = testersFactory.createDomElementTester(function () {
+                return getSipLineButton(1);
+            });
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         this.expectMicrophoneDeviceIdToEqual = function (mediaStream, expectedDeviceId) {
             var actualDeviceId = mediaStream.getAudioTracks()[0].getSettings().deviceId;
@@ -307,7 +329,7 @@ define(function () {
                     element.scrollTop = top;
                     element.dispatchEvent(event);
 
-                    Promise.runAll(false, true);
+                    spendTime(0);
                 }
             };
         };
@@ -353,6 +375,7 @@ define(function () {
                 id: 20816,
                 is_in_call: false,
                 last_name: 'Ганева',
+                full_name: 'Ганева Стефка',
                 position_id: null,
                 short_phone: '9119',
                 status_id: 3,
@@ -461,6 +484,7 @@ define(function () {
                     mark_ids: [],
                     number: '74950230627',
                     start_time: utils.formatDate(date),
+                    contact_id: 425803 + i,
                     contact_name: 'Сотирова Атанаска',
                     file_links: null
                 };
@@ -533,6 +557,7 @@ define(function () {
                             });
 
                             Promise.runAll(false, true);
+                            spendTime(0);
                         },
                     };
                 },
@@ -598,7 +623,8 @@ define(function () {
                                 data: user 
                             });
 
-                            Promise.runAll();
+                            spendTime(0);
+                            spendTime(0);
                         }
                     });
                 },
@@ -675,7 +701,9 @@ define(function () {
             const additionalUsers = [],
                 processors = [];
             let data,
-                respond = request => request.respondSuccessfullyWith({data});
+                path = '/sup/api/v1/users',
+                respond = request => request.respondSuccessfullyWith({data}),
+                maybeTriggerScrollRecalculation = triggerScrollRecalculation;
 
             function addResponseModifiers (me) {
                 me.accessTokenExpired = () => {
@@ -715,13 +743,31 @@ define(function () {
             }
 
             return addResponseModifiers({
+                forContacts: function () {
+                    path = '$REACT_APP_BASE_URL/employees';
+                    maybeTriggerScrollRecalculation = () => null;
+
+                    processors.push(data => {
+                        data.forEach(({
+                            id,
+                            first_name,
+                            last_name
+                        }, index) => (data[index] = {
+                            id,
+                            first_name,
+                            last_name
+                        }))
+                    });
+
+                    return this;
+                },
                 setHavingActivePhones: function () {
                     params.with_active_phones = '1';
                     return this;
                 },
                 expectToBeSent: function (requests) {
                     var request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                        expectPathToContain('/sup/api/v1/users').
+                        expectPathToContain(path).
                         expectQueryToContain(params);
 
                     return addResponseModifiers({
@@ -735,9 +781,12 @@ define(function () {
 
                             respond(request);
                             Promise.runAll(false, true);
-                            triggerScrollRecalculation();
+                            maybeTriggerScrollRecalculation();
                         }
                     });
+                },
+                receiveResponse: function () {
+                    this.send();
                 },
                 send: function () {
                     this.expectToBeSent().receiveResponse();
@@ -745,26 +794,7 @@ define(function () {
             });
         };
 
-        this.usersRequest = function () {
-            var request = me.requestUsers();
-
-            return {
-                accessTokenExpired: function () {
-                    request.accessTokenExpired();
-                    return this;
-                },
-                addMore: function () {
-                    request.addMoreUsers();
-                    return this;
-                },
-                expectToBeSent: function (requests) {
-                    return request.expectToBeSent(requests);
-                },
-                receiveResponse: function () {
-                    return request.send();
-                }
-            };
-        };
+        this.usersRequest = this.requestUsers;
 
         this.requestUsersInGroups = function () {
             var additionalUsersInGroups = [];
@@ -1102,7 +1132,8 @@ define(function () {
                                 data: data 
                             });
 
-                            Promise.runAll(false, true);
+                            spendTime(0);
+                            spendTime(0);
                         }
                     });
                 },
@@ -1366,6 +1397,7 @@ define(function () {
 
         this.disconnectEventsWebSocket = function (index) {
             webSockets.getSocket(/sup\/ws\/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0$/, index || 0).disconnect();
+            spendTime(0);
         };
 
         function getWebRtcSocket (index) {
@@ -2388,7 +2420,9 @@ define(function () {
         this.allowMediaInput = function () {
             var localMediaStream = userMedia.allowMediaInput();
 
-            Promise.runAll();
+            spendTime(0);
+            spendTime(0);
+
             return localMediaStream;
         };
 
@@ -2514,7 +2548,7 @@ define(function () {
                                 copyHeader('Contact').
                                 send();
 
-                            Promise.runAll(false, true);
+                            spendTime(0);
                         }
                     };
                 },
@@ -2527,7 +2561,14 @@ define(function () {
             };
         };
 
-        this.phoneField = testersFactory.createTextFieldTester('.cmg-input');
+        this.phoneField = (() => {
+            const tester = testersFactory.createTextFieldTester('.cmg-input');
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         this.registrationRequest = this.requestRegistration;
 
@@ -2584,7 +2625,7 @@ define(function () {
             return {};
         };
 
-        this.outboundCall = function () {
+        this.outgoingCall = function () {
             var phoneNumber = '79161234567',
                 sip_login = '077368',
                 me = this,
@@ -2626,6 +2667,10 @@ define(function () {
                 },
                 setAnotherNumber: function () {
                     phoneNumber = '79161234569';
+                    return this;
+                },
+                fifthPhoneNumber: function () {
+                    phoneNumber = '79162729533';
                     return this;
                 },
                 expectInviteMessageBodyToEqual: function (expectedBody) {
@@ -2711,10 +2756,10 @@ define(function () {
                                 type: 'event',
                                 params: {
                                     action: 'update',
-                                    data: {
+                                    data: [{
                                         id: 20816,
                                         is_in_call: true
-                                    }
+                                    }] 
                                 }
                             });
 
@@ -3691,17 +3736,17 @@ define(function () {
                         setCallReceiverLogin('077368').
                         receive();
 
-                    Promise.runAll(false, true);
+                    spendTime(0);
 
                     eventsWebSocket.receiveMessage({
                         name: 'employee_changed',
                         type: 'event',
                         params: {
                             action: 'update',
-                            data: {
+                            data: [{
                                 id: 20816,
                                 is_in_call: true
-                            }
+                            }]
                         }
                     });
 
@@ -3828,10 +3873,10 @@ define(function () {
                 type: 'event',
                 params: {
                     action: 'update',
-                    data: {
+                    data: [{
                         id: 20816,
                         is_in_call: false
-                    }
+                    }]
                 }
             });
 
@@ -3870,11 +3915,11 @@ define(function () {
                         type: 'event',
                         params: {
                             action: 'update',
-                            data: data
+                            data: [data]
                         }
                     });
 
-                    Promise.runAll(false, true);
+                    spendTime(0);
                 }
             };
         };
@@ -3977,7 +4022,7 @@ define(function () {
                         params
                     });
 
-                    Promise.runAll(false, true);
+                    spendTime(0);
                 }
             }
         };
@@ -5647,7 +5692,7 @@ define(function () {
                     },
                     receive: function () {
                         receiveMessage(createNotification());
-                        Promise.runAll(false, true);
+                        spendTime(0);
                     }
                 }, data);
 
@@ -6041,6 +6086,11 @@ define(function () {
                     anotherPhoneNumber: function () {
                         updateChannel(channel);
                         phoneNumbers[channel] = '79161234569';
+                        return this;
+                    },
+                    sixthPhoneNumber: function () {
+                        updateChannel(channel);
+                        phoneNumbers[channel] = '79162729533';
                         return this;
                     },
                     fifthPhoneNumber: function () {
@@ -6446,6 +6496,62 @@ define(function () {
             };
 
             return {
+                slavesNotification: function () {
+                    return {
+                        expectToBeSent: function () {
+                            me.recentCrosstabMessage().expectToContain({
+                                type: 'message',
+                                data: {
+                                    type: 'notify_slaves',
+                                    data: {
+                                        type: 'websocket_message',
+                                        message
+                                    }
+                                }
+                            });
+                        }
+                    };
+                },
+                receive: function () {
+                    eventsWebSocket.receiveMessage(message);
+                    spendTime(0);
+                }
+            };
+        };
+
+        this.employeeChangedEvent = function () {
+            const message = {
+                type: 'event',
+                name: 'employee_changed',
+                params: {
+                    action: 'update',
+                    data: [{
+                        id: 20816
+                    }]
+                }
+            };
+
+            return {
+                isAnotherEmployee: function () {
+                    message.params.data[0].id = 1762;
+                    return this;
+                },
+                secondStatus: function() {
+                    message.params.data[0].status_id = 4;
+                    return this;
+                },
+                anotherStatus: function() {
+                    message.params.data[0].status_id = 2;
+                    return this;
+                },
+                isNeedHideNumbers: function () {
+                    message.params.data[0].is_need_hide_numbers = true;
+                    return this;
+                },
+                isNotNeedHideNumbers: function () {
+                    message.params.data[0].is_need_hide_numbers = false;
+                    return this;
+                },
                 slavesNotification: function () {
                     return {
                         expectToBeSent: function () {

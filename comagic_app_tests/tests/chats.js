@@ -63,15 +63,24 @@ tests.addTest(options => {
             spendTime(1000);
             tester.notificationChannel().tellIsLeader().expectToBeSent();
 
-            tester.accountRequest().
+            const requests = ajax.inAnyOrder();
+
+            const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
+
+            const secondAccountRequest = tester.accountRequest().
                 forChats().
                 softphoneFeatureFlagDisabled().
                 operatorWorkplaceAvailable().
-                receiveResponse();
+                expectToBeSent(requests);
 
-            tester.reportGroupsRequest().receiveResponse();
-            tester.reportsListRequest().receiveResponse(),
-            tester.reportTypesRequest().receiveResponse();
+            requests.expectToBeSent();
+
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            secondAccountRequest.receiveResponse();
+            reportGroupsRequest.receiveResponse();
 
             tester.chatChannelListRequest().receiveResponse();
             tester.statusListRequest().receiveResponse();
@@ -79,6 +88,10 @@ tests.addTest(options => {
             tester.siteListRequest().receiveResponse();
             tester.messageTemplateListRequest().receiveResponse();
 
+            tester.chatsWebSocket.connect();
+            tester.chatsInitMessage().expectToBeSent();
+            tester.chatSettingsRequest().receiveResponse();
+            
             tester.accountRequest().
                 forChats().
                 softphoneFeatureFlagDisabled().
@@ -91,9 +104,6 @@ tests.addTest(options => {
                 operatorWorkplaceAvailable().
                 receiveResponse();
             
-            tester.chatsWebSocket.connect();
-            tester.chatsInitMessage().expectToBeSent();
-
             countersRequest = tester.countersRequest().expectToBeSent();
             tester.chatChannelListRequest().receiveResponse();
             tester.siteListRequest().receiveResponse();
@@ -105,7 +115,7 @@ tests.addTest(options => {
             tester.chatListRequest().closed().receiveResponse();
         });
 
-        xdescribe('Получены данные чата.', function() {
+        describe('Получены данные чата.', function() {
             beforeEach(function() {
                 chatListRequest.receiveResponse();
             });
@@ -127,20 +137,119 @@ tests.addTest(options => {
                     });
 
                     describe('Получены данные чата.', function() {
+                        let messageListRequest;
+
                         beforeEach(function() {
                             chatListRequest.receiveResponse();
                             tester.acceptChatRequest().receiveResponse();
                             tester.visitorCardRequest().receiveResponse();
-                            tester.messageListRequest().receiveResponse();
-                            tester.changeMessageStatusRequest().anotherChat().anotherMessage().read().receiveResponse();
+                            messageListRequest = tester.messageListRequest().expectToBeSent();
                         });
 
-                        it('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
-                            tester.spinWrapper.scrollIntoView();
-                            tester.chatListRequest().secondPage().receiveResponse();
+                        describe('Сообщение немного.', function() {
+                            beforeEach(function() {
+                                messageListRequest.receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    anotherChat().
+                                    anotherMessage().
+                                    read().
+                                    receiveResponse();
+                            });
+
+                            describe('Раскрываю панель "Заметки".', function() {
+                                beforeEach(function() {
+                                    tester.collapsablePanel('Заметки').title.click();
+                                });
+
+                                it('Измению теги. Отправлен запрос изменения тегов.', function() {
+                                    tester.collapsablePanel('Заметки').content.tagField.button.click();
+                                    tester.select.option('Продажа').click();
+                                    tester.visitorPanel.input.atIndex(2).click();
+
+                                    tester.chatMarkingRequest().receiveResponse();
+                                    tester.chatListRequest().thirdChat().receiveResponse();
+                                });
+                                it('Оторажены заметки.', function() {
+                                    tester.collapsablePanel('Заметки').content.tagField.putMouseOver();
+                                    tester.tooltip.expectToHaveTextContent('Нереализованная сделка, Продажа');
+                                });
+                            });
+                            it(
+                                'Раскрываю панель "Дополнительная информация". Оторажена дополнительная информация.',
+                            function() {
+                                tester.collapsablePanel('Дополнительная информация').title.click();
+                                tester.chatInfoRequest().receiveResponse();
+
+                                tester.collapsablePanel('Дополнительная информация').title.click();
+
+                                tester.collapsablePanel('Дополнительная информация').content.expectToHaveTextContent(
+                                    'Канал ' +
+                                    'Некое имя канала ' +
+                                    
+                                    'Источник входа ' +
+                                    'Некиий источник трафика ' +
+
+                                    'Рекламная кампания ' +
+                                    'Некая рекламная кампания ' +
+
+                                    'UTM метки ' +
+
+                                    'Source yandex_direct ' +
+                                    'Medium smm ' +
+                                    'Concept some_concept ' +
+                                    'Campaign deyskie_igrushki ' +
+                                    'Expid 67183125-2 ' +
+                                    'Referrer example-source.com ' +
+                                    'Term gde_kupit_igrushki'
+                                );
+                            });
+                            it('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
+                                tester.spinWrapper.scrollIntoView();
+                                tester.chatListRequest().secondPage().receiveResponse();
+                            });
+                            it('Отображены сообщения чата.', function() {
+                                tester.chatHistory.message.atTime('12:13').expectToBeDelivered();
+
+                                tester.chatHistory.expectToHaveTextContent(
+                                    '10 февраля 2020 ' +
+
+                                    'Привет 12:13 Ответить ' +
+                                    'Здравствуйте 12:12 Ответить'
+                                );
+
+                                tester.visitorPanel.input.first.expectToHaveValue('Помакова Бисерка Драгановна');
+                                tester.visitorPanel.input.atIndex(1).expectToHaveValue('79164725823');
+                                tester.visitorPanel.input.atIndex(2).expectToHaveValue('pomakova@gmail.com');
+
+                                tester.spin.expectNotToExist();
+                            });
                         });
-                        it('Спиннер скрыт.', function() {
-                            tester.spin.expectNotToExist();
+                        it(
+                            'Получен ответ на сообщение. Отображено сообщение на которое отвечает пользователь.',
+                        function() {
+                            messageListRequest.reply().receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                anotherMessage().
+                                read().
+                                receiveResponse();
+
+                            tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
+                                'Помакова Бисерка Драгановна ' +
+                                'Как дела? ' +
+                                'Привет 12:13 Ответить'
+                            );
+                        });
+                        it('Сообщение много.', function() {
+                            messageListRequest.firstPage().receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                thirdMessage().
+                                read().
+                                receiveResponse();
                         });
                     });
                     it('Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен', function() {
