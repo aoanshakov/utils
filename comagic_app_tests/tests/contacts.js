@@ -306,10 +306,14 @@ tests.addTest(options => {
 
                                 contactCommunicationsRequest = tester.contactCommunicationsRequest().
                                     expectToBeSent(requests);
-                                const contactRequest = tester.contactRequest().expectToBeSent(requests);
+
+                                const contactRequest = tester.contactRequest().expectToBeSent(requests),
+                                    usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
 
                                 requests.expectToBeSent();
+
                                 contactRequest.receiveResponse();
+                                usersRequest.receiveResponse();
                             });
 
                             describe('Сообщений немного.', function() {
@@ -317,6 +321,79 @@ tests.addTest(options => {
                                     contactCommunicationsRequest.receiveResponse();
                                 });
                                 
+                                describe('Нажимаю на кнопку редактирования менеджера.', function() {
+                                    beforeEach(function() {
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            option('Господинова Николина').
+                                            putMouseOver();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            option('Господинова Николина').
+                                            toolsIcon.
+                                            click();
+                                    });
+
+                                    describe('Раскрываю список менеджеров.', function() {
+                                        beforeEach(function() {
+                                            tester.select.click();
+                                        });
+                                        
+                                        describe('Выбираю другого менеджера.', function() {
+                                            beforeEach(function() {
+                                                tester.select.option('Шалева Дора').click();
+                                            });
+
+                                            it(
+                                                'Нажимаю на кнопку "Сохранить". Отправлен запрос обновления контакта.',
+                                            function() {
+                                                tester.button('Сохранить').click();
+
+                                                tester.contactUpdatingRequest().
+                                                    completeData().
+                                                    anotherPersonalManager().
+                                                    receiveResponse();
+
+                                                tester.select.expectNotToExist();
+
+                                                tester.contactBar.section('Персональный менеджер').content.
+                                                    expectToHaveTextContent('Шалева Дора');
+                                            });
+                                            it(
+                                                'Нажимаю на кнопку "Отменить". В выпадающем списке выбран прежний ' +
+                                                'менеджер.',
+                                            function() {
+                                                tester.button('Отменить').click();
+
+                                                tester.select.expectNotToExist();
+
+                                                tester.contactBar.section('Персональный менеджер').content.
+                                                    expectToHaveTextContent('Господинова Николина');
+                                            });
+                                            it('Выбран другой менеджер.', function() {
+                                                tester.select.expectToHaveTextContent('Шалева Дора');
+                                            });
+                                        });
+                                        it(
+                                            'Ввожу строку в поле поиска. Отображен отфильтрованый список менеджеров.',
+                                        function() {
+                                            tester.select.popup.input.fill('шал');
+                                            tester.select.popup.expectToHaveTextContent('Шалева Дора');
+                                        });
+                                        it('Отображен список менеджеров.', function() {
+                                            tester.select.popup.expectToHaveTextContent(
+                                                'Ганева Стефка ' +
+                                                'Шалева Дора ' +
+                                                'Господинова Николина ' +
+                                                'Божилова Йовка'
+                                            );
+                                        });
+                                    });
+                                    it('Отображено имя выбранного ранее менеджера.', function() {
+                                        tester.select.expectToHaveTextContent('Господинова Николина');
+                                    });
+                                });
                                 describe('Открываю меню номера.', function() {
                                     beforeEach(function() {
                                         tester.contactBar.
@@ -327,7 +404,7 @@ tests.addTest(options => {
                                         tester.contactBar.
                                             section('Телефоны').
                                             option('79162729533').
-                                            dropdownTrigger.
+                                            toolsIcon.
                                             click();
                                     });
 
@@ -355,6 +432,9 @@ tests.addTest(options => {
                                             completeData().
                                             anotherPhoneNumber().
                                             receiveResponse();
+                                    });
+                                    it('Пунт "Редактировать" доступен.', function() {
+                                        tester.select.option('Редактировать').expectToBeEnabled();
                                     });
                                 });
                                 describe('Нажимаю на кнопку проигрывания записи звонка.', function() {
@@ -486,6 +566,49 @@ tests.addTest(options => {
                                         ).
                                         expectToHaveContent('29f2f28ofjowf829f');
                                 });
+                                it('Редактирование мессенджеров недоступно.', function() {
+                                    tester.contactBar.
+                                        section('Мессенджеры').
+                                        option('+7 (928) 381 09-88').
+                                        putMouseOver();
+
+                                    tester.contactBar.
+                                        section('Мессенджеры').
+                                        option('+7 (928) 381 09-88').
+                                        toolsIcon.
+                                        expectNotToExist();
+                                });
+                                it(
+                                    'Выбираю другой контакт. Открываю поле редактирования персонального менеджера. ' +
+                                    'Выбираю другого менеджера. Нажимаю на кнпоку "Отменить". В списке выбрано ' +
+                                    'прежнее значение.',
+                                function() {
+                                    tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
+
+                                    tester.contactCommunicationsRequest().anotherContact().receiveResponse();
+                                    tester.contactRequest().anotherContact().receiveResponse();
+
+                                    tester.contactBar.
+                                        section('Персональный менеджер').
+                                        option('Божилова Йовка').
+                                        putMouseOver();
+
+                                    tester.contactBar.
+                                        section('Персональный менеджер').
+                                        option('Божилова Йовка').
+                                        toolsIcon.
+                                        click();
+
+                                    tester.select.click();
+                                    tester.select.option('Шалева Дора').click();
+
+                                    tester.button('Отменить').click();
+
+                                    tester.contactBar.
+                                        section('Персональный менеджер').
+                                        content.
+                                        expectToHaveTextContent('Божилова Йовка');
+                                });
                                 it('Имя выделено. Отображен контакт. Отображена история коммуникаций.', function() {
                                     tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
                                     tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
@@ -501,6 +624,20 @@ tests.addTest(options => {
                                         'png 925 B heart.png 12:15'
                                     );
 
+                                    tester.contactBar.
+                                        section('E-Mail').
+                                        option('endlesssprinп.of@comagic.dev').
+                                        svg.
+                                        expectNotToExist();
+
+                                    tester.contactBar.
+                                        section('Мессенджеры').
+                                        option('+7 (928) 381 09-88').
+                                        svg.
+                                        expectToBeVisible();
+
+                                    tester.contactBar.section('Персональный менеджер').header.svg.expectNotToExist();
+
                                     tester.contactBar.expectTextContentToHaveSubstring(
                                         'ФИО ' +
                                         'Бележкова Грета Ервиновна ' +
@@ -513,7 +650,10 @@ tests.addTest(options => {
 
                                         'Мессенджеры ' +
                                         '+7 (928) 381 09-88 ' +
-                                        '+7 (928) 381 09-28'
+                                        '+7 (928) 381 09-28 ' +
+
+                                        'Персональный менеджер ' +
+                                        'Господинова Николина'
                                     );
 
                                     tester.button('Создать контакт').expectNotToExist();
@@ -668,6 +808,7 @@ tests.addTest(options => {
 
                             tester.contactOpeningButton.click();
                             tester.contactsRequest().differentNames().receiveResponse();
+                            tester.usersRequest().forContacts().receiveResponse();
                         });
 
                         describe('Открываю поля имени.', function() {
@@ -698,7 +839,7 @@ tests.addTest(options => {
                                     tester.input.withPlaceholder('Имя').fill('Роза');
                                     tester.input.withPlaceholder('Отчество').fill('Ангеловна');
 
-                                    tester.button('Сохранить').click();
+                                    tester.contactBar.section('ФИО').content.button('Сохранить').click()
 
                                     tester.contactUpdatingRequest().
                                         anotherName().
@@ -711,10 +852,125 @@ tests.addTest(options => {
                                     tester.contactList.item('Неделчева').expectToBeSelected();
                                 });
                             });
-                            it('Поля имени пусты.', function() {
-                                tester.input.withPlaceholder('Фамилия (Обязательное поле)').expectToHaveValue('');
+                            it(
+                                'Стираю значение в поле "Фамилия". Поле фамилии отмечено как невалидное. Кнопка ' +
+                                '"Создать контакт" заблокирована.',
+                            function() {
+                                tester.input.withPlaceholder('Фамилия (Обязательное поле)').clear();
+
+                                tester.input.withPlaceholder('Фамилия (Обязательное поле)').expectToHaveError();
+                                tester.input.withPlaceholder('Имя').expectNotToHaveError();
+                                tester.button('Создать контакт').expectToBeDisabled();
+                            });
+                            it('В поле "Фамилия" введен номер телефона.', function() {
+                                tester.input.withPlaceholder('Фамилия (Обязательное поле)').
+                                    expectToHaveValue('79161234567');
                                 tester.input.withPlaceholder('Имя').expectToHaveValue('');
                                 tester.input.withPlaceholder('Отчество').expectToHaveValue('');
+
+                                tester.button('Создать контакт').expectToBeEnabled();
+                            });
+                        });
+                        describe('Нажимаю на кнопку с плюсом рядом с текстом "Персональный менеджер".', function() {
+                            beforeEach(function() {
+                                tester.contactBar.section('Персональный менеджер').header.svg.click();
+                            });
+
+                            it(
+                                'Выбираю контакт без персонального менеджера. Блок персонального менеджера ' +
+                                'скрыт.',
+                            function() {
+                                tester.contactList.
+                                    item('Белоконска-Вражалска Калиса Еньовна').
+                                    click();
+
+                                const requests = ajax.inAnyOrder();
+
+                                const contactRequest = tester.contactRequest().
+                                    anotherContact().
+                                    noPersonalManager().
+                                    expectToBeSent(requests);
+
+                                const contactCommunicationsRequest = tester.contactCommunicationsRequest().
+                                    anotherContact().
+                                    expectToBeSent(requests);
+
+                                requests.expectToBeSent();
+
+                                contactRequest.receiveResponse();
+                                contactCommunicationsRequest.receiveResponse();
+                                    
+                                tester.contactBar.
+                                    section('Персональный менеджер').
+                                    header.
+                                    svg.
+                                    expectToBeVisible();
+
+                                tester.contactBar.
+                                    section('Персональный менеджер').
+                                    select.
+                                    expectNotToExist();
+
+                                tester.contactBar.
+                                    section('Персональный менеджер').
+                                    option('').
+                                    expectNotToExist();
+                            });
+                            it('Выбираю персонального менеджера. Персональный менеджер выбран.', function() {
+                                tester.contactBar.
+                                    section('Персональный менеджер').
+                                    content.
+                                    select.
+                                    click();
+
+                                tester.select.
+                                    option('Шалева Дора').
+                                    click();
+
+                                tester.contactBar.
+                                    section('Персональный менеджер').
+                                    content.
+                                    button('Сохранить').
+                                    click();
+
+                                tester.contactBar.
+                                    section('Персональный менеджер').
+                                    content.
+                                    select.
+                                    expectNotToExist();
+
+                                tester.contactBar.
+                                    section('Персональный менеджер').
+                                    content.
+                                    expectToHaveTextContent('Шалева Дора');
+                            });
+                            it('Нажимаю на кнопку "Отменить". Блок персонального менеджера удален.', function() {
+                                tester.contactBar.
+                                    section('Персональный менеджер').
+                                    content.
+                                    button('Отменить').
+                                    click();
+
+                                tester.contactBar.
+                                    section('Персональный менеджер').
+                                    option('').
+                                    expectNotToExist();
+                            });
+                            it(
+                                'Кнопка с плюсом рядом с текстом "Персональный менеджер" скрыта. Кнопка "Сохранить" ' +
+                                'заблокирована.',
+                            function() {
+                                tester.contactBar.
+                                    section('Персональный менеджер').
+                                    header.
+                                    svg.
+                                    expectNotToExist();
+
+                                tester.contactBar.
+                                    section('Персональный менеджер').
+                                    content.
+                                    button('Сохранить').
+                                    expectToHaveAttribute('disabled');
                             });
                         });
                         it('Открыта форма создания контакта.', function() {
@@ -722,6 +978,8 @@ tests.addTest(options => {
                                 'Телефоны ' +
                                 '79161234567 '
                             );
+
+                            tester.button('Сохранить').expectNotToExist();
                         });
                     });
                     it('Контакт найден. Нажимаю на кнопку открытия контакта. Контакт открыт.', function() {
@@ -732,6 +990,7 @@ tests.addTest(options => {
 
                         tester.contactsRequest().differentNames().receiveResponse();
                         tester.contactCommunicationsRequest().receiveResponse();
+                        tester.usersRequest().forContacts().receiveResponse();
                         tester.contactRequest().receiveResponse();
 
                         tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
@@ -797,15 +1056,142 @@ tests.addTest(options => {
                 const requests = ajax.inAnyOrder();
 
                 const contactCommunicationsRequest = tester.contactCommunicationsRequest().expectToBeSent(requests),
-                    contactRequest = tester.contactRequest().expectToBeSent(requests);
+                    contactRequest = tester.contactRequest().expectToBeSent(requests),
+                    usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 contactCommunicationsRequest.receiveResponse();
                 contactRequest.receiveResponse();
+                usersRequest.receiveResponse();
 
                 tester.contactBar.section('Телефоны').anchor('79162729533').click();
                 tester.softphone.expectTextContentToHaveSubstring('Используется на другом устройстве');
+            });
+        });
+        describe('Редактирование контактов недоступно. Открываю раздел контактов. Нажимаю на имя.', function() {
+            beforeEach(function() {
+                accountRequest.addressBookUpdatingUnavailable().receiveResponse();
+
+                const requests = ajax.inAnyOrder();
+
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+                secondAccountRequest.addressBookUpdatingUnavailable().receiveResponse();
+                reportGroupsRequest.receiveResponse();
+
+                tester.configRequest().softphone().receiveResponse();
+
+                tester.slavesNotification().expectToBeSent();
+                tester.slavesNotification().additional().expectToBeSent();
+
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                spendTime(1000);
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                spendTime(1000);
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
+
+                tester.authCheckRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+
+                settingsRequest = tester.settingsRequest().expectToBeSent();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                notificationTester.grantPermission();
+
+                settingsRequest.receiveResponse();
+                tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                tester.connectEventsWebSocket();
+                tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                tester.connectSIPWebSocket();
+                tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                    expectToBeSent();
+
+                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                tester.allowMediaInput();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    expectToBeSent();
+
+                authenticatedUserRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    userDataFetched().
+                    expectToBeSent();
+
+                registrationRequest.receiveResponse();
+                tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                statusesRequest.receiveResponse();
+
+                tester.button('Контакты').click();
+                tester.contactsRequest().differentNames().receiveResponse();
+
+                tester.contactList.item('Бележкова Грета Ервиновна').click();
+
+                {
+                    const requests = ajax.inAnyOrder();
+
+                    const contactCommunicationsRequest = tester.contactCommunicationsRequest().expectToBeSent(requests),
+                        contactRequest = tester.contactRequest().expectToBeSent(requests),
+                        usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    contactRequest.receiveResponse();
+                    usersRequest.receiveResponse();
+                    contactCommunicationsRequest.receiveResponse();
+                }
+            });
+
+            it('Открываю меню номера. Пункт "Редактировать" скрыт.', function() {
+                tester.contactBar.
+                    section('Телефоны').
+                    option('79162729533').
+                    putMouseOver();
+
+                tester.contactBar.
+                    section('Телефоны').
+                    option('79162729533').
+                    toolsIcon.
+                    click();
+
+                tester.select.option('Редактировать').expectToBeDisabled();
+            });
+            it('Помещаю курсор над именем персонального менеджера. Иконка редактирования скрыта.', function() {
+                tester.contactBar.
+                    section('Персональный менеджер').
+                    option('Господинова Николина').
+                    putMouseOver();
+
+                tester.contactBar.
+                    section('Персональный менеджер').
+                    option('Господинова Николина').
+                    toolsIcon.
+                    expectNotToExist();
             });
         });
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {

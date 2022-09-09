@@ -375,6 +375,7 @@ define(function () {
                 id: 20816,
                 is_in_call: false,
                 last_name: 'Ганева',
+                full_name: 'Ганева Стефка',
                 position_id: null,
                 short_phone: '9119',
                 status_id: 3,
@@ -700,7 +701,9 @@ define(function () {
             const additionalUsers = [],
                 processors = [];
             let data,
-                respond = request => request.respondSuccessfullyWith({data});
+                path = '/sup/api/v1/users',
+                respond = request => request.respondSuccessfullyWith({data}),
+                maybeTriggerScrollRecalculation = triggerScrollRecalculation;
 
             function addResponseModifiers (me) {
                 me.accessTokenExpired = () => {
@@ -740,13 +743,31 @@ define(function () {
             }
 
             return addResponseModifiers({
+                forContacts: function () {
+                    path = '$REACT_APP_BASE_URL/employees';
+                    maybeTriggerScrollRecalculation = () => null;
+
+                    processors.push(data => {
+                        data.forEach(({
+                            id,
+                            first_name,
+                            last_name
+                        }, index) => (data[index] = {
+                            id,
+                            first_name,
+                            last_name
+                        }))
+                    });
+
+                    return this;
+                },
                 setHavingActivePhones: function () {
                     params.with_active_phones = '1';
                     return this;
                 },
                 expectToBeSent: function (requests) {
                     var request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                        expectPathToContain('/sup/api/v1/users').
+                        expectPathToContain(path).
                         expectQueryToContain(params);
 
                     return addResponseModifiers({
@@ -760,9 +781,12 @@ define(function () {
 
                             respond(request);
                             Promise.runAll(false, true);
-                            triggerScrollRecalculation();
+                            maybeTriggerScrollRecalculation();
                         }
                     });
+                },
+                receiveResponse: function () {
+                    this.send();
                 },
                 send: function () {
                     this.expectToBeSent().receiveResponse();
@@ -770,26 +794,7 @@ define(function () {
             });
         };
 
-        this.usersRequest = function () {
-            var request = me.requestUsers();
-
-            return {
-                accessTokenExpired: function () {
-                    request.accessTokenExpired();
-                    return this;
-                },
-                addMore: function () {
-                    request.addMoreUsers();
-                    return this;
-                },
-                expectToBeSent: function (requests) {
-                    return request.expectToBeSent(requests);
-                },
-                receiveResponse: function () {
-                    return request.send();
-                }
-            };
-        };
+        this.usersRequest = this.requestUsers;
 
         this.requestUsersInGroups = function () {
             var additionalUsersInGroups = [];
@@ -2751,10 +2756,10 @@ define(function () {
                                 type: 'event',
                                 params: {
                                     action: 'update',
-                                    data: {
+                                    data: [{
                                         id: 20816,
                                         is_in_call: true
-                                    }
+                                    }] 
                                 }
                             });
 
@@ -3738,10 +3743,10 @@ define(function () {
                         type: 'event',
                         params: {
                             action: 'update',
-                            data: {
+                            data: [{
                                 id: 20816,
                                 is_in_call: true
-                            }
+                            }]
                         }
                     });
 
@@ -3868,10 +3873,10 @@ define(function () {
                 type: 'event',
                 params: {
                     action: 'update',
-                    data: {
+                    data: [{
                         id: 20816,
                         is_in_call: false
-                    }
+                    }]
                 }
             });
 
@@ -3910,7 +3915,7 @@ define(function () {
                         type: 'event',
                         params: {
                             action: 'update',
-                            data: data
+                            data: [data]
                         }
                     });
 
@@ -6514,22 +6519,37 @@ define(function () {
             };
         };
 
-        this.entityChangedEvent = function () {
+        this.employeeChangedEvent = function () {
             const message = {
-                name: 'entity_changed',
                 type: 'event',
+                name: 'employee_changed',
                 params: {
-                    data: {}
+                    action: 'update',
+                    data: [{
+                        id: 20816
+                    }]
                 }
             };
 
             return {
+                isAnotherEmployee: function () {
+                    message.params.data[0].id = 1762;
+                    return this;
+                },
+                secondStatus: function() {
+                    message.params.data[0].status_id = 4;
+                    return this;
+                },
+                anotherStatus: function() {
+                    message.params.data[0].status_id = 2;
+                    return this;
+                },
                 isNeedHideNumbers: function () {
-                    message.params.data.is_need_hide_numbers = true;
+                    message.params.data[0].is_need_hide_numbers = true;
                     return this;
                 },
                 isNotNeedHideNumbers: function () {
-                    message.params.data.is_need_hide_numbers = false;
+                    message.params.data[0].is_need_hide_numbers = false;
                     return this;
                 },
                 slavesNotification: function () {

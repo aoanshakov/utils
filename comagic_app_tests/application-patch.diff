@@ -302,7 +302,7 @@ index faae8a81..a00a8aba 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 6fa675dc..119daa0d 100644
+index 6fa675dc..a639a29f 100644
 --- a/package.json
 +++ b/package.json
 @@ -69,14 +69,18 @@
@@ -312,10 +312,11 @@ index 6fa675dc..119daa0d 100644
 -    "@comagic/core": "^1.1.0",
 -    "@sentry/react": "^6.17.6",
 -    "@sentry/tracing": "^6.17.6",
+-    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab",
 +    "@comagic/core": "./misc/core",
 +    "@sentry/react": "^6.19.4",
 +    "@sentry/tracing": "^6.19.4",
-     "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab",
++    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
      "ajv": "^8.8.2",
 +    "analytics": "./misc/analytics/frontend",
 +    "antd": "3.26.7",
@@ -407,10 +408,10 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 84eb8fcd..75910d53 100644
+index 84eb8fcd..54cbaad7 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,16 +1,21 @@
+@@ -1,16 +1,22 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
@@ -422,6 +423,7 @@ index 84eb8fcd..75910d53 100644
 +import ReactDOM from 'react-dom';
  import { IntlProvider } from 'react-intl';
  import { Router } from 'react-router-dom';
++import { notification } from 'magic-ui';
  
  import { useMountEffect } from '@hooks';
  
@@ -434,7 +436,7 @@ index 84eb8fcd..75910d53 100644
  
  import App from './App';
  import './global';
-@@ -96,7 +101,51 @@ const Root: React.FC = observer(props => {
+@@ -96,7 +102,53 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -453,6 +455,7 @@ index 84eb8fcd..75910d53 100644
 +        setEventBus = () => null,
 +        setHistory = () => null,
 +        setChatsRootStore = () => null,
++        setNotification = () => null,
 +        appName = ''
 +    }) {
 +        const Unit = units[appName];
@@ -466,6 +469,7 @@ index 84eb8fcd..75910d53 100644
 +            createAnalyticsRootStore();
 +            createContactsRootStore();
 +            setHistory(history);
++            setNotification(notification);
 +        }
 +         
 +        this.exit();

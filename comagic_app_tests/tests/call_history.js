@@ -164,6 +164,60 @@ tests.addTest(options => {
                             marksRequest.receiveResponse();
                         });
 
+                        describe('Имя контакта не было получено.', function() {
+                            beforeEach(function() {
+                                callsRequest.
+                                    noContactName().
+                                    noCrmContactLink().
+                                    receiveResponse();
+                            });
+
+                            describe('Нажимаю на номер телефона.', function() {
+                                beforeEach(function() {
+                                    tester.table.row.first.column.withHeader('ФИО контакта').link.click();
+                                    tester.usersRequest().forContacts().receiveResponse();
+                                });
+
+                                it(
+                                    'Открываю поля ФИО. Ввожу значение в поле фамилии. Нажимаю на кнопку "Создать ' +
+                                    'контакт". Форма контакта скрыта.',
+                                function() {
+                                    tester.contactBar.section('ФИО').svg.click();
+                                    tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
+
+                                    tester.button('Создать контакт').click();
+
+                                    tester.contactCreatingRequest().receiveResponse();
+
+                                    tester.callsRequest().
+                                        fromFirstWeekDay().
+                                        firstPage().
+                                        noCrmContactLink().
+                                        receiveResponse();
+
+                                    tester.marksRequest().receiveResponse();
+
+                                    tester.contactBar.expectNotToExist();
+                                });
+                                it('Добавляю почту. Запрос сохранения контакта не был отправлен.', function() {
+                                    tester.contactBar.section('E-Mail').svg.click();
+                                    tester.contactBar.section('E-Mail').input.fill('nedelcheva@gmail.com').pressEnter();
+                                });
+                                it('Открывается форма создания контакта.', function() {
+                                    tester.contactBar.expectTextContentToHaveSubstring(
+                                        'ФИО ' +
+                                        '74950230625 ' +
+
+                                        'Телефоны ' +
+                                        '74950230625 '
+                                    );
+                                });
+                            });
+                            it('Оторажен номер.', function() {
+                                tester.table.row.first.column.withHeader('ФИО контакта').link.
+                                    expectToHaveTextContent('+7 (495) 023-06-25');
+                            });
+                        });
                         describe('Все звонки успешны.', function() {
                             beforeEach(function() {
                                 callsRequest.receiveResponse();
@@ -993,6 +1047,8 @@ tests.addTest(options => {
                             describe('Нажимаю на имя контакта.', function() {
                                 beforeEach(function() {
                                     tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.click();
+
+                                    tester.usersRequest().forContacts().receiveResponse();
                                     tester.contactRequest().receiveResponse();
                                 });
                                 
@@ -1004,7 +1060,10 @@ tests.addTest(options => {
                                     tester.input.withPlaceholder('Отчество').fill('Ангеловна');
 
                                     tester.button('Сохранить').click();
+
                                     tester.contactUpdatingRequest().completeData().anotherName().receiveResponse();
+                                    tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+                                    tester.marksRequest().receiveResponse();
                                 });
                                 it('Нажимаю на иконку с крестиком. Карточка контакта скрыта.', function() {
                                     tester.contactBar.closeButton.click();
@@ -1136,19 +1195,41 @@ tests.addTest(options => {
                                     'https://comagicwidgets.amocrm.ru/contacts/detail/218401'
                                 );
                             });
-                            it('Получено событие скрытия номеров.', function() {
-                                tester.entityChangedEvent().isNeedHideNumbers().receive();
+                            it('Получено событие скрытия номеров. Номера скрыты.', function() {
+                                tester.employeeChangedEvent().
+                                    isNeedHideNumbers().
+                                    receive();
 
                                 tester.othersNotification().
                                     updateSettings().
                                     shouldNotPlayCallEndingSignal().
                                     expectToBeSent();
-                                
-                                tester.entityChangedEvent().isNeedHideNumbers().slavesNotification().expectToBeSent();
-                                
+
+                                tester.employeeChangedEvent().
+                                    isNeedHideNumbers().
+                                    slavesNotification().
+                                    expectToBeSent();
+
                                 tester.table.expectTextContentToHaveSubstring(
                                     'Гяурова Марийка ' +
                                     'Позвонить'
+                                );
+                            });
+                            it('Получено событие скрытия номеров у другого сотрудника. Номера отображены.', function() {
+                                tester.employeeChangedEvent().
+                                    isAnotherEmployee().
+                                    isNeedHideNumbers().
+                                    receive();
+
+                                tester.employeeChangedEvent().
+                                    isNeedHideNumbers().
+                                    isAnotherEmployee().
+                                    slavesNotification().
+                                    expectToBeSent();
+                                
+                                tester.table.expectTextContentToHaveSubstring(
+                                    'Гяурова Марийка ' +
+                                    '+7 (495) 023-06-25'
                                 );
                             });
                             it('Отображена история звонков.', function() {
@@ -1249,102 +1330,6 @@ tests.addTest(options => {
                                     expectToHaveClass('transfer_incoming_successful_svg__cmg-direction-icon');
                                 tester.table.row.atIndex(1).column.first.svg.
                                     expectToHaveClass('transfer_outgoing_successful_svg__cmg-direction-icon');
-                            });
-                        });
-                        describe('Имя контакта не было получено.', function() {
-                            beforeEach(function() {
-                                callsRequest.
-                                    noContactName().
-                                    noCrmContactLink().
-                                    receiveResponse();
-                            });
-
-                            describe('Нажимаю на номер телефона.', function() {
-                                beforeEach(function() {
-                                    tester.table.row.first.column.withHeader('ФИО контакта').link.click();
-                                });
-
-                                describe('Открываю поля ФИО.', function() {
-                                    beforeEach(function() {
-                                        tester.contactBar.section('ФИО').svg.click();
-                                    });
-
-                                    describe('Ввожу значение в поле фамилии.', function() {
-                                        let contactCreatingRequest;
-
-                                        beforeEach(function() {
-                                            tester.input.withPlaceholder('Фамилия (Обязательное поле)').
-                                                fill('Неделчева');
-                                        });
-                                        
-                                        describe(
-                                            'Нажимаю на кнопку "Создать контакт". Отправлен запрос создания контакта.',
-                                        function() {
-                                            beforeEach(function() {
-                                                tester.button('Создать контакт').click();
-
-                                                contactCreatingRequest = tester.contactCreatingRequest().
-                                                    expectToBeSent();
-                                            });
-
-                                            describe('Получен ответ на запрос.', function() {
-                                                beforeEach(function() {
-                                                    contactCreatingRequest.receiveResponse();
-                                                    tester.contactBar.section('ФИО').svg.click();
-                                                });
-
-                                                it(
-                                                    'Ввожу имя и отчество. Нажимаю на кнопку "Сохранить". Отправлен ' +
-                                                    'запрос обновления контакта.',
-                                                function() {
-                                                    tester.input.withPlaceholder('Имя').fill('Роза');
-                                                    tester.input.withPlaceholder('Отчество').fill('Ангеловна');
-
-                                                    tester.button('Сохранить').click();
-
-                                                    tester.contactUpdatingRequest().anotherName().receiveResponse();
-                                                });
-                                                it('Спиннер скрыт.', function() {
-                                                    tester.spin.expectNotToExist();
-                                                    tester.button('Создать контакт').expectNotToExist();
-
-                                                    tester.input.withPlaceholder('Фамилия (Обязательное поле)').
-                                                        expectNotToHaveError();
-                                                });
-                                            });
-                                            it('Отображен спиннер.', function() {
-                                                tester.spin.expectToBeVisible();
-                                            });
-                                        });
-                                        it('Поле фамилии не отмечено как невалидное.', function() {
-                                            tester.input.withPlaceholder('Фамилия (Обязательное поле)').
-                                                expectNotToHaveError();
-                                        });
-                                    });
-                                    it('Поле фамилии отмечено как невалидное.', function() {
-                                        tester.input.withPlaceholder('Фамилия (Обязательное поле)').expectToHaveError();
-                                        tester.input.withPlaceholder('Имя').expectNotToHaveError();
-                                    });
-                                });
-                                it('Добавляю почту. Запрос сохранения контакта не был отправлен.', function() {
-                                    tester.contactBar.section('E-Mail').svg.click();
-                                    tester.contactBar.section('E-Mail').input.fill('nedelcheva@gmail.com').pressEnter();
-                                });
-                                it('Открывается форма создания контакта.', function() {
-                                    tester.contactBar.expectTextContentToHaveSubstring(
-                                        'ФИО ' +
-                                        '74950230625 ' +
-
-                                        'Телефоны ' +
-                                        '74950230625 '
-                                    );
-
-                                    tester.button('Создать контакт').expectToBeDisabled();
-                                });
-                            });
-                            it('Оторажен номер.', function() {
-                                tester.table.row.first.column.withHeader('ФИО контакта').link.
-                                    expectToHaveTextContent('+7 (495) 023-06-25');
                             });
                         });
                         it(

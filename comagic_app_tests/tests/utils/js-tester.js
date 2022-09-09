@@ -6088,6 +6088,8 @@ function JsTester_InputElement (
     }
 
     function runAsText (callback) {
+        me.expectToExist();
+
         const domElement = getDomElement(),
             type = domElement.type;
 
