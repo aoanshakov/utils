@@ -105,6 +105,8 @@ const overridenFiles = [
 
 actions['install-publisher'] = [`cd ${publisherDir} && npm install --verbose`];
 
+actions['create-updater-patch'] = [`cd ${updater} && git diff > ${updaterPatch}`];
+
 actions['install-updater'] = [
     () => mkdir(assets),
     () => mkdir(updater),
@@ -454,7 +456,13 @@ actions['generate-names'] = ({
             response.on('data', chunk => (result += chunk));
 
             response.on('end', () => {
-                const name = (new JSDOM(result)).window.document.querySelector('.panel-body h3')?.textContent;
+                const name = ((new JSDOM(result)).window.document.querySelector('.panel-body h3') || {}).textContent;
+                
+                if (!name) {
+                    console.log('Имя не получено');
+                    return;
+                }
+
                 console.log(`Получено имя "${name}"`);
 
                 stream.write(name + "\n") 

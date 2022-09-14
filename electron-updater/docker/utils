@@ -1,7 +1,7 @@
 #!/bin/bash
 
 arguments=""
-nodeVersion="14"
+nodeVersion="11"
 shouldExit=0
 
 while [ -n "$1" ]
@@ -24,11 +24,9 @@ do
     shift
 done
 
-cd /usr/local/src/tests/utils
-
 source ~/.bashrc
 nvm use $nodeVersion
-node index.js $arguments
+cd /usr/local/src/utils && node index.js $arguments
 
 if [ -z "$NESTED_BASH_IS_RUNNING" ] && [ $shouldExit -eq 0 ]
 then

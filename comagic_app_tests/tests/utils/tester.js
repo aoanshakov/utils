@@ -3661,7 +3661,18 @@ define(() => function ({
             REACT_APP_AUTH_COOKIE: '$REACT_APP_AUTH_COOKIE'
         };
 
-        const me = {
+        const processors = [];
+
+        const addResponseModifiers = me => {
+            me.en = () => {
+                processors.push(() => (response.REACT_APP_LOCALE = 'en'));
+                return me;
+            };
+
+            return me;
+        };
+
+        const me = addResponseModifiers({
             chats: () => {
                 host = '$REACT_APP_MODULE_CHATS';
                 return me;
@@ -3669,6 +3680,7 @@ define(() => function ({
 
             softphone: () => {
                 host = '$REACT_APP_MODULE_SOFTPHONE';
+
                 response = {
                     REACT_APP_LOCALE: 'ru',
                     REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
@@ -3682,8 +3694,10 @@ define(() => function ({
                 const request = (requests ? requests.someRequest() : fetch.recentRequest()).
                     expectPathToContain(`${host}/config.json`);
 
-                return {
+                return addResponseModifiers({
                     receiveResponse: () => {
+                        processors.forEach(process => process());
+
                         request.respondSuccessfullyWith(
                             JSON.stringify(response)
                         );
@@ -3692,13 +3706,13 @@ define(() => function ({
                         spendTime(0)
                         spendTime(0);
                     }
-                };
+                });
             },
 
             receiveResponse() {
                 return this.expectToBeSent().receiveResponse();
             }
-        };
+        });
 
         return me;
     };

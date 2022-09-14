@@ -30,3 +30,11 @@ comagic_app_tests/updater/
 comagic_app_tests/publisher/node_modules
 comagic_app_tests/tests-server-log.log
 comagic_app_tests/tests-server.pid
+
+electron-updater/assets/
+electron-updater/sails_pg_session/
+electron-updater/updater.log
+electron-updater/updater/
+electron-updater/publisher/node_modules
+electron-updater/tests-server-log.log
+electron-updater/tests-server.pid
