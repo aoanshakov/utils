@@ -1,22 +1,19 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index faae8a81..a00a8aba 100644
+index ff493dc8..05a019f6 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
-@@ -6,11 +6,12 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+@@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
  const MiniCssExtractPlugin = require('mini-css-extract-plugin');
  const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
  const TerserPlugin = require('terser-webpack-plugin');
 -const ExternalRemotesPlugin = require('external-remotes-plugin');
 +//const ExternalRemotesPlugin = require('external-remotes-plugin');
  const CopyPlugin = require('copy-webpack-plugin');
- const comagicCoreDeps = require('@comagic/core/package.json');
- const magicUIDeps = require('magic-ui/package.json');
- const uisWebRTCDeps = require('@uiscom/uis_webrtc/package.json');
 +const hash = require('string-hash');
  
  const { ModuleFederationPlugin } = webpack.container;
  const pkgJson = require('../package.json');
-@@ -20,6 +21,8 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -17,6 +18,8 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
@@ -25,7 +22,7 @@ index faae8a81..a00a8aba 100644
  const publicDir = path.resolve(appDirectory, 'public');
  const buildDir = path.resolve(appDirectory, 'build');
  const dotenv = path.resolve(appDirectory, '.env');
-@@ -27,9 +30,20 @@ const isProductionMode = NODE_ENV !== 'development';
+@@ -24,9 +27,20 @@ const isProductionMode = NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
@@ -46,7 +43,7 @@ index faae8a81..a00a8aba 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -106,10 +120,11 @@ const webpackDefinePlugin = () => {
+@@ -103,10 +117,11 @@ const webpackDefinePlugin = () => {
      return opts;
  };
  
@@ -59,7 +56,7 @@ index faae8a81..a00a8aba 100644
          },
          {
              loader: 'css-loader',
-@@ -214,7 +229,7 @@ const plugins = () => {
+@@ -206,7 +221,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -68,7 +65,7 @@ index faae8a81..a00a8aba 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -254,6 +269,11 @@ const plugins = () => {
+@@ -246,6 +261,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -80,7 +77,7 @@ index faae8a81..a00a8aba 100644
      ];
  
      if (isProductionMode) {
-@@ -277,6 +297,17 @@ const plugins = () => {
+@@ -269,6 +289,17 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -98,7 +95,7 @@ index faae8a81..a00a8aba 100644
  module.exports = {
      entry: './src/index.tsx',
      target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
-@@ -298,6 +329,21 @@ module.exports = {
+@@ -290,6 +321,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -120,7 +117,7 @@ index faae8a81..a00a8aba 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -305,7 +351,7 @@ module.exports = {
+@@ -297,7 +343,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -129,7 +126,7 @@ index faae8a81..a00a8aba 100644
              },
              {
                  test: /\.css$/,
-@@ -316,6 +362,29 @@ module.exports = {
+@@ -308,6 +354,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -159,7 +156,7 @@ index faae8a81..a00a8aba 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -331,6 +400,7 @@ module.exports = {
+@@ -323,6 +392,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -167,7 +164,7 @@ index faae8a81..a00a8aba 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -346,17 +416,129 @@ module.exports = {
+@@ -338,17 +408,129 @@ module.exports = {
                      },
                  ],
              },
@@ -302,10 +299,10 @@ index faae8a81..a00a8aba 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 6fa675dc..a639a29f 100644
+index 8efa0ca3..0072369b 100644
 --- a/package.json
 +++ b/package.json
-@@ -69,14 +69,18 @@
+@@ -69,13 +69,17 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -317,10 +314,9 @@ index 6fa675dc..a639a29f 100644
 +    "@sentry/react": "^6.19.4",
 +    "@sentry/tracing": "^6.19.4",
 +    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
-     "ajv": "^8.8.2",
+     "archiver": "^5.3.0",
 +    "analytics": "./misc/analytics/frontend",
 +    "antd": "3.26.7",
-     "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
      "axios": "^0.24.0",
 +    "babel-loader": "^8.0.4",
@@ -328,7 +324,7 @@ index 6fa675dc..a639a29f 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -88,7 +92,7 @@
+@@ -87,7 +91,7 @@
      "formik": "^2.2.9",
      "history": "^4.10.1",
      "lodash.clonedeep": "^4.5.0",
@@ -337,7 +333,7 @@ index 6fa675dc..a639a29f 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -97,7 +101,11 @@
+@@ -96,7 +100,11 @@
      "react": "^18.2.0",
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
@@ -538,7 +534,7 @@ index 5c194f00..c837a801 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 33abfa7f..b558bd72 100644
+index 12a885f7..dcb3b1c6 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -93,7 +93,7 @@ const removeToken = (skipLocalStorage = false) => {
