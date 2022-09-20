@@ -68,7 +68,7 @@ const addVersion = () => new Promise((resolve, reject) => {
             },
             availability: (new Date()).toISOString(),
             flavor: {
-                name: project || 'default'
+                name: project == 'comagic' ? 'default' : project
             }
         }
     }).
@@ -81,7 +81,7 @@ const addVersion = () => new Promise((resolve, reject) => {
     });
 });
 
-const publish = path => () => new Promise((resolve, reject) => {
+const publish = (path, suffix = '') => () => new Promise((resolve, reject) => {
     Promise.resolve().then(() => {
         console.log(
             `Trying to publish asset ${path} for version ${version}${project ? ` and project ${project}` : ''}`
@@ -91,8 +91,9 @@ const publish = path => () => new Promise((resolve, reject) => {
             form = new FormData();
 
         form.append('token', token);
+        //form.append('name', `softphone${project != 'usa' ? '-uis' : ''}.exe${suffix}`);
         form.append('platform', 'windows_64');
-        form.append('version', `${version}${project ? `_${project}` : ''}`);
+        form.append('version', `${version}${project != 'comagic' ? `_${project}` : ''}`);
         form.append('file', require('fs').createReadStream(path));
 
         return form;
@@ -111,5 +112,5 @@ const publish = path => () => new Promise((resolve, reject) => {
 authenticate().
     then(addVersion).
     then(publish(filepath)).
-    then(publish(`${filepath}.blockmap`)).
+    then(publish(`${filepath}.blockmap`, '.blockmap')).
     catch(error => console.log(`${error[0]}:`, error[1]));

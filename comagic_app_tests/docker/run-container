@@ -198,7 +198,6 @@ docker run -it --rm \
     --mount type=bind,source=$HOME/.ssh/known_hosts,target=/root/.ssh/known_hosts \
     --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa \
     $dockerArguments \
-    -p 6973:6973 \
     $imageTag \
     --action $action \
     $entrypointArguments

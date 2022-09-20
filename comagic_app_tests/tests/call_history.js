@@ -203,6 +203,14 @@ tests.addTest(options => {
                                     tester.contactBar.section('E-Mail').svg.click();
                                     tester.contactBar.section('E-Mail').input.fill('nedelcheva@gmail.com').pressEnter();
                                 });
+                                it(
+                                    'Нажимаю на иконку с плюсом спарва от надписи "Персональный менеджер". В ' +
+                                    'выпадающем списке выбрана опция "Не выбрано".',
+                                function() {
+                                    tester.contactBar.section('Персональный менеджер').header.svg.click();
+                                    tester.contactBar.section('Персональный менеджер').select.
+                                        expectToHaveTextContent('Не выбрано');
+                                });
                                 it('Открывается форма создания контакта.', function() {
                                     tester.contactBar.expectTextContentToHaveSubstring(
                                         'ФИО ' +
@@ -1200,14 +1208,14 @@ tests.addTest(options => {
                                     isNeedHideNumbers().
                                     receive();
 
-                                tester.othersNotification().
-                                    updateSettings().
-                                    shouldNotPlayCallEndingSignal().
-                                    expectToBeSent();
-
                                 tester.employeeChangedEvent().
                                     isNeedHideNumbers().
                                     slavesNotification().
+                                    expectToBeSent();
+
+                                tester.othersNotification().
+                                    updateSettings().
+                                    shouldNotPlayCallEndingSignal().
                                     expectToBeSent();
 
                                 tester.table.expectTextContentToHaveSubstring(
@@ -1220,12 +1228,6 @@ tests.addTest(options => {
                                     isAnotherEmployee().
                                     isNeedHideNumbers().
                                     receive();
-
-                                tester.employeeChangedEvent().
-                                    isNeedHideNumbers().
-                                    isAnotherEmployee().
-                                    slavesNotification().
-                                    expectToBeSent();
                                 
                                 tester.table.expectTextContentToHaveSubstring(
                                     'Гяурова Марийка ' +
