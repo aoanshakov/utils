@@ -1,8 +1,8 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 64299acc..9af0c361 100644
+index faae8a81..fb37462d 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
-@@ -7,11 +7,12 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+@@ -6,11 +6,12 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
  const MiniCssExtractPlugin = require('mini-css-extract-plugin');
  const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
  const TerserPlugin = require('terser-webpack-plugin');
@@ -16,7 +16,7 @@ index 64299acc..9af0c361 100644
  
  const { ModuleFederationPlugin } = webpack.container;
  const pkgJson = require('../package.json');
-@@ -21,6 +22,8 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -20,6 +21,8 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
@@ -25,7 +25,7 @@ index 64299acc..9af0c361 100644
  const publicDir = path.resolve(appDirectory, 'public');
  const buildDir = path.resolve(appDirectory, 'build');
  const dotenv = path.resolve(appDirectory, '.env');
-@@ -28,9 +31,20 @@ const isProductionMode = NODE_ENV !== 'development';
+@@ -27,9 +30,20 @@ const isProductionMode = NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
@@ -46,7 +46,7 @@ index 64299acc..9af0c361 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -107,10 +121,11 @@ const webpackDefinePlugin = () => {
+@@ -106,10 +120,11 @@ const webpackDefinePlugin = () => {
      return opts;
  };
  
@@ -59,7 +59,7 @@ index 64299acc..9af0c361 100644
          },
          {
              loader: 'css-loader',
-@@ -215,7 +230,7 @@ const plugins = () => {
+@@ -214,7 +229,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -68,7 +68,7 @@ index 64299acc..9af0c361 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -245,6 +260,11 @@ const plugins = () => {
+@@ -254,6 +269,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -80,7 +80,7 @@ index 64299acc..9af0c361 100644
      ];
  
      if (isProductionMode) {
-@@ -268,6 +288,17 @@ const plugins = () => {
+@@ -277,6 +297,17 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -98,7 +98,7 @@ index 64299acc..9af0c361 100644
  module.exports = {
      entry: './src/index.tsx',
      target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
-@@ -289,6 +320,21 @@ module.exports = {
+@@ -298,6 +329,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -120,8 +120,8 @@ index 64299acc..9af0c361 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -308,7 +354,7 @@ module.exports = {
-                         }),
+@@ -305,7 +351,7 @@ module.exports = {
+                         transpileOnly: true,
                      },
                  },
 -                exclude: /node_modules/,
@@ -129,7 +129,7 @@ index 64299acc..9af0c361 100644
              },
              {
                  test: /\.css$/,
-@@ -319,6 +365,29 @@ module.exports = {
+@@ -316,6 +362,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -159,7 +159,7 @@ index 64299acc..9af0c361 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -334,6 +403,7 @@ module.exports = {
+@@ -331,6 +400,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -167,7 +167,7 @@ index 64299acc..9af0c361 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -349,17 +419,122 @@ module.exports = {
+@@ -346,17 +416,125 @@ module.exports = {
                      },
                  ],
              },
@@ -207,6 +207,7 @@ index 64299acc..9af0c361 100644
 -            '@hooks': path.resolve(appDirectory, './src/hooks'),
 +            ...createAliases(appDirectory),
 +            'contacts/Root': `${miscDirectory}/contacts/src/Wrapper.tsx`,
++            'contacts/ContactBar': `${miscDirectory}/contacts/src/components/contact-bar/ContactBarWrapper.tsx`,
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
@@ -249,7 +250,9 @@ index 64299acc..9af0c361 100644
 +                `${miscDirectory}/analytics/frontend/src/components/lib/radio-button/RadioGroup.tsx`,
 +            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
-+            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`
++            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`,
++            'marketplace/Root': `${miscDirectory}/Stub.js`,
++            'marketplace/Auth': `${miscDirectory}/Stub.js`, 
          },
 +
 +        plugins: [{
@@ -295,28 +298,30 @@ index 64299acc..9af0c361 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 3b468556..047e348e 100644
+index 6fa675dc..e69ececc 100644
 --- a/package.json
 +++ b/package.json
 @@ -59,8 +59,8 @@
-     "style-loader": "^2.0.0",
+     "start-server-and-test": "^1.11.5",
+     "style-loader": "^3.3.1",
      "terser-webpack-plugin": "^5.1.4",
-     "ts-import-plugin": "^1.6.7",
--    "ts-loader": "^8.0.17",
--    "typescript": "4.4.3",
+-    "ts-loader": "^9.3.1",
+-    "typescript": "^4.7.4",
 +    "ts-loader": "8.0.17",
 +    "typescript": "4.2.2",
      "url-loader": "^3.0.0",
-     "webpack": "^5.72.0",
+     "webpack": "^5.74.0",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -69,13 +69,17 @@
+@@ -69,14 +69,18 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
--    "@comagic/core": "^0.6.7",
+-    "@comagic/core": "^1.1.0",
 +    "@comagic/core": "./misc/core",
      "@sentry/react": "^6.17.6",
      "@sentry/tracing": "^6.17.6",
+-    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab",
++    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
      "ajv": "^8.8.2",
 +    "analytics": "./misc/analytics/frontend",
 +    "antd": "3.26.7",
@@ -328,21 +333,21 @@ index 3b468556..047e348e 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -87,7 +91,7 @@
+@@ -88,7 +92,7 @@
      "formik": "^2.2.9",
      "history": "^4.10.1",
-     "lodash": "^4.17.20",
+     "lodash.clonedeep": "^4.5.0",
 -    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#int_2022_13.0",
 +    "magic-ui": "./misc/magic_ui",
-     "mobx": "^6.3.8",
-     "mobx-react-lite": "^3.2.2",
-     "mobx-state-tree": "^5.1.0",
-@@ -97,10 +101,15 @@
-     "react-dom": "^17.0.2",
-     "stream-buffers": "^3.0.2",
-     "react-flow-renderer": "^9.7.4",
--    "react-intl": "^5.15.8",
--    "react-router-dom": "^5.2.0",
+     "mobx": "^6.6.1",
+     "mobx-react-lite": "^3.4.0",
+     "mobx-state-tree": "^5.1.6",
+@@ -96,8 +100,13 @@
+     "nanoid": "^3.2.0",
+     "react": "^18.2.0",
+     "react-dom": "^18.2.0",
+-    "react-intl": "^6.0.5",
+-    "react-router-dom": "5.3.0",
 +    "react-intl": "5.13.2",
 +    "react-router": "5.2.1",
 +    "react-router-dom": "5.2.1",
@@ -350,14 +355,11 @@ index 3b468556..047e348e 100644
 +    "softphone": "./misc/softphone",
 +    "string-hash": "^1.1.3",
 +    "contacts": "./misc/contacts",
-     "yup": "^0.28.1",
--    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab"
-+    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc"
+     "stream-buffers": "^3.0.2",
+     "yup": "^0.28.1"
    },
-   "optionalDependencies": {
-     "dmg-license": "^1.0.9"
 diff --git a/public/index.html b/public/index.html
-index fd0f39d9..6741d8aa 100644
+index a82eebad..59a999e3 100644
 --- a/public/index.html
 +++ b/public/index.html
 @@ -23,7 +23,29 @@
@@ -435,34 +437,31 @@ index 54c1319c..94add9fd 100644
          historyApiFallback: true,
      },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 68f48551..4fda9bbb 100644
+index 84eb8fcd..d5121b53 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,95 +1,24 @@
--import React, { useState } from 'react';
--import { observer } from 'mobx-react-lite';
-+import React from 'react';
- import ReactDOM from 'react-dom';
--import { Router } from 'react-router-dom';
--import { IntlProvider } from 'react-intl';
--import moment from 'moment';
+@@ -1,102 +1,26 @@
 -import { CoreProvider } from '@comagic/core';
 -import * as Sentry from '@sentry/react';
 -import { Integrations } from '@sentry/tracing';
- 
+ import { observer } from 'mobx-react-lite';
+-import moment from 'moment';
+-import React, { useEffect, useState } from 'react';
++import React from 'react';
+ import { createRoot } from 'react-dom/client';
+-import { IntlProvider } from 'react-intl';
+-import { Router } from 'react-router-dom';
+-
 -import { useMountEffect } from '@hooks';
-+import Root from '@comagic/core/src/components/bootstrap';
  
 +import { useMst } from '@/hooks';
  import { Provider, rootStore } from '@models/RootStore';
- 
- import history from './history';
--import { getIntlLocale, getIntlMessages } from './i18n';
-+import { intl } from './i18n';
++import Root from '@comagic/core/src/components/bootstrap';
  
  import App from './App';
- 
--import './global';
+ import './global';
+ import history from './history';
+-import { getIntlLocale, getIntlMessages, getProject } from './i18n';
 -import { createPureHistory, loadTheme } from './utils';
 -
 -const sentryDSN = process.env.SENTRY_DSN;
@@ -522,6 +521,12 @@ index 68f48551..4fda9bbb 100644
 -        });
 -    });
 -
+-    useEffect(() => {
+-        if (!accountStore.account.project) {
+-            accountStore.setAccount({ ...accountStore.account, project: getProject() });
+-        }
+-    }, [accountStore.account.project]);
+-
 -    if (!themeLoaded) return null;
 -
 -    return (
@@ -537,8 +542,15 @@ index 68f48551..4fda9bbb 100644
 -    );
 -});
 -
--ReactDOM.render(<Root {...(window.rootConfig || {})}/>, document.getElementById('root'));
-+ReactDOM.render(<Root
+-const container = document.getElementById('root');
+-const root = createRoot(container);
+-
+-root.render(<Root {...(window.rootConfig || {})}/>);
++import { intl } from './i18n';
++
++const root = createRoot(document.getElementById('root'));
++
++root.render(<Root
 +    {...(window.rootConfig || {})}
 +    {...({
 +        history,
@@ -548,7 +560,7 @@ index 68f48551..4fda9bbb 100644
 +        useMst,
 +        i18n: intl
 +    })}
-+><App /></Root>, document.getElementById('root'));
++><App /></Root>);
 diff --git a/src/history.ts b/src/history.ts
 index 33bf6a02..fe524735 100644
 --- a/src/history.ts
@@ -563,29 +575,28 @@ index 33bf6a02..fe524735 100644
  //TODO: может заменить на location.reload()?
  export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d5eb547b..ad50b7f4 100644
+index 5c194f00..6068b089 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -1,318 +1,44 @@
- import React from 'react';
--import { applySnapshot, getSnapshot, Instance, SnapshotOut, types } from 'mobx-state-tree';
+@@ -1,21 +1,16 @@
+-import { AccountStore, NotificationStore, projectsData } from '@comagic/core';
 -import axios, { AxiosRequestConfig } from 'axios';
+-import { Instance, SnapshotOut, applySnapshot, getSnapshot, types } from 'mobx-state-tree';
+ import React from 'react';
 -import moment from 'moment';
 -import * as fileSaver from 'file-saver';
--import { AccountStore, projectsData, NotificationStore } from '@comagic/core';
 +import { Instance, SnapshotOut, types } from 'mobx-state-tree';
 +import { projectsData } from '@comagic/core';
 +import { cancelPendingRequests } from '@/rpc/httpRpc';
 +import { intl } from '@/i18n';
  
- import { GOD_MODE } from '@/config';
- import { httpRpc, httpRpcAuth } from '@/rpc';
--import { HttpRpc } from '@/rpc/httpRpc';
- 
 -import { AuthStore, getToken } from '@models/auth/AuthStore';
  import { MenuStore } from '@models/menu/MenuStore';
  import { RootReportStore } from '@models/reports/RootReportStore';
- import { MarketplaceStore } from '@models/marketplace/MarketplaceStore';
+ 
+ import { GOD_MODE } from '@/config';
+ import { httpRpc, httpRpcAuth } from '@/rpc';
+-import { HttpRpc } from '@/rpc/httpRpc';
  
 -const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
 -const ACCESS_TOKEN_INVALID = 'access_token_invalid';
@@ -594,91 +605,21 @@ index d5eb547b..ad50b7f4 100644
  
  const isGodMode = () => {
      return localStorage.getItem(GOD_MODE) === '*';
- };
+@@ -92,216 +87,14 @@ window.addEventListener('error', function(event) {
+     return false;
+ });
  
--type HttpRpcErrorModel = {
--    code: number;
--    message: string;
--    data: any;
--    request: any | null;
--};
--
--type RequestToRefresh = (nextResolve: boolean) => void;
--
--const getIpcRender = () => (
--    window.rootConfig?.appName == 'softphone' &&
--    ((window.require || (() => null))('electron')?.ipcRenderer)
--) || {
--    on: () => null,
--    send: () => null
--};
--
--const createSoftphoneStoreCreatingHandler = rootStore => {
--    let handleStoreCreating = store => {
--        [{
--            channelName: 'checkautolauncher',
--            paramName: 'isStartApp',
--            setParamValue: 'setStartApp'
--        }, {
--            channelName: 'checkstartminimize',
--            paramName: 'isStartMinimize',
--            setParamValue: 'setStartMinimize'
--        }].forEach(({channelName, paramName, setParamValue}) =>
--            getIpcRender().on(channelName, (event, data) => store[setParamValue]((data || {})[paramName])));
--
--        getIpcRender().send('app-ready');
--
--        getIpcRender().on('update-downloaded', () => store.showMessage({
--            id: 'update-downloaded',
--            title: 'Update received',
--            buttons: [{
--                id: 'update',
--                text: 'Update',
--                handler: () => getIpcRender().send('quit-and-install')
--            }]
--        }));
--
--        getIpcRender().on('maximize', () => store.setIsLarge());
--        getIpcRender().on('unmaximize', () => store.setNotLarge());
--
--        store.onLargenessChange(isLarge => {
--            rootStore.setLarge(isLarge);
--            getIpcRender().send(isLarge ? 'maximize' : 'unmaximize');
--        });
--
--        store.onApplicationChangeChanger(data => getIpcRender().send(
--            'application-version-changed',
--            data?.params?.application_version
--        ));
--
--        store.onSizeChange(size => getIpcRender().send('resize', size));
--        handleStoreCreating = () => null;
--    };
--
--    return store => handleStoreCreating(store);
--};
--
--const log = (...messages) => getIpcRender().send('log', messages.map(
--    message => typeof message == 'object' ? JSON.stringify(message) : `${message}`
--).join(' ').trim());
--
--window.addEventListener('error', function(event) {
--    log(((error => error ? (error + '') : '')(event?.error?.stack || event?.message)).trim())
--    return false;
--});
--
 -export const RootStore = types
 -    .model('RootStore', {
--        isLarge: types.optional(types.boolean, false),
 +export const RootStore = BasicRootStore.named('RootStore')
 +    .props({
+         isLarge: types.optional(types.boolean, false),
          isGodMode: types.optional(types.boolean, isGodMode()),
 -        isLogDownloading: types.optional(types.boolean, false),
 -        authStore: types.optional(AuthStore, {}),
 -        accountStore: types.optional(AccountStore, {}),
          menuStore: types.optional(MenuStore, {}),
          reportStore: types.optional(RootReportStore, {}),
-         marketplaceStore: types.optional(MarketplaceStore, {}),
 -        notificationStore: types.optional(NotificationStore, {}),
 -    })
 -    .actions(self => {
@@ -836,7 +777,7 @@ index d5eb547b..ad50b7f4 100644
 -            );
 -        };
 -
--        let setSoftphoneStore = () => null;
+-        let setAppStore = () => null;
 -
 -        const downloadLog = () => {
 -            self.isLogDownloading = true;
@@ -857,7 +798,7 @@ index d5eb547b..ad50b7f4 100644
 -            setHttpRequestsDefault();
 -
 -            getIpcRender().on('logs_collected', (event, data) => self.handleLogsCollected(data));
--            setSoftphoneStore = createSoftphoneStoreCreatingHandler(self);
+-            setAppStore = createSoftphoneStoreCreatingHandler(self);
 -        };
 -
 -        const resetStore = () => {
@@ -877,14 +818,14 @@ index d5eb547b..ad50b7f4 100644
 -            setLarge,
 -            downloadLog,
 -            handleLogsCollected,
--            setSoftphoneStore: store => setSoftphoneStore(store) 
+-            setAppStore: store => setAppStore(store) 
 -        };
      });
++    
  
--export type DependencyInjection = {
--    httpRpc: HttpRpc;
--    httpRpcAuth: HttpRpc;
--};
+ export type DependencyInjection = {
+     httpRpc: HttpRpc;
+@@ -310,7 +103,17 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -905,21 +846,22 @@ index d5eb547b..ad50b7f4 100644
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
 deleted file mode 100644
-index e6dd1223..00000000
+index 33abfa7f..00000000
 --- a/src/models/auth/AuthStore.ts
 +++ /dev/null
-@@ -1,235 +0,0 @@
--import { flow, getEnv, getRoot, types } from 'mobx-state-tree';
+@@ -1,233 +0,0 @@
 -import axios from 'axios';
+-import { flow, getEnv, getRoot, types } from 'mobx-state-tree';
+-
+-import { getProject } from '@/i18n';
+-import { cancelPendingRequests } from '@/rpc/httpRpc';
+-import { cancelAnalyticPendingRequests } from '@/rpc/httpRpcAnalytic';
+-import { deleteCookie, getCookie, setCookie } from '@/utils';
+-import { generateTraceId } from '@/utils';
+-import { Options } from '@/utils/cookie';
 -
 -import { RootStore } from '../RootStore';
 -import { Loader } from '../shared';
--import { getProject } from '@/i18n';
--import { getCookie, setCookie, deleteCookie } from '@/utils';
--import { cancelPendingRequests } from '@/rpc/httpRpc';
--import { generateTraceId } from '@/utils';
--import { Options } from '@/utils/cookie';
--import { cancelAnalyticPendingRequests } from '@/rpc/httpRpcAnalytic';
 -
 -export type LoginUser = {
 -    login: string;
@@ -935,10 +877,7 @@ index e6dd1223..00000000
 -const AUTH_KEY = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_COOKIE';
 -
 -const getCookieDomain = () => {
--    return window.location.hostname
--        .split('.')
--        .slice(-2)
--        .join('.');
+-    return window.location.hostname.split('.').slice(-2).join('.');
 -};
 -
 -export const getToken = (): Auth => {
@@ -1036,7 +975,7 @@ index e6dd1223..00000000
 -            self.setLoading(false);
 -        };
 -
--        const fetchLoginUser = flow(function*({
+-        const fetchLoginUser = flow(function* ({
 -            login,
 -            password,
 -            dont_keep_me_signed_in: dontKeepMeSignedIn,
@@ -1065,7 +1004,7 @@ index e6dd1223..00000000
 -            }
 -        });
 -
--        const fetchRefresh = flow(function*() {
+-        const fetchRefresh = flow(function* () {
 -            try {
 -                setIsTokenRefreshing(true);
 -
@@ -1082,7 +1021,7 @@ index e6dd1223..00000000
 -            }
 -        });
 -
--        const fetchLogoutUser = flow(function*() {
+-        const fetchLogoutUser = flow(function* () {
 -            self.setLoading(true);
 -
 -            try {
