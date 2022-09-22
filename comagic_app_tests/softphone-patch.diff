@@ -46,10 +46,66 @@ index 18318f8..5b94846 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index afe421b..ca1837b 100644
+index afe421b..8ac3c5b 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -725,4 +725,5 @@ export const RootStore = types
+@@ -123,9 +123,9 @@ export const RootStore = types
+         let initialState: RootInstanceSnapshotOut,
+             hasError = false,
+             doRequest = () => null,
+-            doMaybeHidePhoneNumber = value => value;
++            doMaybeHidePhoneNumber = value => value,
++            listeners = {};
+         const sizeChangeHandlers = [],
+-            largenessChangeHandlers = [],
+             accountFetchedHandlers = [],
+             applicationChangeHandlers = [],
+             subscriptionRemovers = [],
+@@ -148,7 +148,7 @@ export const RootStore = types
+                 enablingHandlers = [];
+             hasError = false;
+             subscriptionRemovers = [];
+-            largenessChangeHandlers.splice(0, largenessChangeHandlers.length);
++            listeners = {};
+ 
+             let authStore,
+                 call = () => null,
+@@ -443,11 +443,6 @@ export const RootStore = types
+ 
+             const { dispatch, getState } = self.reduxStore;
+ 
+-            self.onSizeChange = handler => {
+-                sizeChangeHandlers.push(handler);
+-                size.width && size.height && handler(size);
+-            };
+-
+             self.onApplicationChangeChanger = handler => applicationChangeHandlers.push(handler);
+ 
+             self.onAccountFetched = handler => {
+@@ -671,10 +666,19 @@ export const RootStore = types
+                 );
+         };
+ 
+-        self.onLargenessChange = handler => largenessChangeHandlers.push(handler);
++        self.addEventListener = (eventName, handler) => {
++            !listeners[eventName] && (listeners[eventName] = []);
++
++            self.onSizeChange = handler => {
++                sizeChangeHandlers.push(handler);
++                size.width && size.height && handler(size);
++            };
++        };
++
++        const resetStore = () => applySnapshot(self, initialState);
+ 
+-        const resetStore = () => applySnapshot(self, initialState),
+-            handleLargenessChange = () => largenessChangeHandlers.forEach(handle => handle(self.isLarge));
++        const handleLargenessChange = () => listeners[self.isLarge ? 'maximize' : 'unmaximize']?.
++            forEach(handle => handle());
+ 
+         const setNotLarge = () => {
+             if (!self.isLarge) {
+@@ -725,4 +729,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
