@@ -1,18 +1,17 @@
 diff --git a/package.json b/package.json
-index f40d08d..34dc9ab 100644
+index 9e202ff..a69da5a 100644
 --- a/package.json
 +++ b/package.json
-@@ -22,9 +22,6 @@
+@@ -22,8 +22,6 @@
      "@types/dompurify": "^2.3.3",
      "@types/htmlparser2": "^3.10.3",
      "@types/node": "^14.14.37",
 -    "@types/react": "^17.0.2",
 -    "@types/react-dom": "^17.0.1",
--    "@types/react-router-dom": "^5.1.6",
      "@types/uuid": "^8.3.1",
      "@types/yup": "^0.29.11",
      "@typescript-eslint/eslint-plugin": "^4.16.1",
-@@ -56,8 +53,7 @@
+@@ -55,8 +53,7 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
@@ -22,8 +21,8 @@ index f40d08d..34dc9ab 100644
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -69,19 +65,13 @@
-     "history": "^4.10.1",
+@@ -67,19 +64,13 @@
+     "formik": "^2.2.9",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
 -    "magic-ui": "./magic_ui",
@@ -34,8 +33,8 @@ index f40d08d..34dc9ab 100644
      "moment": "^2.29.1",
 -    "react": "^17.0.2",
 -    "react-dom": "^17.0.2",
--    "react-intl": "^5.22.0",
--    "react-router-dom": "^5.2.0",
+-    "react-intl": "^6.1.1",
+-    "react-router-dom": "^6.4.0",
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
 -    "yup": "^0.32.9",
@@ -70,19 +69,8 @@ index 43db4d8..6a8f91e 100644
  });
  
  export default App;
-diff --git a/src/history.ts b/src/history.ts
-index 564e8ec..e156b1f 100644
---- a/src/history.ts
-+++ b/src/history.ts
-@@ -1,5 +1,2 @@
--import { createBrowserHistory } from 'history';
--
--const history = createBrowserHistory();
--
-+const history = window.memoryHistory;
- export default history;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 4457fa5..05b069d 100644
+index bb4fd56..63c16f0 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -120,7 +120,8 @@ export const RootStore = types
@@ -109,7 +97,7 @@ index 933fdb3..8e6f31d 100644
      })
      .views(() => ({
 diff --git a/src/utils/index.tsx b/src/utils/index.tsx
-index af48314..fc10827 100644
+index 94d4c43..31f4230 100644
 --- a/src/utils/index.tsx
 +++ b/src/utils/index.tsx
 @@ -1,8 +1,8 @@
@@ -123,7 +111,7 @@ index af48314..fc10827 100644
  import moment from 'moment';
  import short from 'short-uuid';
  import { intl } from '@/i18n';
-@@ -113,8 +113,15 @@ type Options = {
+@@ -114,8 +114,15 @@ type Options = {
      'max-age'?: number;
  };
  
@@ -140,7 +128,7 @@ index af48314..fc10827 100644
          document.cookie
      );
  
-@@ -122,6 +129,11 @@ export function getCookie(name: string): string {
+@@ -123,6 +130,11 @@ export function getCookie(name: string): string {
  }
  
  export function setCookie(name: string, value: string, options: Options = {}): void {
@@ -152,7 +140,7 @@ index af48314..fc10827 100644
      options = {
          path: '/',
          ...options,
-@@ -131,7 +143,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -132,7 +144,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
          options.expires = options.expires.toUTCString();
      }
  
@@ -161,7 +149,7 @@ index af48314..fc10827 100644
  
      let optionKey: keyof Options;
      for (optionKey in options) {
-@@ -139,7 +151,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -140,7 +152,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
  
          const optionValue = options[optionKey];
          if (optionValue !== true) {
@@ -170,7 +158,7 @@ index af48314..fc10827 100644
          }
      }
  
-@@ -147,6 +159,11 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -148,6 +160,11 @@ export function setCookie(name: string, value: string, options: Options = {}): v
  }
  
  export function deleteCookie(name: string, options: Options = {}): void {
@@ -182,7 +170,7 @@ index af48314..fc10827 100644
      setCookie(name, '', {
          'max-age': -1,
          ...options,
-@@ -190,6 +207,7 @@ function generateUrl(url: string): string {
+@@ -191,6 +208,7 @@ function generateUrl(url: string): string {
  }
  
  export function parseLinks(text: string): React.ReactNode[] {

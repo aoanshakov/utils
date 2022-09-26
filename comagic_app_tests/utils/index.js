@@ -82,7 +82,6 @@ const cda = `cd ${application} &&`,
 
 const chatOverridenFiles = 'src/models/RootStore.ts ' +
     'package.json ' +
-    'src/history.ts ' +
     'src/App.tsx ' +
     'src/models/auth/AuthStore.ts ' +
     'src/utils/index.tsx';
@@ -95,7 +94,6 @@ const overridenFiles = [
     'src/utils/cookie.ts',
     'public/index.html',
     'src/bootstrap.tsx',
-    'src/history.ts',
     'config/webpack.config.js',
     'package.json',
     'src/models/RootStore.ts',
