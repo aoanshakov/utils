@@ -22,7 +22,7 @@ module.exports = {
     application,
     tests,
     nodeModules,
-    scheduler: `${nodeModules}/react-dom/node_modules/scheduler`,
+    scheduler: `${nodeModules}/scheduler`,
     fileSaver: `${nodeModules}/file-saver`,
     broadcastChannel: `${nodeModules}/broadcast-channel`,
     webpackDevServer: `${nodeModules}/webpack-dev-server`,

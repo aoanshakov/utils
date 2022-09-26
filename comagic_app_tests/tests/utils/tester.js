@@ -8042,7 +8042,17 @@ define(() => function ({
     };
 
     me.contactRequest = () => {
-        const addResponseModifiers = me => me;
+        const processors = [];
+
+        const addResponseModifiers = me => {
+            me.noPersonalManager = () => {
+                processors.push(() => (response.personal_manager_id = null));
+                return me;
+            };
+
+            return me;
+        };
+
         let id = 1689283;
 
         const response = {
@@ -8062,14 +8072,7 @@ define(() => function ({
             full_name: 'Бележкова Грета Ервиновна'
         };
 
-        const processors = [];
-
         return addResponseModifiers({
-            noPersonalManager() {
-                processors.push(() => (response.personal_manager_id = null));
-                return this;
-            },
-
             anotherContact() {
                 id = response.id = 1689290;
 
