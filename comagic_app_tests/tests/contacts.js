@@ -43,7 +43,7 @@ tests.addTest(options => {
             tester.button('Войти').click();
 
             tester.loginRequest().receiveResponse();
-            accountRequest = tester.accountRequest().expectToBeSent();
+            accountRequest = tester.accountRequest().webAccountLoginAvailable().expectToBeSent();
 
             tester.masterInfoMessage().receive();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -58,7 +58,7 @@ tests.addTest(options => {
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    secondAccountRequest = tester.accountRequest().webAccountLoginAvailable().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
@@ -849,7 +849,6 @@ tests.addTest(options => {
                                 contactRequest.noPersonalManager().receiveResponse();
                                 contactCommunicationsRequest.receiveResponse();
 
-                                //window.logEnabled = true;
                                 tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
 
                                 tester.contactCommunicationsRequest().anotherContact().receiveResponse();

@@ -7937,7 +7937,7 @@ define(() => function ({
     };
 
     me.reportsListRequest = () => {
-        const data = [{
+        let data = [{
             id: 582729,
             group_id: 1,
             type: 'marketer_dashboard',
@@ -7948,6 +7948,8 @@ define(() => function ({
         }];
 
         const addResponseModifiers = me => {
+            me.noData = () => (data = [], me);
+
             me.allRequests = () => (data.push({
                 id: 48427,
                 name: 'Все обращения',

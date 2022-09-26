@@ -396,10 +396,10 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index e1f15e6f..99290020 100644
+index e1f15e6f..e5f0950d 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,14 +1,20 @@
+@@ -1,14 +1,19 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
@@ -417,12 +417,29 @@ index e1f15e6f..99290020 100644
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
 +import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
 +import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
-+import { createRootStore as createAnalyticsRootStore } from 'analytics/src/models/RootStore';
 +import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
  
  import App from './App';
  import './global';
-@@ -71,7 +77,53 @@ const Root: React.FC = observer(props => {
+@@ -46,6 +51,8 @@ if (sentryDSN) {
+     });
+ }
+ 
++const history = createMemoryHistory();
++
+ const Root: React.FC = observer(props => {
+     const { accountStore, notificationStore } = rootStore;
+     const {
+@@ -59,7 +66,7 @@ const Root: React.FC = observer(props => {
+     }, [accountStore.account.project]);
+ 
+     return (
+-        <HistoryRouter history={createMemoryHistory()}>
++        <HistoryRouter history={history}>
+             <CoreProvider isHostApp accountStore={accountStore} locale={locale} notificationStore={notificationStore}>
+                 <Provider value={rootStore}>
+                     <IntlProvider locale={getIntlLocale(locale)} messages={getIntlMessages(locale)}>
+@@ -71,7 +78,52 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -430,8 +447,7 @@ index e1f15e6f..99290020 100644
 -const root = createRoot(container);
 +const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
 +    Window = ({children}) => <div className="cm-test-window">{children}</div>;
- 
--root.render(<Root {...(window.rootConfig || {})}/>);
++
 +const units = {};
 +let root;
 +
@@ -452,7 +468,6 @@ index e1f15e6f..99290020 100644
 +            createRootStore();
 +            !appName && setChatsRootStore(createChatsRootStore());
 +            createSoftphoneRootStore();
-+            createAnalyticsRootStore();
 +            createContactsRootStore();
 +            setHistory(history);
 +            setNotification(notification);
@@ -474,7 +489,8 @@ index e1f15e6f..99290020 100644
 +        if (!container) {
 +            return;
 +        }
-+
+ 
+-root.render(<Root {...(window.rootConfig || {})}/>);
 +        container.firstChild && root && root.unmount();
 +        container.remove();
 +    }
