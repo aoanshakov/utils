@@ -43,7 +43,7 @@ tests.addTest(options => {
             tester.button('Войти').click();
 
             tester.loginRequest().receiveResponse();
-            accountRequest = tester.accountRequest().webAccountLoginAvailable().expectToBeSent();
+            accountRequest = tester.accountRequest().expectToBeSent();
 
             tester.masterInfoMessage().receive();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -58,7 +58,7 @@ tests.addTest(options => {
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().webAccountLoginAvailable().expectToBeSent(requests);
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 

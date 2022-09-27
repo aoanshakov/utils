@@ -385,7 +385,7 @@ const generateContactList = () => {
             ...item,
             id: 1689273 + index,
             email_list: [],
-            messenger_list: [],
+            chat_channel_list: [],
             organization_name: 'UIS',
             phone_list: ['79162729533'],
             group_list: [] ,
