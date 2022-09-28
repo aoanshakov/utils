@@ -45,38 +45,10 @@ index db2565a..95e8d85 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 97e2afa..6e8c122 100644
+index 857b641..6e8c122 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -10,8 +10,9 @@ import { eventBus } from '@comagic/core';
- import { CallStatsStore } from '@models/call_stats/CallStatsStore';
- import { FeedbackStore } from "@models/feedback/FeedbackStore";
- import makeInspectable from 'mobx-devtools-mst';
--import { types, Instance, getSnapshot, applySnapshot, SnapshotOut } from 'mobx-state-tree';
-+import { types, Instance, getSnapshot, applySnapshot, SnapshotOut, getRoot } from 'mobx-state-tree';
- import React from 'react';
-+import moment from 'moment';
- import { combineReducers, createStore, applyMiddleware } from 'redux';
- import thunkMiddleware from 'redux-thunk';
- import { toggleWidgetVisiblity, setAxiosProcessor, setStatus, onDialpadKeyDown, showMessage, closeMessage, showWidget, sendBrowserNotification, addNotificationToSession, sendToWebsocket, terminateSession, doToggleCallInfoCollapsedness, makeSoftphoneHigh, openCallsPanel } from 'uis-softphone/actions';
-@@ -43,8 +44,15 @@ export const ConfigStore = types
-         REACT_APP_AUTH_COOKIE: types.optional(types.string, ''),
-     })
-     .actions(self => {
-+        const rootStore = getRoot<typeof RootStore>(self)
-+
-         const setConfig = (config: ConfigProps) => {
--            self.REACT_APP_LOCALE = config.REACT_APP_LOCALE;
-+            const { REACT_APP_LOCALE } = config;
-+            moment.locale(REACT_APP_LOCALE);
-+
-+            rootStore.callHistoryStore.setDefaultDateStart();
-+
-+            self.REACT_APP_LOCALE = REACT_APP_LOCALE;
-             self.REACT_APP_SOFTPHONE_BACKEND_HOST = config.REACT_APP_SOFTPHONE_BACKEND_HOST;
-             self.REACT_APP_AUTH_COOKIE = config.REACT_APP_AUTH_COOKIE;
-         };
-@@ -699,4 +707,5 @@ export const RootStore = types
+@@ -707,4 +707,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
