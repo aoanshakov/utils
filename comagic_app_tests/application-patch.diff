@@ -496,10 +496,41 @@ index e1f15e6f..e5f0950d 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 5c194f00..c837a801 100644
+index 5c194f00..9e65e3bc 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -213,7 +213,7 @@ export const RootStore = types
+@@ -1,4 +1,4 @@
+-import { AccountStore, NotificationStore, projectsData } from '@comagic/core';
++import { AccountStore, NotificationStore, projectsData, eventBus } from '@comagic/core';
+ import axios, { AxiosRequestConfig } from 'axios';
+ import { Instance, SnapshotOut, applySnapshot, getSnapshot, types } from 'mobx-state-tree';
+ import React from 'react';
+@@ -94,6 +94,7 @@ window.addEventListener('error', function(event) {
+ 
+ export const RootStore = types
+     .model('RootStore', {
++        isSoftphoneVisible: types.optional(types.boolean, true),
+         isLarge: types.optional(types.boolean, false),
+         isGodMode: types.optional(types.boolean, isGodMode()),
+         isLogDownloading: types.optional(types.boolean, false),
+@@ -107,6 +108,16 @@ export const RootStore = types
+         let initialState: RootInstanceSnapshotOut;
+         let requestsToRefresh: RequestToRefresh[] = [];
+         let isRefreshRequesting = false;
++        let subscriptionRemovers: Array<() => void> = [];
++        const setSoftphoneVisible = value => (self.isSoftphoneVisible = value);
++
++        const subscribe: (eventName: string, callback: CallableFunction) => void = (...args) =>
++            subscriptionRemovers.push(eventBus.subscribe(...args));
++
++        const removeSubscriptions = () => {
++            subscriptionRemovers.forEach(removeSubscription => removeSubscription());
++            subscriptionRemovers = [];
++        };
+ 
+         const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
+             const auth = getToken();
+@@ -213,7 +224,7 @@ export const RootStore = types
                  }
              );
  
@@ -508,15 +539,30 @@ index 5c194f00..c837a801 100644
                  response => {
                      logRequest({response});
  
-@@ -274,6 +274,7 @@ export const RootStore = types
+@@ -274,6 +285,12 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
++            removeSubscriptions();
++
++            subscribe('contact_opened', () => self.setSoftphoneVisible(false));
++            subscribe('contact_closed', () => self.setSoftphoneVisible(true));
++
 +            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -310,7 +311,8 @@ export type DependencyInjection = {
+@@ -299,7 +316,8 @@ export const RootStore = types
+             setLarge,
+             downloadLog,
+             handleLogsCollected,
+-            setAppStore: store => setAppStore(store) 
++            setAppStore: store => setAppStore(store),
++            setSoftphoneVisible
+         };
+     });
+ 
+@@ -310,7 +328,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

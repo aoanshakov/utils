@@ -119,7 +119,20 @@ define(() => function ({
 
     notification.destroyAll();
 
-    me.history = history;
+    me.history = (() => {
+        return {
+            expectToHavePathName(expectedPathName) {
+                const actualPathName = history.location.pathname;
+
+                if (expectedPathName != actualPathName) {
+                    throw new Error(
+                        `В адресной строке должен быть путь "${expectedPathName}", а не "${actualPathName}".`
+                    );
+                }
+            }
+        };
+    })();
+
     history.replace(path);
 
     Promise.runAll(false, true);
@@ -131,8 +144,6 @@ define(() => function ({
     me.ReactDOM.flushSync();
     spendTime(0);
     spendTime(0);
-
-    me.history = history;
 
     const createBottomButtonTester = tester => {
         tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-button-disabled');

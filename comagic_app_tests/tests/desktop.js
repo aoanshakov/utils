@@ -33,6 +33,7 @@ tests.addTest(options => {
         describe('Софтфон не должен отображаться поверх окон при входящем.', function() {
             let authenticatedUserRequest,
                 accountRequest,
+                secondAccountRequest,
                 configRequest;
 
             beforeEach(function() {
@@ -69,6 +70,7 @@ tests.addTest(options => {
                         expectToBeSentToChannel('app-ready');
 
                     accountRequest = tester.accountRequest().expectToBeSent();
+                    secondAccountRequest = tester.accountRequest().expectToBeSent();
                 });
 
                 describe('Софтфон доступен.', function() {
@@ -76,6 +78,8 @@ tests.addTest(options => {
 
                     beforeEach(function() {
                         accountRequest.receiveResponse();
+                        secondAccountRequest.receiveResponse();
+
                         authCheckRequest = tester.authCheckRequest().expectToBeSent();
                     });
 
@@ -379,6 +383,49 @@ tests.addTest(options => {
                                         tester.button('IP-телефон').expectNotToBeChecked();
                                     });
                                 });
+                                describe(
+                                    'Нажимаю на кнпоку "История звонков". Открыта история звонков. Нажимаю на имя ' +
+                                    'контакта.',
+                                function() {
+                                    beforeEach(function() {
+                                        tester.button('История звонков').click();
+
+                                        tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+                                        tester.marksRequest().receiveResponse();
+
+                                        tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.click();
+
+                                        tester.usersRequest().forContacts().receiveResponse();
+                                        tester.contactRequest().receiveResponse();
+                                    });
+
+                                    it('Скрываю контакт. Софтфон видим.', function() {
+                                        tester.contactBar.closeButton.click();
+
+                                        tester.configRequest().softphone().receiveResponse();
+                                        const requests = ajax.inAnyOrder();
+
+                                        const numberCapacityRequest = tester.numberCapacityRequest().
+                                            expectToBeSent(requests);
+                                        const accountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                                        requests.expectToBeSent();
+
+                                        numberCapacityRequest.receiveResponse();
+                                        accountRequest.receiveResponse();
+
+                                        tester.contactBar.expectNotToExist();
+                                        tester.phoneField.expectToBeVisible();
+                                    });
+                                    it('Отображен контакт. Софтфон скрыт.', function() {
+                                        tester.contactBar.expectTextContentToHaveSubstring(
+                                            'ФИО ' +
+                                            'Бележкова Грета Ервиновна'
+                                        );
+
+                                        tester.phoneField.expectNotToExist();
+                                    });
+                                });
                                 it('Получено сообщение о максимизации. Ничего не происходит.', function() {
                                     getPackage('electron').ipcRenderer.receiveMessage('maximize');
 
@@ -386,11 +433,11 @@ tests.addTest(options => {
                                     tester.middleSizeButton.expectNotToBePressed();
                                     tester.largeSizeButton.expectToBePressed();
                                 });
-                                it('Нажимаю на кнпоку "История звонков". Открыта история звонков.', function() {
-                                    tester.button('История звонков').click();
+                                it('Нажимаю на кнопку "Контакты". Отображена таблица контактов.', function() {
+                                    tester.button('Контакты').click();
+                                    tester.contactsRequest().differentNames().receiveResponse();
 
-                                    tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
-                                    tester.marksRequest().receiveResponse();
+                                    tester.contactList.item('Балканска Берислава Силаговна').expectToBeVisible();
                                 });
                                 it('Нажимаю на кнопку аккаунта в меню. Отображена всплывающая панель.', function() {
                                     tester.leftMenu.userName.click();
@@ -523,8 +570,10 @@ tests.addTest(options => {
 
                                     tester.configRequest().softphone().receiveResponse();
 
-                                    tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
                                     tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+                                    tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+
+                                    tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
 
                                     tester.statusesRequest().createExpectation().
                                         anotherAuthorizationToken().checkCompliance().receiveResponse();
@@ -610,13 +659,15 @@ tests.addTest(options => {
                                         });
 
                                     tester.configRequest().softphone().receiveResponse();
-                                    tester.authCheckRequest().receiveResponse();
+                                    tester.accountRequest().receiveResponse();
 
-                                    tester.usersRequest().receiveResponse(),
-                                    tester.usersInGroupsRequest().receiveResponse(),
+                                    tester.usersRequest().receiveResponse();
+                                    tester.usersInGroupsRequest().receiveResponse();
                                     tester.groupsRequest().receiveResponse();
 
                                     tester.accountRequest().receiveResponse();
+
+                                    tester.authCheckRequest().receiveResponse();
                                     tester.statusesRequest().receiveResponse();
                                     tester.settingsRequest().receiveResponse();
                                     tester.talkOptionsRequest().receiveResponse();
@@ -896,8 +947,10 @@ tests.addTest(options => {
 
                                 tester.configRequest().softphone().receiveResponse();
 
-                                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
                                 tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+                                tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+
+                                tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
                                 tester.statusesRequest().createExpectation().
                                     anotherAuthorizationToken().checkCompliance().receiveResponse();
                                 tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
@@ -1032,6 +1085,7 @@ tests.addTest(options => {
                 });
                 it('Большой софтфон недоступен. Кнопки размеров не отображены.', function() {
                     accountRequest.largeSoftphoneFeatureFlagDisabled().receiveResponse();
+                    secondAccountRequest.largeSoftphoneFeatureFlagDisabled().receiveResponse();
 
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
@@ -1061,6 +1115,8 @@ tests.addTest(options => {
                 });
                 it('Софтфон недоступен. Отображена форма аутентификации.', function() {
                     accountRequest.softphoneUnavailable().receiveResponse();
+                    secondAccountRequest.softphoneUnavailable().receiveResponse();
+
                     tester.userLogoutRequest().receiveResponse();
 
                     getPackage('electron').ipcRenderer.
@@ -1091,6 +1147,7 @@ tests.addTest(options => {
                     recentlySentMessage().
                     expectToBeSentToChannel('app-ready');
 
+                tester.accountRequest().receiveResponse();
                 tester.accountRequest().receiveResponse();
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
@@ -1147,6 +1204,7 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
+                tester.accountRequest().receiveResponse();
                 tester.accountRequest().receiveResponse();
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
@@ -1266,6 +1324,7 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
                 tester.accountRequest().receiveResponse();
+                tester.accountRequest().receiveResponse();
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
@@ -1341,6 +1400,7 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
+                tester.accountRequest().receiveResponse();
                 tester.accountRequest().receiveResponse();
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
@@ -1439,6 +1499,7 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
                 tester.accountRequest().receiveResponse();
+                tester.accountRequest().receiveResponse();
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
@@ -1526,6 +1587,7 @@ tests.addTest(options => {
             getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
             tester.accountRequest().receiveResponse();
+            tester.accountRequest().receiveResponse();
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
@@ -1564,6 +1626,7 @@ tests.addTest(options => {
 
             getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
+            tester.accountRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
             tester.authCheckRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
@@ -1604,6 +1667,7 @@ tests.addTest(options => {
 
             getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
+            tester.accountRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
 
             getPackage('electron').ipcRenderer.

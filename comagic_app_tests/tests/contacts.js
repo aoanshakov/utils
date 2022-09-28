@@ -593,10 +593,43 @@ tests.addTest(options => {
                                                 'E-Mail ' +
                                                 'belokonska-vrazhelska@gmail.com ' +
 
-                                                'Мессенджеры ' +
+                                                'Каналы связи ' +
                                                 '+7 (928) 381 09-89 ' +
                                                 '+7 (928) 381 09-29'
                                             );
+                                        });
+                                    });
+                                    describe('Перехожу в другой раздел. Перехожу обратно в контакты.', function() {
+                                        beforeEach(function() {
+                                            tester.button('Статистика').click();
+                                            tester.statsRequest().receiveResponse();
+
+                                            tester.button('Контакты').click();
+                                            tester.contactsRequest().differentNames().receiveResponse();
+                                        });
+
+                                        it('Выбираю тот же контакт. Данные запрошены заново.', function() {
+                                            tester.contactList.item('Бележкова Грета Ервиновна').click();
+
+                                            const requests = ajax.inAnyOrder();
+
+                                            const contactCommunicationsRequest = tester.contactCommunicationsRequest().
+                                                expectToBeSent(requests);
+                                            const contactRequest = tester.contactRequest().expectToBeSent(requests);
+                                            const usersRequest = tester.usersRequest().forContacts().
+                                                expectToBeSent(requests);
+
+                                            requests.expectToBeSent();
+
+                                            contactCommunicationsRequest.receiveResponse();
+                                            contactRequest.receiveResponse();
+                                            usersRequest.receiveResponse();
+                                        });
+                                        it('Отображен список контактов.', function() {
+                                            tester.contactList.item('Балканска Берислава Силаговна').
+                                                expectNotToBeSelected();
+                                            tester.contactList.item('Бележкова Грета Ервиновна').
+                                                expectNotToBeSelected();
                                         });
                                     });
                                     it(
@@ -685,12 +718,12 @@ tests.addTest(options => {
                                     });
                                     it('Редактирование мессенджеров недоступно.', function() {
                                         tester.contactBar.
-                                            section('Мессенджеры').
+                                            section('Каналы связи').
                                             option('+7 (928) 381 09-88').
                                             putMouseOver();
 
                                         tester.contactBar.
-                                            section('Мессенджеры').
+                                            section('Каналы связи').
                                             option('+7 (928) 381 09-88').
                                             toolsIcon.
                                             expectNotToExist();
@@ -718,7 +751,7 @@ tests.addTest(options => {
                                             expectNotToExist();
 
                                         tester.contactBar.
-                                            section('Мессенджеры').
+                                            section('Каналы связи').
                                             option('+7 (928) 381 09-88').
                                             svg.
                                             expectToBeVisible();
@@ -736,7 +769,7 @@ tests.addTest(options => {
                                             'E-Mail ' +
                                             'endlesssprinп.of@comagic.dev ' +
 
-                                            'Мессенджеры ' +
+                                            'Каналы связи ' +
                                             '+7 (928) 381 09-88 ' +
                                             '+7 (928) 381 09-28 ' +
 
@@ -782,6 +815,17 @@ tests.addTest(options => {
 
                                                 'Пинг # 1 00:44 ' +
                                                     'Понг # 1 06:49 ',
+
+                                                '24 ноября 2019 ' +
+
+                                                    'Понг # 50 03:19 ' +
+                                                'Пинг # 51 09:24 ' +
+                                                    'Понг # 51 15:30 ' +
+                                                'Пинг # 52 21:35 ' +
+
+                                                '25 ноября 2019 ' +
+
+                                                    'Понг # 52 03:40 ',
 
                                                 '18 декабря 2019 ' +
 
@@ -958,6 +1002,7 @@ tests.addTest(options => {
                                 });
                                 it('В списке отображен новый контакт.', function() {
                                     tester.contactList.item('Неделчева').expectToBeSelected();
+                                    tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
                                 });
                             });
                             it(
@@ -1114,7 +1159,7 @@ tests.addTest(options => {
                             'E-Mail ' +
                             'endlesssprinп.of@comagic.dev ' +
 
-                            'Мессенджеры ' +
+                            'Каналы связи ' +
                             '+7 (928) 381 09-88 ' +
                             '+7 (928) 381 09-28'
                         );
