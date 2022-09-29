@@ -119,7 +119,20 @@ define(() => function ({
 
     notification.destroyAll();
 
-    me.history = history;
+    me.history = (() => {
+        return {
+            expectToHavePathName(expectedPathName) {
+                const actualPathName = history.location.pathname;
+
+                if (expectedPathName != actualPathName) {
+                    throw new Error(
+                        `В адресной строке должен быть путь "${expectedPathName}", а не "${actualPathName}".`
+                    );
+                }
+            }
+        };
+    })();
+
     history.replace(path);
 
     Promise.runAll(false, true);
@@ -131,8 +144,6 @@ define(() => function ({
     me.ReactDOM.flushSync();
     spendTime(0);
     spendTime(0);
-
-    me.history = history;
 
     const createBottomButtonTester = tester => {
         tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-button-disabled');
@@ -3662,7 +3673,18 @@ define(() => function ({
             REACT_APP_AUTH_COOKIE: '$REACT_APP_AUTH_COOKIE'
         };
 
-        const me = {
+        const processors = [];
+
+        const addResponseModifiers = me => {
+            me.en = () => {
+                processors.push(() => (response.REACT_APP_LOCALE = 'en'));
+                return me;
+            };
+
+            return me;
+        };
+
+        const me = addResponseModifiers({
             chats: () => {
                 host = '$REACT_APP_MODULE_CHATS';
                 return me;
@@ -3670,6 +3692,7 @@ define(() => function ({
 
             softphone: () => {
                 host = '$REACT_APP_MODULE_SOFTPHONE';
+
                 response = {
                     REACT_APP_LOCALE: 'ru',
                     REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
@@ -3683,8 +3706,10 @@ define(() => function ({
                 const request = (requests ? requests.someRequest() : fetch.recentRequest()).
                     expectPathToContain(`${host}/config.json`);
 
-                return {
+                return addResponseModifiers({
                     receiveResponse: () => {
+                        processors.forEach(process => process());
+
                         request.respondSuccessfullyWith(
                             JSON.stringify(response)
                         );
@@ -3693,13 +3718,13 @@ define(() => function ({
                         spendTime(0)
                         spendTime(0);
                     }
-                };
+                });
             },
 
             receiveResponse() {
                 return this.expectToBeSent().receiveResponse();
             }
-        };
+        });
 
         return me;
     };
@@ -7924,10 +7949,10 @@ define(() => function ({
     };
 
     me.reportsListRequest = () => {
-        const data = [{
+        let data = [{
             id: 582729,
             group_id: 1,
-            type: 'marketer_dashboard',
+            type: 'summary_analytics',
             name: 'Некий отчет',
             description: 'Описание некого отчета',
             folder: null,
@@ -7935,6 +7960,8 @@ define(() => function ({
         }];
 
         const addResponseModifiers = me => {
+            me.noData = () => (data = [], me);
+
             me.allRequests = () => (data.push({
                 id: 48427,
                 name: 'Все обращения',
@@ -8029,7 +8056,17 @@ define(() => function ({
     };
 
     me.contactRequest = () => {
-        const addResponseModifiers = me => me;
+        const processors = [];
+
+        const addResponseModifiers = me => {
+            me.noPersonalManager = () => {
+                processors.push(() => (response.personal_manager_id = null));
+                return me;
+            };
+
+            return me;
+        };
+
         let id = 1689283;
 
         const response = {
@@ -8037,7 +8074,7 @@ define(() => function ({
             last_name: 'Бележкова',
             id: 1689283,
             email_list: ['endlesssprinп.of@comagic.dev'],
-            messenger_list: [
+            chat_channel_list: [
                 { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
                 { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
             ],
@@ -8049,14 +8086,7 @@ define(() => function ({
             full_name: 'Бележкова Грета Ервиновна'
         };
 
-        const processors = [];
-
         return addResponseModifiers({
-            noPersonalManager() {
-                processors.push(() => (response.personal_manager_id = null));
-                return this;
-            },
-
             anotherContact() {
                 id = response.id = 1689290;
 
@@ -8069,7 +8099,7 @@ define(() => function ({
                 response.full_name = 'Белоконска-Вражалска Калиса Еньовна';
                 response.personal_manager_id = 79582;
 
-                response.messenger_list = [
+                response.chat_channel_list = [
                     { type: 'whatsapp', phone: '+7 (928) 381 09-89' },
                     { type: 'whatsapp', phone: '+7 (928) 381 09-29' },
                 ];
@@ -8327,7 +8357,7 @@ define(() => function ({
                     first_name: 'Грета',
                     last_name: 'Бележкова',
                     email_list: ['endlesssprinп.of@comagic.dev', undefined],
-                    messenger_list: [
+                    chat_channel_list: [
                         { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
                         { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
                         undefined
@@ -8339,6 +8369,11 @@ define(() => function ({
                     patronymic: 'Ервиновна',
                 };
 
+                return this;
+            },
+
+            noPersonalManager() {
+                processors.push(bodyParams => (bodyParams.personal_manager_id = null));
                 return this;
             },
 
@@ -8560,7 +8595,7 @@ define(() => function ({
                 last_name: 'Балканска',
                 id: 1689299,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8572,7 +8607,7 @@ define(() => function ({
                 last_name: 'Бележкова',
                 id: 1689283,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8584,7 +8619,7 @@ define(() => function ({
                 last_name: 'Белоконска-Вражалска',
                 id: 1689290,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8596,7 +8631,7 @@ define(() => function ({
                 last_name: 'Вампирска',
                 id: 1689277,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8608,7 +8643,7 @@ define(() => function ({
                 last_name: 'Васовa',
                 id: 1689276,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8620,7 +8655,7 @@ define(() => function ({
                 last_name: 'Габровлиева',
                 id: 1689308,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8632,7 +8667,7 @@ define(() => function ({
                 last_name: 'Градинарова',
                 id: 1689298,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8644,7 +8679,7 @@ define(() => function ({
                 last_name: 'Дачева',
                 id: 1689317,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8656,7 +8691,7 @@ define(() => function ({
                 last_name: 'Ждракова',
                 id: 1689319,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8668,7 +8703,7 @@ define(() => function ({
                 last_name: 'Илиева',
                 id: 1689306,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8680,7 +8715,7 @@ define(() => function ({
                 last_name: 'Йоткова',
                 id: 1689309,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8692,7 +8727,7 @@ define(() => function ({
                 last_name: 'Катърова',
                 id: 1689293,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8704,7 +8739,7 @@ define(() => function ({
                 last_name: 'Кокошкова',
                 id: 1689287,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8716,7 +8751,7 @@ define(() => function ({
                 last_name: 'Контопишева',
                 id: 1689304,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8728,7 +8763,7 @@ define(() => function ({
                 last_name: 'Коритарова',
                 id: 1689274,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8740,7 +8775,7 @@ define(() => function ({
                 last_name: 'Кривошапкова',
                 id: 1689292,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8752,7 +8787,7 @@ define(() => function ({
                 last_name: 'Крушовска',
                 id: 1689302,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8764,7 +8799,7 @@ define(() => function ({
                 last_name: 'Куртажова',
                 id: 1689301,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8776,7 +8811,7 @@ define(() => function ({
                 last_name: 'Куртакова',
                 id: 1689300,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8788,7 +8823,7 @@ define(() => function ({
                 last_name: 'Курухубева',
                 id: 1689289,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8800,7 +8835,7 @@ define(() => function ({
                 last_name: 'Кучкуделова',
                 id: 1689282,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8812,7 +8847,7 @@ define(() => function ({
                 last_name: 'Луланкова',
                 id: 1689321,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8824,7 +8859,7 @@ define(() => function ({
                 last_name: 'Мангъфова',
                 id: 1689280,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8836,7 +8871,7 @@ define(() => function ({
                 last_name: 'Многознаева',
                 id: 1689275,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8848,7 +8883,7 @@ define(() => function ({
                 last_name: 'Муева',
                 id: 1689318,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8860,7 +8895,7 @@ define(() => function ({
                 last_name: 'Мустакова',
                 id: 1689314,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8872,7 +8907,7 @@ define(() => function ({
                 last_name: 'Пачаръзка',
                 id: 1689286,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8884,7 +8919,7 @@ define(() => function ({
                 last_name: 'Певецова',
                 id: 1689296,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8896,7 +8931,7 @@ define(() => function ({
                 last_name: 'Пенджакова',
                 id: 1689295,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8908,7 +8943,7 @@ define(() => function ({
                 last_name: 'Пищовколева',
                 id: 1689310,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8920,7 +8955,7 @@ define(() => function ({
                 last_name: 'Плюнкова',
                 id: 1689303,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8932,7 +8967,7 @@ define(() => function ({
                 last_name: 'Плюцова',
                 id: 1689294,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8944,7 +8979,7 @@ define(() => function ({
                 last_name: 'Пръндачка',
                 id: 1689278,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8956,7 +8991,7 @@ define(() => function ({
                 last_name: 'Първанова',
                 id: 1689312,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8968,7 +9003,7 @@ define(() => function ({
                 last_name: 'Пътечкова',
                 id: 1689311,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8980,7 +9015,7 @@ define(() => function ({
                 last_name: 'Сапунджиева',
                 id: 1689313,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -8992,7 +9027,7 @@ define(() => function ({
                 last_name: 'Скринска',
                 id: 1689316,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9004,7 +9039,7 @@ define(() => function ({
                 last_name: 'Сланинкова',
                 id: 1689291,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9016,7 +9051,7 @@ define(() => function ({
                 last_name: 'Сопаджиева',
                 id: 1689285,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9028,7 +9063,7 @@ define(() => function ({
                 last_name: 'Стойкова',
                 id: 1689322,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9040,7 +9075,7 @@ define(() => function ({
                 last_name: 'Таралингова',
                 id: 1689305,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9052,7 +9087,7 @@ define(() => function ({
                 last_name: 'Тодорова',
                 id: 1689297,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9064,7 +9099,7 @@ define(() => function ({
                 last_name: 'Точева-Клопова',
                 id: 1689273,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9076,7 +9111,7 @@ define(() => function ({
                 last_name: 'Чанлиева',
                 id: 1689281,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9088,7 +9123,7 @@ define(() => function ({
                 last_name: 'Червенкова',
                 id: 1689315,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9100,7 +9135,7 @@ define(() => function ({
                 last_name: 'Чукова',
                 id: 1689320,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9112,7 +9147,7 @@ define(() => function ({
                 last_name: 'Чупетловска',
                 id: 1689307,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9124,7 +9159,7 @@ define(() => function ({
                 last_name: 'Шестакова',
                 id: 1689288,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9136,7 +9171,7 @@ define(() => function ({
                 last_name: 'Шкембова',
                 id: 1689284,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9148,7 +9183,7 @@ define(() => function ({
                 last_name: 'Яркова',
                 id: 1689279,
                 email_list: [],
-                messenger_list: [],
+                chat_channel_list: [],
                 organization_name: 'UIS',
                 phone_list: ['79162729533'],
                 group_list: [],
@@ -9161,791 +9196,16 @@ define(() => function ({
         };
 
         return addResponseModifiers({
-            anotherAuthorizationToken() {
-                token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+            phoneSearching() {
+                params.search = '79162729534';
                 return this;
             },
 
-            search() {
-                params.search = 'паска';
+            emailSearching() {
+                params.search = 'belezhkova@gmail.com';
                 return this;
             },
 
-            secondPage() {
-                params.from_id = '315476';
-                params.from_full_name = 'Паскалева Бисера Илковна #100';
-
-                getData = () => getAdditionalData({
-                    count: 100,
-                    skipCount: 100
-                });
-
-                return this;
-            },
-
-            thirdPage() {
-                params.from_id = '315576';
-                params.from_full_name = 'Паскалева Бисера Илковна #200';
-
-                getData = () => getAdditionalData({
-                    count: 50,
-                    skipCount: 200
-                });
-
-                return this;
-            },
-
-            fourthPage() {
-                params.from_id = '315626';
-                params.from_full_name = 'Паскалева Бисера Илковна #250';
-
-                getData = () => [];
-
-                return this;
-            },
-
-            expectToBeSent(requests) {
-                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/contacts').
-                    expectToHaveMethod('GET').
-                    expectToHaveHeaders({
-                        'X-Auth-Token': token,
-                        'X-Auth-Type': 'jwt'
-                    }).
-                    expectQueryToContain(params);
-
-                const me = addResponseModifiers({
-                    receiveResponse: () => {
-                        respond(request);
-
-                        Promise.runAll(false, true);
-                        spendTime(0)
-                        spendTime(0)
-
-                        maybeRunSpinWrapperIntersectionCallback(getSpinWrapper());
-                    }
-                });
-
-                return me;
-            },
-
-            receiveResponse() {
-                this.expectToBeSent().receiveResponse();
-            }
-        });
-    };
-
-    me.contactsRequest = () => {
-        let total_count = 250,
-            token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
-
-        const params = {
-            limit: '100',
-            from_id: undefined,
-            from_full_name: undefined,
-            scroll_direction: 'forward',
-            search: undefined
-        };
-
-        const initialData = [{
-            emails: 'balkanska@gmail.com',
-            first_name: 'Ралица',
-            full_name: 'Балканска Ралица Кубратовна',
-            id: 315378,
-            last_name: 'Балканска',
-            patronymic: 'Кубратовна',
-            phones: '2342342342300, 38758393745'
-        }, {
-            emails: 'ancheva@gmail.com',
-            first_name: 'Десислава',
-            full_name: 'Анчева Десислава Пламеновна',
-            id: 2512832,
-            last_name: 'Анчева',
-            patronymic: 'Пламеновна',
-            phones: '79055023552'
-        }];
-
-        const getAdditionalData = ({skipCount = 0, count}) => {
-            const firstId = skipCount + 315377,
-                lastId = count + firstId,
-                data = [];
-
-            let number = 1 + skipCount;
-
-            for (id = firstId; id < lastId; id ++) {
-                data.push({
-                    emails: 'paskaleva@gmail.com',
-                    first_name: 'Бисера',
-                    full_name:
-                        `Паскалева Бисера Илковна #${new Array(3 - (number + '').length).fill(0).join('')}${number}`,
-                    id: id,
-                    last_name: 'Паскалева',
-                    patronymic: 'Илковна',
-                    phones: '79162729533'
-                });
-
-                number ++;
-            }
-
-            return data;
-        };
-
-        let getData = () => initialData.concat(getAdditionalData({
-            count: 98,
-            skipCount: 2
-        }));
-
-        let respond = request => request.respondSuccessfullyWith({
-            data: getData(),
-            total_count
-        });
-
-        const addResponseModifiers = me => {
-            me.oneItem = () => {
-                total_count = 1;
-
-                getData = () => [{
-                    emails: 'paskaleva@gmail.com',
-                    first_name: 'Бисера',
-                    full_name: 'Паскалева Бисера Илковна',
-                    id: id,
-                    last_name: 'Паскалева',
-                    patronymic: 'Илковна',
-                    phones: '79162729533'
-                }];
-
-                return me;
-            };
-
-            me.noData = () => {
-                total_count = 0;
-                getData = () => [];
-                return me;
-            };
-
-            me.failed = () => {
-                respond = request =>
-                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
-
-                return me;
-            };
-            
-            me.accessTokenExpired = () => {
-                respond = request => request.respond({
-                    status: 401,
-                    statusText: 'access_token_expired',
-                    responseText: ''
-                });
-
-                return me;
-            };
-
-            me.differentNames = () => ((getData = () => [{
-                first_name: 'Берислава',
-                last_name: 'Балканска',
-                id: 1689299,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Силаговна',
-                full_name: 'Балканска Берислава Силаговна'
-            }, {
-                first_name: 'Грета',
-                last_name: 'Бележкова',
-                id: 1689283,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Ервиновна',
-                full_name: 'Бележкова Грета Ервиновна'
-            }, {
-                first_name: 'Калиса',
-                last_name: 'Белоконска-Вражалска',
-                id: 1689290,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Еньовна',
-                full_name: 'Белоконска-Вражалска Калиса Еньовна'
-            }, {
-                first_name: 'Джиневра',
-                last_name: 'Вампирска',
-                id: 1689277,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Ериновна',
-                full_name: 'Вампирска Джиневра Ериновна'
-            }, {
-                first_name: 'Дилмана',
-                last_name: 'Васовa',
-                id: 1689276,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Златовна',
-                full_name: 'Васовa Дилмана Златовна'
-            }, {
-                first_name: 'Пелина',
-                last_name: 'Габровлиева',
-                id: 1689308,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Левовна',
-                full_name: 'Габровлиева Пелина Левовна'
-            }, {
-                first_name: 'Дея',
-                last_name: 'Градинарова',
-                id: 1689298,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Колониновна',
-                full_name: 'Градинарова Дея Колониновна'
-            }, {
-                first_name: 'Станиела',
-                last_name: 'Дачева',
-                id: 1689317,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Йоан-Александъровна',
-                full_name: 'Дачева Станиела Йоан-Александъровна'
-            }, {
-                first_name: 'Щедра',
-                last_name: 'Ждракова',
-                id: 1689319,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Геньовна',
-                full_name: 'Ждракова Щедра Геньовна'
-            }, {
-                first_name: 'Малена',
-                last_name: 'Илиева',
-                id: 1689306,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Боиловна',
-                full_name: 'Илиева Малена Боиловна'
-            }, {
-                first_name: 'Доча',
-                last_name: 'Йоткова',
-                id: 1689309,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Галиеновна',
-                full_name: 'Йоткова Доча Галиеновна'
-            }, {
-                first_name: 'Станиела',
-                last_name: 'Катърова',
-                id: 1689293,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Севелиновна',
-                full_name: 'Катърова Станиела Севелиновна'
-            }, {
-                first_name: 'Алексиа',
-                last_name: 'Кокошкова',
-                id: 1689287,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Петраковна',
-                full_name: 'Кокошкова Алексиа Петраковна'
-            }, {
-                first_name: 'Максимилияна',
-                last_name: 'Контопишева',
-                id: 1689304,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Божовна',
-                full_name: 'Контопишева Максимилияна Божовна'
-            }, {
-                first_name: 'Стоянка',
-                last_name: 'Коритарова',
-                id: 1689274,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Лиляновна',
-                full_name: 'Коритарова Стоянка Лиляновна'
-            }, {
-                first_name: 'Заека',
-                last_name: 'Кривошапкова',
-                id: 1689292,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Яниславовна',
-                full_name: 'Кривошапкова Заека Яниславовна'
-            }, {
-                first_name: 'Никоела',
-                last_name: 'Крушовска',
-                id: 1689302,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Флориановна',
-                full_name: 'Крушовска Никоела Флориановна'
-            }, {
-                first_name: 'Гримяна',
-                last_name: 'Куртажова',
-                id: 1689301,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Елвисовна',
-                full_name: 'Куртажова Гримяна Елвисовна'
-            }, {
-                first_name: 'Адрианиа',
-                last_name: 'Куртакова',
-                id: 1689300,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Владиленовна',
-                full_name: 'Куртакова Адрианиа Владиленовна'
-            }, {
-                first_name: 'Любина',
-                last_name: 'Курухубева',
-                id: 1689289,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Левчовна',
-                full_name: 'Курухубева Любина Левчовна'
-            }, {
-                first_name: 'Аксентия',
-                last_name: 'Кучкуделова',
-                id: 1689282,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Золтановна',
-                full_name: 'Кучкуделова Аксентия Золтановна'
-            }, {
-                first_name: 'Върбунка',
-                last_name: 'Луланкова',
-                id: 1689321,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Ованесовна',
-                full_name: 'Луланкова Върбунка Ованесовна'
-            }, {
-                first_name: 'Гълъбица',
-                last_name: 'Мангъфова',
-                id: 1689280,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Ветковна',
-                full_name: 'Мангъфова Гълъбица Ветковна'
-            }, {
-                first_name: 'Миранза',
-                last_name: 'Многознаева',
-                id: 1689275,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Денизовна',
-                full_name: 'Многознаева Миранза Денизовна'
-            }, {
-                first_name: 'Цветилена',
-                last_name: 'Муева',
-                id: 1689318,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Елиасовна',
-                full_name: 'Муева Цветилена Елиасовна'
-            }, {
-                first_name: 'Лариса',
-                last_name: 'Мустакова',
-                id: 1689314,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Христофоровна',
-                full_name: 'Мустакова Лариса Христофоровна'
-            }, {
-                first_name: 'Луна',
-                last_name: 'Пачаръзка',
-                id: 1689286,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Пантюовна',
-                full_name: 'Пачаръзка Луна Пантюовна'
-            }, {
-                first_name: 'Симона',
-                last_name: 'Певецова',
-                id: 1689296,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Златьовна',
-                full_name: 'Певецова Симона Златьовна'
-            }, {
-                first_name: 'Щедра',
-                last_name: 'Пенджакова',
-                id: 1689295,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Хавтелиновна',
-                full_name: 'Пенджакова Щедра Хавтелиновна'
-            }, {
-                first_name: 'Гюргя',
-                last_name: 'Пищовколева',
-                id: 1689310,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Ърчовна',
-                full_name: 'Пищовколева Гюргя Ърчовна'
-            }, {
-                first_name: 'Богдалина',
-                last_name: 'Плюнкова',
-                id: 1689303,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Ламбовна',
-                full_name: 'Плюнкова Богдалина Ламбовна'
-            }, {
-                first_name: 'Цветилена',
-                last_name: 'Плюцова',
-                id: 1689294,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Хорозовна',
-                full_name: 'Плюцова Цветилена Хорозовна'
-            }, {
-                first_name: 'Люляна',
-                last_name: 'Пръндачка',
-                id: 1689278,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Марушовна',
-                full_name: 'Пръндачка Люляна Марушовна'
-            }, {
-                first_name: 'Дорина',
-                last_name: 'Първанова',
-                id: 1689312,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Теодосийовна',
-                full_name: 'Първанова Дорина Теодосийовна'
-            }, {
-                first_name: 'Жичка',
-                last_name: 'Пътечкова',
-                id: 1689311,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Рогеновна',
-                full_name: 'Пътечкова Жичка Рогеновна'
-            }, {
-                first_name: 'Касиди',
-                last_name: 'Сапунджиева',
-                id: 1689313,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Ромеовна',
-                full_name: 'Сапунджиева Касиди Ромеовна'
-            }, {
-                first_name: 'Любослава',
-                last_name: 'Скринска',
-                id: 1689316,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Албертовна',
-                full_name: 'Скринска Любослава Албертовна'
-            }, {
-                first_name: 'Наташа',
-                last_name: 'Сланинкова',
-                id: 1689291,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Петринеловна',
-                full_name: 'Сланинкова Наташа Петринеловна'
-            }, {
-                first_name: 'Миглена',
-                last_name: 'Сопаджиева',
-                id: 1689285,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Генчовна',
-                full_name: 'Сопаджиева Миглена Генчовна'
-            }, {
-                first_name: 'Заека',
-                last_name: 'Стойкова',
-                id: 1689322,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Ирмовна',
-                full_name: 'Стойкова Заека Ирмовна'
-            }, {
-                first_name: 'Нани',
-                last_name: 'Таралингова',
-                id: 1689305,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Геровна',
-                full_name: 'Таралингова Нани Геровна'
-            }, {
-                first_name: 'Върбунка',
-                last_name: 'Тодорова',
-                id: 1689297,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Кирковна',
-                full_name: 'Тодорова Върбунка Кирковна'
-            }, {
-                first_name: 'Флорика',
-                last_name: 'Точева-Клопова',
-                id: 1689273,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Филковна',
-                full_name: 'Точева-Клопова Флорика Филковна'
-            }, {
-                first_name: 'Оливера',
-                last_name: 'Чанлиева',
-                id: 1689281,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Якововна',
-                full_name: 'Чанлиева Оливера Якововна'
-            }, {
-                first_name: 'Адра',
-                last_name: 'Червенкова',
-                id: 1689315,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Форовна',
-                full_name: 'Червенкова Адра Форовна'
-            }, {
-                first_name: 'Симона',
-                last_name: 'Чукова',
-                id: 1689320,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Гелемировна',
-                full_name: 'Чукова Симона Гелемировна'
-            }, {
-                first_name: 'Комара',
-                last_name: 'Чупетловска',
-                id: 1689307,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Заховна',
-                full_name: 'Чупетловска Комара Заховна'
-            }, {
-                first_name: 'Патриотка',
-                last_name: 'Шестакова',
-                id: 1689288,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Златковна',
-                full_name: 'Шестакова Патриотка Златковна'
-            }, {
-                first_name: 'Делиана',
-                last_name: 'Шкембова',
-                id: 1689284,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Хараламповна',
-                full_name: 'Шкембова Делиана Хараламповна'
-            }, {
-                first_name: 'Мелъди',
-                last_name: 'Яркова',
-                id: 1689279,
-                email_list: [],
-                messenger_list: [],
-                organization_name: 'UIS',
-                phone_list: ['79162729533'],
-                group_list: [],
-                personal_manager_id: 8539841,
-                patronymic: 'Хрисовна',
-                full_name: 'Яркова Мелъди Хрисовна'
-            }]), me);
-
-            return me;
-        };
-
-        return addResponseModifiers({
             anotherAuthorizationToken() {
                 token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 return this;
@@ -10169,6 +9429,13 @@ define(() => function ({
                         },
                         {
                             'unit_id': 'address_book',
+                            'is_delete': true,
+                            'is_insert': true,
+                            'is_select': true,
+                            'is_update': true,
+                        },
+                        {
+                            'unit_id': 'web_account_login',
                             'is_delete': true,
                             'is_insert': true,
                             'is_select': true,

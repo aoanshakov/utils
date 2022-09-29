@@ -1,7 +1,6 @@
 #!/bin/bash
 
 arguments=""
-nodeVersion="14"
 shouldExit=0
 
 while [ -n "$1" ]
@@ -13,10 +12,6 @@ do
     then
         export APPLICATION_OWNER=$2
         shift
-    elif [ "$1" = "--node-version" ]
-    then
-        nodeVersion=$2
-        shift
     else
         arguments="$arguments $1"
     fi
@@ -25,9 +20,6 @@ do
 done
 
 cd /usr/local/src/tests/utils
-
-source ~/.bashrc
-nvm use $nodeVersion
 node index.js $arguments
 
 if [ -z "$NESTED_BASH_IS_RUNNING" ] && [ $shouldExit -eq 0 ]

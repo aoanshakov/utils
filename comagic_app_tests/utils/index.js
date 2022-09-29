@@ -82,7 +82,6 @@ const cda = `cd ${application} &&`,
 
 const chatOverridenFiles = 'src/models/RootStore.ts ' +
     'package.json ' +
-    'src/history.ts ' +
     'src/App.tsx ' +
     'src/models/auth/AuthStore.ts ' +
     'src/utils/index.tsx';
@@ -95,7 +94,6 @@ const overridenFiles = [
     'src/utils/cookie.ts',
     'public/index.html',
     'src/bootstrap.tsx',
-    'src/history.ts',
     'config/webpack.config.js',
     'package.json',
     'src/models/RootStore.ts',
@@ -104,6 +102,8 @@ const overridenFiles = [
 ].join(' ');
 
 actions['install-publisher'] = [`cd ${publisherDir} && npm install --verbose`];
+
+actions['create-updater-patch'] = [`cd ${updater} && git diff > ${updaterPatch}`];
 
 actions['install-updater'] = [
     () => mkdir(assets),
@@ -385,7 +385,7 @@ const generateContactList = () => {
             ...item,
             id: 1689273 + index,
             email_list: [],
-            messenger_list: [],
+            chat_channel_list: [],
             organization_name: 'UIS',
             phone_list: ['79162729533'],
             group_list: [] ,
@@ -454,7 +454,13 @@ actions['generate-names'] = ({
             response.on('data', chunk => (result += chunk));
 
             response.on('end', () => {
-                const name = (new JSDOM(result)).window.document.querySelector('.panel-body h3')?.textContent;
+                const name = ((new JSDOM(result)).window.document.querySelector('.panel-body h3') || {}).textContent;
+                
+                if (!name) {
+                    console.log('Имя не получено');
+                    return;
+                }
+
                 console.log(`Получено имя "${name}"`);
 
                 stream.write(name + "\n") 
