@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 7257c68b..37176645 100644
+index 7257c68b..8ff9c946 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 7257c68b..37176645 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -339,17 +409,129 @@ module.exports = {
+@@ -339,17 +409,124 @@ module.exports = {
                      },
                  ],
              },
@@ -232,8 +232,7 @@ index 7257c68b..37176645 100644
 +            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
 +            'analytics/CreateReport': `${miscDirectory}/Stub.js`,
 +            'analytics/Dashboards/ChiefDashboard': `${miscDirectory}/Stub.js`,
-+            'analytics/Communications':
-+                `${miscDirectory}/analytics/frontend/src/components/reports/communications/index.tsx`,
++            'analytics/Communications': `${miscDirectory}/Stub.js`,
 +            'analytics/Dashboards/Dashboard': `${miscDirectory}/Stub.js`,
 +            'analytics/DealsAnalytics': `${miscDirectory}/Stub.js`,
 +            'analytics/Deals': `${miscDirectory}/Stub.js`,
@@ -241,14 +240,10 @@ index 7257c68b..37176645 100644
 +            'analytics/Dashboards/MarketerDashboard': `${miscDirectory}/Stub.js`,
 +            'analytics/SharedReport': `${miscDirectory}/Stub.js`,
 +            'analytics/cancelPendingRequests': `${miscDirectory}/Stub.js`,
-+            'analytics/ReportTable':
-+                `${miscDirectory}/analytics/frontend/src/components/reports/communications/ReportTable.tsx`,
-+            'analytics/CalendarButton':
-+                `${miscDirectory}/analytics/frontend/src/components/lib/calendar/BasicCalendarButton.tsx`,
-+            'analytics/RadioButton':
-+                `${miscDirectory}/analytics/frontend/src/components/lib/radio-button/RadioButton.tsx`,
-+            'analytics/RadioGroup':
-+                `${miscDirectory}/analytics/frontend/src/components/lib/radio-button/RadioGroup.tsx`,
++            'analytics/ReportTable': `${miscDirectory}/Stub.js`,
++            'analytics/CalendarButton': `${miscDirectory}/Stub.js`,
++            'analytics/RadioButton': `${miscDirectory}/Stub.js`,
++            'analytics/RadioGroup': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`,
@@ -299,10 +294,10 @@ index 7257c68b..37176645 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 8efa0ca3..0072369b 100644
+index 8b2c86d2..06f13f98 100644
 --- a/package.json
 +++ b/package.json
-@@ -69,13 +69,17 @@
+@@ -66,13 +66,16 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -315,7 +310,6 @@ index 8efa0ca3..0072369b 100644
 +    "@sentry/tracing": "^6.19.4",
 +    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
      "archiver": "^5.3.0",
-+    "analytics": "./misc/analytics/frontend",
 +    "antd": "3.26.7",
      "auto-launch": "^5.0.5",
      "axios": "^0.24.0",
@@ -324,21 +318,19 @@ index 8efa0ca3..0072369b 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -87,7 +91,7 @@
+@@ -84,7 +87,7 @@
      "formik": "^2.2.9",
-     "history": "^4.10.1",
+     "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
 -    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#int_2022_13.0",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -96,7 +100,11 @@
-     "react": "^18.2.0",
+@@ -93,6 +96,10 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
--    "react-router-dom": "5.3.0",
-+    "react-router-dom": "5.2.1",
+     "react-router-dom": "^6.4.0",
 +    "simplebar-react": "^2.4.1",
 +    "softphone": "./misc/softphone",
 +    "string-hash": "^1.1.3",
@@ -404,35 +396,50 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 84eb8fcd..54cbaad7 100644
+index e1f15e6f..e5f0950d 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,16 +1,22 @@
+@@ -1,14 +1,19 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
  import { Integrations } from '@sentry/tracing';
+ import { createMemoryHistory } from 'history';
  import { observer } from 'mobx-react-lite';
- import moment from 'moment';
- import React, { useEffect, useState } from 'react';
- import { createRoot } from 'react-dom/client';
+ import React, { useEffect } from 'react';
 +import ReactDOM from 'react-dom';
+ import { createRoot } from 'react-dom/client';
  import { IntlProvider } from 'react-intl';
- import { Router } from 'react-router-dom';
+ import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 +import { notification } from 'magic-ui';
- 
- import { useMountEffect } from '@hooks';
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
 +import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
 +import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
-+import { createRootStore as createAnalyticsRootStore } from 'analytics/src/models/RootStore';
 +import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
  
  import App from './App';
  import './global';
-@@ -96,7 +102,53 @@ const Root: React.FC = observer(props => {
+@@ -46,6 +51,8 @@ if (sentryDSN) {
+     });
+ }
+ 
++const history = createMemoryHistory();
++
+ const Root: React.FC = observer(props => {
+     const { accountStore, notificationStore } = rootStore;
+     const {
+@@ -59,7 +66,7 @@ const Root: React.FC = observer(props => {
+     }, [accountStore.account.project]);
+ 
+     return (
+-        <HistoryRouter history={createMemoryHistory()}>
++        <HistoryRouter history={history}>
+             <CoreProvider isHostApp accountStore={accountStore} locale={locale} notificationStore={notificationStore}>
+                 <Provider value={rootStore}>
+                     <IntlProvider locale={getIntlLocale(locale)} messages={getIntlMessages(locale)}>
+@@ -71,7 +78,52 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -440,8 +447,7 @@ index 84eb8fcd..54cbaad7 100644
 -const root = createRoot(container);
 +const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
 +    Window = ({children}) => <div className="cm-test-window">{children}</div>;
- 
--root.render(<Root {...(window.rootConfig || {})}/>);
++
 +const units = {};
 +let root;
 +
@@ -462,7 +468,6 @@ index 84eb8fcd..54cbaad7 100644
 +            createRootStore();
 +            !appName && setChatsRootStore(createChatsRootStore());
 +            createSoftphoneRootStore();
-+            createAnalyticsRootStore();
 +            createContactsRootStore();
 +            setHistory(history);
 +            setNotification(notification);
@@ -484,29 +489,17 @@ index 84eb8fcd..54cbaad7 100644
 +        if (!container) {
 +            return;
 +        }
-+
+ 
+-root.render(<Root {...(window.rootConfig || {})}/>);
 +        container.firstChild && root && root.unmount();
 +        container.remove();
 +    }
 +};
-diff --git a/src/history.ts b/src/history.ts
-index 33bf6a02..fe524735 100644
---- a/src/history.ts
-+++ b/src/history.ts
-@@ -1,6 +1,6 @@
--import { createBrowserHistory } from 'history';
-+import { createMemoryHistory } from 'history';
- 
--const history = createBrowserHistory();
-+const history = window.memoryHistory = createMemoryHistory();
- 
- //TODO: может заменить на location.reload()?
- export const reloadPage = (): void => {
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 5c194f00..c837a801 100644
+index 9afc6f83..9e65e3bc 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -213,7 +213,7 @@ export const RootStore = types
+@@ -224,7 +224,7 @@ export const RootStore = types
                  }
              );
  
@@ -515,15 +508,15 @@ index 5c194f00..c837a801 100644
                  response => {
                      logRequest({response});
  
-@@ -274,6 +274,7 @@ export const RootStore = types
-         };
+@@ -290,6 +290,7 @@ export const RootStore = types
+             subscribe('contact_opened', () => self.setSoftphoneVisible(false));
+             subscribe('contact_closed', () => self.setSoftphoneVisible(true));
  
-         const afterCreate = () => {
 +            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -310,7 +311,8 @@ export type DependencyInjection = {
+@@ -327,7 +328,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -534,7 +527,7 @@ index 5c194f00..c837a801 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 12a885f7..dcb3b1c6 100644
+index 2568744f..ec707c3a 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -93,7 +93,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -546,7 +539,7 @@ index 12a885f7..dcb3b1c6 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -187,6 +187,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -188,6 +188,8 @@ export const AuthStore = Loader.named('AuthStore')
          });
  
          const afterCreate = () => {

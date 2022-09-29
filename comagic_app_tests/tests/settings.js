@@ -451,6 +451,7 @@ tests.addTest(options => {
                 tester.button('Текущее устройство').expectToBeChecked();
                 tester.button('IP-телефон').expectNotToBeChecked();
                 tester.button('Автозапуск приложения').expectNotToExist();
+                tester.button('Помощь').expectNotToExist();
             });
         });
         it(

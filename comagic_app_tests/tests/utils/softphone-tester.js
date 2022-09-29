@@ -3893,16 +3893,29 @@ define(function () {
         }
 
         this.notificationOfUserStateChanging = function () {
-            var id = 20816;
+            let id = 20816;
 
-            var data = {
-                id: id,
+            const data = {
+                id,
                 status_id: 2
             };
 
+            const message = {
+                name: 'employee_changed',
+                type: 'event',
+                params: {
+                    action: 'update',
+                    data: [data]
+                }
+            };
+
             return {
+                wrongStructure: function () {
+                    message.params.data = data;
+                    return this;
+                },
                 setOtherUser: function () {
-                    id = 583783;
+                    data.id = 583783;
                     return this;
                 },
                 anotherStatus: function () {
@@ -3910,15 +3923,7 @@ define(function () {
                     return this;
                 },
                 receive: function () {
-                    eventsWebSocket.receiveMessage({
-                        name: 'employee_changed',
-                        type: 'event',
-                        params: {
-                            action: 'update',
-                            data: [data]
-                        }
-                    });
-
+                    eventsWebSocket.receiveMessage(message);
                     spendTime(0);
                 }
             };

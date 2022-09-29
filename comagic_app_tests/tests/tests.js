@@ -1814,17 +1814,22 @@ tests.addTest(options => {
 
                                                 it('Софтфон недоступен.', function() {
                                                     accountRequest.softphoneUnavailable().receiveResponse();
-
-                                                    tester.accountRequest().anotherAuthorizationToken().
-                                                        softphoneUnavailable().expectToBeSent();
-
-                                                    tester.configRequest().softphone().receiveResponse();
+                                                    
+                                                    tester.reportGroupsRequest().anotherAuthorizationToken().
+                                                        receiveResponse();
+                                                    tester.reportsListRequest().receiveResponse();
+                                                    tester.reportTypesRequest().receiveResponse();
 
                                                     tester.softphone.expectNotToExist();
                                                     tester.button('Софтфон').expectNotToExist();
                                                 });
                                                 it('Софтфон доступен. Отображен софтфон.', function() {
                                                     accountRequest.receiveResponse();
+
+                                                    tester.reportGroupsRequest().anotherAuthorizationToken().
+                                                        receiveResponse();
+                                                    tester.reportsListRequest().receiveResponse();
+                                                    tester.reportTypesRequest().receiveResponse();
 
                                                     tester.configRequest().softphone().receiveResponse();
 
@@ -1844,11 +1849,6 @@ tests.addTest(options => {
 
                                                     secondAccountRequest.receiveResponse();
                                                     authCheckRequest.receiveResponse();
-
-                                                    tester.reportGroupsRequest().anotherAuthorizationToken().
-                                                        receiveResponse();
-                                                    tester.reportsListRequest().receiveResponse();
-                                                    tester.reportTypesRequest().receiveResponse();
 
                                                     tester.statusesRequest().
                                                         createExpectation().
@@ -2213,6 +2213,10 @@ tests.addTest(options => {
                                                         tester.loginRequest().receiveResponse();
                                                         tester.accountRequest().receiveResponse();
 
+                                                        tester.reportGroupsRequest().receiveResponse();
+                                                        tester.reportsListRequest().receiveResponse();
+                                                        tester.reportTypesRequest().receiveResponse();
+
                                                         tester.configRequest().softphone().receiveResponse();
 
                                                         tester.masterInfoMessage().receive();
@@ -2232,10 +2236,6 @@ tests.addTest(options => {
 
                                                         secondAccountRequest.receiveResponse();
                                                         authCheckRequest.receiveResponse();
-
-                                                        tester.reportGroupsRequest().receiveResponse();
-                                                        tester.reportsListRequest().receiveResponse();
-                                                        tester.reportTypesRequest().receiveResponse();
 
                                                         tester.statusesRequest().receiveResponse();
                                                         tester.settingsRequest().receiveResponse();
@@ -2651,6 +2651,11 @@ tests.addTest(options => {
                                                 tester.loginRequest().anotherAuthorizationToken().receiveResponse();
                                                 tester.accountRequest().anotherAuthorizationToken().receiveResponse();
 
+                                                tester.reportGroupsRequest().anotherAuthorizationToken().
+                                                    receiveResponse();
+                                                tester.reportsListRequest().receiveResponse();
+                                                tester.reportTypesRequest().receiveResponse();
+
                                                 tester.configRequest().softphone().receiveResponse();
 
                                                 tester.masterInfoMessage().receive();
@@ -2682,11 +2687,6 @@ tests.addTest(options => {
 
                                                 tester.talkOptionsRequest().receiveResponse();
                                                 tester.permissionsRequest().receiveResponse();
-
-                                                tester.reportGroupsRequest().anotherAuthorizationToken().
-                                                    receiveResponse();
-                                                tester.reportsListRequest().receiveResponse();
-                                                tester.reportTypesRequest().receiveResponse();
 
                                                 tester.connectEventsWebSocket(1);
                                                 tester.slavesNotification().twoChannels().enabled().
@@ -4067,6 +4067,10 @@ tests.addTest(options => {
                     tester.loginRequest().receiveResponse();
                     tester.accountRequest().receiveResponse();
 
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
+
                     const requests = ajax.inAnyOrder();
 
                     const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
@@ -4093,10 +4097,6 @@ tests.addTest(options => {
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
 
-                    tester.reportGroupsRequest().receiveResponse();
-                    tester.reportsListRequest().receiveResponse();
-                    tester.reportTypesRequest().receiveResponse();
-                    
                     tester.slavesNotification().
                         twoChannels().
                         enabled().
@@ -4171,6 +4171,10 @@ tests.addTest(options => {
                     tester.loginRequest().receiveResponse();
                     tester.accountRequest().receiveResponse();
 
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
+
                     const requests = ajax.inAnyOrder();
 
                     const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
@@ -4197,10 +4201,6 @@ tests.addTest(options => {
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
 
-                    tester.reportGroupsRequest().receiveResponse();
-                    tester.reportsListRequest().receiveResponse();
-                    tester.reportTypesRequest().receiveResponse();
-                    
                     tester.slavesNotification().
                         twoChannels().
                         enabled().
@@ -4582,7 +4582,6 @@ tests.addTest(options => {
                 tester.button('Софтфон').expectNotToExist();
                 tester.button('История звонков').expectNotToExist();
                 tester.button('Статистика звонков').expectNotToExist();
-                tester.button('Контакты').expectNotToExist();
             });
             it('Раздел контактов недоступен. Кнопка открытия контакта заблокирована.', function() {
                 accountRequest.contactsFeatureFlagDisabled().receiveResponse();
@@ -4695,7 +4694,6 @@ tests.addTest(options => {
                 tester.button('Софтфон').expectNotToExist();
                 tester.button('История звонков').expectNotToExist();
                 tester.button('Статистика звонков').expectNotToExist();
-                tester.button('Контакты').expectNotToExist();
             });
         });
     });
@@ -4770,11 +4768,37 @@ tests.addTest(options => {
             tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
         });
             
-        it('Статус сотрудника изменился. Отображен новый статус сотрудника.', function() {
-            tester.notificationOfUserStateChanging().anotherStatus().receive();
-            tester.slavesNotification().userDataFetched().twoChannels().available().anotherStatus().expectToBeSent();
+        describe('Получено событие изменения сотрудника. Статус сотрудника изменился.', function() {
+            let notificationOfUserStateChanging;
 
-            tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+            beforeEach(function() {
+                notificationOfUserStateChanging = tester.notificationOfUserStateChanging().anotherStatus();
+            });
+
+            it('Структура некорректна. Отображен новый статус сотрудника.', function() {
+                notificationOfUserStateChanging.wrongStructure().receive();
+
+                tester.slavesNotification().
+                    userDataFetched().
+                    twoChannels().
+                    available().
+                    anotherStatus().
+                    expectToBeSent();
+
+                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+            });
+            it('Структура корректна. Отображен новый статус сотрудника.', function() {
+                notificationOfUserStateChanging.receive();
+
+                tester.slavesNotification().
+                    userDataFetched().
+                    twoChannels().
+                    available().
+                    anotherStatus().
+                    expectToBeSent();
+
+                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+            });
         });
         it('Отображен статус сотрудника.', function() {
             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');

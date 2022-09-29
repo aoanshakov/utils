@@ -499,12 +499,12 @@ tests.addTest(options => {
                                             'Длительность ' +
                                             'Запись ' +
 
-                                            '19 дек 2019 08:03 ' +
+                                            '19 дек. 2019 08:03 ' +
                                             'Тодорова Гера ' +
                                             '+7 (495) 023-06-25 ' +
                                             '00:00:20 ' +
 
-                                            '19 дек 2019 10:13 ' +
+                                            '19 дек. 2019 10:13 ' +
                                             'Михайлова Врабка ' +
                                             '+7 (495) 023-06-26 ' +
                                             '00:00:24'
@@ -515,7 +515,7 @@ tests.addTest(options => {
                                     notProcessedCallsRequest.noContactName().receiveResponse();
 
                                     tester.table.expectTextContentToHaveSubstring(
-                                        '19 дек 2019 10:13 ' +
+                                        '19 дек. 2019 10:13 ' +
                                         '+7 (495) 023-06-26 ' +
                                         '+7 (495) 023-06-26 ' +
                                         '00:00:24'
@@ -619,13 +619,13 @@ tests.addTest(options => {
                                         'Длительность ' +
                                         'Запись ' +
 
-                                        '19 дек 2019 08:03 ' +
+                                        '19 дек. 2019 08:03 ' +
                                         'Гяурова Марийка ' +
                                         '+7 (495) 023-06-25 ' +
                                         'Отложенный звонок, Генератор лидов ' +
                                         '00:00:20 ' +
 
-                                        '18 дек 2019 18:08 ' +
+                                        '18 дек. 2019 18:08 ' +
                                         'Манова Тома ' +
                                         '+7 (495) 023-06-26 ' +
                                         '00:00:21'
@@ -728,7 +728,7 @@ tests.addTest(options => {
                                         tester.callsRequest().changeDate().firstPage().receiveResponse();
                                         tester.marksRequest().receiveResponse();
 
-                                        tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
+                                        tester.calendarField.expectToHaveValue('15 нояб. 2019 - 18 дек. 2019');
                                     });
                                     it('Поля даты заполнены.', function() {
                                         tester.calendarField.popup.input.first.expectToHaveValue('15.11.2019');
@@ -747,7 +747,7 @@ tests.addTest(options => {
                                     tester.callsRequest().changeDate().firstPage().receiveResponse();
                                     tester.marksRequest().receiveResponse();
 
-                                    tester.calendarField.expectToHaveValue('15 ноя 2019 - 18 дек 2019');
+                                    tester.calendarField.expectToHaveValue('15 нояб. 2019 - 18 дек. 2019');
                                 });
                                 it('Поля даты заполнены.', function() {
                                     tester.calendarField.popup.input.first.expectToHaveValue('16.12.2019');
@@ -1088,7 +1088,7 @@ tests.addTest(options => {
                                         'E-Mail ' +
                                         'endlesssprinп.of@comagic.dev ' +
 
-                                        'Мессенджеры ' +
+                                        'Каналы связи ' +
                                         '+7 (928) 381 09-88 ' +
                                         '+7 (928) 381 09-28'
                                     );
@@ -1113,12 +1113,12 @@ tests.addTest(options => {
                                     'Длительность ' +
                                     'Запись ' +
 
-                                    '19 дек 2019 08:03 ' +
+                                    '19 дек. 2019 08:03 ' +
                                     'Тодорова Гера ' +
                                     '+7 (495) 023-06-25 ' +
                                     '00:00:20 ' +
 
-                                    '19 дек 2019 10:13 ' +
+                                    '19 дек. 2019 10:13 ' +
                                     'Михайлова Врабка ' +
                                     '+7 (495) 023-06-26 ' +
                                     '00:00:24'
@@ -1182,13 +1182,13 @@ tests.addTest(options => {
                                     'Длительность ' +
                                     'Запись ' +
 
-                                    '19 дек 2019 08:03 ' +
+                                    '19 дек. 2019 08:03 ' +
                                     'Гяурова Марийка ' +
                                     '+7 (495) 023-06-25 ' +
                                     'Нецелевой контакт, Отложенный звонок ' +
                                     '00:00:20',
 
-                                    '14 дек 2019 10:59 ' +
+                                    '14 дек. 2019 10:59 ' +
                                     'Сотирова Атанаска ' +
                                     '+7 (495) 023-06-27 ' +
                                     '00:00:22 ' +
@@ -1235,7 +1235,7 @@ tests.addTest(options => {
                                 );
                             });
                             it('Отображена история звонков.', function() {
-                                tester.calendarField.expectToHaveValue('16 дек 2019 - 19 дек 2019');
+                                tester.calendarField.expectToHaveValue('16 дек. 2019 - 19 дек. 2019');
 
                                 tester.radioButton('Мои').expectToBeSelected();
                                 tester.radioButton('Все').expectNotToBeSelected();
@@ -1292,18 +1292,18 @@ tests.addTest(options => {
                                     'Длительность ' +
                                     'Запись ' +
 
-                                    '19 дек 2019 08:03 ' +
+                                    '19 дек. 2019 08:03 ' +
                                     'Гяурова Марийка ' +
                                     '+7 (495) 023-06-25 ' +
                                     'Нецелевой контакт, Отложенный звонок ' +
                                     '00:00:20 ' +
 
-                                    '18 дек 2019 18:08 ' +
+                                    '18 дек. 2019 18:08 ' +
                                     'Манова Тома ' +
                                     '+7 (495) 023-06-26 ' +
                                     '00:00:21',
 
-                                    '15 дек 2019 17:25 ' +
+                                    '15 дек. 2019 17:25 ' +
                                     'Сотирова Атанаска ' +
                                     '+7 (495) 023-06-27 ' +
                                     '00:00:22 ' +
@@ -1386,7 +1386,7 @@ tests.addTest(options => {
                             callsRequest.employeeName().receiveResponse();
 
                             tester.table.expectTextContentToHaveSubstring(
-                                '19 дек 2019 08:03 ' +
+                                '19 дек. 2019 08:03 ' +
                                 'Гяурова Марийка ' +
                                 '+7 (495) 023-06-25 ' +
                                 'Нецелевой контакт, Отложенный звонок ' +
@@ -1415,13 +1415,13 @@ tests.addTest(options => {
                                 'Длительность ' +
                                 'Запись ' +
 
-                                '19 дек 2019 08:03 ' +
+                                '19 дек. 2019 08:03 ' +
                                 'Гяурова Марийка ' +
                                 '+7 (495) 023-06-25 ' +
                                 'Нецелевой контакт, Отложенный звонок ' +
                                 '00:00:20 ',
 
-                                '14 дек 2019 10:59 ' +
+                                '14 дек. 2019 10:59 ' +
                                 'Сотирова Атанаска ' +
                                 '+7 (495) 023-06-27 ' +
                                 '00:00:22'
@@ -1953,12 +1953,12 @@ tests.addTest(options => {
                             'Длительность ' +
                             'Запись ' +
 
-                            '19 дек 2019 08:03 ' +
+                            '19 дек. 2019 08:03 ' +
                             'Тодорова Гера ' +
                             'Позвонить ' +
                             '00:00:20 ' +
 
-                            '19 дек 2019 10:13 ' +
+                            '19 дек. 2019 10:13 ' +
                             'Михайлова Врабка ' +
                             'Позвонить ' +
                             '00:00:24'
@@ -1980,7 +1980,7 @@ tests.addTest(options => {
                         callsRequest.noCrmContactLink().receiveResponse();
 
                         tester.table.expectTextContentToHaveSubstring(
-                            '19 дек 2019 08:03 ' +
+                            '19 дек. 2019 08:03 ' +
                             '' +
                             'Позвонить ' +
                             'Нецелевой контакт'
@@ -1990,7 +1990,7 @@ tests.addTest(options => {
                         callsRequest.receiveResponse();
 
                         tester.table.expectTextContentToHaveSubstring(
-                            '19 дек 2019 08:03 ' +
+                            '19 дек. 2019 08:03 ' +
                             'Неизвестный номер ' +
                             'Позвонить ' +
                             'Нецелевой контакт'
