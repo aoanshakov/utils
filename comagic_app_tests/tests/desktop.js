@@ -421,6 +421,26 @@ tests.addTest(options => {
                                         tester.contactBar.expectNotToExist();
                                         tester.phoneField.expectToBeVisible();
                                     });
+                                    it('Нажимаю на кнопку "Контакты". Отображена таблица контактов.', function() {
+                                        tester.button('Контакты').click();
+                                        tester.contactsRequest().differentNames().receiveResponse();
+
+                                        tester.configRequest().softphone().receiveResponse();
+                                        const requests = ajax.inAnyOrder();
+
+                                        const numberCapacityRequest = tester.numberCapacityRequest().
+                                            expectToBeSent(requests);
+                                        const accountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                                        requests.expectToBeSent();
+
+                                        numberCapacityRequest.receiveResponse();
+                                        accountRequest.receiveResponse();
+
+                                        tester.contactList.item('Балканска Берислава Силаговна').expectToBeVisible();
+                                        tester.contactBar.expectNotToExist();
+                                        tester.phoneField.expectToBeVisible();
+                                    });
                                     it('Отображен контакт. Софтфон скрыт.', function() {
                                         tester.contactBar.expectTextContentToHaveSubstring(
                                             'ФИО ' +
@@ -452,6 +472,66 @@ tests.addTest(options => {
                                 function() {
                                     tester.softphone.userName.click();
                                     tester.statusesList.expectNotToExist();
+                                });
+                                it('Выхожу из софтфона и вхожу заново.', function() {
+                                    tester.leftMenu.userName.click();
+                                    tester.statusesList.item('Выход').click();
+
+                                    tester.userLogoutRequest().receiveResponse();
+
+                                    tester.eventsWebSocket.finishDisconnecting();
+                                    tester.authLogoutRequest().receiveResponse();
+                                    tester.registrationRequest().desktopSoftphone().expired().receiveResponse();
+
+                                    spendTime(2000);
+                                    tester.webrtcWebsocket.finishDisconnecting();
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
+                                        expectToBeSentToChannel('resize').
+                                        expectToBeSentWithArguments({
+                                            width: 300,
+                                            height: 350
+                                        });
+
+                                    tester.input.withFieldLabel('Логин').fill('botusharova');
+                                    tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                                    tester.button('Войти').click();
+
+                                    tester.loginRequest().anotherAuthorizationToken().receiveResponse();
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
+                                        expectToBeSentToChannel('resize').
+                                        expectToBeSentWithArguments({
+                                            width: 340,
+                                            height: 568
+                                        });
+
+                                    tester.configRequest().softphone().receiveResponse();
+
+                                    tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+                                    tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+
+                                    tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
+                                    tester.statsRequest().anotherAuthorizationToken().receiveResponse();
+                                    tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+                                    tester.statusesRequest().createExpectation().anotherAuthorizationToken().
+                                        checkCompliance().receiveResponse();
+                                    tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
+                                    tester.talkOptionsRequest().receiveResponse();
+                                    tester.permissionsRequest().receiveResponse();
+
+                                    tester.connectEventsWebSocket(1);
+                                    tester.connectSIPWebSocket(1);
+
+                                    tester.authenticatedUserRequest().receiveResponse();
+                                    tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                                    tester.allowMediaInput();
+
+                                    tester.leftMenu.expectToBeVisible();
                                 });
                                 it('Отображен большой софтфон.', function() {
                                     tester.button('Статистика').expectToBePressed();

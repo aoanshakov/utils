@@ -496,7 +496,7 @@ index e1f15e6f..e5f0950d 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 9afc6f83..9e65e3bc 100644
+index ae6c95fc..c30cde29 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -224,7 +224,7 @@ export const RootStore = types
@@ -516,7 +516,7 @@ index 9afc6f83..9e65e3bc 100644
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -327,7 +328,8 @@ export type DependencyInjection = {
+@@ -328,7 +329,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
