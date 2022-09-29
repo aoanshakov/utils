@@ -4582,7 +4582,6 @@ tests.addTest(options => {
                 tester.button('Софтфон').expectNotToExist();
                 tester.button('История звонков').expectNotToExist();
                 tester.button('Статистика звонков').expectNotToExist();
-                tester.button('Контакты').expectNotToExist();
             });
             it('Раздел контактов недоступен. Кнопка открытия контакта заблокирована.', function() {
                 accountRequest.contactsFeatureFlagDisabled().receiveResponse();
@@ -4695,7 +4694,6 @@ tests.addTest(options => {
                 tester.button('Софтфон').expectNotToExist();
                 tester.button('История звонков').expectNotToExist();
                 tester.button('Статистика звонков').expectNotToExist();
-                tester.button('Контакты').expectNotToExist();
             });
         });
     });

@@ -372,6 +372,10 @@ tests.addTest(options => {
                                         tester.button('Текущее устройство').expectNotToBeChecked();
                                         tester.button('IP-телефон').expectToBeChecked();
                                     });
+                                    it('Открываю вкладку "Помощь". Отображена форма обратной связи.', function() {
+                                        tester.button('Помощь').click();
+                                        tester.button('Отправить').expectToBeVisible();
+                                    });
                                     it('Открыта страница настроек.', function() {
                                         tester.button('Статистика').expectNotToBePressed();
                                         tester.button('История звонков').expectNotToBePressed();
@@ -1289,6 +1293,10 @@ tests.addTest(options => {
                     }
 
                     tester.button('Скрывать после звонка').expectNotToBeChecked();
+                });
+                it('Открываю вкладку "Помощь". Отображена форма обратной связи.', function() {
+                    tester.button('Помощь').click();
+                    tester.button('Отправить').expectToBeVisible();
                 });
                 it('Свитчбоксы "Открывать во время звонка" и "Скрывать после звонка" отмечены.', function() {
                     tester.button('Открывать во время звонка').expectToBeChecked();
