@@ -496,10 +496,10 @@ index e1f15e6f..e5f0950d 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index ae6c95fc..c30cde29 100644
+index 1e8a2022..b45d9bf9 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -224,7 +224,7 @@ export const RootStore = types
+@@ -228,7 +228,7 @@ export const RootStore = types
                  }
              );
  
@@ -508,7 +508,7 @@ index ae6c95fc..c30cde29 100644
                  response => {
                      logRequest({response});
  
-@@ -290,6 +290,7 @@ export const RootStore = types
+@@ -294,6 +294,7 @@ export const RootStore = types
              subscribe('contact_opened', () => self.setSoftphoneVisible(false));
              subscribe('contact_closed', () => self.setSoftphoneVisible(true));
  
@@ -516,7 +516,7 @@ index ae6c95fc..c30cde29 100644
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -328,7 +329,8 @@ export type DependencyInjection = {
+@@ -334,7 +335,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
