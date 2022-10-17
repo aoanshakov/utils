@@ -1616,14 +1616,18 @@ define(() => {
                         return this;
                     },
 
+                    noExpireDate() {
+                        params.expire_date = null;
+                        return this;
+                    },
+
                     changeExpireDate() {
                         params.expire_date = '2020-08-29';
                         return this
                     },
 
                     switching() {
-                        Object.keys(params).filter(name => !['id', 'is_enabled'].includes(name)).
-                            forEach(name => (params[name] = undefined));
+                        params.app_ids = [4735, 29572];
                         return this;
                     },
 

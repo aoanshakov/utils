@@ -590,7 +590,13 @@ tests.addTest(function (options) {
 
                                 it('Нажимаю на кнопку включения. Флаг включен.', function() {
                                     tester.modal().button('Включить').click();
-                                    tester.featureFlagUpdatingRequest().switching().enabled().receiveResponse();
+
+                                    tester.featureFlagUpdatingRequest().
+                                        noExpireDate().
+                                        switching().
+                                        global().
+                                        enabled().
+                                        receiveResponse();
 
                                     spendTime(200);
                                     spendTime(100);
