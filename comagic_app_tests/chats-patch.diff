@@ -1,13 +1,13 @@
 diff --git a/package.json b/package.json
-index 9e202ff..a69da5a 100644
+index 95e34e6..e3499e3 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,8 +22,6 @@
      "@types/dompurify": "^2.3.3",
      "@types/htmlparser2": "^3.10.3",
      "@types/node": "^14.14.37",
--    "@types/react": "^17.0.2",
--    "@types/react-dom": "^17.0.1",
+-    "@types/react": "^18.0.21",
+-    "@types/react-dom": "^18.0.6",
      "@types/uuid": "^8.3.1",
      "@types/yup": "^0.29.11",
      "@typescript-eslint/eslint-plugin": "^4.16.1",
@@ -15,33 +15,29 @@ index 9e202ff..a69da5a 100644
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
--    "@comagic/core": "^0.6.4",
--    "antd": "^4.13.0",
+-    "@comagic/core": "^1.1.1",
+-    "antd": "^3.26.7",
 +    "antd": "3.26.7",
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -67,19 +64,13 @@
+@@ -67,16 +64,11 @@
      "formik": "^2.2.9",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
--    "magic-ui": "./magic_ui",
-     "mobx": "^6.3.8",
+-    "magic-ui": "^2.3.0",
+     "mobx": "^6.6.1",
+     "mobx-react-lite": "^3.4.0",
+     "mobx-state-tree": "^5.1.6",
      "mobx-devtools-mst": "^0.9.30",
-     "mobx-react-lite": "^3.2.2",
-     "mobx-state-tree": "^5.0.5",
      "moment": "^2.29.1",
--    "react": "^17.0.2",
--    "react-dom": "^17.0.2",
+-    "react": "^18.2.0",
+-    "react-dom": "^18.2.0",
 -    "react-intl": "^6.1.1",
 -    "react-router-dom": "^6.4.0",
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
--    "yup": "^0.32.9",
--    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab"
-+    "yup": "^0.32.9"
-   }
- }
+     "yup": "^0.32.9"
 diff --git a/src/App.tsx b/src/App.tsx
 index 43db4d8..6a8f91e 100644
 --- a/src/App.tsx
@@ -70,10 +66,10 @@ index 43db4d8..6a8f91e 100644
  
  export default App;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index bb4fd56..63c16f0 100644
+index 04c679c..d469409 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -120,7 +120,8 @@ export const RootStore = types
+@@ -108,7 +108,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
