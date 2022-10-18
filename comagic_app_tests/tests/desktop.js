@@ -403,6 +403,24 @@ tests.addTest(options => {
                                         tester.contactBar.expectNotToExist();
                                         tester.phoneField.expectToBeVisible();
                                     });
+                                    it('Поступил входящий звонок. Софтфон видим.', function() {
+                                        tester.incomingCall().receive();
+                                        tester.numaRequest().receiveResponse();
+
+                                        tester.accountRequest().receiveResponse();
+
+                                        getPackage('electron').ipcRenderer.
+                                            recentlySentMessage().
+                                            expectToBeSentToChannel('incoming-call').
+                                            expectToBeSentWithArguments(false);
+
+                                        tester.contactBar.expectNotToExist();
+
+                                        tester.softphone.expectTextContentToHaveSubstring(
+                                            '+7 (916) 123-45-67 ' +
+                                            'Поиск контакта...'
+                                        );
+                                    });
                                     it('Отображен контакт. Софтфон скрыт.', function() {
                                         tester.contactBar.expectTextContentToHaveSubstring(
                                             'ФИО ' +

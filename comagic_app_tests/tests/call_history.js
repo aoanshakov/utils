@@ -33,9 +33,6 @@ tests.addTest(options => {
 
             tester = new Tester(options);
 
-            tester.masterInfoMessage().receive();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-
             tester.input.withFieldLabel('Логин').fill('botusharova');
             tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
@@ -65,14 +62,14 @@ tests.addTest(options => {
 
                 tester.configRequest().softphone().receiveResponse();
 
+                tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.authCheckRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
