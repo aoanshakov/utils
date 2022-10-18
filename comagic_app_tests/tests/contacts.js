@@ -44,9 +44,6 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             accountRequest = tester.accountRequest().expectToBeSent();
-
-            tester.masterInfoMessage().receive();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         });
 
         describe('Раздел контактов доступен.', function() {
@@ -69,14 +66,14 @@ tests.addTest(options => {
 
                 tester.configRequest().softphone().receiveResponse();
 
+                tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.authCheckRequest().receiveResponse();
                 statusesRequest = tester.statusesRequest().expectToBeSent();
@@ -632,6 +629,27 @@ tests.addTest(options => {
                                                 expectNotToBeSelected();
                                         });
                                     });
+                                    describe('Добавляю поле для E-Mail.', function() {
+                                        beforeEach(function() {
+                                            tester.contactBar.section('E-Mail').svg.click();
+                                        });
+
+                                        it(
+                                            'Нажимаю на кнпоку "Сохранить". Пустая строка в качестве E-Mail не ' +
+                                            'сохранилась.',
+                                        function() {
+                                            tester.contactBar.section('E-Mail').button('Сохранить').click();
+                                            tester.contactUpdatingRequest().completeData().receiveResponse();
+                                        });
+                                        it('Ввожу E-Mail. Отправлен запрос обновления контакта.', function() {
+                                            tester.contactBar.section('E-Mail').input.fill('belezhkova@gmail.com');
+                                            tester.contactBar.section('E-Mail').button('Сохранить').click();
+
+                                            tester.contactsRequest().emailSearching().noData().receiveResponse();
+                                            tester.contactUpdatingRequest().completeData().twoEmails().
+                                                receiveResponse();
+                                        });
+                                    });
                                     it(
                                         'Изменяю значение полей имени. Нажимаю на кнопку "Сохранить". Отправлен ' +
                                         'запрос обновления контакта.',
@@ -656,16 +674,6 @@ tests.addTest(options => {
                                         tester.contactsRequest().phoneSearching().noData().receiveResponse();
                                         tester.contactUpdatingRequest().completeData().twoPhoneNumbers().
                                             receiveResponse();
-                                    });
-                                    it(
-                                        'Добавляю поле для E-Mail. Ввожу E-Mail. Отправлен запрос обновления контакта.',
-                                    function() {
-                                        tester.contactBar.section('E-Mail').svg.click();
-                                        tester.contactBar.section('E-Mail').input.fill('belezhkova@gmail.com');
-                                        tester.contactBar.section('E-Mail').button('Сохранить').click();
-
-                                        tester.contactsRequest().emailSearching().noData().receiveResponse();
-                                        tester.contactUpdatingRequest().completeData().twoEmails().receiveResponse();
                                     });
                                     it('Нажимаю на номер телефона. Совершается звонок.', function() {
                                         tester.contactBar.section('Телефоны').anchor('79162729533').click();
@@ -886,22 +894,35 @@ tests.addTest(options => {
                                     );
                                 });
                             });
-                            it(
-                                'Для контакта не установлен персональный менеджер. Выбираю другой контакт. Для ' +
-                                'контакта установлен персональный менеджер.',
-                            function() {
-                                contactRequest.noPersonalManager().receiveResponse();
-                                contactCommunicationsRequest.receiveResponse();
+                            describe('Получена история коммуникаций.', function() {
+                                beforeEach(function() {
+                                    contactCommunicationsRequest.receiveResponse();
+                                });
 
-                                tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
+                                it(
+                                    'Для контакта не установлен персональный менеджер. Выбираю другой контакт. Для ' +
+                                    'контакта установлен персональный менеджер.',
+                                function() {
+                                    contactRequest.noPersonalManager().receiveResponse();
 
-                                tester.contactCommunicationsRequest().anotherContact().receiveResponse();
-                                tester.contactRequest().anotherContact().receiveResponse();
+                                    tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
 
-                                tester.contactBar.
-                                    section('Персональный менеджер').
-                                    select.
-                                    expectNotToExist();
+                                    tester.contactCommunicationsRequest().anotherContact().receiveResponse();
+                                    tester.contactRequest().anotherContact().receiveResponse();
+
+                                    tester.contactBar.
+                                        section('Персональный менеджер').
+                                        select.
+                                        expectNotToExist();
+                                });
+                                it(
+                                    'В качестве E-Mail используется пустая строка. Поле для ввода почты скрыто.',
+                                function() {
+                                    contactRequest.emptyEmailList().receiveResponse();
+
+                                    tester.contactBar.section('E-Mail').input.expectNotToExist(); 
+                                    tester.contactBar.section('E-Mail').option('').expectNotToExist();
+                                });
                             });
                         });
                         it('Имена сгруппированы по первым буквам.', function() {
@@ -1336,14 +1357,14 @@ tests.addTest(options => {
 
                 tester.configRequest().softphone().receiveResponse();
 
+                tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.authCheckRequest().receiveResponse();
                 statusesRequest = tester.statusesRequest().expectToBeSent();
@@ -1458,14 +1479,14 @@ tests.addTest(options => {
 
             tester.configRequest().softphone().receiveResponse();
 
+            tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            spendTime(1000);
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            spendTime(1000);
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
 
             tester.authCheckRequest().receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();

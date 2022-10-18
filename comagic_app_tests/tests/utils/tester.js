@@ -8060,6 +8060,11 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.emptyEmailList = () => {
+                processors.push(() => (response.email_list[0] = ''));
+                return me;
+            };
+            
             me.noPersonalManager = () => {
                 processors.push(() => (response.personal_manager_id = null));
                 return me;

@@ -65,6 +65,16 @@ index 43db4d8..6a8f91e 100644
  });
  
  export default App;
+diff --git a/src/components/chats/chat-panel/styles.less b/src/components/chats/chat-panel/styles.less
+index f8e7ef2..95a9d9f 100644
+--- a/src/components/chats/chat-panel/styles.less
++++ b/src/components/chats/chat-panel/styles.less
+@@ -1,3 +1,5 @@
++@import '~antd/dist/antd.css';
++
+ .@{p}chat-panel {
+   width: 100%;
+   height: 100%;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
 index 04c679c..d469409 100644
 --- a/src/models/RootStore.ts
