@@ -1919,6 +1919,8 @@ define(() => function ({
                     expectToHaveMethod('GET').
                     expectQueryToContain(queryParams);
 
+                spendTime(0);
+
                 return addResponseModifiers({
                     receiveResponse: () => {
                         request.respondSuccessfullyWith({data});
@@ -2651,8 +2653,8 @@ define(() => function ({
             thirdAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29'), request),
 
-            expectToBeSent: () => {
-                const request = ajax.recentRequest().
+            expectToBeSent: (requests) => {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('/sup/api/v1/settings').
                     expectToHaveMethod('GET').
                     expectToHaveHeaders(headers);
@@ -8059,6 +8061,11 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.emptyEmailList = () => {
+                processors.push(() => (response.email_list[0] = ''));
+                return me;
+            };
+            
             me.noPersonalManager = () => {
                 processors.push(() => (response.personal_manager_id = null));
                 return me;
@@ -9545,6 +9552,8 @@ define(() => function ({
                         params: {}
                     });
 
+                spendTime(0);
+
                 const me = addResponseModifiers({
                     receiveResponse: () => {
                         request.respondSuccessfullyWith(response);
@@ -10087,7 +10096,7 @@ define(() => function ({
 
         tester.expectToBePressed = () => tester.expectToHaveClass('cmg-button-pressed');
         tester.expectNotToBePressed = () => tester.expectNotToHaveClass('cmg-button-pressed');
-        tester.click = () => (click(), spendTime(0));
+        tester.click = () => (click(), spendTime(0), spendTime(0));
 
         return tester;
     };
