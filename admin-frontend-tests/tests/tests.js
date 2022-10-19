@@ -943,6 +943,38 @@ tests.addTest(function (options) {
                                         tester.table().header().checkbox().click();
                                     });
 
+                                    it(
+                                        'Ввожу строку поиска. Нажимаю на кнопку "Поиск". Нажимаю на чекбокс в ' +
+                                        'заголовке. Стираю строку поиска. Нажимаю на кнопку "Поиск". Одна из строк ' +
+                                        'не отмечена.',
+                                    function() {
+                                        tester.textfield().withPlaceholder(
+                                            'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
+                                        ).fill('Шунин');
+
+                                        tester.button('Поиск').click();
+                                        tester.appsRequest().setSearch().changeLimit().singleApp().receiveResponse();
+
+                                        tester.table().header().checkbox().click();
+
+                                        tester.textfield().withPlaceholder(
+                                            'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
+                                        ).clear();
+
+                                        tester.button('Поиск').click();
+                                        tester.appsRequest().changeLimit().receiveResponse();
+
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
+                                            checkbox().expectToBeChecked();
+                                    });
                                     it('Нажимаю на чекбокс в заголовке. Ни одна строка не отмечена.', function() {
                                         tester.table().header().checkbox().click();
 

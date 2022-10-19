@@ -1079,6 +1079,11 @@ define(() => {
                         return this;
                     },
 
+                    singleApp() {
+                        itemsCount = 1;
+                        return this;
+                    },
+
                     receiveResponse() {
                         const data = [];
                         processing.forEach(process => process());
