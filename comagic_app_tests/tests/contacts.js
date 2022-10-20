@@ -468,6 +468,47 @@ tests.addTest(options => {
                                             tester.select.expectToHaveTextContent('Господинова Николина');
                                         });
                                     });
+                                    describe('Нажимаю на кнопку проигрывания записи звонка.', function() {
+                                        let talkRecordRequest;
+
+                                        beforeEach(function() {
+                                            tester.chatHistory.message.atTime('12:14').playIcon.click();
+                                            talkRecordRequest = tester.talkRecordRequest().expectToBeSent();
+                                        });
+
+                                        describe('Запись скачена.', function() {
+                                            beforeEach(function() {
+                                                talkRecordRequest.receiveResponse();
+                                                audioDecodingTester.accomplishAudioDecoding();
+                                            });
+
+                                            it(
+                                                'Обновлена длительность и время. Запись проигрывается. Отображено ' +
+                                                'обновленное время и длительность.',
+                                            function() {
+                                                tester.chatHistory.message.atTime('12:14').audio.
+                                                    duration(674).
+                                                    time(337).
+                                                    play();
+
+                                                tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
+                                                    'Запись звонка ' +
+                                                    '05:37 / 11:14 12:14'
+                                                );
+                                            });
+                                            it('Спиннер скрыт.', function() {
+                                                tester.chatHistory.message.atTime('12:14').spin.expectNotToExist();
+                                            });
+                                        });
+                                        it('Отображена длительность. Спиннер видим.', function() {
+                                            tester.chatHistory.message.atTime('12:14').spin.expectToBeVisible();
+
+                                            tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
+                                                'Запись звонка ' +
+                                                '53:40 12:14'
+                                            );
+                                        });
+                                    });
                                     describe('Открываю меню номера.', function() {
                                         beforeEach(function() {
                                             tester.contactBar.
@@ -518,35 +559,6 @@ tests.addTest(options => {
                                         });
                                         it('Пунт "Редактировать" доступен.', function() {
                                             tester.select.option('Редактировать').expectToBeEnabled();
-                                        });
-                                    });
-                                    describe('Нажимаю на кнопку проигрывания записи звонка.', function() {
-                                        beforeEach(function() {
-                                            tester.chatHistory.message.atTime('12:14').playIcon.click();
-
-                                            tester.talkRecordRequest().receiveResponse();
-                                            audioDecodingTester.accomplishAudioDecoding();
-                                        });
-
-                                        it(
-                                            'Обновлена длительность и время. Запись проигрывается. Отображено ' +
-                                            'обновленное время и длительность.',
-                                        function() {
-                                            tester.chatHistory.message.atTime('12:14').audio.
-                                                duration(674).
-                                                time(337).
-                                                play();
-
-                                            tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
-                                                'Запись звонка ' +
-                                                '05:37 / 11:14 12:14'
-                                            );
-                                        });
-                                        it('Отображена длительность.', function() {
-                                            tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
-                                                'Запись звонка ' +
-                                                '53:40 12:14'
-                                            );
                                         });
                                     });
                                     describe('Нажимаю на другое имя. Запрошен другой контакт.', function() {

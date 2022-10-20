@@ -314,7 +314,7 @@ define(() => function ({
         )));
 
         me.spin = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
-            querySelector('.ui-spin-icon-default, .clct-spinner'));
+            querySelector('.ui-spin-icon-default, .clct-spinner, .cm-chats--loading-icon'));
 
         me.anchor = text => (() => {
             const tester = testersFactory.createAnchorTester(
