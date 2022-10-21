@@ -134,20 +134,15 @@ tests.addTest(options => {
                 describe('Открываю раздел контактов.', function() {
                     beforeEach(function() {
                         tester.button('Контакты').click();
-
-                        return;
                         contactsRequest = tester.contactsRequest().expectToBeSent();
                     });
 
-                    it('', function() {
-                    });
-                    return;
                     describe('Получены данные для списка контактов.', function() {
                         beforeEach(function() {
                             contactsRequest.receiveResponse();
                         });
 
-                        xdescribe(
+                        describe(
                             'Прокручиваю список контактов до конца. Запрошена следующая страница списка контактов.',
                         function() {
                             beforeEach(function() {
@@ -244,7 +239,7 @@ tests.addTest(options => {
                                 tester.spin.expectToBeVisible();
                             });
                         });
-                        xit(
+                        it(
                             'Ввожу значение в поле поиска. Не удалось получить данные. Запрос не отправляется ' +
                             'повторно.',
                         function() {
@@ -256,7 +251,7 @@ tests.addTest(options => {
 
                             tester.spin.expectNotToExist();
                         });
-                        xit('Вызвано событие исходящего звонка. Совершается исходящий звонок.', function() {
+                        it('Вызвано событие исходящего звонка. Совершается исходящий звонок.', function() {
                             tester.outgoingCallEvent().dispatch();
 
                             tester.firstConnection.connectWebRTC();
@@ -296,7 +291,6 @@ tests.addTest(options => {
                             tester.spin.expectNotToExist();
                         });
                     });
-                    return;
                     describe('Получены разные имена.', function() {
                         beforeEach(function() {
                             contactsRequest.differentNames().receiveResponse();
@@ -977,7 +971,6 @@ tests.addTest(options => {
                         tester.spin.expectToBeVisible();
                     });
                 });
-                return;
                 describe('Поступил входящий звонок.', function() {
                     let outCallEvent;
 
@@ -1209,7 +1202,6 @@ tests.addTest(options => {
                     });
                 });
             });
-            return;
             describe('Номер должен быть скрыт. Открываю карточку контакта.', function() {
                 beforeEach(function() {
                     settingsRequest.shouldHideNumbers().receiveResponse();
@@ -1360,7 +1352,6 @@ tests.addTest(options => {
                 tester.softphone.expectTextContentToHaveSubstring('Используется на другом устройстве');
             });
         });
-        return;
         describe('Редактирование контактов недоступно. Открываю раздел контактов. Нажимаю на имя.', function() {
             beforeEach(function() {
                 accountRequest.addressBookUpdatingUnavailable().receiveResponse();
