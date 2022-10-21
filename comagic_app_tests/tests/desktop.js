@@ -341,16 +341,16 @@ tests.addTest(options => {
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
+                                        expectToBeSentToChannel('call-end').
+                                        expectToBeSentWithArguments(true);
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
                                         expectToBeSentToChannel('resize').
                                         expectToBeSentWithArguments({
                                             width: 340,
                                             height: 212
                                         });
-
-                                    getPackage('electron').ipcRenderer.
-                                        recentlySentMessage().
-                                        expectToBeSentToChannel('call-end').
-                                        expectToBeSentWithArguments(true);
 
                                     incomingCall.expectTemporarilyUnavailableToBeSent();
                                 });
@@ -646,41 +646,47 @@ tests.addTest(options => {
                                     tester.accountRequest().anotherAuthorizationToken().receiveResponse();
                                     tester.accountRequest().anotherAuthorizationToken().receiveResponse();
 
-                                    tester.authCheckRequest().
-                                        anotherAuthorizationToken().
-                                        receiveResponse();
-
-                                    const requests = ajax.inAnyOrder();
-
+                                    let requests = ajax.inAnyOrder();
+                                    
                                     const statsRequest = tester.statsRequest().
                                         anotherAuthorizationToken().
-                                        expectToBeSent();
-
+                                        expectToBeSent(requests);
+                                    
                                     const accountRequest = tester.accountRequest().
                                         anotherAuthorizationToken().
-                                        expectToBeSent();
+                                        expectToBeSent(requests);
+
+                                    const authCheckRequest = tester.authCheckRequest().
+                                        anotherAuthorizationToken().
+                                        expectToBeSent(requests);
+
+                                    requests.expectToBeSent();
+                                    authCheckRequest.receiveResponse();
+
+                                    requests = ajax.inAnyOrder();
 
                                     const statusesRequest = tester.statusesRequest().
-                                        createExpectation().
+                                        createExpectation(requests).
                                         anotherAuthorizationToken().
                                         checkCompliance();
 
                                     const settingsRequest = tester.settingsRequest().
                                         anotherAuthorizationToken().
-                                        expectToBeSent();
+                                        expectToBeSent(requests);
 
                                     const talkOptionsRequest = tester.talkOptionsRequest().
-                                        expectToBeSent();
+                                        expectToBeSent(requests);
 
                                     const permissionsRequest = tester.permissionsRequest().
-                                        expectToBeSent();
+                                        expectToBeSent(requests);
+
+                                    requests.expectToBeSent();
 
                                     statsRequest.receiveResponse();
                                     accountRequest.receiveResponse();
                                     statusesRequest.receiveResponse();
                                     talkOptionsRequest.receiveResponse();
                                     permissionsRequest.receiveResponse();
-
                                     settingsRequest.receiveResponse();
 
                                     tester.connectEventsWebSocket(1);
@@ -969,16 +975,16 @@ tests.addTest(options => {
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
+                                        expectToBeSentToChannel('incoming-call').
+                                        expectToBeSentWithArguments(false);
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
                                         expectToBeSentToChannel('resize').
                                         expectToBeSentWithArguments({
                                             width: 340,
                                             height: 276
                                         });
-
-                                    getPackage('electron').ipcRenderer.
-                                        recentlySentMessage().
-                                        expectToBeSentToChannel('incoming-call').
-                                        expectToBeSentWithArguments(false);
                                 });
 
                                 it('Нажимаю на кнопку большого размера.', function() {
@@ -1212,15 +1218,15 @@ tests.addTest(options => {
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
+                                    expectToBeSentToChannel('maximize');
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
                                     expectToBeSentToChannel('resize').
                                     expectToBeSentWithArguments({
                                         width: 340,
                                         height: 568
                                     });
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('maximize');
 
                                 const requests = ajax.inAnyOrder();
 
@@ -1257,14 +1263,6 @@ tests.addTest(options => {
 
                                 tester.statusesList.item('Не беспокоить').expectToBeSelected();
                                 tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
-                            });
-                            it('Получена новая версия. Отправлено сообщение в бэк электрона.', function() {
-                                tester.applicationVersionChanged().receive();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('application-version-changed').
-                                    expectToBeSentWithArguments('6.6.666');
                             });
                             it('Помещаю курсор над иконкой аккаунта. Список статусов не открывается.', function() {
                                 tester.userName.putMouseOver();
@@ -1890,15 +1888,15 @@ tests.addTest(options => {
                     recentlySentMessage().
                     expectToBeSentToChannel('maximize');
 
-                tester.authCheckRequest().receiveResponse();
-
                 const requests = ajax.inAnyOrder();
 
-                const statsRequest = tester.statsRequest().secondEarlier().expectToBeSent(requests),
+                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                    statsRequest = tester.statsRequest().secondEarlier().expectToBeSent(requests),
                     accountRequest = tester.accountRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
+                authCheckRequest.receiveResponse();
                 statsRequest.receiveResponse();
                 accountRequest.receiveResponse();
 

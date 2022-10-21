@@ -527,7 +527,7 @@ index e1f15e6f..231a33a0 100644
 +    })}
 +><App /></Root>);
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 1e8a2022..5c5e39bd 100644
+index 1e8a2022..88d8e493 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -1,21 +1,16 @@
@@ -557,7 +557,7 @@ index 1e8a2022..5c5e39bd 100644
  
  const isGodMode = () => {
      return localStorage.getItem(GOD_MODE) === '*';
-@@ -96,22 +91,15 @@ window.addEventListener('error', function(event) {
+@@ -96,22 +91,14 @@ window.addEventListener('error', function(event) {
      return false;
  });
  
@@ -566,7 +566,7 @@ index 1e8a2022..5c5e39bd 100644
 +export const RootStore = BasicRootStore.named('RootStore')
 +    .props({
          isSoftphoneVisible: types.optional(types.boolean, true),
-         isLarge: types.optional(types.boolean, false),
+-        isLarge: types.optional(types.boolean, false),
          isGodMode: types.optional(types.boolean, isGodMode()),
 -        isLogDownloading: types.optional(types.boolean, false),
 -        authStore: types.optional(AuthStore, {}),
@@ -582,7 +582,7 @@ index 1e8a2022..5c5e39bd 100644
          let subscriptionRemovers: Array<() => void> = [];
          const setSoftphoneVisible = value => (self.isSoftphoneVisible = value);
  
-@@ -123,218 +111,33 @@ export const RootStore = types
+@@ -123,218 +110,33 @@ export const RootStore = types
              subscriptionRemovers = [];
          };
  
