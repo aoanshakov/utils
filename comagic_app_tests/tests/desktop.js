@@ -168,10 +168,7 @@ tests.addTest(options => {
                                         recentlySentMessage().
                                         expectToBeSentToChannel('maximize');
 
-                                    tester.configRequest().softphone().receiveResponse();
                                     tester.statsRequest().receiveResponse();
-                                    tester.numberCapacityRequest().receiveResponse();
-                                    tester.accountRequest().receiveResponse();
                                     tester.accountRequest().receiveResponse();
 
                                     tester.dialpadButton(1).expectToBeVisible();;

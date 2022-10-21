@@ -10207,10 +10207,12 @@ define(() => function ({
     }
 
     me.leftMenu = (() => {
-        const getDomElement = () => utils.querySelector('.src-components-main-menu-styles-module__nav'),
-            tester = testersFactory.createDomElementTester(getDomElement);
+        const getDomElement = () => utils.querySelector(
+            '.src-components-main-menu-styles-module__nav, ' +
+            '.misc-core-src-components-styles-module__nav'
+        );
 
-        return addTesters(tester, getDomElement);
+        return addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement);
     })();
 
     me.popover = (() => {
