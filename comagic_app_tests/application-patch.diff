@@ -294,14 +294,14 @@ index 7257c68b..8ff9c946 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 13857f45..06f13f98 100644
+index 9b1ded71..06f13f98 100644
 --- a/package.json
 +++ b/package.json
 @@ -66,13 +66,16 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
--    "@comagic/core": "^1.1.2",
+-    "@comagic/core": "^1.2.0",
 -    "@sentry/react": "^6.17.6",
 -    "@sentry/tracing": "^6.17.6",
 -    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab",
