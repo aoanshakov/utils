@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 7257c68b..24bccbcd 100644
+index 7257c68b..486d3992 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 7257c68b..24bccbcd 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -339,17 +409,125 @@ module.exports = {
+@@ -339,17 +409,120 @@ module.exports = {
                      },
                  ],
              },
@@ -228,8 +228,7 @@ index 7257c68b..24bccbcd 100644
 +            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
 +            'analytics/CreateReport': `${miscDirectory}/Stub.js`,
 +            'analytics/Dashboards/ChiefDashboard': `${miscDirectory}/Stub.js`,
-+            'analytics/Communications':
-+                `${miscDirectory}/analytics/frontend/src/components/reports/communications/index.tsx`,
++            'analytics/Communications': `${miscDirectory}/Stub.js`,
 +            'analytics/Dashboards/Dashboard': `${miscDirectory}/Stub.js`,
 +            'analytics/DealsAnalytics': `${miscDirectory}/Stub.js`,
 +            'analytics/Deals': `${miscDirectory}/Stub.js`,
@@ -237,14 +236,10 @@ index 7257c68b..24bccbcd 100644
 +            'analytics/Dashboards/MarketerDashboard': `${miscDirectory}/Stub.js`,
 +            'analytics/SharedReport': `${miscDirectory}/Stub.js`,
 +            'analytics/cancelPendingRequests': `${miscDirectory}/Stub.js`,
-+            'analytics/ReportTable':
-+                `${miscDirectory}/analytics/frontend/src/components/reports/communications/ReportTable.tsx`,
-+            'analytics/CalendarButton':
-+                `${miscDirectory}/analytics/frontend/src/components/lib/calendar/BasicCalendarButton.tsx`,
-+            'analytics/RadioButton':
-+                `${miscDirectory}/analytics/frontend/src/components/lib/radio-button/RadioButton.tsx`,
-+            'analytics/RadioGroup':
-+                `${miscDirectory}/analytics/frontend/src/components/lib/radio-button/RadioGroup.tsx`,
++            'analytics/ReportTable': `${miscDirectory}/Stub.js`,
++            'analytics/CalendarButton': `${miscDirectory}/Stub.js`,
++            'analytics/RadioButton': `${miscDirectory}/Stub.js`,
++            'analytics/RadioGroup': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`,
@@ -295,7 +290,7 @@ index 7257c68b..24bccbcd 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 9b1ded71..31ee1631 100644
+index 9b1ded71..6597dfd6 100644
 --- a/package.json
 +++ b/package.json
 @@ -56,8 +56,8 @@
@@ -309,7 +304,7 @@ index 9b1ded71..31ee1631 100644
      "url-loader": "^3.0.0",
      "webpack": "^5.74.0",
      "webpack-bundle-analyzer": "^4.4.0",
-@@ -66,13 +66,17 @@
+@@ -66,13 +66,16 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -319,7 +314,6 @@ index 9b1ded71..31ee1631 100644
      "@sentry/tracing": "^6.17.6",
 -    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab",
 +    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
-+    "analytics": "./misc/analytics/frontend",
 +    "antd": "3.26.7",
      "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
@@ -329,7 +323,7 @@ index 9b1ded71..31ee1631 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -84,15 +88,19 @@
+@@ -84,15 +87,19 @@
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
