@@ -134,9 +134,14 @@ tests.addTest(options => {
                 describe('Открываю раздел контактов.', function() {
                     beforeEach(function() {
                         tester.button('Контакты').click();
+
+                        return;
                         contactsRequest = tester.contactsRequest().expectToBeSent();
                     });
 
+                    it('', function() {
+                    });
+                    return;
                     describe('Получены данные для списка контактов.', function() {
                         beforeEach(function() {
                             contactsRequest.receiveResponse();

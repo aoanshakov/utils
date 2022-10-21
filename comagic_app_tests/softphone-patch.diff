@@ -45,10 +45,31 @@ index db2565a..95e8d85 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 082964c..45507d9 100644
+index 082964c..60c121b 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -727,4 +727,5 @@ export const RootStore = types
+@@ -675,6 +675,20 @@ export const RootStore = types
+             handler(self.isLarge);
+         };
+ 
++        self.addEventListener = (eventName, handler) => {
++            switch (eventName) {
++                case 'resize':
++                    self.onSizeChange(handler);
++                    break;
++                case 'maximize':
++                    self.onLargenessChange(isLarge => isLarge && handler());
++                    break;
++                case 'unmaximize':
++                    self.onLargenessChange(isLarge => !isLarge && handler());
++                    break;
++            }
++        };
++
+         const resetStore = () => applySnapshot(self, initialState),
+             handleLargenessChange = () => largenessChangeHandlers.forEach(handle => handle(self.isLarge));
+ 
+@@ -727,4 +741,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
