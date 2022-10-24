@@ -47,6 +47,7 @@ tests.addTest(options => {
             tester.loginRequest().receiveResponse();
 
             accountRequest = tester.accountRequest().
+                webAccountLoginUnavailable().
                 contactsFeatureFlagDisabled().
                 softphoneFeatureFlagDisabled().
                 operatorWorkplaceAvailable().
@@ -71,6 +72,7 @@ tests.addTest(options => {
 
             const secondAccountRequest = tester.accountRequest().
                 forChats().
+                webAccountLoginUnavailable().
                 softphoneFeatureFlagDisabled().
                 operatorWorkplaceAvailable().
                 expectToBeSent(requests);
@@ -104,12 +106,18 @@ tests.addTest(options => {
                 operatorWorkplaceAvailable().
                 receiveResponse();
             
-            countersRequest = tester.countersRequest().expectToBeSent();
+            tester.offlineMessageCountersRequest().receiveResponse();
             tester.chatChannelListRequest().receiveResponse();
             tester.siteListRequest().receiveResponse();
             tester.markListRequest().receiveResponse();
             tester.chatChannelTypeListRequest().receiveResponse();
-            tester.offlineMessageListRequest().receiveResponse();
+
+            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+            tester.offlineMessageListRequest().processing().receiveResponse();
+            tester.offlineMessageListRequest().processed().receiveResponse();
+
+            countersRequest = tester.countersRequest().expectToBeSent();
+
             chatListRequest = tester.chatListRequest().expectToBeSent();
             tester.chatListRequest().active().receiveResponse();
             tester.chatListRequest().closed().receiveResponse();
@@ -149,6 +157,18 @@ tests.addTest(options => {
                         describe('Сообщение немного.', function() {
                             beforeEach(function() {
                                 messageListRequest.receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    anotherChat().
+                                    anotherMessage().
+                                    read().
+                                    receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    anotherChat().
+                                    anotherMessage().
+                                    read().
+                                    receiveResponse();
 
                                 tester.changeMessageStatusRequest().
                                     anotherChat().
@@ -236,6 +256,18 @@ tests.addTest(options => {
                                 read().
                                 receiveResponse();
 
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                anotherMessage().
+                                read().
+                                receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                anotherMessage().
+                                read().
+                                receiveResponse();
+
                             tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
                                 'Помакова Бисерка Драгановна ' +
                                 'Как дела? ' +
@@ -244,6 +276,18 @@ tests.addTest(options => {
                         });
                         it('Сообщение много.', function() {
                             messageListRequest.firstPage().receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                thirdMessage().
+                                read().
+                                receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                thirdMessage().
+                                read().
+                                receiveResponse();
 
                             tester.changeMessageStatusRequest().
                                 anotherChat().

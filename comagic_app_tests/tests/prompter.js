@@ -128,6 +128,10 @@ tests.addTest(options => {
 
                 tester.allowMediaInput();
 
+                tester.eventBus.
+                    nextEvent().
+                    expectEventNameToEqual('settings_fetched');
+
                 tester.slavesNotification().
                     twoChannels().
                     available().
@@ -667,6 +671,10 @@ tests.addTest(options => {
 
                         tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
+                        tester.eventBus.
+                            nextEvent().
+                            expectEventNameToEqual('settings_fetched');
+
                         let incomingCall = tester.incomingCall().receive();
 
                         tester.slavesNotification().
@@ -797,6 +805,10 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.allowMediaInput();
+
+                    tester.eventBus.
+                        nextEvent().
+                        expectEventNameToEqual('settings_fetched');
 
                     tester.slavesNotification().
                         twoChannels().
@@ -1031,6 +1043,10 @@ tests.addTest(options => {
                     twoChannels().
                     available().
                     receive();
+
+                tester.eventBus.
+                    nextEvent().
+                    expectEventNameToEqual('settings_fetched');
 
                 tester.button('Софтфон').click();
 

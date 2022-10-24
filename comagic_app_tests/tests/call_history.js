@@ -662,7 +662,7 @@ tests.addTest(options => {
                                         click();
                                 });
                                 
-                                describe('Ввожу непустой комментарий.', function() {
+                                describe('Ввожу непустой комментарий. Сохраняю.', function() {
                                     beforeEach(function() {
                                         tester.modalWindow.textarea.fill('   Другой комментарий ');
 

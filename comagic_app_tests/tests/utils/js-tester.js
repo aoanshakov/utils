@@ -6366,11 +6366,12 @@ function JsTester_DomElement (
         this.expectToExist();
         console.log(getDomElement());
     };
-    this.endTransition = function () {
+    this.endTransition = function (propertyName = 'opacity') {
         this.expectToExist();
 
         getDomElement().dispatchEvent(new TransitionEvent('transitionend', {
-            bubbles: true
+            bubbles: true,
+            propertyName
         }));
     };
     this.pressEscape = function () {

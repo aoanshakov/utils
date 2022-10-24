@@ -87,14 +87,14 @@ define(() => function ({
                     expectNotToExist: () => {
                         throw new Error(
                             `Никакое событие не должно быть вызвано, тогда как было вызвано событие ` +
-                            `"${actualEventName}" с аргументами ${JSON.stringify(args)}`
+                            `"${actualEventName}" с аргументами ${JSON.stringify(args)}\n\n${callStack}`
                         );
                     },
                     expectEventNameToEqual: expectedEventName => {
                         if (expectedEventName != actualEventName) {
                             throw new Error(
                                 `Должно быть вызывано событие "${expectedEventName}", тогда как было вызвано событие ` +
-                                `"${actualEventName}".`
+                                `"${actualEventName}".\n\n${callStack}`
                             );
                         }
 
@@ -915,7 +915,8 @@ define(() => function ({
 
             tester.click = () => {
                 click();
-                windowTester.endTransition();
+                spendTime(0);
+                windowTester.endTransition('transform');
                 spendTime(0);
             };
 
@@ -1259,32 +1260,17 @@ define(() => function ({
         }
     };
 
-    me.offlineMessageListRequest = () => ({
+    me.offlineMessageCountersRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/offline_message/list').
-                expectBodyToContain({
-                    statuses: ['not_processed', 'processing'],
-                    limit: 1000,
-                    offset: 0
-                });
+                expectPathToContain('$REACT_APP_BASE_URL/offline_message/counters');
 
             return {
                 receiveResponse() {
                     request.respondSuccessfullyWith({
-                        data: [{
-                            date_time: '2022-01-20T21:37:14',
-                            email: '',
-                            id: 178073,
-                            mark_ids: [],
-                            message: 'Привет.',
-                            phone: '71231212122',
-                            site_id: 2157,
-                            status: 'not_processed',
-                            visitor_id: 16479303,
-                            visitor_name: 'Помакова Бисерка Драгановна',
-                            visitor_type: 'omni'
-                        }]
+                        new_message_count: 0,
+                        active_message_count: 0,
+                        closed_message_count: 0
                     });
 
                     Promise.runAll(false, true);
@@ -1297,6 +1283,63 @@ define(() => function ({
             this.expectToBeSent().receiveResponse();
         }
     });
+
+    me.offlineMessageListRequest = () => {
+        const bodyParams = {
+            limit: 30,
+            offset: 0
+        };
+
+        return {
+            notProcessed() {
+                bodyParams.statuses = ['not_processed'];
+                return this;
+            },
+            
+            processing() {
+                bodyParams.statuses = ['processing'];
+                return this;
+            },
+
+            processed() {
+                bodyParams.statuses = ['processed'];
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/offline_message/list').
+                    expectBodyToContain(bodyParams);
+
+                return {
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            data: [{
+                                date_time: '2022-01-20T21:37:14',
+                                email: '',
+                                id: 178073,
+                                mark_ids: [],
+                                message: 'Привет.',
+                                phone: '71231212122',
+                                site_id: 2157,
+                                status: 'not_processed',
+                                visitor_id: 16479303,
+                                visitor_name: 'Помакова Бисерка Драгановна',
+                                visitor_type: 'omni'
+                            }]
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                };
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        };
+    };
 
     me.chatsWebSocket = (() => {
         const getWebSocket = index => webSockets.getSocket('$REACT_APP_WS_URL', index);
@@ -1704,7 +1747,7 @@ define(() => function ({
                 spendTime(0);
 
                 utils.isVisible(utils.querySelector('.clct-modal, .ui-modal')) &&
-                    mainTester.modalWindow.endTransition();
+                    mainTester.modalWindow.endTransition('transform');
 
                 spendTime(0);
             }
@@ -9455,6 +9498,14 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.webAccountLoginUnavailable = () => {
+                (response.result.data.permissions.find(
+                    ({ unit_id }) => unit_id == 'web_account_login'
+                ) || {}).is_select = false;
+
+                return me;
+            };
+
             me.webAccountLoginAvailable = () => {
                 response.result.data.permissions.push({
                     'unit_id': 'web_account_login',
