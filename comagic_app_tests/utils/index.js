@@ -92,13 +92,9 @@ const analyticsOverridenFiles = 'src/models/RootStore.ts src/models/reports/Root
 
 const overridenFiles = [
     'scripts/dev.js',
-    'src/utils/cookie.ts',
     'public/index.html',
-    'src/bootstrap.tsx',
     'config/webpack.config.js',
     'package.json',
-    'src/models/RootStore.ts',
-    'src/models/auth/AuthStore.ts',
     'src/rpc/httpRpc.ts'
 ].join(' ');
 
