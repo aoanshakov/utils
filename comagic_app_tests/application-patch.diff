@@ -1080,31 +1080,104 @@ index 8c0a28d7..ce190fe9 100644
  
      try {
 diff --git a/src/utils/cookie.ts b/src/utils/cookie.ts
-index 9882b7ef..62ae7319 100644
+deleted file mode 100644
+index 9882b7ef..00000000
 --- a/src/utils/cookie.ts
-+++ b/src/utils/cookie.ts
-@@ -40,13 +40,14 @@ const resetElectronCookiesManager = () => {
- };
- 
- window.getElectronCookiesManager = resetElectronCookiesManager;
-+const prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
- 
- export function getCookie(name: string): string {
-     if (isSoftphone()) {
-         return window.getElectronCookiesManager().getItem(name);
-     }
- 
++++ /dev/null
+@@ -1,96 +0,0 @@
+-export type Options = {
+-    expires?: Date | number | string;
+-    path?: string;
+-    domain?: string;
+-    secure?: boolean;
+-    'max-age'?: number;
+-};
+-
+-const isSoftphone = () => window.rootConfig?.appName == 'softphone';
+-
+-const resetElectronCookiesManager = () => {
+-    let electronCookies = window.localStorage.getItem('electronCookies');
+-
+-    try {
+-        electronCookies = electronCookies ? JSON.parse(electronCookies) : (electronCookies = {});
+-    } catch (e) {
+-        electronCookies = {};
+-    }
+-
+-    const saveCookies = () => window.localStorage.setItem('electronCookies', JSON.stringify(electronCookies));
+-
+-    const electronCookiesManager = {
+-        setItem: (name, value) => {
+-            electronCookies[name] = value;
+-            saveCookies();
+-        },
+-
+-        getItem: name => electronCookies[name],
+-
+-        removeItem: name => {
+-            delete(electronCookies[name]);
+-            saveCookies();
+-        },
+-
+-        reset: () => (window.getElectronCookiesManager = resetElectronCookiesManager)
+-    }
+-
+-    window.getElectronCookiesManager = () => electronCookiesManager;
+-    return electronCookiesManager;
+-};
+-
+-window.getElectronCookiesManager = resetElectronCookiesManager;
+-
+-export function getCookie(name: string): string {
+-    if (isSoftphone()) {
+-        return window.getElectronCookiesManager().getItem(name);
+-    }
+-
 -    const matches = new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)').exec(
-+    const matches = new RegExp('(?:^|; )' + prepareName(name) + '=([^;]*)').exec(
-         document.cookie
-     );
- 
-@@ -68,7 +69,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
-         options.expires = options.expires.toUTCString();
-     }
- 
+-        document.cookie
+-    );
+-
+-    return matches ? decodeURIComponent(matches[1]) : undefined;
+-}
+-
+-export function setCookie(name: string, value: string, options: Options = {}): void {
+-    if (isSoftphone()) {
+-        window.getElectronCookiesManager().setItem(name, value);
+-        return;
+-    }
+-
+-    options = {
+-        path: '/',
+-        ...options,
+-    };
+-
+-    if (options.expires instanceof Date) {
+-        options.expires = options.expires.toUTCString();
+-    }
+-
 -    let updatedCookie = encodeURIComponent(name) + '=' + encodeURIComponent(value);
-+    let updatedCookie = prepareName(name) + '=' + encodeURIComponent(value);
- 
-     let optionKey: keyof Options;
-     for (optionKey in options) {
+-
+-    let optionKey: keyof Options;
+-    for (optionKey in options) {
+-        updatedCookie += '; ' + optionKey;
+-
+-        const optionValue = options[optionKey];
+-        if (optionValue !== true) {
+-            updatedCookie += '=' + optionValue;
+-        }
+-    }
+-
+-    document.cookie = updatedCookie;
+-}
+-
+-export function deleteCookie(name: string, options: Options = {}): void {
+-    if (isSoftphone()) {
+-        window.getElectronCookiesManager().removeItem(name);
+-        return;
+-    }
+-
+-    setCookie(name, '', {
+-        'max-age': -1,
+-        ...options,
+-    });
+-}
