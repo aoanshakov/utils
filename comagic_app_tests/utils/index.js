@@ -66,7 +66,9 @@ const {
     testsServerPid,
     femaleNames,
     contactList,
-    maleNames
+    maleNames,
+    testsEntripointSource,
+    testsEntripointTarget
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -247,8 +249,9 @@ actions['create-patch'] = params => getOverriding(params).reduce((result, {
 }) => result.concat(fs.existsSync(application) ? [
     `cd ${application} && git diff -- ${overridenFiles} > ${applicationPatch}`
 ] : []), []).concat([
-    `if [ -e ${shadowContentTsxTarget} ]; then cp ${shadowContentTsxTarget} ${shadowContentTsxSource}; fi`
-]);
+    [shadowContentTsxTarget, shadowContentTsxSource],
+    [testsEntripointTarget, testsEntripointSource]
+].map(([target, source]) => `if [ -e ${target} ]; then cp ${target} ${source}; fi`));
 
 actions['create-magic-ui-lib-patch'] = params => [
     `cd ${magicUi} && git diff -- ${magicUiOverridenFiles} > ${magicUiLibPatch}`
@@ -263,7 +266,9 @@ actions['restore-code'] = params => getOverriding(params).reduce((result, {
     `fi`,
 
     rmVerbose(shadowContentTsxTarget)
-]), []);
+]), []).concat([
+    rmVerbose(testsEntripointTarget)
+]);
 
 actions['modify-code'] = params => actions['restore-code']({}).
     concat(actions['restore-code']({dev: true})).
@@ -276,6 +281,7 @@ actions['modify-code'] = params => actions['restore-code']({}).
         `fi`
     ]), [])).
     concat([
+        `cp ${testsEntripointSource} ${testsEntripointTarget}`,
         `cp ${stub} ${misc}`,
         `cp ${shadowContentTsxSource} ${shadowContentTsxTarget}`
     ]).concat(actions['fix-permissions']);

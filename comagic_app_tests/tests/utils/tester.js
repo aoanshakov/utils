@@ -29,6 +29,10 @@ define(() => function ({
         refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
     };
 
+    !window.process && (window.process = {});
+    !window.process.versions && (window.process.versions = {});
+    !window.process.versions.electron && (window.process.versions.electron = appName ? '1.0.0' : null);
+
     isAlreadyAuthenticated && (appName ? localStorage.setItem('electronCookies', JSON.stringify({
         '$REACT_APP_AUTH_COOKIE': JSON.stringify(jwtToken)
     })) : (

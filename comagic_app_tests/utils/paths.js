@@ -22,6 +22,8 @@ module.exports = {
     application,
     tests,
     nodeModules,
+    testsEntripointSource: `${tests}/tests.tsx`,
+    testsEntripointTarget: `${application}/src/tests.tsx`,
     scheduler: `${nodeModules}/scheduler`,
     fileSaver: `${nodeModules}/file-saver`,
     broadcastChannel: `${nodeModules}/broadcast-channel`,
