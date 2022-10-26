@@ -24,7 +24,7 @@ import {
 import {
     Provider as SoftphoneProvider,
     rootStore as softphoneRootStore,
-    createRootStore as createSoftphoneRootStore 
+    createRootStore as createElectronRootStore 
 } from '@models/SoftphoneRootStore';
 
 const history = createMemoryHistory(),
@@ -47,7 +47,7 @@ window.application = {
         if (!Unit) {
             setReactDOM(ReactDOM);
             setEventBus(eventBus);
-            (isElectron() ? createSoftphoneRootStore : createRootStore)();
+            (isElectron() ? createElectronRootStore : createRootStore)();
             !isElectron() && setChatsRootStore(createChatsRootStore());
             createSoftphoneRootStore();
             createContactsRootStore();

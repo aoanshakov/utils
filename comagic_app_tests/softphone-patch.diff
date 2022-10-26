@@ -45,10 +45,10 @@ index db2565a..95e8d85 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 082964c..1b7b4ea 100644
+index 7cdfa79..9a465b3 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -675,6 +675,20 @@ export const RootStore = types
+@@ -676,6 +676,20 @@ export const RootStore = types
              handler(self.isLarge);
          };
  
@@ -69,7 +69,7 @@ index 082964c..1b7b4ea 100644
          const resetStore = () => applySnapshot(self, initialState),
              handleLargenessChange = () => largenessChangeHandlers.forEach(handle => handle(self.isLarge));
  
-@@ -710,7 +724,8 @@ export const RootStore = types
+@@ -711,7 +725,8 @@ export const RootStore = types
              handleLargenessChange();
          };
  
@@ -79,7 +79,7 @@ index 082964c..1b7b4ea 100644
  
          return {
              afterCreate,
-@@ -720,6 +735,7 @@ export const RootStore = types
+@@ -721,6 +736,7 @@ export const RootStore = types
              request,
              setNotLarge,
              setIsLarge,
@@ -87,7 +87,7 @@ index 082964c..1b7b4ea 100644
              maybeHidePhoneNumber: maybeHidePhoneNumberMethod 
          };
      });
-@@ -727,4 +743,5 @@ export const RootStore = types
+@@ -728,4 +744,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

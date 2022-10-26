@@ -1,13 +1,12 @@
 diff --git a/package.json b/package.json
-index cd3c0a4..8199a9f 100644
+index dd092ec..1beaff0 100644
 --- a/package.json
 +++ b/package.json
 @@ -1,9 +1,9 @@
  {
    "name": "@comagic/core",
--  "version": "0.7.0",
+   "version": "1.1.2",
 -  "main": "lib/index.js",
-+  "version": "1.1.2",
 +  "main": "src/index.ts",
    "files": [
 -    "lib"
@@ -15,58 +14,26 @@ index cd3c0a4..8199a9f 100644
    ],
    "engines": {
      "node": ">=12.14.0",
-@@ -11,36 +11,32 @@
-   },
-   "scripts": {
-     "prepare": "husky install",
--    "build": "webpack && git add .",
-+    "build": "webpack",
-     "lint": "tsc --noEmit && eslint src/**/*.{ts,tsx}",
-     "prettier": "prettier --write src/**/*.{ts,tsx}"
-   },
+@@ -18,11 +18,9 @@
    "peerDependencies": {
--    "react": ">= 17.0.2",
-+    "axios": ">= 0.19.0",
+     "axios": ">= 0.19.0",
      "mobx": ">= 6.0.4",
 -    "mobx-state-tree": ">= 5.1.0",
--    "axios": ">= 0.19.0"
+-    "react": ">= 18.2.0"
 +    "mobx-state-tree": ">= 5.1.0"
    },
    "devDependencies": {
--    "@types/react": "^17.0.33",
--    "@typescript-eslint/eslint-plugin": "^5.2.0",
--    "@typescript-eslint/parser": "^5.2.0",
-+    "@typescript-eslint/eslint-plugin": "^5.31.0",
-+    "@typescript-eslint/parser": "^5.31.0",
+-    "@types/react": "^18.0.17",
+     "@typescript-eslint/eslint-plugin": "^5.31.0",
+     "@typescript-eslint/parser": "^5.31.0",
      "axios": "^0.24.0",
-     "broadcast-channel": "^4.11.0",
-     "clean-webpack-plugin": "^4.0.0",
--    "eslint": "^8.1.0",
--    "eslint-config-prettier": "^8.3.0",
--    "eslint-plugin-prettier": "^4.0.0",
--    "eslint-plugin-react": "^7.26.1",
--    "eslint-plugin-react-hooks": "^4.3.0",
--    "husky": "^7.0.0",
--    "mobx": "^6.3.5",
--    "mobx-state-tree": "^5.1.0",
--    "prettier": "^2.4.1",
--    "react": "^17.0.2",
--    "ts-loader": "^9.2.6",
--    "typescript": "^4.4.4",
--    "webpack": "^5.60.0",
--    "webpack-cli": "^4.9.1"
-+    "eslint": "^8.20.0",
-+    "eslint-config-prettier": "^8.5.0",
-+    "eslint-plugin-prettier": "^4.2.1",
-+    "eslint-plugin-react": "^7.30.1",
-+    "eslint-plugin-react-hooks": "^4.6.0",
-+    "husky": "^8.0.1",
-+    "mobx": "^6.6.1",
-+    "mobx-state-tree": "^5.1.6",
-+    "prettier": "^2.7.1",
-+    "ts-loader": "^9.3.1",
-+    "webpack": "^5.74.0",
-+    "webpack-cli": "^4.10.0"
+@@ -37,9 +35,7 @@
+     "mobx": "^6.6.1",
+     "mobx-state-tree": "^5.1.6",
+     "prettier": "^2.7.1",
+-    "react": "^18.2.0",
+     "ts-loader": "^9.3.1",
+-    "typescript": "^4.7.4",
+     "webpack": "^5.74.0",
+     "webpack-cli": "^4.10.0"
    }
- }
-\ No newline at end of file
