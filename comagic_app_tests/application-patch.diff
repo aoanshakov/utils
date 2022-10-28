@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 7257c68b..2134f36e 100644
+index 7257c68b..2fa71b25 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 7257c68b..2134f36e 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -339,17 +409,123 @@ module.exports = {
+@@ -339,17 +409,125 @@ module.exports = {
                      },
                  ],
              },
@@ -205,12 +205,14 @@ index 7257c68b..2134f36e 100644
 +            ...createAliases(appDirectory),
 +            'contacts/Root': `${miscDirectory}/contacts/src/Root.tsx`,
 +            'contacts/ContactBar': `${miscDirectory}/contacts/src/components/contact-bar/ContactBarWrapper.tsx`,
++            'contacts/Menu': `${miscDirectory}/contacts/src/Menu.tsx`,
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
-+            'softphone/Settings': 'softphone/src/Settings.tsx',
-+            'softphone/CallHistory': 'softphone/src/call_history/index.tsx',
-+            'softphone/CallStats': 'softphone/src/call_stats/index.tsx',
++            'softphone/Routes': 'softphone/src/Routes.tsx',
++            'softphone/Menu': 'softphone/src/Menu.tsx',
++            'softphone/VisibilityButton': 'softphone/src/VisibilityButton.tsx',
++            'softphone/isSoftphoneAvailable': 'softphone/src/utils/isSoftphoneAvailable.ts',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
