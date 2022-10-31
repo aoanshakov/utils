@@ -402,6 +402,37 @@ tests.addTest(function (options) {
                                         });
                                     });
                                     it(
+                                        'Ввожу значение в поле поиска. Отмечаю чекбокс в заголовке. Стираю значение ' +
+                                        'в поле поиска. Отмеченные ранее клиенты все еще отмечены.',
+                                    function() {
+                                        tester.textfield().withPlaceholder(
+                                            'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
+                                        ).fill('Шунин');
+
+                                        tester.button('Поиск').click();
+                                        tester.appsRequest().setSearch().changeLimit().singleApp().receiveResponse();
+
+                                        tester.table().header().checkbox().click();
+
+                                        tester.textfield().withPlaceholder(
+                                            'Customer ID, Имя клиента, Номер, Сайт, Лицевой счет, логин/e-mail, РТУ'
+                                        ).clear();
+
+                                        tester.button('Поиск').click();
+                                        tester.appsRequest().changeLimit().receiveResponse();
+
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 2').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 3').row().
+                                            checkbox().expectNotToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 4').row().
+                                            checkbox().expectToBeChecked();
+                                        tester.table().cell().withContent('ООО "Трупоглазые жабы" # 5').row().
+                                            checkbox().expectNotToBeChecked();
+                                    });
+                                    it(
                                         'Клиенты, связанные с флагом отмечены. Форма заполнена получеными данными.',
                                     function() {
                                         tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().

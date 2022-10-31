@@ -40,6 +40,146 @@ function EasystartAmocrm(args) {
         reloadPage: Ext.emptyFn,
     });
 
+    this.testOutCallCodeInputRequest = function () {
+        var result = {
+            next_step_params: {
+                test_out_call: {
+                    number: '79169275692',
+                    is_verified: true,
+                    sms_code: '2840',
+                    is_code_field_available: true,
+                    timer: null
+                }
+            }
+        };
+
+        function addResponseModifiers (me) {
+            me.invaild = function () {
+                result.next_step_params.test_out_call.is_verified = false;
+                return me;
+            };
+            
+            return me;
+        }
+
+        return addResponseModifiers({
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectToHavePath('/easystart/amocrm/test_out_call_code_input/').
+                    expectBodyToContain({
+                        code: '2840'
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith({
+                            success: true,
+                            result
+                        });
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    this.testOutCallSmsRequest = function () {
+        function addResponseModifiers (me) {
+            return me;
+        }
+
+        return addResponseModifiers({
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectToHavePath('/easystart/amocrm/test_out_call_sms_request/').
+                    expectBodyToContain({
+                        number: 79169275692
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith({
+                            success: true,
+                            result: {
+                                next_step_params: {
+                                    test_out_call: {
+                                        number: '79169275692',
+                                        is_verified: false,
+                                        sms_code: null,
+                                        is_code_field_available: true,
+                                        timer: 60
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    this.easyStartRequest = function () {
+        var result = {
+            test_out_call: {
+                number: null,
+                is_verified: false,
+                sms_code: null,
+                is_code_field_available: false,
+                timer: null
+            },
+            sales_department_number: {
+                number: '79162739283'
+            }
+        };
+
+        function addResponseModifiers (me) {
+            me.numberSpecified = function () {
+                result.test_out_call.number = '79162859134';
+                return me;
+            };
+
+            me.codeFieldAvailable = function () {
+                result.test_out_call.is_code_field_available = true;
+                return me;
+            };
+
+            me.smsCodeSpecified = function () {
+                result.test_out_call.sms_code = '2840';
+                return me;
+            };
+
+            me.verified = function () {
+                result.test_out_call.is_verified = true;
+                return me;
+            };
+
+            return me;
+        }
+
+        return addResponseModifiers({
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectToHavePath('/easystart/amocrm/get_easy_start/');
+
+                return addResponseModifiers({
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith({
+                            success: true,
+                            result
+                        });
+                    }
+                });
+            }
+        });
+    };
     this.requestSalesFunnelStatus = function () {
         return {
             send: function () {
@@ -1006,26 +1146,28 @@ function EasystartAmocrm(args) {
                 up('container');
         }
 
-        return {
-            querySelectorAll: function (selector) {
-                return getStepContainer().el.query(selector);
-            },
-            querySelector: function (selector) {
-                return getStepContainer().el.down(selector).dom;
-            },
-            down: function (selector) {
-                return getStepContainer().down(selector);
-            },
-            backButton: function () {
-                return testersFactory.createButtonTester(getStepContainer().down('button[text="Назад"]'));
-            },
-            nextButton: function () {
-                return testersFactory.createButtonTester(getStepContainer().down('button[text="Продолжить"]'));
-            },
-            applyButton: function () {
-                return testersFactory.createButtonTester(getStepContainer().down('button[text="Стать клиентом"]'));
-            }
+        var tester = testersFactory.createDomElementTester(() => getStepContainer()?.el?.dom);
+
+        tester.querySelectorAll = function (selector) {
+            return getStepContainer().el.query(selector);
         };
+        tester.querySelector = function (selector) {
+            return getStepContainer().el.down(selector).dom;
+        };
+        tester.down = function (selector) {
+            return getStepContainer().down(selector);
+        };
+        tester.backButton = function () {
+            return testersFactory.createButtonTester(getStepContainer().down('button[text="Назад"]'));
+        };
+        tester.nextButton = function () {
+            return testersFactory.createButtonTester(getStepContainer().down('button[text="Продолжить"]'));
+        };
+        tester.applyButton = function () {
+            return testersFactory.createButtonTester(getStepContainer().down('button[text="Стать клиентом"]'));
+        };
+
+        return tester;
     };
 
     this.testCallPanelDescendantWithText = function (expectedText) {
@@ -1299,6 +1441,88 @@ function EasystartAmocrm(args) {
         return utils.findElementByTextContent(document.body, 'Время действия сессии истекло', '.x-window-body');
     });
 
+    this.numberIsConfirmedText = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.easystart-number-is-confirmed');
+    });
+
+    function addTesters (me, getDomElement) {
+        me.button = function (text) {
+            function getButtonElement () {
+                return utils.descendantOf(getDomElement()).textEquals(text).matchesSelector('.x-btn-inner').find();
+            }
+
+            var tester = testersFactory.createDomElementTester(getButtonElement);
+
+            var wrapperTester = testersFactory.createDomElementTester(function () {
+                return getButtonElement().closest('.x-btn');
+            });
+
+            tester.expectToBeDisabled = function () {
+                wrapperTester.expectToHaveClass('x-item-disabled');
+            };
+
+            tester.expectToBeEnabled = function () {
+                wrapperTester.expectNotToHaveClass('x-item-disabled');
+            };
+
+            return tester;
+        };
+
+        function getTextFields () {
+            return getDomElement().querySelectorAll('.x-form-field');
+        }
+
+        function createInputTester (getDomElement) {
+            var tester = testersFactory.createTextFieldTester(getDomElement)
+
+            tester.expectToBeDisabled = function () {
+                tester.expectToHaveAttribute('disabled');
+            };
+
+            tester.expectToBeEnabled = function () {
+                tester.expectNotToHaveAttribute('disabled');
+            };
+
+            return tester;
+        };
+
+        me.input = createInputTester(function () {
+            return utils.getVisibleSilently(getTextFields());
+        });
+
+        function getTextField (isDesired) {
+            return createInputTester(function () {
+                return utils.getVisibleSilently(Array.prototype.filter.call(getTextFields(), isDesired));
+            })
+        }
+
+        me.input.atIndex = function (index) {
+            return createInputTester(function () {
+                return utils.getAllVisible(getTextFields())[index];
+            });
+        };
+
+        me.input.first = me.input.atIndex(0);
+
+        me.input.withValue = function (desiredValue) {
+            return getTextField(function (domElement) {
+                return domElement.value == desiredValue;
+            });
+        };
+            
+        me.input.withPlaceholder = function (desiredValue) {
+            return getTextField(function (domElement) {
+                return domElement.getAttribute('placeholder') == desiredValue;
+            });
+        };
+
+        return me;
+    }
+
+    addTesters(this, function () {
+        return document.body;
+    });
+
     function eachSpinner (handler) {
         var spinners = document.querySelectorAll('.x-mask-msg-text'),
             i = 0,
@@ -1339,6 +1563,16 @@ function EasystartAmocrm(args) {
             },
             handleDone: function () {}
         });
+    };
+
+    this.spinner = {
+        expectToBeVisible: function () {
+            this.expectSpinnerToBeVisible();
+        }.bind(this),
+
+        expectToBeHidden: function () {
+            this.expectSpinnerToBeHidden();
+        }.bind(this)
     };
 
     this.fatalErrorMessage = testersFactory.createDomElementTester(function () {

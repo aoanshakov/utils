@@ -40,7 +40,8 @@ function ServicesAtsSip(args) {
     this.sipRecordsRequest = function () {
         var item = {
             state: '',
-            is_mobile_terminal_enabled: false
+            is_mobile_terminal_enabled: false,
+            employee_id: 48284
         };
 
         function addResponseModifiers (me) {
@@ -82,7 +83,10 @@ function ServicesAtsSip(args) {
                             expectToHaveMethod('GET').
                             respondSuccessfullyWith({
                                 success: true,
-                                data: []
+                                data: [{
+                                    id: 48284,
+                                    name: 'Абакаев Герман Райбекович'
+                                }]
                             });
                     }
                 };
@@ -109,7 +113,11 @@ function ServicesAtsSip(args) {
                                 success: true,
                                 data: {
                                     'billing:public:physical_limit': [],
-                                    'billing:public:physical_limit_left': []
+                                    'billing:public:physical_limit_left': [],
+                                    'comagic:staff:employee': [{
+                                        id: 48284,
+                                        name: 'Абакаев Герман Райбекович'
+                                    }]
                                 } 
                             });
                     }
