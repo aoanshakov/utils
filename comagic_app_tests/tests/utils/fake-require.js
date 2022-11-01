@@ -166,6 +166,7 @@ define(function () {
 
                         spendTime(0);
                         spendTime(0);
+                        spendTime(0);
                     },
                     recentlySentMessage: function () {
                         return messages.pop();

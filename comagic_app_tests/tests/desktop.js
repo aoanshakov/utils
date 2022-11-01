@@ -67,6 +67,14 @@ tests.addTest(options => {
 
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 300,
+                            height: 350
+                        });
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
                         expectToBeSentToChannel('app-ready');
 
                     accountRequest = tester.accountRequest().expectToBeSent();
@@ -1218,15 +1226,15 @@ tests.addTest(options => {
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
-                                    expectToBeSentToChannel('maximize');
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
                                     expectToBeSentToChannel('resize').
                                     expectToBeSentWithArguments({
                                         width: 340,
                                         height: 568
                                     });
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('maximize');
 
                                 const requests = ajax.inAnyOrder();
 
@@ -1376,6 +1384,14 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 300,
+                        height: 350
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
                     expectToBeSentToChannel('app-ready');
 
                 tester.accountRequest().receiveResponse();
@@ -1431,6 +1447,14 @@ tests.addTest(options => {
                     expectToBeSentWithArguments({
                         width: 340,
                         height: 212
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 300,
+                        height: 350
                     });
 
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
@@ -1556,6 +1580,15 @@ tests.addTest(options => {
                         height: 212
                     });
 
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 300,
+                        height: 350
+                    });
+
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
                 tester.accountRequest().receiveResponse();
@@ -1631,6 +1664,14 @@ tests.addTest(options => {
                     expectToBeSentWithArguments({
                         width: 340,
                         height: 212
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 300,
+                        height: 350
                     });
 
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
@@ -1729,6 +1770,14 @@ tests.addTest(options => {
                     expectToBeSentWithArguments({
                         width: 340,
                         height: 212
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 300,
+                        height: 350
                     });
 
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
@@ -1830,6 +1879,14 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 300,
+                        height: 350
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
                     expectToBeSentToChannel('maximize');
 
                 getPackage('electron').ipcRenderer.
@@ -1877,6 +1934,14 @@ tests.addTest(options => {
                     expectToBeSentWithArguments({
                         width: 340,
                         height: 568
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 300,
+                        height: 350
                     });
 
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
@@ -1935,6 +2000,14 @@ tests.addTest(options => {
                     height: 212
                 });
 
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('resize').
+                expectToBeSentWithArguments({
+                    width: 300,
+                    height: 350
+                });
+
             getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
             tester.accountRequest().receiveResponse();
@@ -1973,6 +2046,14 @@ tests.addTest(options => {
                 expectToBeSentWithArguments({
                     width: 340,
                     height: 568
+                });
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('resize').
+                expectToBeSentWithArguments({
+                    width: 300,
+                    height: 350
                 });
 
             getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
