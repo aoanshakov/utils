@@ -492,6 +492,9 @@ tests.addTest(options => {
                                                     play();
 
                                                 tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
+                                                    '12:14 Входящий звонок с номера 79161234567 оператору ' +
+                                                    'Карадимова Веска Анастасовна ' +
+
                                                     'Запись звонка ' +
                                                     '05:37 / 11:14 12:14'
                                                 );
@@ -504,6 +507,9 @@ tests.addTest(options => {
                                             tester.chatHistory.message.atTime('12:14').spin.expectToBeVisible();
 
                                             tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
+                                                '12:14 Входящий звонок с номера 79161234567 оператору ' +
+                                                'Карадимова Веска Анастасовна ' +
+
                                                 'Запись звонка ' +
                                                 '53:40 12:14'
                                             );
@@ -751,6 +757,17 @@ tests.addTest(options => {
                                             toolsIcon.
                                             expectNotToExist();
                                     });
+                                    it(
+                                        'Помещаю курсор над сиситемным сообщением. Отображена всплывающая подсказка.',
+                                    function() {
+                                        tester.chatHistory.message.atTime('12:11').putMouseOver();
+
+                                        tester.tooltip.expectToHaveTextContent(
+                                            'Бележкова Грета Ервиновна (Клиент) ' +
+                                            '79218307632 (Telegram) ' +
+                                            'www.site.ru'
+                                        );
+                                    });
                                     it('Имя выделено. Отображен контакт. Отображена история коммуникаций.', function() {
                                         tester.contactList.item('Балканска Берислава Силаговна').
                                             expectNotToBeSelected();
@@ -758,13 +775,32 @@ tests.addTest(options => {
 
                                         tester.chatHistory.message.atTime('12:13').expectToHaveNoStatus();
 
+                                        tester.chatHistory.message.atTime('12:11').messengerIcon.
+                                            expectToHaveClass('cm-contacts-messenger-icon-telegram');
+                                        
+                                        tester.chatHistory.message.atTime('12:12').expectSourceToBeVisitor();
+                                        tester.chatHistory.message.atTime('12:13').expectSourceToBeOperator();
+
+                                        tester.chatHistory.message.atTime('12:14').expectSourceToBeVisitor();
+                                        tester.chatHistory.message.atTime('12:14').directionIcon.
+                                            expectToHaveClass('incoming_svg__cmg-direction-icon');
+
+                                        tester.chatHistory.message.atTime('12:15').expectSourceToBeOperator();
+
                                         tester.chatHistory.expectToHaveTextContent(
                                             '10 февраля 2020 ' +
 
+                                            '12:11 Чат принят оператором Карадимова Веска Анастасовна (79283810928) ' +
+
                                             'Здравствуйте 12:12 ' +
-                                            'Привет 12:13 ' +
-                                            'Входящий звонок Запись звонка 53:40 12:14 ' +
-                                            'png 925 B heart.png 12:15'
+
+                                                'Привет 12:13 ' +
+
+                                            '12:14 Входящий звонок с номера 79161234567 оператору Карадимова Веска ' +
+                                                'Анастасовна ' +
+                                            'Запись звонка 53:40 12:14 ' +
+
+                                                'png 925 B heart.png 12:15'
                                         );
 
                                         tester.contactBar.
@@ -826,10 +862,18 @@ tests.addTest(options => {
                                             tester.chatHistory.expectToHaveTextContent(
                                                 '10 февраля 2020 ' +
 
+                                                '12:11 Чат принят оператором Карадимова Веска Анастасовна ' +
+                                                    '(79283810928) ' +
+
                                                 'Здравствуйте 12:12 ' +
-                                                'Привет 12:13 ' +
-                                                'Входящий звонок Запись звонка 53:40 12:14 ' +
-                                                'png 925 B heart.png 12:15'
+
+                                                    'Привет 12:13 ' +
+
+                                                '12:14 Входящий звонок с номера 79161234567 оператору Карадимова ' +
+                                                    'Веска Анастасовна ' +
+                                                'Запись звонка 53:40 12:14 ' +
+
+                                                    'png 925 B heart.png 12:15'
                                             );
                                         });
                                         it('Получена следующая страница.', function() {
@@ -897,15 +941,22 @@ tests.addTest(options => {
                                 function() {
                                     contactCommunicationsRequest.noTalkRecordFileLink().receiveResponse();
 
+                                    tester.chatHistory.message.atTime('12:14').directionIcon.
+                                        expectToHaveClass('incoming_failed_svg__cmg-direction-icon');
+
                                     tester.chatHistory.expectToHaveTextContent(
                                         '10 февраля 2020 ' +
 
+                                        '12:11 Чат принят оператором Карадимова Веска Анастасовна (79283810928) ' +
+
                                         'Здравствуйте 12:12 ' +
-                                        'Привет 12:13 ' +
+                                            'Привет 12:13 ' +
 
-                                        'Входящий звонок 12:14 ' +
+                                        '12:14 Входящий звонок с номера 79161234567 оператору Карадимова Веска ' +
+                                            'Анастасовна ' +
+                                        'Статус: Клиент не взял трубку (Время ожидания ответа: 53:39) ' +
 
-                                        'png 925 B heart.png 12:15'
+                                            'png 925 B heart.png 12:15'
                                     );
                                 });
                             });
@@ -914,6 +965,35 @@ tests.addTest(options => {
                                     contactCommunicationsRequest.receiveResponse();
                                 });
 
+                                /*
+                                describe('У контакта три номера телефона.', function() {
+                                    beforeEach(function() {
+                                        contactRequest.
+                                            addSecondPhoneNumber().
+                                            receiveResponse();
+                                    });
+
+                                    it('Только два номера телефонов отображены.', function() {
+                                        contactRequest.addThirdPhoneNumber().receiveResponse();
+
+                                        tester.contactBar.section('Телефоны').expectToHaveTextContent(
+                                            'Телефоны (3) ' +
+                                            '79162729533'
+                                        );
+                                    });
+                                    it('Все номера телефонов отображены.', function() {
+                                        contactRequest.receiveResponse();
+
+                                        tester.contactBar.section('Телефоны').expectToHaveTextContent(
+                                            'Телефоны ' +
+
+                                            '79162729533 ' +
+                                            '79162729535'
+                                        );
+
+                                    });
+                                });
+                                */
                                 it(
                                     'Для контакта не установлен персональный менеджер. Выбираю другой контакт. Для ' +
                                     'контакта установлен персональный менеджер.',
@@ -1041,15 +1121,34 @@ tests.addTest(options => {
                                     tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
                                 });
                             });
-                            it(
-                                'Стираю значение в поле "Фамилия". Поле фамилии отмечено как невалидное. Кнопка ' +
-                                '"Создать контакт" заблокирована.',
-                            function() {
-                                tester.input.withPlaceholder('Фамилия (Обязательное поле)').clear();
+                            describe('Стираю значение в поле "Фамилия".', function() {
+                                beforeEach(function() {
+                                    tester.input.withPlaceholder('Фамилия (Обязательное поле)').clear();
+                                });
 
-                                tester.input.withPlaceholder('Фамилия (Обязательное поле)').expectToHaveError();
-                                tester.input.withPlaceholder('Имя').expectNotToHaveError();
-                                tester.button('Создать контакт').expectToBeDisabled();
+                                it('Помещаю курсор над номером телефона. Меню скрыто.', function() {
+                                    tester.contactBar.
+                                        section('Телефоны').
+                                        option('79161234567').
+                                        putMouseOver();
+
+                                    tester.contactBar.
+                                        section('Телефоны').
+                                        option('79161234567').
+                                        toolsIcon.
+                                        expectNotToExist();
+                                });
+                                it(
+                                    'Поле фамилии отмечено как невалидное. Кнопка "Создать контакт" заблокирована.',
+                                function() {
+                                    tester.input.withPlaceholder('Фамилия (Обязательное поле)').expectToHaveError();
+                                    tester.input.withPlaceholder('Имя').expectNotToHaveError();
+
+                                    tester.contactBar.section('Телефоны').svg.expectNotToExist();
+                                    tester.contactBar.section('E-Mail').svg.expectNotToExist();
+
+                                    tester.button('Создать контакт').expectToBeDisabled();
+                                });
                             });
                             it('В поле "Фамилия" введен номер телефона.', function() {
                                 tester.input.withPlaceholder('Фамилия (Обязательное поле)').
@@ -1473,6 +1572,10 @@ tests.addTest(options => {
                     option('Господинова Николина').
                     toolsIcon.
                     expectNotToExist();
+            });
+            it('Кнопки добавления телефонов и E-Mail скрыты.', function() {
+                tester.contactBar.section('Телефоны').svg.expectNotToExist();
+                tester.contactBar.section('E-Mail').svg.expectNotToExist();
             });
         });
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {

@@ -47,6 +47,7 @@ tests.addTest(options => {
             tester.loginRequest().receiveResponse();
 
             accountRequest = tester.accountRequest().
+                webAccountLoginUnavailable().
                 contactsFeatureFlagDisabled().
                 softphoneFeatureFlagDisabled().
                 operatorWorkplaceAvailable().
@@ -71,6 +72,7 @@ tests.addTest(options => {
 
             const secondAccountRequest = tester.accountRequest().
                 forChats().
+                webAccountLoginUnavailable().
                 softphoneFeatureFlagDisabled().
                 operatorWorkplaceAvailable().
                 expectToBeSent(requests);
@@ -104,12 +106,18 @@ tests.addTest(options => {
                 operatorWorkplaceAvailable().
                 receiveResponse();
             
-            countersRequest = tester.countersRequest().expectToBeSent();
+            tester.offlineMessageCountersRequest().receiveResponse();
             tester.chatChannelListRequest().receiveResponse();
             tester.siteListRequest().receiveResponse();
             tester.markListRequest().receiveResponse();
             tester.chatChannelTypeListRequest().receiveResponse();
-            tester.offlineMessageListRequest().receiveResponse();
+
+            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+            tester.offlineMessageListRequest().processing().receiveResponse();
+            tester.offlineMessageListRequest().processed().receiveResponse();
+
+            countersRequest = tester.countersRequest().expectToBeSent();
+
             chatListRequest = tester.chatListRequest().expectToBeSent();
             tester.chatListRequest().active().receiveResponse();
             tester.chatListRequest().closed().receiveResponse();
@@ -125,30 +133,310 @@ tests.addTest(options => {
                     countersRequest.receiveResponse();
                 });
 
-                describe('Ввожу значение в поле поиска. Нажимаю на найденный чат.', function() {
+                describe('Ввожу значение в поле поиска.', function() {
+                    let searchResultsRequest;
+
                     beforeEach(function() {
                         tester.input.fill('Сообщение #75');
                         
                         tester.input.pressEnter();
-                        tester.searchResultsRequest().receiveResponse();
-
-                        tester.chatListItem('Сообщение #75').click();
-                        chatListRequest = tester.chatListRequest().thirdChat().expectToBeSent();
+                        searchResultsRequest = tester.searchResultsRequest().expectToBeSent();
                     });
 
-                    describe('Получены данные чата.', function() {
-                        let messageListRequest;
-
+                    describe('Контакт не найден. Нажимаю на найденный чат.', function() {
                         beforeEach(function() {
-                            chatListRequest.receiveResponse();
-                            tester.acceptChatRequest().receiveResponse();
-                            tester.visitorCardRequest().receiveResponse();
-                            messageListRequest = tester.messageListRequest().expectToBeSent();
+                            searchResultsRequest.receiveResponse();
+
+                            tester.chatListItem('Сообщение #75').click();
+                            chatListRequest = tester.chatListRequest().thirdChat().expectToBeSent();
                         });
 
-                        describe('Сообщение немного.', function() {
+                        describe('Получены данные чата.', function() {
+                            let messageListRequest,
+                                visitorCardRequest;
+
                             beforeEach(function() {
-                                messageListRequest.receiveResponse();
+                                chatListRequest.receiveResponse();
+                                tester.acceptChatRequest().receiveResponse();
+                                visitorCardRequest = tester.visitorCardRequest().expectToBeSent();
+                                messageListRequest = tester.messageListRequest().expectToBeSent();
+                            });
+
+                            describe('У посетителя есть и номера и E-Mail.', function() {
+                                beforeEach(function() {
+                                    visitorCardRequest.receiveResponse();
+                                });
+
+                                describe('Сообщений немного.', function() {
+                                    beforeEach(function() {
+                                        messageListRequest.receiveResponse();
+
+                                        tester.usersRequest().forContacts().receiveResponse();
+                                        tester.usersRequest().forContacts().receiveResponse();
+
+                                        tester.changeMessageStatusRequest().
+                                            anotherChat().
+                                            anotherMessage().
+                                            read().
+                                            receiveResponse();
+
+                                        tester.changeMessageStatusRequest().
+                                            anotherChat().
+                                            anotherMessage().
+                                            read().
+                                            receiveResponse();
+
+                                        tester.changeMessageStatusRequest().
+                                            anotherChat().
+                                            anotherMessage().
+                                            read().
+                                            receiveResponse();
+                                    });
+
+                                    describe('Раскрываю панель "Заметки".', function() {
+                                        beforeEach(function() {
+                                            tester.collapsablePanel('Заметки').title.click();
+                                        });
+
+                                        it('Измению теги. Отправлен запрос изменения тегов.', function() {
+                                            tester.collapsablePanel('Заметки').content.tagField.button.click();
+                                            tester.select.option('Продажа').click();
+                                            tester.contactBar.click();
+
+                                            tester.chatMarkingRequest().receiveResponse();
+                                            tester.chatListRequest().thirdChat().receiveResponse();
+                                        });
+                                        it('Оторажены заметки.', function() {
+                                            tester.collapsablePanel('Заметки').content.tagField.putMouseOver();
+                                            tester.tooltip.expectToHaveTextContent('Нереализованная сделка, Продажа');
+                                        });
+                                    });
+                                    it(
+                                        'Раскрываю панель "Дополнительная информация". Оторажена дополнительная ' +
+                                        'информация.',
+                                    function() {
+                                        tester.collapsablePanel('Дополнительная информация').title.click();
+                                        tester.chatInfoRequest().receiveResponse();
+
+                                        tester.collapsablePanel('Дополнительная информация').title.click();
+
+                                        tester.collapsablePanel('Дополнительная информация').content.
+                                            expectToHaveTextContent(
+                                                'Канал ' +
+                                                'Некое имя канала ' +
+                                                
+                                                'Источник входа ' +
+                                                'Некиий источник трафика ' +
+
+                                                'Рекламная кампания ' +
+                                                'Некая рекламная кампания ' +
+
+                                                'UTM метки ' +
+
+                                                'Source yandex_direct ' +
+                                                'Medium smm ' +
+                                                'Concept some_concept ' +
+                                                'Campaign deyskie_igrushki ' +
+                                                'Expid 67183125-2 ' +
+                                                'Referrer example-source.com ' +
+                                                'Term gde_kupit_igrushki'
+                                            );
+                                    });
+                                    it(
+                                        'Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.',
+                                    function() {
+                                        tester.spinWrapper.scrollIntoView();
+                                        tester.chatListRequest().secondPage().receiveResponse();
+                                    });
+                                    it('Нажимаю на кнопку "Создать контакт".', function() {
+                                        tester.button('Создать контакт').click();
+                                        tester.contactCreatingRequest().fromVisitor().receiveResponse();
+                                        tester.chatListRequest().thirdChat().expectToBeSent();
+
+                                        tester.contactBar.section('Телефоны').svg.expectToBeVisible();
+                                        tester.contactBar.section('E-Mail').svg.expectToBeVisible();
+                                    });
+                                    it('Отображены сообщения чата.', function() {
+                                        tester.chatHistory.message.atTime('12:13').expectToBeDelivered();
+
+                                        tester.chatHistory.expectToHaveTextContent(
+                                            '10 февраля 2020 ' +
+
+                                            'Привет 12:13 Ответить ' +
+                                            'Здравствуйте 12:12 Ответить'
+                                        );
+
+                                        tester.contactBar.expectTextContentToHaveSubstring(
+                                            'ФИО ' +
+                                            'Помакова Бисерка Драгановна ' +
+
+                                            'Телефоны ' +
+                                            '79164725823 ' +
+
+                                            'E-Mail ' +
+                                            'pomakova@gmail.com ' +
+
+                                            'Каналы связи ' +
+                                            'Помакова Бисерка Драгановна'
+                                        );
+
+                                        tester.contactBar.section('Телефоны').svg.expectNotToExist();
+                                        tester.contactBar.section('E-Mail').svg.expectNotToExist();
+
+                                        tester.spin.expectNotToExist();
+                                    });
+                                });
+                                it(
+                                    'Получен ответ на сообщение. Отображено сообщение на которое отвечает ' +
+                                    'пользователь.',
+                                function() {
+                                    messageListRequest.reply().receiveResponse();
+
+                                    tester.usersRequest().forContacts().receiveResponse();
+                                    tester.usersRequest().forContacts().receiveResponse();
+
+                                    tester.changeMessageStatusRequest().
+                                        anotherChat().
+                                        anotherMessage().
+                                        read().
+                                        receiveResponse();
+
+                                    tester.changeMessageStatusRequest().
+                                        anotherChat().
+                                        anotherMessage().
+                                        read().
+                                        receiveResponse();
+
+                                    tester.changeMessageStatusRequest().
+                                        anotherChat().
+                                        anotherMessage().
+                                        read().
+                                        receiveResponse();
+
+                                    tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
+                                        'Помакова Бисерка Драгановна ' +
+                                        'Как дела? ' +
+                                        'Привет 12:13 Ответить'
+                                    );
+                                });
+                                it('Сообщение много.', function() {
+                                    messageListRequest.firstPage().receiveResponse();
+
+                                    tester.usersRequest().forContacts().receiveResponse();
+                                    tester.usersRequest().forContacts().receiveResponse();
+
+                                    tester.changeMessageStatusRequest().
+                                        anotherChat().
+                                        thirdMessage().
+                                        read().
+                                        receiveResponse();
+
+                                    tester.changeMessageStatusRequest().
+                                        anotherChat().
+                                        thirdMessage().
+                                        read().
+                                        receiveResponse();
+
+                                    tester.changeMessageStatusRequest().
+                                        anotherChat().
+                                        thirdMessage().
+                                        read().
+                                        receiveResponse();
+                                });
+                            });
+                            describe('Сообщений немного.', function() {
+                                beforeEach(function() {
+                                    messageListRequest.receiveResponse();
+                                    tester.usersRequest().forContacts().receiveResponse();
+
+                                    tester.changeMessageStatusRequest().
+                                        anotherChat().
+                                        anotherMessage().
+                                        read().
+                                        receiveResponse();
+
+                                    tester.changeMessageStatusRequest().
+                                        anotherChat().
+                                        anotherMessage().
+                                        read().
+                                        receiveResponse();
+
+                                    tester.changeMessageStatusRequest().
+                                        anotherChat().
+                                        anotherMessage().
+                                        read().
+                                        receiveResponse();
+                                });
+
+                                describe('У посетителя есть два телефона.', function() {
+                                    beforeEach(function() {
+                                        visitorCardRequest.addSecondPhoneNumber().receiveResponse();
+                                        tester.usersRequest().forContacts().receiveResponse();
+                                    });
+
+                                    it('Редактирование первого телефона недоступно.', function() {
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            option('79164725823').
+                                            putMouseOver();
+
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            option('79164725823').
+                                            toolsIcon.
+                                            expectToBeVisible();
+                                    });
+                                    it('Редактирование второго телефона доступно.', function() {
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            option('79164725824').
+                                            putMouseOver();
+
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            option('79164725824').
+                                            toolsIcon.
+                                            expectToBeVisible();
+                                    });
+                                });
+                                it('У посетителя нет E-Mail.', function() {
+                                    visitorCardRequest.noEmail().receiveResponse();
+                                    tester.usersRequest().forContacts().receiveResponse();
+
+                                    tester.contactBar.section('Телефоны').svg.expectNotToExist();
+                                    tester.contactBar.section('E-Mail').svg.expectToBeVisible();
+                                });
+                                it('У посетителя нет телефона.', function() {
+                                    visitorCardRequest.noPhone().receiveResponse();
+                                    tester.usersRequest().forContacts().receiveResponse();
+
+                                    tester.contactBar.section('Телефоны').svg.expectToBeVisible();
+                                    tester.contactBar.section('E-Mail').svg.expectNotToExist();
+                                });
+                            });
+                        });
+                        describe('Номер заполнен автоматически.', function() {
+                            beforeEach(function() {
+                                chatListRequest.phoneAutoFilled().receiveResponse();
+
+                                tester.acceptChatRequest().receiveResponse();
+                                tester.visitorCardRequest().addSecondPhoneNumber().receiveResponse();
+                                tester.messageListRequest().receiveResponse();
+
+                                tester.usersRequest().forContacts().receiveResponse();
+                                tester.usersRequest().forContacts().receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    anotherChat().
+                                    anotherMessage().
+                                    read().
+                                    receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    anotherChat().
+                                    anotherMessage().
+                                    read().
+                                    receiveResponse();
 
                                 tester.changeMessageStatusRequest().
                                     anotherChat().
@@ -157,78 +445,54 @@ tests.addTest(options => {
                                     receiveResponse();
                             });
 
-                            describe('Раскрываю панель "Заметки".', function() {
-                                beforeEach(function() {
-                                    tester.collapsablePanel('Заметки').title.click();
-                                });
+                            it('Редактирование первого телефона недоступно.', function() {
+                                tester.contactBar.
+                                    section('Телефоны').
+                                    option('79164725823').
+                                    putMouseOver();
 
-                                it('Измению теги. Отправлен запрос изменения тегов.', function() {
-                                    tester.collapsablePanel('Заметки').content.tagField.button.click();
-                                    tester.select.option('Продажа').click();
-                                    tester.visitorPanel.input.atIndex(2).click();
-
-                                    tester.chatMarkingRequest().receiveResponse();
-                                    tester.chatListRequest().thirdChat().receiveResponse();
-                                });
-                                it('Оторажены заметки.', function() {
-                                    tester.collapsablePanel('Заметки').content.tagField.putMouseOver();
-                                    tester.tooltip.expectToHaveTextContent('Нереализованная сделка, Продажа');
-                                });
+                                tester.contactBar.
+                                    section('Телефоны').
+                                    option('79164725823').
+                                    toolsIcon.
+                                    expectNotToExist();
                             });
-                            it(
-                                'Раскрываю панель "Дополнительная информация". Оторажена дополнительная информация.',
-                            function() {
-                                tester.collapsablePanel('Дополнительная информация').title.click();
-                                tester.chatInfoRequest().receiveResponse();
+                            it('Редактирование второго телефона доступно.', function() {
+                                tester.contactBar.
+                                    section('Телефоны').
+                                    option('79164725824').
+                                    putMouseOver();
 
-                                tester.collapsablePanel('Дополнительная информация').title.click();
-
-                                tester.collapsablePanel('Дополнительная информация').content.expectToHaveTextContent(
-                                    'Канал ' +
-                                    'Некое имя канала ' +
-                                    
-                                    'Источник входа ' +
-                                    'Некиий источник трафика ' +
-
-                                    'Рекламная кампания ' +
-                                    'Некая рекламная кампания ' +
-
-                                    'UTM метки ' +
-
-                                    'Source yandex_direct ' +
-                                    'Medium smm ' +
-                                    'Concept some_concept ' +
-                                    'Campaign deyskie_igrushki ' +
-                                    'Expid 67183125-2 ' +
-                                    'Referrer example-source.com ' +
-                                    'Term gde_kupit_igrushki'
-                                );
-                            });
-                            it('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
-                                tester.spinWrapper.scrollIntoView();
-                                tester.chatListRequest().secondPage().receiveResponse();
-                            });
-                            it('Отображены сообщения чата.', function() {
-                                tester.chatHistory.message.atTime('12:13').expectToBeDelivered();
-
-                                tester.chatHistory.expectToHaveTextContent(
-                                    '10 февраля 2020 ' +
-
-                                    'Привет 12:13 Ответить ' +
-                                    'Здравствуйте 12:12 Ответить'
-                                );
-
-                                tester.visitorPanel.input.first.expectToHaveValue('Помакова Бисерка Драгановна');
-                                tester.visitorPanel.input.atIndex(1).expectToHaveValue('79164725823');
-                                tester.visitorPanel.input.atIndex(2).expectToHaveValue('pomakova@gmail.com');
-
-                                tester.spin.expectNotToExist();
+                                tester.contactBar.
+                                    section('Телефоны').
+                                    option('79164725824').
+                                    toolsIcon.
+                                    expectToBeVisible();
                             });
                         });
-                        it(
-                            'Получен ответ на сообщение. Отображено сообщение на которое отвечает пользователь.',
-                        function() {
-                            messageListRequest.reply().receiveResponse();
+                        it('Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен', function() {
+                            tester.spinWrapper.atIndex(1).scrollIntoView();
+                            tester.spin.atIndex(1).expectToBeVisible();
+                        });
+                    });
+                    describe('Контакт найден. Нажимаю на найденный чат. ', function() {
+                        let chatListRequest;
+
+                        beforeEach(function() {
+                            searchResultsRequest.contactExists().receiveResponse();
+
+                            tester.chatListItem('Сообщение #75').click();
+                            chatListRequest = tester.chatListRequest().contactExists().thirdChat().expectToBeSent();
+                        });
+
+                        it('Определен телефон. Текущий канал связи выделен.', function() {
+                            chatListRequest.phoneSpecified().receiveResponse();
+                            tester.acceptChatRequest().receiveResponse();
+                            tester.visitorCardRequest().receiveResponse();
+                            tester.messageListRequest().receiveResponse();
+
+                            tester.usersRequest().forContacts().receiveResponse();
+                            tester.contactRequest().receiveResponse();
 
                             tester.changeMessageStatusRequest().
                                 anotherChat().
@@ -236,25 +500,95 @@ tests.addTest(options => {
                                 read().
                                 receiveResponse();
 
-                            tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
-                                'Помакова Бисерка Драгановна ' +
-                                'Как дела? ' +
-                                'Привет 12:13 Ответить'
-                            );
-                        });
-                        it('Сообщение много.', function() {
-                            messageListRequest.firstPage().receiveResponse();
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                anotherMessage().
+                                read().
+                                receiveResponse();
 
                             tester.changeMessageStatusRequest().
                                 anotherChat().
-                                thirdMessage().
+                                anotherMessage().
                                 read().
                                 receiveResponse();
+
+                            tester.contactBar.
+                                section('Каналы связи').
+                                option('+7 (928) 381 09-88').
+                                expectNotToBeSelected();
+
+                            tester.contactBar.
+                                section('Каналы связи').
+                                option('+7 (928) 381 09-28').
+                                expectToBeSelected();
+
+                            tester.contactBar.expectTextContentToHaveSubstring(
+                                'ФИО ' +
+                                'Бележкова Грета Ервиновна ' +
+
+                                'Телефоны ' +
+                                '79162729533 ' +
+                                
+                                'E-Mail ' +
+                                'endlesssprinп.of@comagic.dev ' +
+
+                                'Каналы связи ' +
+                                '+7 (928) 381 09-88 ' +
+                                '+7 (928) 381 09-28'
+                            );
                         });
-                    });
-                    it('Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен', function() {
-                        tester.spinWrapper.scrollIntoView();
-                        tester.spin.expectToBeVisible();
+                        it('Определен контекст. Текущий канал связи выделен.', function() {
+                            chatListRequest.receiveResponse();
+                            tester.acceptChatRequest().receiveResponse();
+                            tester.visitorCardRequest().receiveResponse();
+                            tester.messageListRequest().receiveResponse();
+
+                            tester.usersRequest().forContacts().receiveResponse();
+                            tester.contactRequest().receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                anotherMessage().
+                                read().
+                                receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                anotherMessage().
+                                read().
+                                receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                anotherMessage().
+                                read().
+                                receiveResponse();
+
+                            tester.contactBar.
+                                section('Каналы связи').
+                                option('+7 (928) 381 09-88').
+                                expectNotToBeSelected();
+
+                            tester.contactBar.
+                                section('Каналы связи').
+                                option('+7 (928) 381 09-28').
+                                expectToBeSelected();
+
+                            tester.contactBar.expectTextContentToHaveSubstring(
+                                'ФИО ' +
+                                'Бележкова Грета Ервиновна ' +
+
+                                'Телефоны ' +
+                                '79162729533 ' +
+                                
+                                'E-Mail ' +
+                                'endlesssprinп.of@comagic.dev ' +
+
+                                'Каналы связи ' +
+                                '+7 (928) 381 09-88 ' +
+                                '+7 (928) 381 09-28'
+                            );
+                        });
                     });
                 });
                 describe('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
