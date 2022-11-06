@@ -193,6 +193,52 @@ tests.addTest(options => {
                                             receiveResponse();
                                     });
 
+                                    describe('Открываю меню телефона.', function() {
+                                        beforeEach(function() {
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('79164725823').
+                                                putMouseOver();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('79164725823').
+                                                toolsIcon.
+                                                click();
+                                        });
+
+                                        it(
+                                            'Изменяю номер телефона. Отправлен запрос обновления посетителя.',
+                                        function() {
+                                            tester.select.option('Редактировать').click();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                input.
+                                                fill('79162729534');
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                button('Сохранить').
+                                                click();
+
+                                            tester.contactsRequest().phoneSearching().noData().receiveResponse();
+                                            tester.chatPhoneUpdatingRequest().receiveResponse();
+                                            tester.visitorCardUpdatingRequest().anotherPhone().receiveResponse();
+                                        });
+                                        it(
+                                            'Нажимаю на кнопку удаления телефона. Отправлен запрос обновления ' +
+                                            'посетителя.',
+                                        function() {
+                                            tester.select.option('Удалить').click();
+                                            tester.visitorCardUpdatingRequest().noPhone().receiveResponse();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('79164725823').
+                                                expectNotToExist();
+                                        });
+                                    });
                                     describe('Раскрываю панель "Заметки".', function() {
                                         beforeEach(function() {
                                             tester.collapsablePanel('Заметки').title.click();

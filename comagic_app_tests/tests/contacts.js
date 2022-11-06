@@ -529,6 +529,74 @@ tests.addTest(options => {
                                                 click();
                                         });
 
+                                        describe('Изменяю номер телефона.', function() {
+                                            beforeEach(function() {
+                                                tester.select.option('Редактировать').click();
+
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    input.
+                                                    fill('79162729534');
+
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    button('Сохранить').
+                                                    click();
+
+                                                contactsRequest = tester.contactsRequest().phoneSearching().
+                                                    expectToBeSent();
+                                            });
+
+                                            it(
+                                                'Получен другой контакт с таким же номером. Отображено сообщение об ' +
+                                                'ошибке.',
+                                            function() {
+                                                contactsRequest.oneItem().receiveResponse();
+
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    expectTextContentToHaveSubstring(
+                                                        'Данный номер телефона уже используется в одном или ' +
+                                                        'нескольких контактах. Выберете в какой контакт мы объединим ' +
+                                                        'данные, а другой удалим'
+                                                    );
+
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    select.
+                                                    first.
+                                                    click();
+
+                                                tester.select.popup.expectToHaveTextContent(
+                                                    'Бележкова Грета Ервиновна (текущий) ' +
+                                                    '79162729534 ' +
+
+                                                    'Паскалева Бисера Илковна ' +
+                                                    '79162729533'
+                                                );
+                                            });
+                                            it(
+                                                'Получен текущий контакт с таким же номером. Отправлен запрос ' +
+                                                'обновления контакта.',
+                                            function() {
+                                                contactsRequest.onlySecondItem().receiveResponse();
+
+                                                tester.contactUpdatingRequest().
+                                                    completeData().
+                                                    anotherPhoneNumber().
+                                                    receiveResponse();
+                                            });
+                                            it(
+                                                'Дубликаты не найдены. Отправлен запрос обновления контакта.',
+                                            function() {
+                                                contactsRequest.noData().receiveResponse();
+
+                                                tester.contactUpdatingRequest().
+                                                    completeData().
+                                                    anotherPhoneNumber().
+                                                    receiveResponse();
+                                            });
+                                        });
                                         it('Удаляю номер. Номер удален.', function() {
                                             tester.select.option('Удалить').click();
 
@@ -539,29 +607,6 @@ tests.addTest(options => {
                                                 section('Телефоны').
                                                 option('79162729533').
                                                 expectNotToExist();
-                                        });
-                                        it('Изменяю номер телефона. Отправлен запрос обновления контакта.', function() {
-                                            tester.select.option('Редактировать').click();
-
-                                            tester.contactBar.
-                                                section('Телефоны').
-                                                input.
-                                                fill('79162729534');
-
-                                            tester.contactBar.
-                                                section('Телефоны').
-                                                button('Сохранить').
-                                                click();
-
-                                            tester.contactsRequest()
-                                                .phoneSearching()
-                                                .noData()
-                                                .receiveResponse();
-
-                                            tester.contactUpdatingRequest().
-                                                completeData().
-                                                anotherPhoneNumber().
-                                                receiveResponse();
                                         });
                                         it('Пунт "Редактировать" доступен.', function() {
                                             tester.select.option('Редактировать').expectToBeEnabled();
@@ -666,8 +711,14 @@ tests.addTest(options => {
                                             tester.contactBar.section('E-Mail').input.fill('belezhkova@gmail.com');
                                             tester.contactBar.section('E-Mail').button('Сохранить').click();
 
-                                            tester.contactsRequest().emailSearching().noData().receiveResponse();
-                                            tester.contactUpdatingRequest().completeData().twoEmails().
+                                            tester.contactsRequest().
+                                                emailSearching().
+                                                noData().
+                                                receiveResponse();
+
+                                            tester.contactUpdatingRequest().
+                                                completeData().
+                                                twoEmails().
                                                 receiveResponse();
                                         });
                                     });
@@ -965,24 +1016,185 @@ tests.addTest(options => {
                                     contactCommunicationsRequest.receiveResponse();
                                 });
 
-                                /*
-                                describe('У контакта три номера телефона.', function() {
+                                describe('У контакта больше одного номера телефона.', function() {
                                     beforeEach(function() {
-                                        contactRequest.
-                                            addSecondPhoneNumber().
-                                            receiveResponse();
+                                        contactRequest = contactRequest.addSecondPhoneNumber();
                                     });
 
-                                    it('Только два номера телефонов отображены.', function() {
-                                        contactRequest.addThirdPhoneNumber().receiveResponse();
+                                    describe('У контакта три номера.', function() {
+                                        beforeEach(function() {
+                                            contactRequest.addThirdPhoneNumber().receiveResponse();
+                                        });
 
-                                        tester.contactBar.section('Телефоны').expectToHaveTextContent(
-                                            'Телефоны (3) ' +
-                                            '79162729533'
-                                        );
+                                        describe(
+                                            'Нажимаю на иконку с плюсом справа от заголовка "Телефоны".',
+                                        function() {
+                                            beforeEach(function() {
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    plusButton.
+                                                    click();
+                                            });
+
+                                            describe('Ввожу номер телефона.', function() {
+                                                beforeEach(function() {
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        input.
+                                                        fill('79162729537');
+                                                });
+
+                                                it(
+                                                    'Отменяю редактирование. Отображен только один телефон.',
+                                                function() {
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        button('Отменить').
+                                                        click();
+
+                                                    tester.contactUpdatingRequest().
+                                                        completeData().
+                                                        threePhoneNumbers().
+                                                        receiveResponse();
+
+                                                    tester.contactBar.section('Телефоны').expectToHaveTextContent(
+                                                        'Телефоны (3) ' +
+                                                        '79162729533'
+                                                    );
+                                                });
+                                                it('Сохраняю. Переданы все четыре телефона.', function() {
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        button('Сохранить').
+                                                        click();
+
+                                                    tester.contactsRequest().
+                                                        anotherPhoneSearching().
+                                                        noData().
+                                                        receiveResponse();
+
+                                                    tester.contactUpdatingRequest().
+                                                        completeData().
+                                                        fourPhoneNumbers().
+                                                        receiveResponse();
+                                                        
+                                                    tester.contactBar.section('Телефоны').expectToHaveTextContent(
+                                                        'Телефоны (4) ' +
+                                                        '79162729533'
+                                                    );
+                                                });
+                                            });
+                                            it('Отображен только один телефон.', function() {
+                                                tester.contactBar.section('Телефоны').expectToHaveTextContent(
+                                                    'Телефоны (3) ' +
+                                                    '79162729533 ' +
+
+                                                    'Отменить Сохранить'
+                                                );
+                                            });
+                                        });
+                                        it('Изменяю телефон. Сохраняю контакт. Переданы все три телефона.', function() {
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('79162729533').
+                                                putMouseOver();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('79162729533').
+                                                toolsIcon.
+                                                click();
+
+                                            tester.select.option('Редактировать').click();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                input.
+                                                fill('79162729534');
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                button('Сохранить').
+                                                click();
+
+                                            tester.contactsRequest().
+                                                phoneSearching().
+                                                noData().
+                                                receiveResponse();
+
+                                            tester.contactUpdatingRequest().
+                                                completeData().
+                                                threePhoneNumbers().
+                                                anotherPhoneNumber().
+                                                receiveResponse();
+
+                                            tester.contactBar.section('Телефоны').expectToHaveTextContent(
+                                                'Телефоны (3) ' +
+                                                '79162729534'
+                                            );
+                                        });
+                                        it('Изменяю имя. Сохраняю контакт. Переданы все три телефона.', function() {
+                                            tester.contactBar.section('ФИО').svg.click();
+
+                                            tester.input.
+                                                withPlaceholder('Фамилия (Обязательное поле)').
+                                                fill('Неделчева');
+
+                                            tester.input.
+                                                withPlaceholder('Имя').
+                                                fill('Роза');
+
+                                            tester.input.
+                                                withPlaceholder('Отчество').
+                                                fill('Ангеловна');
+
+                                            tester.button('Сохранить').click();
+
+                                            tester.contactUpdatingRequest().
+                                                completeData().
+                                                threePhoneNumbers().
+                                                anotherName().
+                                                receiveResponse();
+                                        });
+                                        it('Раскрываю список телефонов. Все номера телефонов отображены.', function() {
+                                            tester.contactBar.section('Телефоны').collapsednessToggleButton.click();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                collapsednessToggleButton.
+                                                expectToHaveClass(
+                                                    'cm-contacts-collapsedness-toggle-button-expanded'
+                                                );
+
+                                            tester.contactBar.section('Телефоны').expectToHaveTextContent(
+                                                'Телефоны (3) ' +
+
+                                                '79162729533 ' +
+                                                '79162729535 ' +
+                                                '79162729536'
+                                            );
+                                        });
+                                        it('Только один номер телефона отображен.', function() {
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                collapsednessToggleButton.
+                                                expectNotToHaveClass(
+                                                    'cm-contacts-collapsedness-toggle-button-expanded'
+                                                );
+
+                                            tester.contactBar.section('Телефоны').expectToHaveTextContent(
+                                                'Телефоны (3) ' +
+                                                '79162729533'
+                                            );
+                                        });
                                     });
-                                    it('Все номера телефонов отображены.', function() {
+                                    it('У контакта два номера. Все номера телефонов отображены.', function() {
                                         contactRequest.receiveResponse();
+
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            collapsednessToggleButton.
+                                            expectNotToExist();
 
                                         tester.contactBar.section('Телефоны').expectToHaveTextContent(
                                             'Телефоны ' +
@@ -993,7 +1205,6 @@ tests.addTest(options => {
 
                                     });
                                 });
-                                */
                                 it(
                                     'Для контакта не установлен персональный менеджер. Выбираю другой контакт. Для ' +
                                     'контакта установлен персональный менеджер.',

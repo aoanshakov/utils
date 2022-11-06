@@ -836,6 +836,9 @@ define(() => function ({
             };
 
             const tester = createTester();
+
+            tester.atIndex = expectedIndex => createTester((select, index) => index === expectedIndex);
+            tester.first = tester.atIndex(0)
             tester.withValue = expectedValue => createTester(select => utils.getTextContent(select) == expectedValue);
 
             tester.withPlaceholder = expectedPlaceholder => createTester(select => utils.getTextContent(
@@ -983,6 +986,36 @@ define(() => function ({
     me.expectChatsStoreToContain = expectedContent => {
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
     };
+
+    me.chatPhoneUpdatingRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectToHavePath('$REACT_APP_BASE_URL/chat/phone').
+                    expectBodyToContain({
+                        phone: '79162729534',
+                        chat_id: 7189362
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: true
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    }
 
     me.chatMarkingRequest = () => {
         const addResponseModifiers = me => me;
@@ -3036,6 +3069,50 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.visitorCardUpdatingRequest = () => {
+        const card = {
+            name: 'Помакова Бисерка Драгановна  ',
+            phones: ['79164725823', undefined],
+            emails: ['pomakova@gmail.com', undefined]
+        };
+
+        const addResponseModifiers = me => {
+            me.noPhone = () => (card.phones = [undefined], me);
+            me.anotherPhone = () => (card.phones = ['79162729534', undefined], me);
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'update_visitor_card',
+                        params: {
+                            visitor_id: 16479303,
+                            card
+                        }
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: true
+                        });
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -8533,7 +8610,8 @@ define(() => function ({
 
     me.contactUpdatingRequest = () => {
         const addResponseModifiers = me => me,
-            processors = [];
+            processors = [],
+            secondProcessors = [];
         let bodyParams = {},
             id = 1689283;
 
@@ -8584,13 +8662,30 @@ define(() => function ({
             },
 
             anotherPhoneNumber() {
-                processors.push(bodyParams => (bodyParams.phone_list = ['79162729534', undefined]));
+                secondProcessors.push(bodyParams => {
+                    bodyParams.phone_list ?
+                        (bodyParams.phone_list[0] = '79162729534') :
+                        (bodyParams.phone_list = ['79162729534', undefined]);
+                });
+
                 return this;
             },
 
             twoPhoneNumbers() {
                 processors.push(bodyParams =>
                     (bodyParams.phone_list = ['79162729533', '79162729534', undefined]));
+                return this;
+            },
+            
+            threePhoneNumbers() {
+                processors.push(bodyParams =>
+                    (bodyParams.phone_list = ['79162729533', '79162729535', '79162729536', undefined]));
+                return this;
+            },
+
+            fourPhoneNumbers() {
+                processors.push(bodyParams =>
+                    (bodyParams.phone_list = ['79162729533', '79162729535', '79162729536', '79162729537', undefined]));
                 return this;
             },
 
@@ -8607,6 +8702,7 @@ define(() => function ({
             
             expectToBeSent() {
                 processors.forEach(process => process(bodyParams));
+                secondProcessors.forEach(process => process(bodyParams));
 
                 const request = ajax.recentRequest().
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
@@ -8768,13 +8864,37 @@ define(() => function ({
                 total_count = 1;
 
                 getData = () => [{
-                    emails: 'paskaleva@gmail.com',
                     first_name: 'Бисера',
-                    full_name: 'Паскалева Бисера Илковна',
-                    id: id,
                     last_name: 'Паскалева',
+                    id: 25206823,
+                    email_list: ['paskaleva@gmail.com'],
+                    chat_channel_list: [],
+                    organization_name: 'UIS',
+                    phone_list: ['79162729533'],
+                    group_list: [],
+                    personal_manager_id: null,
                     patronymic: 'Илковна',
-                    phones: '79162729533'
+                    full_name: 'Паскалева Бисера Илковна',
+                }];
+
+                return me;
+            };
+
+            me.onlySecondItem = () => {
+                total_count = 1;
+
+                getData = () => [{
+                    first_name: 'Грета',
+                    last_name: 'Бележкова',
+                    id: 1689283,
+                    email_list: [],
+                    chat_channel_list: [],
+                    organization_name: 'UIS',
+                    phone_list: ['79162729533'],
+                    group_list: [],
+                    personal_manager_id: 8539841,
+                    patronymic: 'Ервиновна',
+                    full_name: 'Бележкова Грета Ервиновна'
                 }];
 
                 return me;
@@ -9411,11 +9531,19 @@ define(() => function ({
         return addResponseModifiers({
             phoneSearching() {
                 params.search = '79162729534';
+                params.merge_entity = 'phone';
+                return this;
+            },
+
+            anotherPhoneSearching() {
+                params.search = '79162729537';
+                params.merge_entity = 'phone';
                 return this;
             },
 
             emailSearching() {
                 params.search = 'belezhkova@gmail.com';
+                params.merge_entity = 'email';
                 return this;
             },
 
@@ -10333,6 +10461,27 @@ define(() => function ({
 
             tester.content = addTesters(testersFactory.createDomElementTester(getContentElement), getContentElement);
             tester.header = addTesters(testersFactory.createDomElementTester(getHeaderElement), getHeaderElement);
+
+            tester.plusButton = (() => {
+                const tester = testersFactory.createDomElementTester(
+                    () => getHeaderElement().querySelector('.cm-contacts-contact-bar-add-option-button')
+                );
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(0));
+
+                return tester;
+            })();
+
+            tester.collapsednessToggleButton = (() => {
+                const tester = testersFactory.createDomElementTester(() =>
+                    getHeaderElement().querySelector('.cm-contacts-collapsedness-toggle-button'));
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(0));
+
+                return tester;
+            })();
             
             addTesters(tester, getSectionElement);
             return tester;
