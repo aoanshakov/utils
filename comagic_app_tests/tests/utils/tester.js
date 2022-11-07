@@ -9583,6 +9583,12 @@ define(() => function ({
                 return this;
             },
 
+            thirdPhoneSearching() {
+                params.search = '79162729536';
+                params.merge_entity = 'phone';
+                return this;
+            },
+
             emailSearching() {
                 params.search = 'belezhkova@gmail.com';
                 params.merge_entity = 'email';
