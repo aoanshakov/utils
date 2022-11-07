@@ -217,6 +217,9 @@ define(() => function ({
         getSpinWrapper(() => utils.querySelector('.cm-chats--chat-panel-history'));
 
     const addTesters = (me, getRootElement) => {
+        me.messengerIcon = testersFactory.createDomElementTester(() =>
+            utils.element(getRootElement()).querySelector('.cm-contacts-messenger-icon'));
+
         !me.tagField && Object.defineProperty(me, 'tagField', {
             set: () => null,
             get: () => {
@@ -8278,6 +8281,42 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.addTelegram = () => {
+                processors.push(() => response.chat_channel_list.push({
+                    type: 'telegram',
+                    phone: '+7 (921) 830-76-32' 
+                }));
+
+                return me;
+            };
+
+            me.addSecondTelegram = () => {
+                processors.push(() => response.chat_channel_list.push({
+                    type: 'telegram',
+                    ext_id: '@kotik70600' 
+                }));
+
+                return me;
+            };
+
+            me.addWhatsApp = () => {
+                processors.push(() => response.chat_channel_list.push({
+                    type: 'whatsapp',
+                    phone: '+7 (928) 381 09-87' 
+                }));
+
+                return me;
+            };
+                
+            me.addThirdTelegram = () => {
+                processors.push(() => response.chat_channel_list.push({
+                    type: 'telegram',
+                    ext_id: '@kotik70601' 
+                }));
+
+                return me;
+            };
+
             me.addSecondPhoneNumber = () => {
                 processors.push(() => response.phone_list.push('79162729535'));
                 return me;
@@ -8313,10 +8352,13 @@ define(() => function ({
             last_name: 'Бележкова',
             id: 1689283,
             email_list: ['endlesssprinп.of@comagic.dev'],
-            chat_channel_list: [
-                { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
-                { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
-            ],
+            chat_channel_list: [{
+                type: 'whatsapp',
+                phone: '+7 (928) 381 09-88' 
+            }, {
+                type: 'whatsapp',
+                phone: '+7 (928) 381 09-28' 
+            }],
             organization_name: 'UIS',
             phone_list: ['79162729533'],
             group_list: [],
@@ -10294,9 +10336,6 @@ define(() => function ({
                     return new JsTester_NoElement();
                 });
 
-                tester.messengerIcon = testersFactory.createDomElementTester(() =>
-                    getMessageElement().querySelector('.cm-contacts-messenger-icon'));
-
                 const messageBody  = testersFactory.createDomElementTester(() => {
                     const messageElement = getMessageElement();
 
@@ -10415,6 +10454,28 @@ define(() => function ({
                 closest('.cm-contacts-contact-bar-section');
 
             const tester = testersFactory.createDomElementTester(getSectionElement);
+
+            tester.chatChannelGroup = text => {
+                const getDomElement = () => utils.descendantOf(getSectionElement()).
+                    matchesSelector('.cm-contacts-chat-channel-group-header').
+                    textContains(text).
+                    find().
+                    closest('.cm-contacts-chat-channel-group');
+
+                const tester = testersFactory.createDomElementTester();
+
+                tester.collapsednessToggleButton = (() => {
+                    const tester = testersFactory.createDomElementTester(() =>
+                        getDomElement().querySelector('.cm-contacts-collapsedness-toggle-button'));
+
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0));
+
+                    return tester;
+                })();
+
+                return addTesters(tester, getDomElement);
+            };
 
             tester.option = text => {
                 const getOptionElement = () => utils.descendantOf(getSectionElement()).

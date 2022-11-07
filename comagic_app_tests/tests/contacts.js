@@ -137,7 +137,7 @@ tests.addTest(options => {
                         contactsRequest = tester.contactsRequest().expectToBeSent();
                     });
 
-                    describe('Получены данные для списка контактов.', function() {
+                    xdescribe('Получены данные для списка контактов.', function() {
                         beforeEach(function() {
                             contactsRequest.receiveResponse();
                         });
@@ -316,7 +316,7 @@ tests.addTest(options => {
                                 usersRequest.receiveResponse();
                             });
 
-                            describe('Для контакта установлен персональный менеджер.', function() {
+                            xdescribe('Для контакта установлен персональный менеджер.', function() {
                                 beforeEach(function() {
                                     contactRequest.receiveResponse();
                                 });
@@ -1036,7 +1036,7 @@ tests.addTest(options => {
                                                     click();
                                             });
 
-                                            describe('Ввожу номер телефона.', function() {
+                                            xdescribe('Ввожу номер телефона.', function() {
                                                 beforeEach(function() {
                                                     tester.contactBar.
                                                         section('Телефоны').
@@ -1083,16 +1083,45 @@ tests.addTest(options => {
                                                         '79162729533'
                                                     );
                                                 });
+                                                it(
+                                                    'Выбираю другой контакт с четырьмя телефонами. Отображается один.',
+                                                function() {
+                                                    tester.contactList.
+                                                        item('Белоконска-Вражалска Калиса Еньовна').
+                                                        click();
+
+                                                    tester.contactUpdatingRequest().
+                                                        completeData().
+                                                        threePhoneNumbers().
+                                                        receiveResponse();
+
+                                                    tester.contactCommunicationsRequest().
+                                                        anotherContact().
+                                                        receiveResponse();
+
+                                                    tester.contactRequest().
+                                                        anotherContact().
+                                                        addSecondPhoneNumber().
+                                                        addThirdPhoneNumber().
+                                                        addFourthPhoneNumber().
+                                                        receiveResponse();
+
+                                                    tester.contactBar.section('Телефоны').expectToHaveTextContent(
+                                                        'Телефоны (4) ' +
+                                                        '79162729534'
+                                                    );
+                                                });
                                             });
                                             it('Отображен только один телефон.', function() {
                                                 tester.contactBar.section('Телефоны').expectToHaveTextContent(
-                                                    'Телефоны (3) ' +
+                                                    'Телефоны (4) ' +
                                                     '79162729533 ' +
 
                                                     'Отменить Сохранить'
                                                 );
                                             });
                                         });
+                                        return;
                                         it('Изменяю телефон. Сохраняю контакт. Переданы все три телефона.', function() {
                                             tester.contactBar.
                                                 section('Телефоны').
@@ -1188,6 +1217,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
+                                    return;
                                     it('У контакта два номера. Все номера телефонов отображены.', function() {
                                         contactRequest.receiveResponse();
 
@@ -1203,6 +1233,69 @@ tests.addTest(options => {
                                             '79162729535'
                                         );
 
+                                    });
+                                });
+                                return;
+                                describe('У контакта есть два телеграма и три ватсапа.', function() {
+                                    beforeEach(function() {
+                                        contactRequest.
+                                            addTelegram().
+                                            addWhatsApp().
+                                            addSecondTelegram().
+                                            receiveResponse();
+                                    });
+
+                                    it('Раскрываю список WhatsApp. Все WhatsApp отображены.', function() {
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            chatChannelGroup('WhatsApp').
+                                            collapsednessToggleButton.
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            expectToHaveTextContent(
+                                                'Каналы связи ' +
+
+                                                'WhatsApp (3) ' +
+                                                    '+7 (928) 381 09-88 ' +
+                                                    '+7 (928) 381 09-28 ' +
+                                                    '+7 (928) 381 09-87 ' +
+
+                                                '+7 (921) 830-76-32 ' +
+                                                '@kotik70600'
+                                            );
+                                    });
+                                    it('Отображен только один ватсап.', function() {
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            chatChannelGroup('WhatsApp').
+                                            messengerIcon.
+                                            expectToHaveClass('cm-contacts-messenger-icon-whatsapp');
+
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            option('+7 (921) 830-76-32').
+                                            messengerIcon.
+                                            expectToHaveClass('cm-contacts-messenger-icon-telegram')
+
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            option('@kotik70600').
+                                            messengerIcon.
+                                            expectToHaveClass('cm-contacts-messenger-icon-telegram')
+
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            expectToHaveTextContent(
+                                                'Каналы связи ' +
+
+                                                'WhatsApp (3) ' +
+                                                    '+7 (928) 381 09-88 ' +
+
+                                                '+7 (921) 830-76-32 ' +
+                                                '@kotik70600'
+                                            );
                                     });
                                 });
                                 it(
@@ -1231,6 +1324,7 @@ tests.addTest(options => {
                                 });
                             });
                         });
+                        return;
                         it('Имена сгруппированы по первым буквам.', function() {
                             tester.contactList.item('Балканска Берислава Силаговна').expectNotToBeSelected();
                             tester.contactList.item('Бележкова Грета Ервиновна').expectNotToBeSelected();
@@ -1249,6 +1343,7 @@ tests.addTest(options => {
                             );
                         });
                     });
+                    return;
                     it('Токен авторизации истек. Токен обновлен. Отправлен повторный запрос контактов.', function() {
                         contactsRequest.accessTokenExpired().receiveResponse();
                         tester.refreshRequest().receiveResponse();
@@ -1262,6 +1357,7 @@ tests.addTest(options => {
                         tester.spin.expectToBeVisible();
                     });
                 });
+                return;
                 describe('Поступил входящий звонок.', function() {
                     let outCallEvent;
 
@@ -1512,6 +1608,7 @@ tests.addTest(options => {
                     });
                 });
             });
+            return;
             describe('Номер должен быть скрыт. Открываю карточку контакта.', function() {
                 beforeEach(function() {
                     settingsRequest.shouldHideNumbers().receiveResponse();
@@ -1662,6 +1759,7 @@ tests.addTest(options => {
                 tester.softphone.expectTextContentToHaveSubstring('Используется на другом устройстве');
             });
         });
+        return;
         describe('Редактирование контактов недоступно. Открываю раздел контактов. Нажимаю на имя.', function() {
             beforeEach(function() {
                 accountRequest.addressBookUpdatingUnavailable().receiveResponse();
