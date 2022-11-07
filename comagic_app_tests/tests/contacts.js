@@ -305,7 +305,8 @@ tests.addTest(options => {
 
                                 const requests = ajax.inAnyOrder();
 
-                                contactCommunicationsRequest = tester.contactCommunicationsRequest().
+                                contactCommunicationsRequest = tester.
+                                    contactCommunicationsRequest().
                                     expectToBeSent(requests);
 
                                 contactRequest = tester.contactRequest().expectToBeSent(requests);
@@ -1010,6 +1011,9 @@ tests.addTest(options => {
                                             'png 925 B heart.png 12:15'
                                     );
                                 });
+                                it('Получено системное сообщение Comagic. Сообщение корректно отображено.', function() {
+                                    contactCommunicationsRequest.comagicSystemMessage().receiveResponse();
+                                });
                             });
                             describe('Получена история коммуникаций.', function() {
                                 beforeEach(function() {
@@ -1044,6 +1048,101 @@ tests.addTest(options => {
                                                         fill('79162729537');
                                                 });
 
+                                                describe('Сохраняю.', function() {
+                                                    beforeEach(function() {
+                                                        tester.contactBar.
+                                                            section('Телефоны').
+                                                            button('Сохранить').
+                                                            click();
+
+                                                        contactsRequest = tester.contactsRequest().
+                                                            anotherPhoneSearching().
+                                                            expectToBeSent();
+                                                    });
+
+                                                    describe('Нашелся дубль.', function() {
+                                                        beforeEach(function() {
+                                                            contactsRequest.
+                                                                oneItem().
+                                                                receiveResponse();
+
+                                                            tester.contactBar.
+                                                                section('Телефоны').
+                                                                select.
+                                                                first.
+                                                                click();
+                                                        });
+
+                                                        it(
+                                                            'Выбираю осовной аккаунт и дубликат. Нажимаю на кнопку ' +
+                                                            '"Объединить". Аккаунты успешно объединились. Отображен ' +
+                                                            'только один телефон.',
+                                                        function() {
+                                                            tester.select.option(
+                                                                'Бележкова Грета Ервиновна (текущий) ' +
+                                                                '79162729533 ' +
+                                                                '79162729535 ' +
+                                                                '79162729536 ' +
+                                                                '79162729537'
+                                                            ).click();
+
+                                                            tester.contactBar.
+                                                                section('Телефоны').
+                                                                select.
+                                                                atIndex(1).
+                                                                click();
+
+                                                            tester.select.option(
+                                                                'Паскалева Бисера Илковна ' +
+                                                                '79162729533 (дубликат)'
+                                                            ).click();
+
+                                                            tester.button('Объединить').click();
+
+                                                            tester.contactsMergingRequest().
+                                                                addPhone().
+                                                                addSecondPhone().
+                                                                addThirdPhone().
+                                                                receiveResponse();
+
+                                                            tester.contactBar.
+                                                                section('Телефоны').
+                                                                expectToHaveTextContent(
+                                                                    'Телефоны (4) ' +
+                                                                    '79162729533'
+                                                                );
+                                                        });
+                                                        it('Отображено сообщение об ошибке.', function() {
+                                                            tester.contactBar.
+                                                                section('Телефоны').
+                                                                expectTextContentToHaveSubstring(
+                                                                    'Телефоны (3) ' +
+
+                                                                    '79162729533 ' +
+                                                                    '79162729537 ' +
+
+                                                                    'Данный номер телефона уже используется в одном ' +
+                                                                    'или нескольких контактах. Выберете в какой ' +
+                                                                    'контакт мы объединим данные, а другой удалим'
+                                                                );
+                                                        });
+                                                    });
+                                                    it('Сохранилось успешно. Отображен один номер.', function() {
+                                                        contactsRequest.
+                                                            noData().
+                                                            receiveResponse();
+
+                                                        tester.contactUpdatingRequest().
+                                                            completeData().
+                                                            fourPhoneNumbers().
+                                                            receiveResponse();
+                                                            
+                                                        tester.contactBar.section('Телефоны').expectToHaveTextContent(
+                                                            'Телефоны (4) ' +
+                                                            '79162729533'
+                                                        );
+                                                    });
+                                                });
                                                 it(
                                                     'Отменяю редактирование. Отображен только один телефон.',
                                                 function() {
@@ -1059,27 +1158,6 @@ tests.addTest(options => {
 
                                                     tester.contactBar.section('Телефоны').expectToHaveTextContent(
                                                         'Телефоны (3) ' +
-                                                        '79162729533'
-                                                    );
-                                                });
-                                                it('Сохраняю. Переданы все четыре телефона.', function() {
-                                                    tester.contactBar.
-                                                        section('Телефоны').
-                                                        button('Сохранить').
-                                                        click();
-
-                                                    tester.contactsRequest().
-                                                        anotherPhoneSearching().
-                                                        noData().
-                                                        receiveResponse();
-
-                                                    tester.contactUpdatingRequest().
-                                                        completeData().
-                                                        fourPhoneNumbers().
-                                                        receiveResponse();
-                                                        
-                                                    tester.contactBar.section('Телефоны').expectToHaveTextContent(
-                                                        'Телефоны (4) ' +
                                                         '79162729533'
                                                     );
                                                 });

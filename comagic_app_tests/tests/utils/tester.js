@@ -671,6 +671,7 @@ define(() => function ({
             '.clct-c-button, ' +
             '.ui-radio-content, ' +
             '.cmg-switch-label, ' +
+            '.cm-chats--chat-menu-item, ' +
             '.src-components-main-menu-nav-item-styles-module__label, ' +
             '.src-components-main-menu-settings-styles-module__label, ' +
             '.src-components-main-menu-menu-link-styles-module__item a';
@@ -1319,6 +1320,36 @@ define(() => function ({
         }
     };
 
+    me.offlineMessageAcceptingRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/offline_message').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        offline_message_id: 178076
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: true 
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.offlineMessageCountersRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
@@ -1344,6 +1375,23 @@ define(() => function ({
     });
 
     me.offlineMessageListRequest = () => {
+        const data = {
+            date_time: '2020-02-10 12:10:16',
+            email: 'msjdasj@mail.com',
+            employee_id: 1875485,
+            id: 178073,
+            is_phone_auto_filled: true,
+            mark_ids: [],
+            message: 'Я хочу о чем-то заявить.',
+            phone: '79161212122',
+            name: 'прива',
+            site_id: 2157,
+            status: 'not_processed',
+            visitor_id: 16479303,
+            visitor_name: 'Помакова Бисерка Драгановна',
+            visitor_type: 'comagic'
+        };
+
         const bodyParams = {
             limit: 30,
             offset: 0
@@ -1352,16 +1400,28 @@ define(() => function ({
         return {
             notProcessed() {
                 bodyParams.statuses = ['not_processed'];
+
+                data.id = 178076;
+                data.status = 'not_processed';
+
                 return this;
             },
             
             processing() {
                 bodyParams.statuses = ['processing'];
+
+                data.id = 178074;
+                data.status = 'processing';
+
                 return this;
             },
 
             processed() {
                 bodyParams.statuses = ['processed'];
+
+                data.id = 178075;
+                data.status = 'processed';
+
                 return this;
             },
 
@@ -1373,19 +1433,7 @@ define(() => function ({
                 return {
                     receiveResponse() {
                         request.respondSuccessfullyWith({
-                            data: [{
-                                date_time: '2022-01-20T21:37:14',
-                                email: '',
-                                id: 178073,
-                                mark_ids: [],
-                                message: 'Привет.',
-                                phone: '71231212122',
-                                site_id: 2157,
-                                status: 'not_processed',
-                                visitor_id: 16479303,
-                                visitor_name: 'Помакова Бисерка Драгановна',
-                                visitor_type: 'omni'
-                            }]
+                            data: [data]
                         });
 
                         Promise.runAll(false, true);
@@ -3670,9 +3718,10 @@ define(() => function ({
             return {
                 receiveResponse() {
                     request.respondSuccessfullyWith({
-                        result: {
-                            data: []
-                        }
+                        data: [{
+                            id: 2157,
+                            domain_name: 'somedomain.com'
+                        }]
                     });
 
                     Promise.runAll(false, true);
@@ -8317,6 +8366,15 @@ define(() => function ({
                 return me;
             };
 
+            me.addFourthTelegram = () => {
+                processors.push(() => response.chat_channel_list.push({
+                    type: 'telegram',
+                    phone: '+7 (928) 381 09-28' 
+                }));
+
+                return me;
+            };
+
             me.addSecondPhoneNumber = () => {
                 processors.push(() => response.phone_list.push('79162729535'));
                 return me;
@@ -8427,6 +8485,26 @@ define(() => function ({
         const response = {
             data: [{
                 id: 482062,
+                start_time: '2020-02-10 12:10:16',
+                communication_type: 'offline_message',
+                data: {
+                    date_time: '2020-02-10 12:10:16',
+                    email: 'msjdasj@mail.com',
+                    employee_id: 1875485,
+                    id: 178073,
+                    is_phone_auto_filled: true,
+                    mark_ids: [],
+                    message: 'Я хочу о чем-то заявить.',
+                    name: 'прива',
+                    phone: '79161212122',
+                    site_id: 2157,
+                    status: 'processing',
+                    visitor_id: 16479303,
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'comagic'
+                }
+            }, {
+                id: 482065,
                 start_time: '2020-02-10 12:11:15',
                 communication_type: 'chat_message',
                 data: {
@@ -8554,10 +8632,15 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
-            me.audioAttachment = () => {
-                response.data[3].communication_type = 'chat_message';
+            me.comagicSystemMessage = () => {
+                response.data[1].data.chat_channel_type = 'comagic';
+                return me;
+            };
 
-                response.data[3].data = {
+            me.audioAttachment = () => {
+                response.data[4].communication_type = 'chat_message';
+
+                response.data[4].data = {
                     chat_id: 2718935,
                     chat_channel_type: 'telegram',
                     message_source: 'operator',
@@ -8579,10 +8662,10 @@ define(() => function ({
             };
 
             me.noTalkRecordFileLink = () => {
-                response.data[3].data.is_lost = true;
-                response.data[3].data.finish_reason = 'Клиент не взял трубку';
-                response.data[3].data.wait_diration = 42819;
-                response.data[3].data.talk_record_file_link = null;
+                response.data[4].data.is_lost = true;
+                response.data[4].data.finish_reason = 'Клиент не взял трубку';
+                response.data[4].data.wait_diration = 42819;
+                response.data[4].data.talk_record_file_link = null;
                 
                 return me;
             };
@@ -8640,6 +8723,74 @@ define(() => function ({
                         spendTime(0);
 
                         maybeRunSpinWrapperIntersectionCallback(getContactCommunicationsSpinWrapper());
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.contactsMergingRequest = () => {
+        const bodyParams = {
+            form_data: {
+                id: 1689283,
+                personal_manager_id: 583783,
+                first_name: 'Грета',
+                last_name: 'Бележкова',
+                full_name: '',
+                organization_name: 'UIS',
+                patronymic: 'Ервиновна',
+                phone_list: ['79162729533'],
+                email_list: ['endlesssprinп.of@comagic.dev'],
+                chat_channel_list: [{
+                    phone: '+7 (928) 381 09-88',
+                    type: 'whatsapp',
+                    ext_id: null,
+                    chat_channel_id: null         
+                }, {
+                    phone: '+7 (928) 381 09-28',
+                    type: 'whatsapp',
+                    ext_id: null,
+                    chat_channel_id: null         
+                }],
+                group_list: [],
+                group_ids: [],
+                name: ''
+            },
+            from_contact_id: 25206823,
+            to_contact_id: 1689283
+        };
+
+        const addResponseModifiers = me => {
+            me.addPhone = () => (bodyParams.form_data.phone_list.push('79162729535'), me);
+            me.addSecondPhone = () => (bodyParams.form_data.phone_list.push('79162729536'), me);
+            me.addThirdPhone = () => (bodyParams.form_data.phone_list.push('79162729537'), me);
+            
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/merge`).
+                    expectToHaveMethod('PATCH').
+                    expectBodyToContain(bodyParams);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith({
+                            data: [{
+                                ...bodyParams.form_data,
+                                full_name: 'Бележкова-Паскалева Грета Ервиновна'
+                            }] 
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
                     }
                 });
             },
@@ -10484,38 +10635,60 @@ define(() => function ({
             };
 
             tester.option = text => {
-                const getOptionElement = () => utils.descendantOf(getSectionElement()).
+                const getOptionElements = () => utils.descendantOf(getSectionElement()).
                     textEquals(text).
                     matchesSelector('.cm-contacts-contact-bar-section-option').
-                    find();
-
-                const tester = testersFactory.createDomElementTester(getOptionElement),
+                    findAll();
+                
+                const getOptionElement = () => utils.getVisibleSilently(getOptionElements()),
+                    tester = testersFactory.createDomElementTester(getOptionElement),
                     click = tester.click.bind(tester),
                     putMouseOver = tester.putMouseOver.bind(tester);
 
-                tester.click = () => (click(), spendTime(0));
-                tester.putMouseOver = () => (putMouseOver(), spendTime(0));
+                const addOptionTesters = (tester, getOptionElement) => {
+                    tester.click = () => (click(), spendTime(0));
+                    tester.putMouseOver = () => (putMouseOver(), spendTime(0));
 
-                tester.toolsIcon = (() => {
-                    const tester = testersFactory.createDomElementTester(
-                        () => utils.element(getOptionElement()).
-                            querySelector('.cm-contacts-contact-bar-option-tools svg')
+                    tester.toolsIcon = (() => {
+                        const tester = testersFactory.createDomElementTester(
+                            () => utils.element(getOptionElement()).
+                                querySelector('.cm-contacts-contact-bar-option-tools svg')
+                        );
+
+                        const click = tester.click.bind(tester);
+                        tester.click = () => (click(), spendTime(0), spendTime(0));
+
+                        return tester;
+                    })();
+
+                    tester.expectToBeSelected = () => tester.expectToHaveClass(
+                        'cm-contacts-contact-bar-section-option-selected'
                     );
 
-                    const click = tester.click.bind(tester);
-                    tester.click = () => (click(), spendTime(0), spendTime(0));
+                    tester.expectNotToBeSelected = () => tester.expectNotToHaveClass(
+                        'cm-contacts-contact-bar-section-option-selected'
+                    );
 
                     return tester;
-                })();
+                };
 
-                tester.expectToBeSelected = () => tester.expectToHaveClass(
-                    'cm-contacts-contact-bar-section-option-selected'
-                );
+                const createChannelTypeTester = type => {
+                    const getDomElement = () => utils.getVisibleSilently(Array.prototype.filter.call(
+                        getOptionElements(),
+                        domElement => {
+                            const icon = domElement.querySelector(`.cm-contacts-messenger-icon-${type}`)
+                            return icon && !(icon instanceof JsTester_NoElement)
+                        }
+                    ))
 
-                tester.expectNotToBeSelected = () => tester.expectNotToHaveClass(
-                    'cm-contacts-contact-bar-section-option-selected'
-                );
+                    const tester = testersFactory.createDomElementTester(getDomElement);
+                    return addOptionTesters(tester, getDomElement);
+                };
 
+                tester.whatsApp = createChannelTypeTester('whatsapp');
+                tester.telegram = createChannelTypeTester('telegram');
+
+                addOptionTesters(tester, getOptionElement);
                 addTesters(tester, getOptionElement);
                 return tester;
             };
@@ -10535,7 +10708,7 @@ define(() => function ({
                 );
 
                 const click = tester.click.bind(tester);
-                tester.click = () => (click(), spendTime(0));
+                tester.click = () => (click(), spendTime(0), spendTime(0));
 
                 return tester;
             })();
@@ -10612,9 +10785,15 @@ define(() => function ({
 
         const tester = testersFactory.createDomElementTester(domElement);
 
-        const clickAreaTester = testersFactory.createDomElementTester(
-            domElement.querySelector('.cm-chats--chat-click-area')
-        );
+        const clickAreaTester = testersFactory.createDomElementTester(() => {
+            const clickArea = domElement.querySelector('.cm-chats--chat-click-area');
+
+            if (!clickArea || clickArea instanceof JsTester_NoElement) {
+                return domElement;
+            }
+
+            return clickArea;
+        });
 
         const click = clickAreaTester.click.bind(clickAreaTester),
             scrollIntoView = tester.scrollIntoView.bind(tester);

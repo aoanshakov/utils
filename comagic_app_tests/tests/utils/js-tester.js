@@ -6043,6 +6043,7 @@ function JsTester_DomElement (
         }
 
         if (!domElement.getClientRects) {
+            console.log(domElement);
             throw new Error('Объект не является HTML-элементом.');
         }
     };
