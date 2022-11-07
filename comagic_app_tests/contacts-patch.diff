@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index f087f04..6318858 100644
+index d877174..6318858 100644
 --- a/package.json
 +++ b/package.json
 @@ -21,8 +21,6 @@
@@ -11,7 +11,7 @@ index f087f04..6318858 100644
      "@types/yup": "^0.29.14",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
-@@ -58,18 +56,12 @@
+@@ -58,21 +56,13 @@
      "webpack-merge": "^5.8.0"
    },
    "dependencies": {
@@ -28,5 +28,9 @@ index f087f04..6318858 100644
 -    "react-intl": "^6.0.5",
 -    "react-router-dom": "^6.4.0",
      "short-uuid": "^4.2.0",
-     "yup": "^0.32.11"
+-    "yup": "^0.32.11",
+-    "uis-softphone": "git+https://sip_lib:glpat-Xzs1ef2zY2QoxFSchj8P@gitlab.uis.dev/web/sip_lib.git#multitab-local",
+-    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab"
++    "yup": "^0.32.11"
    }
+ }
