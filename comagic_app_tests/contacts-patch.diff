@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index d877174..6318858 100644
+index 9b29a23..4b9655a 100644
 --- a/package.json
 +++ b/package.json
 @@ -21,8 +21,6 @@
@@ -11,11 +11,12 @@ index d877174..6318858 100644
      "@types/yup": "^0.29.14",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
-@@ -58,21 +56,13 @@
+@@ -58,22 +56,14 @@
      "webpack-merge": "^5.8.0"
    },
    "dependencies": {
 -    "@comagic/core": "^0.7.0",
+-    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab",
      "axios": "^0.24.0",
      "classnames": "^2.3.1",
      "formik": "^2.2.9",
@@ -28,9 +29,8 @@ index d877174..6318858 100644
 -    "react-intl": "^6.0.5",
 -    "react-router-dom": "^6.4.0",
      "short-uuid": "^4.2.0",
--    "yup": "^0.32.11",
--    "uis-softphone": "git+https://sip_lib:glpat-Xzs1ef2zY2QoxFSchj8P@gitlab.uis.dev/web/sip_lib.git#multitab-local",
--    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab"
-+    "yup": "^0.32.11"
+     "string-hash": "^1.1.3",
+-    "uis-softphone": "git+https://sip_lib:glpat-Xzs1ef2zY2QoxFSchj8P@gitlab.uis.dev/web/sip_lib.git#e6795a31c0ca8ce52ecb4860b013a38e2b4d776c",
+     "yup": "^0.32.11"
    }
  }

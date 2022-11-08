@@ -133,7 +133,7 @@ tests.addTest(options => {
                     countersRequest.receiveResponse();
                 });
 
-                xdescribe('Ввожу значение в поле поиска.', function() {
+                describe('Ввожу значение в поле поиска.', function() {
                     let searchResultsRequest;
 
                     beforeEach(function() {
@@ -650,7 +650,7 @@ tests.addTest(options => {
                         });
                     });
                 });
-                xdescribe('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
+                describe('Прокручиваю список чатов до конца. Отправлен запрос следующей страницы.', function() {
                     beforeEach(function() {
                         tester.spinWrapper.scrollIntoView();
                         chatListRequest = tester.chatListRequest().secondPage().expectToBeSent();
@@ -703,7 +703,6 @@ tests.addTest(options => {
                         '12:10'
                     );
                 });
-                return;
                 it('Отображен список чатов.', function() {
                     tester.body.expectTextContentToHaveSubstring(
                         'Помакова Бисерка Драгановна 21 янв 2022 ' +
@@ -713,7 +712,6 @@ tests.addTest(options => {
                     tester.spin.expectNotToExist();
                 });
             });
-            return;
             it('Чатов мало. Прокручиваю список чатов до конца. Запрос следующей страницы не отправлен.', function() {
                 countersRequest.singlePage().receiveResponse();
                 tester.spinWrapper.scrollIntoView();
@@ -725,7 +723,6 @@ tests.addTest(options => {
                 tester.spin.expectToBeVisible();
             });
         });
-        return;
         it('Отображен спиннер.', function() {
             tester.spin.expectToBeVisible();
         });
