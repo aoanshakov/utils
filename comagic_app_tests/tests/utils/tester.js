@@ -205,10 +205,10 @@ define(() => function ({
     );
 
     const getSpinWrappers = (getRootElement = () => document.body) => utils.element(getRootElement()).
-        querySelectorAll('.ui-infinite-scroll-spin-wrapper');
+        querySelectorAll('.ui-infinite-scroll-spin-wrapper, .chats-list-spin-wrapper');
 
     const getSpinWrapper = (getRootElement = () => document.body) => utils.element(getRootElement()).
-        querySelector('.ui-infinite-scroll-spin-wrapper');
+        querySelector('.ui-infinite-scroll-spin-wrapper, .chats-list-spin-wrapper');
 
     const getContactListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-contacts-list-wrapper')),
         getChatListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-chats--chats-list'));

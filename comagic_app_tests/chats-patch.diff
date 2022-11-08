@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 4eb69a3..e3499e3 100644
+index 95e34e6..e3499e3 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,8 +22,6 @@
@@ -21,11 +21,11 @@ index 4eb69a3..e3499e3 100644
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -67,19 +64,13 @@
+@@ -67,16 +64,11 @@
      "formik": "^2.2.9",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
--    "magic-ui": "./magic_ui",
+-    "magic-ui": "^2.3.0",
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
@@ -37,11 +37,7 @@ index 4eb69a3..e3499e3 100644
 -    "react-router-dom": "^6.4.0",
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
--    "yup": "^0.32.9",
--    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab"
-+    "yup": "^0.32.9"
-   }
- }
+     "yup": "^0.32.9"
 diff --git a/src/App.tsx b/src/App.tsx
 index 43db4d8..6a8f91e 100644
 --- a/src/App.tsx
@@ -80,10 +76,10 @@ index f8e7ef2..95a9d9f 100644
    width: 100%;
    height: 100%;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index a435e54..c883bd8 100644
+index 83db7f5..a15e03a 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -147,7 +147,8 @@ export const RootStore = types
+@@ -144,7 +144,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -93,6 +89,39 @@ index a435e54..c883bd8 100644
  
  if (process.env.NODE_ENV === 'development') {
      window.chatsRootStore = rootStore;
+diff --git a/src/models/account/AccountStore.ts b/src/models/account/AccountStore.ts
+index 57ad272..166fd36 100644
+--- a/src/models/account/AccountStore.ts
++++ b/src/models/account/AccountStore.ts
+@@ -1,4 +1,4 @@
+-import { flow, Instance, types, cast } from 'mobx-state-tree';
++import { flow, Instance, types, cast, getSnapshot } from 'mobx-state-tree';
+ import { httpRpc, DataApiResponseResult } from '@/httpRpc';
+ import { intl } from '@/i18n';
+ 
+@@ -55,12 +55,18 @@ export const AccountStore = types
+     })
+     .views(self => ({
+         getOtherEmployeeChatsAccess() {
+-            const permission = [...self.account.permissions].find(item => item[0] === 'other_employee_chats_access');
+-            return permission && permission[1] ? permission[1].is_select : false;
++            const permission = getSnapshot(self.account.permissions).other_employee_chats_access;
++            return permission?.is_select || false;
+         },
+         getTagsPermissions() {
+-            const tagsPermissions = [...self.account.permissions].find(item => item[0] === 'tag_management')[1];
+-            return tagsPermissions;
++            return (
++                getSnapshot(self.account.permissions).tag_management || {
++                    is_delete: false,
++                    is_insert: false,
++                    is_select: false,
++                    is_update: false,
++                }
++            );
+         },
+     }))
+     .actions(self => {
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
 index 933fdb3..8e6f31d 100644
 --- a/src/models/auth/AuthStore.ts

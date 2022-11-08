@@ -44,9 +44,6 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             accountRequest = tester.accountRequest().expectToBeSent();
-
-            tester.masterInfoMessage().receive();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         });
 
         describe('Раздел контактов доступен.', function() {
@@ -69,14 +66,14 @@ tests.addTest(options => {
 
                 tester.configRequest().softphone().receiveResponse();
 
+                tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.authCheckRequest().receiveResponse();
                 statusesRequest = tester.statusesRequest().expectToBeSent();
@@ -1959,14 +1956,14 @@ tests.addTest(options => {
 
                 tester.configRequest().softphone().receiveResponse();
 
+                tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.authCheckRequest().receiveResponse();
                 statusesRequest = tester.statusesRequest().expectToBeSent();
@@ -2085,14 +2082,14 @@ tests.addTest(options => {
 
             tester.configRequest().softphone().receiveResponse();
 
+            tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            spendTime(1000);
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            spendTime(1000);
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
 
             tester.authCheckRequest().receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();
