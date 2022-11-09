@@ -8581,7 +8581,8 @@ define(() => function ({
                     message_source: 'system',
                     message: 'Чат принят оператором Карадимова Веска Анастасовна (79283810928)',
                     chat_channel_type: 'telegram',
-                    employee_name: 'Карадимова Веска Анастасовна'
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    status: 'sent'
                 }
             }, {
                 id: 482057,
@@ -8594,6 +8595,7 @@ define(() => function ({
                     message_source: 'visitor',
                     message: 'Здравствуйте',
                     employee_name: 'Карадимова Веска Анастасовна',
+                    status: 'sent'
                 }
             }, {
                 id: 482058,
@@ -8605,7 +8607,14 @@ define(() => function ({
                     message_source: 'operator',
                     chat_channel_type: 'telegram',
                     message: 'Привет',
-                    employee_name: 'Карадимова Веска Анастасовна'
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    status: 'sent',
+                    reply_to_id: 482057,
+                    reply_to: {
+                        employee_name: 'Карадимова Веска Анастасовна',
+                        is_operator: false,
+                        message: 'Здравствуйте'
+                    }
                 }
             }, {
                 id: 482060,
@@ -8634,6 +8643,7 @@ define(() => function ({
                     message: '',
                     chat_channel_type: 'telegram',
                     employee_name: 'Карадимова Веска Анастасовна',
+                    status: 'sent',
                     resource: {
                         id: 5829572,
                         type: 'photo',
@@ -8643,6 +8653,35 @@ define(() => function ({
                         width: 48,
                         height: 48,
                         duration: null
+                    }
+                }
+            }, {
+                id: 482061,
+                start_time: '2020-02-10 12:16:19',
+                communication_type: 'chat_message',
+                data: {
+                    chat_id: 2718935,
+                    phone: '79283810928',
+                    message_source: 'visitor',
+                    message: 'Прикольная картинка',
+                    chat_channel_type: 'telegram',
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    status: 'sent',
+                    reply_to_id: 482060,
+                    reply_to: {
+                        employee_name: 'Карадимова Веска Анастасовна',
+                        is_operator: true,
+                        message: '',
+                        resource: {
+                            id: 5829572,
+                            type: 'photo',
+                            mime_type: 'image/png',
+                            file_name: 'heart.png',
+                            size: 925,
+                            width: 48,
+                            height: 48,
+                            duration: null
+                        }
                     }
                 }
             }]

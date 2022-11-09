@@ -832,8 +832,6 @@ tests.addTest(options => {
                                             expectNotToBeSelected();
                                         tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
 
-                                        tester.chatHistory.message.atTime('12:13').expectToHaveNoStatus();
-
                                         tester.chatHistory.message.atTime('12:11').messengerIcon.
                                             expectToHaveClass('cm-contacts-messenger-icon-telegram');
                                         
@@ -862,13 +860,19 @@ tests.addTest(options => {
 
                                             'Здравствуйте 12:12 ' +
 
+                                                'Бележкова Грета Ервиновна ' +
+                                                'Здравствуйте ' +
                                                 'Привет 12:13 ' +
 
                                             '12:14 Входящий звонок с номера 79161234567 оператору Карадимова Веска ' +
                                                 'Анастасовна ' +
                                             'Запись звонка 53:40 12:14 ' +
 
-                                                'png 925 B heart.png 12:15'
+                                                'png 925 B heart.png 12:15 ' +
+
+                                            'Карадимова Веска Анастасовна ' +
+                                            'heart.png ' +
+                                            'Прикольная картинка 12:16'
                                         );
 
                                         tester.contactBar.

@@ -115,9 +115,9 @@ tests.addTest(options => {
 
             countersRequest = tester.countersRequest().expectToBeSent();
 
-            chatListRequest = tester.chatListRequest().expectToBeSent();
-            tester.chatListRequest().active().receiveResponse();
-            tester.chatListRequest().closed().receiveResponse();
+            chatListRequest = tester.chatListRequest().forCurrentEmployee().expectToBeSent();
+            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
         });
 
         describe('Получены данные чата.', function() {
