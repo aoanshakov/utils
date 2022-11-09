@@ -66,120 +66,15 @@ index 43db4d8..6a8f91e 100644
  
  export default App;
 diff --git a/src/components/chats/chat-panel/styles.less b/src/components/chats/chat-panel/styles.less
-index f8e7ef2..70bc523 100644
+index b1e30f9..70bc523 100644
 --- a/src/components/chats/chat-panel/styles.less
 +++ b/src/components/chats/chat-panel/styles.less
-@@ -1,3 +1,55 @@
+@@ -1,3 +1,5 @@
 +@import '~antd/dist/antd.css';
 +
-+.@{p}chat-panel, .@{p}chat-like-panel {
-+  .@{p}chat-panel-quote {
-+    display: grid;
-+    grid-template-columns: 24px auto 24px;
-+    background-color: @surfaces-front;
-+
-+    &::before {
-+      content: '';
-+      grid-column: 1;
-+      display: block;
-+      width: 17px;
-+      height: 17px;
-+      margin-top: 3px;
-+      background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.77735 4.91859C5.97261 4.72333 6.0692 4.45498 5.91603 4.22522C5.76285 3.99545 5.4485 3.92766 5.22265 4.08654C2 7.00195 2 7.50252 2 9.49847V9.50257L2 9.5055C2.00188 10.8532 3.07019 11.951 4.40632 12.0002C4.4374 12.0017 4.46863 12.0025 4.5 12.0025C5.88071 12.0025 7 10.8827 7 9.50194C7 8.12123 5.88071 7.00194 4.5 7.00194L4.47803 7.00203C4.28359 6.99347 4.16582 6.77236 4.28459 6.61818C4.58444 6.22896 5.10617 5.58977 5.77735 4.91859Z' fill='%235C5C5C'/%3E%3Cpath d='M12.7774 4.91859C12.9726 4.72333 13.0692 4.45498 12.916 4.22522C12.7628 3.99545 12.4485 3.92766 12.2226 4.08654C9 7.00195 9 7.50252 9 9.49847V9.50257L9 9.5055C9.00188 10.8532 10.0702 11.951 11.4063 12.0002C11.4374 12.0017 11.4686 12.0025 11.5 12.0025C12.8807 12.0025 14 10.8827 14 9.50194C14 8.12123 12.8807 7.00194 11.5 7.00194L11.478 7.00203C11.2836 6.99347 11.1658 6.77236 11.2846 6.61818C11.5844 6.22896 12.1062 5.58977 12.7774 4.91859Z' fill='%235C5C5C'/%3E%3C/svg%3E%0A");
-+      background-size: contain;
-+    }
-+
-+    .@{p}chat-panel-quote-owner-name {
-+      grid-column: 2;
-+      grid-row: 1;
-+      font-size: 10px;
-+      line-height: 24px;
-+      color: @fonts-primary;
-+    }
-+
-+    .@{p}chat-panel-quote-resource-name {
-+      grid-column: 1 / 3;
-+      grid-row: 2;
-+      font-size: 13px;
-+      line-height: 20px;
-+      color: @fonts-primary;
-+      font-weight: 500;
-+      white-space: nowrap;
-+      overflow: hidden;
-+      text-overflow: ellipsis;
-+    }
-+
-+    .@{p}chat-panel-quote-message {
-+      grid-column: 1 / 3;
-+      grid-row: 3;
-+      font-size: 13px;
-+      line-height: 20px;
-+      color: @fonts-primary;
-+      white-space: pre;
-+      overflow: hidden;
-+      text-overflow: ellipsis;
-+    }
-+  }
-+}
-+
- .@{p}chat-panel {
-   width: 100%;
-   height: 100%;
-@@ -82,54 +134,6 @@
-     }
-   }
- 
--  .@{p}chat-panel-quote {
--    display: grid;
--    grid-template-columns: 24px auto 24px;
--    background-color: @surfaces-front;
--
--    &::before {
--      content: '';
--      grid-column: 1;
--      display: block;
--      width: 17px;
--      height: 17px;
--      margin-top: 3px;
--      background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.77735 4.91859C5.97261 4.72333 6.0692 4.45498 5.91603 4.22522C5.76285 3.99545 5.4485 3.92766 5.22265 4.08654C2 7.00195 2 7.50252 2 9.49847V9.50257L2 9.5055C2.00188 10.8532 3.07019 11.951 4.40632 12.0002C4.4374 12.0017 4.46863 12.0025 4.5 12.0025C5.88071 12.0025 7 10.8827 7 9.50194C7 8.12123 5.88071 7.00194 4.5 7.00194L4.47803 7.00203C4.28359 6.99347 4.16582 6.77236 4.28459 6.61818C4.58444 6.22896 5.10617 5.58977 5.77735 4.91859Z' fill='%235C5C5C'/%3E%3Cpath d='M12.7774 4.91859C12.9726 4.72333 13.0692 4.45498 12.916 4.22522C12.7628 3.99545 12.4485 3.92766 12.2226 4.08654C9 7.00195 9 7.50252 9 9.49847V9.50257L9 9.5055C9.00188 10.8532 10.0702 11.951 11.4063 12.0002C11.4374 12.0017 11.4686 12.0025 11.5 12.0025C12.8807 12.0025 14 10.8827 14 9.50194C14 8.12123 12.8807 7.00194 11.5 7.00194L11.478 7.00203C11.2836 6.99347 11.1658 6.77236 11.2846 6.61818C11.5844 6.22896 12.1062 5.58977 12.7774 4.91859Z' fill='%235C5C5C'/%3E%3C/svg%3E%0A");
--      background-size: contain;
--    }
--
--    .@{p}chat-panel-quote-owner-name {
--      grid-column: 2;
--      grid-row: 1;
--      font-size: 10px;
--      line-height: 24px;
--      color: @fonts-primary;
--    }
--
--    .@{p}chat-panel-quote-resource-name {
--      grid-column: 1 / 3;
--      grid-row: 2;
--      font-size: 13px;
--      line-height: 20px;
--      color: @fonts-primary;
--      font-weight: 500;
--      white-space: nowrap;
--      overflow: hidden;
--      text-overflow: ellipsis;
--    }
--
--    .@{p}chat-panel-quote-message {
--      grid-column: 1 / 3;
--      grid-row: 3;
--      font-size: 13px;
--      line-height: 20px;
--      color: @fonts-primary;
--      white-space: pre;
--      overflow: hidden;
--      text-overflow: ellipsis;
--    }
--  }
--
-   .@{p}upload-drag-message {
-     height: 100%;
-     width: 150px;
+ .@{p}chat-panel, .@{p}chat-like-panel {
+   .@{p}chat-panel-quote {
+     display: grid;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
 index 83db7f5..a15e03a 100644
 --- a/src/models/RootStore.ts
