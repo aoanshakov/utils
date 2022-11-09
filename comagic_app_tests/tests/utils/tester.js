@@ -3087,8 +3087,8 @@ define(() => function ({
                     id: 1689283,
                     email_list: ['endlesssprinп.of@comagic.dev'],
                     chat_channel_list: [
-                        { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
-                        { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
+                        { type: 'whatsapp', phone: '79283810988' },
+                        { type: 'whatsapp', phone: '79283810928' },
                     ],
                     organization_name: 'UIS',
                     phone_list: ['79162729533'],
@@ -3308,11 +3308,14 @@ define(() => function ({
         const processors = [];
 
         const params = {
+            app_id: null,
+            employee_id: null,
             statuses: ['new', undefined],
             limit: 30,
             offset: 0,
             scroll_from_date: null,
-            scroll_direction: 'down'
+            scroll_direction: 'down',
+            is_other_employees_appeals: undefined
         };
 
         const initialData = [{
@@ -3428,8 +3431,8 @@ define(() => function ({
                     id: 1689283,
                     email_list: ['endlesssprinп.of@comagic.dev'],
                     chat_channel_list: [
-                        { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
-                        { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
+                        { type: 'whatsapp', phone: '79283810988' },
+                        { type: 'whatsapp', phone: '79283810928' },
                     ],
                     organization_name: 'UIS',
                     phone_list: ['79162729533'],
@@ -3463,11 +3466,25 @@ define(() => function ({
             params.scroll_direction = undefined;
             params.scroll_from_date = undefined;
             params.statuses = undefined;
+            params.app_id = undefined;
+            params.employee_id = undefined;
             params.chat_id = chat_id;
             params.limit = 1;
         };
 
         return addResponseModifiers({
+            isOtherEmployeesAppeals() {
+                params.is_other_employees_appeals = true;
+                return this;
+            },
+
+            forCurrentEmployee() {
+                params.app_id = 1103;
+                params.employee_id = 20816;
+
+                return this;
+            },
+
             secondPage() {
                 params.scroll_from_date = '2022-01-12T02:49:15.168+03:00';
                 
@@ -8333,7 +8350,7 @@ define(() => function ({
             me.addTelegram = () => {
                 processors.push(() => response.chat_channel_list.push({
                     type: 'telegram',
-                    phone: '+7 (921) 830-76-32' 
+                    phone: '79218307632' 
                 }));
 
                 return me;
@@ -8351,7 +8368,7 @@ define(() => function ({
             me.addWhatsApp = () => {
                 processors.push(() => response.chat_channel_list.push({
                     type: 'whatsapp',
-                    phone: '+7 (928) 381 09-87' 
+                    phone: '79283810987' 
                 }));
 
                 return me;
@@ -8369,7 +8386,7 @@ define(() => function ({
             me.addFourthTelegram = () => {
                 processors.push(() => response.chat_channel_list.push({
                     type: 'telegram',
-                    phone: '+7 (928) 381 09-28' 
+                    phone: '79283810928' 
                 }));
 
                 return me;
@@ -8412,10 +8429,10 @@ define(() => function ({
             email_list: ['endlesssprinп.of@comagic.dev'],
             chat_channel_list: [{
                 type: 'whatsapp',
-                phone: '+7 (928) 381 09-88' 
+                phone: '79283810988' 
             }, {
                 type: 'whatsapp',
-                phone: '+7 (928) 381 09-28' 
+                phone: '79283810928' 
             }],
             organization_name: 'UIS',
             phone_list: ['79162729533'],
@@ -8473,6 +8490,56 @@ define(() => function ({
         });
     };
 
+    me.contactChatsRequest = () => {
+        const result = {
+            chat_channel_status: 'active',
+            chats: [{
+                id: 7189362,
+                phone: '79283810988',
+                employee_id: 20816,
+                chat_channel_type: 'whatsapp',
+                is_chat_channel_active: true,
+                chat_status: 'active'
+            }]
+        };
+
+        const addResponseModifiers = me => {
+            me.anotherPhone = () => (result.chats[0].phone = '79357818431', me);
+            me.anotherEmployee = () => (result.chats[0].employee_id = 57292, me);
+            me.anotherChannelType = () => (result.chats[0].chat_channel_type = 'telegram', me);
+            me.channelInactive = () => (result.chat_channel_status = 'inactive', me);
+            me.closed = () => (result.chats[0].chat_status = 'closed', me);
+
+            return me;
+        };
+
+        const response = {
+            data: [result]
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/1689283/chats/20816`).
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.contactCommunicationsRequest = () => {
         let id = 1689283;
 
@@ -8495,7 +8562,7 @@ define(() => function ({
                     is_phone_auto_filled: true,
                     mark_ids: [],
                     message: 'Я хочу о чем-то заявить.',
-                    name: 'прива',
+                    name: null,
                     phone: '79161212122',
                     site_id: 2157,
                     status: 'processing',
@@ -8510,7 +8577,7 @@ define(() => function ({
                 data: {
                     chat_id: 2718935,
                     phone: '79218307632',
-                    site: 'www.site.ru',
+                    site_domain_name: 'www.site.ru',
                     message_source: 'system',
                     message: 'Чат принят оператором Карадимова Веска Анастасовна (79283810928)',
                     chat_channel_type: 'telegram',
@@ -8548,10 +8615,11 @@ define(() => function ({
                     direction: 'in',
                     talk_duration: 42820,
                     numa: '79161234567',
+                    virtual_phone_number: '74952727438',
                     employee_name: 'Карадимова Веска Анастасовна',
                     is_lost: false,
                     finish_reason: null,
-                    wait_diration: null,
+                    wait_duration: null,
                     talk_record_file_link:
                         'https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/'
                 }
@@ -8632,6 +8700,13 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.offlineMessageFromContact = () => {
+                response.data[0].data.visitor_name = null;
+                response.data[0].data.name = 'Помакова Бисерка Драгановна';
+                    
+                return me;
+            };
+
             me.comagicSystemMessage = () => {
                 response.data[1].data.chat_channel_type = 'comagic';
                 return me;
@@ -8664,7 +8739,7 @@ define(() => function ({
             me.noTalkRecordFileLink = () => {
                 response.data[4].data.is_lost = true;
                 response.data[4].data.finish_reason = 'Клиент не взял трубку';
-                response.data[4].data.wait_diration = 42819;
+                response.data[4].data.wait_duration = 42819;
                 response.data[4].data.talk_record_file_link = null;
                 
                 return me;
@@ -8746,12 +8821,12 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 email_list: ['endlesssprinп.of@comagic.dev'],
                 chat_channel_list: [{
-                    phone: '+7 (928) 381 09-88',
+                    phone: '79283810988',
                     type: 'whatsapp',
                     ext_id: null,
                     chat_channel_id: null         
                 }, {
-                    phone: '+7 (928) 381 09-28',
+                    phone: '79283810928',
                     type: 'whatsapp',
                     ext_id: null,
                     chat_channel_id: null         
@@ -8820,8 +8895,8 @@ define(() => function ({
                     last_name: 'Бележкова',
                     email_list: ['endlesssprinп.of@comagic.dev', undefined],
                     chat_channel_list: [
-                        { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
-                        { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
+                        { type: 'whatsapp', phone: '79283810988' },
+                        { type: 'whatsapp', phone: '79283810928' },
                         undefined
                     ],
                     organization_name: 'UIS',
@@ -9996,6 +10071,18 @@ define(() => function ({
                 return me;
             };
 
+            me.otherEmployeeChatsAccessAvailable = () => {
+                response.result.data.permissions.push({
+                    'unit_id': 'other_employee_chats_access',
+                    'is_delete': true,
+                    'is_insert': true,
+                    'is_select': true,
+                    'is_update': true,
+                });
+
+                return me;
+            };
+
             me.webAccountLoginAvailable = () => {
                 response.result.data.permissions.push({
                     'unit_id': 'web_account_login',
@@ -10477,6 +10564,17 @@ define(() => function ({
 
                 tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
+                tester.callHeader = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => getMessageElement().querySelector('.cm-contacts-call')
+                    );
+
+                    const putMouseOver = tester.putMouseOver.bind(tester);
+                    tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+                    return tester;
+                })();
+
                 tester.directionIcon = testersFactory.createDomElementTester(() => {
                     const domElements = Array.prototype.filter.call(
                         getMessageElement().querySelectorAll('svg'),
@@ -10641,8 +10739,16 @@ define(() => function ({
                     findAll();
                 
                 const getOptionElement = () => utils.getVisibleSilently(getOptionElements()),
-                    tester = testersFactory.createDomElementTester(getOptionElement),
-                    click = tester.click.bind(tester),
+                    tester = testersFactory.createDomElementTester(getOptionElement);
+
+                const clickTester = testersFactory.createDomElementTester(() => {
+                    const option = getOptionElement(),
+                        clickableOption = option.querySelector('.cm-contacts-contact-bar-clickable-option')
+
+                    return (!(clickableOption instanceof JsTester_NoElement) && clickableOption) || option
+                });
+
+                const click = clickTester.click.bind(clickTester),
                     putMouseOver = tester.putMouseOver.bind(tester);
 
                 const addOptionTesters = (tester, getOptionElement) => {
@@ -10729,6 +10835,8 @@ define(() => function ({
 
         return tester;
     })();
+
+    me.notificationWindow = testersFactory.createDomElementTester('.ui-notification');
 
     me.softphone = (getRootElement => {
         const tester = addTesters(

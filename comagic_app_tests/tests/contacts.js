@@ -797,12 +797,12 @@ tests.addTest(options => {
                                     it('Редактирование мессенджеров недоступно.', function() {
                                         tester.contactBar.
                                             section('Каналы связи').
-                                            option('+7 (928) 381 09-88').
+                                            option('79283810988').
                                             putMouseOver();
 
                                         tester.contactBar.
                                             section('Каналы связи').
-                                            option('+7 (928) 381 09-88').
+                                            option('79283810988').
                                             toolsIcon.
                                             expectNotToExist();
                                     });
@@ -815,6 +815,16 @@ tests.addTest(options => {
                                             'Бележкова Грета Ервиновна (Клиент) ' +
                                             '79218307632 (Telegram) ' +
                                             'www.site.ru'
+                                        );
+                                    });
+                                    it('Нажимаю на номер WhatsApp.', function() {
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            option('79283810988').
+                                            click();
+
+                                        tester.notificationWindow.expectToHaveTextContent(
+                                            'Невозможно перейти в чат, отсутствуют права на "Чаты и заявки"'
                                         );
                                     });
                                     it('Имя выделено. Отображен контакт. Отображена история коммуникаций.', function() {
@@ -869,7 +879,7 @@ tests.addTest(options => {
 
                                         tester.contactBar.
                                             section('Каналы связи').
-                                            option('+7 (928) 381 09-88').
+                                            option('79283810988').
                                             svg.
                                             expectToBeVisible();
 
@@ -887,8 +897,8 @@ tests.addTest(options => {
                                             'endlesssprinп.of@comagic.dev ' +
 
                                             'Каналы связи ' +
-                                            '+7 (928) 381 09-88 ' +
-                                            '+7 (928) 381 09-28 ' +
+                                            '79283810988 ' +
+                                            '79283810928 ' +
 
                                             'Персональный менеджер ' +
                                             'Господинова Николина'
@@ -991,6 +1001,51 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
+                                describe('URL записи звонка не был получен.', function() {
+                                    beforeEach(function() {
+                                        contactCommunicationsRequest.noTalkRecordFileLink().receiveResponse();
+                                    });
+
+                                    it(
+                                        'Помещаю курсор над сообщением о звонке. Отображена всплывающая подсказка.',
+                                    function() {
+                                        tester.chatHistory.message.atTime('12:14').callHeader.putMouseOver();
+
+                                        tester.tooltip.expectToHaveTextContent(
+                                            'Время ожидания ответа: 53:39 ' +
+                                            'Длительность: 53:40 ' +
+                                            'Виртуальный номер: 74952727438 ' +
+                                            'Статус: Клиент не взял трубку'
+                                        );
+                                    });
+                                    it('Отображено сообщение о входящем звонке.', function() {
+                                        tester.chatHistory.message.atTime('12:14').directionIcon.
+                                            expectToHaveClass('incoming_failed_svg__cmg-direction-icon');
+
+                                        tester.chatHistory.expectToHaveTextContent(
+                                            '10 февраля 2020 ' +
+
+                                            'Заявка ' +
+
+                                            'Я хочу о чем-то заявить. ' +
+                                            'Имя: Помакова Бисерка Драгановна ' +
+                                            'Телефон: 79161212122 ' +
+                                            'Email: msjdasj@mail.com ' +
+
+                                            '12:10 ' +
+
+                                            '12:11 Чат принят оператором Карадимова Веска Анастасовна (79283810928) ' +
+
+                                            'Здравствуйте 12:12 ' +
+                                                'Привет 12:13 ' +
+
+                                            '12:14 Входящий звонок с номера 79161234567 оператору Карадимова Веска ' +
+                                                'Анастасовна ' +
+
+                                                'png 925 B heart.png 12:15'
+                                        );
+                                    });
+                                });
                                 it('Получено сообщение с аудио-вложением.', function() {
                                     contactCommunicationsRequest.audioAttachment().receiveResponse();
 
@@ -1003,17 +1058,17 @@ tests.addTest(options => {
                                         expectToHaveName('call.mp3').
                                         expectToHaveContent('8gj23o2u4g2j829sk');
                                 });
-                                it(
-                                    'URL записи звонка не был получен. Отображено сообщение о входящем звонке.',
-                                function() {
-                                    contactCommunicationsRequest.noTalkRecordFileLink().receiveResponse();
+                                it('Получено системное сообщение Comagic. Сообщение корректно отображено.', function() {
+                                    contactCommunicationsRequest.comagicSystemMessage().receiveResponse();
 
-                                    tester.chatHistory.message.atTime('12:14').directionIcon.
-                                        expectToHaveClass('incoming_failed_svg__cmg-direction-icon');
+                                    tester.chatHistory.message.atTime('12:11').expectToHaveTextContent(
+                                        '12:11 Чат принят оператором Карадимова Веска Анастасовна (79283810928)'
+                                    );
+                                });
+                                it('Получена заявка от контакта. Отображено имя.', function() {
+                                    contactCommunicationsRequest.offlineMessageFromContact().receiveResponse();
 
-                                    tester.chatHistory.expectToHaveTextContent(
-                                        '10 февраля 2020 ' +
-
+                                    tester.chatHistory.message.atTime('12:10').expectToHaveTextContent(
                                         'Заявка ' +
 
                                         'Я хочу о чем-то заявить. ' +
@@ -1021,22 +1076,8 @@ tests.addTest(options => {
                                         'Телефон: 79161212122 ' +
                                         'Email: msjdasj@mail.com ' +
 
-                                        '12:10 ' +
-
-                                        '12:11 Чат принят оператором Карадимова Веска Анастасовна (79283810928) ' +
-
-                                        'Здравствуйте 12:12 ' +
-                                            'Привет 12:13 ' +
-
-                                        '12:14 Входящий звонок с номера 79161234567 оператору Карадимова Веска ' +
-                                            'Анастасовна ' +
-                                        'Статус: Клиент не взял трубку (Время ожидания ответа: 53:39) ' +
-
-                                            'png 925 B heart.png 12:15'
+                                        '12:10'
                                     );
-                                });
-                                it('Получено системное сообщение Comagic. Сообщение корректно отображено.', function() {
-                                    contactCommunicationsRequest.comagicSystemMessage().receiveResponse();
                                 });
                             });
                             describe('Получена история коммуникаций.', function() {
@@ -1439,11 +1480,11 @@ tests.addTest(options => {
                                                 'Каналы связи ' +
 
                                                 'WhatsApp (3) ' +
-                                                    '+7 (928) 381 09-88 ' +
-                                                    '+7 (928) 381 09-28 ' +
-                                                    '+7 (928) 381 09-87 ' +
+                                                    '79283810988 ' +
+                                                    '79283810928 ' +
+                                                    '79283810987 ' +
 
-                                                '+7 (921) 830-76-32 ' +
+                                                '79218307632 ' +
                                                 '@kotik70600'
                                             );
                                     });
@@ -1456,7 +1497,7 @@ tests.addTest(options => {
 
                                         tester.contactBar.
                                             section('Каналы связи').
-                                            option('+7 (921) 830-76-32').
+                                            option('79218307632').
                                             messengerIcon.
                                             expectToHaveClass('cm-contacts-messenger-icon-telegram')
 
@@ -1472,9 +1513,9 @@ tests.addTest(options => {
                                                 'Каналы связи ' +
 
                                                 'WhatsApp (3) ' +
-                                                    '+7 (928) 381 09-88 ' +
+                                                    '79283810988 ' +
 
-                                                '+7 (921) 830-76-32 ' +
+                                                '79218307632 ' +
                                                 '@kotik70600'
                                             );
                                     });
@@ -1780,8 +1821,8 @@ tests.addTest(options => {
                             'endlesssprinп.of@comagic.dev ' +
 
                             'Каналы связи ' +
-                            '+7 (928) 381 09-88 ' +
-                            '+7 (928) 381 09-28'
+                            '79283810988 ' +
+                            '79283810928'
                         );
                     });
                 });
@@ -2061,6 +2102,404 @@ tests.addTest(options => {
             it('Кнопки добавления телефонов и E-Mail скрыты.', function() {
                 tester.contactBar.section('Телефоны').svg.expectNotToExist();
                 tester.contactBar.section('E-Mail').svg.expectNotToExist();
+            });
+        });
+        describe('Рабочее место оператора доступно.', function() {
+            let contactChatsRequest;
+
+            beforeEach(function() {
+                accountRequest = accountRequest.
+                    operatorWorkplaceAvailable();
+            });
+
+            describe(
+                'Есть доступ к чужим чатам. Открываю раздел контактов. Открываю контакт. Нажимаю на номер WhatsApp.',
+            function() {
+                beforeEach(function() {
+                    accountRequest.otherEmployeeChatsAccessAvailable().receiveResponse();
+
+                    const requests = ajax.inAnyOrder();
+
+                    reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                    const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                        reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                        secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    reportsListRequest.receiveResponse();
+                    reportTypesRequest.receiveResponse();
+                    secondAccountRequest.operatorWorkplaceAvailable().otherEmployeeChatsAccessAvailable().
+                        receiveResponse();
+                    reportGroupsRequest.receiveResponse();
+
+                    tester.configRequest().softphone().receiveResponse();
+
+                    tester.masterInfoMessage().receive();
+                    tester.slavesNotification().expectToBeSent();
+                    tester.slavesNotification().additional().expectToBeSent();
+                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                    tester.notificationChannel().tellIsLeader().expectToBeSent();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
+
+                    tester.authCheckRequest().receiveResponse();
+                    statusesRequest = tester.statusesRequest().expectToBeSent();
+
+                    settingsRequest = tester.settingsRequest().expectToBeSent();
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
+
+                    notificationTester.grantPermission();
+                    settingsRequest.receiveResponse();
+                    tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                    tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                    tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                    tester.connectEventsWebSocket();
+                    tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                        expectToBeSent();
+
+                    authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                    registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    authenticatedUserRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    registrationRequest.receiveResponse();
+                    tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                    statusesRequest.receiveResponse();
+
+                    tester.button('Контакты').click();
+                    tester.contactsRequest().differentNames().receiveResponse();
+
+                    tester.contactList.item('Бележкова Грета Ервиновна').click();
+
+                    {
+                        const requests = ajax.inAnyOrder();
+
+                        const contactCommunicationsRequest = tester.
+                            contactCommunicationsRequest().
+                            expectToBeSent(requests);
+
+                        const contactRequest = tester.contactRequest().expectToBeSent(requests);
+                        const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+
+                        usersRequest.receiveResponse();
+
+                        contactRequest.receiveResponse();
+                        contactCommunicationsRequest.receiveResponse();
+                    }
+
+                    tester.contactBar.
+                        section('Каналы связи').
+                        option('79283810988').
+                        click();
+
+                    contactChatsRequest = tester.contactChatsRequest().expectToBeSent();
+                });
+
+                describe('Получен чужой чат.', function() {
+                    beforeEach(function() {
+                        contactChatsRequest = contactChatsRequest.anotherEmployee();
+                    });
+
+                    it('Чат закрыт.', function() {
+                        contactChatsRequest.closed().receiveResponse();
+
+                        tester.notificationWindow.expectToHaveTextContent(
+                            'Чат был создан другим оператором, возобновление коммуникации невозможно'
+                        );
+                    });
+                    it('Чат активен. Открыт раздел чатов.', function() {
+                        contactChatsRequest.receiveResponse();
+
+                        tester.chatListRequest().receiveResponse();
+                        tester.chatChannelListRequest().receiveResponse();
+                        tester.statusListRequest().receiveResponse();
+                        tester.listRequest().receiveResponse();
+                        tester.siteListRequest().receiveResponse();
+                        tester.messageTemplateListRequest().receiveResponse();
+                        tester.chatSettingsRequest().receiveResponse();
+
+                        tester.accountRequest().
+                            forChats().
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
+
+                        tester.chatsWebSocket.connect();
+                        tester.chatsInitMessage().expectToBeSent();
+                        
+                        tester.accountRequest().
+                            forChats().
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
+
+                        tester.chatListRequest().active().receiveResponse();
+
+                        tester.offlineMessageCountersRequest().receiveResponse();
+                        tester.chatChannelListRequest().receiveResponse();
+                        tester.siteListRequest().receiveResponse();
+                        tester.markListRequest().receiveResponse();
+                        tester.chatChannelTypeListRequest().receiveResponse();
+
+                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                        tester.offlineMessageListRequest().processing().receiveResponse();
+                        tester.offlineMessageListRequest().processed().receiveResponse();
+
+                        tester.countersRequest().receiveResponse();
+
+                        tester.chatListRequest().forCurrentEmployee().secondPage().receiveResponse();
+                        tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                        tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+                        tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+                        tester.chatListRequest().forCurrentEmployee().isOtherEmployeesAppeals().active().
+                            receiveResponse();
+                        tester.chatListRequest().thirdChat().receiveResponse();
+
+                        tester.messageListRequest().receiveResponse();
+                        tester.acceptChatRequest().receiveResponse();
+                        tester.visitorCardRequest().receiveResponse();
+
+                        tester.usersRequest().forContacts().receiveResponse();
+
+                        tester.changeMessageStatusRequest().
+                            anotherChat().
+                            anotherMessage().
+                            read().
+                            receiveResponse();
+
+                        tester.changeMessageStatusRequest().
+                            anotherChat().
+                            anotherMessage().
+                            read().
+                            receiveResponse();
+
+                        tester.changeMessageStatusRequest().
+                            anotherChat().
+                            anotherMessage().
+                            read().
+                            receiveResponse();
+                        
+                        tester.usersRequest().forContacts().receiveResponse();
+                    });
+                });
+                it('Чат не найден. Отображено предложение начать новый чат.', function() {
+                    contactChatsRequest.anotherChannelType().receiveResponse();
+                    tester.modalWindow.expectTextContentToHaveSubstring('Новый чат');
+                });
+                it('Канал WhatsApp недоступен. Отображено сообщение об ошибке.', function() {
+                    contactChatsRequest.channelInactive().receiveResponse();
+                    tester.notificationWindow.expectToHaveTextContent('Канал WhatsApp недоступен');
+                });
+                it('Чат найден. Открыт раздел чатов.', function() {
+                    contactChatsRequest.receiveResponse();
+
+                    tester.chatListRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.statusListRequest().receiveResponse();
+                    tester.listRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.messageTemplateListRequest().receiveResponse();
+                    tester.chatSettingsRequest().receiveResponse();
+
+                    tester.accountRequest().
+                        forChats().
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+                    tester.chatsInitMessage().expectToBeSent();
+                    
+                    tester.accountRequest().
+                        forChats().
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.chatListRequest().active().receiveResponse();
+
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+
+                    tester.countersRequest().receiveResponse();
+
+                    tester.chatListRequest().forCurrentEmployee().secondPage().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().isOtherEmployeesAppeals().active().receiveResponse();
+                    tester.chatListRequest().thirdChat().receiveResponse();
+
+                    tester.messageListRequest().receiveResponse();
+                    tester.acceptChatRequest().receiveResponse();
+                    tester.visitorCardRequest().receiveResponse();
+
+                    tester.usersRequest().forContacts().receiveResponse();
+
+                    tester.changeMessageStatusRequest().
+                        anotherChat().
+                        anotherMessage().
+                        read().
+                        receiveResponse();
+
+                    tester.changeMessageStatusRequest().
+                        anotherChat().
+                        anotherMessage().
+                        read().
+                        receiveResponse();
+
+                    tester.changeMessageStatusRequest().
+                        anotherChat().
+                        anotherMessage().
+                        read().
+                        receiveResponse();
+                    
+                    tester.usersRequest().forContacts().receiveResponse();
+                });
+            });
+            it(
+                'Нет доступа к чужим чатам. Открываю раздел контактов. Открываю контакт. Нажимаю на номер WhatsApp. ' +
+                'Получен чужой чат.',
+            function() {
+                accountRequest.receiveResponse();
+
+                const requests = ajax.inAnyOrder();
+
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+                secondAccountRequest.operatorWorkplaceAvailable().receiveResponse();
+                reportGroupsRequest.receiveResponse();
+
+                tester.configRequest().softphone().receiveResponse();
+
+                tester.masterInfoMessage().receive();
+                tester.slavesNotification().expectToBeSent();
+                tester.slavesNotification().additional().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                tester.authCheckRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+
+                settingsRequest = tester.settingsRequest().expectToBeSent();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                notificationTester.grantPermission();
+                settingsRequest.receiveResponse();
+                tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                tester.connectEventsWebSocket();
+                tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                tester.connectSIPWebSocket();
+                tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                    expectToBeSent();
+
+                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                tester.allowMediaInput();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    expectToBeSent();
+
+                authenticatedUserRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    userDataFetched().
+                    expectToBeSent();
+
+                registrationRequest.receiveResponse();
+                tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                statusesRequest.receiveResponse();
+
+                tester.button('Контакты').click();
+                tester.contactsRequest().differentNames().receiveResponse();
+
+                tester.contactList.item('Бележкова Грета Ервиновна').click();
+
+                {
+                    const requests = ajax.inAnyOrder();
+
+                    const contactCommunicationsRequest = tester.
+                        contactCommunicationsRequest().
+                        expectToBeSent(requests);
+
+                    const contactRequest = tester.contactRequest().expectToBeSent(requests);
+                    const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    usersRequest.receiveResponse();
+
+                    contactRequest.receiveResponse();
+                    contactCommunicationsRequest.receiveResponse();
+                }
+
+                tester.contactBar.
+                    section('Каналы связи').
+                    option('79283810988').
+                    click();
+
+                tester.contactChatsRequest().anotherEmployee().receiveResponse();
+
+                tester.notificationWindow.expectToHaveTextContent(
+                    'Невозможно перейти в чат, посетитель участвует в чате с другим оператором'
+                );
             });
         });
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {
