@@ -1,4 +1,3 @@
-tests.requireClass('ULib.ux.data.TreeComboStore');
 tests.requireClass('Comagic.account.integration.amocrm.store.Record');
 tests.requireClass('Comagic.account.integration.amocrm.store.EventsFilterRecords');
 tests.requireClass('Comagic.account.integration.amocrm.store.AdditionalFields');
@@ -307,7 +306,7 @@ function AccountIntegrationAmocrm(args) {
                     expectToHavePath('/directory/comagic:amocrm:entity_name_template_ns_params/').
                     respondSuccessfullyWith({
                         success: true,
-                        data: [] 
+                        data: []
                     });
             }
         };
@@ -373,6 +372,15 @@ function AccountIntegrationAmocrm(args) {
                             }, {
                                 id: 'out_call_task_name_template',
                                 name: 'Пугающий шаблон'
+                            }, {
+                                id: 'offline_message_contact_name_template',
+                                name: 'Некий шаблон заявки для конткта'
+                            }, {
+                                id: 'offline_message_lead_name_template',
+                                name: 'Некий шаблон заявки для лида'
+                            }, {
+                                id: 'offline_message_task_name_template',
+                                name: 'Некий шаблон заявки для задачи'
                             }],
                             'comagic:amocrm:user_field_event_params': [{
                                 id: 8193,
@@ -477,6 +485,12 @@ function AccountIntegrationAmocrm(args) {
                             'comagic:amocrm:chat_profile_condition_event_param': [{
                                 mnemonic: 'different_param',
                                 name: 'Иной параметр'
+                            }, {
+                                mnemonic: 'chat_channel_name',
+                                name: 'Название канала чата',
+                                value_list_directory: 'comagic:consultant:chat_channel',
+                                operator: 'sub',
+                                description: 'Название канала чата'
                             }],
                             'comagic:amocrm:task_duration': [{
                                 id: 9384,
@@ -507,6 +521,10 @@ function AccountIntegrationAmocrm(args) {
                                 id: '74959759581',
                                 is_service: false,
                                 name: '74959759581'
+                            }],
+                            'comagic:consultant:chat_channel': [{
+                                id: 250283,
+                                name: 'Некий чат'
                             }]
                         }
                     });
@@ -913,6 +931,9 @@ function AccountIntegrationAmocrm(args) {
             sync_time: '2018-12-02T12:43:54.124824',
             sync_state: 'ok',
             sync_error: null,
+
+            first_in_call_act: 'lead',
+            first_out_call_act: 'lead',
 
             first_call_act: 'lead',
             secondary_call_act: 'lead',

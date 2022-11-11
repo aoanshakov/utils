@@ -1019,7 +1019,7 @@ define(() => function ({
                 this.expectToBeSent().receiveResponse();
             }
         });
-    }
+    };
 
     me.chatMarkingRequest = () => {
         const addResponseModifiers = me => me;
@@ -1049,7 +1049,7 @@ define(() => function ({
                 this.expectToBeSent().receiveResponse();
             }
         });
-    }
+    };
 
     me.resourcePayloadRequest = () => {
         const addResponseModifiers = me => me;
@@ -1073,6 +1073,46 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.chatStartingRequest = () => {
+        let params = {
+            chat_channel_type: 'whatsapp',
+            account_id: 425802,
+            contact: {
+                phone: '79283810988'
+            }
+        };
+
+        let data = {
+            chat_id: 7189362
+        };
+
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                return addResponseModifiers({
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectToHaveMethod('POST').
+                            expectPathToContain('$REACT_APP_BASE_URL').
+                            expectBodyToContain({
+                                method: 'start_chat',
+                                params
+                            }).respondSuccessfullyWith({
+                                result: {data}
+                            });
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -3032,6 +3072,13 @@ define(() => function ({
                             status: 'active',
                             status_reason: 'omni_request',
                             type: 'telegram'
+                        }, {
+                            id: 216395,
+                            is_removed: true,
+                            name: 'whatsapp',
+                            status: 'active',
+                            status_reason: '',
+                            type: 'whatsapp'
                         }]
                     });
 
@@ -3086,10 +3133,15 @@ define(() => function ({
                     last_name: 'Бележкова',
                     id: 1689283,
                     email_list: ['endlesssprinп.of@comagic.dev'],
-                    chat_channel_list: [
-                        { type: 'whatsapp', phone: '79283810988' },
-                        { type: 'whatsapp', phone: '79283810928' },
-                    ],
+                    chat_channel_list: [{
+                        type: 'whatsapp',
+                        phone: '79283810988',
+                        chat_channel_id: 216395
+                    }, {
+                        type: 'whatsapp',
+                        phone: '79283810928' ,
+                        chat_channel_id: 216395
+                    }],
                     organization_name: 'UIS',
                     phone_list: ['79162729533'],
                     group_list: [],
@@ -8350,7 +8402,8 @@ define(() => function ({
             me.addTelegram = () => {
                 processors.push(() => response.chat_channel_list.push({
                     type: 'telegram',
-                    phone: '79218307632' 
+                    phone: '79218307632',
+                    chat_channel_id: 101
                 }));
 
                 return me;
@@ -8359,7 +8412,8 @@ define(() => function ({
             me.addSecondTelegram = () => {
                 processors.push(() => response.chat_channel_list.push({
                     type: 'telegram',
-                    ext_id: '@kotik70600' 
+                    ext_id: '@kotik70600',
+                    chat_channel_id: 101
                 }));
 
                 return me;
@@ -8377,7 +8431,8 @@ define(() => function ({
             me.addThirdTelegram = () => {
                 processors.push(() => response.chat_channel_list.push({
                     type: 'telegram',
-                    ext_id: '@kotik70601' 
+                    ext_id: '@kotik70601',
+                    chat_channel_id: 101
                 }));
 
                 return me;
@@ -8386,7 +8441,8 @@ define(() => function ({
             me.addFourthTelegram = () => {
                 processors.push(() => response.chat_channel_list.push({
                     type: 'telegram',
-                    phone: '79283810928' 
+                    phone: '79283810928',
+                    chat_channel_id: 101
                 }));
 
                 return me;
@@ -8429,10 +8485,12 @@ define(() => function ({
             email_list: ['endlesssprinп.of@comagic.dev'],
             chat_channel_list: [{
                 type: 'whatsapp',
-                phone: '79283810988' 
+                phone: '79283810988',
+                chat_channel_id: 216395
             }, {
                 type: 'whatsapp',
-                phone: '79283810928' 
+                phone: '79283810928',
+                chat_channel_id: 216395
             }],
             organization_name: 'UIS',
             phone_list: ['79162729533'],
@@ -8455,10 +8513,15 @@ define(() => function ({
                 response.full_name = 'Белоконска-Вражалска Калиса Еньовна';
                 response.personal_manager_id = 79582;
 
-                response.chat_channel_list = [
-                    { type: 'whatsapp', phone: '+7 (928) 381 09-89' },
-                    { type: 'whatsapp', phone: '+7 (928) 381 09-29' },
-                ];
+                response.chat_channel_list = [{
+                    type: 'whatsapp',
+                    phone: '+7 (928) 381 09-89',
+                    chat_channel_id: 216395
+                }, {
+                    type: 'whatsapp',
+                    phone: '+7 (928) 381 09-29',
+                    chat_channel_id: 216395
+                }];
 
                 return this;
             },
@@ -8492,23 +8555,26 @@ define(() => function ({
 
     me.contactChatsRequest = () => {
         const result = {
-            chat_channel_status: 'active',
-            chats: [{
+            is_chat_channel_active: true,
+            omni_account_state: 'active',
+            omni_account_id: 425802,
+            chat: {
                 id: 7189362,
                 phone: '79283810988',
                 employee_id: 20816,
                 chat_channel_type: 'whatsapp',
-                is_chat_channel_active: true,
                 chat_status: 'active'
-            }]
+            }
         };
 
         const addResponseModifiers = me => {
-            me.anotherPhone = () => (result.chats[0].phone = '79357818431', me);
-            me.anotherEmployee = () => (result.chats[0].employee_id = 57292, me);
-            me.anotherChannelType = () => (result.chats[0].chat_channel_type = 'telegram', me);
-            me.channelInactive = () => (result.chat_channel_status = 'inactive', me);
-            me.closed = () => (result.chats[0].chat_status = 'closed', me);
+            me.anotherPhone = () => (result.chat.phone = '79357818431', me);
+            me.anotherEmployee = () => (result.chat.employee_id = 57292, me);
+            me.anotherChannelType = () => (result.chat.chat_channel_type = 'telegram', me);
+            me.channelInactive = () => (result.is_chat_channel_active = false, me);
+            me.accountInactive = () => (result.omni_account_state = 'inactive', me);
+            me.noChat = () => (result.chat = null, me);
+            me.closed = () => (result.chat.chat_status = 'closed', me);
 
             return me;
         };
@@ -8521,7 +8587,11 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/1689283/chats/20816`).
-                    expectToHaveMethod('GET');
+                    expectToHaveMethod('GET').
+                    expectQueryToContain({
+                        contact_chat_channel_id: '216395',
+                        chat_statuses: ['new', 'active', 'closed', undefined]
+                    });
 
                 return addResponseModifiers({
                     receiveResponse: () => {
@@ -8863,12 +8933,12 @@ define(() => function ({
                     phone: '79283810988',
                     type: 'whatsapp',
                     ext_id: null,
-                    chat_channel_id: null         
+                    chat_channel_id: 216395
                 }, {
                     phone: '79283810928',
                     type: 'whatsapp',
                     ext_id: null,
-                    chat_channel_id: null         
+                    chat_channel_id: 216395
                 }],
                 group_list: [],
                 group_ids: [],
@@ -8933,11 +9003,15 @@ define(() => function ({
                     first_name: 'Грета',
                     last_name: 'Бележкова',
                     email_list: ['endlesssprinп.of@comagic.dev', undefined],
-                    chat_channel_list: [
-                        { type: 'whatsapp', phone: '79283810988' },
-                        { type: 'whatsapp', phone: '79283810928' },
-                        undefined
-                    ],
+                    chat_channel_list: [{
+                        type: 'whatsapp',
+                        phone: '79283810988',
+                        chat_channel_id: 216395
+                    }, {
+                        type: 'whatsapp',
+                        phone: '79283810928' ,
+                        chat_channel_id: 216395
+                    }, undefined],
                     organization_name: 'UIS',
                     phone_list: ['79162729533', undefined],
                     group_list: [undefined],
@@ -10751,10 +10825,10 @@ define(() => function ({
 
             tester.chatChannelGroup = text => {
                 const getDomElement = () => utils.descendantOf(getSectionElement()).
-                    matchesSelector('.cm-contacts-chat-channel-group-header').
+                    matchesSelector('.cm-contacts-list-items-group-header').
                     textContains(text).
                     find().
-                    closest('.cm-contacts-chat-channel-group');
+                    closest('.cm-contacts-list-items-group');
 
                 const tester = testersFactory.createDomElementTester();
 

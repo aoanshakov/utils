@@ -3608,7 +3608,7 @@ function JsTester_QueryParams() {
             if (Array.isArray(oldValue)) {
                 oldValue.push(value);
             } else {
-                namespace[component] = [oldValue];
+                namespace[component] = [oldValue, value];
             }
         } else {
             namespace[component] = value;
@@ -4065,6 +4065,10 @@ function JsTester_Utils ({debug, windowSize, spendTime}) {
         return value.replace(/<[^<>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/[\s]+/g, ' ').trim();
     };
     function parseName (name) {
+        if (/^[^\[\]]+\[\]$/.test(name)) {
+            return [name.slice(0, -2)];
+        }
+
         var result = name.match(/^([^\[\]]+)(?:\[([^\[\]]+)\])+$/);
 
         if (!result) {

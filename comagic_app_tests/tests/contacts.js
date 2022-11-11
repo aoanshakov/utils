@@ -933,7 +933,7 @@ tests.addTest(options => {
 
                                             tester.chatHistory.expectToHaveTextContent(
                                                 '10 февраля 2020 ' +
-                                                
+
                                                 'Заявка ' +
 
                                                 'Я хочу о чем-то заявить. ' +
@@ -948,13 +948,19 @@ tests.addTest(options => {
 
                                                 'Здравствуйте 12:12 ' +
 
+                                                    'Бележкова Грета Ервиновна ' +
+                                                    'Здравствуйте ' +
                                                     'Привет 12:13 ' +
 
                                                 '12:14 Входящий звонок с номера 79161234567 оператору Карадимова ' +
                                                     'Веска Анастасовна ' +
                                                 'Запись звонка 53:40 12:14 ' +
 
-                                                    'png 925 B heart.png 12:15'
+                                                    'png 925 B heart.png 12:15 ' +
+
+                                                'Карадимова Веска Анастасовна ' +
+                                                'heart.png ' +
+                                                'Прикольная картинка 12:16'
                                             );
                                         });
                                         it('Получена следующая страница.', function() {
@@ -1026,27 +1032,11 @@ tests.addTest(options => {
                                         tester.chatHistory.message.atTime('12:14').directionIcon.
                                             expectToHaveClass('incoming_failed_svg__cmg-direction-icon');
 
-                                        tester.chatHistory.expectToHaveTextContent(
-                                            '10 февраля 2020 ' +
+                                        tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
+                                            '12:14 ' +
 
-                                            'Заявка ' +
-
-                                            'Я хочу о чем-то заявить. ' +
-                                            'Имя: Помакова Бисерка Драгановна ' +
-                                            'Телефон: 79161212122 ' +
-                                            'Email: msjdasj@mail.com ' +
-
-                                            '12:10 ' +
-
-                                            '12:11 Чат принят оператором Карадимова Веска Анастасовна (79283810928) ' +
-
-                                            'Здравствуйте 12:12 ' +
-                                                'Привет 12:13 ' +
-
-                                            '12:14 Входящий звонок с номера 79161234567 оператору Карадимова Веска ' +
-                                                'Анастасовна ' +
-
-                                                'png 925 B heart.png 12:15'
+                                            'Входящий звонок с номера 79161234567 оператору ' +
+                                            'Карадимова Веска Анастасовна'
                                         );
                                     });
                                 });
@@ -2312,11 +2302,69 @@ tests.addTest(options => {
                         tester.usersRequest().forContacts().receiveResponse();
                     });
                 });
-                it('Чат не найден. Отображено предложение начать новый чат.', function() {
-                    contactChatsRequest.anotherChannelType().receiveResponse();
-                    tester.modalWindow.expectTextContentToHaveSubstring('Новый чат');
+                it(
+                    'Чат не найден. Отображено предложение начать новый чат. Нажимаю на кнопку "Создать". Открыт ' +
+                    'новый чат.',
+                function() {
+                    contactChatsRequest.noChat().receiveResponse();
+
+                    tester.modalWindow.button('Создать').click();
+
+                    tester.chatListRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.statusListRequest().receiveResponse();
+                    tester.listRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.messageTemplateListRequest().receiveResponse();
+                    tester.chatSettingsRequest().receiveResponse();
+
+                    tester.accountRequest().
+                        forChats().
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+                    tester.chatsInitMessage().expectToBeSent();
+                    
+                    tester.accountRequest().
+                        forChats().
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.chatListRequest().active().receiveResponse();
+
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+
+                    tester.countersRequest().receiveResponse();
+
+                    tester.chatListRequest().forCurrentEmployee().secondPage().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().isOtherEmployeesAppeals().active().receiveResponse();
+
+                    tester.chatStartingRequest().receiveResponse();
+                    tester.chatListRequest().thirdChat().receiveResponse();
+
+                    tester.acceptChatRequest().receiveResponse();
+                    tester.visitorCardRequest().receiveResponse();
+
+                    tester.usersRequest().forContacts().receiveResponse();
+                    tester.usersRequest().forContacts().receiveResponse();
                 });
-                it('Канал WhatsApp недоступен. Отображено сообщение об ошибке.', function() {
+                it('OMNI-аккаунт недоступен. Отображено сообщение об ошибке.', function() {
+                    contactChatsRequest.accountInactive().receiveResponse();
+                    tester.notificationWindow.expectToHaveTextContent('Канал WhatsApp недоступен');
+                });
+                it('Канал недоступен. Отображено сообщение об ошибке.', function() {
                     contactChatsRequest.channelInactive().receiveResponse();
                     tester.notificationWindow.expectToHaveTextContent('Канал WhatsApp недоступен');
                 });

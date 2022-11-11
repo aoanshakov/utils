@@ -58,11 +58,29 @@ tests.addTest(function(args) {
 
                     helper.addFunnelButton.expectToBeEnabled();
                 });
-                it('Открываю вкладку "Чаты". Настройки доступны.', function() {
+                it(
+                    'Открываю вкладку "Чаты". Добавляю воронку. Выбираю условие "Название канала чата". В списке ' +
+                    'значений отображены значения условия.',
+                function() {
                     helper.innerTab('Чаты').mousedown();
                     wait(10);
 
-                    helper.addFunnelButton.expectToBeEnabled();
+                    helper.addFunnelButton.click();
+                    wait(10);
+
+                    helper.listItem('Ну эта уже точно последняя').click();
+                    wait(10);
+
+                    helper.form.combobox().withPlaceholder('Выберите значение').clickArrow().
+                        option('Название канала чата').click();
+                    wait(10);
+
+                    helper.form.combobox().withPlaceholder('Выберите значение').clickArrow().option('Некий чат').
+                        click();
+                    wait(10);
+
+                    helper.form.combobox().withValue('Некий чат').clickArrow();
+                    wait(10);
                 });
                 it('Настройки доступны.', function() {
                     helper.addFunnelButton.expectToBeEnabled();
@@ -431,7 +449,7 @@ tests.addTest(function(args) {
                 helper.destroy();
             }
 
-            helper = new AccountIntegrationAmocrm(requestsManager, testersFactory, utils);
+            helper = new AccountIntegrationAmocrm(args);
 
             Comagic.Directory.load();
             helper.batchReloadRequest().send();
@@ -619,7 +637,7 @@ tests.addTest(function(args) {
             }
 
             Comagic.getApplication().setHasNotComponent('amocrm_extended_integration');
-            helper = new AccountIntegrationAmocrm(requestsManager, testersFactory, utils);
+            helper = new AccountIntegrationAmocrm(args);
 
             Comagic.Directory.load();
             helper.batchReloadRequest().send();
@@ -652,7 +670,7 @@ tests.addTest(function(args) {
             helper.destroy();
         }
 
-        helper = new AccountIntegrationAmocrm(requestsManager, testersFactory, utils);
+        helper = new AccountIntegrationAmocrm(args);
 
         Comagic.Directory.load();
         helper.batchReloadRequest().send();
