@@ -554,9 +554,7 @@ tests.addTest(options => {
                                                 tester.contactBar.
                                                     section('Телефоны').
                                                     expectTextContentToHaveSubstring(
-                                                        'Данный номер телефона уже используется в одном или ' +
-                                                        'нескольких контактах. Выберете в какой контакт мы объединим ' +
-                                                        'данные, а другой удалим'
+                                                        'Данный номер телефона уже используется'
                                                     );
 
                                                 tester.contactBar.
@@ -570,7 +568,8 @@ tests.addTest(options => {
                                                     '79162729534 ' +
 
                                                     'Паскалева Бисера Илковна ' +
-                                                    '79162729533'
+                                                    '79162729533 ' +
+                                                    '79162722748'
                                                 );
                                             });
                                             it(
@@ -619,7 +618,7 @@ tests.addTest(options => {
                                         });
 
                                         it(
-                                            'Выбираю другого менеджера. Нажимаю на кнпоку "Отменить". В списке ' +
+                                            'Выбираю другого менеджера. Нажимаю на кнопку "Отменить". В списке ' +
                                             'выбрано прежнее значение.',
                                         function() {
                                             tester.contactBar.
@@ -698,26 +697,154 @@ tests.addTest(options => {
                                             tester.contactBar.section('E-Mail').svg.click();
                                         });
 
+                                        describe('Ввожу E-Mail. Нажимаю на кнопку "Сохранить".', function() {
+                                            let contactsRequest;
+
+                                            beforeEach(function() {
+                                                tester.contactBar.section('E-Mail').input.fill('belezhkova@gmail.com');
+                                                tester.contactBar.section('E-Mail').button('Сохранить').click();
+
+                                                contactsRequest = tester.contactsRequest().
+                                                    emailSearching().
+                                                    expectToBeSent();
+                                            });
+
+                                            it('Найден дубль. Отображено сообщение об ошибке.', function() {
+                                                contactsRequest.
+                                                    oneItem().
+                                                    receiveResponse();
+
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    expectTextContentToHaveSubstring(
+                                                        'Данная почта уже используется'
+                                                    );
+
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    select.
+                                                    first.
+                                                    click();
+
+                                                tester.select.popup.expectToHaveTextContent(
+                                                    'Бележкова Грета Ервиновна (текущий) ' +
+
+                                                    'endlesssprinп.of@comagic.dev ' +
+                                                    'belezhkova@gmail.com ' +
+
+                                                    'Паскалева Бисера Илковна ' +
+
+                                                    'paskaleva@gmail.com ' +
+                                                    'belezhkova@gmail.com (дубликат)'
+                                                );
+                                            });
+                                            it('Дубли не найдены. Отправлен запрос обновления контакта.', function() {
+                                                contactsRequest.
+                                                    noData().
+                                                    receiveResponse();
+
+                                                tester.contactUpdatingRequest().
+                                                    completeData().
+                                                    twoEmails().
+                                                    receiveResponse();
+                                            });
+                                        });
                                         it(
-                                            'Нажимаю на кнпоку "Сохранить". Пустая строка в качестве E-Mail не ' +
+                                            'Нажимаю на кнопку "Сохранить". Пустая строка в качестве E-Mail не ' +
                                             'сохранилась.',
                                         function() {
                                             tester.contactBar.section('E-Mail').button('Сохранить').click();
                                             tester.contactUpdatingRequest().completeData().receiveResponse();
                                         });
-                                        it('Ввожу E-Mail. Отправлен запрос обновления контакта.', function() {
-                                            tester.contactBar.section('E-Mail').input.fill('belezhkova@gmail.com');
-                                            tester.contactBar.section('E-Mail').button('Сохранить').click();
+                                    });
+                                    describe(
+                                        'Нажимаю на иконку с плюсом справа от надписи "Каналы связи".',
+                                    function() {
+                                        beforeEach(function() {
+                                            tester.contactBar.
+                                                section('Каналы связи').
+                                                plusButton.
+                                                click();
+                                        });
 
-                                            tester.contactsRequest().
-                                                emailSearching().
-                                                noData().
-                                                receiveResponse();
+                                        describe('Ввожу значение в поле. Нажимаю на кнопку "Сохранить".', function() {
+                                            beforeEach(function() {
+                                                tester.contactBar.
+                                                    section('Каналы связи').
+                                                    input.
+                                                    fill('79283810987')
 
-                                            tester.contactUpdatingRequest().
-                                                completeData().
-                                                twoEmails().
-                                                receiveResponse();
+                                                tester.button('Сохранить').click();
+
+                                                contactsRequest = tester.contactsRequest().
+                                                    channelSearching().
+                                                    expectToBeSent();
+                                            });
+
+                                            it('Дубликат не найден. Отправлен запрос обновления контакта.', function() {
+                                                contactsRequest.
+                                                    noData().
+                                                    receiveResponse();
+
+                                                tester.contactUpdatingRequest().
+                                                    completeData().
+                                                    newChannel().
+                                                    receiveResponse();
+
+                                                tester.contactBar.
+                                                    section('Каналы связи').
+                                                    option('79283810988').
+                                                    messengerIcon.
+                                                    expectToHaveClass('cm-contacts-messenger-icon-whatsapp')
+                                            });
+                                            it(
+                                                'Найден дубликат. Отображено сообщение об ошибке. Открываю ' +
+                                                'выпадающий список контактов.',
+                                            function() {
+                                                contactsRequest.
+                                                    oneItem().
+                                                    receiveResponse();
+
+                                                tester.contactBar.
+                                                    section('Каналы связи').
+                                                    select.
+                                                    first.
+                                                    click();
+
+                                                tester.contactBar.
+                                                    section('Каналы связи').
+                                                    expectTextContentToHaveSubstring('Данный канал уже используется');
+
+                                                tester.select.popup.expectToHaveTextContent(
+                                                    'Бележкова Грета Ервиновна (текущий) ' +
+
+                                                    '79283810988 ' +
+                                                    '79283810928 ' +
+                                                    '79283810987 ' +
+
+                                                    'Паскалева Бисера Илковна ' +
+
+                                                    '79283810986 ' +
+                                                    '79283810987 (дубликат)'
+                                                );
+                                            });
+                                        });
+                                        it(
+                                            'Рядом с полем для ввода номера телефона отображена иконка WhatsApp.',
+                                        function() {
+                                            tester.contactBar.
+                                                section('Каналы связи').
+                                                option.
+                                                atIndex(2).
+                                                input.
+                                                expectToBeVisible();
+
+                                            tester.contactBar.
+                                                section('Каналы связи').
+                                                option.
+                                                atIndex(2).
+                                                messengerIcon.
+                                                expectToHaveClass('cm-contacts-messenger-icon-whatsapp');
                                         });
                                     });
                                     it(
@@ -793,18 +920,6 @@ tests.addTest(options => {
                                                 '2020-02-10_12-14-14.000_from_79161234567_session_482060_talk.mp3'
                                             ).
                                             expectToHaveContent('29f2f28ofjowf829f');
-                                    });
-                                    it('Редактирование мессенджеров недоступно.', function() {
-                                        tester.contactBar.
-                                            section('Каналы связи').
-                                            option('79283810988').
-                                            putMouseOver();
-
-                                        tester.contactBar.
-                                            section('Каналы связи').
-                                            option('79283810988').
-                                            toolsIcon.
-                                            expectNotToExist();
                                     });
                                     it(
                                         'Помещаю курсор над сиситемным сообщением. Отображена всплывающая подсказка.',
@@ -948,7 +1063,7 @@ tests.addTest(options => {
 
                                                 'Здравствуйте 12:12 ' +
 
-                                                    'Бележкова Грета Ервиновна ' +
+                                                    'Белоконска-Вражалска Калиса Еньовна ' +
                                                     'Здравствуйте ' +
                                                     'Привет 12:13 ' +
 
@@ -1153,7 +1268,8 @@ tests.addTest(options => {
 
                                                             tester.select.option(
                                                                 'Паскалева Бисера Илковна ' +
-                                                                '79162729533 (дубликат)'
+                                                                '79162729533 (дубликат) ' +
+                                                                '79162722748'
                                                             ).click();
 
                                                             tester.button('Объединить').click();
@@ -1180,9 +1296,7 @@ tests.addTest(options => {
                                                                     '79162729533 ' +
                                                                     '79162729537 ' +
 
-                                                                    'Данный номер телефона уже используется в одном ' +
-                                                                    'или нескольких контактах. Выберете в какой ' +
-                                                                    'контакт мы объединим данные, а другой удалим'
+                                                                    'Данный номер телефона уже используется'
                                                                 );
                                                         });
                                                     });
@@ -1353,17 +1467,17 @@ tests.addTest(options => {
                                             );
                                         });
                                         it('Только один номер телефона отображен.', function() {
+                                            tester.contactBar.section('Телефоны').expectToHaveTextContent(
+                                                'Телефоны (3) ' +
+                                                '79162729533'
+                                            );
+
                                             tester.contactBar.
                                                 section('Телефоны').
                                                 collapsednessToggleButton.
                                                 expectNotToHaveClass(
                                                     'cm-contacts-collapsedness-toggle-button-expanded'
                                                 );
-
-                                            tester.contactBar.section('Телефоны').expectToHaveTextContent(
-                                                'Телефоны (3) ' +
-                                                '79162729533'
-                                            );
                                         });
                                     });
                                     describe('У контакта два номера. Все номера телефонов отображены.', function() {
@@ -1393,7 +1507,7 @@ tests.addTest(options => {
                                                 });
 
                                                 it(
-                                                    'Нажимаю на кнпоку "Сохранить". Отображен только один телефон.',
+                                                    'Нажимаю на кнопку "Сохранить". Отображен только один телефон.',
                                                 function() {
                                                     tester.contactBar.
                                                         section('Телефоны').
@@ -1538,6 +1652,15 @@ tests.addTest(options => {
                                     tester.contactBar.section('E-Mail').input.expectNotToExist(); 
                                     tester.contactBar.section('E-Mail').option('').expectNotToExist();
                                 });
+                                it('В цитате отображено имя контакта.', function() {
+                                    contactRequest.receiveResponse();
+
+                                    tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
+                                        'Бележкова Грета Ервиновна ' +
+                                        'Здравствуйте ' +
+                                        'Привет 12:13'
+                                    );
+                                });
                             });
                         });
                         it('Имена сгруппированы по первым буквам.', function() {
@@ -1619,7 +1742,7 @@ tests.addTest(options => {
                                 });
 
                                 it(
-                                    'Заполняю остальные поля. Нажимаю на кнпоку "Сохранить". В списке изменено имя ' +
+                                    'Заполняю остальные поля. Нажимаю на кнопку "Сохранить". В списке изменено имя ' +
                                     'контакта.',
                                 function() {
                                     tester.contactBar.section('ФИО').svg.click();
@@ -2099,7 +2222,7 @@ tests.addTest(options => {
             });
         });
         describe('Рабочее место оператора доступно.', function() {
-            let contactChatsRequest;
+            let contactChatRequest;
 
             beforeEach(function() {
                 accountRequest = accountRequest.
@@ -2214,23 +2337,23 @@ tests.addTest(options => {
                         option('79283810988').
                         click();
 
-                    contactChatsRequest = tester.contactChatsRequest().expectToBeSent();
+                    contactChatRequest = tester.contactChatRequest().expectToBeSent();
                 });
 
                 describe('Получен чужой чат.', function() {
                     beforeEach(function() {
-                        contactChatsRequest = contactChatsRequest.anotherEmployee();
+                        contactChatRequest = contactChatRequest.anotherEmployee();
                     });
 
                     it('Чат закрыт.', function() {
-                        contactChatsRequest.closed().receiveResponse();
+                        contactChatRequest.closed().receiveResponse();
 
                         tester.notificationWindow.expectToHaveTextContent(
                             'Чат был создан другим оператором, возобновление коммуникации невозможно'
                         );
                     });
                     it('Чат активен. Открыт раздел чатов.', function() {
-                        contactChatsRequest.receiveResponse();
+                        contactChatRequest.receiveResponse();
 
                         tester.chatListRequest().receiveResponse();
                         tester.chatChannelListRequest().receiveResponse();
@@ -2306,7 +2429,7 @@ tests.addTest(options => {
                     'Чат не найден. Отображено предложение начать новый чат. Нажимаю на кнопку "Создать". Открыт ' +
                     'новый чат.',
                 function() {
-                    contactChatsRequest.noChat().receiveResponse();
+                    contactChatRequest.noChat().receiveResponse();
 
                     tester.modalWindow.button('Создать').click();
 
@@ -2361,15 +2484,15 @@ tests.addTest(options => {
                     tester.usersRequest().forContacts().receiveResponse();
                 });
                 it('OMNI-аккаунт недоступен. Отображено сообщение об ошибке.', function() {
-                    contactChatsRequest.accountInactive().receiveResponse();
+                    contactChatRequest.accountInactive().receiveResponse();
                     tester.notificationWindow.expectToHaveTextContent('Канал WhatsApp недоступен');
                 });
                 it('Канал недоступен. Отображено сообщение об ошибке.', function() {
-                    contactChatsRequest.channelInactive().receiveResponse();
+                    contactChatRequest.channelInactive().receiveResponse();
                     tester.notificationWindow.expectToHaveTextContent('Канал WhatsApp недоступен');
                 });
                 it('Чат найден. Открыт раздел чатов.', function() {
-                    contactChatsRequest.receiveResponse();
+                    contactChatRequest.receiveResponse();
 
                     tester.chatListRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
@@ -2547,7 +2670,7 @@ tests.addTest(options => {
                     option('79283810988').
                     click();
 
-                tester.contactChatsRequest().anotherEmployee().receiveResponse();
+                tester.contactChatRequest().anotherEmployee().receiveResponse();
 
                 tester.notificationWindow.expectToHaveTextContent(
                     'Невозможно перейти в чат, посетитель участвует в чате с другим оператором'

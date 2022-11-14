@@ -8553,8 +8553,8 @@ define(() => function ({
         });
     };
 
-    me.contactChatsRequest = () => {
-        const result = {
+    me.contactChatRequest = () => {
+        const data = {
             is_chat_channel_active: true,
             omni_account_state: 'active',
             omni_account_id: 425802,
@@ -8568,28 +8568,26 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
-            me.anotherPhone = () => (result.chat.phone = '79357818431', me);
-            me.anotherEmployee = () => (result.chat.employee_id = 57292, me);
-            me.anotherChannelType = () => (result.chat.chat_channel_type = 'telegram', me);
-            me.channelInactive = () => (result.is_chat_channel_active = false, me);
-            me.accountInactive = () => (result.omni_account_state = 'inactive', me);
-            me.noChat = () => (result.chat = null, me);
-            me.closed = () => (result.chat.chat_status = 'closed', me);
+            me.anotherPhone = () => (data.chat.phone = '79357818431', me);
+            me.anotherEmployee = () => (data.chat.employee_id = 57292, me);
+            me.anotherChannelType = () => (data.chat.chat_channel_type = 'telegram', me);
+            me.channelInactive = () => (data.is_chat_channel_active = false, me);
+            me.accountInactive = () => (data.omni_account_state = 'inactive', me);
+            me.noChat = () => (data.chat = null, me);
+            me.closed = () => (data.chat.chat_status = 'closed', me);
 
             return me;
         };
 
-        const response = {
-            data: [result]
-        };
+        const response = {data};
 
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/1689283/chats/20816`).
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/1689283/chat/20816`).
                     expectToHaveMethod('GET').
                     expectQueryToContain({
-                        contact_chat_channel_id: '216395',
+                        chat_channel_id: '216395',
                         chat_statuses: ['new', 'active', 'closed', undefined]
                     });
 
@@ -9080,6 +9078,21 @@ define(() => function ({
                     (bodyParams.email_list = ['endlesssprinп.of@comagic.dev', 'belezhkova@gmail.com', undefined]));
                 return this;
             },
+
+            newChannel() {
+                processors.push(bodyParams => {
+                    bodyParams.chat_channel_list[2] = {
+                        chat_channel_id: null,
+                        ext_id: null,
+                        phone: '79283810987',
+                        type: 'whatsapp'
+                    };
+
+                    bodyParams.chat_channel_list.push(undefined);
+                });
+
+                return this;
+            },
             
             expectToBeSent() {
                 processors.forEach(process => process(bodyParams));
@@ -9248,10 +9261,20 @@ define(() => function ({
                     first_name: 'Бисера',
                     last_name: 'Паскалева',
                     id: 25206823,
-                    email_list: ['paskaleva@gmail.com'],
-                    chat_channel_list: [],
+                    email_list: ['paskaleva@gmail.com', 'belezhkova@gmail.com'],
+                    chat_channel_list: [{
+                        phone: '79283810986',
+                        type: 'whatsapp',
+                        ext_id: null,
+                        chat_channel_id: 84277
+                    }, {
+                        phone: '79283810987',
+                        type: 'whatsapp',
+                        ext_id: null,
+                        chat_channel_id: 84278
+                    }],
                     organization_name: 'UIS',
-                    phone_list: ['79162729533'],
+                    phone_list: ['79162729533', '79162722748'],
                     group_list: [],
                     personal_manager_id: null,
                     patronymic: 'Илковна',
@@ -9931,6 +9954,12 @@ define(() => function ({
             emailSearching() {
                 params.search = 'belezhkova@gmail.com';
                 params.merge_entity = 'email';
+                return this;
+            },
+
+            channelSearching() {
+                params.search = '79283810987';
+                params.merge_entity = 'channel';
                 return this;
             },
 
@@ -10845,15 +10874,7 @@ define(() => function ({
                 return addTesters(tester, getDomElement);
             };
 
-            tester.option = text => {
-                const getOptionElements = () => utils.descendantOf(getSectionElement()).
-                    textEquals(text).
-                    matchesSelector('.cm-contacts-contact-bar-section-option').
-                    findAll();
-                
-                const getOptionElement = () => utils.getVisibleSilently(getOptionElements()),
-                    tester = testersFactory.createDomElementTester(getOptionElement);
-
+            const addOptionTesters = (tester, getOptionElement) => {
                 const clickTester = testersFactory.createDomElementTester(() => {
                     const option = getOptionElement(),
                         clickableOption = option.querySelector('.cm-contacts-contact-bar-clickable-option')
@@ -10864,32 +10885,40 @@ define(() => function ({
                 const click = clickTester.click.bind(clickTester),
                     putMouseOver = tester.putMouseOver.bind(tester);
 
-                const addOptionTesters = (tester, getOptionElement) => {
-                    tester.click = () => (click(), spendTime(0));
-                    tester.putMouseOver = () => (putMouseOver(), spendTime(0));
+                tester.click = () => (click(), spendTime(0));
+                tester.putMouseOver = () => (putMouseOver(), spendTime(0));
 
-                    tester.toolsIcon = (() => {
-                        const tester = testersFactory.createDomElementTester(
-                            () => utils.element(getOptionElement()).
-                                querySelector('.cm-contacts-contact-bar-option-tools svg')
-                        );
-
-                        const click = tester.click.bind(tester);
-                        tester.click = () => (click(), spendTime(0), spendTime(0));
-
-                        return tester;
-                    })();
-
-                    tester.expectToBeSelected = () => tester.expectToHaveClass(
-                        'cm-contacts-contact-bar-section-option-selected'
+                tester.toolsIcon = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => utils.element(getOptionElement()).
+                            querySelector('.cm-contacts-contact-bar-option-tools svg')
                     );
 
-                    tester.expectNotToBeSelected = () => tester.expectNotToHaveClass(
-                        'cm-contacts-contact-bar-section-option-selected'
-                    );
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0), spendTime(0));
 
                     return tester;
-                };
+                })();
+
+                tester.expectToBeSelected = () => tester.expectToHaveClass(
+                    'cm-contacts-contact-bar-section-option-selected'
+                );
+
+                tester.expectNotToBeSelected = () => tester.expectNotToHaveClass(
+                    'cm-contacts-contact-bar-section-option-selected'
+                );
+
+                return addTesters(tester, getOptionElement);
+            };
+
+            tester.option = text => {
+                const getOptionElements = () => utils.descendantOf(getSectionElement()).
+                    textEquals(text).
+                    matchesSelector('.cm-contacts-contact-bar-section-option').
+                    findAll();
+                
+                const getOptionElement = () => utils.getVisibleSilently(getOptionElements()),
+                    tester = testersFactory.createDomElementTester(getOptionElement);
 
                 const createChannelTypeTester = type => {
                     const getDomElement = () => utils.getVisibleSilently(Array.prototype.filter.call(
@@ -10908,9 +10937,18 @@ define(() => function ({
                 tester.telegram = createChannelTypeTester('telegram');
 
                 addOptionTesters(tester, getOptionElement);
-                addTesters(tester, getOptionElement);
                 return tester;
             };
+            
+            tester.option.atIndex = index => {
+                const getOptionAtIndex = () =>
+                    getSectionElement().querySelectorAll('.cm-contacts-contact-bar-section-option')[index];
+
+                const tester = testersFactory.createDomElementTester(getOptionAtIndex);
+                return addOptionTesters(tester, getOptionAtIndex);
+            };
+
+            tester.option.first = tester.option.atIndex(0);
 
             const getContentElement = () => utils.element(getSectionElement()).
                 querySelector('.cm-contacts-contact-bar-section-content');
