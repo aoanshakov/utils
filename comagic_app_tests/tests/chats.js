@@ -153,7 +153,7 @@ tests.addTest(options => {
                                 visitorCardRequest;
 
                             beforeEach(function() {
-                                chatListRequest.receiveResponse();
+                                chatListRequest.noVisitorName().receiveResponse();
                                 tester.acceptChatRequest().receiveResponse();
                                 visitorCardRequest = tester.visitorCardRequest().expectToBeSent();
                                 messageListRequest = tester.messageListRequest().expectToBeSent();
@@ -451,6 +451,41 @@ tests.addTest(options => {
                                     tester.contactBar.section('E-Mail').svg.expectNotToExist();
                                 });
                             });
+                            it(
+                                'Среди сообщений есть ответ посетителя на другое сообщение. Данные посетителя ' +
+                                'получены позже списка сообщений. Имя посетителя отображено в ответе.',
+                            function() {
+                                messageListRequest.reply().receiveResponse();
+                                visitorCardRequest.receiveResponse();
+
+                                tester.usersRequest().forContacts().receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    anotherChat().
+                                    anotherMessage().
+                                    read().
+                                    receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    anotherChat().
+                                    anotherMessage().
+                                    read().
+                                    receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    anotherChat().
+                                    anotherMessage().
+                                    read().
+                                    receiveResponse();
+
+                                tester.usersRequest().forContacts().receiveResponse();
+
+                                tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
+                                    'Помакова Бисерка Драгановна ' +
+                                    'Как дела? ' +
+                                    'Привет 12:13 Ответить'
+                                );
+                            });
                         });
                         describe('Номер заполнен автоматически.', function() {
                             beforeEach(function() {
@@ -547,24 +582,24 @@ tests.addTest(options => {
 
                             tester.contactBar.
                                 section('Каналы связи').
-                                option('+7 (928) 381 09-88').
+                                option('79283810988').
                                 expectNotToBeSelected();
 
                             tester.contactBar.
                                 section('Каналы связи').
-                                option('+7 (928) 381 09-28').
+                                option('79283810928').
                                 whatsApp.
                                 expectToBeSelected();
 
                             tester.contactBar.
                                 section('Каналы связи').
-                                option('+7 (921) 830-76-32').
+                                option('79218307632').
                                 telegram.
                                 expectNotToBeSelected();
 
                             tester.contactBar.
                                 section('Каналы связи').
-                                option('+7 (928) 381 09-28').
+                                option('79283810928').
                                 telegram.
                                 expectToBeSelected();
 
@@ -579,8 +614,8 @@ tests.addTest(options => {
                                 'endlesssprinп.of@comagic.dev ' +
 
                                 'Каналы связи ' +
-                                '+7 (928) 381 09-88 ' +
-                                '+7 (928) 381 09-28'
+                                '79283810988 ' +
+                                '79283810928'
                             );
                         });
                         it('Определен контекст. Текущий канал связи выделен.', function() {
@@ -612,12 +647,12 @@ tests.addTest(options => {
 
                             tester.contactBar.
                                 section('Каналы связи').
-                                option('+7 (928) 381 09-88').
+                                option('79283810988').
                                 expectNotToBeSelected();
 
                             tester.contactBar.
                                 section('Каналы связи').
-                                option('+7 (928) 381 09-28').
+                                option('79283810928').
                                 expectToBeSelected();
 
                             tester.contactBar.expectTextContentToHaveSubstring(
@@ -631,8 +666,8 @@ tests.addTest(options => {
                                 'endlesssprinп.of@comagic.dev ' +
 
                                 'Каналы связи ' +
-                                '+7 (928) 381 09-88 ' +
-                                '+7 (928) 381 09-28'
+                                '79283810988 ' +
+                                '79283810928'
                             );
                         });
                     });

@@ -1234,7 +1234,6 @@ define(() => function ({
                     reourceName: null,
                     employee_id: 20816,
                     employee_name: 'Карадимова Веска Анастасовна',
-                    visitor_name: 'Помакова Бисерка Драгановна',
                     front_message_uuid: '8g28929d8j44jgo9d',
                     error_mnemonic: null
                 };
@@ -3461,6 +3460,11 @@ define(() => function ({
         
         function addResponseModifiers (me) {
             me.nothingFound = () => ((data = []), me);
+
+            me.noVisitorName = () => {
+                processors.push(data => data.chats.forEach(item => (item.visitor_name = null)));
+                return me;
+            };
 
             me.phoneAutoFilled = () => {
                 processors.push(data => (data.chats[0].is_phone_auto_filled = true));
