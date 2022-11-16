@@ -288,12 +288,30 @@ tests.addTest(options => {
                                     it('Нажимаю на кнопку "Создать контакт".', function() {
                                         tester.button('Создать контакт').click();
                                         tester.contactCreatingRequest().fromVisitor().receiveResponse();
+                                        tester.contactRequest().fifthContact().receiveResponse();
                                         tester.chatListRequest().thirdChat().expectToBeSent();
 
+                                        tester.contactBar.title.expectToHaveTextContent('Контакт');
                                         tester.contactBar.section('Телефоны').svg.expectToBeVisible();
                                         tester.contactBar.section('E-Mail').svg.expectToBeVisible();
                                     });
+                                    it(
+                                        'Нажимаю на иконку с плюсом рядом с текстом "Персональный менеджер". ' +
+                                        'Выпадающий список менеджеров скрыт.',
+                                    function() {
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            plusButton.
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            select.
+                                            expectNotToExist();
+                                    });
                                     it('Отображены сообщения чата.', function() {
+                                        tester.contactBar.title.expectToHaveTextContent('Посетитель');
+
                                         tester.chatHistory.message.atTime('12:13').expectToBeDelivered();
 
                                         tester.chatHistory.expectToHaveTextContent(
@@ -317,10 +335,29 @@ tests.addTest(options => {
                                             'Помакова Бисерка Драгановна'
                                         );
 
-                                        tester.contactBar.section('Телефоны').svg.expectNotToExist();
-                                        tester.contactBar.section('E-Mail').svg.expectNotToExist();
-
                                         tester.spin.expectNotToExist();
+
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            plusButton.
+                                            expectNotToExist();
+
+                                        tester.contactBar.
+                                            section('E-Mail').
+                                            plusButton.
+                                            expectNotToExist();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            plusButton.
+                                            expectToBeDisabled();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            plusButton.
+                                            putMouseOver();
+
+                                        tester.tooltip.expectToHaveTextContent('Доступно после создания контакта');
                                     });
                                 });
                                 it(
@@ -644,6 +681,9 @@ tests.addTest(options => {
                                 anotherMessage().
                                 read().
                                 receiveResponse();
+
+                            tester.contactBar.title.expectToHaveTextContent('Контакт');
+                            tester.contactBar.title.deleteButton.expectNotToExist();
 
                             tester.contactBar.
                                 section('Каналы связи').

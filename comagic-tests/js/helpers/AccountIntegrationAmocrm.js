@@ -38,6 +38,26 @@ function AccountIntegrationAmocrm(args) {
         };
 
         return {
+            offlineMessageTemplatesChanged: function () {
+                bodyParams.offline_message_contact_name_template =
+                    'Новый контакт {{visitor_contact_info}} по заявке с сайта CoMagic';
+                bodyParams.offline_message_lead_name_template =
+                    'Новая заявка с сайта под номером {{communication_id}} из CoMagic';
+                bodyParams.offline_message_task_name_template =
+                    'Дать ответ на заявку с сайта под номером {{communication_id}} из CoMagic';
+
+                return this;
+            },
+            chatTemplatesChanged: function () {
+                bodyParams.chat_contact_name_template =
+                    'Новый контакт {{visitor_contact_info}} по чату с сайта CoMagic';
+                bodyParams.chat_lead_name_template =
+                    'Новая заявка из чата под номером {{communication_id}} из CoMagic';
+                bodyParams.chat_task_name_template =
+                    'Дать ответ на сообщение в чате с сайта под номером {{communication_id}} из CoMagic';
+
+                return this;
+            },
             changeUrl: function () {
                 bodyParams.url = 'https://petrov.amocrm.ru/';
                 return this;
@@ -90,6 +110,9 @@ function AccountIntegrationAmocrm(args) {
                 bodyParams.responsible_manager_source = 'lead';
                 return this;
             },
+            receiveResponse() {
+                this.send();
+            },
             send: function () {
                 requestsManager.recentRequest().
                     expectToHavePath('/account/integration/amocrm/save/').
@@ -101,6 +124,8 @@ function AccountIntegrationAmocrm(args) {
             }
         };
     };
+
+    this.amocrmSavingRequest = this.requestAmocrmDataSave;
 
     this.requestResponsibleUsersSaving = function () {
         var bodyParams = {
@@ -299,6 +324,54 @@ function AccountIntegrationAmocrm(args) {
         };
     };
 
+    function getEntityNameTemplateNsParams () {
+        return [{
+            communication_type: 'offline_message',
+            direction: null,
+            entity: 'contact',
+            params: [{
+                name: 'Третий параметр',
+                mnemonic: 'third_param',
+                data_type: 'string',
+                description: 'Описание третьего параметра',
+                required_components: []
+            }]
+        }, {
+            communication_type: 'offline_message',
+            direction: null,
+            entity: 'lead',
+            params: [{
+                name: 'Четвертый параметр',
+                mnemonic: 'fourth_param',
+                data_type: 'string',
+                description: 'Описание четвертого параметра',
+                required_components: []
+            }]
+        }, {
+            communication_type: 'offline_message',
+            direction: null,
+            entity: 'task',
+            params: [{
+                name: 'Пятый параметр',
+                mnemonic: 'five_param',
+                data_type: 'string',
+                description: 'Описание пятого параметра',
+                required_components: []
+            }]
+        }, {
+            communication_type: 'chat_finished',
+            direction: null,
+            entity: 'contact',
+            params: [{
+                name: 'Шестой параметр',
+                mnemonic: 'sixth_param',
+                data_type: 'string',
+                description: 'Описание шестого параметра',
+                required_components: []
+            }]
+        }];
+    }
+
     this.entityNameTemplateNsParamsRequest = function () {
         return {
             receiveResponse: function () {
@@ -306,7 +379,7 @@ function AccountIntegrationAmocrm(args) {
                     expectToHavePath('/directory/comagic:amocrm:entity_name_template_ns_params/').
                     respondSuccessfullyWith({
                         success: true,
-                        data: []
+                        data: getEntityNameTemplateNsParams()
                     });
             }
         };
@@ -358,17 +431,17 @@ function AccountIntegrationAmocrm(args) {
                                 id: 'in_call_contact_name_template',
                                 name: 'Некий шаблон'
                             }, {
-                                id: 'out_call_contact_name_template',
-                                name: 'Другой шаблон'
-                            }, {
                                 id: 'in_call_lead_name_template',
                                 name: 'Еще один шаблон'
                             }, {
-                                id: 'out_call_lead_name_template',
-                                name: 'Совсем иной шаблон'
-                            }, {
                                 id: 'in_call_task_name_template',
                                 name: 'Удивительный шаблон'
+                            }, {
+                                id: 'out_call_contact_name_template',
+                                name: 'Другой шаблон'
+                            }, {
+                                id: 'out_call_lead_name_template',
+                                name: 'Совсем иной шаблон'
                             }, {
                                 id: 'out_call_task_name_template',
                                 name: 'Пугающий шаблон'
@@ -381,7 +454,17 @@ function AccountIntegrationAmocrm(args) {
                             }, {
                                 id: 'offline_message_task_name_template',
                                 name: 'Некий шаблон заявки для задачи'
+                            }, {
+                                id: 'chat_contact_name_template',
+                                name: 'Некий шаблон чата для конткта'
+                            }, {
+                                id: 'chat_lead_name_template',
+                                name: 'Некий шаблон чата для лида'
+                            }, {
+                                id: 'chat_task_name_template',
+                                name: 'Некий шаблон чата для задачи'
                             }],
+                            'comagic:amocrm:entity_name_template_ns_params': getEntityNameTemplateNsParams(),
                             'comagic:amocrm:user_field_event_params': [{
                                 id: 8193,
                                 name: 'Это поле',
@@ -961,7 +1044,15 @@ function AccountIntegrationAmocrm(args) {
             responsible_manager_source: 'contact',
             deal_source_user_field_ext_id: null,
             sale_category_user_field_value_ids: [],
-            loss_reason_user_field_value_ids: []
+            loss_reason_user_field_value_ids: [],
+
+            offline_message_contact_name_template: 'Новый контакт {{visitor_contact_info}} по заявке с сайта UIS',
+            offline_message_lead_name_template: 'Новая заявка с сайта под номером {{communication_id}} из UIS',
+            offline_message_task_name_template: 'Дать ответ на заявку с сайта под номером {{communication_id}}',
+
+            chat_contact_name_template: 'Новый контакт {{visitor_contact_info}} по чату с сайта UIS',
+            chat_lead_name_template: 'Новая заявка из чата под номером {{communication_id}} из UIS',
+            chat_task_name_template: 'Дать ответ на сообщение в чате с сайта под номером {{communication_id}}'
         };
     }
 
@@ -969,6 +1060,20 @@ function AccountIntegrationAmocrm(args) {
         var data = getAmocrmData();
 
         return {
+            noChatTemplate: function () {
+                data.chat_contact_name_template = null;
+                data.chat_lead_name_template = null;
+                data.chat_task_name_template = null;
+
+                return this;
+            },
+            noOfflineMessageTemplate: function () {
+                data.offline_message_contact_name_template = null;
+                data.offline_message_lead_name_template = null;
+                data.offline_message_task_name_template = null;
+
+                return this;
+            },
             setIsAnywaySendTalkRecords: function () {
                 data.is_anyway_send_talk_records = true;
                 return this;
@@ -1190,8 +1295,16 @@ function AccountIntegrationAmocrm(args) {
             createDomElementTester(utils.descendantOfBody().textEquals(text).matchesSelector('.x-btn').find());
     };
 
+    this.grid = (function () {
+        var tester = testersFactory.createDomElementTester(function () {;
+            return utils.getVisibleSilently(document.querySelectorAll('.x-grid'));
+        });
+
+        return tester;
+    })();
+
     this.row = function (label) {
-        var tr = utils.descendantOfBody().textEquals(label).matchesSelector('.x-component').find(true).closest('tr');
+        var tr = utils.descendantOfBody().textEquals(label).matchesSelector('.x-component').find().closest('tr');
 
         return {
             column: function (index) {
@@ -1206,5 +1319,70 @@ function AccountIntegrationAmocrm(args) {
                 };
             }
         };
+    };
+
+    function addTesters (tester, getDomElement) {
+        tester.textarea = {
+            withLabel: function (expectedLabel) {
+                return testersFactory.createTextFieldTester(function () {
+                    return utils.descendantOf(getDomElement()).
+                        matchesSelector('.x-component').
+                        textEquals(expectedLabel).
+                        find().
+                        closest('.x-container').
+                        querySelector('textarea')
+                });
+            }
+        };
+
+        var disabledClassName = 'x-item-disabled';
+
+        tester.expectToBeEnabled = function () {
+            tester.expectNotToHaveClass(disabledClassName);
+        };
+
+        tester.expectToBeDisabled = function () {
+            tester.expectToHaveClass(disabledClassName);
+        };
+
+        tester.plusIcon = testersFactory.createDomElementTester(function () {
+            return getDomElement().querySelector('.ul-btn-usual-icon-cls-plus');
+        });
+
+        Object.defineProperty(tester, 'container', {
+            get: function () {
+                return {
+                    withLabel: function (expectedLabel) {
+                        function getContainerElement () {
+                            return utils.descendantOf(getDomElement()).
+                                textEquals(expectedLabel).
+                                matchesSelector('.ul-label, .x-component').
+                                find().
+                                closest('.x-container');
+                        }
+
+                        return addTesters(
+                            testersFactory.createDomElementTester(getContainerElement),
+                            getContainerElement
+                        );
+                    }
+                };
+            }
+        });     
+
+        return tester;
+    }
+
+    addTesters(this, function () {
+        return document.body;
+    });
+
+    this.label = function (expectedLabel) {
+        return testersFactory.createDomElementTester(function () {
+            return utils.descendantOfBody().
+                textEquals(expectedLabel).
+                matchesSelector('label').
+                find()
+        });
     };
 }

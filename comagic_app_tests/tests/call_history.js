@@ -1074,7 +1074,7 @@ tests.addTest(options => {
                                     tester.marksRequest().receiveResponse();
                                 });
                                 it('Нажимаю на иконку с крестиком. Карточка контакта скрыта.', function() {
-                                    tester.contactBar.closeButton.click();
+                                    tester.contactBar.title.closeButton.click();
                                     tester.contactBar.expectNotToExist();
                                 });
                                 it('Открыта карточка контакта.', function() {

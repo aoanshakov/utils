@@ -1288,7 +1288,7 @@ function JsTester_InputElement (
         getDomElement().setSelectionRange(selectionStart, selectionEnd);
     };
     this.expectToBeEnabled = function () {
-        componentElementTester.expectToBeEnabled();
+        componentElementTester && componentElementTester.expectToBeEnabled();
     };
     this.expectToBeDisabled = function () {
         componentElementTester.expectToBeDisabled();
