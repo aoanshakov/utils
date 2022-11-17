@@ -3483,6 +3483,114 @@ tests.addTest(options => {
 
             tester.contactBar.title.deleteButton.expectNotToExist();
         });
+        it('Фичефлаг исходящего чата выключен. Нажимаю на канал связи. Ничего не происходит.', function() {
+            accountRequest.
+                outgoingChatFeatureFlagDisabled().
+                operatorWorkplaceAvailable().
+                receiveResponse();
+
+            const requests = ajax.inAnyOrder();
+
+            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+
+            secondAccountRequest.
+                outgoingChatFeatureFlagDisabled().
+                operatorWorkplaceAvailable().
+                receiveResponse();
+
+            reportGroupsRequest.receiveResponse();
+            tester.configRequest().softphone().receiveResponse();
+
+            tester.masterInfoMessage().receive();
+            tester.slavesNotification().expectToBeSent();
+            tester.slavesNotification().additional().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+            tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+
+            tester.authCheckRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+
+            settingsRequest = tester.settingsRequest().expectToBeSent();
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+
+            notificationTester.grantPermission();
+
+            settingsRequest.receiveResponse();
+            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+            tester.othersNotification().widgetStateUpdate().expectToBeSent();
+            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            tester.connectEventsWebSocket();
+            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.connectSIPWebSocket();
+            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                expectToBeSent();
+
+            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+            registrationRequest = tester.registrationRequest().expectToBeSent();
+
+            tester.allowMediaInput();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                expectToBeSent();
+
+            authenticatedUserRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                userDataFetched().
+                expectToBeSent();
+
+            registrationRequest.receiveResponse();
+            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            statusesRequest.receiveResponse();
+
+            tester.button('Контакты').click();
+            tester.contactsRequest().differentNames().receiveResponse();
+
+            tester.contactList.item('Бележкова Грета Ервиновна').click();
+
+            {
+                const requests = ajax.inAnyOrder();
+
+                const contactCommunicationsRequest = tester.contactCommunicationsRequest().expectToBeSent(requests),
+                    contactRequest = tester.contactRequest().expectToBeSent(requests),
+                    usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                contactRequest.receiveResponse();
+                usersRequest.receiveResponse();
+                contactCommunicationsRequest.receiveResponse();
+            }
+
+            tester.contactBar.
+                section('Каналы связи').
+                option('79283810988').
+                click();
+        });
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {
             accountRequest.contactsFeatureFlagDisabled().receiveResponse();
 
