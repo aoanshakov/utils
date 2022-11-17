@@ -46,7 +46,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        xdescribe('Раздел контактов доступен.', function() {
+        describe('Раздел контактов доступен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
@@ -2406,7 +2406,7 @@ tests.addTest(options => {
                 tester.softphone.expectTextContentToHaveSubstring('Используется на другом устройстве');
             });
         });
-        xdescribe('Рабочее место оператора доступно.', function() {
+        describe('Рабочее место оператора доступно.', function() {
             let contactChatRequest;
 
             beforeEach(function() {
@@ -2872,7 +2872,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe('Редактирование контактов недоступно. Открываю раздел контактов. Нажимаю на имя.', function() {
+        describe('Редактирование контактов недоступно. Открываю раздел контактов. Нажимаю на имя.', function() {
             beforeEach(function() {
                 accountRequest.addressBookUpdatingUnavailable().receiveResponse();
 
@@ -2999,7 +2999,124 @@ tests.addTest(options => {
                 tester.contactBar.section('E-Mail').svg.expectNotToExist();
             });
         });
-        xit('Создание контакта недоступно. Кнопка добавления контакта заблокирована.', function() {
+        describe('Добавление каналов недоступно.', function() {
+            beforeEach(function() {
+                accountRequest.contactChannelCreatingFeatureFlagDisabled().receiveResponse();
+
+                const requests = ajax.inAnyOrder();
+
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+                secondAccountRequest.contactChannelCreatingFeatureFlagDisabled().receiveResponse();
+                reportGroupsRequest.receiveResponse();
+
+                tester.configRequest().softphone().receiveResponse();
+
+                tester.masterInfoMessage().receive();
+                tester.slavesNotification().expectToBeSent();
+                tester.slavesNotification().additional().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                tester.authCheckRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+
+                settingsRequest = tester.settingsRequest().expectToBeSent();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                notificationTester.grantPermission();
+
+                settingsRequest.receiveResponse();
+                tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                tester.connectEventsWebSocket();
+                tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                tester.connectSIPWebSocket();
+                tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                    expectToBeSent();
+
+                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                tester.allowMediaInput();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    expectToBeSent();
+
+                authenticatedUserRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    userDataFetched().
+                    expectToBeSent();
+
+                registrationRequest.receiveResponse();
+                tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                statusesRequest.receiveResponse();
+
+                tester.button('Контакты').click();
+                tester.contactsRequest().differentNames().receiveResponse();
+
+                tester.contactList.item('Бележкова Грета Ервиновна').click();
+
+                {
+                    const requests = ajax.inAnyOrder();
+
+                    const contactCommunicationsRequest = tester.contactCommunicationsRequest().expectToBeSent(requests),
+                        contactRequest = tester.contactRequest().expectToBeSent(requests),
+                        usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    contactRequest.receiveResponse();
+                    usersRequest.receiveResponse();
+                    contactCommunicationsRequest.receiveResponse();
+                }
+            });
+
+            it('Меню редактирования каналов связи скрыта.', function() {
+                tester.contactBar.
+                    section('Каналы связи').
+                    option('79283810988').
+                    putMouseOver();
+
+                tester.contactBar.
+                    section('Каналы связи').
+                    option('79283810988').
+                    toolsIcon.
+                    expectNotToExist();
+            });
+            it('Кнопка добавления канала скрыта.', function() {
+                tester.contactBar.
+                    section('Каналы связи').
+                    plusButton.
+                    expectNotToExist();
+            });
+        });
+        it('Создание контакта недоступно. Кнопка добавления контакта заблокирована.', function() {
             accountRequest.addressBookCreatingUnavailable().receiveResponse();
 
             const requests = ajax.inAnyOrder();
@@ -3084,7 +3201,7 @@ tests.addTest(options => {
 
             tester.tooltip.expectToHaveTextContent('Отсутствуют права на создание, обратитесь к Администратору');
         });
-        xit('Фичефлаг создания контакта выключен. Кнопка добавления контакта скрыта.', function() {
+        it('Фичефлаг создания контакта выключен. Кнопка добавления контакта скрыта.', function() {
             accountRequest.contactCreatingFeatureFlagDisabled().receiveResponse();
 
             const requests = ajax.inAnyOrder();
@@ -3166,109 +3283,6 @@ tests.addTest(options => {
 
             tester.contactList.plusButton.expectNotToExist();
         });
-        it('Удаление контакта недоступно. Кнопка уделения заблокирована.', function() {
-            accountRequest.addressBookDeletingUnavailable().receiveResponse();
-
-            const requests = ajax.inAnyOrder();
-
-            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
-
-            requests.expectToBeSent();
-
-            reportsListRequest.receiveResponse();
-            reportTypesRequest.receiveResponse();
-            secondAccountRequest.addressBookDeletingUnavailable().receiveResponse();
-            reportGroupsRequest.receiveResponse();
-
-            tester.configRequest().softphone().receiveResponse();
-
-            tester.masterInfoMessage().receive();
-            tester.slavesNotification().expectToBeSent();
-            tester.slavesNotification().additional().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-
-            tester.notificationChannel().tellIsLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-
-            tester.authCheckRequest().receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
-            tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
-
-            notificationTester.grantPermission();
-
-            settingsRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
-
-            tester.othersNotification().widgetStateUpdate().expectToBeSent();
-            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
-
-            tester.connectEventsWebSocket();
-            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
-
-            tester.connectSIPWebSocket();
-            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
-                expectToBeSent();
-
-            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-            registrationRequest = tester.registrationRequest().expectToBeSent();
-
-            tester.allowMediaInput();
-
-            tester.slavesNotification().
-                twoChannels().
-                softphoneServerConnected().
-                webRTCServerConnected().
-                microphoneAccessGranted().
-                expectToBeSent();
-
-            authenticatedUserRequest.receiveResponse();
-
-            tester.slavesNotification().
-                twoChannels().
-                softphoneServerConnected().
-                webRTCServerConnected().
-                microphoneAccessGranted().
-                userDataFetched().
-                expectToBeSent();
-
-            registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
-
-            statusesRequest.receiveResponse();
-
-            tester.button('Контакты').click();
-            tester.contactsRequest().differentNames().receiveResponse();
-
-            tester.contactList.item('Бележкова Грета Ервиновна').click();
-
-            {
-                const requests = ajax.inAnyOrder();
-
-                const contactCommunicationsRequest = tester.contactCommunicationsRequest().expectToBeSent(requests),
-                    contactRequest = tester.contactRequest().expectToBeSent(requests),
-                    usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                contactRequest.receiveResponse();
-                usersRequest.receiveResponse();
-                contactCommunicationsRequest.receiveResponse();
-            }
-
-            tester.contactBar.
-                section('Каналы связи').
-                plusButton.
-                expectNotToExist();
-
-        });
-return;
         it('Удаление контакта недоступно. Кнопка уделения заблокирована.', function() {
             accountRequest.addressBookDeletingUnavailable().receiveResponse();
 
