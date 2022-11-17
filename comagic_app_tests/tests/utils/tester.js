@@ -941,10 +941,31 @@ define(() => function ({
             };
         }
 
+        me.closeButton = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => utils.element(getRootElement()).querySelector(
+                    '.cmg-miscrophone-unavailability-message-close, ' +
+                    '.cmg-connecting-message-close, ' +
+                    '.ui-audio-player__close, ' +
+                    '.ui-notification-close-x'
+                ) 
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0), spendTime(0));
+
+            return tester;
+        })();
+
         return me;
     };
 
-    me.tooltip = testersFactory.createDomElementTester('.ui-tooltip-inner');
+    me.tooltip = (() => {
+        const getDomElement = () => utils.querySelector('.ui-tooltip-inner'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
 
     me.statusesDurationItem = text => testersFactory.createDomElementTester(() => utils.descendantOfBody().
         textEquals(text).
@@ -10275,7 +10296,11 @@ define(() => function ({
                         'large_softphone',
                         'call_stats',
                         'call_history',
-                        'contacts'
+                        'contacts',
+                        'contact_creating',
+                        'contact_deleting',
+                        'outgoing_chat',
+                        'contact_channel_creating'
                     ],
                     call_center_role: 'employee',
                     components: [
@@ -10466,6 +10491,22 @@ define(() => function ({
             
             me.manager = () => ((response.result.data.call_center_role = 'manager'), me);
             me.noCallCenterRole = () => ((response.result.data.call_center_role = null), me);
+
+            me.contactChannelCreatingFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'contact_channel_creating')), me);
+
+            me.outgoingChatFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'outgoing_chat')), me);
+
+            me.contactDeletingFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'contact_deleting')), me);
+
+            me.contactCreatingFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'contact_creating')), me);
             
             me.softphoneFeatureFlagDisabled = () =>
                 ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
@@ -11226,7 +11267,12 @@ define(() => function ({
         return tester;
     })();
 
-    me.notificationWindow = testersFactory.createDomElementTester('.ui-notification');
+    me.notificationWindow = (() => {
+        const getDomElement = () => utils.querySelector('.ui-notification'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
 
     me.softphone = (getRootElement => {
         const tester = addTesters(
@@ -11239,17 +11285,6 @@ define(() => function ({
 
         return tester;
     })(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
-
-    me.closeButton = (() => {
-        const tester = testersFactory.createDomElementTester(
-            '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close, .ui-audio-player__close'
-        );
-
-        const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0), spendTime(0));
-
-        return tester;
-    })();
 
     me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
