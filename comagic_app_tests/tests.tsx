@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { notification } from 'magic-ui';
 
 import { createMemoryHistory } from 'history';
@@ -29,9 +30,9 @@ import {
 
 const history = createMemoryHistory(),
     TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
-    Window = ({children}) => <div className="cm-test-window">{children}</div>;
-
-const units = {};
+    Window = ({children}) => <div className="cm-test-window">{children}</div>,
+    units = {};
+let root;
 
 window.application = {
     run({
@@ -61,7 +62,9 @@ window.application = {
         container.id = 'root';
         document.body.appendChild(container);
 
-        ReactDOM.render(Unit ? <TestBody><Unit /></TestBody> : <Root
+        root = createRoot(document.getElementById('root')),
+
+        root.render(Unit ? <TestBody><Unit /></TestBody> : <Root
             {...(isElectron() ? {
                 Provider: SoftphoneProvider,
                 rootStore: softphoneRootStore,
@@ -74,7 +77,7 @@ window.application = {
                 history,
                 i18n: intl
             })}
-        >{isElectron() ? <Softphone /> : <ComagicApp />}</Root>, container);
+        >{isElectron() ? <Softphone /> : <ComagicApp />}</Root>);
     },
 
     exit() {
@@ -84,7 +87,7 @@ window.application = {
             return;
         }
 
-        container.firstChild && ReactDOM.unmountComponentAtNode(container);
+        container.firstChild && root?.unmount();
         container.remove();
     }
 };

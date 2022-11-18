@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 7257c68b..2fa71b25 100644
+index 7257c68b..b13f3253 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 7257c68b..2fa71b25 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -339,17 +409,125 @@ module.exports = {
+@@ -339,17 +409,126 @@ module.exports = {
                      },
                  ],
              },
@@ -229,6 +229,7 @@ index 7257c68b..2fa71b25 100644
 +            'callTracking/CalltrackingSubstitutionRules': `${miscDirectory}/Stub.js`,
 +            'callTracking/NumberPools': `${miscDirectory}/Stub.js`,
 +            'callTracking/Sites': `${miscDirectory}/Stub.js`,
++            'callTracking/Root': `${miscDirectory}/Stub.js`,
 +            'analytics/CreateDashboardButton': `${miscDirectory}/Stub.js`,
 +            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
 +            'analytics/CreateReport': `${miscDirectory}/Stub.js`,
