@@ -91,7 +91,7 @@ tests.addTest(options => {
                         authCheckRequest = tester.authCheckRequest().expectToBeSent();
                     });
 
-                    xdescribe('Софтфон авторизован.', function() {
+                    describe('Софтфон авторизован.', function() {
                         beforeEach(function() {
                             authCheckRequest.receiveResponse();
                             tester.statusesRequest().receiveResponse();
@@ -250,6 +250,7 @@ tests.addTest(options => {
                                     spendTime(5000);
                                     tester.expectPingToBeSent();
                                     spendTime(2000);
+                                    spendTime(0);
 
                                     tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
                                 });
@@ -349,16 +350,16 @@ tests.addTest(options => {
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
-                                        expectToBeSentToChannel('call-end').
-                                        expectToBeSentWithArguments(true);
-
-                                    getPackage('electron').ipcRenderer.
-                                        recentlySentMessage().
                                         expectToBeSentToChannel('resize').
                                         expectToBeSentWithArguments({
                                             width: 340,
                                             height: 212
                                         });
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
+                                        expectToBeSentToChannel('call-end').
+                                        expectToBeSentWithArguments(true);
 
                                     incomingCall.expectTemporarilyUnavailableToBeSent();
                                 });
@@ -547,7 +548,7 @@ tests.addTest(options => {
                                     });
 
                                     it('Скрываю контакт. Софтфон видим.', function() {
-                                        tester.contactBar.closeButton.click();
+                                        tester.contactBar.title.closeButton.click();
                                         tester.accountRequest().receiveResponse();
 
                                         tester.contactBar.expectNotToExist();
@@ -983,16 +984,16 @@ tests.addTest(options => {
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
-                                        expectToBeSentToChannel('incoming-call').
-                                        expectToBeSentWithArguments(false);
-
-                                    getPackage('electron').ipcRenderer.
-                                        recentlySentMessage().
                                         expectToBeSentToChannel('resize').
                                         expectToBeSentWithArguments({
                                             width: 340,
                                             height: 276
                                         });
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
+                                        expectToBeSentToChannel('incoming-call').
+                                        expectToBeSentWithArguments(false);
                                 });
 
                                 it('Нажимаю на кнопку большого размера.', function() {
@@ -1322,7 +1323,6 @@ tests.addTest(options => {
                         tester.button('Войти').expectToBeVisible();
                     });
                 });
-                return;
                 it('Большой софтфон недоступен. Кнопки размеров не отображены.', function() {
                     accountRequest.largeSoftphoneFeatureFlagDisabled().receiveResponse();
                     secondAccountRequest.largeSoftphoneFeatureFlagDisabled().receiveResponse();
@@ -1370,7 +1370,6 @@ tests.addTest(options => {
                     tester.button('Войти').expectToBeVisible();
                 });
             });
-            return;
             it(
                 'Используется английский язык. Открываю список номеров. Плейсхолдер поля поиска локализован.',
             function() {
@@ -1426,7 +1425,6 @@ tests.addTest(options => {
                 tester.input.withPlaceholder('Find').expectToBeVisible();
             });
         });
-        return;
         describe(
             'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
         function() {

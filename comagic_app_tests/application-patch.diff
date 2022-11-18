@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 7257c68b..b13f3253 100644
+index 7257c68b..a75264d2 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 7257c68b..b13f3253 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -339,17 +409,126 @@ module.exports = {
+@@ -339,17 +409,128 @@ module.exports = {
                      },
                  ],
              },
@@ -218,8 +218,10 @@ index 7257c68b..b13f3253 100644
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
 +            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
 +            'chats/HistoryLogWrapped': 'chats/src/components/chats/chat-panel/HistoryLogWrapped.tsx',
-+            'chats/AudioPlayerWrapped': 'chats//src/components/chats/chat-panel/AudioPlayerWrapped.tsx',
-+            'chats/MessageWrapped': 'chats//src/components/chats/chat-panel/MessageWrapped.tsx',
++            'chats/AudioPlayerWrapped': 'chats/src/components/chats/chat-panel/AudioPlayerWrapped.tsx',
++            'chats/MessageWrapped': 'chats/src/components/chats/chat-panel/MessageWrapped.tsx',
++            'chats/QuoteWrapped': 'chats/src/components/chats/chat-panel/QuoteWrapped.tsx',
++            'chats/HistoryItemWrapped': 'chats/src/components/offline-messages/panel/HistoryItemWrapped.tsx',
 +            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
 +            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
 +            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,
