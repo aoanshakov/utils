@@ -122,7 +122,7 @@ tests.addTest(options => {
             thirdChatListRequest = tester.chatListRequest().forCurrentEmployee().closed().expectToBeSent();
         });
 
-        xdescribe('Данные чатов успешно получены.', function() {
+        describe('Данные чатов успешно получены.', function() {
             beforeEach(function() {
                 chatListRequest.receiveResponse();
                 secondChatListRequest.receiveResponse();
