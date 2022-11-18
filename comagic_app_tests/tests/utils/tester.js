@@ -208,7 +208,7 @@ define(() => function ({
         querySelectorAll('.ui-infinite-scroll-spin-wrapper, .chats-list-spin-wrapper');
 
     const getSpinWrapper = (getRootElement = () => document.body) => utils.element(getRootElement()).
-        querySelector('.ui-infinite-scroll-spin-wrapper, .chats-list-spin-wrapper');
+        querySelector('.ui-infinite-scroll-spin-wrapper, .cm-chats--chats-list-spin-wrapper');
 
     const getContactListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-contacts-list-wrapper')),
         getChatListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-chats--chats-list'));
@@ -690,6 +690,7 @@ define(() => function ({
             '.ui-radio-content, ' +
             '.cmg-switch-label, ' +
             '.cm-chats--chat-menu-item, ' +
+            '.cm-chats--tab-title, ' +
             '.src-components-main-menu-nav-item-styles-module__label, ' +
             '.src-components-main-menu-settings-styles-module__label, ' +
             '.src-components-main-menu-menu-link-styles-module__item a';
@@ -3189,11 +3190,11 @@ define(() => function ({
                     email_list: ['endlesssprinп.of@comagic.dev'],
                     chat_channel_list: [{
                         type: 'whatsapp',
-                        phone: '79283810988',
+                        ext_id: '79283810988',
                         chat_channel_id: 216395
                     }, {
                         type: 'whatsapp',
-                        phone: '79283810928' ,
+                        ext_id: '79283810928' ,
                         chat_channel_id: 216395
                     }],
                     organization_name: 'UIS',
@@ -3411,6 +3412,12 @@ define(() => function ({
     me.chatListRequest = () => {
         let total = 75;
 
+        let respond = (request, data) => {
+            request.respondSuccessfullyWith({
+                result: {data} 
+            });
+        };
+
         const processors = [];
 
         const params = {
@@ -3514,6 +3521,22 @@ define(() => function ({
         }));
         
         function addResponseModifiers (me) {
+            me.failed = () => {
+                respond = request => request.respondSuccessfullyWith({
+                    "result": null,
+                    "error": {
+                        "code": 500,
+                        "message": [{
+                            "loc": ["__root__"],
+                            "msg": "Server got itself in trouble",
+                            "type": "value_error.exception"
+                        }]
+                    }
+                });
+
+                return me;
+            };
+
             me.nothingFound = () => ((data = []), me);
 
             me.noVisitorName = () => {
@@ -3542,8 +3565,8 @@ define(() => function ({
                     id: 1689283,
                     email_list: ['endlesssprinп.of@comagic.dev'],
                     chat_channel_list: [
-                        { type: 'whatsapp', phone: '79283810988' },
-                        { type: 'whatsapp', phone: '79283810928' },
+                        { type: 'whatsapp', ext_id: '79283810988' },
+                        { type: 'whatsapp', ext_id: '79283810928' },
                     ],
                     organization_name: 'UIS',
                     phone_list: ['79162729533'],
@@ -3700,10 +3723,7 @@ define(() => function ({
                         };
 
                         processors.forEach(process => process(data));
-
-                        request.respondSuccessfullyWith({
-                            result: {data} 
-                        });
+                        respond(request, data);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -8496,7 +8516,8 @@ define(() => function ({
     };
 
     me.contactRequest = () => {
-        const processors = [];
+        const processors = [],
+            secondProcessors = [];
 
         const addResponseModifiers = me => {
             me.anotherName = () => {
@@ -8527,7 +8548,7 @@ define(() => function ({
             me.addTelegram = () => {
                 processors.push(() => response.chat_channel_list.push({
                     type: 'telegram',
-                    phone: '79218307632',
+                    ext_id: '79218307632',
                     chat_channel_id: 101
                 }));
 
@@ -8547,7 +8568,7 @@ define(() => function ({
             me.addWhatsApp = () => {
                 processors.push(() => response.chat_channel_list.push({
                     type: 'whatsapp',
-                    phone: '79283810987',
+                    ext_id: '79283810987',
                     chat_channel_id: 84278
                 }));
 
@@ -8567,7 +8588,7 @@ define(() => function ({
             me.addFourthTelegram = () => {
                 processors.push(() => response.chat_channel_list.push({
                     type: 'telegram',
-                    phone: '79283810928',
+                    ext_id: '79283810928',
                     chat_channel_id: 101
                 }));
 
@@ -8629,6 +8650,19 @@ define(() => function ({
                 return me;
             };
 
+            me.legacyChannelList = () => {
+                secondProcessors.push(() => (response.chat_channel_list = response.chat_channel_list.map(channel => {
+                    const {ext_id} = channel;
+
+                    delete(channel.ext_id);
+                    channel.phone = ext_id;
+
+                    return channel;
+                })));
+
+                return me;
+            };
+
             return me;
         };
 
@@ -8641,11 +8675,11 @@ define(() => function ({
             email_list: ['endlesssprinп.of@comagic.dev'],
             chat_channel_list: [{
                 type: 'whatsapp',
-                phone: '79283810988',
+                ext_id: '79283810988',
                 chat_channel_id: 216395
             }, {
                 type: 'whatsapp',
-                phone: '79283810928',
+                ext_id: '79283810928',
                 chat_channel_id: 216395
             }],
             organization_name: 'UIS',
@@ -8690,7 +8724,6 @@ define(() => function ({
                 response.email_list = ['pomakova@gmail.com'],
 
                 response.chat_channel_list = [{
-                    phone: null,
                     type: 'telegram',
                     ext_id: 'Помакова Бисерка Драгановна',
                     chat_channel_id: 101
@@ -8712,11 +8745,11 @@ define(() => function ({
 
                 response.chat_channel_list = [{
                     type: 'whatsapp',
-                    phone: '+7 (928) 381 09-89',
+                    ext_id: '+7 (928) 381 09-89',
                     chat_channel_id: 216395
                 }, {
                     type: 'whatsapp',
-                    phone: '+7 (928) 381 09-29',
+                    ext_id: '+7 (928) 381 09-29',
                     chat_channel_id: 216395
                 }];
 
@@ -8731,6 +8764,7 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse: () => {
                         processors.forEach(process => process());
+                        secondProcessors.forEach(process => process());
 
                         response.full_name = ['last_name', 'first_name', 'patronymic'].map(
                             name => response[name]
@@ -9135,14 +9169,12 @@ define(() => function ({
                 phone_list: ['79162729533'],
                 email_list: ['endlesssprinп.of@comagic.dev'],
                 chat_channel_list: [{
-                    phone: '79283810988',
+                    ext_id: '79283810988',
                     type: 'whatsapp',
-                    ext_id: null,
                     chat_channel_id: 216395
                 }, {
-                    phone: '79283810928',
+                    ext_id: '79283810928',
                     type: 'whatsapp',
-                    ext_id: null,
                     chat_channel_id: 216395
                 }],
                 group_list: [],
@@ -9154,37 +9186,74 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => me,
-            processors = [];
+            processors = [],
+            bodyParamsProcessors = [];
 
         return addResponseModifiers({
-            deleteCurrent() {
-                bodyParams.from_contact_id = 1689283;
-                bodyParams.to_contact_id = 25206823;
+            newContact() {
+                bodyParams.form_data = {
+                    id: null,
+                    first_name: null,
+                    full_name: '',
+                    last_name: 'Неделчева',
+                    organization_name: null,
+                    patronymic: null,
+                    phone_list: ['74950230625'],
+                    email_list: [],
+                    chat_channel_list: [],
+                    group_list: [],
+                    group_ids: [],
+                    name: ''
+                };
 
                 processors.push(data => {
-                    data.full_name = 'Паскалева Бисера Илковна';
-                    data.id = 25206823;
+                    data.phone_list.push('79162729533');
+                    data.phone_list.push('79162722748');
+                    data.full_name = 'Неделчева';
+                });
+
+                bodyParams.to_contact_id = null;
+                return this;
+            },
+
+            deleteCurrent() {
+                bodyParamsProcessors.push(() => {
+                    const {from_contact_id, to_contact_id} = bodyParams;
+
+                    bodyParams.from_contact_id = to_contact_id;
+                    bodyParams.to_contact_id = from_contact_id;
+
+                    processors.push(data => {
+                        data.full_name = 'Паскалева Бисера Илковна';
+                        data.id = 25206823;
+                    });
                 });
 
                 return this;
             },
 
             addPhone() {
-                bodyParams.form_data.phone_list.push('79162729535');
+                bodyParamsProcessors.push(() => bodyParams.form_data.phone_list.push('79162729535'));
                 return this;
             },
 
             addSecondPhone() {
-                bodyParams.form_data.phone_list.push('79162729536');
+                bodyParamsProcessors.push(() => bodyParams.form_data.phone_list.push('79162729536'));
                 return this;
             },
 
             addThirdPhone() {
-                bodyParams.form_data.phone_list.push('79162729537');
+                bodyParamsProcessors.push(() => bodyParams.form_data.phone_list.push('79162729537'));
                 return this;
             },
 
             expectToBeSent() {
+                bodyParamsProcessors.forEach(process => process());
+                const bodyParamsCopy = JSON.parse(JSON.stringify(bodyParams));
+
+                ['phone_list', 'email_list', 'chat_channel_list'].forEach(name =>
+                    bodyParams.form_data[name].push(undefined));
+
                 const request = ajax.recentRequest().
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/merge`).
                     expectToHaveMethod('PATCH').
@@ -9193,7 +9262,7 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse: () => {
                         const data = {
-                            ...bodyParams.form_data,
+                            ...bodyParamsCopy.form_data,
                             full_name: 'Бележкова-Паскалева Грета Ервиновна'
                         };
 
@@ -9236,11 +9305,11 @@ define(() => function ({
                     email_list: ['endlesssprinп.of@comagic.dev', undefined],
                     chat_channel_list: [{
                         type: 'whatsapp',
-                        phone: '79283810988',
+                        ext_id: '79283810988',
                         chat_channel_id: 216395
                     }, {
                         type: 'whatsapp',
-                        phone: '79283810928' ,
+                        ext_id: '79283810928' ,
                         chat_channel_id: 216395
                     }, undefined],
                     organization_name: 'UIS',
@@ -9316,13 +9385,31 @@ define(() => function ({
                 processors.push(bodyParams => {
                     bodyParams.chat_channel_list[2] = {
                         chat_channel_id: null,
-                        ext_id: null,
-                        phone: '79283810987',
+                        ext_id: '79283810987',
                         type: 'whatsapp'
                     };
 
                     bodyParams.chat_channel_list.push(undefined);
                 });
+
+                return this;
+            },
+            
+            legacyChannelList() {
+                secondProcessors.push(bodyParams => (
+                    bodyParams.chat_channel_list = bodyParams.chat_channel_list.map(channel => {
+                        if (!channel) {
+                            return channel;
+                        }
+
+                        const {ext_id} = channel;
+
+                        delete(channel.ext_id);
+                        channel.phone = ext_id;
+
+                        return channel;
+                    })
+                ));
 
                 return this;
             },
@@ -9385,7 +9472,6 @@ define(() => function ({
                 bodyParams.email_list = ['pomakova@gmail.com'],
 
                 bodyParams.chat_channel_list = [{
-                    phone: null,
                     type: 'telegram',
                     ext_id: 'Помакова Бисерка Драгановна',
                     chat_channel_id: 101
@@ -9497,14 +9583,12 @@ define(() => function ({
                     id: 25206823,
                     email_list: ['paskaleva@gmail.com', 'belezhkova@gmail.com'],
                     chat_channel_list: [{
-                        phone: '79283810986',
+                        ext_id: '79283810986',
                         type: 'whatsapp',
-                        ext_id: null,
                         chat_channel_id: 84277
                     }, {
-                        phone: '79283810987',
+                        ext_id: '79283810987',
                         type: 'whatsapp',
-                        ext_id: null,
                         chat_channel_id: 84278
                     }],
                     organization_name: 'UIS',
@@ -10185,6 +10269,12 @@ define(() => function ({
                 return this;
             },
 
+            fourthPhoneSearching() {
+                params.search = '74950230625';
+                params.merge_entity = 'phone';
+                return this;
+            },
+
             emailSearching() {
                 params.search = 'belezhkova@gmail.com';
                 params.merge_entity = 'email';
@@ -10300,7 +10390,8 @@ define(() => function ({
                         'contact_creating',
                         'contact_deleting',
                         'outgoing_chat',
-                        'contact_channel_creating'
+                        'contact_channel_creating',
+                        'telegram_contact_channel'
                     ],
                     call_center_role: 'employee',
                     components: [
@@ -10491,6 +10582,10 @@ define(() => function ({
             
             me.manager = () => ((response.result.data.call_center_role = 'manager'), me);
             me.noCallCenterRole = () => ((response.result.data.call_center_role = null), me);
+
+            me.telegramContactChannelFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'telegram_contact_channel')), me);
 
             me.contactChannelCreatingFeatureFlagDisabled = () =>
                 ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
