@@ -1,11 +1,11 @@
 diff --git a/package.json b/package.json
-index dd092ec..1beaff0 100644
+index 420225f..af926c6 100644
 --- a/package.json
 +++ b/package.json
 @@ -1,9 +1,9 @@
  {
    "name": "@comagic/core",
-   "version": "1.1.2",
+   "version": "1.2.1",
 -  "main": "lib/index.js",
 +  "main": "src/index.ts",
    "files": [
@@ -27,7 +27,7 @@ index dd092ec..1beaff0 100644
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
      "axios": "^0.24.0",
-@@ -37,9 +35,7 @@
+@@ -38,9 +36,7 @@
      "mobx": "^6.6.1",
      "mobx-state-tree": "^5.1.6",
      "prettier": "^2.7.1",
@@ -37,3 +37,23 @@ index dd092ec..1beaff0 100644
      "webpack": "^5.74.0",
      "webpack-cli": "^4.10.0"
    }
+diff --git a/src/models/notification/notification.ts b/src/models/notification/notification.ts
+index 1eb4ae4..0334f6f 100644
+--- a/src/models/notification/notification.ts
++++ b/src/models/notification/notification.ts
+@@ -1,6 +1,6 @@
+ import { SnapshotOrInstance, types, cast, Instance } from 'mobx-state-tree';
+ import { BroadcastChannel, createLeaderElection } from 'broadcast-channel';
+-import { Centrifuge } from 'centrifuge';
++//import { Centrifuge } from 'centrifuge';
+ import axios, { CancelTokenSource } from 'axios';
+ 
+ import { createHttpRest } from '../../rest';
+@@ -130,6 +130,7 @@ const NotificationStore = types
+                     cancelToken: cancelTokenSource.token,
+                 });
+ 
++                return;
+                 connection = new Centrifuge(subs_url, {
+                     getToken: () => {
+                         return new Promise((resolve, reject) => {

@@ -1017,6 +1017,50 @@ function JsTester_StorageMocker () {
     };
 }
 
+function JsTester_CommandExecutor (copiedTexts) {
+    return function (type) {
+        type == 'copy' && copiedTexts.push(window.getSelection().toString());
+    };
+}
+
+function JsTester_ExecCommandReplacer (copiedTexts) {
+    var execCommand = document.execCommand;
+
+    this.replaceByFake = function () {
+        copiedTexts.splice(0, copiedTexts.length);
+        document.execCommand = new JsTester_CommandExecutor(copiedTexts);
+    };
+
+    this.restoreReal = function () {
+        document.execCommand = execCommand;
+    };
+}
+
+function JsTester_CopiedText (text) {
+    return {
+        expectToEqual: function (expectedText) {
+            if (text != expectedText) {
+                throw new Error('Должен быть скопирован текст "' + expectedText + '", а не "' + text + '".');
+            }
+        }
+    };
+}
+
+function JsTester_CopiedTextsTester (copiedTexts) {
+    return {
+        getLast: function () {
+            var length = copiedTexts.length;
+
+            if (!length) {
+                throw new Error('Не один текст не был скопирован.');
+            }
+
+            return new JsTester_CopiedText(copiedTexts[length - 1]);
+        }
+    };
+}
+
+
 function JsTester_CookieTester (cookie) {
     Object.defineProperty(document, 'cookie', {
         get: function () {
@@ -2563,49 +2607,6 @@ function JsTester_BlobsTester (args) {
     };
 }
 
-function JsTester_CommandExecutor (copiedTexts) {
-    return function (type) {
-        type == 'copy' && copiedTexts.push(window.getSelection().toString());
-    };
-}
-
-function JsTester_ExecCommandReplacer (copiedTexts) {
-    var execCommand = document.execCommand;
-
-    this.replaceByFake = function () {
-        copiedTexts.splice(0, copiedTexts.length);
-        document.execCommand = new JsTester_CommandExecutor(copiedTexts);
-    };
-
-    this.restoreReal = function () {
-        document.execCommand = execCommand;
-    };
-}
-
-function JsTester_CopiedText (text) {
-    return {
-        expectToEqual: function (expectedText) {
-            if (text != expectedText) {
-                throw new Error('Должен быть скопирован текст "' + expectedText + '", а не "' + text + '".');
-            }
-        }
-    };
-}
-
-function JsTester_CopiedTextsTester (copiedTexts) {
-    return {
-        getLast: function () {
-            var length = copiedTexts.length;
-
-            if (!length) {
-                throw new Error('Не один текст не был скопирован.');
-            }
-
-            return new JsTester_CopiedText(copiedTexts[length - 1]);
-        }
-    };
-}
-
 function JsTester_DecodedTracksTester (args) {
     var bufferToContent = args.bufferToContent,
         destinationToSource = args.destinationToSource,
@@ -3450,609 +3451,6 @@ function JsTester_DownloadPreventer () {
     this.resume = () => document.body.removeEventListener('click', listener);
 }
 
-function JsTester_Tests (factory) {
-    Object.defineProperty(window, 'performance', {
-        get: function () {
-            return {};
-        },
-        set: function () {}
-    }); 
-
-    Object.defineProperty(window, 'ResizeObserver', {
-        get: function () {
-            return JsTester_ResizeObserver;
-        },
-        set: function () {}
-    }); 
-
-    Object.defineProperty(window, 'MessageChannel', {
-        get: function () {
-            return undefined;
-        },
-        set: function () {}
-    }); 
-
-    ['requestAnimationFrame', 'requestIdleCallback', 'queueMicrotask'].forEach(methodName => {
-        Object.defineProperty(window, methodName, {
-            get: function () {
-                return function (callback) {
-                    return setTimeout(callback, 0);
-                };
-            },
-            set: function () {}
-        });
-    });
-
-    Object.defineProperty(window, 'cancelAnimationFrame', {
-        get: function () {
-            return function (handle) {
-                clearTimeout(handle);
-            };
-        },
-        set: function () {}
-    }); 
-
-    var testRunners = [],
-        requiredClasses = [],
-        files = new Map(),
-        fileReaderTester = new JsTester_FileReaderTester(files),
-        fileReaderMocker = new JsTester_FileReaderMocker(files),
-        cookie = new JsTester_RWVariable(''),
-        cookieTester = new JsTester_CookieTester(cookie),
-        storageMocker = new JsTester_StorageMocker(),
-        timeoutLogger = new JsTester_Logger(),
-        downloadPreventer = new JsTester_DownloadPreventer(),
-        debug = factory.createDebugger(),
-        timeout = new JsTester_Timeout(
-            'setTimeout',
-            'clearTimeout',
-            JsTester_OneTimeDelayedTask,
-            timeoutLogger,
-            debug
-        ),
-        interval = new JsTester_Timeout(
-            'setInterval',
-            'clearInterval',
-            JsTester_RepetitiveDelayedTask,
-            timeoutLogger,
-            debug
-        );
-
-    var spendTime = function (time) {
-        timeout.spendTime(time);
-        interval.spendTime(time);
-        Promise.runAll(false, true);
-    };
-
-    var windowSize = new JsTester_WindowSize(spendTime),
-        utils = factory.createUtils({debug, windowSize, spendTime}),
-        broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage(), true),
-        broadcastChannelHandlers = {},
-        broadcastChannelShortcutHandlers = {},
-        broadcastChannelMessageEventFirers = {},
-        broadcastChannelsToIgnore = new Set(),
-        BroadcastChannel = new JsTester_BroadcastChannelFactory({
-            debug: debug,
-            utils: utils,
-            handlers: broadcastChannelHandlers,
-            shortcutHandlers: broadcastChannelShortcutHandlers,
-            broadcastChannelMessages: broadcastChannelMessages,
-            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers
-        }),
-        broadcastChannelTester = new JsTester_BroadcastChannelsTester({
-            broadcastChannelMessages: broadcastChannelMessages,
-            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers,
-            broadcastChannelsToIgnore: broadcastChannelsToIgnore
-        }),
-        broadcastChannelMocker = new JsTester_BroadcastChannelMocker({
-            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers,
-            broadcastChannelTester: broadcastChannelTester,
-            broadcastChannelMessages: broadcastChannelMessages,
-            BroadcastChannel: BroadcastChannel,
-            handlers: broadcastChannelHandlers,
-            shortcutHandlers: broadcastChannelShortcutHandlers
-        }),
-        mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
-        mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
-        intersectionObservations = new Map(),
-        intersectionObservationHandlers = new Map(),
-        FakeIntersectionObserver = new JsTester_IntersectionObserverFactory({
-            intersectionObservations,
-            intersectionObservationHandlers
-        }),
-        intersectionObservablesTester = new JsTester_IntersectionObservablesTester({
-            utils,
-            intersectionObservations,
-            intersectionObservationHandlers
-        }),
-        intersectionObserverMocker = new JsTester_IntersectionObserverMocker(FakeIntersectionObserver),
-        mutationObserverTester =  mutationObserverFactory.createTester(),
-        hasFocus = new JsTester_Variable(false, true),
-        isBrowserHidden = new JsTester_Variable(),
-        isBrowserVisible = new JsTester_Variable(true),
-        setBrowserHidden = isBrowserHidden.createSetter(),
-        setBrowserVisible = isBrowserVisible.createSetter(),
-        focusReplacer = new JsTester_FocusReplacer(hasFocus),
-        browserVisibilityReplacer = new JsTester_BrowserVisibilityReplacer({
-            isBrowserHidden,
-            isBrowserVisible
-        }),
-        notifications = new JsTester_Queue(new JsTester_NoNotificationMessage()),
-        notificationPermissionRequests = new JsTester_Queue({
-            callback: function () {}
-        }),
-        notificationPermission = new JsTester_RWVariable(),
-        notificationClickHandler = new JsTester_FunctionVariable(function () {}),
-        notificationTester = new JsTester_NotificationTester({
-            notifications: notifications,
-            notificationClickHandler: notificationClickHandler.createValueCaller(),
-            notificationPermissionRequests: notificationPermissionRequests,
-            notificationPermissionSetter: notificationPermission.set
-        }),
-        notificationReplacer = new JsTester_NotificationReplacer({
-            debug: debug,
-            notificationClickHandler: notificationClickHandler,
-            notifications: notifications,
-            notificationPermissionRequests: notificationPermissionRequests,
-            notificationPermission: notificationPermission
-        }),
-        ajaxTester = new JsTester_AjaxTester(utils, debug),
-        fetchTester = new JsTester_FetchTester(utils),
-        windowOpener = new JsTester_WindowOpener(utils),
-        webSocketLogger = new JsTester_Logger(),
-        webSocketFactory = new JsTester_WebSocketFactory(utils, webSocketLogger, debug),
-        webSockets = webSocketFactory.createCollection(),
-        webSocketReplacer = new JsTester_WebSocketReplacer(webSocketFactory),
-        userMediaEventHandlers = new JsTester_UserMediaEventHandlers(debug),
-        mediaDevicesUserMediaGetter = new JsTester_MediaDevicesUserMediaGetter(userMediaEventHandlers),
-        userMediaGetter = new JsTester_UserMediaGetter(userMediaEventHandlers),
-        additionalDevices = [],
-        mediaDevicesEventListeners = new Map(),
-        userDeviceHandling = new JsTester_EventHandling({
-            listeners: mediaDevicesEventListeners,
-            events: ['devicechange']
-        }),
-        navigatorMock = new JsTester_NavigatorMock({
-            userMediaGetter: userMediaGetter,
-            mediaDevicesUserMediaGetter: mediaDevicesUserMediaGetter,
-            additionalDevices: additionalDevices,
-            mediaDevicesEventListeners: mediaDevicesEventListeners,
-            userDeviceHandling: userDeviceHandling
-        }),
-        rtcConnectionStateChecker = new JsTester_FunctionVariable(function () {}),
-        rtcConnections = [],
-        tracksCreationCallStacks = new Map(),
-        playingMediaStreams = new Map(),
-        mediaStreamTracks = new Map(),
-        audioSources = new Map(),
-        mediaStreams = new JsTester_MediaStreams({
-            mediaStreamTracks: mediaStreamTracks,
-            playingMediaStreams: playingMediaStreams,
-            audioSources: audioSources,
-            debug: debug,
-            RealMediaStream: window.MediaStream
-        }),
-        userMedia = new JsTester_UserMedia({
-            additionalDevices: additionalDevices,
-            mediaDevicesEventListeners: mediaDevicesEventListeners,
-            tracksCreationCallStacks: tracksCreationCallStacks,
-            mediaStreams: mediaStreams,
-            eventHandlers: userMediaEventHandlers,
-            spendTime: spendTime,
-            debug: debug
-        }),
-        sdp = [
-            'v=0',
-            'o=- 6845874344053138478 2 IN IP4 127.0.0.1',
-            's=-',
-            't=0 0',
-            'a=group:BUNDLE 0',
-            'a=msid-semantic: WMS 2c90093a-9b17-4821-aaf3-7b858065ff07',
-            'm=audio 9 UDP/TLS/RTP/SAVPF 111 103 104 9 8 106 105 13 110 112 113 126',
-            'c=IN IP4 0.0.0.0',
-            'a=rtcp:9 IN IP4 0.0.0.0',
-            'a=ice-ufrag:7MXY',
-            'a=ice-pwd:KAoEygUaHA9Mla0gjHYN9/tK',
-            'a=ice-options:trickle',
-            'a=fingerprint:sha-256 59:53:4D:AF:66:F5:F1:CE:3A:F7:93:13:5A:E6:07:19:1E:03:E9:22:A1:19:B2:49:6B:C7:37:86:90:21:2B:42',
-            'a=setup:actpass',
-            'a=mid:0',
-            'a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level',
-            'a=extmap:2 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
-            'a=extmap:3 urn:ietf:params:rtp-hdrext:sdes:mid',
-            'a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
-            'a=extmap:5 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
-            'a=sendrecv',
-            'a=msid:2c90093a-9b17-4821-aaf3-7b858065ff07 f807f562-5698-4b34-a298-bc3f780934c3',
-            'a=rtcp-mux',
-            'a=rtpmap:111 opus/48000/2',
-            'a=rtcp-fb:111 transport-cc',
-            'a=fmtp:111 minptime=10;useinbandfec=1',
-            'a=rtpmap:103 ISAC/16000',
-            'a=rtcp-fb:103 transport-cc',
-            'a=fmtp:103 minptime=10;useinbandfec=1',
-            'a=rtpmap:104 ISAC/32000',
-            'a=rtpmap:9 G722/8000',
-            'a=rtpmap:8 PCMA/8000',
-            'a=rtpmap:106 CN/32000',
-            'a=rtpmap:105 CN/16000',
-            'a=rtpmap:13 CN/8000',
-            'a=rtpmap:110 telephone-event/48000',
-            'a=rtpmap:112 telephone-event/32000',
-            'a=rtpmap:113 telephone-event/16000',
-            'a=rtpmap:126 telephone-event/8000',
-            'a=ssrc:3906726496 cname:bn9leCsdnF9+R5yv',
-            'a=ssrc:3906726496 msid:2c90093a-9b17-4821-aaf3-7b858065ff07 f807f562-5698-4b34-a298-bc3f780934c3',
-            'a=ssrc:3906726496 mslabel:2c90093a-9b17-4821-aaf3-7b858065ff07',
-            'a=ssrc:3906726496 label:f807f562-5698-4b34-a298-bc3f780934c3',
-            ''
-        ].join("\r\n"),
-        image = 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAA1dJREFUaEPtmWmoTVEYhp+LhGRI' +
-            'lAyJP6TwQxm6yZwh0iUlQwnhhpIfKKJEhFDGiB+mdJWMGW4yRqSUUFJCpMhc5qFXa9223dlnrz2ce86O78+pc9Z+v/c9a61vr+9dZWQ8' +
-            'yjLOn39SQEOgPvAu5dlrCnwFPkXBDZsB/d4bGAMMA9oDzUyC78B94BpQBZwHfjomrwMMAsYBfYEuQF3z7BvgCXAaOApcB34F4eYT0B9Y' +
-            'DfRyJHUXWAocCRk/FlhhSLtAS8Ai4GKuwbkEaHlsBma4oOcYo9mYBnzw/dYE2ANUxMTdAcwFvnmf9wvQOjwG9IuZxD52GxgKvDRftALO' +
-            'Ad0S4l4CRgHvLY5XgNbgcWB4wiT28RvAAPhT6S4APVPCPQWMBn4IzytgFbA4pSQWZiugDTsrZdyVwBKvgI6momj9pxm2eoRVu6g5v5gi' +
-            '8MgC7wMmRkUp8vi9wBQJaGw2W4MiE4qaXi+8lhKgl4lKXxajQgLWAQuyyB5YKwEHgAkZFbBfAvSCGZxRAdUScBjQ+SSLUSUBm4B5WWQP' +
-            'bJSASmBLRgVUSkAb4KnvWJEFPeo92tk38VXTWGSBuOUozuVWgKqQqlGWQh3iGe8h6yQwIiMKTpi+4K/jdFvT3+qzlEP7tQ/wTCT9x1x1' +
-            'TJcBtX+lGOrEyoE7llyuc7o6JzkCLUpMwVuzxOWC1ERQo9EDOKvjaomIeG1snZt+Pvk6pc6mMhV7T7wwBkHNsnGZATumA1ANdCrSTDw2' +
-            'B82HQfldetXWZia61rKIB4a8qk5guAjQw/J1tCe615KIe8AQ4HlYPlcBwmkOyJORV1rIuGU27CuXJFEECE8GgAzXgS7gMcZcAUZ6nbcw' +
-            'jKgChNfIGLiyDtMMuXeyDT9GAY0jQPgywA4mMGr9HHUOkzvyOQp5jY0rQM/KS90tcylqUt/4Q8Bkv+vsiplEgBWxHZjumtA3To7gVECX' +
-            'JbEiqQA7i+uB+REZbAPmRLjVyQmfhgALvBxY5ihijbl1cRwePCxNAcqy0FxL5SOWGvmkmziI5GxzRaV7AW/IapeFuSHx3+4BSHsGLPQk' +
-            'cx9Wz3whB2EmsCtN8oWaActxPLDTXJGKvMpl6lGoGbBE7QzELpNhigstICx/4t//C0j8FyYE+A2omn8yNA4wuwAAAABJRU5ErkJggg==',
-        rtcPeerConnectionMocker = new JsTester_RTCPeerConnectionMocker({
-            sdp: sdp,
-            connections: rtcConnections,
-            rtcConnectionStateChecker: rtcConnectionStateChecker,
-            mediaStreams: mediaStreams,
-            tracksCreationCallStacks: tracksCreationCallStacks,
-            debug: debug
-        }),
-        rtcConnectionsMock = new JsTester_RTCPeerConnections({
-            tracksCreationCallStacks: tracksCreationCallStacks,
-            connections: rtcConnections,
-            stateChecker: rtcConnectionStateChecker,
-            mediaStreamTracks: mediaStreamTracks,
-            mediaStreams: mediaStreams
-        }),
-        testsExecutionBeginingHandlers = [],
-        checkRTCConnectionState = rtcConnectionStateChecker.createValueCaller(),
-        mediaStreamsTester = new JsTester_MediaStreamsTester({
-            spendTime,
-            mediaStreamsPlayingExpectaionFactory: new JsTester_MediaStreamsPlayingExpectationFactory(mediaStreamTracks),
-            playingMediaStreams: playingMediaStreams,
-            mediaStreams: mediaStreams
-        }),
-        playingOscillators = new Map(),
-        playingOscillatorsTester = new JsTester_PlayingOscillatorsTester(playingOscillators),
-        bufferToContent = new Map(),
-        destinationToSource = new Map(),
-        trackToDestination = new Map(),
-        destinationToGain = new Map(),
-        audioGainTester = new JsTester_AudioGainTester({
-            destinationToGain: destinationToGain,
-            trackToDestination: trackToDestination,
-            utils: utils
-        }),
-        audioProcessingTester = new JsTester_AudioProcessingTester({
-            trackToDestination: trackToDestination
-        }),
-        decodedTracksTester = new JsTester_DecodedTracksTester({
-            bufferToContent: bufferToContent,
-            destinationToSource: destinationToSource,
-            trackToDestination: trackToDestination
-        }),
-        mediaStreamSourceToMediaStream = new Map(),
-        audioNodesConnection = new JsTester_AudioNodesConnection({
-            destinationToSource: destinationToSource,
-            destinationToGain: destinationToGain,
-            mediaStreamSourceToMediaStream: mediaStreamSourceToMediaStream,
-            trackToDestination: trackToDestination
-        }),
-        audioContextFactory = new JsTester_AudioContextFactory({
-            mediaStreamSourceToMediaStream,
-            audioNodesConnection,
-            mediaStreams,
-            bufferToContent,
-            destinationToSource,
-            trackToDestination,
-            playingOscillators,
-            tracksCreationCallStacks,
-            spendTime,
-            debug,
-            utils
-        }),
-        audioDecodingTester = audioContextFactory.createAudioDecodingTester(),
-        audioContextReplacer = new JsTester_AudioContextReplacer(audioContextFactory),
-        audioReplacer = new JsTester_AudioReplacer({
-            mediaStreams: mediaStreams,
-            debug: debug
-        }),
-        nowValue = new JsTester_Variable(),
-        getNow = new JsTester_NowGetter({
-            originalNow: Date.now,
-            getNow: nowValue.createGetter()
-        }),
-        setNow = new JsTester_NowSetter(nowValue.createSetter()),
-        addSecond = function () {
-            nowValue.createSetter()(nowValue.createGetter()() + 1000);
-            spendTime(1000);
-        },
-        now = new JsTester_Now({
-            originalNow: Date.now,
-            getNow: getNow
-        }),
-        windowEventsListeners = new Map(),
-        windowEventsFirerer = new JsTester_WindowEventsFirerer(windowEventsListeners),
-        windowEventsReplacer = new JsTester_WindowEventsReplacer({
-            windowEventsListeners: windowEventsListeners,
-            realEventListenerAssigner: window.addEventListener,
-            fakeWindowListenerAssigner: new JsTester_WindowEventListenerAssigner({
-                windowEventsListeners: windowEventsListeners,
-                realEventListenerAssigner: window.addEventListener
-            })
-        }),
-        blobs = [],
-        blobsTester = new JsTester_BlobsTester({
-            blobs: blobs,
-            utils: utils
-        }),
-        blobReplacer = new JsTester_BlobReplacer({
-            blobs: blobs,
-            factory: new JsTester_BlobFactory({
-                blobs: blobs,
-                utils: utils
-            })
-        }),
-        copiedTexts = [],
-        copiedTextsTester = new JsTester_CopiedTextsTester(copiedTexts),
-        execCommandReplacer = new JsTester_ExecCommandReplacer(copiedTexts);
-
-    audioReplacer.replaceByFake();
-    windowEventsReplacer.replaceByFake();
-    browserVisibilityReplacer.replaceByFake();
-
-    window.MediaStream = function () {
-        var audioTracks;
-
-        if (arguments.length == 1) {
-            audioTracks = arguments[0];
-        }
-
-        if (audioTracks.length == 1) {
-            return new JsTester_MediaStreamWrapper({
-                mediaStream: mediaStreams.create(audioTracks),
-                audioTrack: audioTracks[0]
-            });
-        }
-
-        return mediaStreams.create.apply(mediaStreams, arguments);
-    };
-
-    window.moment = function () {
-        return {
-            format: function () {
-                return '05:32';
-            }
-        };
-    };
-
-    var wait = function () {
-        if (arguments[0]) {
-            var repetitionsCount = arguments[0], i;
-
-            for (i = 0; i < repetitionsCount; i ++) {
-                wait();
-            }
-
-            return;
-        }
-
-        timeout.runCallbacks();
-        interval.runCallbacks();
-    };
-
-    this.exposeDebugUtils = function (variableName) {
-        window[variableName] = debug;
-    };
-    this.addTest = function (testRunner) {
-        testRunners.push(testRunner);
-    };
-    this.runTests = function (options) {
-        var testersFactory;
-        options = options || {};
-        
-        try {
-            testersFactory = factory.createTestersFactory({
-                wait: wait,
-                utils: utils,
-                blobsTester: blobsTester,
-                spendTime: spendTime
-            });
-        } catch(e) {
-            error = e;
-        }
-
-        var args = {
-            error: '<html>' +
-                '<head>' +
-                    '<title>500 Internal Server Error</title>' +
-                '</head>' +
-                '<body bgcolor="white">' +
-                    '<center>' +
-                        '<h1>500 Internal Server Error</h1>' +
-                    '</center>' +
-                    '<hr>' +
-                    '<center>nginx/1.10.2</center>' +
-                '</body>' +
-            '</html>',
-            sdp: sdp,
-            image: image,
-            windowSize: windowSize,
-            broadcastChannels: broadcastChannelTester,
-            mutationObserverMocker: mutationObserverMocker,
-            fileReader: fileReaderTester,
-            triggerMutation: mutationObserverTester,
-            intersectionObservable: intersectionObservablesTester,
-            cookie: cookieTester,
-            ajax: ajaxTester,
-            fetch: fetchTester,
-            testersFactory: testersFactory,
-            wait: wait,
-            spendTime: spendTime,
-            utils: utils,
-            debug: debug,
-            windowOpener: windowOpener,
-            webSockets: webSockets,
-            webSocketLogger: webSocketLogger,
-            userMedia: userMedia,
-            rtcConnectionsMock: rtcConnectionsMock,
-            navigatorMock: navigatorMock,
-            timeoutLogger: timeoutLogger,
-            mediaStreamsTester: mediaStreamsTester,
-            setNow: setNow,
-            addSecond: addSecond,
-            playingOscillatorsTester: playingOscillatorsTester,
-            unload: () => {
-                windowEventsFirerer('unload');
-                Promise.runAll(false, true);
-            },
-            audioDecodingTester: audioDecodingTester,
-            decodedTracksTester: decodedTracksTester,
-            audioProcessing: audioProcessingTester,
-            audioGain: audioGainTester,
-            notificationTester: notificationTester,
-            blobsTester: blobsTester,
-            copiedTextsTester: copiedTextsTester,
-            setFocus: new JsTester_FocusSetter(hasFocus.createSetter()),
-            setDocumentVisible: new JsTester_VisibilitySetter({
-                setBrowserHidden,
-                setBrowserVisible,
-                isBrowserHidden: isBrowserHidden.createGetter(),
-            })
-        };
-
-        (function () {
-            var name;
-
-            for (name in options) {
-                args[name] = options[name];
-            }
-        })();
-
-        this.handleBeginingOfTestsExecution(args);
-
-        mediaStreams.considerInitial();
-
-        testRunners.forEach(function (runTest) {
-            runTest.call(null, args);
-        });
-    };
-    this.requireClass = function (className) {
-        requiredClasses.push(className);
-    };
-    this.runBeforeTestsExecution = function (handleBeginingOfTestsExecution) {
-        testsExecutionBeginingHandlers.push(handleBeginingOfTestsExecution);
-    };
-    this.handleBeginingOfTestsExecution = function (args) {
-        testsExecutionBeginingHandlers.forEach(function (handleBeginingOfTestsExecution) {
-            handleBeginingOfTestsExecution.call(null, args);
-        });
-    };
-    this.getRequiredClasses = function () {
-        return requiredClasses;
-    };
-    this.beforeEach = function () {
-        window.URL.createObjectURL = function (object) {
-            return location.href + '#' + (typeof object == 'string' ? object : object.id);
-        };
-
-        setNow(null);
-
-        intersectionObservations.clear();
-        intersectionObservationHandlers.clear();
-        downloadPreventer.prevent();
-        setBrowserHidden(false);
-        setBrowserVisible(true);
-        audioNodesConnection.reset();
-        additionalDevices.splice(0, additionalDevices.length);
-        additionalDevices.push({
-            kind: 'audiooutput',
-            label: 'Колонка JBL',
-            deviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab'
-        });
-        userDeviceHandling.reset();
-        utils.enableScrollingIntoView();
-        broadcastChannelMocker.replaceByFake();
-        mutationObserverMocker.replaceByFake();
-        intersectionObserverMocker.replaceByFake();
-        fileReaderMocker.replaceByFake();
-        execCommandReplacer.replaceByFake();
-        blobReplacer.replaceByFake();
-        focusReplacer.replaceByFake();
-        bufferToContent.clear();
-        destinationToSource.clear();
-        trackToDestination.clear();
-        playingOscillators.clear();
-        mediaStreams.clear();
-        windowEventsReplacer.prepareToTest();
-        notificationReplacer.replaceByFake();
-        audioContextReplacer.replaceByFake();
-        cookie.set('');
-        storageMocker.replaceByFake();
-        rtcPeerConnectionMocker.replaceByFake();
-        webSocketReplacer.replaceByFake();
-        ajaxTester.replaceByFake();
-        fetchTester.replaceByFake();
-        timeout.replaceByFake();
-        interval.replaceByFake();
-        windowOpener.replaceByFake();
-        now.replaceByFake();
-    };
-    this.restoreRealDelayedTasks = function () {
-        timeout.restoreReal();
-        interval.restoreReal();
-        now.restoreReal();
-    };
-    this.afterEach = function () {
-        var exceptions = [];
-
-        this.restoreRealDelayedTasks();
-        downloadPreventer.resume();
-        broadcastChannelTester.recentMessage().expectNotToExist(exceptions);
-        windowSize.reset();
-        broadcastChannelMocker.restoreReal();
-        mutationObserverMocker.restoreReal();
-        intersectionObserverMocker.restoreReal();
-        fileReaderTester.expectNoFileToBeLoading();
-        fileReaderMocker.restoreReal();
-        execCommandReplacer.restoreReal();
-        blobReplacer.restoreReal();
-        notificationTester.recentNotification().expectNotToExist(exceptions);
-        notificationTester.expectNotificationPermissionNotToBeRequested(exceptions);
-        Promise.clear();
-        focusReplacer.restoreReal();
-        windowEventsReplacer.restoreReal();
-        notificationReplacer.restoreReal();
-        audioContextReplacer.restoreReal();
-        checkRTCConnectionState(exceptions);
-        storageMocker.restoreReal();
-        rtcPeerConnectionMocker.restoreReal();
-        userMediaEventHandlers.assertNoUserMediaRequestLeftUnhandled(exceptions);
-        audioContextFactory.assertNoAudioDecodingHappens(exceptions);
-        audioContextFactory.reset();
-        ajaxTester.restoreReal(exceptions);
-        fetchTester.restoreReal(exceptions);
-        windowOpener.restoreReal();
-        webSockets.afterEach(exceptions);
-        webSockets.expectNoMessageToBeSent(exceptions);
-        webSocketReplacer.restoreReal();
-
-        exceptions.forEach(function (exception) {
-            throw exception;
-        });
-    };
-}
-
 function JsTester_FileField (
     getDomElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
     genetiveDescription, factory
@@ -4210,7 +3608,7 @@ function JsTester_QueryParams() {
             if (Array.isArray(oldValue)) {
                 oldValue.push(value);
             } else {
-                namespace[component] = [oldValue];
+                namespace[component] = [oldValue, value];
             }
         } else {
             namespace[component] = value;
@@ -4667,6 +4065,10 @@ function JsTester_Utils ({debug, windowSize, spendTime}) {
         return value.replace(/<[^<>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/[\s]+/g, ' ').trim();
     };
     function parseName (name) {
+        if (/^[^\[\]]+\[\]$/.test(name)) {
+            return [name.slice(0, -2)];
+        }
+
         var result = name.match(/^([^\[\]]+)(?:\[([^\[\]]+)\])+$/);
 
         if (!result) {
@@ -6646,6 +6048,7 @@ function JsTester_DomElement (
         }
 
         if (!domElement.getClientRects) {
+            console.log(domElement);
             throw new Error('Объект не является HTML-элементом.');
         }
     };
@@ -7906,5 +7309,608 @@ function JsTester_Debugger () {
         } catch(e) {
             return getTrace(e);
         }
+    };
+}
+
+function JsTester_Tests (factory) {
+    Object.defineProperty(window, 'performance', {
+        get: function () {
+            return {};
+        },
+        set: function () {}
+    }); 
+
+    Object.defineProperty(window, 'ResizeObserver', {
+        get: function () {
+            return JsTester_ResizeObserver;
+        },
+        set: function () {}
+    }); 
+
+    Object.defineProperty(window, 'MessageChannel', {
+        get: function () {
+            return undefined;
+        },
+        set: function () {}
+    }); 
+
+    ['requestAnimationFrame', 'requestIdleCallback', 'queueMicrotask'].forEach(methodName => {
+        Object.defineProperty(window, methodName, {
+            get: function () {
+                return function (callback) {
+                    return setTimeout(callback, 0);
+                };
+            },
+            set: function () {}
+        });
+    });
+
+    Object.defineProperty(window, 'cancelAnimationFrame', {
+        get: function () {
+            return function (handle) {
+                clearTimeout(handle);
+            };
+        },
+        set: function () {}
+    }); 
+
+    var testRunners = [],
+        requiredClasses = [],
+        files = new Map(),
+        fileReaderTester = new JsTester_FileReaderTester(files),
+        fileReaderMocker = new JsTester_FileReaderMocker(files),
+        cookie = new JsTester_RWVariable(''),
+        cookieTester = new JsTester_CookieTester(cookie),
+        storageMocker = new JsTester_StorageMocker(),
+        timeoutLogger = new JsTester_Logger(),
+        downloadPreventer = new JsTester_DownloadPreventer(),
+        debug = factory.createDebugger(),
+        timeout = new JsTester_Timeout(
+            'setTimeout',
+            'clearTimeout',
+            JsTester_OneTimeDelayedTask,
+            timeoutLogger,
+            debug
+        ),
+        interval = new JsTester_Timeout(
+            'setInterval',
+            'clearInterval',
+            JsTester_RepetitiveDelayedTask,
+            timeoutLogger,
+            debug
+        );
+
+    var spendTime = function (time) {
+        timeout.spendTime(time);
+        interval.spendTime(time);
+        Promise.runAll(false, true);
+    };
+
+    var windowSize = new JsTester_WindowSize(spendTime),
+        utils = factory.createUtils({debug, windowSize, spendTime}),
+        broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage(), true),
+        broadcastChannelHandlers = {},
+        broadcastChannelShortcutHandlers = {},
+        broadcastChannelMessageEventFirers = {},
+        broadcastChannelsToIgnore = new Set(),
+        BroadcastChannel = new JsTester_BroadcastChannelFactory({
+            debug: debug,
+            utils: utils,
+            handlers: broadcastChannelHandlers,
+            shortcutHandlers: broadcastChannelShortcutHandlers,
+            broadcastChannelMessages: broadcastChannelMessages,
+            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers
+        }),
+        broadcastChannelTester = new JsTester_BroadcastChannelsTester({
+            broadcastChannelMessages: broadcastChannelMessages,
+            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers,
+            broadcastChannelsToIgnore: broadcastChannelsToIgnore
+        }),
+        broadcastChannelMocker = new JsTester_BroadcastChannelMocker({
+            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers,
+            broadcastChannelTester: broadcastChannelTester,
+            broadcastChannelMessages: broadcastChannelMessages,
+            BroadcastChannel: BroadcastChannel,
+            handlers: broadcastChannelHandlers,
+            shortcutHandlers: broadcastChannelShortcutHandlers
+        }),
+        mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
+        mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
+        intersectionObservations = new Map(),
+        intersectionObservationHandlers = new Map(),
+        FakeIntersectionObserver = new JsTester_IntersectionObserverFactory({
+            intersectionObservations,
+            intersectionObservationHandlers
+        }),
+        intersectionObservablesTester = new JsTester_IntersectionObservablesTester({
+            utils,
+            intersectionObservations,
+            intersectionObservationHandlers
+        }),
+        intersectionObserverMocker = new JsTester_IntersectionObserverMocker(FakeIntersectionObserver),
+        mutationObserverTester =  mutationObserverFactory.createTester(),
+        hasFocus = new JsTester_Variable(false, true),
+        isBrowserHidden = new JsTester_Variable(),
+        isBrowserVisible = new JsTester_Variable(true),
+        setBrowserHidden = isBrowserHidden.createSetter(),
+        setBrowserVisible = isBrowserVisible.createSetter(),
+        focusReplacer = new JsTester_FocusReplacer(hasFocus),
+        browserVisibilityReplacer = new JsTester_BrowserVisibilityReplacer({
+            isBrowserHidden,
+            isBrowserVisible
+        }),
+        notifications = new JsTester_Queue(new JsTester_NoNotificationMessage()),
+        notificationPermissionRequests = new JsTester_Queue({
+            callback: function () {}
+        }),
+        notificationPermission = new JsTester_RWVariable(),
+        notificationClickHandler = new JsTester_FunctionVariable(function () {}),
+        notificationTester = new JsTester_NotificationTester({
+            notifications: notifications,
+            notificationClickHandler: notificationClickHandler.createValueCaller(),
+            notificationPermissionRequests: notificationPermissionRequests,
+            notificationPermissionSetter: notificationPermission.set
+        }),
+        notificationReplacer = new JsTester_NotificationReplacer({
+            debug: debug,
+            notificationClickHandler: notificationClickHandler,
+            notifications: notifications,
+            notificationPermissionRequests: notificationPermissionRequests,
+            notificationPermission: notificationPermission
+        }),
+        ajaxTester = new JsTester_AjaxTester(utils, debug),
+        fetchTester = new JsTester_FetchTester(utils),
+        windowOpener = new JsTester_WindowOpener(utils),
+        webSocketLogger = new JsTester_Logger(),
+        webSocketFactory = new JsTester_WebSocketFactory(utils, webSocketLogger, debug),
+        webSockets = webSocketFactory.createCollection(),
+        webSocketReplacer = new JsTester_WebSocketReplacer(webSocketFactory),
+        userMediaEventHandlers = new JsTester_UserMediaEventHandlers(debug),
+        mediaDevicesUserMediaGetter = new JsTester_MediaDevicesUserMediaGetter(userMediaEventHandlers),
+        userMediaGetter = new JsTester_UserMediaGetter(userMediaEventHandlers),
+        additionalDevices = [],
+        mediaDevicesEventListeners = new Map(),
+        userDeviceHandling = new JsTester_EventHandling({
+            listeners: mediaDevicesEventListeners,
+            events: ['devicechange']
+        }),
+        navigatorMock = new JsTester_NavigatorMock({
+            userMediaGetter: userMediaGetter,
+            mediaDevicesUserMediaGetter: mediaDevicesUserMediaGetter,
+            additionalDevices: additionalDevices,
+            mediaDevicesEventListeners: mediaDevicesEventListeners,
+            userDeviceHandling: userDeviceHandling
+        }),
+        rtcConnectionStateChecker = new JsTester_FunctionVariable(function () {}),
+        rtcConnections = [],
+        tracksCreationCallStacks = new Map(),
+        playingMediaStreams = new Map(),
+        mediaStreamTracks = new Map(),
+        audioSources = new Map(),
+        mediaStreams = new JsTester_MediaStreams({
+            mediaStreamTracks: mediaStreamTracks,
+            playingMediaStreams: playingMediaStreams,
+            audioSources: audioSources,
+            debug: debug,
+            RealMediaStream: window.MediaStream
+        }),
+        userMedia = new JsTester_UserMedia({
+            additionalDevices: additionalDevices,
+            mediaDevicesEventListeners: mediaDevicesEventListeners,
+            tracksCreationCallStacks: tracksCreationCallStacks,
+            mediaStreams: mediaStreams,
+            eventHandlers: userMediaEventHandlers,
+            spendTime: spendTime,
+            debug: debug
+        }),
+        sdp = [
+            'v=0',
+            'o=- 6845874344053138478 2 IN IP4 127.0.0.1',
+            's=-',
+            't=0 0',
+            'a=group:BUNDLE 0',
+            'a=msid-semantic: WMS 2c90093a-9b17-4821-aaf3-7b858065ff07',
+            'm=audio 9 UDP/TLS/RTP/SAVPF 111 103 104 9 8 106 105 13 110 112 113 126',
+            'c=IN IP4 0.0.0.0',
+            'a=rtcp:9 IN IP4 0.0.0.0',
+            'a=ice-ufrag:7MXY',
+            'a=ice-pwd:KAoEygUaHA9Mla0gjHYN9/tK',
+            'a=ice-options:trickle',
+            'a=fingerprint:sha-256 59:53:4D:AF:66:F5:F1:CE:3A:F7:93:13:5A:E6:07:19:1E:03:E9:22:A1:19:B2:49:6B:C7:37:86:90:21:2B:42',
+            'a=setup:actpass',
+            'a=mid:0',
+            'a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+            'a=extmap:2 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+            'a=extmap:3 urn:ietf:params:rtp-hdrext:sdes:mid',
+            'a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
+            'a=extmap:5 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
+            'a=sendrecv',
+            'a=msid:2c90093a-9b17-4821-aaf3-7b858065ff07 f807f562-5698-4b34-a298-bc3f780934c3',
+            'a=rtcp-mux',
+            'a=rtpmap:111 opus/48000/2',
+            'a=rtcp-fb:111 transport-cc',
+            'a=fmtp:111 minptime=10;useinbandfec=1',
+            'a=rtpmap:103 ISAC/16000',
+            'a=rtcp-fb:103 transport-cc',
+            'a=fmtp:103 minptime=10;useinbandfec=1',
+            'a=rtpmap:104 ISAC/32000',
+            'a=rtpmap:9 G722/8000',
+            'a=rtpmap:8 PCMA/8000',
+            'a=rtpmap:106 CN/32000',
+            'a=rtpmap:105 CN/16000',
+            'a=rtpmap:13 CN/8000',
+            'a=rtpmap:110 telephone-event/48000',
+            'a=rtpmap:112 telephone-event/32000',
+            'a=rtpmap:113 telephone-event/16000',
+            'a=rtpmap:126 telephone-event/8000',
+            'a=ssrc:3906726496 cname:bn9leCsdnF9+R5yv',
+            'a=ssrc:3906726496 msid:2c90093a-9b17-4821-aaf3-7b858065ff07 f807f562-5698-4b34-a298-bc3f780934c3',
+            'a=ssrc:3906726496 mslabel:2c90093a-9b17-4821-aaf3-7b858065ff07',
+            'a=ssrc:3906726496 label:f807f562-5698-4b34-a298-bc3f780934c3',
+            ''
+        ].join("\r\n"),
+        image = 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAA1dJREFUaEPtmWmoTVEYhp+LhGRI' +
+            'lAyJP6TwQxm6yZwh0iUlQwnhhpIfKKJEhFDGiB+mdJWMGW4yRqSUUFJCpMhc5qFXa9223dlnrz2ce86O78+pc9Z+v/c9a61vr+9dZWQ8' +
+            'yjLOn39SQEOgPvAu5dlrCnwFPkXBDZsB/d4bGAMMA9oDzUyC78B94BpQBZwHfjomrwMMAsYBfYEuQF3z7BvgCXAaOApcB34F4eYT0B9Y' +
+            'DfRyJHUXWAocCRk/FlhhSLtAS8Ai4GKuwbkEaHlsBma4oOcYo9mYBnzw/dYE2ANUxMTdAcwFvnmf9wvQOjwG9IuZxD52GxgKvDRftALO' +
+            'Ad0S4l4CRgHvLY5XgNbgcWB4wiT28RvAAPhT6S4APVPCPQWMBn4IzytgFbA4pSQWZiugDTsrZdyVwBKvgI6momj9pxm2eoRVu6g5v5gi' +
+            '8MgC7wMmRkUp8vi9wBQJaGw2W4MiE4qaXi+8lhKgl4lKXxajQgLWAQuyyB5YKwEHgAkZFbBfAvSCGZxRAdUScBjQ+SSLUSUBm4B5WWQP' +
+            'bJSASmBLRgVUSkAb4KnvWJEFPeo92tk38VXTWGSBuOUozuVWgKqQqlGWQh3iGe8h6yQwIiMKTpi+4K/jdFvT3+qzlEP7tQ/wTCT9x1x1' +
+            'TJcBtX+lGOrEyoE7llyuc7o6JzkCLUpMwVuzxOWC1ERQo9EDOKvjaomIeG1snZt+Pvk6pc6mMhV7T7wwBkHNsnGZATumA1ANdCrSTDw2' +
+            'B82HQfldetXWZia61rKIB4a8qk5guAjQw/J1tCe615KIe8AQ4HlYPlcBwmkOyJORV1rIuGU27CuXJFEECE8GgAzXgS7gMcZcAUZ6nbcw' +
+            'jKgChNfIGLiyDtMMuXeyDT9GAY0jQPgywA4mMGr9HHUOkzvyOQp5jY0rQM/KS90tcylqUt/4Q8Bkv+vsiplEgBWxHZjumtA3To7gVECX' +
+            'JbEiqQA7i+uB+REZbAPmRLjVyQmfhgALvBxY5ihijbl1cRwePCxNAcqy0FxL5SOWGvmkmziI5GxzRaV7AW/IapeFuSHx3+4BSHsGLPQk' +
+            'cx9Wz3whB2EmsCtN8oWaActxPLDTXJGKvMpl6lGoGbBE7QzELpNhigstICx/4t//C0j8FyYE+A2omn8yNA4wuwAAAABJRU5ErkJggg==',
+        rtcPeerConnectionMocker = new JsTester_RTCPeerConnectionMocker({
+            sdp: sdp,
+            connections: rtcConnections,
+            rtcConnectionStateChecker: rtcConnectionStateChecker,
+            mediaStreams: mediaStreams,
+            tracksCreationCallStacks: tracksCreationCallStacks,
+            debug: debug
+        }),
+        rtcConnectionsMock = new JsTester_RTCPeerConnections({
+            tracksCreationCallStacks: tracksCreationCallStacks,
+            connections: rtcConnections,
+            stateChecker: rtcConnectionStateChecker,
+            mediaStreamTracks: mediaStreamTracks,
+            mediaStreams: mediaStreams
+        }),
+        testsExecutionBeginingHandlers = [],
+        checkRTCConnectionState = rtcConnectionStateChecker.createValueCaller(),
+        mediaStreamsTester = new JsTester_MediaStreamsTester({
+            spendTime,
+            mediaStreamsPlayingExpectaionFactory: new JsTester_MediaStreamsPlayingExpectationFactory(mediaStreamTracks),
+            playingMediaStreams: playingMediaStreams,
+            mediaStreams: mediaStreams
+        }),
+        playingOscillators = new Map(),
+        playingOscillatorsTester = new JsTester_PlayingOscillatorsTester(playingOscillators),
+        bufferToContent = new Map(),
+        destinationToSource = new Map(),
+        trackToDestination = new Map(),
+        destinationToGain = new Map(),
+        audioGainTester = new JsTester_AudioGainTester({
+            destinationToGain: destinationToGain,
+            trackToDestination: trackToDestination,
+            utils: utils
+        }),
+        audioProcessingTester = new JsTester_AudioProcessingTester({
+            trackToDestination: trackToDestination
+        }),
+        decodedTracksTester = new JsTester_DecodedTracksTester({
+            bufferToContent: bufferToContent,
+            destinationToSource: destinationToSource,
+            trackToDestination: trackToDestination
+        }),
+        mediaStreamSourceToMediaStream = new Map(),
+        audioNodesConnection = new JsTester_AudioNodesConnection({
+            destinationToSource: destinationToSource,
+            destinationToGain: destinationToGain,
+            mediaStreamSourceToMediaStream: mediaStreamSourceToMediaStream,
+            trackToDestination: trackToDestination
+        }),
+        audioContextFactory = new JsTester_AudioContextFactory({
+            mediaStreamSourceToMediaStream,
+            audioNodesConnection,
+            mediaStreams,
+            bufferToContent,
+            destinationToSource,
+            trackToDestination,
+            playingOscillators,
+            tracksCreationCallStacks,
+            spendTime,
+            debug,
+            utils
+        }),
+        audioDecodingTester = audioContextFactory.createAudioDecodingTester(),
+        audioContextReplacer = new JsTester_AudioContextReplacer(audioContextFactory),
+        audioReplacer = new JsTester_AudioReplacer({
+            mediaStreams: mediaStreams,
+            debug: debug
+        }),
+        nowValue = new JsTester_Variable(),
+        getNow = new JsTester_NowGetter({
+            originalNow: Date.now,
+            getNow: nowValue.createGetter()
+        }),
+        setNow = new JsTester_NowSetter(nowValue.createSetter()),
+        addSecond = function () {
+            nowValue.createSetter()(nowValue.createGetter()() + 1000);
+            spendTime(1000);
+        },
+        now = new JsTester_Now({
+            originalNow: Date.now,
+            getNow: getNow
+        }),
+        windowEventsListeners = new Map(),
+        windowEventsFirerer = new JsTester_WindowEventsFirerer(windowEventsListeners),
+        windowEventsReplacer = new JsTester_WindowEventsReplacer({
+            windowEventsListeners: windowEventsListeners,
+            realEventListenerAssigner: window.addEventListener,
+            fakeWindowListenerAssigner: new JsTester_WindowEventListenerAssigner({
+                windowEventsListeners: windowEventsListeners,
+                realEventListenerAssigner: window.addEventListener
+            })
+        }),
+        blobs = [],
+        blobsTester = new JsTester_BlobsTester({
+            blobs: blobs,
+            utils: utils
+        }),
+        blobReplacer = new JsTester_BlobReplacer({
+            blobs: blobs,
+            factory: new JsTester_BlobFactory({
+                blobs: blobs,
+                utils: utils
+            })
+        }),
+        copiedTexts = [],
+        copiedTextsTester = new JsTester_CopiedTextsTester(copiedTexts),
+        execCommandReplacer = new JsTester_ExecCommandReplacer(copiedTexts);
+
+    audioReplacer.replaceByFake();
+    windowEventsReplacer.replaceByFake();
+    browserVisibilityReplacer.replaceByFake();
+
+    window.MediaStream = function () {
+        var audioTracks;
+
+        if (arguments.length == 1) {
+            audioTracks = arguments[0];
+        }
+
+        if (audioTracks.length == 1) {
+            return new JsTester_MediaStreamWrapper({
+                mediaStream: mediaStreams.create(audioTracks),
+                audioTrack: audioTracks[0]
+            });
+        }
+
+        return mediaStreams.create.apply(mediaStreams, arguments);
+    };
+
+    window.moment = function () {
+        return {
+            format: function () {
+                return '05:32';
+            }
+        };
+    };
+
+    var wait = function () {
+        if (arguments[0]) {
+            var repetitionsCount = arguments[0], i;
+
+            for (i = 0; i < repetitionsCount; i ++) {
+                wait();
+            }
+
+            return;
+        }
+
+        timeout.runCallbacks();
+        interval.runCallbacks();
+    };
+
+    this.exposeDebugUtils = function (variableName) {
+        window[variableName] = debug;
+    };
+    this.addTest = function (testRunner) {
+        testRunners.push(testRunner);
+    };
+    this.runTests = function (options) {
+        var testersFactory;
+        options = options || {};
+        
+        try {
+            testersFactory = factory.createTestersFactory({
+                wait: wait,
+                utils: utils,
+                blobsTester: blobsTester,
+                spendTime: spendTime
+            });
+        } catch(e) {
+            error = e;
+        }
+
+        var args = {
+            error: '<html>' +
+                '<head>' +
+                    '<title>500 Internal Server Error</title>' +
+                '</head>' +
+                '<body bgcolor="white">' +
+                    '<center>' +
+                        '<h1>500 Internal Server Error</h1>' +
+                    '</center>' +
+                    '<hr>' +
+                    '<center>nginx/1.10.2</center>' +
+                '</body>' +
+            '</html>',
+            sdp: sdp,
+            image: image,
+            windowSize: windowSize,
+            broadcastChannels: broadcastChannelTester,
+            mutationObserverMocker: mutationObserverMocker,
+            fileReader: fileReaderTester,
+            triggerMutation: mutationObserverTester,
+            intersectionObservable: intersectionObservablesTester,
+            cookie: cookieTester,
+            ajax: ajaxTester,
+            fetch: fetchTester,
+            testersFactory: testersFactory,
+            wait: wait,
+            spendTime: spendTime,
+            utils: utils,
+            debug: debug,
+            windowOpener: windowOpener,
+            webSockets: webSockets,
+            webSocketLogger: webSocketLogger,
+            userMedia: userMedia,
+            rtcConnectionsMock: rtcConnectionsMock,
+            navigatorMock: navigatorMock,
+            timeoutLogger: timeoutLogger,
+            mediaStreamsTester: mediaStreamsTester,
+            setNow: setNow,
+            addSecond: addSecond,
+            playingOscillatorsTester: playingOscillatorsTester,
+            unload: () => {
+                windowEventsFirerer('unload');
+                Promise.runAll(false, true);
+            },
+            audioDecodingTester: audioDecodingTester,
+            decodedTracksTester: decodedTracksTester,
+            audioProcessing: audioProcessingTester,
+            audioGain: audioGainTester,
+            notificationTester: notificationTester,
+            blobsTester: blobsTester,
+            copiedTextsTester: copiedTextsTester,
+            setFocus: new JsTester_FocusSetter(hasFocus.createSetter()),
+            setDocumentVisible: new JsTester_VisibilitySetter({
+                setBrowserHidden,
+                setBrowserVisible,
+                isBrowserHidden: isBrowserHidden.createGetter(),
+            })
+        };
+
+        (function () {
+            var name;
+
+            for (name in options) {
+                args[name] = options[name];
+            }
+        })();
+
+        this.handleBeginingOfTestsExecution(args);
+
+        mediaStreams.considerInitial();
+
+        testRunners.forEach(function (runTest) {
+            runTest.call(null, args);
+        });
+    };
+    this.requireClass = function (className) {
+        requiredClasses.push(className);
+    };
+    this.runBeforeTestsExecution = function (handleBeginingOfTestsExecution) {
+        testsExecutionBeginingHandlers.push(handleBeginingOfTestsExecution);
+    };
+    this.handleBeginingOfTestsExecution = function (args) {
+        testsExecutionBeginingHandlers.forEach(function (handleBeginingOfTestsExecution) {
+            handleBeginingOfTestsExecution.call(null, args);
+        });
+    };
+    this.getRequiredClasses = function () {
+        return requiredClasses;
+    };
+    this.beforeEach = function () {
+        window.URL.createObjectURL = function (object) {
+            return location.href + '#' + (typeof object == 'string' ? object : object.id);
+        };
+
+        setNow(null);
+
+        intersectionObservations.clear();
+        intersectionObservationHandlers.clear();
+        downloadPreventer.prevent();
+        setBrowserHidden(false);
+        setBrowserVisible(true);
+        audioNodesConnection.reset();
+        additionalDevices.splice(0, additionalDevices.length);
+        additionalDevices.push({
+            kind: 'audiooutput',
+            label: 'Колонка JBL',
+            deviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab'
+        });
+        userDeviceHandling.reset();
+        utils.enableScrollingIntoView();
+        broadcastChannelMocker.replaceByFake();
+        mutationObserverMocker.replaceByFake();
+        intersectionObserverMocker.replaceByFake();
+        fileReaderMocker.replaceByFake();
+        execCommandReplacer.replaceByFake();
+        blobReplacer.replaceByFake();
+        focusReplacer.replaceByFake();
+        bufferToContent.clear();
+        destinationToSource.clear();
+        trackToDestination.clear();
+        playingOscillators.clear();
+        mediaStreams.clear();
+        windowEventsReplacer.prepareToTest();
+        notificationReplacer.replaceByFake();
+        audioContextReplacer.replaceByFake();
+        cookie.set('');
+        storageMocker.replaceByFake();
+        rtcPeerConnectionMocker.replaceByFake();
+        webSocketReplacer.replaceByFake();
+        ajaxTester.replaceByFake();
+        fetchTester.replaceByFake();
+        timeout.replaceByFake();
+        interval.replaceByFake();
+        windowOpener.replaceByFake();
+        now.replaceByFake();
+    };
+    this.restoreRealDelayedTasks = function () {
+        timeout.restoreReal();
+        interval.restoreReal();
+        now.restoreReal();
+    };
+    this.afterEach = function () {
+        var exceptions = [];
+
+        this.restoreRealDelayedTasks();
+        downloadPreventer.resume();
+        broadcastChannelTester.recentMessage().expectNotToExist(exceptions);
+        windowSize.reset();
+        broadcastChannelMocker.restoreReal();
+        mutationObserverMocker.restoreReal();
+        intersectionObserverMocker.restoreReal();
+        fileReaderTester.expectNoFileToBeLoading();
+        fileReaderMocker.restoreReal();
+        execCommandReplacer.restoreReal();
+        blobReplacer.restoreReal();
+        notificationTester.recentNotification().expectNotToExist(exceptions);
+        notificationTester.expectNotificationPermissionNotToBeRequested(exceptions);
+        Promise.clear();
+        focusReplacer.restoreReal();
+        windowEventsReplacer.restoreReal();
+        notificationReplacer.restoreReal();
+        audioContextReplacer.restoreReal();
+        checkRTCConnectionState(exceptions);
+        storageMocker.restoreReal();
+        rtcPeerConnectionMocker.restoreReal();
+        userMediaEventHandlers.assertNoUserMediaRequestLeftUnhandled(exceptions);
+        audioContextFactory.assertNoAudioDecodingHappens(exceptions);
+        audioContextFactory.reset();
+        ajaxTester.restoreReal(exceptions);
+        fetchTester.restoreReal(exceptions);
+        windowOpener.restoreReal();
+        webSockets.afterEach(exceptions);
+        webSockets.expectNoMessageToBeSent(exceptions);
+        webSocketReplacer.restoreReal();
+
+        exceptions.forEach(function (exception) {
+            throw exception;
+        });
     };
 }

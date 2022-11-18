@@ -204,8 +204,11 @@ define(() => function ({
         isIntersecting => intersection.get(domElement) !== isIntersecting
     );
 
+    const getSpinWrappers = (getRootElement = () => document.body) => utils.element(getRootElement()).
+        querySelectorAll('.ui-infinite-scroll-spin-wrapper, .chats-list-spin-wrapper');
+
     const getSpinWrapper = (getRootElement = () => document.body) => utils.element(getRootElement()).
-        querySelector('.ui-infinite-scroll-spin-wrapper');
+        querySelector('.ui-infinite-scroll-spin-wrapper, .cm-chats--chats-list-spin-wrapper');
 
     const getContactListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-contacts-list-wrapper')),
         getChatListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-chats--chats-list'));
@@ -214,6 +217,26 @@ define(() => function ({
         getSpinWrapper(() => utils.querySelector('.cm-chats--chat-panel-history'));
 
     const addTesters = (me, getRootElement) => {
+        me.plusButton = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => getRootElement().querySelector('.cm-contacts-add-button')
+            );
+
+            const click = tester.click.bind(tester),
+                putMouseOver = tester.putMouseOver.bind(tester);
+
+            tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
+            tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+            tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cm-contacts-add-button--disabled');
+            tester.expectToBeDisabled = () => tester.expectToHaveClass('cm-contacts-add-button--disabled');
+
+            return tester;
+        })();
+
+        me.messengerIcon = testersFactory.createDomElementTester(() =>
+            utils.element(getRootElement()).querySelector('.cm-contacts-messenger-icon'));
+
         !me.tagField && Object.defineProperty(me, 'tagField', {
             set: () => null,
             get: () => {
@@ -290,17 +313,24 @@ define(() => function ({
         me.spinWrapper = (() => {
             const getDomElement = () => getSpinWrapper(getRootElement);
 
-            const tester = testersFactory.createDomElementTester(getDomElement),
-                scrollIntoView = tester.scrollIntoView.bind(tester);
+            function createTester (getDomElement) {
+                const tester = testersFactory.createDomElementTester(getDomElement),
+                    scrollIntoView = tester.scrollIntoView.bind(tester);
 
-            intersectionObservable(getDomElement).onObserve(runSpinWrapperIntersectionCallback);
+                intersectionObservable(getDomElement).onObserve(runSpinWrapperIntersectionCallback);
 
-            tester.scrollIntoView = () => {
-                scrollIntoView();
+                tester.scrollIntoView = () => {
+                    scrollIntoView();
 
-                maybeRunSpinWrapperIntersectionCallback(getDomElement());
-                spendTime(0);
-            };
+                    maybeRunSpinWrapperIntersectionCallback(getDomElement());
+                    spendTime(0);
+                };
+
+                return tester;
+            }
+
+            const tester = createTester(getDomElement);
+            tester.atIndex = index => createTester(() => getSpinWrappers()[index]);
 
             return tester;
         })();
@@ -317,8 +347,18 @@ define(() => function ({
             '.cm-user-only-account--username, .cm-chats--account'
         )));
 
-        me.spin = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
-            querySelector('.ui-spin-icon-default, .clct-spinner, .cm-chats--loading-icon'));
+        (() => {
+            const selector = '.ui-spin-icon-default, .clct-spinner, .cm-chats--loading-icon';
+
+            const getSpin = () => utils.element(getRootElement()).
+                querySelector(selector);
+
+            const getSpins = () => utils.element(getRootElement()).
+                querySelectorAll(selector);
+
+            me.spin = testersFactory.createDomElementTester(getSpin);
+            me.spin.atIndex = index => testersFactory.createDomElementTester(() => getSpins()[index]);
+        })();
 
         me.anchor = text => (() => {
             const tester = testersFactory.createAnchorTester(
@@ -644,11 +684,14 @@ define(() => function ({
 
         const buttonSelector = 
             'button, ' +
+            '.cm-contacts-contact-bar-section-header-subtitle, ' +
             '.ui-pagination-btns-pages__item, ' +
             '.clct-c-button, ' +
             '.ui-radio-content, ' +
             '.cmg-switch-label, ' +
             '.misc-core-src-components-menu-styles-module__label, ' +
+            '.cm-chats--chat-menu-item, ' +
+            '.cm-chats--tab-title, ' +
             '.src-components-main-menu-nav-item-styles-module__label, ' +
             '.src-components-main-menu-settings-styles-module__label, ' +
             '.src-components-main-menu-menu-link-styles-module__item a';
@@ -817,6 +860,9 @@ define(() => function ({
             };
 
             const tester = createTester();
+
+            tester.atIndex = expectedIndex => createTester((select, index) => index === expectedIndex);
+            tester.first = tester.atIndex(0)
             tester.withValue = expectedValue => createTester(select => utils.getTextContent(select) == expectedValue);
 
             tester.withPlaceholder = expectedPlaceholder => createTester(select => utils.getTextContent(
@@ -897,10 +943,31 @@ define(() => function ({
             };
         }
 
+        me.closeButton = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => utils.element(getRootElement()).querySelector(
+                    '.cmg-miscrophone-unavailability-message-close, ' +
+                    '.cmg-connecting-message-close, ' +
+                    '.ui-audio-player__close, ' +
+                    '.ui-notification-close-x'
+                ) 
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0), spendTime(0));
+
+            return tester;
+        })();
+
         return me;
     };
 
-    me.tooltip = testersFactory.createDomElementTester('.ui-tooltip-inner');
+    me.tooltip = (() => {
+        const getDomElement = () => utils.querySelector('.ui-tooltip-inner'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
 
     me.statusesDurationItem = text => testersFactory.createDomElementTester(() => utils.descendantOfBody().
         textEquals(text).
@@ -926,6 +993,22 @@ define(() => function ({
 
             return tester;
         })();
+
+        const button = windowTester.button.bind(windowTester);
+
+        windowTester.button = text => {
+            const tester = button(text),
+                click = tester.click.bind(tester);
+
+            text == 'Отменить' && (tester.click = () => {
+                click();
+                spendTime(0);
+                windowTester.endTransition('transform');
+                spendTime(0);
+            });
+
+            return tester;
+        };
 
         return windowTester;
     })();
@@ -965,6 +1048,36 @@ define(() => function ({
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
     };
 
+    me.chatPhoneUpdatingRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectToHavePath('$REACT_APP_BASE_URL/chat/phone').
+                    expectBodyToContain({
+                        phone: '79162729534',
+                        chat_id: 7189362
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: true
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatMarkingRequest = () => {
         const addResponseModifiers = me => me;
 
@@ -993,7 +1106,7 @@ define(() => function ({
                 this.expectToBeSent().receiveResponse();
             }
         });
-    }
+    };
 
     me.resourcePayloadRequest = () => {
         const addResponseModifiers = me => me;
@@ -1017,6 +1130,46 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.chatStartingRequest = () => {
+        let params = {
+            chat_channel_type: 'whatsapp',
+            account_id: 425802,
+            contact: {
+                phone: '79283810988'
+            }
+        };
+
+        let data = {
+            chat_id: 7189362
+        };
+
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                return addResponseModifiers({
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectToHaveMethod('POST').
+                            expectPathToContain('$REACT_APP_BASE_URL').
+                            expectBodyToContain({
+                                method: 'start_chat',
+                                params
+                            }).respondSuccessfullyWith({
+                                result: {data}
+                            });
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -1138,7 +1291,6 @@ define(() => function ({
                     reourceName: null,
                     employee_id: 20816,
                     employee_name: 'Карадимова Веска Анастасовна',
-                    visitor_name: 'Помакова Бисерка Драгановна',
                     front_message_uuid: '8g28929d8j44jgo9d',
                     error_mnemonic: null
                 };
@@ -1264,6 +1416,36 @@ define(() => function ({
         }
     };
 
+    me.offlineMessageAcceptingRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/offline_message').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        offline_message_id: 178076
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: true 
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.offlineMessageCountersRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
@@ -1289,6 +1471,23 @@ define(() => function ({
     });
 
     me.offlineMessageListRequest = () => {
+        const data = {
+            date_time: '2020-02-10 12:10:16',
+            email: 'msjdasj@mail.com',
+            employee_id: 1875485,
+            id: 178073,
+            is_phone_auto_filled: true,
+            mark_ids: [],
+            message: 'Я хочу о чем-то заявить.',
+            phone: '79161212122',
+            name: 'прива',
+            site_id: 2157,
+            status: 'not_processed',
+            visitor_id: 16479303,
+            visitor_name: 'Помакова Бисерка Драгановна',
+            visitor_type: 'comagic'
+        };
+
         const bodyParams = {
             limit: 30,
             offset: 0
@@ -1297,16 +1496,28 @@ define(() => function ({
         return {
             notProcessed() {
                 bodyParams.statuses = ['not_processed'];
+
+                data.id = 178076;
+                data.status = 'not_processed';
+
                 return this;
             },
             
             processing() {
                 bodyParams.statuses = ['processing'];
+
+                data.id = 178074;
+                data.status = 'processing';
+
                 return this;
             },
 
             processed() {
                 bodyParams.statuses = ['processed'];
+
+                data.id = 178075;
+                data.status = 'processed';
+
                 return this;
             },
 
@@ -1318,19 +1529,7 @@ define(() => function ({
                 return {
                     receiveResponse() {
                         request.respondSuccessfullyWith({
-                            data: [{
-                                date_time: '2022-01-20T21:37:14',
-                                email: '',
-                                id: 178073,
-                                mark_ids: [],
-                                message: 'Привет.',
-                                phone: '71231212122',
-                                site_id: 2157,
-                                status: 'not_processed',
-                                visitor_id: 16479303,
-                                visitor_name: 'Помакова Бисерка Драгановна',
-                                visitor_type: 'omni'
-                            }]
+                            data: [data]
                         });
 
                         Promise.runAll(false, true);
@@ -2929,6 +3128,13 @@ define(() => function ({
                             status: 'active',
                             status_reason: 'omni_request',
                             type: 'telegram'
+                        }, {
+                            id: 216395,
+                            is_removed: true,
+                            name: 'whatsapp',
+                            status: 'active',
+                            status_reason: '',
+                            type: 'whatsapp'
                         }]
                     });
 
@@ -2944,7 +3150,68 @@ define(() => function ({
     });
 
     me.searchResultsRequest = () => {
-        const addResponseModifiers = me => me;
+        const response = {
+            result: {
+                data: {
+                    found_list: [{
+                        chat_channel_id: 101,
+                        chat_channel_state: null,
+                        chat_channel_type: 'telegram',
+                        date_time: '2020-01-20T17:25:22.098210',
+                        id: 7189362,
+                        employee_id: null,
+                        last_message: {
+                            message: 'Сообщение #75',
+                            date: '2022-06-24T16:04:26.0003',
+                            is_operator: false,
+                            resource_type: null,
+                            resource_name: null
+                        },
+                        mark_ids: ['587', '212'],
+                        phone: null,
+                        site_id: 4663,
+                        status: 'new',
+                        visitor_id: 16479303,
+                        visitor_name: 'Помакова Бисерка Драгановна',
+                        visitor_type: 'omni',
+                        account_id: null,
+                        is_phone_auto_filled: false,
+                        unread_message_count: 0
+                    }]
+                }
+            } 
+        };
+
+        const addResponseModifiers = me => {
+            me.contactExists = () => {
+                response.result.data.found_list[0].contact = {
+                    first_name: 'Грета',
+                    last_name: 'Бележкова',
+                    id: 1689283,
+                    email_list: ['endlesssprinп.of@comagic.dev'],
+                    chat_channel_list: [{
+                        type: 'whatsapp',
+                        ext_id: '79283810988',
+                        chat_channel_id: 216395
+                    }, {
+                        type: 'whatsapp',
+                        ext_id: '79283810928' ,
+                        chat_channel_id: 216395
+                    }],
+                    organization_name: 'UIS',
+                    phone_list: ['79162729533'],
+                    group_list: [],
+                    personal_manager_id: 583783,
+                    patronymic: 'Ервиновна',
+                    full_name: 'Бележкова Грета Ервиновна',
+                    is_chat_channel_active: false
+                };
+
+                return me;
+            };
+
+            return me;
+        };
 
         return addResponseModifiers({
             expectToBeSent(requests) {
@@ -2960,37 +3227,50 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.visitorCardUpdatingRequest = () => {
+        const card = {
+            name: 'Помакова Бисерка Драгановна  ',
+            phones: ['79164725823', undefined],
+            emails: ['pomakova@gmail.com', undefined]
+        };
+
+        const addResponseModifiers = me => {
+            me.noPhone = () => (card.phones = [undefined], me);
+            me.anotherPhone = () => (card.phones = ['79162729534', undefined], me);
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'update_visitor_card',
+                        params: {
+                            visitor_id: 16479303,
+                            card
+                        }
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
                         request.respondSuccessfullyWith({
-                            result: {
-                                data: {
-                                    found_list: [{
-                                        chat_channel_id: 101,
-                                        chat_channel_state: null,
-                                        chat_channel_type: 'telegram',
-                                        date_time: '2020-01-20T17:25:22.098210',
-                                        id: 7189362,
-                                        employee_id: null,
-                                        is_chat_channel_active: false,
-                                        last_message: {
-                                            message: 'Сообщение #75',
-                                            date: '2022-06-24T16:04:26.0003',
-                                            is_operator: false,
-                                            resource_type: null,
-                                            resource_name: null
-                                        },
-                                        mark_ids: ['587', '212'],
-                                        phone: null,
-                                        site_id: 4663,
-                                        status: 'new',
-                                        visitor_id: 16479303,
-                                        visitor_name: 'Помакова Бисерка Драгановна',
-                                        visitor_type: 'omni',
-                                        account_id: null,
-                                        is_phone_auto_filled: false,
-                                        unread_message_count: 0
-                                    }]
-                                }
-                            } 
+                            result: true
                         });
 
                         Promise.runAll(false, true);
@@ -3010,7 +3290,22 @@ define(() => function ({
             visitor_id: 16479303
         };
 
-        const addResponseModifiers = me => me;
+        const result = {
+            visitor_id: 16479303,
+            name: 'Помакова Бисерка Драгановна',
+            phones: ['79164725823'],
+            emails: ['pomakova@gmail.com'],
+            company: 'UIS',
+            comment: 'Некий посетитель'
+        };
+
+        const addResponseModifiers = me => {
+            me.addSecondPhoneNumber = () => (result.phones.push('79164725824'), me);
+            me.noPhone = () => (result.phones = [], me);
+            me.noEmail = () => (result.emails = [], me);
+
+            return me;
+        };
 
         return addResponseModifiers({
             expectToBeSent(requests) {
@@ -3024,16 +3319,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith({
-                            result: {
-                                visitor_id: 16479303,
-                                name: 'Помакова Бисерка Драгановна',
-                                phones: ['79164725823'],
-                                emails: ['pomakova@gmail.com'],
-                                company: 'UIS',
-                                comment: 'Некий посетитель'
-                            } 
-                        });
+                        request.respondSuccessfullyWith({result});
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -3127,12 +3413,23 @@ define(() => function ({
     me.chatListRequest = () => {
         let total = 75;
 
+        let respond = (request, data) => {
+            request.respondSuccessfullyWith({
+                result: {data} 
+            });
+        };
+
+        const processors = [];
+
         const params = {
+            app_id: null,
+            employee_id: null,
             statuses: ['new', undefined],
             limit: 30,
             offset: 0,
             scroll_from_date: null,
-            scroll_direction: 'down'
+            scroll_direction: 'down',
+            is_other_employees_appeals: undefined
         };
 
         const initialData = [{
@@ -3225,7 +3522,64 @@ define(() => function ({
         }));
         
         function addResponseModifiers (me) {
+            me.failed = () => {
+                respond = request => request.respondSuccessfullyWith({
+                    "result": null,
+                    "error": {
+                        "code": 500,
+                        "message": [{
+                            "loc": ["__root__"],
+                            "msg": "Server got itself in trouble",
+                            "type": "value_error.exception"
+                        }]
+                    }
+                });
+
+                return me;
+            };
+
             me.nothingFound = () => ((data = []), me);
+
+            me.noVisitorName = () => {
+                processors.push(data => data.chats.forEach(item => (item.visitor_name = null)));
+                return me;
+            };
+
+            me.phoneAutoFilled = () => {
+                processors.push(data => (data.chats[0].is_phone_auto_filled = true));
+                return me;
+            };
+
+            me.phoneSpecified = () => {
+                processors.push(data => {
+                    data.chats[0].phone = '79283810928';
+                    data.chats[0].context = null; 
+                });
+
+                return me;
+            };
+
+            me.contactExists = () => {
+                processors.push(data => (data.chats[0].contact = {
+                    first_name: 'Грета',
+                    last_name: 'Бележкова',
+                    id: 1689283,
+                    email_list: ['endlesssprinп.of@comagic.dev'],
+                    chat_channel_list: [
+                        { type: 'whatsapp', ext_id: '79283810988' },
+                        { type: 'whatsapp', ext_id: '79283810928' },
+                    ],
+                    organization_name: 'UIS',
+                    phone_list: ['79162729533'],
+                    group_list: [],
+                    personal_manager_id: 583783,
+                    patronymic: 'Ервиновна',
+                    full_name: 'Бележкова Грета Ервиновна',
+                    is_chat_channel_active: false
+                }));
+
+                return me;
+            };
 
             me.lastMessageFromOperator = () => {
                 initialData[0].last_message.is_operator = true;
@@ -3247,11 +3601,25 @@ define(() => function ({
             params.scroll_direction = undefined;
             params.scroll_from_date = undefined;
             params.statuses = undefined;
+            params.app_id = undefined;
+            params.employee_id = undefined;
             params.chat_id = chat_id;
             params.limit = 1;
         };
 
         return addResponseModifiers({
+            isOtherEmployeesAppeals() {
+                params.is_other_employees_appeals = true;
+                return this;
+            },
+
+            forCurrentEmployee() {
+                params.app_id = 1103;
+                params.employee_id = 20816;
+
+                return this;
+            },
+
             secondPage() {
                 params.scroll_from_date = '2022-01-12T02:49:15.168+03:00';
                 
@@ -3288,6 +3656,9 @@ define(() => function ({
                 chat(7189362);
 
                 getData = () => [{
+                    context: {
+                        phone: '79283810928'
+                    },
                     chat_channel_id: 101,
                     chat_channel_state: null,
                     chat_channel_type: 'telegram',
@@ -3346,15 +3717,14 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith({
-                            result: {
-                                data: {
-                                    active_chat_count: total,
-                                    new_chat_count: total,
-                                    chats: getData()
-                                }
-                            } 
-                        });
+                        const data = {
+                            active_chat_count: total,
+                            new_chat_count: total,
+                            chats: getData()
+                        };
+
+                        processors.forEach(process => process(data));
+                        respond(request, data);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -3497,9 +3867,10 @@ define(() => function ({
             return {
                 receiveResponse() {
                     request.respondSuccessfullyWith({
-                        result: {
-                            data: []
-                        }
+                        data: [{
+                            id: 2157,
+                            domain_name: 'somedomain.com'
+                        }]
                     });
 
                     Promise.runAll(false, true);
@@ -8104,17 +8475,192 @@ define(() => function ({
         return request;
     };
 
-    me.contactRequest = () => {
-        const processors = [];
+    me.contactDeletingRequest = () => {
+        let id = 1689283,
+            respond = request => request.respondSuccessfullyWith({});
 
         const addResponseModifiers = me => {
+            me.failed = () => {
+                respond = request =>
+                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHaveMethod('DELETE');
+
+                utils.isVisible(utils.querySelector('.clct-modal, .ui-modal')) &&
+                    mainTester.modalWindow.endTransition('transform');
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        respond(request);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.contactRequest = () => {
+        const processors = [],
+            secondProcessors = [];
+
+        const addResponseModifiers = me => {
+            me.anotherName = () => {
+                processors.push(() => {
+                    response.first_name = 'Роза';
+                    response.last_name = 'Неделчева';
+                    response.patronymic = 'Ангеловна';
+                });
+
+                return me;
+            };
+
+            me.addPhoneNumber = () => {
+                processors.push(() => response.phone_list.push('79162729534'));
+                return me;
+            };
+
+            me.anotherPhoneNumber = () => {
+                processors.push(() => (response.phone_list[0] = '79162729534'));
+                return me;
+            };
+
+            me.anotherPersonalManager = () => {
+                processors.push(() => (response.personal_manager_id = 82756));
+                return me;
+            };
+
+            me.addTelegram = () => {
+                processors.push(() => response.chat_channel_list.push({
+                    type: 'telegram',
+                    ext_id: '79218307632',
+                    chat_channel_id: 101
+                }));
+
+                return me;
+            };
+
+            me.addSecondTelegram = () => {
+                processors.push(() => response.chat_channel_list.push({
+                    type: 'telegram',
+                    ext_id: '@kotik70600',
+                    chat_channel_id: 101
+                }));
+
+                return me;
+            };
+
+            me.addWhatsApp = () => {
+                processors.push(() => response.chat_channel_list.push({
+                    type: 'whatsapp',
+                    ext_id: '79283810987',
+                    chat_channel_id: 84278
+                }));
+
+                return me;
+            };
+
+            me.addThirdTelegram = () => {
+                processors.push(() => response.chat_channel_list.push({
+                    type: 'telegram',
+                    ext_id: '@kotik70601',
+                    chat_channel_id: 101
+                }));
+
+                return me;
+            };
+
+            me.addFourthTelegram = () => {
+                processors.push(() => response.chat_channel_list.push({
+                    type: 'telegram',
+                    ext_id: '79283810928',
+                    chat_channel_id: 101
+                }));
+
+                return me;
+            };
+
+            me.addSecondPhoneNumber = () => {
+                processors.push(() => response.phone_list.push('79162729535'));
+                return me;
+            };
+
+            me.addThirdPhoneNumber = () => {
+                processors.push(() => response.phone_list.push('79162729536'));
+                return me;
+            };
+
+            me.addFourthPhoneNumber = () => {
+                processors.push(() => response.phone_list.push('79162729537'));
+                return me;
+            };
+
+            me.noPhoneNumbers = () => {
+                processors.push(() => (response.phone_list = []));
+                return me;
+            };
+
+            me.noEmails = () => {
+                processors.push(() => (response.email_list = []));
+                return me;
+            };
+
             me.emptyEmailList = () => {
                 processors.push(() => (response.email_list[0] = ''));
+                return me;
+            };
+
+            me.addEmail = () => {
+                processors.push(() => response.email_list.push('belezhkova@gmail.com'));
+                return me;
+            };
+
+            me.noChannels = () => {
+                processors.push(() => (response.chat_channel_list = []));
                 return me;
             };
             
             me.noPersonalManager = () => {
                 processors.push(() => (response.personal_manager_id = null));
+                return me;
+            };
+
+            me.noFirstName = () => {
+                processors.push(() => (response.first_name = null));
+                return me;
+            };
+
+            me.noPatronymic = () => {
+                processors.push(() => (response.patronymic = null));
+                return me;
+            };
+
+            me.legacyChannelList = () => {
+                secondProcessors.push(() => (response.chat_channel_list = response.chat_channel_list.map(channel => {
+                    const {ext_id} = channel;
+
+                    delete(channel.ext_id);
+                    channel.phone = ext_id;
+
+                    return channel;
+                })));
+
                 return me;
             };
 
@@ -8128,10 +8674,15 @@ define(() => function ({
             last_name: 'Бележкова',
             id: 1689283,
             email_list: ['endlesssprinп.of@comagic.dev'],
-            chat_channel_list: [
-                { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
-                { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
-            ],
+            chat_channel_list: [{
+                type: 'whatsapp',
+                ext_id: '79283810988',
+                chat_channel_id: 216395
+            }, {
+                type: 'whatsapp',
+                ext_id: '79283810928',
+                chat_channel_id: 216395
+            }],
             organization_name: 'UIS',
             phone_list: ['79162729533'],
             group_list: [],
@@ -8141,22 +8692,67 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            thirdContact() {
+                id = response.id = 25206823;
+
+                response.first_name = 'Бисера';
+                response.last_name = 'Паскалева';
+                response.patronymic = 'Илковна';
+
+                return this;
+            },
+
+            fourthContact() {
+                id = response.id = 1789283;
+
+                response.first_name = 'Роза';
+                response.last_name = 'Неделчева';
+                response.patronymic = 'Ангеловна';
+
+                return this;
+            },
+
+            fifthContact() {
+                id = response.id = 2968308,
+                response.personal_manager_id = null,
+                response.first_name = '',
+                response.last_name = 'Помакова Бисерка Драгановна',
+                response.full_name = '',
+                response.organization_name = '',
+                response.patronymic = '',
+                response.group_list = [],
+                response.phone_list = ['79164725823'],
+                response.email_list = ['pomakova@gmail.com'],
+
+                response.chat_channel_list = [{
+                    type: 'telegram',
+                    ext_id: 'Помакова Бисерка Драгановна',
+                    chat_channel_id: 101
+                }];
+
+                return this;
+            },
+
             anotherContact() {
                 id = response.id = 1689290;
 
                 response.first_name = 'Калиса';
                 response.last_name = 'Белоконска-Вражалска';
+                response.patronymic = 'Еньовна';
                 response.email_list = ['belokonska-vrazhelska@gmail.com'];
                 response.organization_name = 'UIS';
                 response.phone_list = ['79162729534'];
-                response.patronymic = 'Еньовна';
-                response.full_name = 'Белоконска-Вражалска Калиса Еньовна';
                 response.personal_manager_id = 79582;
 
-                response.chat_channel_list = [
-                    { type: 'whatsapp', phone: '+7 (928) 381 09-89' },
-                    { type: 'whatsapp', phone: '+7 (928) 381 09-29' },
-                ];
+                response.chat_channel_list = [{
+                    type: 'whatsapp',
+                    ext_id: '+7 (928) 381 09-89',
+                    chat_channel_id: 216395
+                }, {
+                    type: 'whatsapp',
+                    ext_id: '+7 (928) 381 09-29',
+                    chat_channel_id: 216395
+                }];
 
                 return this;
             },
@@ -8169,11 +8765,72 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse: () => {
                         processors.forEach(process => process());
+                        secondProcessors.forEach(process => process());
+
+                        response.full_name = ['last_name', 'first_name', 'patronymic'].map(
+                            name => response[name]
+                        ).filter(name => !!name).join(' ');
 
                         request.respondSuccessfullyWith({
                             data: [response],
                             total_count: 1
                         });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.contactChatRequest = () => {
+        const data = {
+            chat_channel_name: 'WhatsApp',
+            is_chat_channel_active: true,
+            omni_account_state: 'active',
+            omni_account_id: 425802,
+            chat: {
+                id: 7189362,
+                phone: '79283810988',
+                employee_id: 20816,
+                chat_channel_type: 'whatsapp',
+                chat_status: 'active'
+            }
+        };
+
+        const addResponseModifiers = me => {
+            me.anotherPhone = () => (data.chat.phone = '79357818431', me);
+            me.anotherEmployee = () => (data.chat.employee_id = 57292, me);
+            me.anotherChannelType = () => (data.chat.chat_channel_type = 'telegram', me);
+            me.channelInactive = () => (data.is_chat_channel_active = false, me);
+            me.accountInactive = () => (data.omni_account_state = 'inactive', me);
+            me.noChat = () => (data.chat = null, me);
+            me.closed = () => (data.chat.chat_status = 'closed', me);
+
+            return me;
+        };
+
+        const response = {data};
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/1689283/chat/20816`).
+                    expectToHaveMethod('GET').
+                    expectQueryToContain({
+                        chat_channel_id: '216395',
+                        chat_statuses: ['new', 'active', 'closed', undefined]
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -8199,14 +8856,51 @@ define(() => function ({
 
         const response = {
             data: [{
+                id: 482062,
+                start_time: '2020-02-10 12:10:16',
+                communication_type: 'offline_message',
+                data: {
+                    date_time: '2020-02-10 12:10:16',
+                    email: 'msjdasj@mail.com',
+                    employee_id: 1875485,
+                    id: 178073,
+                    is_phone_auto_filled: true,
+                    mark_ids: [],
+                    message: 'Я хочу о чем-то заявить.',
+                    name: null,
+                    phone: '79161212122',
+                    site_id: 2157,
+                    status: 'processing',
+                    visitor_id: 16479303,
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'comagic'
+                }
+            }, {
+                id: 482065,
+                start_time: '2020-02-10 12:11:15',
+                communication_type: 'chat_message',
+                data: {
+                    chat_id: 2718935,
+                    phone: '79218307632',
+                    site_domain_name: 'www.site.ru',
+                    message_source: 'system',
+                    message: 'Чат принят оператором Карадимова Веска Анастасовна (79283810928)',
+                    chat_channel_type: 'telegram',
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    status: 'sent'
+                }
+            }, {
                 id: 482057,
                 start_time: '2020-02-10 12:12:14',
                 communication_type: 'chat_message',
                 data: {
                     chat_id: 2718935,
-                    is_operator: false,
-                    message_text: 'Здравствуйте',
-                    operator_name: 'Карадимова Веска Анастасовна',
+                    chat_channel_type: 'telegram',
+                    phone: '79283810928',
+                    message_source: 'visitor',
+                    message: 'Здравствуйте',
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    status: 'sent'
                 }
             }, {
                 id: 482058,
@@ -8214,9 +8908,18 @@ define(() => function ({
                 communication_type: 'chat_message',
                 data: {
                     chat_id: 2718935,
-                    is_operator: true,
-                    message_text: 'Привет',
-                    operator_name: 'Карадимова Веска Анастасовна'
+                    phone: '79283810928',
+                    message_source: 'operator',
+                    chat_channel_type: 'telegram',
+                    message: 'Привет',
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    status: 'sent',
+                    reply_to_id: 482057,
+                    reply_to: {
+                        employee_name: 'Карадимова Веска Анастасовна',
+                        is_operator: false,
+                        message: 'Здравствуйте'
+                    }
                 }
             }, {
                 id: 482060,
@@ -8226,6 +8929,11 @@ define(() => function ({
                     direction: 'in',
                     talk_duration: 42820,
                     numa: '79161234567',
+                    virtual_phone_number: '74952727438',
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    is_lost: false,
+                    finish_reason: null,
+                    wait_duration: null,
                     talk_record_file_link:
                         'https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/'
                 }
@@ -8235,9 +8943,12 @@ define(() => function ({
                 communication_type: 'chat_message',
                 data: {
                     chat_id: 2718935,
-                    is_operator: true,
-                    message_text: '',
-                    operator_name: 'Карадимова Веска Анастасовна',
+                    phone: '79283810928',
+                    message_source: 'operator',
+                    message: '',
+                    chat_channel_type: 'telegram',
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    status: 'sent',
                     resource: {
                         id: 5829572,
                         type: 'photo',
@@ -8247,6 +8958,35 @@ define(() => function ({
                         width: 48,
                         height: 48,
                         duration: null
+                    }
+                }
+            }, {
+                id: 482061,
+                start_time: '2020-02-10 12:16:19',
+                communication_type: 'chat_message',
+                data: {
+                    chat_id: 2718935,
+                    phone: '79283810928',
+                    message_source: 'visitor',
+                    message: 'Прикольная картинка',
+                    chat_channel_type: 'telegram',
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    status: 'sent',
+                    reply_to_id: 482060,
+                    reply_to: {
+                        employee_name: 'Карадимова Веска Анастасовна',
+                        is_operator: true,
+                        message: '',
+                        resource: {
+                            id: 5829572,
+                            type: 'photo',
+                            mime_type: 'image/png',
+                            file_name: 'heart.png',
+                            size: 925,
+                            width: 48,
+                            height: 48,
+                            duration: null
+                        }
                     }
                 }
             }]
@@ -8278,9 +9018,9 @@ define(() => function ({
                     communication_type: 'chat_message',
                     data: {
                         chat_id: 2718935,
-                        is_operator: false,
+                        message_source: 'visitor',
                         message_text: `Пинг # ${number}`,
-                        operator_name: 'Карадимова Веска Анастасовна',
+                        employee_name: 'Карадимова Веска Анастасовна',
                     }
                 });
 
@@ -8292,9 +9032,10 @@ define(() => function ({
                     communication_type: 'chat_message',
                     data: {
                         chat_id: 2718935,
-                        is_operator: true,
+                        chat_channel_type: 'telegram',
+                        message_source: 'operator',
                         message_text: `Понг # ${number}`,
-                        operator_name: 'Карадимова Веска Анастасовна',
+                        employee_name: 'Карадимова Веска Анастасовна',
                     }
                 });
             }
@@ -8303,14 +9044,27 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
-            me.audioAttachment = () => {
-                response.data[2].communication_type = 'chat_message';
+            me.offlineMessageFromContact = () => {
+                response.data[0].data.visitor_name = null;
+                response.data[0].data.name = 'Помакова Бисерка Драгановна';
+                    
+                return me;
+            };
 
-                response.data[2].data = {
+            me.comagicSystemMessage = () => {
+                response.data[1].data.chat_channel_type = 'comagic';
+                return me;
+            };
+
+            me.audioAttachment = () => {
+                response.data[4].communication_type = 'chat_message';
+
+                response.data[4].data = {
                     chat_id: 2718935,
-                    is_operator: true,
+                    chat_channel_type: 'telegram',
+                    message_source: 'operator',
                     message_text: '',
-                    operator_name: 'Карадимова Веска Анастасовна',
+                    employee_name: 'Карадимова Веска Анастасовна',
                     resource: {
                         id: 5829573,
                         type: 'audio',
@@ -8327,7 +9081,11 @@ define(() => function ({
             };
 
             me.noTalkRecordFileLink = () => {
-                response.data[2].data.talk_record_file_link = null;
+                response.data[4].data.is_lost = true;
+                response.data[4].data.finish_reason = 'Клиент не взял трубку';
+                response.data[4].data.wait_duration = 42819;
+                response.data[4].data.talk_record_file_link = null;
+                
                 return me;
             };
 
@@ -8366,6 +9124,11 @@ define(() => function ({
                 return this;
             },
 
+            thirdContact() {
+                id = 25206823;
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/communications`).
@@ -8394,9 +9157,139 @@ define(() => function ({
         });
     };
 
+    me.contactsMergingRequest = () => {
+        const bodyParams = {
+            form_data: {
+                id: 1689283,
+                personal_manager_id: 583783,
+                first_name: 'Грета',
+                last_name: 'Бележкова',
+                full_name: '',
+                organization_name: 'UIS',
+                patronymic: 'Ервиновна',
+                phone_list: ['79162729533'],
+                email_list: ['endlesssprinп.of@comagic.dev'],
+                chat_channel_list: [{
+                    ext_id: '79283810988',
+                    type: 'whatsapp',
+                    chat_channel_id: 216395
+                }, {
+                    ext_id: '79283810928',
+                    type: 'whatsapp',
+                    chat_channel_id: 216395
+                }],
+                group_list: [],
+                group_ids: [],
+                name: ''
+            },
+            from_contact_id: 25206823,
+            to_contact_id: 1689283
+        };
+
+        const addResponseModifiers = me => me,
+            processors = [],
+            bodyParamsProcessors = [];
+
+        return addResponseModifiers({
+            newContact() {
+                bodyParams.form_data = {
+                    id: null,
+                    first_name: null,
+                    full_name: '',
+                    last_name: 'Неделчева',
+                    organization_name: null,
+                    patronymic: null,
+                    phone_list: ['74950230625'],
+                    email_list: [],
+                    chat_channel_list: [],
+                    group_list: [],
+                    group_ids: [],
+                    name: ''
+                };
+
+                processors.push(data => {
+                    data.phone_list.push('79162729533');
+                    data.phone_list.push('79162722748');
+                    data.full_name = 'Неделчева';
+                });
+
+                bodyParams.to_contact_id = null;
+                return this;
+            },
+
+            deleteCurrent() {
+                bodyParamsProcessors.push(() => {
+                    const {from_contact_id, to_contact_id} = bodyParams;
+
+                    bodyParams.from_contact_id = to_contact_id;
+                    bodyParams.to_contact_id = from_contact_id;
+
+                    processors.push(data => {
+                        data.full_name = 'Паскалева Бисера Илковна';
+                        data.id = 25206823;
+                    });
+                });
+
+                return this;
+            },
+
+            addPhone() {
+                bodyParamsProcessors.push(() => bodyParams.form_data.phone_list.push('79162729535'));
+                return this;
+            },
+
+            addSecondPhone() {
+                bodyParamsProcessors.push(() => bodyParams.form_data.phone_list.push('79162729536'));
+                return this;
+            },
+
+            addThirdPhone() {
+                bodyParamsProcessors.push(() => bodyParams.form_data.phone_list.push('79162729537'));
+                return this;
+            },
+
+            expectToBeSent() {
+                bodyParamsProcessors.forEach(process => process());
+                const bodyParamsCopy = JSON.parse(JSON.stringify(bodyParams));
+
+                ['phone_list', 'email_list', 'chat_channel_list'].forEach(name =>
+                    bodyParams.form_data[name].push(undefined));
+
+                const request = ajax.recentRequest().
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/merge`).
+                    expectToHaveMethod('PATCH').
+                    expectBodyToContain(bodyParams);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        const data = {
+                            ...bodyParamsCopy.form_data,
+                            full_name: 'Бележкова-Паскалева Грета Ервиновна'
+                        };
+
+                        processors.forEach(process => process(data));
+
+                        request.respondSuccessfullyWith({
+                            data: [data] 
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.contactUpdatingRequest = () => {
         const addResponseModifiers = me => me,
-            processors = [];
+            processors = [],
+            secondProcessors = [];
         let bodyParams = {},
             id = 1689283;
 
@@ -8411,11 +9304,15 @@ define(() => function ({
                     first_name: 'Грета',
                     last_name: 'Бележкова',
                     email_list: ['endlesssprinп.of@comagic.dev', undefined],
-                    chat_channel_list: [
-                        { type: 'whatsapp', phone: '+7 (928) 381 09-88' },
-                        { type: 'whatsapp', phone: '+7 (928) 381 09-28' },
-                        undefined
-                    ],
+                    chat_channel_list: [{
+                        type: 'whatsapp',
+                        ext_id: '79283810988',
+                        chat_channel_id: 216395
+                    }, {
+                        type: 'whatsapp',
+                        ext_id: '79283810928' ,
+                        chat_channel_id: 216395
+                    }, undefined],
                     organization_name: 'UIS',
                     phone_list: ['79162729533', undefined],
                     group_list: [undefined],
@@ -8447,13 +9344,30 @@ define(() => function ({
             },
 
             anotherPhoneNumber() {
-                processors.push(bodyParams => (bodyParams.phone_list = ['79162729534', undefined]));
+                secondProcessors.push(bodyParams => {
+                    bodyParams.phone_list ?
+                        (bodyParams.phone_list[0] = '79162729534') :
+                        (bodyParams.phone_list = ['79162729534', undefined]);
+                });
+
                 return this;
             },
 
             twoPhoneNumbers() {
                 processors.push(bodyParams =>
                     (bodyParams.phone_list = ['79162729533', '79162729534', undefined]));
+                return this;
+            },
+            
+            threePhoneNumbers() {
+                processors.push(bodyParams =>
+                    (bodyParams.phone_list = ['79162729533', '79162729535', '79162729536', undefined]));
+                return this;
+            },
+
+            fourPhoneNumbers() {
+                processors.push(bodyParams =>
+                    (bodyParams.phone_list = ['79162729533', '79162729535', '79162729536', '79162729537', undefined]));
                 return this;
             },
 
@@ -8467,9 +9381,43 @@ define(() => function ({
                     (bodyParams.email_list = ['endlesssprinп.of@comagic.dev', 'belezhkova@gmail.com', undefined]));
                 return this;
             },
+
+            newChannel() {
+                processors.push(bodyParams => {
+                    bodyParams.chat_channel_list[2] = {
+                        chat_channel_id: null,
+                        ext_id: '79283810987',
+                        type: 'whatsapp'
+                    };
+
+                    bodyParams.chat_channel_list.push(undefined);
+                });
+
+                return this;
+            },
+            
+            legacyChannelList() {
+                secondProcessors.push(bodyParams => (
+                    bodyParams.chat_channel_list = bodyParams.chat_channel_list.map(channel => {
+                        if (!channel) {
+                            return channel;
+                        }
+
+                        const {ext_id} = channel;
+
+                        delete(channel.ext_id);
+                        channel.phone = ext_id;
+
+                        return channel;
+                    })
+                ));
+
+                return this;
+            },
             
             expectToBeSent() {
                 processors.forEach(process => process(bodyParams));
+                secondProcessors.forEach(process => process(bodyParams));
 
                 const request = ajax.recentRequest().
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
@@ -8511,6 +9459,28 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            fromVisitor() {
+                response.contact_id = 2968308;
+                bodyParams.id = null,
+                bodyParams.personal_manager_id = null,
+                bodyParams.first_name = '',
+                bodyParams.last_name = 'Помакова Бисерка Драгановна',
+                bodyParams.full_name = '',
+                bodyParams.organization_name = '',
+                bodyParams.patronymic = '',
+                bodyParams.group_list = [],
+                bodyParams.phone_list = ['79164725823'],
+                bodyParams.email_list = ['pomakova@gmail.com'],
+
+                bodyParams.chat_channel_list = [{
+                    type: 'telegram',
+                    ext_id: 'Помакова Бисерка Драгановна',
+                    chat_channel_id: 101
+                }];
+
+                return this;
+            },
+
             anotherPhoneNumber() {
                 bodyParams.phone_list[0] = '79161234567';
                 return this;
@@ -8609,13 +9579,45 @@ define(() => function ({
                 total_count = 1;
 
                 getData = () => [{
-                    emails: 'paskaleva@gmail.com',
                     first_name: 'Бисера',
-                    full_name: 'Паскалева Бисера Илковна',
-                    id: id,
                     last_name: 'Паскалева',
+                    id: 25206823,
+                    email_list: ['paskaleva@gmail.com', 'belezhkova@gmail.com'],
+                    chat_channel_list: [{
+                        ext_id: '79283810986',
+                        type: 'whatsapp',
+                        chat_channel_id: 84277
+                    }, {
+                        ext_id: '79283810987',
+                        type: 'whatsapp',
+                        chat_channel_id: 84278
+                    }],
+                    organization_name: 'UIS',
+                    phone_list: ['79162729533', '79162722748'],
+                    group_list: [],
+                    personal_manager_id: null,
                     patronymic: 'Илковна',
-                    phones: '79162729533'
+                    full_name: 'Паскалева Бисера Илковна',
+                }];
+
+                return me;
+            };
+
+            me.onlySecondItem = () => {
+                total_count = 1;
+
+                getData = () => [{
+                    first_name: 'Грета',
+                    last_name: 'Бележкова',
+                    id: 1689283,
+                    email_list: [],
+                    chat_channel_list: [],
+                    organization_name: 'UIS',
+                    phone_list: ['79162729533'],
+                    group_list: [],
+                    personal_manager_id: 8539841,
+                    patronymic: 'Ервиновна',
+                    full_name: 'Бележкова Грета Ервиновна'
                 }];
 
                 return me;
@@ -9252,11 +10254,37 @@ define(() => function ({
         return addResponseModifiers({
             phoneSearching() {
                 params.search = '79162729534';
+                params.merge_entity = 'phone';
+                return this;
+            },
+
+            anotherPhoneSearching() {
+                params.search = '79162729537';
+                params.merge_entity = 'phone';
+                return this;
+            },
+
+            thirdPhoneSearching() {
+                params.search = '79162729536';
+                params.merge_entity = 'phone';
+                return this;
+            },
+
+            fourthPhoneSearching() {
+                params.search = '74950230625';
+                params.merge_entity = 'phone';
                 return this;
             },
 
             emailSearching() {
                 params.search = 'belezhkova@gmail.com';
+                params.merge_entity = 'email';
+                return this;
+            },
+
+            channelSearching() {
+                params.search = '79283810987';
+                params.merge_entity = 'channel';
                 return this;
             },
 
@@ -9359,7 +10387,12 @@ define(() => function ({
                         'large_softphone',
                         'call_stats',
                         'call_history',
-                        'contacts'
+                        'contacts',
+                        'contact_creating',
+                        'contact_deleting',
+                        'outgoing_chat',
+                        'contact_channel_creating',
+                        'telegram_contact_channel'
                     ],
                     call_center_role: 'employee',
                     components: [
@@ -9510,6 +10543,18 @@ define(() => function ({
                 return me;
             };
 
+            me.otherEmployeeChatsAccessAvailable = () => {
+                response.result.data.permissions.push({
+                    'unit_id': 'other_employee_chats_access',
+                    'is_delete': true,
+                    'is_insert': true,
+                    'is_select': true,
+                    'is_update': true,
+                });
+
+                return me;
+            };
+
             me.webAccountLoginAvailable = () => {
                 response.result.data.permissions.push({
                     'unit_id': 'web_account_login',
@@ -9538,6 +10583,26 @@ define(() => function ({
             
             me.manager = () => ((response.result.data.call_center_role = 'manager'), me);
             me.noCallCenterRole = () => ((response.result.data.call_center_role = null), me);
+
+            me.telegramContactChannelFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'telegram_contact_channel')), me);
+
+            me.contactChannelCreatingFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'contact_channel_creating')), me);
+
+            me.outgoingChatFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'outgoing_chat')), me);
+
+            me.contactDeletingFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'contact_deleting')), me);
+
+            me.contactCreatingFeatureFlagDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'contact_creating')), me);
             
             me.softphoneFeatureFlagDisabled = () =>
                 ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
@@ -9569,6 +10634,22 @@ define(() => function ({
                 (response.result.data.permissions.find(
                     ({ unit_id }) => unit_id == 'address_book'
                 ) || {}).is_update = false;
+
+                return me;
+            };
+
+            me.addressBookCreatingUnavailable = () => {
+                (response.result.data.permissions.find(
+                    ({ unit_id }) => unit_id == 'address_book'
+                ) || {}).is_insert = false;
+
+                return me;
+            };
+
+            me.addressBookDeletingUnavailable = () => {
+                (response.result.data.permissions.find(
+                    ({ unit_id }) => unit_id == 'address_book'
+                ) || {}).is_delete = false;
 
                 return me;
             };
@@ -9958,13 +11039,83 @@ define(() => function ({
 
         tester.message = {
             atTime: desiredTime => {
-                const getMessageElement = () => utils.descendantOf(getDomElement()).
-                    matchesSelector('.cm-chats--chat-history-message-time').
-                    textEquals(desiredTime).
-                    find().
-                    closest('.cm-chats--chat-history-message');
+                const getMessageElement = () => {
+                    const domElements = utils.descendantOf(getDomElement()).
+                        matchesSelector('.cm-chats--chat-history-message-time').
+                        textEquals(desiredTime).
+                        findAll().
+                        filter(domElement => {
+                            const callRecordElement = domElement.closest('.cm-contacts-communications-call-record');
 
-                const tester = testersFactory.createDomElementTester(getMessageElement);
+                            if (callRecordElement && !(callRecordElement instanceof JsTester_NoElement)) {
+                                return false;
+                            }
+
+                            return true;
+                        });
+
+                    const domElement = (() => {
+                        if (domElements.length != 1) {
+                            return new JsTester_NoElement();
+                        }
+
+                        return domElements[0];
+                    })();
+
+                    return domElement.closest(
+                        '.cm-chats--chat-history-message, .cm-contacts-system-message, .cm-contacts-call-wrapper'
+                    ) || new JsTester_NoElement();
+                };
+
+                const tester = testersFactory.createDomElementTester(getMessageElement),
+                    putMouseOver = tester.putMouseOver.bind(tester);
+
+                tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+                tester.callHeader = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => getMessageElement().querySelector('.cm-contacts-call')
+                    );
+
+                    const putMouseOver = tester.putMouseOver.bind(tester);
+                    tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+                    return tester;
+                })();
+
+                tester.directionIcon = testersFactory.createDomElementTester(() => {
+                    const domElements = Array.prototype.filter.call(
+                        getMessageElement().querySelectorAll('svg'),
+
+                        domElement => {
+                            return ((domElement.getAttribute('class') || '') + '').includes('cmg-direction-icon');
+                        }
+                    );
+
+                    if (domElements.length == 1) {
+                        return domElements[0];
+                    }
+
+                    return new JsTester_NoElement();
+                });
+
+                const messageBody  = testersFactory.createDomElementTester(() => {
+                    const messageElement = getMessageElement();
+
+                    if (messageElement.classList.contains('cm-contacts-call-wrapper')) {
+                        return messageElement.querySelector('.cm-chats--chat-history-message');
+                    }
+
+                    return messageElement;
+                });
+
+                tester.expectSourceToBeOperator = () => messageBody.expectToHaveClass(
+                    'cm-chats--chat-history-message-source-operator'
+                );
+
+                tester.expectSourceToBeVisitor = () => messageBody.expectToHaveClass(
+                    'cm-chats--chat-history-message-source-visitor'
+                );
 
                 tester.expectToBeDelivered = () => testersFactory.createDomElementTester(
                     () => getMessageElement().querySelector('.cm-chats--chat-history-message-text')
@@ -10043,15 +11194,38 @@ define(() => function ({
             return contactBar;
         };
 
-        const tester = testersFactory.createDomElementTester(getContactBar);
+        const tester = testersFactory.createDomElementTester(getContactBar),
+            click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0));
 
-        tester.closeButton = (() => {
-            const tester = testersFactory.createDomElementTester(
-                () => getContactBar().querySelector('.cm-contacts-contact-bar-title svg')
-            );
+        tester.title = (() => {
+            const getTitleElement = () => getContactBar().querySelector('.cm-contacts-contact-bar-title'),
+                tester = testersFactory.createDomElementTester(getTitleElement);
 
-            const click = tester.click.bind(tester);
-            tester.click = () => (click(), spendTime(0));
+            tester.deleteButton = (() => {
+                const tester = testersFactory.createDomElementTester(
+                    () => getTitleElement().querySelector('.cm-contacts-contact-bar-delete-icon')
+                );
+
+                const click = tester.click.bind(tester),
+                    putMouseOver = tester.putMouseOver.bind(tester);
+
+                tester.click = () => (click(), spendTime(0), spendTime(0));
+                tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+                return tester;
+            })();
+
+            tester.closeButton = (() => {
+                const tester = testersFactory.createDomElementTester(
+                    () => getTitleElement().querySelector('svg')
+                );
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(0));
+
+                return tester;
+            })();
 
             return tester;
         })();
@@ -10065,14 +11239,37 @@ define(() => function ({
 
             const tester = testersFactory.createDomElementTester(getSectionElement);
 
-            tester.option = text => {
-                const getOptionElement = () => utils.descendantOf(getSectionElement()).
-                    textEquals(text).
-                    matchesSelector('.cm-contacts-contact-bar-section-option').
-                    find();
+            tester.chatChannelGroup = text => {
+                const getDomElement = () => utils.descendantOf(getSectionElement()).
+                    matchesSelector('.cm-contacts-list-items-group-header').
+                    textContains(text).
+                    find().
+                    closest('.cm-contacts-list-items-group');
 
-                const tester = testersFactory.createDomElementTester(getOptionElement),
-                    click = tester.click.bind(tester),
+                const tester = testersFactory.createDomElementTester();
+
+                tester.collapsednessToggleButton = (() => {
+                    const tester = testersFactory.createDomElementTester(() =>
+                        getDomElement().querySelector('.cm-contacts-collapsedness-toggle-button'));
+
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0));
+
+                    return tester;
+                })();
+
+                return addTesters(tester, getDomElement);
+            };
+
+            const addOptionTesters = (tester, getOptionElement) => {
+                const clickTester = testersFactory.createDomElementTester(() => {
+                    const option = getOptionElement(),
+                        clickableOption = option.querySelector('.cm-contacts-contact-bar-clickable-option')
+
+                    return (!(clickableOption instanceof JsTester_NoElement) && clickableOption) || option
+                });
+
+                const click = clickTester.click.bind(clickTester),
                     putMouseOver = tester.putMouseOver.bind(tester);
 
                 tester.click = () => (click(), spendTime(0));
@@ -10090,9 +11287,55 @@ define(() => function ({
                     return tester;
                 })();
 
-                addTesters(tester, getOptionElement);
+                tester.expectToBeSelected = () => tester.expectToHaveClass(
+                    'cm-contacts-contact-bar-section-option-selected'
+                );
+
+                tester.expectNotToBeSelected = () => tester.expectNotToHaveClass(
+                    'cm-contacts-contact-bar-section-option-selected'
+                );
+
+                return addTesters(tester, getOptionElement);
+            };
+
+            tester.option = text => {
+                const getOptionElements = () => utils.descendantOf(getSectionElement()).
+                    textEquals(text).
+                    matchesSelector('.cm-contacts-contact-bar-section-option').
+                    findAll();
+                
+                const getOptionElement = () => utils.getVisibleSilently(getOptionElements()),
+                    tester = testersFactory.createDomElementTester(getOptionElement);
+
+                const createChannelTypeTester = type => {
+                    const getDomElement = () => utils.getVisibleSilently(Array.prototype.filter.call(
+                        getOptionElements(),
+                        domElement => {
+                            const icon = domElement.querySelector(`.cm-contacts-messenger-icon-${type}`)
+                            return icon && !(icon instanceof JsTester_NoElement)
+                        }
+                    ))
+
+                    const tester = testersFactory.createDomElementTester(getDomElement);
+                    return addOptionTesters(tester, getDomElement);
+                };
+
+                tester.whatsApp = createChannelTypeTester('whatsapp');
+                tester.telegram = createChannelTypeTester('telegram');
+
+                addOptionTesters(tester, getOptionElement);
                 return tester;
             };
+            
+            tester.option.atIndex = index => {
+                const getOptionAtIndex = () =>
+                    getSectionElement().querySelectorAll('.cm-contacts-contact-bar-section-option')[index];
+
+                const tester = testersFactory.createDomElementTester(getOptionAtIndex);
+                return addOptionTesters(tester, getOptionAtIndex);
+            };
+
+            tester.option.first = tester.option.atIndex(0);
 
             const getContentElement = () => utils.element(getSectionElement()).
                 querySelector('.cm-contacts-contact-bar-section-content');
@@ -10102,12 +11345,29 @@ define(() => function ({
 
             tester.content = addTesters(testersFactory.createDomElementTester(getContentElement), getContentElement);
             tester.header = addTesters(testersFactory.createDomElementTester(getHeaderElement), getHeaderElement);
+
+            tester.collapsednessToggleButton = (() => {
+                const tester = testersFactory.createDomElementTester(() =>
+                    getHeaderElement().querySelector('.cm-contacts-collapsedness-toggle-button'));
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(0));
+
+                return tester;
+            })();
             
             addTesters(tester, getSectionElement);
             return tester;
         };
 
         return tester;
+    })();
+
+    me.notificationWindow = (() => {
+        const getDomElement = () => utils.querySelector('.ui-notification'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
     })();
 
     me.softphone = (getRootElement => {
@@ -10121,17 +11381,6 @@ define(() => function ({
 
         return tester;
     })(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
-
-    me.closeButton = (() => {
-        const tester = testersFactory.createDomElementTester(
-            '.cmg-miscrophone-unavailability-message-close, .cmg-connecting-message-close, .ui-audio-player__close'
-        );
-
-        const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0), spendTime(0));
-
-        return tester;
-    })();
 
     me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
@@ -10165,9 +11414,15 @@ define(() => function ({
 
         const tester = testersFactory.createDomElementTester(domElement);
 
-        const clickAreaTester = testersFactory.createDomElementTester(
-            domElement.querySelector('.cm-chats--chat-click-area')
-        );
+        const clickAreaTester = testersFactory.createDomElementTester(() => {
+            const clickArea = domElement.querySelector('.cm-chats--chat-click-area');
+
+            if (!clickArea || clickArea instanceof JsTester_NoElement) {
+                return domElement;
+            }
+
+            return clickArea;
+        });
 
         const click = clickAreaTester.click.bind(clickAreaTester),
             scrollIntoView = tester.scrollIntoView.bind(tester);
@@ -10183,7 +11438,8 @@ define(() => function ({
     };
 
     me.contactList = (() => {
-        const tester = testersFactory.createDomElementTester('.cm-contacts-list-wrapper');
+        const getDomElement = () => document.querySelector('.cm-contacts-list-wrapper'),
+            tester = testersFactory.createDomElementTester(getDomElement);
 
         tester.item = name => {
             const tester =  testersFactory.createDomElementTester(() => utils.
@@ -10207,7 +11463,7 @@ define(() => function ({
             return tester;
         };
 
-        return tester;
+        return addTesters(tester, getDomElement);
     })();
 
     me.nameOrPhone = testersFactory.createDomElementTester('.cmg-name-or-phone-wrapper');

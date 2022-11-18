@@ -66,11 +66,12 @@ index 43db4d8..6a8f91e 100644
  
  export default App;
 diff --git a/src/components/chats/chat-panel/styles.less b/src/components/chats/chat-panel/styles.less
-index b1e30f9..68f1652 100644
+index b1e30f9..70bc523 100644
 --- a/src/components/chats/chat-panel/styles.less
 +++ b/src/components/chats/chat-panel/styles.less
-@@ -1,3 +1,4 @@
+@@ -1,3 +1,5 @@
 +@import '~antd/dist/antd.css';
++
  .@{p}chat-panel, .@{p}chat-like-panel {
    .@{p}chat-panel-quote {
      display: grid;
@@ -88,6 +89,39 @@ index f0d453d..d6ce0a6 100644
  
  if (process.env.NODE_ENV === 'development') {
      window.chatsRootStore = rootStore;
+diff --git a/src/models/account/AccountStore.ts b/src/models/account/AccountStore.ts
+index 57ad272..166fd36 100644
+--- a/src/models/account/AccountStore.ts
++++ b/src/models/account/AccountStore.ts
+@@ -1,4 +1,4 @@
+-import { flow, Instance, types, cast } from 'mobx-state-tree';
++import { flow, Instance, types, cast, getSnapshot } from 'mobx-state-tree';
+ import { httpRpc, DataApiResponseResult } from '@/httpRpc';
+ import { intl } from '@/i18n';
+ 
+@@ -55,12 +55,18 @@ export const AccountStore = types
+     })
+     .views(self => ({
+         getOtherEmployeeChatsAccess() {
+-            const permission = [...self.account.permissions].find(item => item[0] === 'other_employee_chats_access');
+-            return permission && permission[1] ? permission[1].is_select : false;
++            const permission = getSnapshot(self.account.permissions).other_employee_chats_access;
++            return permission?.is_select || false;
+         },
+         getTagsPermissions() {
+-            const tagsPermissions = [...self.account.permissions].find(item => item[0] === 'tag_management')[1];
+-            return tagsPermissions;
++            return (
++                getSnapshot(self.account.permissions).tag_management || {
++                    is_delete: false,
++                    is_insert: false,
++                    is_select: false,
++                    is_update: false,
++                }
++            );
+         },
+     }))
+     .actions(self => {
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
 index 933fdb3..8e6f31d 100644
 --- a/src/models/auth/AuthStore.ts
