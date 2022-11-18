@@ -73,12 +73,14 @@ const cda = `cd ${application} &&`,
     cdc = `cd ${chats} &&`,
     actions = {},
     magicUiOverridenFiles = 'package.json',
-    coreOverridenFiles = magicUiOverridenFiles,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
     contactsOverridenFiles = 'package.json',
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
+
+const coreOverridenFiles = 'package.json ' +
+    'src/models/notification/notification.ts';
 
 const chatOverridenFiles = 'src/models/RootStore.ts ' +
     'package.json ' +
@@ -88,7 +90,8 @@ const chatOverridenFiles = 'src/models/RootStore.ts ' +
     'src/utils/index.tsx ' +
     'src/components/chats/chat-panel/styles.less';
 
-const analyticsOverridenFiles = 'src/models/RootStore.ts src/models/reports/RootReportStore.ts ' +
+const analyticsOverridenFiles = 'src/models/RootStore.ts ' +
+    'src/models/reports/RootReportStore.ts ' +
     'src/components/ShadowContent.ts package.json';
 
 const overridenFiles = [
