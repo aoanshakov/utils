@@ -3564,6 +3564,10 @@ define(() => function ({
                 return me;
             };
 
+            me.whatsapp = () => (processors.push(data => (data.chats[0].chat_channel_type = 'whatsapp')), me);
+
+            me.legacyChannel = () => (processors.push(data => data.chats.forEach(item => delete(item.ext_id))), me);
+
             me.nothingFound = () => ((data = []), me);
 
             me.noVisitorName = () => {
@@ -3710,6 +3714,7 @@ define(() => function ({
                     },
                     mark_ids: ['587', '212'],
                     phone: null,
+                    name: 'Помакова Бисерка Драгановна',
                     site_id: 4663,
                     status: 'new',
                     visitor_id: 16479303,
@@ -8689,10 +8694,15 @@ define(() => function ({
 
             me.legacyChannelList = () => {
                 secondProcessors.push(() => (response.chat_channel_list = response.chat_channel_list.map(channel => {
-                    const {ext_id} = channel;
+                    const {ext_id, name} = channel;
+                    delete(channel.name);
 
-                    delete(channel.ext_id);
-                    channel.phone = ext_id;
+                    if (channel.type == 'whatsapp') {
+                        delete(channel.ext_id);
+                        channel.phone = ext_id;
+                    } else {
+                        name && (channel.ext_id = name);
+                    }
 
                     return channel;
                 })));
@@ -8762,7 +8772,8 @@ define(() => function ({
 
                 response.chat_channel_list = [{
                     type: 'telegram',
-                    ext_id: 'Помакова Бисерка Драгановна',
+                    ext_id: '79283810928',
+                    name: 'Помакова Бисерка Драгановна',
                     chat_channel_id: 101
                 }];
 
@@ -9486,11 +9497,11 @@ define(() => function ({
                             return channel;
                         }
 
-                        const {ext_id} = channel;
+                        const {ext_id, name, type} = channel;
 
-                        channel.ext_id = null;
+                        channel.ext_id = type == 'whatsapp' ? null : name || ext_id;
                         channel.name = undefined;
-                        channel.phone = ext_id;
+                        channel.phone = type == 'telegram' ? null : ext_id;
 
                         return channel;
                     })
@@ -9530,6 +9541,9 @@ define(() => function ({
     };
 
     me.contactCreatingRequest = () => {
+        const processors = [];
+            secondProcessors = [];
+
         const response = {
             contact_id: 1689283
         };
@@ -9545,6 +9559,29 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            legacyChannelList() {
+                secondProcessors.push(() => (
+                    bodyParams.chat_channel_list = bodyParams.chat_channel_list?.map(channel => ({
+                        ...channel,
+                        ext_id: channel.type == 'whatsapp' ? null : channel.name,
+                        phone: channel.type == 'whatsapp' ? channel.name : null,
+                        name: undefined
+                    }))
+                ));
+
+                return this;
+            },
+
+            whatsapp() {
+                processors.push(() => (bodyParams.chat_channel_list = bodyParams.chat_channel_list?.map(channel => ({
+                    ...channel,
+                    type: 'whatsapp',
+                    name: channel.ext_id
+                }))));
+
+                return this;
+            },
+
             fromVisitor() {
                 response.contact_id = 2968308;
                 bodyParams.id = null,
@@ -9560,7 +9597,8 @@ define(() => function ({
 
                 bodyParams.chat_channel_list = [{
                     type: 'telegram',
-                    ext_id: 'Помакова Бисерка Драгановна',
+                    ext_id: '79283810928',
+                    name: 'Помакова Бисерка Драгановна',
                     chat_channel_id: 101
                 }];
 
@@ -9572,7 +9610,15 @@ define(() => function ({
                 return this;
             },
 
+            anotherChannelExtId() {
+                bodyParams.chat_channel_list[0].ext_id = '79164725823';
+                return this;
+            },
+
             expectToBeSent() {
+                processors.forEach(process => process());
+                secondProcessors.forEach(process => process());
+
                 const request = ajax.recentRequest().
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts`).
                     expectToHaveMethod('POST').
