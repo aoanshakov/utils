@@ -777,6 +777,60 @@ tests.addTest(options => {
                         );
                     });
                 });
+                describe('Получен новый чат.', function() {
+                    beforeEach(function() {
+                        searchResultsRequest = searchResultsRequest.newVisitor().whatsApp();
+                    });
+
+                    describe('Получен phone.', function() {
+                        beforeEach(function() {
+                            searchResultsRequest.newVisitor().receiveResponse();
+                        });
+
+                        it('Нажимаю на кнпоку "Начать чат". Чат начат.', function() {
+                            tester.button('Начать чат').click();
+                            tester.chatStartingRequest().receiveResponse();
+
+                            tester.chatListRequest().thirdChat().receiveResponse();
+
+                            tester.acceptChatRequest().receiveResponse();
+                            tester.visitorCardRequest().receiveResponse();
+
+                            tester.usersRequest().forContacts().receiveResponse();
+                            tester.usersRequest().forContacts().receiveResponse();
+                        });
+                        it('Отображена кнопка "Начать чат".', function() {
+                            tester.body.expectTextContentToHaveSubstring(
+                                '79283810988 Начать чат ' +
+                                '#679729 Гость'
+                            );
+                        });
+                    });
+                    describe('Получен ext_id.', function() {
+                        beforeEach(function() {
+                            searchResultsRequest.newVisitor().extIdSpecified().receiveResponse();
+                        });
+
+                        it('Нажимаю на кнпоку "Начать чат". Чат начат.', function() {
+                            tester.button('Начать чат').click();
+                            tester.chatStartingRequest().receiveResponse();
+
+                            tester.chatListRequest().thirdChat().receiveResponse();
+
+                            tester.acceptChatRequest().receiveResponse();
+                            tester.visitorCardRequest().receiveResponse();
+
+                            tester.usersRequest().forContacts().receiveResponse();
+                            tester.usersRequest().forContacts().receiveResponse();
+                        });
+                        it('Отображена кнопка "Начать чат".', function() {
+                            tester.body.expectTextContentToHaveSubstring(
+                                '79283810988 Начать чат ' +
+                                '#679729 Гость'
+                            );
+                        });
+                    });
+                });
             });
             it('Открываю раздел заявок.', function() {
                 tester.leftMenu.button('Заявки').click();

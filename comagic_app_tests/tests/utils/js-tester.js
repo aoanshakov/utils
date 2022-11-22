@@ -3847,6 +3847,10 @@ function JsTester_Utils ({debug, windowSize, spendTime}) {
         maybeScrollIntoView(domElement);
     };
 
+    this.expectNonStrict = function (expectedValue) {
+        return new JsTests_NonStrictExpectaion(expectedValue);
+    };
+
     this.expectEmptyObject = function () {
         return new JsTests_EmptyObjectExpectaion();
     };
@@ -6287,6 +6291,18 @@ function JsTests_SetInclusionExpectation (expectedSubset) {
     };
 }
 
+function JsTests_NonStrictExpectaion (expectedValue) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (actualValue != expectedValue) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должно быть ' + JSON.stringify(expectedValue) + ', а не ' +
+                JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
+JsTests_NonStrictExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_EmptyObjectExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_PrefixExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_StringExpectaion.prototype = JsTests_ParamExpectationPrototype;
