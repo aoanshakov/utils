@@ -122,7 +122,7 @@ tests.addTest(options => {
             thirdChatListRequest = tester.chatListRequest().forCurrentEmployee().closed().expectToBeSent();
         });
 
-        xdescribe('Данные чатов успешно получены.', function() {
+        describe('Данные чатов успешно получены.', function() {
             beforeEach(function() {
                 chatListRequest.receiveResponse();
                 secondChatListRequest.receiveResponse();
@@ -589,6 +589,71 @@ tests.addTest(options => {
                         chatListRequest = tester.chatListRequest().contactExists().thirdChat().expectToBeSent();
                     });
 
+                    it('Определен ext_id. Текущий канал связи выделен.', function() {
+                        chatListRequest.extIdSpecified().receiveResponse();
+                        tester.acceptChatRequest().receiveResponse();
+                        tester.visitorCardRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+
+                        tester.usersRequest().forContacts().receiveResponse();
+                        tester.contactRequest().addTelegram().addFourthTelegram().receiveResponse();
+
+                        tester.changeMessageStatusRequest().
+                            anotherChat().
+                            anotherMessage().
+                            read().
+                            receiveResponse();
+
+                        tester.changeMessageStatusRequest().
+                            anotherChat().
+                            anotherMessage().
+                            read().
+                            receiveResponse();
+
+                        tester.changeMessageStatusRequest().
+                            anotherChat().
+                            anotherMessage().
+                            read().
+                            receiveResponse();
+
+                        tester.contactBar.
+                            section('Каналы связи').
+                            option('79283810988').
+                            expectNotToBeSelected();
+
+                        tester.contactBar.
+                            section('Каналы связи').
+                            option('79283810928').
+                            whatsApp.
+                            expectNotToBeSelected();
+
+                        tester.contactBar.
+                            section('Каналы связи').
+                            option('79218307632').
+                            telegram.
+                            expectNotToBeSelected();
+
+                        tester.contactBar.
+                            section('Каналы связи').
+                            option('79283810928').
+                            telegram.
+                            expectToBeSelected();
+
+                        tester.contactBar.expectTextContentToHaveSubstring(
+                            'ФИО ' +
+                            'Бележкова Грета Ервиновна ' +
+
+                            'Телефоны ' +
+                            '79162729533 ' +
+                            
+                            'E-Mail ' +
+                            'endlesssprinп.of@comagic.dev ' +
+
+                            'Каналы связи ' +
+                            '79283810988 ' +
+                            '79283810928'
+                        );
+                    });
                     it('Определен телефон. Текущий канал связи выделен.', function() {
                         chatListRequest.phoneSpecified().receiveResponse();
                         tester.acceptChatRequest().receiveResponse();
@@ -625,7 +690,7 @@ tests.addTest(options => {
                             section('Каналы связи').
                             option('79283810928').
                             whatsApp.
-                            expectToBeSelected();
+                            expectNotToBeSelected();
 
                         tester.contactBar.
                             section('Каналы связи').
@@ -661,7 +726,7 @@ tests.addTest(options => {
                         tester.messageListRequest().receiveResponse();
 
                         tester.usersRequest().forContacts().receiveResponse();
-                        tester.contactRequest().receiveResponse();
+                        tester.contactRequest().addFourthTelegram().receiveResponse();
 
                         tester.changeMessageStatusRequest().
                             anotherChat().
@@ -692,6 +757,7 @@ tests.addTest(options => {
                         tester.contactBar.
                             section('Каналы связи').
                             option('79283810928').
+                            telegram.
                             expectToBeSelected();
 
                         tester.contactBar.expectTextContentToHaveSubstring(
@@ -706,6 +772,7 @@ tests.addTest(options => {
 
                             'Каналы связи ' +
                             '79283810988 ' +
+                            '79283810928 ' +
                             '79283810928'
                         );
                     });

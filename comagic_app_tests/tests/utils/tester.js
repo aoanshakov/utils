@@ -3549,6 +3549,15 @@ define(() => function ({
                 return me;
             };
 
+            me.extIdSpecified = () => {
+                processors.push(data => {
+                    data.chats[0].ext_id = '79283810928';
+                    data.chats[0].context = null; 
+                });
+
+                return me;
+            };
+
             me.phoneSpecified = () => {
                 processors.push(data => {
                     data.chats[0].phone = '79283810928';
@@ -8824,7 +8833,7 @@ define(() => function ({
                     expectToHaveMethod('GET').
                     expectQueryToContain({
                         chat_channel_id: '216395',
-                        chat_statuses: ['new', 'active', 'closed', undefined]
+                        chat_statuses: ['new', 'active', undefined]
                     });
 
                 return addResponseModifiers({

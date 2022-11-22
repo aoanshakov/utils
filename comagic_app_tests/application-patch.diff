@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 7257c68b..f2b848cb 100644
+index 7257c68b..3fa65f08 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 7257c68b..f2b848cb 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -339,17 +409,126 @@ module.exports = {
+@@ -339,17 +409,127 @@ module.exports = {
                      },
                  ],
              },
@@ -224,6 +224,7 @@ index 7257c68b..f2b848cb 100644
 +            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
 +            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
 +            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,
++            'callTracking/Root': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingSubstitutionControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingTrafficControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
@@ -296,14 +297,14 @@ index 7257c68b..f2b848cb 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 9b1ded71..06f13f98 100644
+index 166d913b..06f13f98 100644
 --- a/package.json
 +++ b/package.json
 @@ -66,13 +66,16 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
--    "@comagic/core": "^1.2.0",
+-    "@comagic/core": "^1.2.6",
 -    "@sentry/react": "^6.17.6",
 -    "@sentry/tracing": "^6.17.6",
 -    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab",
@@ -498,10 +499,10 @@ index e1f15e6f..e5f0950d 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 1e8a2022..b45d9bf9 100644
+index 72e32e6f..31b614ff 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -228,7 +228,7 @@ export const RootStore = types
+@@ -237,7 +237,7 @@ export const RootStore = types
                  }
              );
  
@@ -510,7 +511,7 @@ index 1e8a2022..b45d9bf9 100644
                  response => {
                      logRequest({response});
  
-@@ -294,6 +294,7 @@ export const RootStore = types
+@@ -305,6 +305,7 @@ export const RootStore = types
              subscribe('contact_opened', () => self.setSoftphoneVisible(false));
              subscribe('contact_closed', () => self.setSoftphoneVisible(true));
  
@@ -518,7 +519,7 @@ index 1e8a2022..b45d9bf9 100644
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -334,7 +335,8 @@ export type DependencyInjection = {
+@@ -345,7 +346,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
