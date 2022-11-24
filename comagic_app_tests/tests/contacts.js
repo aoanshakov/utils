@@ -518,6 +518,40 @@ tests.addTest(options => {
                                                 content.
                                                 expectToHaveTextContent('Божилова Йовка');
                                         });
+                                        /*
+                                        it(
+                                            'Открываю поле редактирования. Нажимаю на кнопку "Отменить". Возвращено ' +
+                                            'оригинальное Значение поля.',
+                                        function() {
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('79162729534').
+                                                putMouseOver();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('79162729534').
+                                                toolsIcon.
+                                                click();
+
+                                            tester.select.option('Редактировать').click();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                input.
+                                                fill('79162729535');
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                button('Отменить').
+                                                click();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                content.
+                                                expectToHaveTextContent('79162729534');
+                                        });
+                                        */
                                         it('Отображены данные другого контакта.', function() {
                                             tester.contactBar.expectTextContentToHaveSubstring(
                                                 'ФИО ' +
@@ -895,7 +929,7 @@ tests.addTest(options => {
                                     it(
                                         'Помещаю курсор над сиситемным сообщением. Отображена всплывающая подсказка.',
                                     function() {
-                                        tester.chatHistory.message.atTime('12:11').putMouseOver();
+                                        tester.chatHistory.message.atTime('12:11').inner.putMouseOver();
 
                                         tester.tooltip.expectToHaveTextContent(
                                             'Бележкова Грета Ервиновна (Клиент) ' +
@@ -911,6 +945,15 @@ tests.addTest(options => {
 
                                         tester.notificationWindow.expectToHaveTextContent(
                                             'Невозможно перейти в чат, отсутствуют права на "Чаты и заявки"'
+                                        );
+                                    });
+                                    it(
+                                        'Помещаю курсор над сообщением о звонке. Отображена всплывающая подсказка.',
+                                    function() {
+                                        tester.chatHistory.message.atTime('12:14').inner.putMouseOver();
+
+                                        tester.tooltip.expectToHaveTextContent(
+                                            'Виртуальный номер: 74952727438'
                                         );
                                     });
                                     it('Имя выделено. Отображен контакт. Отображена история коммуникаций.', function() {
@@ -1101,30 +1144,48 @@ tests.addTest(options => {
                                 });
                                 describe('URL записи звонка не был получен.', function() {
                                     beforeEach(function() {
-                                        contactCommunicationsRequest.noTalkRecordFileLink().receiveResponse();
+                                        contactCommunicationsRequest = contactCommunicationsRequest.
+                                            noTalkRecordFileLink();
                                     });
 
-                                    it(
-                                        'Помещаю курсор над сообщением о звонке. Отображена всплывающая подсказка.',
-                                    function() {
-                                        tester.chatHistory.message.atTime('12:14').callHeader.putMouseOver();
+                                    describe('Длительность разговора получена.', function() {
+                                        beforeEach(function() {
+                                            contactCommunicationsRequest.receiveResponse();
+                                        });
+
+                                        it(
+                                            'Помещаю курсор над сообщением о звонке. Отображена всплывающая подсказка.',
+                                        function() {
+                                            tester.chatHistory.message.atTime('12:14').inner.putMouseOver();
+
+                                            tester.tooltip.expectToHaveTextContent(
+                                                'Время ожидания ответа: 53:39 ' +
+                                                'Длительность: 53:40 ' +
+                                                'Виртуальный номер: 74952727438 ' +
+                                                'Статус: Клиент не взял трубку'
+                                            );
+                                        });
+                                        it('Отображено сообщение о входящем звонке.', function() {
+                                            tester.chatHistory.message.atTime('12:14').directionIcon.
+                                                expectToHaveClass('incoming_failed_svg__cmg-direction-icon');
+
+                                            tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
+                                                '12:14 ' +
+
+                                                'Входящий звонок с номера 79161234567 оператору ' +
+                                                'Карадимова Веска Анастасовна'
+                                            );
+                                        });
+                                    });
+                                    it('Длительность разговора не получена.', function() {
+                                        contactCommunicationsRequest.noTalkDuration().receiveResponse();
+
+                                        tester.chatHistory.message.atTime('12:14').inner.putMouseOver();
 
                                         tester.tooltip.expectToHaveTextContent(
                                             'Время ожидания ответа: 53:39 ' +
-                                            'Длительность: 53:40 ' +
                                             'Виртуальный номер: 74952727438 ' +
                                             'Статус: Клиент не взял трубку'
-                                        );
-                                    });
-                                    it('Отображено сообщение о входящем звонке.', function() {
-                                        tester.chatHistory.message.atTime('12:14').directionIcon.
-                                            expectToHaveClass('incoming_failed_svg__cmg-direction-icon');
-
-                                        tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
-                                            '12:14 ' +
-
-                                            'Входящий звонок с номера 79161234567 оператору ' +
-                                            'Карадимова Веска Анастасовна'
                                         );
                                     });
                                 });
@@ -1658,6 +1719,94 @@ tests.addTest(options => {
                                                 '79218307632 ' +
                                                 '@kotik70600'
                                             );
+                                    });
+                                    it(
+                                        'Изменяю имя телеграм-канала имя которого непустое. Нажимаю на кнопку ' +
+                                        '"Сохранить". Отправлено имя телеграм-канала.',
+                                    function() {
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            option('@kotik70600').
+                                            putMouseOver();
+
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            option('@kotik70600').
+                                            toolsIcon.
+                                            click();
+
+                                        tester.select.
+                                            option('Редактировать').
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            input.
+                                            input('1');
+
+                                        tester.button('Сохранить').click();
+
+                                        tester.contactsRequest().
+                                            anotherChannelSearching().
+                                            noData().
+                                            receiveResponse();
+
+                                        tester.contactUpdatingRequest().
+                                            completeData().
+                                            existingTelegramChannel().
+                                            existingChannel().
+                                            anotherExistingTelegramChannel().
+                                            receiveResponse();
+
+                                        tester.contactRequest().
+                                            addTelegram().
+                                            addWhatsApp().
+                                            addSecondTelegram().
+                                            receiveResponse();
+                                    });
+                                    it(
+                                        'Изменяю имя телеграм-канала имя которого пустое. Нажимаю на кнопку ' +
+                                        '"Сохранить". Отправлено имя телеграм-канала.',
+                                    function() {
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            option('79218307632').
+                                            putMouseOver();
+
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            option('79218307632').
+                                            toolsIcon.
+                                            click();
+
+                                        tester.select.
+                                            option('Редактировать').
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            input.
+                                            input('1');
+
+                                        tester.button('Сохранить').click();
+
+                                        tester.contactsRequest().
+                                            thirdChannelSearching().
+                                            noData().
+                                            receiveResponse();
+
+                                        tester.contactUpdatingRequest().
+                                            completeData().
+                                            fourthExistingTelegramChannel().
+                                            existingChannel().
+                                            thirdExistingTelegramChannel().
+                                            receiveResponse();
+
+                                        tester.contactRequest().
+                                            addTelegram().
+                                            addWhatsApp().
+                                            addSecondTelegram().
+                                            receiveResponse();
                                     });
                                     it('Отображен только один ватсап.', function() {
                                         tester.contactBar.
@@ -2423,7 +2572,9 @@ tests.addTest(options => {
                         toolsIcon.
                         click();
 
-                    tester.select.option('Редактировать').expectToBeDisabled();
+                    tester.select.
+                        option('Редактировать').
+                        expectToBeDisabled();
                 });
                 it('Номер скрыт.', function() {
                     tester.contactBar.
@@ -3198,6 +3349,159 @@ tests.addTest(options => {
                     expectNotToExist();
             });
         });
+        describe('Фичефлаг телеграма выключен.', function() {
+            beforeEach(function() {
+                accountRequest.
+                    telegramContactChannelFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    receiveResponse();
+
+                const requests = ajax.inAnyOrder();
+
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+
+                secondAccountRequest.
+                    telegramContactChannelFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    receiveResponse();
+
+                reportGroupsRequest.receiveResponse();
+                tester.configRequest().softphone().receiveResponse();
+
+                tester.masterInfoMessage().receive();
+                tester.slavesNotification().expectToBeSent();
+                tester.slavesNotification().additional().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                tester.authCheckRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+
+                settingsRequest = tester.settingsRequest().expectToBeSent();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                notificationTester.grantPermission();
+
+                settingsRequest.receiveResponse();
+                tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                tester.connectEventsWebSocket();
+                tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                tester.connectSIPWebSocket();
+                tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+                    expectToBeSent();
+
+                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                tester.allowMediaInput();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    expectToBeSent();
+
+                authenticatedUserRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    userDataFetched().
+                    expectToBeSent();
+
+                registrationRequest.receiveResponse();
+                tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                statusesRequest.receiveResponse();
+
+                tester.button('Контакты').click();
+                tester.contactsRequest().differentNames().receiveResponse();
+
+                tester.contactList.item('Бележкова Грета Ервиновна').click();
+
+                {
+                    const requests = ajax.inAnyOrder();
+
+                    const contactCommunicationsRequest = tester.contactCommunicationsRequest().expectToBeSent(requests),
+                        contactRequest = tester.contactRequest().expectToBeSent(requests),
+                        usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    contactRequest.legacyChannelList().addSecondTelegram().receiveResponse();
+                    usersRequest.receiveResponse();
+                    contactCommunicationsRequest.receiveResponse();
+                }
+            });
+
+            it('Раскрываю меню действий канала. Кнопка "Редактировать" заблокирована.', function() {
+                tester.contactBar.
+                    section('Каналы связи').
+                    option('@kotik70600').
+                    putMouseOver();
+
+                tester.contactBar.
+                    section('Каналы связи').
+                    option('@kotik70600').
+                    toolsIcon.
+                    click();
+
+                tester.select.
+                    option('Редактировать').
+                    expectToBeDisabled();
+            });
+            it('Добавляю канал связи. В запросе передается значение.', function() {
+                tester.contactBar.
+                    section('Каналы связи').
+                    plusButton.
+                    click();
+
+                tester.contactBar.
+                    section('Каналы связи').
+                    input.
+                    fill('79283810987')
+
+                tester.button('Сохранить').click();
+
+                tester.contactsRequest().
+                    channelSearching().
+                    expectToBeSent().
+                    noData().
+                    receiveResponse();
+
+                tester.contactUpdatingRequest().
+                    completeData().
+                    thirdExistingTelegramChannel().
+                    newChannel().
+                    legacyChannelList().
+                    receiveResponse();
+
+                tester.contactRequest().
+                    addWhatsApp().
+                    legacyChannelList().
+                    receiveResponse();
+            });
+        });
         it('Создание контакта недоступно. Кнопка добавления контакта заблокирована.', function() {
             accountRequest.addressBookCreatingUnavailable().receiveResponse();
 
@@ -3672,138 +3976,6 @@ tests.addTest(options => {
                 section('Каналы связи').
                 option('79283810988').
                 click();
-        });
-        it('Фичефлаг телеграма выключен. Добавляю канал связи. В запросе передается значение.', function() {
-            accountRequest.
-                telegramContactChannelFeatureFlagDisabled().
-                operatorWorkplaceAvailable().
-                receiveResponse();
-
-            const requests = ajax.inAnyOrder();
-
-            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
-
-            requests.expectToBeSent();
-
-            reportsListRequest.receiveResponse();
-            reportTypesRequest.receiveResponse();
-
-            secondAccountRequest.
-                telegramContactChannelFeatureFlagDisabled().
-                operatorWorkplaceAvailable().
-                receiveResponse();
-
-            reportGroupsRequest.receiveResponse();
-            tester.configRequest().softphone().receiveResponse();
-
-            tester.masterInfoMessage().receive();
-            tester.slavesNotification().expectToBeSent();
-            tester.slavesNotification().additional().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-
-            tester.notificationChannel().tellIsLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-
-            tester.authCheckRequest().receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
-            tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
-
-            notificationTester.grantPermission();
-
-            settingsRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
-
-            tester.othersNotification().widgetStateUpdate().expectToBeSent();
-            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
-
-            tester.connectEventsWebSocket();
-            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
-
-            tester.connectSIPWebSocket();
-            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
-                expectToBeSent();
-
-            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-            registrationRequest = tester.registrationRequest().expectToBeSent();
-
-            tester.allowMediaInput();
-
-            tester.slavesNotification().
-                twoChannels().
-                softphoneServerConnected().
-                webRTCServerConnected().
-                microphoneAccessGranted().
-                expectToBeSent();
-
-            authenticatedUserRequest.receiveResponse();
-
-            tester.slavesNotification().
-                twoChannels().
-                softphoneServerConnected().
-                webRTCServerConnected().
-                microphoneAccessGranted().
-                userDataFetched().
-                expectToBeSent();
-
-            registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
-
-            statusesRequest.receiveResponse();
-
-            tester.button('Контакты').click();
-            tester.contactsRequest().differentNames().receiveResponse();
-
-            tester.contactList.item('Бележкова Грета Ервиновна').click();
-
-            {
-                const requests = ajax.inAnyOrder();
-
-                const contactCommunicationsRequest = tester.contactCommunicationsRequest().expectToBeSent(requests),
-                    contactRequest = tester.contactRequest().expectToBeSent(requests),
-                    usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                contactRequest.legacyChannelList().receiveResponse();
-                usersRequest.receiveResponse();
-                contactCommunicationsRequest.receiveResponse();
-            }
-
-            tester.contactBar.
-                section('Каналы связи').
-                plusButton.
-                click();
-
-            tester.contactBar.
-                section('Каналы связи').
-                input.
-                fill('79283810987')
-
-            tester.button('Сохранить').click();
-
-            tester.contactsRequest().
-                channelSearching().
-                expectToBeSent().
-                noData().
-                receiveResponse();
-
-            tester.contactUpdatingRequest().
-                completeData().
-                newChannel().
-                legacyChannelList().
-                receiveResponse();
-
-            tester.contactRequest().
-                addWhatsApp().
-                legacyChannelList().
-                receiveResponse();
         });
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {
             accountRequest.contactsFeatureFlagDisabled().receiveResponse();

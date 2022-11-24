@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index 7abaae9..4b9655a 100644
+index 09a3beb..db2a377 100644
 --- a/package.json
 +++ b/package.json
-@@ -21,8 +21,6 @@
+@@ -25,8 +25,6 @@
      "@types/classnames": "^2.3.1",
      "@types/jest": "^28.1.6",
      "@types/node": "^18.6.2",
@@ -11,7 +11,7 @@ index 7abaae9..4b9655a 100644
      "@types/yup": "^0.29.14",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
-@@ -58,22 +56,14 @@
+@@ -63,22 +61,14 @@
      "webpack-merge": "^5.8.0"
    },
    "dependencies": {
@@ -24,11 +24,11 @@ index 7abaae9..4b9655a 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.5",
+     "nanoid": "^3.2.0",
 -    "react": "^18.2.0",
 -    "react-dom": "^18.2.0",
 -    "react-intl": "^6.0.5",
 -    "react-router-dom": "^6.4.0",
-     "short-uuid": "^4.2.0",
      "string-hash": "^1.1.3",
 -    "uis-softphone": "git+https://sip_lib:glpat-Xzs1ef2zY2QoxFSchj8P@gitlab.uis.dev/web/sip_lib.git#e6795a31c0ca8ce52ecb4860b013a38e2b4d776c",
      "yup": "^0.32.11"

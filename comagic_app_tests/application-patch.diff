@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 7257c68b..a75264d2 100644
+index 4e095e2b..55f5af41 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -56,7 +56,7 @@ index 7257c68b..a75264d2 100644
          },
          {
              loader: 'css-loader',
-@@ -207,7 +222,7 @@ const plugins = () => {
+@@ -215,7 +230,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -65,7 +65,7 @@ index 7257c68b..a75264d2 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -247,6 +262,11 @@ const plugins = () => {
+@@ -257,6 +272,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -77,7 +77,7 @@ index 7257c68b..a75264d2 100644
      ];
  
      if (isProductionMode) {
-@@ -270,6 +290,17 @@ const plugins = () => {
+@@ -280,6 +300,17 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -95,7 +95,7 @@ index 7257c68b..a75264d2 100644
  module.exports = {
      entry: './src/index.tsx',
      target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
-@@ -291,6 +322,21 @@ module.exports = {
+@@ -301,6 +332,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -117,7 +117,7 @@ index 7257c68b..a75264d2 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -298,7 +344,7 @@ module.exports = {
+@@ -308,7 +354,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -126,7 +126,7 @@ index 7257c68b..a75264d2 100644
              },
              {
                  test: /\.css$/,
-@@ -309,6 +355,29 @@ module.exports = {
+@@ -319,6 +365,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -156,7 +156,7 @@ index 7257c68b..a75264d2 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -324,6 +393,7 @@ module.exports = {
+@@ -334,6 +403,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -164,7 +164,7 @@ index 7257c68b..a75264d2 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -339,17 +409,128 @@ module.exports = {
+@@ -349,17 +419,128 @@ module.exports = {
                      },
                  ],
              },
@@ -298,7 +298,7 @@ index 7257c68b..a75264d2 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 166d913b..6597dfd6 100644
+index c41f3458..6597dfd6 100644
 --- a/package.json
 +++ b/package.json
 @@ -56,8 +56,8 @@
@@ -316,7 +316,7 @@ index 166d913b..6597dfd6 100644
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
--    "@comagic/core": "^1.2.6",
+-    "@comagic/core": "^1.2.8",
 +    "@comagic/core": "./misc/core",
      "@sentry/react": "^6.17.6",
      "@sentry/tracing": "^6.17.6",

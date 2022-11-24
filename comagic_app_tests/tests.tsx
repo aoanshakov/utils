@@ -3,8 +3,6 @@ import ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { notification } from 'magic-ui';
 
-import { createMemoryHistory } from 'history';
-
 import { eventBus, isElectron, Root } from '@comagic/core';
 
 import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
@@ -12,6 +10,7 @@ import { createRootStore as createChatsRootStore } from 'chats/src/models/RootSt
 import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
 
 import { intl } from './i18n';
+import history from '@/history';
 
 import Softphone from './Softphone';
 import ComagicApp from './ComagicApp';
@@ -28,8 +27,7 @@ import {
     createRootStore as createElectronRootStore 
 } from '@models/SoftphoneRootStore';
 
-const history = createMemoryHistory(),
-    TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
+const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
     Window = ({children}) => <div className="cm-test-window">{children}</div>,
     units = {};
 let root;

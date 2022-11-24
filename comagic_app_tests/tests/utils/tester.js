@@ -1145,7 +1145,7 @@ define(() => function ({
     me.chatStartingRequest = () => {
         let params = {
             chat_channel_type: 'whatsapp',
-            account_id: 425802,
+            account_id: utils.expectNonStrict(425802),
             contact: {
                 phone: '79283810988'
             }
@@ -3150,6 +3150,8 @@ define(() => function ({
     });
 
     me.searchResultsRequest = () => {
+        const processors = [];
+
         const response = {
             result: {
                 data: {
@@ -3168,13 +3170,13 @@ define(() => function ({
                             resource_name: null
                         },
                         mark_ids: ['587', '212'],
-                        phone: null,
+                        phone: '79283810988',
                         site_id: 4663,
                         status: 'new',
                         visitor_id: 16479303,
                         visitor_name: 'Помакова Бисерка Драгановна',
                         visitor_type: 'omni',
-                        account_id: null,
+                        account_id: '425802',
                         is_phone_auto_filled: false,
                         unread_message_count: 0
                     }]
@@ -3183,6 +3185,30 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.whatsApp = () => {
+                response.result.data.found_list[0].chat_channel_type = 'whatsapp';
+                return me;
+            };
+
+            me.extIdSpecified = () => {
+                processors.push(() => {
+                    const {phone} = response.result.data.found_list[0];
+
+                    response.result.data.found_list[0].ext_id = phone;
+                    response.result.data.found_list[0].phone = null
+                });
+
+                return me;
+            };
+
+            me.newVisitor = () => {
+                response.result.data.found_list[0].visitor_id = 679729;
+                response.result.data.found_list[0].visitor_name = null;
+                response.result.data.found_list[0].visitor_type = null;
+
+                return me;
+            };
+
             me.contactExists = () => {
                 response.result.data.found_list[0].contact = {
                     first_name: 'Грета',
@@ -3227,6 +3253,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
+                        processors.forEach(process => process());
                         request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
@@ -3538,6 +3565,10 @@ define(() => function ({
                 return me;
             };
 
+            me.whatsapp = () => (processors.push(data => (data.chats[0].chat_channel_type = 'whatsapp')), me);
+
+            me.legacyChannel = () => (processors.push(data => data.chats.forEach(item => delete(item.ext_id))), me);
+
             me.nothingFound = () => ((data = []), me);
 
             me.noVisitorName = () => {
@@ -3547,6 +3578,15 @@ define(() => function ({
 
             me.phoneAutoFilled = () => {
                 processors.push(data => (data.chats[0].is_phone_auto_filled = true));
+                return me;
+            };
+
+            me.extIdSpecified = () => {
+                processors.push(data => {
+                    data.chats[0].ext_id = '79283810928';
+                    data.chats[0].context = null; 
+                });
+
                 return me;
             };
 
@@ -3675,6 +3715,7 @@ define(() => function ({
                     },
                     mark_ids: ['587', '212'],
                     phone: null,
+                    name: 'Помакова Бисерка Драгановна',
                     site_id: 4663,
                     status: 'new',
                     visitor_id: 16479303,
@@ -8559,7 +8600,8 @@ define(() => function ({
             me.addSecondTelegram = () => {
                 processors.push(() => response.chat_channel_list.push({
                     type: 'telegram',
-                    ext_id: '@kotik70600',
+                    ext_id: '2895298572424359475',
+                    name: '@kotik70600',
                     chat_channel_id: 101
                 }));
 
@@ -8653,10 +8695,15 @@ define(() => function ({
 
             me.legacyChannelList = () => {
                 secondProcessors.push(() => (response.chat_channel_list = response.chat_channel_list.map(channel => {
-                    const {ext_id} = channel;
+                    const {ext_id, name} = channel;
+                    delete(channel.name);
 
-                    delete(channel.ext_id);
-                    channel.phone = ext_id;
+                    if (channel.type == 'whatsapp') {
+                        delete(channel.ext_id);
+                        channel.phone = ext_id;
+                    } else {
+                        name && (channel.ext_id = name);
+                    }
 
                     return channel;
                 })));
@@ -8726,7 +8773,8 @@ define(() => function ({
 
                 response.chat_channel_list = [{
                     type: 'telegram',
-                    ext_id: 'Помакова Бисерка Драгановна',
+                    ext_id: '79283810928',
+                    name: 'Помакова Бисерка Драгановна',
                     chat_channel_id: 101
                 }];
 
@@ -8825,7 +8873,7 @@ define(() => function ({
                     expectToHaveMethod('GET').
                     expectQueryToContain({
                         chat_channel_id: '216395',
-                        chat_statuses: ['new', 'active', 'closed', undefined]
+                        chat_statuses: ['new', 'active', undefined]
                     });
 
                 return addResponseModifiers({
@@ -8847,6 +8895,7 @@ define(() => function ({
 
     me.contactCommunicationsRequest = () => {
         let id = 1689283;
+        const processors = [];
 
         const queryParams = {
             limit: '100',
@@ -9089,6 +9138,11 @@ define(() => function ({
                 return me;
             };
 
+            me.noTalkDuration = () => {
+                processors.push(() => (response.data[4].data.talk_duration = 0));
+                return me;
+            };
+
             me.noData = () => {
                 response.data = [];
                 return me;
@@ -9137,6 +9191,8 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse: () => {
+                        processors.forEach(process => process());
+
                         Array.isArray(response.data) && response.data.reverse();
                         request.respondSuccessfullyWith(response);
 
@@ -9307,12 +9363,14 @@ define(() => function ({
                     chat_channel_list: [{
                         type: 'whatsapp',
                         ext_id: '79283810988',
+                        name: '79283810988',
                         chat_channel_id: 216395
                     }, {
                         type: 'whatsapp',
                         ext_id: '79283810928' ,
+                        name: '79283810928' ,
                         chat_channel_id: 216395
-                    }, undefined],
+                    }],
                     organization_name: 'UIS',
                     phone_list: ['79162729533', undefined],
                     group_list: [undefined],
@@ -9384,14 +9442,70 @@ define(() => function ({
 
             newChannel() {
                 processors.push(bodyParams => {
-                    bodyParams.chat_channel_list[2] = {
+                    bodyParams.chat_channel_list.push({
                         chat_channel_id: null,
                         ext_id: '79283810987',
+                        name: '79283810987',
                         type: 'whatsapp'
-                    };
-
-                    bodyParams.chat_channel_list.push(undefined);
+                    });
                 });
+
+                return this;
+            },
+
+            existingChannel() {
+                processors.push(bodyParams => {
+                    bodyParams.chat_channel_list.push({
+                        chat_channel_id: 84278,
+                        ext_id: '79283810987',
+                        name: '79283810987',
+                        type: 'whatsapp'
+                    });
+                });
+
+                return this;
+            },
+
+            existingTelegramChannel() {
+                processors.push(bodyParams => bodyParams.chat_channel_list.push({
+                    chat_channel_id: 101,
+                    ext_id: '79218307632',
+                    name: '79218307632',
+                    type: 'telegram'
+                }));
+
+                return this;
+            },
+
+            anotherExistingTelegramChannel() {
+                processors.push(bodyParams => bodyParams.chat_channel_list.push({
+                    type: 'telegram',
+                    ext_id: '2895298572424359475',
+                    name: '@kotik706001',
+                    chat_channel_id: 101
+                }));
+
+                return this;
+            },
+
+            thirdExistingTelegramChannel() {
+                processors.push(bodyParams => bodyParams.chat_channel_list.push({
+                    type: 'telegram',
+                    ext_id: '2895298572424359475',
+                    name: '@kotik70600',
+                    chat_channel_id: 101
+                }));
+
+                return this;
+            },
+
+            fourthExistingTelegramChannel() {
+                processors.push(bodyParams => bodyParams.chat_channel_list.push({
+                    chat_channel_id: 101,
+                    ext_id: '79218307632',
+                    name: '792183076321',
+                    type: 'telegram'
+                }));
 
                 return this;
             },
@@ -9403,10 +9517,11 @@ define(() => function ({
                             return channel;
                         }
 
-                        const {ext_id} = channel;
+                        const {ext_id, name, type} = channel;
 
-                        delete(channel.ext_id);
-                        channel.phone = ext_id;
+                        channel.ext_id = type == 'whatsapp' ? null : name || ext_id;
+                        channel.name = undefined;
+                        channel.phone = type == 'telegram' ? null : ext_id;
 
                         return channel;
                     })
@@ -9418,6 +9533,8 @@ define(() => function ({
             expectToBeSent() {
                 processors.forEach(process => process(bodyParams));
                 secondProcessors.forEach(process => process(bodyParams));
+
+                bodyParams.chat_channel_list?.push(undefined);
 
                 const request = ajax.recentRequest().
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
@@ -9444,6 +9561,9 @@ define(() => function ({
     };
 
     me.contactCreatingRequest = () => {
+        const processors = [];
+            secondProcessors = [];
+
         const response = {
             contact_id: 1689283
         };
@@ -9459,6 +9579,29 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            legacyChannelList() {
+                secondProcessors.push(() => (
+                    bodyParams.chat_channel_list = bodyParams.chat_channel_list?.map(channel => ({
+                        ...channel,
+                        ext_id: channel.type == 'whatsapp' ? null : channel.name,
+                        phone: channel.type == 'whatsapp' ? channel.name : null,
+                        name: undefined
+                    }))
+                ));
+
+                return this;
+            },
+
+            whatsapp() {
+                processors.push(() => (bodyParams.chat_channel_list = bodyParams.chat_channel_list?.map(channel => ({
+                    ...channel,
+                    type: 'whatsapp',
+                    name: channel.ext_id
+                }))));
+
+                return this;
+            },
+
             fromVisitor() {
                 response.contact_id = 2968308;
                 bodyParams.id = null,
@@ -9474,7 +9617,8 @@ define(() => function ({
 
                 bodyParams.chat_channel_list = [{
                     type: 'telegram',
-                    ext_id: 'Помакова Бисерка Драгановна',
+                    ext_id: '79283810928',
+                    name: 'Помакова Бисерка Драгановна',
                     chat_channel_id: 101
                 }];
 
@@ -9486,7 +9630,15 @@ define(() => function ({
                 return this;
             },
 
+            anotherChannelExtId() {
+                bodyParams.chat_channel_list[0].ext_id = '79164725823';
+                return this;
+            },
+
             expectToBeSent() {
+                processors.forEach(process => process());
+                secondProcessors.forEach(process => process());
+
                 const request = ajax.recentRequest().
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts`).
                     expectToHaveMethod('POST').
@@ -10288,6 +10440,18 @@ define(() => function ({
                 return this;
             },
 
+            anotherChannelSearching() {
+                params.search = '2895298572424359475';
+                params.merge_entity = 'channel';
+                return this;
+            },
+
+            thirdChannelSearching() {
+                params.search = '79218307632';
+                params.merge_entity = 'channel';
+                return this;
+            },
+
             anotherAuthorizationToken() {
                 token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 return this;
@@ -11062,9 +11226,17 @@ define(() => function ({
                         return domElements[0];
                     })();
 
-                    return domElement.closest(
-                        '.cm-chats--chat-history-message, .cm-contacts-system-message, .cm-contacts-call-wrapper'
+                    const messageElement = domElement.closest(
+                        '.cm-chats--chat-history-message, .cm-contacts-system-message'
                     ) || new JsTester_NoElement();
+
+                    const callWrapperElement = domElement.closest('.cm-contacts-call-wrapper');
+
+                    if (callWrapperElement && !(callWrapperElement instanceof JsTester_NoElement)) {
+                        return callWrapperElement;
+                    }
+
+                    return messageElement;
                 };
 
                 const tester = testersFactory.createDomElementTester(getMessageElement),
@@ -11072,9 +11244,9 @@ define(() => function ({
 
                 tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
-                tester.callHeader = (() => {
+                tester.inner = (() => {
                     const tester = testersFactory.createDomElementTester(
-                        () => getMessageElement().querySelector('.cm-contacts-call')
+                        () => getMessageElement().querySelector('.cm-contacts-system-message-inner')
                     );
 
                     const putMouseOver = tester.putMouseOver.bind(tester);
