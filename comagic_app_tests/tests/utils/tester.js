@@ -8894,6 +8894,7 @@ define(() => function ({
 
     me.contactCommunicationsRequest = () => {
         let id = 1689283;
+        const processors = [];
 
         const queryParams = {
             limit: '100',
@@ -9136,6 +9137,11 @@ define(() => function ({
                 return me;
             };
 
+            me.noTalkDuration = () => {
+                processors.push(() => (response.data[4].data.talk_duration = 0));
+                return me;
+            };
+
             me.noData = () => {
                 response.data = [];
                 return me;
@@ -9184,6 +9190,8 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse: () => {
+                        processors.forEach(process => process());
+
                         Array.isArray(response.data) && response.data.reverse();
                         request.respondSuccessfullyWith(response);
 
@@ -9461,7 +9469,7 @@ define(() => function ({
                 processors.push(bodyParams => bodyParams.chat_channel_list.push({
                     chat_channel_id: 101,
                     ext_id: '79218307632',
-                    name: null,
+                    name: '79218307632',
                     type: 'telegram'
                 }));
 
@@ -9485,6 +9493,17 @@ define(() => function ({
                     ext_id: '2895298572424359475',
                     name: '@kotik70600',
                     chat_channel_id: 101
+                }));
+
+                return this;
+            },
+
+            fourthExistingTelegramChannel() {
+                processors.push(bodyParams => bodyParams.chat_channel_list.push({
+                    chat_channel_id: 101,
+                    ext_id: '79218307632',
+                    name: '792183076321',
+                    type: 'telegram'
                 }));
 
                 return this;
@@ -10426,6 +10445,12 @@ define(() => function ({
                 return this;
             },
 
+            thirdChannelSearching() {
+                params.search = '79218307632';
+                params.merge_entity = 'channel';
+                return this;
+            },
+
             anotherAuthorizationToken() {
                 token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 return this;
@@ -11200,9 +11225,17 @@ define(() => function ({
                         return domElements[0];
                     })();
 
-                    return domElement.closest(
-                        '.cm-chats--chat-history-message, .cm-contacts-system-message, .cm-contacts-call-wrapper'
+                    const messageElement = domElement.closest(
+                        '.cm-chats--chat-history-message, .cm-contacts-system-message'
                     ) || new JsTester_NoElement();
+
+                    const callWrapperElement = domElement.closest('.cm-contacts-call-wrapper');
+
+                    if (callWrapperElement && !(callWrapperElement instanceof JsTester_NoElement)) {
+                        return callWrapperElement;
+                    }
+
+                    return messageElement;
                 };
 
                 const tester = testersFactory.createDomElementTester(getMessageElement),
@@ -11210,9 +11243,9 @@ define(() => function ({
 
                 tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
-                tester.callHeader = (() => {
+                tester.inner = (() => {
                     const tester = testersFactory.createDomElementTester(
-                        () => getMessageElement().querySelector('.cm-contacts-call')
+                        () => getMessageElement().querySelector('.cm-contacts-system-message-inner')
                     );
 
                     const putMouseOver = tester.putMouseOver.bind(tester);

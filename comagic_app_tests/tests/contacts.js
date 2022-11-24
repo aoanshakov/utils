@@ -518,6 +518,40 @@ tests.addTest(options => {
                                                 content.
                                                 expectToHaveTextContent('Божилова Йовка');
                                         });
+                                        /*
+                                        it(
+                                            'Открываю поле редактирования. Нажимаю на кнопку "Отменить". Возвращено ' +
+                                            'оригинальное Значение поля.',
+                                        function() {
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('79162729534').
+                                                putMouseOver();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('79162729534').
+                                                toolsIcon.
+                                                click();
+
+                                            tester.select.option('Редактировать').click();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                input.
+                                                fill('79162729535');
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                button('Отменить').
+                                                click();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                content.
+                                                expectToHaveTextContent('79162729534');
+                                        });
+                                        */
                                         it('Отображены данные другого контакта.', function() {
                                             tester.contactBar.expectTextContentToHaveSubstring(
                                                 'ФИО ' +
@@ -895,7 +929,7 @@ tests.addTest(options => {
                                     it(
                                         'Помещаю курсор над сиситемным сообщением. Отображена всплывающая подсказка.',
                                     function() {
-                                        tester.chatHistory.message.atTime('12:11').putMouseOver();
+                                        tester.chatHistory.message.atTime('12:11').inner.putMouseOver();
 
                                         tester.tooltip.expectToHaveTextContent(
                                             'Бележкова Грета Ервиновна (Клиент) ' +
@@ -911,6 +945,15 @@ tests.addTest(options => {
 
                                         tester.notificationWindow.expectToHaveTextContent(
                                             'Невозможно перейти в чат, отсутствуют права на "Чаты и заявки"'
+                                        );
+                                    });
+                                    it(
+                                        'Помещаю курсор над сообщением о звонке. Отображена всплывающая подсказка.',
+                                    function() {
+                                        tester.chatHistory.message.atTime('12:14').inner.putMouseOver();
+
+                                        tester.tooltip.expectToHaveTextContent(
+                                            'Виртуальный номер: 74952727438'
                                         );
                                     });
                                     it('Имя выделено. Отображен контакт. Отображена история коммуникаций.', function() {
@@ -1101,30 +1144,48 @@ tests.addTest(options => {
                                 });
                                 describe('URL записи звонка не был получен.', function() {
                                     beforeEach(function() {
-                                        contactCommunicationsRequest.noTalkRecordFileLink().receiveResponse();
+                                        contactCommunicationsRequest = contactCommunicationsRequest.
+                                            noTalkRecordFileLink();
                                     });
 
-                                    it(
-                                        'Помещаю курсор над сообщением о звонке. Отображена всплывающая подсказка.',
-                                    function() {
-                                        tester.chatHistory.message.atTime('12:14').callHeader.putMouseOver();
+                                    describe('Длительность разговора получена.', function() {
+                                        beforeEach(function() {
+                                            contactCommunicationsRequest.receiveResponse();
+                                        });
+
+                                        it(
+                                            'Помещаю курсор над сообщением о звонке. Отображена всплывающая подсказка.',
+                                        function() {
+                                            tester.chatHistory.message.atTime('12:14').inner.putMouseOver();
+
+                                            tester.tooltip.expectToHaveTextContent(
+                                                'Время ожидания ответа: 53:39 ' +
+                                                'Длительность: 53:40 ' +
+                                                'Виртуальный номер: 74952727438 ' +
+                                                'Статус: Клиент не взял трубку'
+                                            );
+                                        });
+                                        it('Отображено сообщение о входящем звонке.', function() {
+                                            tester.chatHistory.message.atTime('12:14').directionIcon.
+                                                expectToHaveClass('incoming_failed_svg__cmg-direction-icon');
+
+                                            tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
+                                                '12:14 ' +
+
+                                                'Входящий звонок с номера 79161234567 оператору ' +
+                                                'Карадимова Веска Анастасовна'
+                                            );
+                                        });
+                                    });
+                                    it('Длительность разговора не получена.', function() {
+                                        contactCommunicationsRequest.noTalkDuration().receiveResponse();
+
+                                        tester.chatHistory.message.atTime('12:14').inner.putMouseOver();
 
                                         tester.tooltip.expectToHaveTextContent(
                                             'Время ожидания ответа: 53:39 ' +
-                                            'Длительность: 53:40 ' +
                                             'Виртуальный номер: 74952727438 ' +
                                             'Статус: Клиент не взял трубку'
-                                        );
-                                    });
-                                    it('Отображено сообщение о входящем звонке.', function() {
-                                        tester.chatHistory.message.atTime('12:14').directionIcon.
-                                            expectToHaveClass('incoming_failed_svg__cmg-direction-icon');
-
-                                        tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
-                                            '12:14 ' +
-
-                                            'Входящий звонок с номера 79161234567 оператору ' +
-                                            'Карадимова Веска Анастасовна'
                                         );
                                     });
                                 });
@@ -1660,8 +1721,8 @@ tests.addTest(options => {
                                             );
                                     });
                                     it(
-                                        'Изменяю имя телеграм-канала. Нажимаю на кнопку "Сохранить". Отправлено имя ' +
-                                        'телеграм-канала.',
+                                        'Изменяю имя телеграм-канала имя которого непустое. Нажимаю на кнопку ' +
+                                        '"Сохранить". Отправлено имя телеграм-канала.',
                                     function() {
                                         tester.contactBar.
                                             section('Каналы связи').
@@ -1695,6 +1756,50 @@ tests.addTest(options => {
                                             existingTelegramChannel().
                                             existingChannel().
                                             anotherExistingTelegramChannel().
+                                            receiveResponse();
+
+                                        tester.contactRequest().
+                                            addTelegram().
+                                            addWhatsApp().
+                                            addSecondTelegram().
+                                            receiveResponse();
+                                    });
+                                    it(
+                                        'Изменяю имя телеграм-канала имя которого пустое. Нажимаю на кнопку ' +
+                                        '"Сохранить". Отправлено имя телеграм-канала.',
+                                    function() {
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            option('79218307632').
+                                            putMouseOver();
+
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            option('79218307632').
+                                            toolsIcon.
+                                            click();
+
+                                        tester.select.
+                                            option('Редактировать').
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Каналы связи').
+                                            input.
+                                            input('1');
+
+                                        tester.button('Сохранить').click();
+
+                                        tester.contactsRequest().
+                                            thirdChannelSearching().
+                                            noData().
+                                            receiveResponse();
+
+                                        tester.contactUpdatingRequest().
+                                            completeData().
+                                            fourthExistingTelegramChannel().
+                                            existingChannel().
+                                            thirdExistingTelegramChannel().
                                             receiveResponse();
 
                                         tester.contactRequest().
