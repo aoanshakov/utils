@@ -8873,7 +8873,7 @@ define(() => function ({
                     expectToHaveMethod('GET').
                     expectQueryToContain({
                         chat_channel_id: '216395',
-                        chat_statuses: ['new', 'active', undefined]
+                        chat_statuses: ['new', 'active', 'closed', undefined]
                     });
 
                 return addResponseModifiers({
@@ -11390,7 +11390,7 @@ define(() => function ({
 
             tester.closeButton = (() => {
                 const tester = testersFactory.createDomElementTester(
-                    () => getTitleElement().querySelector('svg')
+                    () => getTitleElement().querySelector('.cm-contacts-contact-bar-close-icon')
                 );
 
                 const click = tester.click.bind(tester);
