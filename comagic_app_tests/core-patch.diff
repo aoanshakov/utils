@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index a1ba282..eef0335 100644
+index a1ba282..30cbf35 100644
 --- a/package.json
 +++ b/package.json
 @@ -1,9 +1,9 @@
@@ -30,7 +30,15 @@ index a1ba282..eef0335 100644
      "@types/yup": "^0.26.32",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
-@@ -51,11 +48,7 @@
+@@ -33,7 +30,6 @@
+     "@sentry/tracing": "^6.17.6",
+     "axios": "^0.24.0",
+     "broadcast-channel": "^4.11.0",
+-    "centrifuge": "^3.0.1",
+     "clean-webpack-plugin": "^4.0.0",
+     "eslint": "^8.20.0",
+     "eslint-config-prettier": "^8.5.0",
+@@ -51,11 +47,7 @@
      "moment": "^2.13.0",
      "nanoid": "^3.2.0",
      "prettier": "^2.7.1",
