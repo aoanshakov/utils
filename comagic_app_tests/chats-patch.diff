@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 95e34e6..e3499e3 100644
+index a0bd309..2c4d755 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,8 +22,6 @@
@@ -15,7 +15,7 @@ index 95e34e6..e3499e3 100644
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
--    "@comagic/core": "^1.1.1",
+-    "@comagic/core": "0.0.0-int0",
 -    "antd": "^3.26.7",
 +    "antd": "3.26.7",
      "async-mutex": "^0.3.2",
@@ -27,9 +27,9 @@ index 95e34e6..e3499e3 100644
      "madge": "^5.0.1",
 -    "magic-ui": "^2.3.0",
      "mobx": "^6.6.1",
+     "mobx-devtools-mst": "^0.9.30",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-     "mobx-devtools-mst": "^0.9.30",
      "moment": "^2.29.1",
 -    "react": "^18.2.0",
 -    "react-dom": "^18.2.0",

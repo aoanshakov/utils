@@ -298,14 +298,14 @@ index 4e095e2b..55f5af41 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index c41f3458..c4d369c2 100644
+index 3471bccf..c4d369c2 100644
 --- a/package.json
 +++ b/package.json
 @@ -66,13 +66,17 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
--    "@comagic/core": "^1.2.8",
+-    "@comagic/core": "0.0.0-int0",
 +    "@comagic/core": "./misc/core",
      "@sentry/react": "^6.17.6",
      "@sentry/tracing": "^6.17.6",
