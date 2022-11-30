@@ -93,7 +93,6 @@ const chatOverridenFiles = 'src/models/RootStore.ts ' +
     'src/App.tsx ' +
     'src/models/auth/AuthStore.ts ' +
     'src/models/account/AccountStore.ts ' +
-    'src/utils/index.tsx ' +
     'src/components/chats/chat-panel/styles.less';
 
 const analyticsOverridenFiles = 'src/models/RootStore.ts ' +
