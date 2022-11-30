@@ -123,10 +123,20 @@ index 57ad272..166fd36 100644
      }))
      .actions(self => {
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 933fdb3..8e6f31d 100644
+index 933fdb3..ea4743d 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -26,7 +26,7 @@ const AUTH_KEY: string = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_C
+@@ -1,7 +1,8 @@
+ import { types, flow, getRoot } from 'mobx-state-tree';
+ import type { RootInstance } from '../RootStore';
+ import { authHttpRpc } from '@/httpRpc';
+-import { generateTraceId, getCookie, setCookie, deleteCookie } from '@/utils';
++import { generateTraceId } from '@/utils';
++import { getCookie, setCookie, deleteCookie } from '@comagic/core';
+ 
+ const getCookieDomain = () => {
+     return window.location.hostname.split('.').slice(-2).join('.');
+@@ -26,7 +27,7 @@ const AUTH_KEY: string = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_C
  
  export const AuthStore = types
      .model('AuthStore', {
@@ -136,7 +146,7 @@ index 933fdb3..8e6f31d 100644
      })
      .views(() => ({
 diff --git a/src/utils/index.tsx b/src/utils/index.tsx
-index 94d4c43..31f4230 100644
+index 94d4c43..ffc9117 100644
 --- a/src/utils/index.tsx
 +++ b/src/utils/index.tsx
 @@ -1,8 +1,8 @@
@@ -150,66 +160,55 @@ index 94d4c43..31f4230 100644
  import moment from 'moment';
  import short from 'short-uuid';
  import { intl } from '@/i18n';
-@@ -114,8 +114,15 @@ type Options = {
+@@ -114,45 +114,8 @@ type Options = {
      'max-age'?: number;
  };
  
+-export function getCookie(name: string): string {
+-    const matches = new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)').exec(
+-        document.cookie
+-    );
+-
+-    return matches ? decodeURIComponent(matches[1]) : undefined;
+-}
+-
+-export function setCookie(name: string, value: string, options: Options = {}): void {
+-    options = {
+-        path: '/',
+-        ...options,
+-    };
+-
+-    if (options.expires instanceof Date) {
+-        options.expires = options.expires.toUTCString();
+-    }
+-
+-    let updatedCookie = encodeURIComponent(name) + '=' + encodeURIComponent(value);
+-
+-    let optionKey: keyof Options;
+-    for (optionKey in options) {
+-        updatedCookie += '; ' + optionKey;
+-
+-        const optionValue = options[optionKey];
+-        if (optionValue !== true) {
+-            updatedCookie += '=' + (optionValue as string);
+-        }
+-    }
+-
+-    document.cookie = updatedCookie;
+-}
+-
+-export function deleteCookie(name: string, options: Options = {}): void {
+-    setCookie(name, '', {
+-        'max-age': -1,
+-        ...options,
+-    });
+-}
 +const isSoftphone = () => window.rootConfig?.appName == 'softphone',
 +    prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
-+
- export function getCookie(name: string): string {
--    const matches = new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)').exec(
-+    if (isSoftphone()) {
-+        return window.getElectronCookiesManager().getItem(name);
-+    }
-+
-+    const matches = new RegExp('(?:^|; )' + prepareName(name) + '=([^;]*)').exec(
-         document.cookie
-     );
  
-@@ -123,6 +130,11 @@ export function getCookie(name: string): string {
- }
- 
- export function setCookie(name: string, value: string, options: Options = {}): void {
-+    if (isSoftphone()) {
-+        window.getElectronCookiesManager().setItem(name, value);
-+        return;
-+    }
-+
-     options = {
-         path: '/',
-         ...options,
-@@ -132,7 +144,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
-         options.expires = options.expires.toUTCString();
-     }
- 
--    let updatedCookie = encodeURIComponent(name) + '=' + encodeURIComponent(value);
-+    let updatedCookie = prepareName(name) + '=' + encodeURIComponent(value);
- 
-     let optionKey: keyof Options;
-     for (optionKey in options) {
-@@ -140,7 +152,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
- 
-         const optionValue = options[optionKey];
-         if (optionValue !== true) {
--            updatedCookie += '=' + (optionValue as string);
-+            updatedCookie += '=' + optionValue;
-         }
-     }
- 
-@@ -148,6 +160,11 @@ export function setCookie(name: string, value: string, options: Options = {}): v
- }
- 
- export function deleteCookie(name: string, options: Options = {}): void {
-+    if (isSoftphone()) {
-+        window.getElectronCookiesManager().removeItem(name);
-+        return;
-+    }
-+
-     setCookie(name, '', {
-         'max-age': -1,
-         ...options,
-@@ -191,6 +208,7 @@ function generateUrl(url: string): string {
+ export const formatFilename = (filename: string, maxFilenameLength = 30): string => {
+     const filenameParts = filename.split('.');
+@@ -191,6 +154,7 @@ function generateUrl(url: string): string {
  }
  
  export function parseLinks(text: string): React.ReactNode[] {

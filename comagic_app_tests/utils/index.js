@@ -13,6 +13,7 @@ const {
     applicationPatch,
     devApplicationPatch,
     chatsPatch,
+    hostPatch,
     corePatch,
     magicUiPatch,
     magicUiLibPatch,
@@ -22,6 +23,7 @@ const {
     devSoftphonePatch,
     preCommitHook,
     core,
+    host,
     chats,
     magicUi,
     chatsMagicUi,
@@ -74,15 +76,17 @@ const {
 const cda = `cd ${application} &&`,
     cdc = `cd ${chats} &&`,
     actions = {},
-    magicUiOverridenFiles = 'package.json',
+    packageJson = 'package.json',
+    magicUiOverridenFiles = packageJson,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
-    contactsOverridenFiles = 'package.json',
+    contactsOverridenFiles = packageJson,
+    hostOverridenFiles = packageJson,
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
 
 const coreOverridenFiles = 'package.json ' +
-    'src/models/notification/notification.ts';
+    'src/utils/cookie.ts';
 
 const chatOverridenFiles = 'src/models/RootStore.ts ' +
     'package.json ' +
@@ -199,6 +203,16 @@ const overriding = [{
     test: {
         overridenFiles: coreOverridenFiles,
         applicationPatch: corePatch
+    }
+}, {
+    application: host,
+    dev: {
+        overridenFiles: hostOverridenFiles,
+        applicationPatch: hostPatch
+    },
+    test: {
+        overridenFiles: hostOverridenFiles,
+        applicationPatch: hostPatch
     }
 }, {
     application: softphone,
@@ -318,6 +332,7 @@ actions['initialize'] = params => [
     appModule(['chats', chats, '']),
     appModule(['softphone', softphone, '']),
     appModule(['core', core, '']),
+    appModule(['host', host, '']),
     ['web/magic_ui', magicUi, '', misc],
     ['analytics/frontend', analytics, '', analyticsDir],
     ['web/sip_lib', sipLib, '', softphoneMisc],

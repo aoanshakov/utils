@@ -139,7 +139,7 @@ tests.addTest(options => {
                             contactsRequest.differentNames().receiveResponse();
                         });
 
-                        xdescribe('Нажимаю на имя.', function() {
+                        describe('Нажимаю на имя.', function() {
                             let contactCommunicationsRequest,
                                 contactRequest;
 
@@ -1891,7 +1891,7 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        xdescribe('Нажимаю на иконку с плюсом в заголовке списка контактов.', function() {
+                        describe('Нажимаю на иконку с плюсом в заголовке списка контактов.', function() {
                             beforeEach(function() {
                                 tester.contactList.plusButton.click();
                                 tester.usersRequest().forContacts().receiveResponse();
@@ -2000,7 +2000,6 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    return;
                     describe('Получены данные для списка контактов.', function() {
                         beforeEach(function() {
                             contactsRequest.receiveResponse();
@@ -2168,7 +2167,6 @@ tests.addTest(options => {
                         tester.spin.expectToBeVisible();
                     });
                 });
-return;
                 describe('Поступил входящий звонок.', function() {
                     let outCallEvent;
 
@@ -2489,7 +2487,6 @@ return;
                     });
                 });
             });
-return;
             describe('Номер должен быть скрыт. Открываю карточку контакта.', function() {
                 beforeEach(function() {
                     settingsRequest.shouldHideNumbers().receiveResponse();
@@ -2642,7 +2639,6 @@ return;
                 tester.softphone.expectTextContentToHaveSubstring('Используется на другом устройстве');
             });
         });
-return;
         describe('Рабочее место оператора доступно.', function() {
             let contactChatRequest;
 

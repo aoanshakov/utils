@@ -689,6 +689,7 @@ define(() => function ({
             '.clct-c-button, ' +
             '.ui-radio-content, ' +
             '.cmg-switch-label, ' +
+            '.misc-core-src-component-styles-module__label, ' +
             '.misc-core-src-components-menu-styles-module__label, ' +
             '.cm-chats--chat-menu-item, ' +
             '.cm-chats--tab-title, ' +
@@ -729,10 +730,10 @@ define(() => function ({
 
             const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked',
                 disabledClass = isSwitch ? 'ui-switch-disabled' : 'ui-button-disabled',
-                menuItemSelectedClass = 'misc-core-src-components-menu-styles-module__item-selected';
+                menuItemSelectedClass = 'misc-core-src-component-styles-module__item-selected';
 
             const menuItem = testersFactory.createDomElementTester(() =>
-                domElement.closest('.misc-core-src-components-menu-styles-module__item'));
+                domElement.closest('.misc-core-src-component-styles-module__item'));
             
             tester.expectToBePressed = () => menuItem.expectToHaveClass(menuItemSelectedClass);
             tester.expectNotToBePressed = () => menuItem.expectNotToHaveClass(menuItemSelectedClass);
@@ -11692,7 +11693,8 @@ define(() => function ({
     me.leftMenu = (() => {
         const getDomElement = () => utils.querySelector(
             '.src-components-main-menu-styles-module__nav, ' +
-            '.misc-core-src-components-menu-styles-module__nav'
+            '.misc-core-src-components-menu-styles-module__nav, ' +
+            '.misc-host-src-components-menu-styles-module__nav'
         );
 
         return addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement);
