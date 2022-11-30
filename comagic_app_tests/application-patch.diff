@@ -298,15 +298,16 @@ index 4e095e2b..55f5af41 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 3471bccf..c4d369c2 100644
+index 3471bccf..11663adf 100644
 --- a/package.json
 +++ b/package.json
-@@ -66,13 +66,17 @@
+@@ -66,13 +66,18 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
 -    "@comagic/core": "0.0.0-int0",
 +    "@comagic/core": "./misc/core",
++    "@comagic/host": "./misc/host",
      "@sentry/react": "^6.17.6",
      "@sentry/tracing": "^6.17.6",
 -    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab",
@@ -321,7 +322,7 @@ index 3471bccf..c4d369c2 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -84,15 +88,19 @@
+@@ -84,15 +89,19 @@
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
@@ -421,6 +422,18 @@ index 54c1319c..94add9fd 100644
          headers: { 'Access-Control-Allow-Origin': '*' },
          historyApiFallback: true,
      },
+diff --git a/src/history.ts b/src/history.ts
+index a55142f7..32412406 100644
+--- a/src/history.ts
++++ b/src/history.ts
+@@ -1,6 +1,6 @@
+ import { isElectron } from '@comagic/core';
+ import { createMemoryHistory, createBrowserHistory } from 'history';
+ 
+-const history = isElectron() ? createMemoryHistory() : createBrowserHistory({ window });
++const history = true || isElectron() ? createMemoryHistory() : createBrowserHistory({ window });
+ 
+ export default history;
 diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
 index 8c0a28d7..ce190fe9 100644
 --- a/src/rpc/httpRpc.ts

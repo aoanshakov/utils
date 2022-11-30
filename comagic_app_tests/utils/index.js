@@ -101,7 +101,8 @@ const overridenFiles = [
     'public/index.html',
     'config/webpack.config.js',
     'package.json',
-    'src/rpc/httpRpc.ts'
+    'src/rpc/httpRpc.ts',
+    'src/history.ts'
 ].join(' ');
 
 actions['install-publisher'] = [`cd ${publisherDir} && npm install --verbose`];
