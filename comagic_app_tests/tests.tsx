@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { notification } from 'magic-ui';
 
-import { eventBus, isElectron, Root } from '@comagic/core';
+import { eventBus, isElectron } from '@comagic/core';
+import { Root } from '@comagic/host';
 
 import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
 import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
