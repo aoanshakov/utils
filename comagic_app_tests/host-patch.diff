@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 1a5180d..bba841d 100644
+index d9322b2..8199740 100644
 --- a/package.json
 +++ b/package.json
 @@ -1,9 +1,9 @@
@@ -14,3 +14,30 @@ index 1a5180d..bba841d 100644
    ],
    "engines": {
      "node": ">=12.14.0",
+diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
+index 70faafc..3b6e1d9 100644
+--- a/src/rpc/httpRpc.ts
++++ b/src/rpc/httpRpc.ts
+@@ -23,10 +23,11 @@ export type HttpRpc = <T>(
+     url?: string
+ ) => Promise<DataApiResponseResult<T>>;
+ 
+-let cancelTokenSource: CancelTokenSource = axios.CancelToken.source();
++let cancelTokenSource: CancelTokenSource = null;
++const getCancelTokenSource = () => cancelTokenSource || (cancelTokenSource = axios.CancelToken.source());
+ 
+ export const cancelPendingRequests = (message?: string): void => {
+-    cancelTokenSource.cancel(message);
++    getCancelTokenSource().cancel(message);
+     cancelTokenSource = axios.CancelToken.source();
+ };
+ 
+@@ -48,7 +49,7 @@ const httpRpc: HttpRpc = async <T>(
+         data: rpcParams,
+         url: `${url}?method=${method}`,
+         headers,
+-        cancelToken: cancelTokenSource.token,
++        cancelToken: getCancelTokenSource().token,
+     };
+ 
+     try {
