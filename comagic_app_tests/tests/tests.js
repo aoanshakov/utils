@@ -46,7 +46,6 @@ tests.addTest(options => {
 
         describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
-                tester.notificationChannel().applyLeader().expectToBeSent();
                 accountRequest.receiveResponse();
 
                 const requests = ajax.inAnyOrder();
@@ -70,9 +69,10 @@ tests.addTest(options => {
                     tester.masterInfoMessage().receive();
                     tester.slavesNotification().expectToBeSent();
                     tester.slavesNotification().additional().expectToBeSent();
+                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                     tester.notificationChannel().tellIsLeader().expectToBeSent();
-                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
                     tester.notificationChannel().applyLeader().expectToBeSent();
 
                     tester.authCheckRequest().receiveResponse();
