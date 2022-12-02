@@ -3284,7 +3284,8 @@ function JsTester_BroadcastChannelMessage (args) {
 
     this.expectNotToExist = function (exceptions) {
         var exception = new Error(
-            'Ни одно сообщение не должно быть отправлено, тогда как было отправлено сообщение ' +
+            'Ни одно сообщение не должно быть отправлено, тогда как в канал "' + actualChannelName + '" было ' +
+                'отправлено сообщение ' +
                 (typeof actualMessage == 'string' ? actualMessage : JSON.stringify(actualMessage)) +
             '.' + "\n\n" + callStack
         );

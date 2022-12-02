@@ -29,7 +29,7 @@ function EasystartBitrix(args) {
     this.setFatalError = function () {
         easyStartApplicationState = {
             success: false,
-            error: 'Произошла фатальная ошибка',
+            error: 'User name is not specified',
             partner: 'bitrix'
         };
     };

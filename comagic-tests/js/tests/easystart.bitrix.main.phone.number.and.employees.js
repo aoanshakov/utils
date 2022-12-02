@@ -15,7 +15,7 @@ tests.addTest(function(args) {
         tester.afterEach();
     });
 
-    describe(
+    xdescribe(
         'Открываю страницу легкого входа Битрикс24. Нажимаю на кнопку "Тестировать бесплатно". Нажимаю на кнопку ' +
         '"Продолжить". В соответствии с данными, полученными от сервера ни один сотрудник не был выбран ранее.',
     function() {
@@ -106,7 +106,7 @@ tests.addTest(function(args) {
             tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
         });
     });
-    describe('Открываю страницу легкого входа Битрикс24. Приложение уже установлено.', function() {
+    xdescribe('Открываю страницу легкого входа Битрикс24. Приложение уже установлено.', function() {
         beforeEach(function() {
             tester.isInstalled();
             EasyStart.getApplication().checkIfPartnerReady();
@@ -317,7 +317,7 @@ tests.addTest(function(args) {
             );
         });
     });
-    describe('Нажимаю на кнопку "Тестировать бесплатно".', function() {
+    xdescribe('Нажимаю на кнопку "Тестировать бесплатно".', function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
             wait();
@@ -381,7 +381,7 @@ tests.addTest(function(args) {
             }).expectToBeVisible();
         });
     });
-    describe('Открываю страницу легкого входа Битрикс24. Приложение еще не установлено.', function() {
+    xdescribe('Открываю страницу легкого входа Битрикс24. Приложение еще не установлено.', function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
             wait();
@@ -396,6 +396,25 @@ tests.addTest(function(args) {
             tester.mainPageHeader.expectTextContentToHaveSubstring('Попробуйте UIS');
         });
     });
+    describe('Открываю страницу легкого входа Битрикс24. Произошла фатальная ошибка.', function() {
+        beforeEach(function() {
+            tester.setFatalError();
+
+            EasyStart.getApplication().checkIfPartnerReady();
+            wait(10);
+        });
+
+        it('Нажимаю на кнопку "Тестировать бесплатно". Отображено сообщение об ошибке.', function() {
+            tester.tryForFreeButton.click();
+            tester.errorMessage('Пожалуйста укажите имя в своем профиле в Bitrix24').expectToBeVisible();
+        });
+        return;
+        it('Отображена кнопка "Завершить установку".', function() {
+            tester.fatalErrorMessage.expectNotToExist();
+            tester.button('Завершить установку').expectToBeVisible();
+        });
+    });
+    return;
     it(
         'Открываю страницу легкого входа amoCRM. Нажимаю на кнопку "Тестировать бесплатно". Нажимаю на кнпоку ' +
         '"Продолжить". В соответствии с данными, полученными от сервера ранее были выбраны три сотрудника. Чебоксы ' +
@@ -421,16 +440,5 @@ tests.addTest(function(args) {
         tester.employeesGrid.row().atIndex(7).expectNotToBeSelected();
         tester.employeesGrid.row().atIndex(8).expectToBeSelected();
         tester.employeesGrid.row().atIndex(9).expectNotToBeSelected();
-    });
-    it(
-        'Открываю страницу легкого входа Битрикс24. Произошла фатальная ошибка. Отображено сообщение об ошибке.',
-    function() {
-        tester.setFatalError();
-
-        EasyStart.getApplication().checkIfPartnerReady();
-        wait(10);
-
-        tester.fatalErrorMessage.expectNotToExist();
-        tester.button('Завершить установку').expectToBeVisible();
     });
 });

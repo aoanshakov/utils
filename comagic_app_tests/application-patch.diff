@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index d10aa013..51a28c8a 100644
+index c0871698..27b5d989 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -22,7 +22,7 @@ index d10aa013..51a28c8a 100644
  const publicDir = path.resolve(appDirectory, 'public');
  const buildDir = path.resolve(appDirectory, 'build');
  const dotenv = path.resolve(appDirectory, '.env');
-@@ -24,9 +27,20 @@ const isProductionMode = NODE_ENV !== 'development';
+@@ -24,9 +27,20 @@ const isProductionMode = false && NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
@@ -56,7 +56,7 @@ index d10aa013..51a28c8a 100644
          },
          {
              loader: 'css-loader',
-@@ -210,7 +225,7 @@ const plugins = () => {
+@@ -209,7 +224,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -65,7 +65,7 @@ index d10aa013..51a28c8a 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -252,6 +267,11 @@ const plugins = () => {
+@@ -251,6 +266,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -77,7 +77,7 @@ index d10aa013..51a28c8a 100644
      ];
  
      if (isProductionMode) {
-@@ -275,6 +295,17 @@ const plugins = () => {
+@@ -274,6 +294,17 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -95,7 +95,7 @@ index d10aa013..51a28c8a 100644
  module.exports = {
      entry: './src/index.tsx',
      target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
-@@ -296,6 +327,21 @@ module.exports = {
+@@ -295,6 +326,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -117,7 +117,7 @@ index d10aa013..51a28c8a 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -303,7 +349,7 @@ module.exports = {
+@@ -302,7 +348,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -126,7 +126,7 @@ index d10aa013..51a28c8a 100644
              },
              {
                  test: /\.css$/,
-@@ -314,6 +360,29 @@ module.exports = {
+@@ -313,6 +359,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -156,7 +156,7 @@ index d10aa013..51a28c8a 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -329,6 +398,7 @@ module.exports = {
+@@ -328,6 +397,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -164,7 +164,7 @@ index d10aa013..51a28c8a 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -344,17 +414,128 @@ module.exports = {
+@@ -343,17 +413,130 @@ module.exports = {
                      },
                  ],
              },
@@ -231,6 +231,8 @@ index d10aa013..51a28c8a 100644
 +            'callTracking/CalltrackingSubstitutionRules': `${miscDirectory}/Stub.js`,
 +            'callTracking/NumberPools': `${miscDirectory}/Stub.js`,
 +            'callTracking/Sites': `${miscDirectory}/Stub.js`,
++            'callTracking/SiteForm': `${miscDirectory}/Stub.js`,
++            'callTracking/SitesV3': `${miscDirectory}/Stub.js`,
 +            'callTracking/Root': `${miscDirectory}/Stub.js`,
 +            'analytics/CreateDashboardButton': `${miscDirectory}/Stub.js`,
 +            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
@@ -298,10 +300,10 @@ index d10aa013..51a28c8a 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 2f17a98e..f4bbc476 100644
+index 44d139d7..c5e1b911 100644
 --- a/package.json
 +++ b/package.json
-@@ -66,13 +66,17 @@
+@@ -66,14 +66,18 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -312,6 +314,7 @@ index 2f17a98e..f4bbc476 100644
      "@sentry/react": "^6.17.6",
      "@sentry/tracing": "^6.17.6",
 +    "antd": "3.26.7",
+     "ajv": "^7.0.3",
      "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
      "axios": "^0.24.0",
@@ -321,11 +324,11 @@ index 2f17a98e..f4bbc476 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -84,16 +88,21 @@
+@@ -85,16 +89,21 @@
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#int_2022_13.0",
+-    "magic-ui": "0.0.0-int0",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
@@ -346,14 +349,13 @@ index 2f17a98e..f4bbc476 100644
    },
    "optionalDependencies": {
 diff --git a/public/index.html b/public/index.html
-index a82eebad..59a999e3 100644
+index 92fc7e25..59a999e3 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -23,7 +23,29 @@
+@@ -23,6 +23,29 @@
      })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
      <!-- End Google Tag Manager -->
      <% } %>
--    <script>window.rootConfig = <%= rootConfig %>;</script>
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
 +    <script>
@@ -380,7 +382,7 @@ index a82eebad..59a999e3 100644
  </head>
  <body class="cm-body">
      <% if (htmlWebpackPlugin.options.env.production) { %>
-@@ -35,5 +57,6 @@
+@@ -34,5 +57,6 @@
      <% } %>
      <noscript>You need to enable JavaScript to run this app.</noscript>
      <div id="root"></div>
@@ -435,3 +437,29 @@ index a55142f7..32412406 100644
 +const history = true || isElectron() ? createMemoryHistory() : createBrowserHistory({ window });
  
  export default history;
+diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
+index 9ac4a730..3fd6e4e4 100644
+--- a/src/models/RootStore.ts
++++ b/src/models/RootStore.ts
+@@ -63,7 +63,7 @@ export const createRootStore = () => {
+         httpRpc,
+         httpRpcAuth,
+         i18n: intl,
+-        AUTH_KEY: process.env.REACT_APP_AUTH_COOKIE || '',
++        AUTH_KEY: process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_COOKIE',
+     });
+ 
+     if (process.env.NODE_ENV === 'development' || isGodMode()) {
+diff --git a/src/models/SoftphoneRootStore.ts b/src/models/SoftphoneRootStore.ts
+index b34d5395..3fde8dda 100644
+--- a/src/models/SoftphoneRootStore.ts
++++ b/src/models/SoftphoneRootStore.ts
+@@ -56,7 +56,7 @@ export const createRootStore = () => {
+         httpRpc,
+         httpRpcAuth,
+         i18n: intl,
+-        AUTH_KEY: process.env.REACT_APP_AUTH_COOKIE || '',
++        AUTH_KEY: process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_COOKIE',
+     });
+ 
+     if (process.env.NODE_ENV === 'development' || isGodMode()) {

@@ -1049,6 +1049,36 @@ define(() => function ({
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
     };
 
+    me.centrifugoAuthTokenRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('GET').
+                    expectToHavePath('$REACT_APP_CENTRIFUGO_AUTH_URL/token').
+                    expectQueryToContain({
+                        employee_id: '20816',
+                        prefix: '$REACT_APP_CENTRIFUGO_PREFIX'
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            token: '224of2j2o4fjwfo8j4lo8qjf'
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatPhoneUpdatingRequest = () => {
         const addResponseModifiers = me => me;
 
@@ -1544,6 +1574,25 @@ define(() => function ({
             }
         };
     };
+
+    me.centrifugoWebSocket = (() => {
+        const getWebSocket = index => webSockets.getSocket('$REACT_APP_CENTRIFUGO_BASE_URL', index);
+
+        return {
+            connect: () => getWebSocket(0).connect(),
+            expectSentMessageToContain: message => getWebSocket(0).expectSentMessageToContain(message),
+            receive: message => getWebSocket(0).receiveMessage(message)
+        };
+    })();
+
+    me.centrifugoConnectionMessage = () => ({
+        expectToBeSent: () => me.centrifugoWebSocket.expectSentMessageToContain({
+            connect: {
+                token: "224of2j2o4fjwfo8j4lo8qjf",
+                name: "js"
+            }
+        })
+    });
 
     me.chatsWebSocket = (() => {
         const getWebSocket = index => webSockets.getSocket('$REACT_APP_WS_URL', index);
