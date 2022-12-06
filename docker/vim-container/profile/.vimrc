@@ -212,6 +212,7 @@ function! SetUpEslint()
             let isReactApp = isReactApp || stridx(path, '/comagic_app/') != -1
             let isReactApp = isReactApp || stridx(path, '/softphone/') != -1
             let isReactApp = isReactApp || stridx(path, '/core/') != -1
+            let isReactApp = isReactApp || stridx(path, '/host/') != -1
             let isReactApp = isReactApp || stridx(path, '/iframe_autoplay/') != -1
         endif
 

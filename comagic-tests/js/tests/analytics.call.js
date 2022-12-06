@@ -1,4 +1,9 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils) {
+tests.addTest(function({
+    requestsManager,
+    testersFactory,
+    wait,
+    utils
+}) {
     describe((
         'Открываю разел "Отчеты/Обзор". Нажимаю на ссылку в колонке "Сайт" строки таблицы. Открылся раздел "Отчеты/' +
         'Список обращений/Звонки".'
@@ -10,7 +15,11 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 tester.destroy();
             }
 
-            tester = new AnalyticsCall(requestsManager, testersFactory, utils);
+            tester = new AnalyticsCall({
+                requestsManager,
+                testersFactory,
+                utils
+            });
 
             tester.requestGoals().send();
 
@@ -34,7 +43,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             tester.tagsRequest().receiveResponse();
         });
 
-        xdescribe('Нажимаю на кнопку "Добавить фильтр".', function() {
+        describe('Нажимаю на кнопку "Добавить фильтр".', function() {
             beforeEach(function() {
                 tester.addFilterButton.click();
                 wait();
@@ -307,7 +316,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 });
             });
         });
-        xit(
+        it(
             'Нажимаю на кнопку сохранения фильтра. Ввожу название фильтра. Нажимаю на кнпоку "Сохранить". Отправлен ' +
             'запрос сохранения фильтра.',
         function() {
@@ -328,7 +337,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             tester.eventTrackingRequest().setGridRendered().receiveResponse();
             tester.tagsRequest().receiveResponse();
         });
-        xit(
+        it(
             'Нажимаю на кнопку удаления условий. Условия не отображены. Отправлен запрос данных для таблицы без ' +
             'фильтрации.',
         function() {
@@ -347,7 +356,6 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
             tester.exportBtn.click();
             tester.menuItem('CSV-файл').click();
         });
-        return;
         it('Отображен фильтр перехода из раздела обзора. Кнопка "Применить" заблокирована.', function() {
             tester.anchor('Ивановский Иваний Иваниевич').
                 expectHrefToHavePath('https://comaigc.amocrm.ru/contacts/detail/42574735');

@@ -2,7 +2,11 @@ tests.requireClass('Comagic.analytics.call.store.CallParameters');
 tests.requireClass('Comagic.base.store.Goals');
 tests.requireClass('Comagic.analytics.call.controller.Page');
 
-function AnalyticsCall(requestsManager, testersFactory, utils) {
+function AnalyticsCall({
+    requestsManager,
+    testersFactory,
+    utils
+}) {
     var controller = Comagic.getApplication().getController('Comagic.analytics.call.controller.Page'),
         params = {};
 
