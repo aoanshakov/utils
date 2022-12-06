@@ -407,32 +407,43 @@ tests.addTest(options => {
                                                     expectToBeSent();
                                             });
 
-                                            it(
-                                                'Получен другой контакт с таким же номером. Отображено сообщение об ' +
-                                                'ошибке.',
-                                            function() {
-                                                contactsRequest.oneItem().receiveResponse();
+                                            describe('Получен другой контакт с таким же номером.', function() {
+                                                beforeEach(function() {
+                                                    contactsRequest.oneItem().receiveResponse();
 
-                                                tester.contactBar.
-                                                    section('Телефоны').
-                                                    expectTextContentToHaveSubstring(
-                                                        'Данный номер телефона уже используется'
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        expectTextContentToHaveSubstring(
+                                                            'Данный номер телефона уже используется'
+                                                        );
+                                                });
+
+                                                it(
+                                                    'Нажимаю на кнопку "Отменить". Отображено предыдущее значение.',
+                                                function() {
+                                                    tester.button('Отменить').click();
+
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        content.
+                                                        expectToHaveTextContent('79162729533');
+                                                });
+                                                it('Отображено сообщение об ошибке.', function() {
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        select.
+                                                        first.
+                                                        click();
+
+                                                    tester.select.popup.expectToHaveTextContent(
+                                                        'Бележкова Грета Ервиновна (текущий) ' +
+                                                        '79162729534 ' +
+
+                                                        'Паскалева Бисера Илковна ' +
+                                                        '79162729533 ' +
+                                                        '79162722748'
                                                     );
-
-                                                tester.contactBar.
-                                                    section('Телефоны').
-                                                    select.
-                                                    first.
-                                                    click();
-
-                                                tester.select.popup.expectToHaveTextContent(
-                                                    'Бележкова Грета Ервиновна (текущий) ' +
-                                                    '79162729534 ' +
-
-                                                    'Паскалева Бисера Илковна ' +
-                                                    '79162729533 ' +
-                                                    '79162722748'
-                                                );
+                                                });
                                             });
                                             it(
                                                 'Получен текущий контакт с таким же номером. Отправлен запрос ' +
@@ -518,7 +529,6 @@ tests.addTest(options => {
                                                 content.
                                                 expectToHaveTextContent('Божилова Йовка');
                                         });
-                                        /*
                                         it(
                                             'Открываю поле редактирования. Нажимаю на кнопку "Отменить". Возвращено ' +
                                             'оригинальное Значение поля.',
@@ -551,7 +561,6 @@ tests.addTest(options => {
                                                 content.
                                                 expectToHaveTextContent('79162729534');
                                         });
-                                        */
                                         it('Отображены данные другого контакта.', function() {
                                             tester.contactBar.expectTextContentToHaveSubstring(
                                                 'ФИО ' +
@@ -1380,8 +1389,17 @@ tests.addTest(options => {
                                                                     );
                                                             });
                                                         });
-                                                        it('Нажимаю на кнопку "Отменить".', function() {
+                                                        it(
+                                                            'Нажимаю на кнопку "Отменить". Дублирующийся телефон.',
+                                                        function() {
                                                             tester.button('Отменить').click();
+
+                                                            tester.contactUpdatingRequest().
+                                                                completeData().
+                                                                threePhoneNumbers().
+                                                                receiveResponse();
+
+                                                            tester.contactRequest().receiveResponse();
                                                         });
                                                         it('Отображено сообщение об ошибке.', function() {
                                                             tester.contactBar.
@@ -1897,78 +1915,87 @@ tests.addTest(options => {
                                 tester.usersRequest().forContacts().receiveResponse();
                             });
 
-                            it('Ввожу фамилию. Добавляю телефон. Найден дубль.', function() {
-                                tester.input.
-                                    withPlaceholder('Фамилия (Обязательное поле)').
-                                    fill('Неделчева');
+                            describe('Ввожу фамилию. Добавляю телефон.', function() {
+                                let contactsRequest;
 
-                                tester.contactBar.
-                                    section('Телефоны').
-                                    plusButton.
-                                    click();
+                                beforeEach(function() {
+                                    tester.input.
+                                        withPlaceholder('Фамилия (Обязательное поле)').
+                                        fill('Неделчева');
 
-                                tester.contactBar.
-                                    section('Телефоны').
-                                    input.
-                                    fill('74950230625');
-                                
-                                tester.contactBar.
-                                    section('Телефоны').
-                                    button('Сохранить').
-                                    click();
+                                    tester.contactBar.
+                                        section('Телефоны').
+                                        plusButton.
+                                        click();
 
-                                tester.contactsRequest().
-                                    fourthPhoneSearching().
-                                    oneItem().
-                                    receiveResponse();
+                                    tester.contactBar.
+                                        section('Телефоны').
+                                        input.
+                                        fill('74950230625');
+                                    
+                                    tester.contactBar.
+                                        section('Телефоны').
+                                        button('Сохранить').
+                                        click();
 
-                                tester.contactBar.
-                                    section('Телефоны').
-                                    select.
-                                    first.
-                                    click();
+                                    contactsRequest = tester.contactsRequest().
+                                        fourthPhoneSearching().
+                                        expectToBeSent();
+                                });
 
-                                tester.select.option(
-                                    'Неделчева (текущий) ' +
-                                    '74950230625'
-                                ).click();
+                                it('Найден дубль.', function() {
+                                    contactsRequest.
+                                        oneItem().
+                                        receiveResponse();
 
-                                tester.contactBar.
-                                    section('Телефоны').
-                                    select.
-                                    atIndex(1).
-                                    click();
+                                    tester.contactBar.
+                                        section('Телефоны').
+                                        select.
+                                        first.
+                                        click();
 
-                                tester.select.option(
-                                    'Паскалева Бисера Илковна ' +
-                                    '79162729533 ' +
-                                    '79162722748'
-                                ).click();
+                                    tester.select.option(
+                                        'Неделчева (текущий) ' +
+                                        '74950230625'
+                                    ).click();
 
-                                tester.button('Объединить').click();
+                                    tester.contactBar.
+                                        section('Телефоны').
+                                        select.
+                                        atIndex(1).
+                                        click();
 
-                                tester.contactsMergingRequest().
-                                    newContact().
-                                    receiveResponse();
-
-                                tester.contactBar.
-                                    section('Телефоны').
-                                    collapsednessToggleButton.
-                                    click();
-
-                                tester.input.
-                                    withPlaceholder('Фамилия (Обязательное поле)').
-                                    expectToHaveValue('Неделчева');
-
-                                tester.contactBar.
-                                    section('Телефоны').
-                                    expectToHaveTextContent(
-                                        'Телефоны (3) ' +
-
-                                        '74950230625 ' +
+                                    tester.select.option(
+                                        'Паскалева Бисера Илковна ' +
                                         '79162729533 ' +
                                         '79162722748'
-                                    );
+                                    ).click();
+
+                                    tester.button('Объединить').click();
+
+                                    tester.contactsMergingRequest().
+                                        newContact().
+                                        receiveResponse();
+
+                                    tester.contactBar.
+                                        section('Телефоны').
+                                        collapsednessToggleButton.
+                                        click();
+
+                                    tester.input.
+                                        withPlaceholder('Фамилия (Обязательное поле)').
+                                        expectToHaveValue('Неделчева');
+
+                                    tester.contactBar.
+                                        section('Телефоны').
+                                        expectToHaveTextContent(
+                                            'Телефоны (3) ' +
+
+                                            '74950230625 ' +
+                                            '79162729533 ' +
+                                            '79162722748'
+                                        );
+                                });
                             });
                             it('Нажимаю на кнопку "Отменить". Панель контакта скрыта. ', function() {
                                 tester.button('Отменить').click();

@@ -8872,7 +8872,7 @@ define(() => function ({
                     expectToHaveMethod('GET').
                     expectQueryToContain({
                         chat_channel_id: '216395',
-                        chat_statuses: ['new', 'active', undefined]
+                        chat_statuses: ['new', 'active', 'closed', undefined]
                     });
 
                 return addResponseModifiers({
@@ -10435,19 +10435,19 @@ define(() => function ({
 
             channelSearching() {
                 params.search = '79283810987';
-                params.merge_entity = 'channel';
+                params.merge_entity = 'chat_channel';
                 return this;
             },
 
             anotherChannelSearching() {
                 params.search = '2895298572424359475';
-                params.merge_entity = 'channel';
+                params.merge_entity = 'chat_channel';
                 return this;
             },
 
             thirdChannelSearching() {
                 params.search = '79218307632';
-                params.merge_entity = 'channel';
+                params.merge_entity = 'chat_channel';
                 return this;
             },
 
