@@ -1,11 +1,11 @@
 diff --git a/package.json b/package.json
-index 420225f..af926c6 100644
+index 5747521..0bb43bc 100644
 --- a/package.json
 +++ b/package.json
 @@ -1,9 +1,9 @@
  {
    "name": "@comagic/core",
-   "version": "1.2.1",
+   "version": "1.2.8",
 -  "main": "lib/index.js",
 +  "main": "src/index.ts",
    "files": [
@@ -14,20 +14,19 @@ index 420225f..af926c6 100644
    ],
    "engines": {
      "node": ">=12.14.0",
-@@ -18,11 +18,9 @@
-   "peerDependencies": {
+@@ -19,11 +19,9 @@
      "axios": ">= 0.19.0",
      "mobx": ">= 6.0.4",
--    "mobx-state-tree": ">= 5.1.0",
--    "react": ">= 18.2.0"
-+    "mobx-state-tree": ">= 5.1.0"
+     "mobx-state-tree": ">= 5.1.0",
+-    "react": ">= 18.2.0",
+     "history": ">= 5.3.0"
    },
    "devDependencies": {
 -    "@types/react": "^18.0.17",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
      "axios": "^0.24.0",
-@@ -38,9 +36,7 @@
+@@ -40,9 +38,7 @@
      "mobx": "^6.6.1",
      "mobx-state-tree": "^5.1.6",
      "prettier": "^2.7.1",
