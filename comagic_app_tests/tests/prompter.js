@@ -23,13 +23,13 @@ tests.addTest(options => {
 
     describe('Открываю новый личный кабинет. Фичафлаг софтфона включен.', function() {
         let tester,
+            authCheckRequest,
             ipcPrompterCallPreparationMessage;
 
         beforeEach(function() {
             setNow('2019-12-19T12:10:06');
 
             tester = new Tester(options);
-            tester.notificationChannel().applyLeader().expectToBeSent();
 
             tester.input.withFieldLabel('Логин').fill('botusharova');
             tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -39,12 +39,15 @@ tests.addTest(options => {
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
 
+            tester.notificationChannel().applyLeader().expectToBeSent();
+
             const requests = ajax.inAnyOrder();
 
             const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+            authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
@@ -52,8 +55,10 @@ tests.addTest(options => {
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
             secondAccountRequest.receiveResponse();
+        });
 
-            tester.configRequest().softphone().receiveResponse();
+        afterEach(function() {
+            tester.eventBus.nextEvent().expectNotToExist();
         });
 
         describe(
@@ -69,7 +74,7 @@ tests.addTest(options => {
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
-                tester.authCheckRequest().receiveResponse();
+                authCheckRequest.receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
@@ -133,10 +138,8 @@ tests.addTest(options => {
                     available().
                     userDataFetched().
                     expectToBeSent();
-            });
 
-            afterEach(function() {
-                tester.eventBus.nextEvent().expectNotToExist();
+                tester.settingsFetchedMessage().expectToBeSent();
             });
 
             describe(
@@ -666,6 +669,7 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+                        tester.settingsFetchedMessage().expectToBeSent();
 
                         let incomingCall = tester.incomingCall().receive();
 
@@ -803,6 +807,8 @@ tests.addTest(options => {
                         available().
                         userDataFetched().
                         expectToBeSent();
+
+                    tester.settingsFetchedMessage().expectToBeSent();
 
                     let incomingCall = tester.incomingCall().receive();
 
@@ -998,7 +1004,7 @@ tests.addTest(options => {
                 tester.masterInfoMessage().isNotMaster().receive();
                 tester.masterNotification().tabOpened().expectToBeSent();
 
-                tester.authCheckRequest().receiveResponse();
+                authCheckRequest.receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
@@ -1032,6 +1038,7 @@ tests.addTest(options => {
                     available().
                     receive();
 
+                tester.settingsFetchedMessage().expectToBeSent();
                 tester.button('Софтфон').click();
 
                 tester.masterNotification().
@@ -1131,6 +1138,7 @@ tests.addTest(options => {
                             receive();
 
                         tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+                        tester.settingsFetchedMessage().expectToBeSent();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -1251,6 +1259,8 @@ tests.addTest(options => {
                         available().
                         userDataFetched().
                         receive();
+
+                    tester.settingsFetchedMessage().expectToBeSent();
 
                     tester.slavesNotification().
                         twoChannels().

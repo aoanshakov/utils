@@ -9737,7 +9737,7 @@ define(() => function ({
                     type: 'telegram',
                     ext_id: '79283810928',
                     name: 'Помакова Бисерка Драгановна',
-                    chat_channel_id: 101
+                    chat_channel_id: null
                 }];
 
                 return this;
@@ -10817,6 +10817,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.en = () => {
+                response.result.data.lang = 'en';
+                return me;
+            };
+
             me.webAccountLoginUnavailable = () => {
                 (response.result.data.permissions.find(
                     ({ unit_id }) => unit_id == 'web_account_login'
@@ -10979,6 +10984,7 @@ define(() => function ({
                         Promise.runAll(false, true);
                         spendTime(0)
                         spendTime(0)
+                        spendTime(0);
                         spendTime(0);
                         spendTime(0);
                     }
@@ -11173,6 +11179,12 @@ define(() => function ({
         };
     };
 
+    me.settingsFetchedMessage = () => ({
+        expectToBeSent: () => me.eventBus.
+            nextEvent().
+            expectEventNameToEqual('settings_fetched')
+    });
+
     me.ipcPrompterCallEndMessage = () => ({
         receive: () => me.eventBus.broadcast('end_prompter_call')
     });
@@ -11225,7 +11237,7 @@ define(() => function ({
         const tester = testersFactory.createDomElementTester('.cmg-hold-button');
 
         const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0));
+        tester.click = () => (click(), spendTime(0), spendTime(0));
 
         return tester;
     })();
@@ -11679,7 +11691,7 @@ define(() => function ({
         const tester = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
 
         const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0));
+        tester.click = () => (click(), spendTime(0), spendTime(0));
 
         return tester;
     })();
@@ -11767,7 +11779,7 @@ define(() => function ({
         const tester = createRootTester('#cmg-another-sip-line-incoming-call-notification');
 
         const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0));
+        tester.click = () => (click(), spendTime(0), spendTime(0));
 
         return tester;
     })();

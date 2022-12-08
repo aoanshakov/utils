@@ -55,7 +55,7 @@ define(function () {
             });
 
             const click = tester.click.bind(tester);
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             return tester;
         })();
@@ -66,7 +66,7 @@ define(function () {
             });
 
             const click = tester.click.bind(tester);
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             return tester;
         })();
@@ -2739,6 +2739,7 @@ define(function () {
 
                             checkFromAndToHeaders(sip.recentRequest().expectToHaveMethod('ACK'));
                             Promise.runAll(false, true);
+                            spendTime(0);
                         },
                         setAccepted: function () {
                             request.response().
@@ -2748,6 +2749,7 @@ define(function () {
                                 send();
 
                             Promise.runAll();
+                            spendTime(0);
 
                             checkFromAndToHeaders(sip.recentRequest().expectToHaveMethod('ACK'));
 
@@ -2888,6 +2890,7 @@ define(function () {
                             sip.recentResponse().expectOk();
                             sip.recentResponse().expectRequestTerminated();
                             Promise.runAll(false, true);
+                            spendTime(0);
                         },
                         finish: function () {
                             response.request().
@@ -2897,6 +2900,7 @@ define(function () {
 
                             sip.recentResponse().expectOk();
                             Promise.runAll(false, true);
+                            spendTime(0);
                         }
                     };
                 }
@@ -3750,6 +3754,8 @@ define(function () {
                         }
                     });
 
+                    spendTime(0);
+
                     return {
                         expectByeRequestToBeSent: function () {
                             me.requestCallFinish();
@@ -3890,6 +3896,7 @@ define(function () {
             });
 
             Promise.runAll(false, true);
+            spendTime(0);
         }
 
         this.notificationOfUserStateChanging = function () {

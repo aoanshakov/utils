@@ -45,7 +45,7 @@ index db2565a..95e8d85 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 082964c..940503f 100644
+index 082964c..992a24c 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -45,35 +45,8 @@ import {
@@ -199,18 +199,19 @@ index 082964c..940503f 100644
  
                  return { authorize };
              })();
-@@ -712,6 +660,10 @@ export const RootStore = types
+@@ -712,6 +660,11 @@ export const RootStore = types
  
          const setAccount = account => (self.account = (account || {}));
  
 +        const setLocale = (locale: string): void => {
++            console.log('SET LOCALE', locale);
 +            self.locale = locale;
 +        };
 +
          return {
              afterCreate,
              resetStore,
-@@ -720,11 +672,13 @@ export const RootStore = types
+@@ -720,11 +673,13 @@ export const RootStore = types
              request,
              setNotLarge,
              setIsLarge,

@@ -19,8 +19,6 @@ tests.addTest(options => {
         setDocumentVisible
     } = options;
 
-    const getPackage = Tester.createPackagesGetter(options);
-
     describe('Открываю лк. Ни лидген, ни РМО, ни аналитика не доступны.', function() {
         let tester,
             reportGroupsRequest,
@@ -43,18 +41,14 @@ tests.addTest(options => {
             tester.button('Войти').click();
 
             tester.loginRequest().receiveResponse();
-            accountRequest = tester.accountRequest().expectToBeSent();
-
-            tester.masterInfoMessage().receive();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-
-            accountRequest.receiveResponse();
+            tester.accountRequest().receiveResponse();
 
             const requests = ajax.inAnyOrder();
 
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
                 secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
@@ -64,18 +58,17 @@ tests.addTest(options => {
             secondAccountRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
-            tester.configRequest().softphone().receiveResponse();
-
+            tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
 
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            spendTime(1000);
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            spendTime(1000);
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-            tester.authCheckRequest().receiveResponse();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+
+            authCheckRequest.receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();
 
             settingsRequest = tester.settingsRequest().expectToBeSent();

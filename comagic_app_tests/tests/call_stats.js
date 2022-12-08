@@ -44,9 +44,6 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             accountRequest = tester.accountRequest().expectToBeSent();
-
-            tester.masterInfoMessage().receive();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         });
 
         describe('Пользователь является сотрудником.', function() {
@@ -58,6 +55,7 @@ tests.addTest(options => {
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
                     secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
@@ -67,18 +65,17 @@ tests.addTest(options => {
                 secondAccountRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
-                tester.configRequest().softphone().receiveResponse();
-
+                tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
 
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-                tester.authCheckRequest().receiveResponse();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                authCheckRequest.receiveResponse();
                 statusesRequest = tester.statusesRequest().expectToBeSent();
 
                 settingsRequest = tester.settingsRequest().expectToBeSent();
@@ -177,8 +174,6 @@ tests.addTest(options => {
 
                     tester.loginRequest().anotherAuthorizationToken().receiveResponse();
                     tester.accountRequest().anotherAuthorizationToken().receiveResponse();
-
-                    tester.configRequest().softphone().receiveResponse();
 
                     tester.masterInfoMessage().receive();
                     tester.slavesNotification().expectToBeSent();
@@ -384,6 +379,7 @@ tests.addTest(options => {
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
                 secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
@@ -393,18 +389,17 @@ tests.addTest(options => {
             secondAccountRequest.manager().receiveResponse();
             reportGroupsRequest.receiveResponse();
 
-            tester.configRequest().softphone().receiveResponse();
-
+            tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
 
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            spendTime(1000);
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            spendTime(1000);
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-            tester.authCheckRequest().receiveResponse();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+
+            authCheckRequest.receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();
 
             settingsRequest = tester.settingsRequest().expectToBeSent();
@@ -467,6 +462,7 @@ tests.addTest(options => {
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
                 secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
@@ -476,18 +472,17 @@ tests.addTest(options => {
             secondAccountRequest.callStatsFeatureFlagDisabled().receiveResponse();
             reportGroupsRequest.receiveResponse();
 
-            tester.configRequest().softphone().receiveResponse();
-
+            tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
 
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            spendTime(1000);
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            spendTime(1000);
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-            tester.authCheckRequest().receiveResponse();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+
+            authCheckRequest.receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();
 
             settingsRequest = tester.settingsRequest().expectToBeSent();
