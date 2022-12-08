@@ -83,7 +83,7 @@ tests.addTest(options => {
                         authCheckRequest = tester.authCheckRequest().expectToBeSent();
                     });
 
-                    xdescribe('Софтфон авторизован.', function() {
+                    describe('Софтфон авторизован.', function() {
                         beforeEach(function() {
                             authCheckRequest.receiveResponse();
                             tester.statusesRequest().receiveResponse();
@@ -1164,7 +1164,6 @@ tests.addTest(options => {
                         tester.button('Войти').expectToBeVisible();
                     });
                 });
-                return;
                 it('Большой софтфон недоступен. Кнопки размеров не отображены.', function() {
                     accountRequest.largeSoftphoneFeatureFlagDisabled().receiveResponse();
                     secondAccountRequest.largeSoftphoneFeatureFlagDisabled().receiveResponse();
@@ -1212,7 +1211,6 @@ tests.addTest(options => {
                     tester.button('Войти').expectToBeVisible();
                 });
             });
-            return;
             it(
                 'Используется английский язык. Открываю список номеров. Плейсхолдер поля поиска локализован.',
             function() {
@@ -1260,7 +1258,6 @@ tests.addTest(options => {
                 tester.input.withPlaceholder('Find').expectToBeVisible();
             });
         });
-        return;
         describe(
             'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
         function() {

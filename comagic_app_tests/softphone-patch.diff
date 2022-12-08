@@ -45,10 +45,181 @@ index db2565a..95e8d85 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 082964c..45507d9 100644
+index 082964c..940503f 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -727,4 +727,5 @@ export const RootStore = types
+@@ -45,35 +45,8 @@ import {
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+ 
+-export type ConfigProps = {
+-    REACT_APP_LOCALE: string;
+-};
+-
+ export const RECENT_REFRESH_DELAY = 1500;
+ 
+-export const ConfigStore = types
+-    .model('ConfigStore', {
+-        REACT_APP_LOCALE: types.optional(types.string, 'en'),
+-        REACT_APP_SOFTPHONE_BACKEND_HOST: types.optional(types.string, ''),
+-        REACT_APP_AUTH_COOKIE: types.optional(types.string, ''),
+-    })
+-    .actions(self => {
+-        const rootStore = getRoot<typeof RootStore>(self)
+-
+-        const setConfig = (config: ConfigProps) => {
+-            const { REACT_APP_LOCALE } = config;
+-            moment.locale(REACT_APP_LOCALE);
+-
+-            rootStore.callHistoryStore.setDefaultDateStart();
+-
+-            self.REACT_APP_LOCALE = REACT_APP_LOCALE;
+-            self.REACT_APP_SOFTPHONE_BACKEND_HOST = config.REACT_APP_SOFTPHONE_BACKEND_HOST;
+-            self.REACT_APP_AUTH_COOKIE = config.REACT_APP_AUTH_COOKIE;
+-        };
+-
+-        return { setConfig };
+-    });
+-
+ const returnTrue = () => true,
+     shouldDisplayCallNotification = (phone, state) => !checkPendingCallToPrompt(state, phone),
+     body = createObservable(document.body);
+@@ -100,10 +73,10 @@ export const RootStore = types
+             }),
+             {}
+         ),
++        locale: types.optional(types.string, 'en'),
+         isSoftphoneAvailable: types.optional(types.boolean, false),
+         isLarge: types.optional(types.boolean, false),
+         authStore: types.optional(AuthStore, {}),
+-        configStore: types.optional(ConfigStore, {}),
+         employeesStore: types.optional(EmployeesStore, {}),
+         websocketStore: types.optional(WebsocketStore, {}),
+         feedbackStore: types.optional(FeedbackStore, {}),
+@@ -112,7 +85,7 @@ export const RootStore = types
+         callStatsStore: types.optional(CallStatsStore, {}),
+     })
+     .views(self => ({
+-        i18n: key => intlMessages(self.configStore.REACT_APP_LOCALE)[key],
++        i18n: key => intlMessages(self.locale)[key],
+         hasFeature: key => self.account.feature_flags.includes(key)
+     }))
+     .actions(self => {
+@@ -136,8 +109,7 @@ export const RootStore = types
+         };
+ 
+         const afterCreate = () => {
+-            const SET_SOFTPHONE_HOST = 'SET_SOFTPHONE_HOST',
+-                requests = [],
++            const requests = [],
+                 removeAllRequests = () => requests.splice(0, requests.length),
+                 i18n = createI18N(),
+                 isSingleApp = window.rootConfig?.appName == 'softphone',
+@@ -219,18 +191,10 @@ export const RootStore = types
+                     prompter,
+                     requestUrls: (
+                         state = {
+-                            httpServerUrl: window.location.host,
++                            httpServerUrl: process.env.REACT_APP_SOFTPHONE_BACKEND_HOST ||
++                                '$REACT_APP_SOFTPHONE_BACKEND_HOST',
+                         },
+-                        action
+-                    ) => {
+-                        if (action.type == SET_SOFTPHONE_HOST) {
+-                            return {
+-                                httpServerUrl: action.value,
+-                            };
+-                        }
+-
+-                        return state;
+-                    },
++                    ) => state,
+                     mayHideSoftphone: () => returnTrue,
+                     shouldDisplayCallNotification: () => shouldDisplayCallNotification,
+                     getPhoneNumber: () => () => '',
+@@ -492,14 +456,13 @@ export const RootStore = types
+             const { authorize } = (() => {
+                 const { updateState, authorize } = (() => {
+                     const state = {
+-                        configFetched: false,
++                        mounted: false,
+                         accessGranted: false,
+                         token: '',
+-                        softphoneHost: '',
+                     };
+ 
+                     const isSoftphoneAvailable = () =>
+-                        state.accessGranted && state.configFetched && state.token && state.softphoneHost;
++                        state.accessGranted && state.mounted && state.token;
+ 
+                     const authorize = () =>
+                         isSoftphoneAvailable() &&
+@@ -588,35 +551,20 @@ export const RootStore = types
+ 
+                 window.addEventListener('tokenChange', () => updateState(getTokenParams()));
+ 
+-                window.addEventListener('tokenRemove', () =>
+-                    updateState({
+-                        token: '',
+-                        configFetched: false,
+-                        accessGranted: false,
+-                    })
+-                );
++                window.addEventListener('tokenRemove', () => updateState({
++                    token: '',
++                    mounted: false,
++                    accessGranted: false,
++                }));
+ 
+                 self.showMessage = message => self.reduxStore.dispatch(showMessage(message));
+                 self.setStartApp = isStartApp => self.reduxStore.dispatch(setStartApp(isStartApp));
+                 self.setStartMinimize = isStartMinimize => self.reduxStore.dispatch(setStartMinimize(isStartMinimize));
+ 
+-                self.setConfigFetched = () =>
+-                    updateState({
+-                        ...getTokenParams(),
+-                        configFetched: true,
+-                    });
+-
+-                self.setConfig = ({ REACT_APP_SOFTPHONE_BACKEND_HOST: softphoneHost }) => {
+-                    self.reduxStore.dispatch({
+-                        type: SET_SOFTPHONE_HOST,
+-                        value: softphoneHost,
+-                    });
+-
+-                    updateState({
+-                        ...getTokenParams(),
+-                        softphoneHost,
+-                    });
+-                };
++                self.setMounted = () => updateState({
++                    ...getTokenParams(),
++                    mounted: true,
++                });
+ 
+                 return { authorize };
+             })();
+@@ -712,6 +660,10 @@ export const RootStore = types
+ 
+         const setAccount = account => (self.account = (account || {}));
+ 
++        const setLocale = (locale: string): void => {
++            self.locale = locale;
++        };
++
+         return {
+             afterCreate,
+             resetStore,
+@@ -720,11 +672,13 @@ export const RootStore = types
+             request,
+             setNotLarge,
+             setIsLarge,
+-            maybeHidePhoneNumber: maybeHidePhoneNumberMethod 
++            maybeHidePhoneNumber: maybeHidePhoneNumberMethod,
++            setLocale,
+         };
+     });
+ 
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

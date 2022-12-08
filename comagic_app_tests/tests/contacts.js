@@ -53,31 +53,30 @@ tests.addTest(options => {
                 const requests = ajax.inAnyOrder();
 
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                const secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                    reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
-                secondAccountRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
-
-                tester.configRequest().softphone().receiveResponse();
+                authCheckRequest.receiveResponse();
+                secondAccountRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
                 tester.notificationChannel().applyLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
-                tester.authCheckRequest().receiveResponse();
                 statusesRequest = tester.statusesRequest().expectToBeSent();
-
                 settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
@@ -454,6 +453,7 @@ tests.addTest(options => {
                                                 tester.contactUpdatingRequest().
                                                     completeData().
                                                     anotherPhoneNumber().
+                                                    thirdNewChannel().
                                                     receiveResponse();
 
                                                 tester.contactRequest().
@@ -468,6 +468,7 @@ tests.addTest(options => {
                                                 tester.contactUpdatingRequest().
                                                     completeData().
                                                     anotherPhoneNumber().
+                                                    thirdNewChannel().
                                                     receiveResponse();
 
                                                 tester.contactRequest().
@@ -880,6 +881,7 @@ tests.addTest(options => {
                                         tester.contactUpdatingRequest().
                                             completeData().
                                             twoPhoneNumbers().
+                                            thirdNewChannel().
                                             receiveResponse();
 
                                         tester.contactRequest().
@@ -1198,6 +1200,26 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
+                                describe('Получено системное сообщение Comagic.', function() {
+                                    beforeEach(function() {
+                                        contactCommunicationsRequest.comagicSystemMessage().receiveResponse();
+                                    });
+
+                                    it('Подсказка корректно отображена.', function() {
+                                        tester.chatHistory.message.atTime('12:11').inner.putMouseOver();
+
+                                        tester.tooltip.expectToHaveTextContent(
+                                            'Бележкова Грета Ервиновна (Клиент) ' +
+                                            '79218307632 (Чат) ' +
+                                            'www.site.ru'
+                                        );
+                                    });
+                                    it('Сообщение корректно отображено.', function() {
+                                        tester.chatHistory.message.atTime('12:11').expectToHaveTextContent(
+                                            '12:11 Чат принят оператором Карадимова Веска Анастасовна (79283810928)'
+                                        );
+                                    });
+                                });
                                 it('Получено сообщение с аудио-вложением.', function() {
                                     contactCommunicationsRequest.audioAttachment().receiveResponse();
 
@@ -1209,13 +1231,6 @@ tests.addTest(options => {
                                     tester.chatHistory.message.atTime('12:14').downloadedFile.
                                         expectToHaveName('call.mp3').
                                         expectToHaveContent('8gj23o2u4g2j829sk');
-                                });
-                                it('Получено системное сообщение Comagic. Сообщение корректно отображено.', function() {
-                                    contactCommunicationsRequest.comagicSystemMessage().receiveResponse();
-
-                                    tester.chatHistory.message.atTime('12:11').expectToHaveTextContent(
-                                        '12:11 Чат принят оператором Карадимова Веска Анастасовна (79283810928)'
-                                    );
                                 });
                                 it('Получена заявка от контакта. Отображено имя.', function() {
                                     contactCommunicationsRequest.offlineMessageFromContact().receiveResponse();
@@ -1422,6 +1437,7 @@ tests.addTest(options => {
                                                         tester.contactUpdatingRequest().
                                                             completeData().
                                                             fourPhoneNumbers().
+                                                            fourthNewChannel().
                                                             receiveResponse();
 
                                                         tester.contactRequest().
@@ -1543,6 +1559,7 @@ tests.addTest(options => {
                                                 completeData().
                                                 threePhoneNumbers().
                                                 anotherPhoneNumber().
+                                                thirdNewChannel().
                                                 receiveResponse();
                                             
                                             tester.contactRequest().
@@ -1659,6 +1676,7 @@ tests.addTest(options => {
                                                     tester.contactUpdatingRequest().
                                                         completeData().
                                                         threePhoneNumbers().
+                                                        anotherNewChannel().
                                                         receiveResponse();
 
                                                     tester.contactRequest().
@@ -1717,6 +1735,64 @@ tests.addTest(options => {
                                             receiveResponse();
                                     });
 
+                                    describe(
+                                        'Изменяю имя телеграм-канала имя которого непустое. Нажимаю на кнопку ' +
+                                        '"Сохранить". Отправлено имя телеграм-канала.',
+                                    function() {
+                                        beforeEach(function() {
+                                            tester.contactBar.
+                                                section('Каналы связи').
+                                                option('@kotik70600').
+                                                putMouseOver();
+
+                                            tester.contactBar.
+                                                section('Каналы связи').
+                                                option('@kotik70600').
+                                                toolsIcon.
+                                                click();
+
+                                            tester.select.
+                                                option('Редактировать').
+                                                click();
+
+                                            tester.contactBar.
+                                                section('Каналы связи').
+                                                input.
+                                                input('1');
+                                        });
+
+                                        it('Нажимаю на кнопку "Отменить". Отображено прежнее значение.', function() {
+                                            tester.button('Отменить').click();
+
+                                            tester.contactBar.
+                                                section('Каналы связи').
+                                                option('@kotik70600').
+                                                expectToBeVisible();
+                                        });
+                                        it(
+                                            'Нажимаю на кнопку "Сохранить". Отправлено имя телеграм-канала.',
+                                        function() {
+                                            tester.button('Сохранить').click();
+
+                                            tester.contactsRequest().
+                                                anotherChannelSearching().
+                                                noData().
+                                                receiveResponse();
+
+                                            tester.contactUpdatingRequest().
+                                                completeData().
+                                                existingTelegramChannel().
+                                                existingChannel().
+                                                anotherExistingTelegramChannel().
+                                                receiveResponse();
+
+                                            tester.contactRequest().
+                                                addTelegram().
+                                                addWhatsApp().
+                                                addSecondTelegram().
+                                                receiveResponse();
+                                        });
+                                    });
                                     it('Раскрываю список WhatsApp. Все WhatsApp отображены.', function() {
                                         tester.contactBar.
                                             section('Каналы связи').
@@ -1737,50 +1813,6 @@ tests.addTest(options => {
                                                 '79218307632 ' +
                                                 '@kotik70600'
                                             );
-                                    });
-                                    it(
-                                        'Изменяю имя телеграм-канала имя которого непустое. Нажимаю на кнопку ' +
-                                        '"Сохранить". Отправлено имя телеграм-канала.',
-                                    function() {
-                                        tester.contactBar.
-                                            section('Каналы связи').
-                                            option('@kotik70600').
-                                            putMouseOver();
-
-                                        tester.contactBar.
-                                            section('Каналы связи').
-                                            option('@kotik70600').
-                                            toolsIcon.
-                                            click();
-
-                                        tester.select.
-                                            option('Редактировать').
-                                            click();
-
-                                        tester.contactBar.
-                                            section('Каналы связи').
-                                            input.
-                                            input('1');
-
-                                        tester.button('Сохранить').click();
-
-                                        tester.contactsRequest().
-                                            anotherChannelSearching().
-                                            noData().
-                                            receiveResponse();
-
-                                        tester.contactUpdatingRequest().
-                                            completeData().
-                                            existingTelegramChannel().
-                                            existingChannel().
-                                            anotherExistingTelegramChannel().
-                                            receiveResponse();
-
-                                        tester.contactRequest().
-                                            addTelegram().
-                                            addWhatsApp().
-                                            addSecondTelegram().
-                                            receiveResponse();
                                     });
                                     it(
                                         'Изменяю имя телеграм-канала имя которого пустое. Нажимаю на кнопку ' +
@@ -1915,86 +1947,207 @@ tests.addTest(options => {
                                 tester.usersRequest().forContacts().receiveResponse();
                             });
 
-                            describe('Ввожу фамилию. Добавляю телефон.', function() {
-                                let contactsRequest;
-
+                            describe('Ввожу фамилию.', function() {
                                 beforeEach(function() {
                                     tester.input.
                                         withPlaceholder('Фамилия (Обязательное поле)').
                                         fill('Неделчева');
-
-                                    tester.contactBar.
-                                        section('Телефоны').
-                                        plusButton.
-                                        click();
-
-                                    tester.contactBar.
-                                        section('Телефоны').
-                                        input.
-                                        fill('74950230625');
-                                    
-                                    tester.contactBar.
-                                        section('Телефоны').
-                                        button('Сохранить').
-                                        click();
-
-                                    contactsRequest = tester.contactsRequest().
-                                        fourthPhoneSearching().
-                                        expectToBeSent();
                                 });
 
-                                it('Найден дубль.', function() {
-                                    contactsRequest.
-                                        oneItem().
-                                        receiveResponse();
+                                describe('Ввожу номер телефона.', function() {
+                                    beforeEach(function() {
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            plusButton.
+                                            click();
 
-                                    tester.contactBar.
-                                        section('Телефоны').
-                                        select.
-                                        first.
-                                        click();
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            input.
+                                            fill('74950230625');
+                                    });
 
-                                    tester.select.option(
-                                        'Неделчева (текущий) ' +
-                                        '74950230625'
-                                    ).click();
+                                    describe('Нажимаю на кнопку "Сохранить".', function() {
+                                        beforeEach(function() {
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                button('Сохранить').
+                                                click();
 
-                                    tester.contactBar.
-                                        section('Телефоны').
-                                        select.
-                                        atIndex(1).
-                                        click();
+                                            contactsRequest = tester.contactsRequest().
+                                                fourthPhoneSearching().
+                                                expectToBeSent();
+                                        });
 
-                                    tester.select.option(
-                                        'Паскалева Бисера Илковна ' +
-                                        '79162729533 ' +
-                                        '79162722748'
-                                    ).click();
+                                        it(
+                                            'Изменяю номер телефона. Нажимаю на кнпоку "Отменить". Отображено ' +
+                                            'прежнее значение.',
+                                        function() {
+                                            contactsRequest.
+                                                noData().
+                                                receiveResponse();
 
-                                    tester.button('Объединить').click();
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('74950230625').
+                                                putMouseOver();
 
-                                    tester.contactsMergingRequest().
-                                        newContact().
-                                        receiveResponse();
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('74950230625').
+                                                toolsIcon.
+                                                click();
 
-                                    tester.contactBar.
-                                        section('Телефоны').
-                                        collapsednessToggleButton.
-                                        click();
+                                            tester.select.option('Редактировать').click();
 
-                                    tester.input.
-                                        withPlaceholder('Фамилия (Обязательное поле)').
-                                        expectToHaveValue('Неделчева');
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                input.
+                                                fill('74950230626');
 
-                                    tester.contactBar.
-                                        section('Телефоны').
-                                        expectToHaveTextContent(
-                                            'Телефоны (3) ' +
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                button('Отменить').
+                                                click();
 
-                                            '74950230625 ' +
-                                            '79162729533 ' +
-                                            '79162722748'
-                                        );
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                option('74950230625').
+                                                expectToBeVisible();
+                                        });
+                                        it('Найден дубль.', function() {
+                                            contactsRequest.
+                                                oneItem().
+                                                receiveResponse();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                select.
+                                                first.
+                                                click();
+
+                                            tester.select.option(
+                                                'Неделчева (текущий) ' +
+                                                '74950230625'
+                                            ).click();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                select.
+                                                atIndex(1).
+                                                click();
+
+                                            tester.select.option(
+                                                'Паскалева Бисера Илковна ' +
+                                                '79162729533 ' +
+                                                '79162722748'
+                                            ).click();
+
+                                            tester.button('Объединить').click();
+
+                                            tester.contactsMergingRequest().
+                                                newContact().
+                                                receiveResponse();
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                collapsednessToggleButton.
+                                                click();
+
+                                            tester.input.
+                                                withPlaceholder('Фамилия (Обязательное поле)').
+                                                expectToHaveValue('Неделчева');
+
+                                            tester.contactBar.
+                                                section('Телефоны').
+                                                expectToHaveTextContent(
+                                                    'Телефоны (3) ' +
+
+                                                    '74950230625 ' +
+                                                    '79162729533 ' +
+                                                    '79162722748'
+                                                );
+                                        });
+                                    });
+                                    it('Нажимаю на кнопку "Отменить". Телефон скрыт.', function() {
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            button('Отменить').
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            content.
+                                            expectToHaveTextContent('');
+                                    });
+                                });
+                                describe('Выбираю персонального менеджера.', function() {
+                                    beforeEach(function() {
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            plusButton.
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            select.
+                                            click();
+
+                                        tester.select.
+                                            option('Шалева Дора').
+                                            click();
+                                    });
+
+                                    it(
+                                        'Нажимаю на кнопку "Сохранить". Выбираю другого персонального менеджера. ' +
+                                        'Нажимаю на кнопку "Отменить".',
+                                    function() {
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            button('Сохранить').
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            option('Шалева Дора').
+                                            putMouseOver();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            option('Шалева Дора').
+                                            svg.
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            select.
+                                            click();
+
+                                        tester.select.
+                                            option('Господинова Николина').
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            button('Отменить').
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            content.
+                                            expectToHaveTextContent('Шалева Дора');
+                                    });
+                                    it('Нажимаю на кнопку "Отменить".', function() {
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            button('Отменить').
+                                            click();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            content.
+                                            expectToHaveTextContent('');
+                                    });
                                 });
                             });
                             it('Нажимаю на кнопку "Отменить". Панель контакта скрыта. ', function() {
@@ -2685,40 +2838,46 @@ tests.addTest(options => {
                     reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                     const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                         reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                        secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                        secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                        authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                     requests.expectToBeSent();
 
                     reportsListRequest.receiveResponse();
                     reportTypesRequest.receiveResponse();
-                    secondAccountRequest.operatorWorkplaceAvailable().otherEmployeeChatsAccessAvailable().
-                        receiveResponse();
-                    reportGroupsRequest.receiveResponse();
 
-                    tester.configRequest().softphone().receiveResponse();
+                    secondAccountRequest.
+                        operatorWorkplaceAvailable().
+                        otherEmployeeChatsAccessAvailable().
+                        receiveResponse();
+
+                    reportGroupsRequest.receiveResponse();
 
                     tester.masterInfoMessage().receive();
                     tester.slavesNotification().expectToBeSent();
                     tester.slavesNotification().additional().expectToBeSent();
-                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                     tester.notificationChannel().tellIsLeader().expectToBeSent();
+                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
                     tester.notificationChannel().applyLeader().expectToBeSent();
                     tester.notificationChannel().applyLeader().expectToBeSent();
 
-                    tester.authCheckRequest().receiveResponse();
+                    authCheckRequest.receiveResponse();
                     statusesRequest = tester.statusesRequest().expectToBeSent();
 
                     settingsRequest = tester.settingsRequest().expectToBeSent();
                     tester.talkOptionsRequest().receiveResponse();
-                    tester.permissionsRequest().receiveResponse();
 
-                    notificationTester.grantPermission();
                     settingsRequest.receiveResponse();
                     tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
+                    permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
                     tester.othersNotification().widgetStateUpdate().expectToBeSent();
                     tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                    permissionsRequest.receiveResponse();
 
                     tester.connectEventsWebSocket();
                     tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -2726,6 +2885,8 @@ tests.addTest(options => {
                     tester.connectSIPWebSocket();
                     tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                         expectToBeSent();
+
+                    notificationTester.grantPermission();
 
                     authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                     registrationRequest = tester.registrationRequest().expectToBeSent();
@@ -2790,17 +2951,20 @@ tests.addTest(options => {
                         contactChatRequest = contactChatRequest.anotherEmployee();
                     });
 
-                    it('Чат закрыт.', function() {
+                    it('Чат закрыт. Отображено окно создания чата.', function() {
                         contactChatRequest.closed().receiveResponse();
-
-                        tester.notificationWindow.expectToHaveTextContent(
-                            'Чат был создан другим оператором, возобновление коммуникации невозможно'
-                        );
+                        tester.modalWindow.button('Создать').expectToBeVisible();
                     });
                     it('Чат активен. Открыт раздел чатов.', function() {
                         contactChatRequest.receiveResponse();
 
                         tester.chatListRequest().receiveResponse();
+                        
+                        tester.chatListRequest().active().receiveResponse();
+                        tester.chatListRequest().closed().receiveResponse();
+                        tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
+                        tester.chatListRequest().thirdChat().receiveResponse();
+
                         tester.chatChannelListRequest().receiveResponse();
                         tester.statusListRequest().receiveResponse();
                         tester.listRequest().receiveResponse();
@@ -2821,7 +2985,9 @@ tests.addTest(options => {
                             operatorWorkplaceAvailable().
                             receiveResponse();
 
-                        tester.chatListRequest().active().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+                        tester.acceptChatRequest().receiveResponse();
+                        tester.visitorCardRequest().receiveResponse();
 
                         tester.offlineMessageCountersRequest().receiveResponse();
                         tester.chatChannelListRequest().receiveResponse();
@@ -2835,25 +3001,24 @@ tests.addTest(options => {
 
                         tester.countersRequest().receiveResponse();
 
-                        tester.chatListRequest().forCurrentEmployee().secondPage().receiveResponse();
-                        tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                        tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
-                        tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
-                        tester.chatListRequest().forCurrentEmployee().isOtherEmployeesAppeals().active().
+                        tester.chatListRequest().
+                            forCurrentEmployee().
+                            secondPage().
                             receiveResponse();
-                        tester.chatListRequest().thirdChat().receiveResponse();
 
-                        tester.messageListRequest().receiveResponse();
-                        tester.acceptChatRequest().receiveResponse();
-                        tester.visitorCardRequest().receiveResponse();
+                        tester.chatListRequest().
+                            forCurrentEmployee().
+                            secondPage().
+                            active().
+                            receiveResponse();
+
+                        tester.chatListRequest().
+                            forCurrentEmployee().
+                            secondPage().
+                            closed().
+                            receiveResponse();
 
                         tester.usersRequest().forContacts().receiveResponse();
-
-                        tester.changeMessageStatusRequest().
-                            anotherChat().
-                            anotherMessage().
-                            read().
-                            receiveResponse();
 
                         tester.changeMessageStatusRequest().
                             anotherChat().
@@ -2868,20 +3033,11 @@ tests.addTest(options => {
                             receiveResponse();
                         
                         tester.usersRequest().forContacts().receiveResponse();
-                    });
-                });
-                describe('OMNI-аккаунт недоступен.', function() {
-                    beforeEach(function() {
-                        contactChatRequest = contactChatRequest.accountInactive();
-                    });
 
-                    it('Чат не найден. Отображено сообщение об ошибке.', function() {
-                        contactChatRequest.noChat().receiveResponse();
-                        tester.notificationWindow.expectToHaveTextContent('Канал WhatsApp недоступен');
-                    });
-                    it('Отображено сообщение об ошибке.', function() {
-                        contactChatRequest.receiveResponse();
-                        tester.notificationWindow.expectToHaveTextContent('Канал WhatsApp недоступен');
+                        tester.contactBar.
+                            section('Каналы связи').
+                            content.
+                            expectToHaveTextContent('Помакова Бисерка Драгановна');
                     });
                 });
                 it(
@@ -2890,9 +3046,19 @@ tests.addTest(options => {
                 function() {
                     contactChatRequest.noChat().receiveResponse();
 
+                    tester.searchResultsRequest().
+                        channelSearch().
+                        noVisitorType().
+                        receiveResponse();
+
                     tester.modalWindow.button('Создать').click();
 
                     tester.chatListRequest().receiveResponse();
+
+                    tester.chatListRequest().active().receiveResponse();
+                    tester.chatListRequest().closed().receiveResponse();
+                    tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
+
                     tester.chatChannelListRequest().receiveResponse();
                     tester.statusListRequest().receiveResponse();
                     tester.listRequest().receiveResponse();
@@ -2913,7 +3079,7 @@ tests.addTest(options => {
                         operatorWorkplaceAvailable().
                         receiveResponse();
 
-                    tester.chatListRequest().active().receiveResponse();
+                    tester.chatStartingRequest().receiveResponse();
 
                     tester.offlineMessageCountersRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
@@ -2927,13 +3093,23 @@ tests.addTest(options => {
 
                     tester.countersRequest().receiveResponse();
 
-                    tester.chatListRequest().forCurrentEmployee().secondPage().receiveResponse();
-                    tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
-                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
-                    tester.chatListRequest().forCurrentEmployee().isOtherEmployeesAppeals().active().receiveResponse();
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        receiveResponse();
 
-                    tester.chatStartingRequest().receiveResponse();
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        active().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        closed().
+                        receiveResponse();
+
                     tester.chatListRequest().thirdChat().receiveResponse();
 
                     tester.acceptChatRequest().receiveResponse();
@@ -2942,14 +3118,20 @@ tests.addTest(options => {
                     tester.usersRequest().forContacts().receiveResponse();
                     tester.usersRequest().forContacts().receiveResponse();
                 });
-                it('Канал недоступен. Отображено сообщение об ошибке.', function() {
-                    contactChatRequest.channelInactive().receiveResponse();
+                it('OMNI-аккаунт недоступен. Канал недоступен. Отображено сообщение об ошибке.', function() {
+                    contactChatRequest.channelInactive().accountInactive().receiveResponse();
                     tester.notificationWindow.expectToHaveTextContent('Канал WhatsApp недоступен');
                 });
                 it('Чат найден. Открыт раздел чатов.', function() {
                     contactChatRequest.receiveResponse();
 
                     tester.chatListRequest().receiveResponse();
+                    
+                    tester.chatListRequest().active().receiveResponse();
+                    tester.chatListRequest().closed().receiveResponse();
+                    tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
+                    tester.chatListRequest().thirdChat().receiveResponse();
+
                     tester.chatChannelListRequest().receiveResponse();
                     tester.statusListRequest().receiveResponse();
                     tester.listRequest().receiveResponse();
@@ -2970,38 +3152,68 @@ tests.addTest(options => {
                         operatorWorkplaceAvailable().
                         receiveResponse();
 
-                    tester.chatListRequest().active().receiveResponse();
-
-                    tester.offlineMessageCountersRequest().receiveResponse();
-                    tester.chatChannelListRequest().receiveResponse();
-                    tester.siteListRequest().receiveResponse();
-                    tester.markListRequest().receiveResponse();
-                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                    tester.offlineMessageListRequest().processing().receiveResponse();
-                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                    tester.countersRequest().receiveResponse();
-
-                    tester.chatListRequest().forCurrentEmployee().secondPage().receiveResponse();
-                    tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
-                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
-                    tester.chatListRequest().forCurrentEmployee().isOtherEmployeesAppeals().active().receiveResponse();
-                    tester.chatListRequest().thirdChat().receiveResponse();
-
                     tester.messageListRequest().receiveResponse();
                     tester.acceptChatRequest().receiveResponse();
                     tester.visitorCardRequest().receiveResponse();
 
-                    tester.usersRequest().forContacts().receiveResponse();
+                    const requests = ajax.inAnyOrder();
 
-                    tester.changeMessageStatusRequest().
-                        anotherChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
+                    const offlineMessageCountersRequest = tester.offlineMessageCountersRequest().
+                        expectToBeSent(requests);
+
+                    const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+                    const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+                    const markListRequest = tester.markListRequest().expectToBeSent(requests);
+                    const chatChannelTypeListRequest = tester.chatChannelTypeListRequest().expectToBeSent(requests);
+
+                    const notProcessedofflineMessageListRequest = tester.offlineMessageListRequest().
+                        notProcessed().
+                        expectToBeSent(requests);
+
+                    const processingOfflineMessageListRequest = tester.offlineMessageListRequest().
+                        processing().
+                        expectToBeSent(requests);
+
+                    const processedOfflineMessageListRequest = tester.offlineMessageListRequest().
+                        processed().
+                        expectToBeSent(requests);
+
+                    const countersRequest = tester.countersRequest().expectToBeSent(requests);
+
+                    const newChatListRequest = tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        expectToBeSent(requests);
+
+                    const activeChatListRequest = tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        active().
+                        expectToBeSent(requests);
+
+                    const closedChatListRequest = tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        closed().
+                        expectToBeSent(requests);
+
+                    const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    offlineMessageCountersRequest.receiveResponse();
+                    chatChannelListRequest.receiveResponse();
+                    siteListRequest.receiveResponse();
+                    markListRequest.receiveResponse();
+                    chatChannelTypeListRequest.receiveResponse();
+                    notProcessedofflineMessageListRequest.receiveResponse();
+                    processingOfflineMessageListRequest.receiveResponse();
+                    processedOfflineMessageListRequest.receiveResponse();
+                    countersRequest.receiveResponse();
+                    newChatListRequest.receiveResponse();
+                    activeChatListRequest.receiveResponse();
+                    closedChatListRequest.receiveResponse();
+                    usersRequest.receiveResponse();
 
                     tester.changeMessageStatusRequest().
                         anotherChat().
@@ -3016,6 +3228,11 @@ tests.addTest(options => {
                         receiveResponse();
                     
                     tester.usersRequest().forContacts().receiveResponse();
+
+                    tester.contactBar.
+                        section('Каналы связи').
+                        content.
+                        expectToHaveTextContent('Помакова Бисерка Драгановна');
                 });
             });
             it(
@@ -3029,7 +3246,8 @@ tests.addTest(options => {
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
@@ -3038,30 +3256,31 @@ tests.addTest(options => {
                 secondAccountRequest.operatorWorkplaceAvailable().receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
-                tester.configRequest().softphone().receiveResponse();
-
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
                 tester.notificationChannel().applyLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
-                tester.authCheckRequest().receiveResponse();
+                authCheckRequest.receiveResponse();
                 statusesRequest = tester.statusesRequest().expectToBeSent();
 
                 settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
 
-                notificationTester.grantPermission();
                 settingsRequest.receiveResponse();
                 tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
+                permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
                 tester.othersNotification().widgetStateUpdate().expectToBeSent();
                 tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                permissionsRequest.receiveResponse();
 
                 tester.connectEventsWebSocket();
                 tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -3069,6 +3288,8 @@ tests.addTest(options => {
                 tester.connectSIPWebSocket();
                 tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                     expectToBeSent();
+
+                notificationTester.grantPermission();
 
                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                 registrationRequest = tester.registrationRequest().expectToBeSent();
@@ -3141,7 +3362,8 @@ tests.addTest(options => {
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
@@ -3150,31 +3372,31 @@ tests.addTest(options => {
                 secondAccountRequest.addressBookUpdatingUnavailable().receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
-                tester.configRequest().softphone().receiveResponse();
-
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
                 tester.notificationChannel().applyLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
-                tester.authCheckRequest().receiveResponse();
+                authCheckRequest.receiveResponse();
                 statusesRequest = tester.statusesRequest().expectToBeSent();
 
                 settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
-
-                notificationTester.grantPermission();
 
                 settingsRequest.receiveResponse();
                 tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
+                permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
                 tester.othersNotification().widgetStateUpdate().expectToBeSent();
                 tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                permissionsRequest.receiveResponse();
 
                 tester.connectEventsWebSocket();
                 tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -3182,6 +3404,8 @@ tests.addTest(options => {
                 tester.connectSIPWebSocket();
                 tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                     expectToBeSent();
+
+                notificationTester.grantPermission();
 
                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                 registrationRequest = tester.registrationRequest().expectToBeSent();
@@ -3268,7 +3492,8 @@ tests.addTest(options => {
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
@@ -3277,31 +3502,31 @@ tests.addTest(options => {
                 secondAccountRequest.contactChannelCreatingFeatureFlagDisabled().receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
-                tester.configRequest().softphone().receiveResponse();
-
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
                 tester.notificationChannel().applyLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
-                tester.authCheckRequest().receiveResponse();
+                authCheckRequest.receiveResponse();
                 statusesRequest = tester.statusesRequest().expectToBeSent();
 
                 settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
-
-                notificationTester.grantPermission();
 
                 settingsRequest.receiveResponse();
                 tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
+                permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
                 tester.othersNotification().widgetStateUpdate().expectToBeSent();
                 tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                permissionsRequest.receiveResponse();
 
                 tester.connectEventsWebSocket();
                 tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -3309,6 +3534,8 @@ tests.addTest(options => {
                 tester.connectSIPWebSocket();
                 tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                     expectToBeSent();
+
+                notificationTester.grantPermission();
 
                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                 registrationRequest = tester.registrationRequest().expectToBeSent();
@@ -3388,7 +3615,8 @@ tests.addTest(options => {
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
@@ -3401,31 +3629,32 @@ tests.addTest(options => {
                     receiveResponse();
 
                 reportGroupsRequest.receiveResponse();
-                tester.configRequest().softphone().receiveResponse();
 
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
                 tester.notificationChannel().applyLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
-                tester.authCheckRequest().receiveResponse();
+                authCheckRequest.receiveResponse();
                 statusesRequest = tester.statusesRequest().expectToBeSent();
 
                 settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
-
-                notificationTester.grantPermission();
 
                 settingsRequest.receiveResponse();
                 tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
+                permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
                 tester.othersNotification().widgetStateUpdate().expectToBeSent();
                 tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                permissionsRequest.receiveResponse();
 
                 tester.connectEventsWebSocket();
                 tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -3433,6 +3662,8 @@ tests.addTest(options => {
                 tester.connectSIPWebSocket();
                 tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                     expectToBeSent();
+
+                notificationTester.grantPermission();
 
                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                 registrationRequest = tester.registrationRequest().expectToBeSent();
@@ -3537,7 +3768,8 @@ tests.addTest(options => {
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
@@ -3546,31 +3778,31 @@ tests.addTest(options => {
             secondAccountRequest.addressBookCreatingUnavailable().receiveResponse();
             reportGroupsRequest.receiveResponse();
 
-            tester.configRequest().softphone().receiveResponse();
-
             tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
-            tester.authCheckRequest().receiveResponse();
+            authCheckRequest.receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();
 
             settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
-
-            notificationTester.grantPermission();
 
             settingsRequest.receiveResponse();
             tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
             tester.othersNotification().widgetStateUpdate().expectToBeSent();
             tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            permissionsRequest.receiveResponse();
 
             tester.connectEventsWebSocket();
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -3578,6 +3810,8 @@ tests.addTest(options => {
             tester.connectSIPWebSocket();
             tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                 expectToBeSent();
+
+            notificationTester.grantPermission();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
             registrationRequest = tester.registrationRequest().expectToBeSent();
@@ -3622,7 +3856,8 @@ tests.addTest(options => {
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
@@ -3631,31 +3866,31 @@ tests.addTest(options => {
             secondAccountRequest.contactCreatingFeatureFlagDisabled().receiveResponse();
             reportGroupsRequest.receiveResponse();
 
-            tester.configRequest().softphone().receiveResponse();
-
             tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
-            tester.authCheckRequest().receiveResponse();
+            authCheckRequest.receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();
 
             settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
-
-            notificationTester.grantPermission();
 
             settingsRequest.receiveResponse();
             tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
             tester.othersNotification().widgetStateUpdate().expectToBeSent();
             tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            permissionsRequest.receiveResponse();
 
             tester.connectEventsWebSocket();
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -3663,6 +3898,8 @@ tests.addTest(options => {
             tester.connectSIPWebSocket();
             tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                 expectToBeSent();
+
+            notificationTester.grantPermission();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
             registrationRequest = tester.registrationRequest().expectToBeSent();
@@ -3704,7 +3941,8 @@ tests.addTest(options => {
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
@@ -3713,31 +3951,31 @@ tests.addTest(options => {
             secondAccountRequest.addressBookDeletingUnavailable().receiveResponse();
             reportGroupsRequest.receiveResponse();
 
-            tester.configRequest().softphone().receiveResponse();
-
             tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
-            tester.authCheckRequest().receiveResponse();
+            authCheckRequest.receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();
 
             settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
-
-            notificationTester.grantPermission();
 
             settingsRequest.receiveResponse();
             tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
             tester.othersNotification().widgetStateUpdate().expectToBeSent();
             tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            permissionsRequest.receiveResponse();
 
             tester.connectEventsWebSocket();
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -3745,6 +3983,8 @@ tests.addTest(options => {
             tester.connectSIPWebSocket();
             tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                 expectToBeSent();
+
+            notificationTester.grantPermission();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
             registrationRequest = tester.registrationRequest().expectToBeSent();
@@ -3806,7 +4046,8 @@ tests.addTest(options => {
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
@@ -3815,31 +4056,31 @@ tests.addTest(options => {
             secondAccountRequest.contactDeletingFeatureFlagDisabled().receiveResponse();
             reportGroupsRequest.receiveResponse();
 
-            tester.configRequest().softphone().receiveResponse();
-
             tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
-            tester.authCheckRequest().receiveResponse();
+            authCheckRequest.receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();
 
             settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
-
-            notificationTester.grantPermission();
 
             settingsRequest.receiveResponse();
             tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
             tester.othersNotification().widgetStateUpdate().expectToBeSent();
             tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            permissionsRequest.receiveResponse();
 
             tester.connectEventsWebSocket();
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -3847,6 +4088,8 @@ tests.addTest(options => {
             tester.connectSIPWebSocket();
             tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                 expectToBeSent();
+
+            notificationTester.grantPermission();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
             registrationRequest = tester.registrationRequest().expectToBeSent();
@@ -3907,7 +4150,8 @@ tests.addTest(options => {
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
@@ -3920,31 +4164,32 @@ tests.addTest(options => {
                 receiveResponse();
 
             reportGroupsRequest.receiveResponse();
-            tester.configRequest().softphone().receiveResponse();
 
             tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
-            tester.authCheckRequest().receiveResponse();
+            authCheckRequest.receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();
 
             settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
-
-            notificationTester.grantPermission();
 
             settingsRequest.receiveResponse();
             tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
             tester.othersNotification().widgetStateUpdate().expectToBeSent();
             tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            permissionsRequest.receiveResponse();
 
             tester.connectEventsWebSocket();
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -3952,6 +4197,8 @@ tests.addTest(options => {
             tester.connectSIPWebSocket();
             tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                 expectToBeSent();
+
+            notificationTester.grantPermission();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
             registrationRequest = tester.registrationRequest().expectToBeSent();
@@ -4012,7 +4259,8 @@ tests.addTest(options => {
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
@@ -4021,18 +4269,17 @@ tests.addTest(options => {
             secondAccountRequest.contactsFeatureFlagDisabled().receiveResponse();
             reportGroupsRequest.receiveResponse();
 
-            tester.configRequest().softphone().receiveResponse();
-
             tester.masterInfoMessage().receive();
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
-            tester.authCheckRequest().receiveResponse();
+            authCheckRequest.receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();
 
             settingsRequest = tester.settingsRequest().expectToBeSent();

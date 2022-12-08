@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const WrappedTester = function (options) {
                 options.softphoneTester = new SoftphoneTester({
                     ...options,
-                    softphoneHost: 'myint0.dev.uis.st'
+                    softphoneHost: '$REACT_APP_SOFTPHONE_BACKEND_HOST'
                 });
 
                 return new Tester(options);

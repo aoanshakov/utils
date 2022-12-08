@@ -689,6 +689,8 @@ define(() => function ({
             '.clct-c-button, ' +
             '.ui-radio-content, ' +
             '.cmg-switch-label, ' +
+            '.misc-core-src-component-styles-module__label, ' +
+            '.misc-core-src-components-menu-styles-module__label, ' +
             '.cm-chats--chat-menu-item, ' +
             '.cm-chats--tab-title, ' +
             '.src-components-main-menu-nav-item-styles-module__label, ' +
@@ -1045,6 +1047,36 @@ define(() => function ({
 
     me.expectChatsStoreToContain = expectedContent => {
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
+    };
+
+    me.centrifugoAuthTokenRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('GET').
+                    expectToHavePath('$REACT_APP_CENTRIFUGO_AUTH_URL/token').
+                    expectQueryToContain({
+                        employee_id: '20816',
+                        prefix: '$REACT_APP_CENTRIFUGO_PREFIX'
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            token: '224of2j2o4fjwfo8j4lo8qjf'
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
     };
 
     me.chatPhoneUpdatingRequest = () => {
@@ -1542,6 +1574,25 @@ define(() => function ({
             }
         };
     };
+
+    me.centrifugoWebSocket = (() => {
+        const getWebSocket = index => webSockets.getSocket('$REACT_APP_CENTRIFUGO_BASE_URL', index);
+
+        return {
+            connect: () => getWebSocket(0).connect(),
+            expectSentMessageToContain: message => getWebSocket(0).expectSentMessageToContain(message),
+            receive: message => getWebSocket(0).receiveMessage(message)
+        };
+    })();
+
+    me.centrifugoConnectionMessage = () => ({
+        expectToBeSent: () => me.centrifugoWebSocket.expectSentMessageToContain({
+            connect: {
+                token: "224of2j2o4fjwfo8j4lo8qjf",
+                name: "js"
+            }
+        })
+    });
 
     me.chatsWebSocket = (() => {
         const getWebSocket = index => webSockets.getSocket('$REACT_APP_WS_URL', index);
@@ -3009,7 +3060,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('https://myint0.dev.uis.st/sup/auth/check').
+                    expectToHavePath('https://$REACT_APP_SOFTPHONE_BACKEND_HOST/sup/auth/check').
                     expectToHaveHeaders({
                         Authorization: `Bearer ${token}`,
                         'X-Auth-Type': 'jwt',
@@ -3150,6 +3201,7 @@ define(() => function ({
 
     me.searchResultsRequest = () => {
         const processors = [];
+        let search_string = 'Сообщение #75';
 
         const response = {
             result: {
@@ -3184,6 +3236,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.noVisitorType = () => {
+                response.result.data.found_list[0].visitor_type = null;
+                return me;
+            };
+
             me.whatsApp = () => {
                 response.result.data.found_list[0].chat_channel_type = 'whatsapp';
                 return me;
@@ -3239,6 +3296,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            channelSearch() {
+                search_string = '79283810988';
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL').
@@ -3246,7 +3308,7 @@ define(() => function ({
                     expectBodyToContain({
                         method: 'get_search_results',
                         params: {
-                            search_string: 'Сообщение #75'
+                            search_string
                         }
                     });
 
@@ -3256,6 +3318,7 @@ define(() => function ({
                         request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
+                        spendTime(0)
                         spendTime(0)
                     }
                 });
@@ -4155,7 +4218,7 @@ define(() => function ({
 
                 response = {
                     REACT_APP_LOCALE: 'ru',
-                    REACT_APP_SOFTPHONE_BACKEND_HOST: 'myint0.dev.uis.st',
+                    REACT_APP_SOFTPHONE_BACKEND_HOST: '$REACT_APP_SOFTPHONE_BACKEND_HOST',
                     REACT_APP_AUTH_COOKIE: '$REACT_APP_AUTH_COOKIE'
                 };
 
@@ -9417,8 +9480,22 @@ define(() => function ({
             },
             
             threePhoneNumbers() {
-                processors.push(bodyParams =>
-                    (bodyParams.phone_list = ['79162729533', '79162729535', '79162729536', undefined]));
+                processors.push(bodyParams => {
+                    bodyParams.phone_list = ['79162729533', '79162729535', '79162729536', undefined];
+
+                    bodyParams.chat_channel_list = [{
+                        type: 'whatsapp',
+                        ext_id: '79283810988',
+                        name: '79283810988',
+                        chat_channel_id: 216395
+                    }, {
+                        type: 'whatsapp',
+                        ext_id: '79283810928' ,
+                        name: '79283810928' ,
+                        chat_channel_id: 216395
+                    } ];
+                });
+
                 return this;
             },
 
@@ -9446,6 +9523,48 @@ define(() => function ({
                         ext_id: '79283810987',
                         name: '79283810987',
                         type: 'whatsapp'
+                    });
+                });
+
+                return this;
+            },
+
+            anotherNewChannel() {
+                processors.push(bodyParams => {
+                    bodyParams.chat_channel_list.push({
+                        type: 'whatsapp',
+                        chat_channel_id: null,
+                        phone: null,
+                        name: '79162729536',
+                        ext_id: '79162729536'
+                    });
+                });
+
+                return this;
+            },
+
+            thirdNewChannel() {
+                processors.push(bodyParams => {
+                    bodyParams.chat_channel_list.push({
+                        type: 'whatsapp',
+                        chat_channel_id: null,
+                        phone: null,
+                        name: '79162729534',
+                        ext_id: '79162729534'
+                    });
+                });
+
+                return this;
+            },
+
+            fourthNewChannel() {
+                processors.push(bodyParams => {
+                    bodyParams.chat_channel_list.push({
+                        type: 'whatsapp',
+                        chat_channel_id: null,
+                        phone: null,
+                        name: '79162729537',
+                        ext_id: '79162729537'
                     });
                 });
 
@@ -11389,7 +11508,7 @@ define(() => function ({
 
             tester.closeButton = (() => {
                 const tester = testersFactory.createDomElementTester(
-                    () => getTitleElement().querySelector('svg')
+                    () => getTitleElement().querySelector('.cm-contacts-contact-bar-close-icon')
                 );
 
                 const click = tester.click.bind(tester);
@@ -11434,7 +11553,7 @@ define(() => function ({
 
             const addOptionTesters = (tester, getOptionElement) => {
                 const clickTester = testersFactory.createDomElementTester(() => {
-                    const option = getOptionElement(),
+                    const option = getOptionElement() || new JsTester_NoElement(),
                         clickableOption = option.querySelector('.cm-contacts-contact-bar-clickable-option')
 
                     return (!(clickableOption instanceof JsTester_NoElement) && clickableOption) || option
@@ -11689,10 +11808,13 @@ define(() => function ({
     }
 
     me.leftMenu = (() => {
-        const getDomElement = () => utils.querySelector('.src-components-main-menu-styles-module__nav'),
-            tester = testersFactory.createDomElementTester(getDomElement);
+        const getDomElement = () => utils.querySelector(
+            '.src-components-main-menu-styles-module__nav, ' +
+            '.misc-core-src-components-menu-styles-module__nav, ' +
+            '.misc-host-src-components-menu-styles-module__nav'
+        );
 
-        return addTesters(tester, getDomElement);
+        return addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement);
     })();
 
     me.popover = (() => {

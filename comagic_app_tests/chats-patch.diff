@@ -76,10 +76,10 @@ index b1e30f9..70bc523 100644
    .@{p}chat-panel-quote {
      display: grid;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index f0d453d..d6ce0a6 100644
+index 5038f67..b518048 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -144,7 +144,8 @@ export const RootStore = types
+@@ -116,7 +116,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
