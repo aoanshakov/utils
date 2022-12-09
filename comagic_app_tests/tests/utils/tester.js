@@ -697,7 +697,7 @@ define(() => function ({
             '.src-components-main-menu-settings-styles-module__label, ' +
             '.src-components-main-menu-menu-link-styles-module__item a';
 
-        me.button = text => {
+        me.button = (text) => {
             let domElement = utils.descendantOf(getRootElement()).
                 textEquals(text).
                 matchesSelector(buttonSelector).
@@ -729,14 +729,19 @@ define(() => function ({
             };
 
             const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked',
-                disabledClass = isSwitch ? 'ui-switch-disabled' : 'ui-button-disabled',
-                menuItemSelectedClass = 'src-components-main-menu-nav-item-styles-module__item-selected';
+                disabledClass = isSwitch ? 'ui-switch-disabled' : 'ui-button-disabled';
 
-            const menuItem = testersFactory.createDomElementTester(() =>
-                domElement.closest('.src-components-main-menu-nav-item-styles-module__item'));
+            const menuItemSelectedClass = [
+                'src-components-main-menu-nav-item-styles-module__item-selected',
+                'active'
+            ];
 
-            tester.expectToBePressed = () => menuItem.expectToHaveClass(menuItemSelectedClass);
-            tester.expectNotToBePressed = () => menuItem.expectNotToHaveClass(menuItemSelectedClass);
+            const menuItem = testersFactory.createDomElementTester(() => domElement.closest(
+                '.src-components-main-menu-nav-item-styles-module__item, .cm-chats--left-menu--item'
+            ));
+
+            tester.expectToBePressed = () => menuItem.expectToHaveAnyOfClasses(menuItemSelectedClass);
+            tester.expectNotToBePressed = () => menuItem.expectToHaveNoneOfClasses(menuItemSelectedClass);
             tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
             tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
 
@@ -11738,6 +11743,14 @@ define(() => function ({
 
         return tester;
     };
+
+    me.chatList = (() => {
+        const getDomElement = () => utils.querySelector('.cm-chats--chats-list-panel'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        tester.item = text => me.chatListItem(text);
+        return addTesters(tester, getDomElement);
+    })();
 
     me.contactList = (() => {
         const getDomElement = () => document.querySelector('.cm-contacts-list-wrapper'),

@@ -399,7 +399,7 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 600884d5..07605c0c 100644
+index 600884d5..5c894b3b 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,18 @@
@@ -451,7 +451,7 @@ index 600884d5..07605c0c 100644
 +            setReactDOM(ReactDOM);
 +            setEventBus(eventBus);
 +            createRootStore();
-+            !appName && setChatsRootStore(createChatsRootStore());
++            setChatsRootStore(createChatsRootStore());
 +            createSoftphoneRootStore();
 +            createContactsRootStore();
 +            setHistory(history);

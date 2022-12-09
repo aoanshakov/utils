@@ -5866,6 +5866,31 @@ function JsTester_DomElement (
                 attributeName + '"');
         }
     };
+    this.expectToHaveAnyOfClasses = classNames => {
+        this.expectToBeVisible();
+
+        if (!classNames.some(className => getDomElement().classList.contains(className))) {
+            var actualClassName = getDomElement().className;
+            classNames = '"' + classNames.join('", "') + '"';
+
+            throw new Error(
+                utils.capitalize(getNominativeDescription()) + ' ' + gender.should + ' иметь один из этих классов ' +
+                classNames + ', тогда, как ' + gender.pronoun + ' имеет классы "' + actualClassName + '".'
+            );
+        }
+    };
+    this.expectToHaveNoneOfClasses = classNames => {
+        this.expectToBeVisible();
+
+        classNames.forEach(className => {
+            if (getDomElement().classList.contains(className)) {
+                throw new Error(
+                    utils.capitalize(getNominativeDescription()) + ' не ' + gender.should + ' иметь класс "' +
+                    className + '".'
+                );
+            }
+        })
+    };
     this.expectToHaveClass = function (className) {
         this.expectToBeVisible();
 
