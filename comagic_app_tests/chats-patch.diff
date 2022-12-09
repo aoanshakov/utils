@@ -136,59 +136,33 @@ index 933fdb3..8e6f31d 100644
      })
      .views(() => ({
 diff --git a/src/utils/index.tsx b/src/utils/index.tsx
-index 94d4c43..31f4230 100644
+index 79eb948..7f3f539 100644
 --- a/src/utils/index.tsx
 +++ b/src/utils/index.tsx
-@@ -1,8 +1,8 @@
- import React from 'react';
- import { renderToStaticMarkup } from 'react-dom/server';
- import cn from 'classnames';
--import parse, { attributesToProps, domToReact, DOMNode } from 'html-react-parser';
--import DOMPurify from 'dompurify';
-+//import parse, { attributesToProps, domToReact, DOMNode } from 'html-react-parser';
-+//import DOMPurify from 'dompurify';
- import moment from 'moment';
- import short from 'short-uuid';
- import { intl } from '@/i18n';
-@@ -114,8 +114,15 @@ type Options = {
+@@ -114,11 +114,11 @@ type Options = {
      'max-age'?: number;
  };
  
+-const isElectron = () => typeof window.process?.versions?.electron === 'string',
 +const isSoftphone = () => window.rootConfig?.appName == 'softphone',
-+    prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
-+
- export function getCookie(name: string): string {
--    const matches = new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)').exec(
-+    if (isSoftphone()) {
-+        return window.getElectronCookiesManager().getItem(name);
-+    }
-+
-+    const matches = new RegExp('(?:^|; )' + prepareName(name) + '=([^;]*)').exec(
-         document.cookie
-     );
+     prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
  
-@@ -123,6 +130,11 @@ export function getCookie(name: string): string {
+ export function getCookie(name: string): string {
+-    if (isElectron()) {
++    if (isSoftphone()) {
+         return window.getElectronCookiesManager().getItem(name);
+     }
+ 
+@@ -130,7 +130,7 @@ export function getCookie(name: string): string {
  }
  
  export function setCookie(name: string, value: string, options: Options = {}): void {
+-    if (isElectron()) {
 +    if (isSoftphone()) {
-+        window.getElectronCookiesManager().setItem(name, value);
-+        return;
-+    }
-+
-     options = {
-         path: '/',
-         ...options,
-@@ -132,7 +144,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
-         options.expires = options.expires.toUTCString();
+         window.getElectronCookiesManager().setItem(name, value);
+         return;
      }
- 
--    let updatedCookie = encodeURIComponent(name) + '=' + encodeURIComponent(value);
-+    let updatedCookie = prepareName(name) + '=' + encodeURIComponent(value);
- 
-     let optionKey: keyof Options;
-     for (optionKey in options) {
-@@ -140,7 +152,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -152,7 +152,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
  
          const optionValue = options[optionKey];
          if (optionValue !== true) {
@@ -197,23 +171,12 @@ index 94d4c43..31f4230 100644
          }
      }
  
-@@ -148,6 +160,11 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -160,7 +160,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
  }
  
  export function deleteCookie(name: string, options: Options = {}): void {
+-    if (isElectron()) {
 +    if (isSoftphone()) {
-+        window.getElectronCookiesManager().removeItem(name);
-+        return;
-+    }
-+
-     setCookie(name, '', {
-         'max-age': -1,
-         ...options,
-@@ -191,6 +208,7 @@ function generateUrl(url: string): string {
- }
- 
- export function parseLinks(text: string): React.ReactNode[] {
-+    return text;
-     text = `${text || ''}`
-         .split(' ')
-         .map(string => (isUrl(string) ? generateUrl(string) : string))
+         window.getElectronCookiesManager().removeItem(name);
+         return;
+     }
