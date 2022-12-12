@@ -4387,6 +4387,17 @@ function JsTester_OpenedWindow (path, query) {
             'Окно не должно быть открыто, тогда как было открыто окно, URL которого имеет путь "' + path + '".'
         );
     };
+
+    this.expectTextToContain = function (expectedSubstring) {
+        const decoded = decodeURIComponent(path.substr(21));
+
+        if (!decoded.includes(expectedSubstring)) {
+            throw new Error(
+                'Должен быть открыт текстовый документ с подстрокой "' + expectedSubstring + '", тогда как текстовый ' +
+                'документ имеет такое содержание' + "\n\n" + decoded
+            );
+        }
+    }
 }
 
 function JsTester_NoWindowOpened (utils) {
@@ -4396,6 +4407,9 @@ function JsTester_NoWindowOpened (utils) {
     this.expectQueryToContain = function (params) {
         throw new Error('Должен быть открыт URL с параметрами' + utils.getVariablePresentation(params));
     };
+    this.expectTextToContain = function (expectedSubstring) {
+        throw new Error('Должен быть открыт текстовый документ с подстрокой "' + expectedSubstring + '"');
+    }
     this.expectNoWindowToBeOpened = function () {};
 }
 
@@ -4412,6 +4426,10 @@ function JsTester_WindowOpener (utils) {
     };
     this.expectQueryToContain = function (params) {
         actualWindow.expectQueryToContain(params);
+        return this;
+    };
+    this.expectTextToContain = function (expectedSubstring) {
+        actualWindow.expectTextToContain(expectedSubstring);
         return this;
     };
     this.replaceByFake = function () {

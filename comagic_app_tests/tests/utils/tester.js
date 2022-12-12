@@ -157,8 +157,13 @@ define(() => function ({
     };
 
     me.callsHistoryButton = (tester => {
-        const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0));
+        const click = tester.click.bind(tester),
+            selectedClassName = 'cmg-bottom-button-selected';
+
+        tester.click = () => (click(), spendTime(0), spendTime(0));
+
+        tester.expectToBePressed = () => tester.expectToHaveClass(selectedClassName);
+        tester.expectNotToBePressed = () => tester.expectNotToHaveClass(selectedClassName);
 
         return createBottomButtonTester(tester);
     })(testersFactory.createDomElementTester('.cmg-calls-history-button'));

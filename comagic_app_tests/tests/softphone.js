@@ -1408,6 +1408,10 @@ tests.addTest(options => {
                                                 spendTime(3000);
                                                 Promise.runAll(false, true);
                                             });
+                                            it('Нажимаю на кнопку с жуком. Скачивается лог.', function() {
+                                                tester.bugButton.click();
+                                                windowOpener.expectTextToContain('URL "sup/auth/check"');
+                                            });
                                             it('Отображен софтфон.', function() {
                                                 if (localStorage.getItem('isSoftphoneHigh') != 'false') {
                                                     throw new Error(

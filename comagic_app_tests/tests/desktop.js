@@ -843,6 +843,14 @@ tests.addTest(options => {
 
                                 tester.leftMenu.expectToBeVisible();
                             });
+                            it('Нажимаю на кнопку истории звонков.', function() {
+                                tester.callsHistoryButton.click();
+
+                                tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+                                tester.marksRequest().receiveResponse();
+
+                                tester.callsHistoryButton.expectToBePressed();
+                            });
                             it('Отображен большой софтфон.', function() {
                                 tester.button('99+ Чаты').expectNotToBePressed();
                                 tester.button('Заявки').expectNotToBePressed();
@@ -856,9 +864,9 @@ tests.addTest(options => {
                                 tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-pressed');
 
                                 tester.settingsButton.expectToBeDisabled();
-                                tester.callsHistoryButton.expectToBeDisabled();
                                 tester.softphone.userName.expectToBeDisabled();
 
+                                tester.callsHistoryButton.expectNotToBePressed();
                                 tester.smallSizeButton.expectNotToBePressed();
                                 tester.middleSizeButton.expectNotToBePressed();
                                 tester.largeSizeButton.expectToBePressed();
@@ -1285,31 +1293,6 @@ tests.addTest(options => {
                                 tester.largeSizeButton.expectNotToBePressed();
                             });
                         });
-                        describe('Нажимаю на кнопку дебага.', function() {
-                            beforeEach(function() {
-                                tester.bugButton.click();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('collect_logs');
-                            });
-
-                            it('Логи собраны. Загружается архив с логами. Спиннер скрыт.', function() {
-                                getPackage('electron').ipcRenderer.receiveMessage(
-                                    'logs_collected',
-                                    new JsTester_ZipArchive()
-                                );
-
-                                blobsTester.getLast().
-                                    expectToHaveType('application/zip').
-                                    expectToBeCreatedFromArray(new JsTester_ZipArchive());
-
-                                tester.spinner.expectNotToExist();
-                            });
-                            it('Отображен спиннер.', function() {
-                                tester.spinner.expectToBeVisible();
-                            });
-                        });
                         describe('Получено обновление.', function() {
                             beforeEach(function() {
                                 getPackage('electron').ipcRenderer.receiveMessage('update-downloaded');
@@ -1484,6 +1467,7 @@ tests.addTest(options => {
                             tester.phoneField.expectNotToBeFocused();
                             tester.collapsednessToggleButton.expectNotToExist();
 
+                            tester.bugButton.expectNotToExist();
                             tester.smallSizeButton.expectToBePressed();
                             tester.middleSizeButton.expectNotToBePressed();
                             tester.largeSizeButton.expectNotToBePressed();
