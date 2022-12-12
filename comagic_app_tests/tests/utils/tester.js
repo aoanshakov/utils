@@ -149,14 +149,11 @@ define(() => function ({
     spendTime(0);
     spendTime(0);
 
-    const createBottomButtonTester = tester => {
-        tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-button-disabled');
-        tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cmg-button-disabled');
+    const createBottomButtonTester = selectorOrTester => {
+        const tester = typeof selectorOrTester == 'string' ?
+            testersFactory.createDomElementTester(selectorOrTester) :
+            selectorOrTester;
 
-        return tester;
-    };
-
-    me.callsHistoryButton = (tester => {
         const click = tester.click.bind(tester),
             selectedClassName = 'cmg-bottom-button-selected';
 
@@ -164,18 +161,15 @@ define(() => function ({
 
         tester.expectToBePressed = () => tester.expectToHaveClass(selectedClassName);
         tester.expectNotToBePressed = () => tester.expectNotToHaveClass(selectedClassName);
-
-        return createBottomButtonTester(tester);
-    })(testersFactory.createDomElementTester('.cmg-calls-history-button'));
-
-    me.settingsButton = (() => {
-        const tester = createBottomButtonTester(testersFactory.createDomElementTester('.cmg-settings-button'));
-
-        const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0));
+        tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-button-disabled');
+        tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cmg-button-disabled');
 
         return tester;
-    })();
+    };
+
+    me.callStatsButton = createBottomButtonTester('.cmg-call-stats-button');
+    me.callsHistoryButton = createBottomButtonTester('.cmg-calls-history-button');
+    me.settingsButton = createBottomButtonTester('.cmg-settings-button');
 
     const intersection = new Map();
 
@@ -341,11 +335,8 @@ define(() => function ({
         })();
 
         me.userName = (tester => {
-            const putMouseOver = tester.putMouseOver.bind(tester),
-                click = tester.click.bind(tester);
-
+            const putMouseOver = tester.putMouseOver.bind(tester);
             tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
-            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             return createBottomButtonTester(tester);
         })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector(

@@ -101,7 +101,7 @@ tests.addTest(options => {
                             authenticatedUserRequest.receiveResponse();
                         });
 
-                        describe('Нажимаю на кнопку настроек.', function() {
+                        xdescribe('Нажимаю на кнопку настроек.', function() {
                             beforeEach(function() {
                                 tester.settingsButton.click();
 
@@ -287,7 +287,7 @@ tests.addTest(options => {
                                 tester.button('Запускать свернуто').expectToBeDisabled();
                             });
                         });
-                        describe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
+                        xdescribe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
                             let incomingCall;
 
                             beforeEach(function() {
@@ -388,7 +388,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        describe('Нажимаю на кнопку переключения на большой размер.', function() {
+                        xdescribe('Нажимаю на кнопку переключения на большой размер.', function() {
                             beforeEach(function() {
                                 tester.largeSizeButton.click();
 
@@ -878,7 +878,7 @@ tests.addTest(options => {
                                 }
                             });
                         });
-                        describe('Открываю историю звонков.', function() {
+                        xdescribe('Открываю историю звонков.', function() {
                             let callsRequest;
 
                             beforeEach(function() {
@@ -932,7 +932,7 @@ tests.addTest(options => {
                                 tester.spin.expectToBeVisible();
                             });
                         });
-                        describe('Раскрываю список статусов.', function() {
+                        xdescribe('Раскрываю список статусов.', function() {
                             beforeEach(function() {
                                 tester.userName.click();
                             });
@@ -1009,7 +1009,7 @@ tests.addTest(options => {
                                 tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                             });
                         });
-                        describe('Открываю таблицу сотрудников. Токен истек.', function() {
+                        xdescribe('Открываю таблицу сотрудников. Токен истек.', function() {
                             let refreshRequest;
 
                             beforeEach(function() {
@@ -1111,7 +1111,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        describe(
+                        xdescribe(
                             'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок.',
                         function() {
                             beforeEach(function() {
@@ -1213,7 +1213,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        describe('Открываю список номеров.', function() {
+                        xdescribe('Открываю список номеров.', function() {
                             beforeEach(function() {
                                 windowSize.setHeight(212);
 
@@ -1255,7 +1255,7 @@ tests.addTest(options => {
                                 tester.input.withPlaceholder('Найти').expectToBeVisible();
                             });
                         });
-                        describe('Нажимаю на кнопку переключения на средний размер.', function() {
+                        xdescribe('Нажимаю на кнопку переключения на средний размер.', function() {
                             beforeEach(function() {
                                 tester.middleSizeButton.click();
                                 tester.middleSizeButton.click();
@@ -1293,7 +1293,7 @@ tests.addTest(options => {
                                 tester.largeSizeButton.expectNotToBePressed();
                             });
                         });
-                        describe('Получено обновление.', function() {
+                        xdescribe('Получено обновление.', function() {
                             beforeEach(function() {
                                 getPackage('electron').ipcRenderer.receiveMessage('update-downloaded');
                             });
@@ -1309,7 +1309,7 @@ tests.addTest(options => {
                                 tester.body.expectTextContentToHaveSubstring('Получено обновление');
                             });
                         });
-                        it(
+                        xit(
                             'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку "Выход". ' +
                             'Вхожу в софтфон заново. Удалось войти. Софтфон готов к работе.',
                         function() {
@@ -1378,7 +1378,7 @@ tests.addTest(options => {
                             tester.callStartingButton.expectNotToHaveAttribute('disabled');
                             tester.select.expectNotToExist();
                         });
-                        it('Сотрудник развернул софтфон. Софтфон открыт в большом размере.', function() {
+                        xit('Сотрудник развернул софтфон. Софтфон открыт в большом размере.', function() {
                             getPackage('electron').ipcRenderer.receiveMessage('maximize');
 
                             getPackage('electron').ipcRenderer.
@@ -1437,6 +1437,61 @@ tests.addTest(options => {
                             tester.middleSizeButton.expectNotToBePressed();
                             tester.largeSizeButton.expectToBePressed();
                         });
+                        it('Нажимаю на кнопку статистики в нижнем меню. Открыт раздел статистики.', function() {
+                            tester.callStatsButton.click();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('resize').
+                                expectToBeSentWithArguments({
+                                    width: 340,
+                                    height: 568
+                                });
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('maximize');
+
+                            const requests = ajax.inAnyOrder();
+
+                            const statsRequest = tester.statsRequest().
+                                expectToBeSent(requests);
+
+                            const accountRequest = tester.accountRequest().
+                                operatorWorkplaceAvailable().
+                                forChats().
+                                expectToBeSent(requests);
+
+                            const secondAccountRequest = tester.accountRequest().
+                                operatorWorkplaceAvailable().
+                                expectToBeSent(requests);
+
+                            requests.expectToBeSent();
+
+                            statsRequest.receiveResponse();
+                            accountRequest.receiveResponse();
+                            secondAccountRequest.receiveResponse();
+
+                            tester.offlineMessageCountersRequest().receiveResponse();
+                            tester.chatChannelListRequest().receiveResponse();
+                            tester.siteListRequest().receiveResponse();
+                            tester.markListRequest().receiveResponse();
+                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                            tester.offlineMessageListRequest().processing().receiveResponse();
+                            tester.offlineMessageListRequest().processed().receiveResponse();
+
+                            tester.countersRequest().receiveResponse();
+
+                            tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
+                            tester.callsHistoryButton.expectNotToBePressed();
+                            tester.callStatsButton.expectToBePressed();
+                        });
+                        return;
                         it(
                             'Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.',
                         function() {
@@ -1467,6 +1522,7 @@ tests.addTest(options => {
                             tester.phoneField.expectNotToBeFocused();
                             tester.collapsednessToggleButton.expectNotToExist();
 
+                            tester.callStatsButton.expectNotToBePressed();
                             tester.bugButton.expectNotToExist();
                             tester.smallSizeButton.expectToBePressed();
                             tester.middleSizeButton.expectNotToBePressed();
@@ -1482,6 +1538,7 @@ tests.addTest(options => {
                             }
                         });
                     });
+                    return;
                     it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
                         authenticatedUserRequest.sipIsOffline().receiveResponse();
                         tester.userName.click();
@@ -1489,6 +1546,7 @@ tests.addTest(options => {
                         tester.statusesList.item('Не беспокоить').expectToBeSelected();
                     });
                 });
+                return;
                 it('Не удалось авторизоваться в софтфоне.', function() {
                     authCheckRequest.invalidToken().receiveResponse();
                     tester.userLogoutRequest().receiveResponse();
@@ -1506,6 +1564,7 @@ tests.addTest(options => {
                     tester.button('Войти').expectToBeVisible();
                 });
             });
+            return;
             it(
                 'Используется английский язык. Открываю список номеров. Плейсхолдер поля поиска локализован.',
             function() {
@@ -1592,6 +1651,7 @@ tests.addTest(options => {
                 tester.button('Войти').expectToBeVisible();
             });
         });
+        return;
         describe(
             'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
         function() {
