@@ -168,6 +168,7 @@ define(() => function ({
     };
 
     me.callStatsButton = createBottomButtonTester('.cmg-call-stats-button');
+    me.chatsButton = createBottomButtonTester('.cmg-chats-button');
     me.callsHistoryButton = createBottomButtonTester('.cmg-calls-history-button');
     me.settingsButton = createBottomButtonTester('.cmg-settings-button');
 
@@ -11689,10 +11690,27 @@ define(() => function ({
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
 
     me.collapsednessToggleButton = (() => {
-        const tester = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg');
+        const tester = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg'),
+            buttonTester = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button');
 
         const click = tester.click.bind(tester);
         tester.click = () => (click(), spendTime(0), spendTime(0));
+
+        tester.expectToBeExpanded = () => buttonTester.expectToHaveClass('cmg-expanded');
+        tester.expectToBeCollapsed = () => buttonTester.expectNotToHaveClass('cmg-expanded');
+
+        return tester;
+    })();
+
+    me.maximizednessButton = (() => {
+        const tester = testersFactory.createDomElementTester('.cmg-maximization-button svg'),
+            buttonTester = testersFactory.createDomElementTester('.cmg-maximization-button');
+
+        const click = tester.click.bind(tester);
+        tester.click = () => (click(), spendTime(0), spendTime(0));
+
+        tester.expectToBeMaximized = () => buttonTester.expectToHaveClass('cmg-maximized');
+        tester.expectToBeUnmaximized = () => buttonTester.expectNotToHaveClass('cmg-maximized');
 
         return tester;
     })();

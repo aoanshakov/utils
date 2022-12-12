@@ -101,7 +101,7 @@ tests.addTest(options => {
                             authenticatedUserRequest.receiveResponse();
                         });
 
-                        xdescribe('Нажимаю на кнопку настроек.', function() {
+                        describe('Нажимаю на кнопку настроек.', function() {
                             beforeEach(function() {
                                 tester.settingsButton.click();
 
@@ -152,51 +152,6 @@ tests.addTest(options => {
                                     tester.button('Запускать свернуто').expectToBeEnabled();
                                     tester.button('Запускать свернуто').expectNotToBeChecked();
                                 });
-                            });
-                            it('Нажимаю на кнопку большого размера. Отображен диалпад.', function() {
-                                tester.largeSizeButton.click();
-
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('maximize');
-
-                                const requests = ajax.inAnyOrder();
-
-                                const statsRequest = tester.statsRequest().
-                                    expectToBeSent(requests);
-
-                                const accountRequest = tester.accountRequest().
-                                    operatorWorkplaceAvailable().
-                                    forChats().
-                                    expectToBeSent(requests);
-
-                                const secondAccountRequest = tester.accountRequest().
-                                    operatorWorkplaceAvailable().
-                                    expectToBeSent(requests);
-
-                                requests.expectToBeSent();
-
-                                statsRequest.receiveResponse();
-                                accountRequest.receiveResponse();
-                                secondAccountRequest.receiveResponse();
-
-                                tester.offlineMessageCountersRequest().receiveResponse();
-                                tester.chatChannelListRequest().receiveResponse();
-                                tester.siteListRequest().receiveResponse();
-                                tester.markListRequest().receiveResponse();
-                                tester.chatChannelTypeListRequest().receiveResponse();
-
-                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                tester.offlineMessageListRequest().processing().receiveResponse();
-                                tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                tester.countersRequest().receiveResponse();
-
-                                tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
-
-                                tester.dialpadButton(1).expectToBeVisible();;
                             });
                             it(
                                 'Отмечаю свитчбокс "Автозапуск приложения". Отправлено сообщение о ' +
@@ -285,9 +240,12 @@ tests.addTest(options => {
 
                                 tester.button('Запускать свернуто').expectNotToBeChecked();
                                 tester.button('Запускать свернуто').expectToBeDisabled();
+
+                                tester.maximizednessButton.expectToBeUnmaximized();
+                                tester.collapsednessToggleButton.expectToBeExpanded();
                             });
                         });
-                        xdescribe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
+                        describe('Поступает входящий звонок от пользователя имеющего открытые сделки.', function() {
                             let incomingCall;
 
                             beforeEach(function() {
@@ -388,9 +346,9 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        xdescribe('Нажимаю на кнопку переключения на большой размер.', function() {
+                        describe('Нажимаю на кнопку максимизации.', function() {
                             beforeEach(function() {
-                                tester.largeSizeButton.click();
+                                tester.maximizednessButton.click();
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
@@ -441,99 +399,36 @@ tests.addTest(options => {
                                 tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
                             });
 
-                            describe('Нажимаю на кнопку переключения на большой размер.', function() {
+                            describe('Нажимаю на кнопку максимизации.', function() {
                                 beforeEach(function() {
-                                    tester.largeSizeButton.click();
-                                });
-
-                                describe('Нажимаю на кнопку переключения на маленький размер.', function() {
-                                    beforeEach(function() {
-                                        tester.smallSizeButton.click();
-
-                                        getPackage('electron').ipcRenderer.
-                                            recentlySentMessage().
-                                            expectToBeSentToChannel('resize').
-                                            expectToBeSentWithArguments({
-                                                width: 340,
-                                                height: 212
-                                            });
-
-                                        getPackage('electron').ipcRenderer.
-                                            recentlySentMessage().
-                                            expectToBeSentToChannel('unmaximize');
-                                    });
-
-                                    it(
-                                        'Нажимаю на кнопку переключения на маленький размер. Диалпад скрыт.',
-                                    function() {
-                                        tester.smallSizeButton.click();
-
-                                        tester.smallSizeButton.expectToBePressed();
-                                        tester.middleSizeButton.expectNotToBePressed();
-                                        tester.largeSizeButton.expectNotToBePressed();
-                                    });
-                                    it('Диалпад скрыт.', function() {
-                                        tester.smallSizeButton.expectToBePressed();
-                                        tester.middleSizeButton.expectNotToBePressed();
-                                        tester.largeSizeButton.expectNotToBePressed();
-
-                                        if (localStorage.getItem('isLarge') === 'true') {
-                                            throw new Error(
-                                                'В локальном хранилище должна быть сохранена ' +
-                                                'развернутость софтфона.'
-                                            );
-                                        }
-                                    });
-                                });
-                                describe('Нажимаю на кнопку переключения на средний размер.', function() {
-                                    beforeEach(function() {
-                                        tester.middleSizeButton.click();
-
-                                        getPackage('electron').ipcRenderer.
-                                            recentlySentMessage().
-                                            expectToBeSentToChannel('unmaximize');
-                                    });
-
-                                    it(
-                                        'Нажимаю на кнопку переключения на средний размер. Отображен диалпад.',
-                                    function() {
-                                        tester.middleSizeButton.click();
-
-                                        tester.dialpadButton(1).expectToBeVisible();;
-
-                                        tester.smallSizeButton.expectNotToBePressed();
-                                        tester.middleSizeButton.expectToBePressed();
-                                        tester.largeSizeButton.expectNotToBePressed();
-                                    });
-                                    it('Отображен диалпад.', function() {
-                                        tester.smallSizeButton.expectNotToBePressed();
-                                        tester.middleSizeButton.expectToBePressed();
-                                        tester.largeSizeButton.expectNotToBePressed();
-                                    });
-                                });
-                                it(
-                                    'Получено сообщение о минимизации. Софтфон открыт в среднем размере.',
-                                function() {
-                                    getPackage('electron').ipcRenderer.receiveMessage('unmaximize');
+                                    tester.maximizednessButton.click();
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
                                         expectToBeSentToChannel('unmaximize');
-
-                                    tester.settingsButton.expectToBeEnabled();
-                                    tester.callsHistoryButton.expectToBeEnabled();
-                                    tester.softphone.userName.expectToBeEnabled();
-
-                                    tester.smallSizeButton.expectNotToBePressed();
-                                    tester.middleSizeButton.expectToBePressed();
-                                    tester.largeSizeButton.expectNotToBePressed();
                                 });
-                                it('Отображен диалпад.', function() {
-                                    tester.dialpadButton(1).expectToBeVisible();;
 
-                                    tester.smallSizeButton.expectNotToBePressed();
-                                    tester.middleSizeButton.expectNotToBePressed();
-                                    tester.largeSizeButton.expectToBePressed();
+                                it('Нажимаю на кнопку свернутости. Софтфон свернут.', function() {
+                                    tester.collapsednessToggleButton.click();
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
+                                        expectToBeSentToChannel('resize').
+                                        expectToBeSentWithArguments({
+                                            width: 340,
+                                            height: 212
+                                        });
+
+                                    tester.maximizednessButton.expectToBeUnmaximized();
+                                    tester.collapsednessToggleButton.expectToBeCollapsed();
+
+                                    tester.dialpadButton(1).expectNotToExist();
+                                });
+                                it('Софтфон не максимизирован.', function() {
+                                    tester.maximizednessButton.expectToBeUnmaximized();
+                                    tester.collapsednessToggleButton.expectToBeExpanded();
+
+                                    tester.dialpadButton(1).expectToBeVisible();
                                 });
                             });
                             describe('Нажимаю на кнопку "Настройки".', function() {
@@ -554,7 +449,7 @@ tests.addTest(options => {
                                     spendTime(2000);
                                     tester.webrtcWebsocket.finishDisconnecting();
 
-                                    tester.dialpadButton(1).expectToBeVisible();;
+                                    tester.dialpadButton(1).expectToBeVisible();
 
                                     tester.button('Текущее устройство').expectNotToBeChecked();
                                     tester.button('IP-телефон').expectToBeChecked();
@@ -699,9 +594,10 @@ tests.addTest(options => {
                             it('Получено сообщение о максимизации. Ничего не происходит.', function() {
                                 getPackage('electron').ipcRenderer.receiveMessage('maximize');
 
-                                tester.smallSizeButton.expectNotToBePressed();
-                                tester.middleSizeButton.expectNotToBePressed();
-                                tester.largeSizeButton.expectToBePressed();
+                                tester.maximizednessButton.expectToBeMaximized();
+                                tester.collapsednessToggleButton.expectToBeExpanded();
+
+                                tester.dialpadButton(1).expectToBeVisible();
                             });
                             it('Нажимаю на кнопку "Контакты". Отображена таблица контактов.', function() {
                                 tester.button('Контакты').click();
@@ -843,13 +739,25 @@ tests.addTest(options => {
 
                                 tester.leftMenu.expectToBeVisible();
                             });
-                            it('Нажимаю на кнопку истории звонков.', function() {
-                                tester.callsHistoryButton.click();
+                            describe('Нажимаю на кнопку истории звонков.', function() {
+                                beforeEach(function() {
+                                    tester.callsHistoryButton.click();
 
-                                tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
-                                tester.marksRequest().receiveResponse();
+                                    tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+                                    tester.marksRequest().receiveResponse();
+                                });
 
-                                tester.callsHistoryButton.expectToBePressed();
+                                it('Нажимаю на кнопку статистики в нижнем меню. Открыт раздел статистики.', function() {
+                                    tester.callStatsButton.click();
+                                    tester.statsRequest().receiveResponse();
+
+                                    tester.callsHistoryButton.expectNotToBePressed();
+                                    tester.callStatsButton.expectToBePressed();
+                                });
+                                it('Открыт раздел истории звонков.', function() {
+                                    tester.callsHistoryButton.expectToBePressed();
+                                    tester.callStatsButton.expectNotToBePressed();
+                                });
                             });
                             it('Отображен большой софтфон.', function() {
                                 tester.button('99+ Чаты').expectNotToBePressed();
@@ -858,7 +766,7 @@ tests.addTest(options => {
                                 tester.button('История звонков').expectNotToBePressed();
                                 tester.button('Настройки').expectNotToBePressed();
 
-                                tester.dialpadButton(1).expectToBeVisible();;
+                                tester.dialpadButton(1).expectToBeVisible();
 
                                 tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
                                 tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-pressed');
@@ -867,9 +775,8 @@ tests.addTest(options => {
                                 tester.softphone.userName.expectToBeDisabled();
 
                                 tester.callsHistoryButton.expectNotToBePressed();
-                                tester.smallSizeButton.expectNotToBePressed();
-                                tester.middleSizeButton.expectNotToBePressed();
-                                tester.largeSizeButton.expectToBePressed();
+                                tester.maximizednessButton.expectToBeMaximized();
+                                tester.collapsednessToggleButton.expectToBeExpanded();
 
                                 if (localStorage.getItem('isLarge') !== 'true') {
                                     throw new Error(
@@ -878,7 +785,7 @@ tests.addTest(options => {
                                 }
                             });
                         });
-                        xdescribe('Открываю историю звонков.', function() {
+                        describe('Открываю историю звонков.', function() {
                             let callsRequest;
 
                             beforeEach(function() {
@@ -932,7 +839,7 @@ tests.addTest(options => {
                                 tester.spin.expectToBeVisible();
                             });
                         });
-                        xdescribe('Раскрываю список статусов.', function() {
+                        describe('Раскрываю список статусов.', function() {
                             beforeEach(function() {
                                 tester.userName.click();
                             });
@@ -1009,7 +916,7 @@ tests.addTest(options => {
                                 tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                             });
                         });
-                        xdescribe('Открываю таблицу сотрудников. Токен истек.', function() {
+                        describe('Открываю таблицу сотрудников. Токен истек.', function() {
                             let refreshRequest;
 
                             beforeEach(function() {
@@ -1111,7 +1018,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        xdescribe(
+                        describe(
                             'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок.',
                         function() {
                             beforeEach(function() {
@@ -1146,7 +1053,7 @@ tests.addTest(options => {
                             });
 
                             it('Нажимаю на кнопку большого размера.', function() {
-                                tester.largeSizeButton.click();
+                                tester.maximizednessButton.click();
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
@@ -1213,7 +1120,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        xdescribe('Открываю список номеров.', function() {
+                        describe('Открываю список номеров.', function() {
                             beforeEach(function() {
                                 windowSize.setHeight(212);
 
@@ -1255,45 +1162,23 @@ tests.addTest(options => {
                                 tester.input.withPlaceholder('Найти').expectToBeVisible();
                             });
                         });
-                        xdescribe('Нажимаю на кнопку переключения на средний размер.', function() {
-                            beforeEach(function() {
-                                tester.middleSizeButton.click();
-                                tester.middleSizeButton.click();
+                        it('Нажимаю на кнопку развернутости. Софтфон развернут.', function() {
+                            tester.collapsednessToggleButton.click();
 
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('resize').
-                                    expectToBeSentWithArguments({
-                                        width: 340,
-                                        height: 568
-                                    });
-                            });
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('resize').
+                                expectToBeSentWithArguments({
+                                    width: 340,
+                                    height: 568
+                                });
 
-                            it('Нажимаю на кнопку переключения на маленький размер. Диалпад скрыт.', function() {
-                                tester.smallSizeButton.click();
-                                tester.smallSizeButton.click();
+                            tester.maximizednessButton.expectToBeUnmaximized();
+                            tester.collapsednessToggleButton.expectToBeExpanded();
 
-                                getPackage('electron').ipcRenderer.
-                                    recentlySentMessage().
-                                    expectToBeSentToChannel('resize').
-                                    expectToBeSentWithArguments({
-                                        width: 340,
-                                        height: 212
-                                    });
-
-                                tester.smallSizeButton.expectToBePressed();
-                                tester.middleSizeButton.expectNotToBePressed();
-                                tester.largeSizeButton.expectNotToBePressed();
-                            });
-                            it('Отображен диалпад.', function() {
-                                tester.dialpadButton(1).expectToBeVisible();;
-
-                                tester.smallSizeButton.expectNotToBePressed();
-                                tester.middleSizeButton.expectToBePressed();
-                                tester.largeSizeButton.expectNotToBePressed();
-                            });
+                            tester.dialpadButton(1).expectToBeVisible();
                         });
-                        xdescribe('Получено обновление.', function() {
+                        describe('Получено обновление.', function() {
                             beforeEach(function() {
                                 getPackage('electron').ipcRenderer.receiveMessage('update-downloaded');
                             });
@@ -1309,7 +1194,7 @@ tests.addTest(options => {
                                 tester.body.expectTextContentToHaveSubstring('Получено обновление');
                             });
                         });
-                        xit(
+                        it(
                             'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку "Выход". ' +
                             'Вхожу в софтфон заново. Удалось войти. Софтфон готов к работе.',
                         function() {
@@ -1378,7 +1263,7 @@ tests.addTest(options => {
                             tester.callStartingButton.expectNotToHaveAttribute('disabled');
                             tester.select.expectNotToExist();
                         });
-                        xit('Сотрудник развернул софтфон. Софтфон открыт в большом размере.', function() {
+                        it('Сотрудник развернул софтфон. Софтфон открыт в большом размере.', function() {
                             getPackage('electron').ipcRenderer.receiveMessage('maximize');
 
                             getPackage('electron').ipcRenderer.
@@ -1429,16 +1314,13 @@ tests.addTest(options => {
                             tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
                             tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
-                            tester.settingsButton.expectToBeDisabled();
-                            tester.callsHistoryButton.expectToBeDisabled();
-                            tester.softphone.userName.expectToBeDisabled();
+                            tester.maximizednessButton.expectToBeMaximized();
+                            tester.collapsednessToggleButton.expectToBeExpanded();
 
-                            tester.smallSizeButton.expectNotToBePressed();
-                            tester.middleSizeButton.expectNotToBePressed();
-                            tester.largeSizeButton.expectToBePressed();
+                            tester.dialpadButton(1).expectToBeVisible();
                         });
-                        it('Нажимаю на кнопку статистики в нижнем меню. Открыт раздел статистики.', function() {
-                            tester.callStatsButton.click();
+                        it('Нажимаю на кнопку чатов в нижнем меню. Открыт раздел чатов.', function() {
+                            tester.chatsButton.click();
 
                             getPackage('electron').ipcRenderer.
                                 recentlySentMessage().
@@ -1451,11 +1333,15 @@ tests.addTest(options => {
                             getPackage('electron').ipcRenderer.
                                 recentlySentMessage().
                                 expectToBeSentToChannel('maximize');
+                            
+                            tester.chatChannelListRequest().receiveResponse();
+                            tester.statusListRequest().receiveResponse();
+                            tester.listRequest().receiveResponse();
+                            tester.siteListRequest().receiveResponse();
+                            tester.messageTemplateListRequest().receiveResponse();
 
-                            const requests = ajax.inAnyOrder();
-
-                            const statsRequest = tester.statsRequest().
-                                expectToBeSent(requests);
+                            const requests = ajax.inAnyOrder(),
+                                chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
 
                             const accountRequest = tester.accountRequest().
                                 operatorWorkplaceAvailable().
@@ -1464,13 +1350,22 @@ tests.addTest(options => {
 
                             const secondAccountRequest = tester.accountRequest().
                                 operatorWorkplaceAvailable().
+                                forChats().
+                                expectToBeSent(requests);
+
+                            const thirdAccountRequest = tester.accountRequest().
+                                operatorWorkplaceAvailable().
                                 expectToBeSent(requests);
 
                             requests.expectToBeSent();
 
-                            statsRequest.receiveResponse();
                             accountRequest.receiveResponse();
                             secondAccountRequest.receiveResponse();
+                            thirdAccountRequest.receiveResponse();
+                            chatSettingsRequest.receiveResponse();
+
+                            tester.chatsWebSocket.connect();
+                            tester.chatsInitMessage().expectToBeSent();
 
                             tester.offlineMessageCountersRequest().receiveResponse();
                             tester.chatChannelListRequest().receiveResponse();
@@ -1487,11 +1382,7 @@ tests.addTest(options => {
                             tester.chatListRequest().forCurrentEmployee().receiveResponse();
                             tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
                             tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
-
-                            tester.callsHistoryButton.expectNotToBePressed();
-                            tester.callStatsButton.expectToBePressed();
                         });
-                        return;
                         it(
                             'Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.',
                         function() {
@@ -1520,13 +1411,11 @@ tests.addTest(options => {
                         });
                         it('Некие сообщения выведены в лог.', function() {
                             tester.phoneField.expectNotToBeFocused();
-                            tester.collapsednessToggleButton.expectNotToExist();
 
-                            tester.callStatsButton.expectNotToBePressed();
                             tester.bugButton.expectNotToExist();
-                            tester.smallSizeButton.expectToBePressed();
-                            tester.middleSizeButton.expectNotToBePressed();
-                            tester.largeSizeButton.expectNotToBePressed();
+                            tester.chatsButton.expectNotToBePressed();
+                            tester.collapsednessToggleButton.expectToBeCollapsed();
+                            tester.maximizednessButton.expectToBeUnmaximized();
 
                             getPackage('electron-log').expectToContain('State changed');
                             getPackage('electron-log').expectToContain('$REACT_APP_AUTH_URL');
@@ -1538,7 +1427,6 @@ tests.addTest(options => {
                             }
                         });
                     });
-                    return;
                     it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
                         authenticatedUserRequest.sipIsOffline().receiveResponse();
                         tester.userName.click();
@@ -1546,7 +1434,6 @@ tests.addTest(options => {
                         tester.statusesList.item('Не беспокоить').expectToBeSelected();
                     });
                 });
-                return;
                 it('Не удалось авторизоваться в софтфоне.', function() {
                     authCheckRequest.invalidToken().receiveResponse();
                     tester.userLogoutRequest().receiveResponse();
@@ -1564,7 +1451,6 @@ tests.addTest(options => {
                     tester.button('Войти').expectToBeVisible();
                 });
             });
-            return;
             it(
                 'Используется английский язык. Открываю список номеров. Плейсхолдер поля поиска локализован.',
             function() {
@@ -1598,7 +1484,7 @@ tests.addTest(options => {
                 
                 tester.input.withPlaceholder('Find').expectToBeVisible();
             });
-            it('Большой софтфон недоступен. Кнопки размеров не отображены.', function() {
+            it('Большой софтфон недоступен. Кнопка максимизации скрыта.', function() {
                 accountRequest.operatorWorkplaceAvailable().largeSoftphoneFeatureFlagDisabled().receiveResponse();
                 tester.authCheckRequest().receiveResponse();
 
@@ -1627,10 +1513,7 @@ tests.addTest(options => {
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 tester.collapsednessToggleButton.expectToBeVisible();
-
-                tester.smallSizeButton.expectNotToExist();
-                tester.middleSizeButton.expectNotToExist();
-                tester.largeSizeButton.expectNotToExist();
+                tester.maximizednessButton.expectNotToExist();
             });
             it('Софтфон недоступен. Отображена форма аутентификации.', function() {
                 accountRequest.
@@ -1651,7 +1534,6 @@ tests.addTest(options => {
                 tester.button('Войти').expectToBeVisible();
             });
         });
-        return;
         describe(
             'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
         function() {
@@ -2207,7 +2089,7 @@ tests.addTest(options => {
             tester.authenticatedUserRequest().receiveResponse();
             tester.registrationRequest().desktopSoftphone().receiveResponse();
 
-            tester.dialpadButton(1).expectToBeVisible();;
+            tester.dialpadButton(1).expectToBeVisible();
         });
     });
 });
