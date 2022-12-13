@@ -164,6 +164,8 @@ define(() => function ({
         tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-button-disabled');
         tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cmg-button-disabled');
 
+        tester.indicator = tester.findElement('.cmg-indicator');
+
         return tester;
     };
 
@@ -1408,6 +1410,11 @@ define(() => function ({
                 return this;
             },
 
+            thirdChat() {
+                params.chat_id = 2718940;
+                return this;
+            },
+
             anotherMessage() {
                 params.message_id = 482057;
                 return this;
@@ -1716,10 +1723,33 @@ define(() => function ({
                 return this;
             },
 
-            receive: () => me.chatsWebSocket.receive(JSON.stringify({
-                method: 'new_message',
-                params 
-            }))
+            receive: () => {
+                me.chatsWebSocket.receive(JSON.stringify({
+                    method: 'new_message',
+                    params 
+                }));
+
+                spendTime(0);
+            } 
+        };
+    };
+
+    me.statusChangedMessage = () => {
+        const params = {
+            chat_id: 2718935,
+            status: 'read',
+            message_id: 256085,
+        };
+
+        return {
+            receive: () => {
+                me.chatsWebSocket.receive(JSON.stringify({
+                    method: 'message_status_changed',
+                    params 
+                }));
+
+                spendTime(0);
+            } 
         };
     };
 
@@ -3504,6 +3534,11 @@ define(() => function ({
     me.chatListRequest = () => {
         let total = 75;
 
+        const totals = {
+            active_chat_count: total,
+            new_chat_count: total,
+        };
+
         let respond = (request, data) => {
             request.respondSuccessfullyWith({
                 result: {data} 
@@ -3613,6 +3648,24 @@ define(() => function ({
         }));
         
         function addResponseModifiers (me) {
+            me.fewUnreadMessages = () => {
+                totals.new_chat_count = 5;
+                totals.active_with_unread_count = 3;
+                totals.active_chat_count = 4;
+                totals.closed_chat_count = 2;
+
+                return me;
+            };
+
+            me.noUnreadMessages = () => {
+                totals.new_chat_count = 0;
+                totals.active_with_unread_count = 0;
+                totals.active_chat_count = 4;
+                totals.closed_chat_count = 2;
+
+                return me;
+            };
+
             me.failed = () => {
                 respond = request => request.respondSuccessfullyWith({
                     "result": null,
@@ -3628,6 +3681,17 @@ define(() => function ({
 
                 return me;
             };
+
+            me.noData = () => (processors.push(data => {
+                data.active_chat_count = 0;
+                data.new_chat_count = 0;
+                data.chats = [];
+            }), me);
+
+            me.count = count => (getData = () => getAdditionalData({
+                count,
+                skipCount: 0
+            }), me);
 
             me.whatsapp = () => (processors.push(data => (data.chats[0].chat_channel_type = 'whatsapp')), me);
 
@@ -3712,6 +3776,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            anyScrollFromDate() {
+                delete(params.scroll_from_date);
+                return this;
+            },
+
             isOtherEmployeesAppeals() {
                 params.is_other_employees_appeals = true;
                 return this;
@@ -3823,8 +3892,7 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse() {
                         const data = {
-                            active_chat_count: total,
-                            new_chat_count: total,
+                            ...totals,
                             chats: getData()
                         };
 
@@ -3926,8 +3994,40 @@ define(() => function ({
     });
 
     me.countersRequest = () => {
-        let total = 75;
-        const addResponseModifiers = me => (me.singlePage = () => ((total = 30), me), me);
+        const data = {
+            new_chat_count: 75,
+            active_chat_count: 75,
+            active_with_unread_count: 75,
+            closed_chat_count: 75
+        };
+
+        const processors = [];
+
+        const addResponseModifiers = me => {
+            me.singlePage = () => (Object.keys(data).forEach(name => (data[name] = 30)), me);
+            me.newMessage = () => (processors.push(() => (data.active_with_unread_count ++)), me);
+            me.readMessage = () => (processors.push(() => (data.active_with_unread_count --)), me);
+
+            me.fewUnreadMessages = () => {
+                data.new_chat_count = 5;
+                data.active_with_unread_count = 3;
+                data.active_chat_count = 4;
+                data.closed_chat_count = 2;
+
+                return me;
+            };
+
+            me.noUnreadMessages = () => {
+                data.new_chat_count = 0;
+                data.active_with_unread_count = 0;
+                data.active_chat_count = 4;
+                data.closed_chat_count = 2;
+
+                return me;
+            };
+
+            return me;
+        };
 
         return addResponseModifiers({
             expectToBeSent(requests) {
@@ -3940,15 +4040,10 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
+                        processors.forEach(process => process());
+
                         request.respondSuccessfullyWith({
-                            result: {
-                                data: {
-                                    new_chat_count: total,
-                                    active_chat_count: total,
-                                    active_with_unread_count: total,
-                                    closed_chat_count: total
-                                }
-                            }
+                            result: {data}
                         });
 
                         Promise.runAll(false, true);

@@ -6194,7 +6194,7 @@ function JsTester_DomElement (
     };
     this.findElement = function (selector) {
         return testersFactory.createDomElementTester(
-            (getDomElement() || new JsTester_NoElement()).querySelector(selector)
+            () => (getDomElement() || (new JsTester_NoElement())).querySelector(selector)
         );
     };
     this.findElementByTextContent = function (text) {
