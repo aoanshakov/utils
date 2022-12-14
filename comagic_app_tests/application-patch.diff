@@ -481,9 +481,18 @@ index 600884d5..5c894b3b 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 72e32e6f..31b614ff 100644
+index 72e32e6f..56362bbe 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
+@@ -122,7 +122,7 @@ export const RootStore = types
+         let requestsToRefresh: RequestToRefresh[] = [];
+         let isRefreshRequesting = false;
+         let subscriptionRemovers: Array<() => void> = [];
+-        const setSoftphoneVisible = value => (self.isSoftphoneVisible = value);
++        const toggleSoftphoneVisiblity = value => (self.isSoftphoneVisible = !self.isSoftphoneVisible);
+ 
+         const subscribe: (eventName: string, callback: CallableFunction) => void = (...args) =>
+             subscriptionRemovers.push(eventBus.subscribe(...args));
 @@ -237,7 +237,7 @@ export const RootStore = types
                  }
              );
@@ -493,15 +502,27 @@ index 72e32e6f..31b614ff 100644
                  response => {
                      logRequest({response});
  
-@@ -305,6 +305,7 @@ export const RootStore = types
-             subscribe('contact_opened', () => self.setSoftphoneVisible(false));
-             subscribe('contact_closed', () => self.setSoftphoneVisible(true));
+@@ -302,9 +302,7 @@ export const RootStore = types
+         const afterCreate = () => {
+             removeSubscriptions();
  
+-            subscribe('contact_opened', () => self.setSoftphoneVisible(false));
+-            subscribe('contact_closed', () => self.setSoftphoneVisible(true));
+-
 +            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -345,7 +346,8 @@ export type DependencyInjection = {
+@@ -334,7 +332,7 @@ export const RootStore = types
+             downloadLog,
+             handleLogsCollected,
+             setAppStore: store => setAppStore(store),
+-            setSoftphoneVisible
++            toggleSoftphoneVisiblity
+         };
+     });
+ 
+@@ -345,7 +343,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

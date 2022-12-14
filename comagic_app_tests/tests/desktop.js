@@ -634,48 +634,19 @@ tests.addTest(options => {
                                         tester.contactRequest().receiveResponse();
                                     });
 
-                                    it('Скрываю контакт. Софтфон видим.', function() {
-                                        tester.contactBar.title.closeButton.click();
-                                        tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
-
-                                        tester.contactBar.expectNotToExist();
-                                        tester.phoneField.expectToBeVisible();
-                                    });
                                     it('Нажимаю на кнопку "Контакты". Отображен список контактов.', function() {
                                         tester.button('Контакты').click();
-
                                         tester.contactsRequest().differentNames().receiveResponse();
-                                        tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
 
                                         tester.contactList.item('Балканска Берислава Силаговна').expectToBeVisible();
                                         tester.contactBar.expectNotToExist();
                                         tester.phoneField.expectToBeVisible();
                                     });
-                                    it('Поступил входящий звонок. Софтфон видим.', function() {
-                                        tester.incomingCall().receive();
-                                        tester.numaRequest().receiveResponse();
-
-                                        tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
-
-                                        getPackage('electron').ipcRenderer.
-                                            recentlySentMessage().
-                                            expectToBeSentToChannel('incoming-call').
-                                            expectToBeSentWithArguments(false);
-
-                                        tester.contactBar.expectNotToExist();
-
-                                        tester.softphone.expectTextContentToHaveSubstring(
-                                            '+7 (916) 123-45-67 ' +
-                                            'Поиск контакта...'
-                                        );
-                                    });
-                                    it('Отображен контакт. Софтфон скрыт.', function() {
+                                    it('Отображен контакт.', function() {
                                         tester.contactBar.expectTextContentToHaveSubstring(
                                             'ФИО ' +
                                             'Бележкова Грета Ервиновна'
                                         );
-
-                                        tester.phoneField.expectNotToExist();
                                     });
                                 });
                                 describe('Открываю раздел чатов.', function() {
@@ -932,6 +903,10 @@ tests.addTest(options => {
                                     tester.settingsButton.expectToBePressed();
                                     tester.callStatsButton.expectNotToBePressed();
                                     tester.callsHistoryButton.expectNotToBePressed();
+                                });
+                                it('Нажимаю на кнопку видимости. Софтфон скрыт.', function() {
+                                    tester.softphone.visibilityButton.click();
+                                    tester.dialpadButton(1).expectNotToExist();
                                 });
                                 it('Отображен большой софтфон.', function() {
                                     tester.button('99+ Чаты').expectNotToBePressed();
@@ -1779,6 +1754,7 @@ tests.addTest(options => {
                                 tester.bugButton.expectNotToExist();
                                 tester.chatsButton.expectNotToBePressed();
                                 tester.chatsButton.indicator.expectToBeVisible();
+                                tester.callsHistoryButton.indicator.expectNotToExist();
                                 tester.collapsednessToggleButton.expectToBeCollapsed();
                                 tester.maximizednessButton.expectToBeUnmaximized();
 

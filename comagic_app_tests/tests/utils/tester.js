@@ -1486,29 +1486,35 @@ define(() => function ({
         });
     };
 
-    me.offlineMessageCountersRequest = () => ({
-        expectToBeSent(requests) {
-            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/offline_message/counters');
+    me.offlineMessageCountersRequest = () => {
+        const data = {
+            new_message_count: 0,
+            active_message_count: 0,
+            closed_message_count: 0
+        };
 
-            return {
-                receiveResponse() {
-                    request.respondSuccessfullyWith({
-                        new_message_count: 0,
-                        active_message_count: 0,
-                        closed_message_count: 0
-                    });
+        const addResponseModifiers = me => ((me.newMessage = () => ((data.new_message_count ++), me)), me);
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                }
-            };
-        },
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/offline_message/counters');
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        }
-    });
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith(data);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.offlineMessageListRequest = () => {
         const data = {
@@ -11777,6 +11783,11 @@ define(() => function ({
 
         tester.expectToBeCollapsed = () => tester.expectToHaveHeight(212);
         tester.expectToBeExpanded = () => tester.expectToHaveHeight(568);
+
+        tester.visibilityButton = testersFactory.createDomElementTester('.cmg-softphone-visibility-button');
+
+        const click = tester.visibilityButton.click.bind(tester.visibilityButton);
+        tester.visibilityButton.click = () => (click(), spendTime(0));
 
         return tester;
     })(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());

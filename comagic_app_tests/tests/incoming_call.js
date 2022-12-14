@@ -786,8 +786,13 @@ tests.addTest(options => {
             });
             it('Звонок отменен. Рингтон не звучит.', function() {
                 incomingCall.receiveCancel();
-                tester.slavesNotification().available().userDataFetched().twoChannels().
-                    failed().expectToBeSent();
+                
+                tester.slavesNotification().
+                    available().
+                    userDataFetched().
+                    twoChannels().
+                    failed().
+                    expectToBeSent();
 
                 tester.expectNoSoundToPlay();
             });
