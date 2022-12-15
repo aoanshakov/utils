@@ -11486,6 +11486,17 @@ define(() => function ({
         return tester;
     })();
 
+    me.contactsButton = (() => {
+        const tester = testersFactory.createDomElementTester('#cmg-contacts-button'),
+            click = tester.click.bind(tester);
+
+        tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
+        tester.expectToBePressed = () => tester.expectToHaveClass('cmg-button-pressed');
+        tester.expectNotToBePressed = () => tester.expectNotToHaveClass('cmg-button-pressed');
+
+        return tester;
+    })();
+
     me.employeeRow = text => (domElement => {
         const tester = testersFactory.createDomElementTester(domElement);
 

@@ -76,10 +76,70 @@ index b1e30f9..70bc523 100644
    .@{p}chat-panel-quote {
      display: grid;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 5038f67..b518048 100644
+index 5038f67..de79a0f 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -116,7 +116,8 @@ export const RootStore = types
+@@ -49,7 +49,8 @@ export const RootStore = types
+         contactsIntegrationStore: types.optional(ContactsIntegraionStore, {}),
+     })
+     .actions(self => {
+-        let initialState: RootInstanceSnapshotOut;
++        let initialState: RootInstanceSnapshotOut,
++            isInitializing = false;
+ 
+         const afterCreate = () => {
+             self.contactsIntegrationStore.initListeners();
+@@ -71,22 +72,34 @@ export const RootStore = types
+         };
+ 
+         const init = async () => {
+-            await self.accountStore.fetchGetObjAccount();
+-            self.chatListStore.setCountersAreLoading(true);
+-            self.offlineMessagesStore.setCountersAreLoading(true);
++            if (isInitializing) {
++                return;
++            }
+ 
+-            await Promise.all([
+-                self.chatChannelsStore.fetchChatChannels(),
+-                self.sitesStore.fetchSites(),
+-                self.tagsStore.fetchTags(),
+-                self.chatListStore.fetchChatListItems(ChatListItemStatusEnum.new),
+-                self.chatListStore.fetchChatListItems(ChatListItemStatusEnum.active),
+-                self.chatListStore.fetchChatListItems(ChatListItemStatusEnum.closed),
+-                self.chatChannelTypesStore.fetchChannelTypes(),
+-                self.offlineMessagesStore.fetchOfflineMessages(OfflineMessageStatusEnum.new),
+-                self.offlineMessagesStore.fetchOfflineMessages(OfflineMessageStatusEnum.active),
+-                self.offlineMessagesStore.fetchOfflineMessages(OfflineMessageStatusEnum.closed),
+-            ]);
++            isInitializing = true;
++
++            try {
++                await self.accountStore.fetchGetObjAccount();
++                self.chatListStore.setCountersAreLoading(true);
++                self.offlineMessagesStore.setCountersAreLoading(true);
++
++                await Promise.all([
++                    self.chatChannelsStore.fetchChatChannels(),
++                    self.sitesStore.fetchSites(),
++                    self.tagsStore.fetchTags(),
++                    self.chatListStore.fetchChatListItems(ChatListItemStatusEnum.new),
++                    self.chatListStore.fetchChatListItems(ChatListItemStatusEnum.active),
++                    self.chatListStore.fetchChatListItems(ChatListItemStatusEnum.closed),
++                    self.chatChannelTypesStore.fetchChannelTypes(),
++                    self.offlineMessagesStore.fetchOfflineMessages(OfflineMessageStatusEnum.new),
++                    self.offlineMessagesStore.fetchOfflineMessages(OfflineMessageStatusEnum.active),
++                    self.offlineMessagesStore.fetchOfflineMessages(OfflineMessageStatusEnum.closed),
++                ]);
++            } catch (e) {
++                console.error(e);
++            } finally {
++                isInitializing = false;
++            }
+ 
+             // временно убрал, пока не докатили остальные изменения
+             // await Promise.all(
+@@ -116,7 +129,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
