@@ -31,6 +31,7 @@ tests.addTest(function(args) {
                 wait(10);
             });
 
+            /*
             describe('Открываю вкладку "Мультиворонки".', function() {
                 beforeEach(function() {
                     tester.tabPanel.tab('Мультиворонки').click();
@@ -180,6 +181,7 @@ tests.addTest(function(args) {
                     tester.form.combobox().withValue('Некая воронка').expectToBeVisible();
                 });
             });
+            */
             describe('Открываю вкладку "Чаты и заявки".', function() {
                 beforeEach(function() {
                     tester.tabPanel.tab('Чаты и заявки').click();
@@ -381,6 +383,7 @@ tests.addTest(function(args) {
                 });
             });
         });
+        /*
         describe(
             'Тип переадресации на ответственного сотрудника не определен. Открываю вкладку "Телефония".',
         function() {
@@ -571,6 +574,7 @@ tests.addTest(function(args) {
                 tester.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('15 мин');
             });
         });
+        */
         it('Шаблоны названий чатов и заявок не определены. Открываю вкладку "Чаты и заявки".', function() {
             tester.requestAmocrmData().noChatTemplate().noOfflineMessageTemplate().send();
             tester.requestTariffs().send();
@@ -636,6 +640,7 @@ tests.addTest(function(args) {
                     'Некий шаблон чата для задачи'
                 );
         });
+        /*
         it('Ввожу адрес портала. Нажимаю на кнопку "Сохранить". Настройки сохранены.', function() {
             tester.requestAmocrmData().send();
             tester.requestTariffs().send();
@@ -709,7 +714,9 @@ tests.addTest(function(args) {
             tester.form.radiofield().withBoxLabel('Из контакта').expectNotToBeChecked();
             tester.form.radiofield().withBoxLabel('Из сделки').expectToBeChecked();
         });
+        */
     });
+    /*
     describe(
         'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
         'Открыта вкладка "Доступ к данным".',
@@ -964,4 +971,5 @@ tests.addTest(function(args) {
         tester.form.combobox().withFieldLabel('Из какого поля передавать причину отказа').
             expectToHaveValue('Первое поле для категорий и причин, Четвертое поле для категорий и причин');
     });
+    */
 });

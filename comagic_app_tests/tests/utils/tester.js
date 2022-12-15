@@ -735,9 +735,15 @@ define(() => function ({
                 'active'
             ];
 
-            const menuItem = testersFactory.createDomElementTester(() => domElement.closest(
+
+            const getMenuItem = () => domElement.closest(
                 '.src-components-main-menu-nav-item-styles-module__item, .cm-chats--left-menu--item'
-            ));
+            );
+
+            const menuItem = testersFactory.createDomElementTester(getMenuItem);
+
+            tester.counter = testersFactory.createDomElementTester(() =>
+                getMenuItem().querySelector('.cm-chats--new-messages-count'));
 
             tester.expectToBePressed = () => menuItem.expectToHaveAnyOfClasses(menuItemSelectedClass);
             tester.expectNotToBePressed = () => menuItem.expectToHaveNoneOfClasses(menuItemSelectedClass);
@@ -2133,6 +2139,37 @@ define(() => function ({
         };
     };
 
+    me.lostCallsCountRequest = () => {
+        let data = 0;
+
+        const addResponseModifiers = me => {
+            me.newCall = () => ((data = 1), me);
+            return me
+        };
+
+        return addResponseModifiers({
+            expectToBeSent: (requests) => {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('/sup/api/v1/lost_calls_count').
+                    expectToHaveMethod('GET');
+
+                spendTime(0);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith({data});
+                        Promise.runAll(false, true);
+                        spendTime(0);
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.statsRequest = () => {
         const queryParams = {
             date_from: '2019-12-19T00:00:00.000+03:00',
@@ -2642,6 +2679,44 @@ define(() => function ({
 
             getMessage: () => createMessage(),
 
+            slavesNotification: () => {
+                const notification = {
+                    type: 'message',
+                    data: {
+                        type: 'notify_slaves',
+                        data: {
+                            type: 'websocket_message',
+                            message: createMessage()
+                        }
+                    }
+                };
+
+                return {
+                    expectToBeSent: () => me.recentCrosstabMessage().expectToContain(notification),
+                    receive: () => (me.receiveCrosstabMessage(notification), spendTime(0))
+                };
+            },
+
+            receive: () => {
+                me.eventsWebSocket.receiveMessage(createMessage());
+                spendTime(0);
+            } 
+        };
+    };
+
+    me.lostCallSessionEvent = () => {
+        const params = {
+            call_session_id: 980925456,
+            direction: 'in'
+        };
+
+        const createMessage = () => ({
+            name: 'lost_call_session',
+            type: 'event',
+            params
+        });
+
+        return {
             slavesNotification: () => {
                 const notification = {
                     type: 'message',

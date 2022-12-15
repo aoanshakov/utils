@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 4e095e2b..b7da5e9c 100644
+index 4e095e2b..0d39bb9e 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 4e095e2b..b7da5e9c 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -349,17 +419,128 @@ module.exports = {
+@@ -349,17 +419,130 @@ module.exports = {
                      },
                  ],
              },
@@ -212,6 +212,7 @@ index 4e095e2b..b7da5e9c 100644
 +            'softphone/Settings': 'softphone/src/Settings.tsx',
 +            'softphone/CallHistory': 'softphone/src/call_history/index.tsx',
 +            'softphone/CallStats': 'softphone/src/call_stats/index.tsx',
++            'softphone/LostCallsCount': 'softphone/src/call_history/counter.tsx',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
@@ -222,6 +223,7 @@ index 4e095e2b..b7da5e9c 100644
 +            'chats/QuoteWrapped': 'chats/src/components/chats/chat-panel/QuoteWrapped.tsx',
 +            'chats/HistoryItemWrapped': 'chats/src/components/offline-messages/panel/HistoryItemWrapped.tsx',
 +            'chats/Counter': 'chats/src/components/chats/chat-panel/Counter.tsx',
++            'chats/MenuItemCounter': 'chats/src/components/main/menu/counter.tsx',
 +            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
 +            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
 +            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,

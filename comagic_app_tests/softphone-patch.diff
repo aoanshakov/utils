@@ -45,10 +45,37 @@ index db2565a..95e8d85 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 1b45f14..9307cdd 100644
+index 1b45f14..c28ab5d 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -681,4 +681,5 @@ export const RootStore = types
+@@ -232,6 +232,7 @@ export const RootStore = types
+                     switch (action.type) {
+                         case AFTER_SET_SETTINGS:
+                             broadcast('settings_fetched', action.settings);
++                            self.callHistoryStore.fetchLostCallsCount();
+                             break;
+                         case BEFORE_TOGGLE_CALL_INFO_COLLAPSEDNESS:
+                             self.setNotLarge();
+@@ -243,6 +244,7 @@ export const RootStore = types
+                             const { data } = action;
+ 
+                             data.name == 'call_session_finished' && self.callHistoryStore.refreshData(500);
++                            data.name == 'lost_call_session' && self.callHistoryStore.incrementLostCallsCount();
+ 
+                             data.name == 'application_version_changed' &&
+                                 applicationChangeHandlers.forEach(handler => handler(data));
+@@ -381,6 +383,10 @@ export const RootStore = types
+                                 const callback = args[name] || (() => null);
+ 
+                                 args[name] = response => {
++                                    args.url == '/sup/api/v1/users/me/calls' &&
++                                        name == 'success' &&
++                                        self.callHistoryStore.resetLostCallsCount();
++
+                                     switch (response?.error?.mnemonic) {
+                                         case 'expired_token':
+                                             requests.push(action);
+@@ -681,4 +687,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
