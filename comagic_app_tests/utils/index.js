@@ -66,28 +66,30 @@ const {
     testsServerPid,
     femaleNames,
     contactList,
-    maleNames
+    maleNames,
+    testsEntripointSource,
+    testsEntripointTarget
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
     cdc = `cd ${chats} &&`,
     actions = {},
-    magicUiOverridenFiles = 'package.json',
+    packageJson = 'package.json',
+    magicUiOverridenFiles = packageJson,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
-    contactsOverridenFiles = 'package.json',
+    contactsOverridenFiles = packageJson,
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
 
 const coreOverridenFiles = 'package.json ' +
-    'src/models/notification/notification.ts';
+    'src/utils/cookie.ts';
 
 const chatOverridenFiles = 'src/models/RootStore.ts ' +
     'package.json ' +
     'src/App.tsx ' +
     'src/models/auth/AuthStore.ts ' +
     'src/models/account/AccountStore.ts ' +
-    'src/utils/index.tsx ' +
     'src/components/chats/chat-panel/styles.less';
 
 const analyticsOverridenFiles = 'src/models/RootStore.ts ' +
@@ -96,14 +98,12 @@ const analyticsOverridenFiles = 'src/models/RootStore.ts ' +
 
 const overridenFiles = [
     'scripts/dev.js',
-    'src/utils/cookie.ts',
     'public/index.html',
-    'src/bootstrap.tsx',
     'config/webpack.config.js',
     'package.json',
+    'src/history.ts',
     'src/models/RootStore.ts',
-    'src/models/auth/AuthStore.ts',
-    'src/rpc/httpRpc.ts'
+    'src/models/SoftphoneRootStore.ts',
 ].join(' ');
 
 actions['install-publisher'] = [`cd ${publisherDir} && npm install --verbose`];
@@ -255,8 +255,9 @@ actions['create-patch'] = params => getOverriding(params).reduce((result, {
 }) => result.concat(fs.existsSync(application) ? [
     `cd ${application} && git diff -- ${overridenFiles} > ${applicationPatch}`
 ] : []), []).concat([
-    `if [ -e ${shadowContentTsxTarget} ]; then cp ${shadowContentTsxTarget} ${shadowContentTsxSource}; fi`
-]);
+    [shadowContentTsxTarget, shadowContentTsxSource],
+    [testsEntripointTarget, testsEntripointSource]
+].map(([target, source]) => `if [ -e ${target} ]; then cp ${target} ${source}; fi`));
 
 actions['create-magic-ui-lib-patch'] = params => [
     `cd ${magicUi} && git diff -- ${magicUiOverridenFiles} > ${magicUiLibPatch}`
@@ -271,7 +272,9 @@ actions['restore-code'] = params => getOverriding(params).reduce((result, {
     `fi`,
 
     rmVerbose(shadowContentTsxTarget)
-]), []);
+]), []).concat([
+    rmVerbose(testsEntripointTarget)
+]);
 
 actions['modify-code'] = params => actions['restore-code']({}).
     concat(actions['restore-code']({dev: true})).
@@ -284,6 +287,7 @@ actions['modify-code'] = params => actions['restore-code']({}).
         `fi`
     ]), [])).
     concat([
+        `cp ${testsEntripointSource} ${testsEntripointTarget}`,
         `cp ${stub} ${misc}`,
         `cp ${shadowContentTsxSource} ${shadowContentTsxTarget}`
     ]).concat(actions['fix-permissions']);
@@ -358,7 +362,7 @@ actions['run-server'] = params => actions['initialize'](params).concat([
     `cp ${nginxConfig} /etc/nginx/nginx.conf`,
     'service nginx start',
     `node ${server} > ${testsServerLog} 2>&1 &`,
-    `${cda} npm run dev`
+    `${cda} npm run dev -- --entry ./src/tests.tsx`
 ]);
 
 const generateContactList = () => {
