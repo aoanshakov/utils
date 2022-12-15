@@ -45,10 +45,51 @@ index db2565a..95e8d85 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index c5bc336..c28ab5d 100644
+index c5bc336..e9c3300 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -687,4 +687,5 @@ export const RootStore = types
+@@ -86,7 +86,7 @@ export const RootStore = types
+     })
+     .views(self => ({
+         i18n: key => intlMessages(self.locale)[key],
+-        hasFeature: key => self.account.feature_flags.includes(key)
++        hasFeature: key => self.account.feature_flags.includes(key),
+     }))
+     .actions(self => {
+         let initialState: RootInstanceSnapshotOut,
+@@ -232,7 +232,6 @@ export const RootStore = types
+                     switch (action.type) {
+                         case AFTER_SET_SETTINGS:
+                             broadcast('settings_fetched', action.settings);
+-                            self.callHistoryStore.fetchLostCallsCount();
+                             break;
+                         case BEFORE_TOGGLE_CALL_INFO_COLLAPSEDNESS:
+                             self.setNotLarge();
+@@ -379,13 +378,19 @@ export const RootStore = types
+                         case INTERCEPT_REQUEST: {
+                             const { args, request } = action;
+ 
+-                            ['success', 'failure'].forEach(name => {
++                            [['success', response => {
++                                const url = (url => url[0] == '/' ? url : `/${url}`)(args.url);
++
++                                url == '/sup/api/v1/users/me/calls' &&
++                                    self.callHistoryStore.resetLostCallsCount();
++
++                                url == '/sup/api/v1/users/me' &&
++                                    self.callHistoryStore.setLostCallsCount(response.lost_calls_count);
++                            }], ['failure', () => null]].forEach(([name, additionalCallback]) => {
+                                 const callback = args[name] || (() => null);
+ 
+                                 args[name] = response => {
+-                                    args.url == '/sup/api/v1/users/me/calls' &&
+-                                        name == 'success' &&
+-                                        self.callHistoryStore.resetLostCallsCount();
++                                    additionalCallback(response);
+ 
+                                     switch (response?.error?.mnemonic) {
+                                         case 'expired_token':
+@@ -687,4 +692,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

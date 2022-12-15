@@ -95,8 +95,7 @@ tests.addTest(options => {
                     let authenticatedUserRequest,
                         registrationRequest,
                         callsRequest,
-                        marksRequest,
-                        lostCallsCountRequest;
+                        marksRequest;
 
                     beforeEach(function() {
                         permissionsRequest.receiveResponse();
@@ -119,7 +118,6 @@ tests.addTest(options => {
 
                         notificationTester.grantPermission();
 
-                        lostCallsCountRequest = tester.lostCallsCountRequest().expectToBeSent();
                         authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                         registrationRequest = tester.registrationRequest().expectToBeSent();
 
@@ -132,28 +130,26 @@ tests.addTest(options => {
                             microphoneAccessGranted().
                             expectToBeSent();
 
-                        authenticatedUserRequest.receiveResponse();
+                        registrationRequest.receiveResponse();
 
                         tester.slavesNotification().
                             twoChannels().
                             softphoneServerConnected().
                             webRTCServerConnected().
                             microphoneAccessGranted().
-                            userDataFetched().
-                            expectToBeSent();
-
-                        registrationRequest.receiveResponse();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            available().
-                            userDataFetched().
+                            registered().
                             expectToBeSent();
                     });
                     
                     describe('Нет пропущенных звонков.', function() {
                         beforeEach(function() {
-                            lostCallsCountRequest.receiveResponse();
+                            authenticatedUserRequest.receiveResponse();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                available().
+                                userDataFetched().
+                                expectToBeSent();
                         });
 
                         describe('Открываю раздел "История звонков".', function() {
@@ -351,7 +347,6 @@ tests.addTest(options => {
                                                         webRTCServerConnected().
                                                         expectToBeSent();
 
-                                                    tester.lostCallsCountRequest().receiveResponse();
                                                     tester.authenticatedUserRequest().receiveResponse();
 
                                                     tester.slavesNotification().
@@ -1254,8 +1249,6 @@ tests.addTest(options => {
                                             shouldNotPlayCallEndingSignal().
                                             expectToBeSent();
 
-                                        tester.lostCallsCountRequest().receiveResponse();
-
                                         tester.table.expectTextContentToHaveSubstring(
                                             'Гяурова Марийка ' +
                                             'Позвонить'
@@ -1531,7 +1524,13 @@ tests.addTest(options => {
                     });
                     describe('Есть пропущенные звонки.', function() {
                         beforeEach(function() {
-                            lostCallsCountRequest.newCall().receiveResponse();
+                            authenticatedUserRequest.newCall().receiveResponse();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                available().
+                                userDataFetched().
+                                expectToBeSent();
                         });
 
                         it(
@@ -1597,7 +1596,6 @@ tests.addTest(options => {
                                 microphoneAccessGranted().
                                 expectToBeSent();
 
-                            tester.lostCallsCountRequest().receiveResponse();
                             tester.authenticatedUserRequest().receiveResponse();
 
                             tester.slavesNotification().
@@ -1663,7 +1661,6 @@ tests.addTest(options => {
                             microphoneAccessGranted().
                             expectToBeSent();
 
-                        tester.lostCallsCountRequest().receiveResponse();
                         tester.authenticatedUserRequest().receiveResponse();
 
                         tester.slavesNotification().
@@ -1708,7 +1705,6 @@ tests.addTest(options => {
                             microphoneAccessGranted().
                             expectToBeSent();
 
-                        tester.lostCallsCountRequest().receiveResponse();
                         tester.authenticatedUserRequest().receiveResponse();
 
                         tester.slavesNotification().
@@ -1775,7 +1771,6 @@ tests.addTest(options => {
                             microphoneAccessGranted().
                             expectToBeSent();
 
-                        tester.lostCallsCountRequest().receiveResponse();
                         tester.authenticatedUserRequest().receiveResponse();
 
                         tester.slavesNotification().
@@ -1844,7 +1839,6 @@ tests.addTest(options => {
                         microphoneAccessGranted().
                         expectToBeSent();
 
-                    tester.lostCallsCountRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.slavesNotification().
@@ -1890,7 +1884,6 @@ tests.addTest(options => {
                         microphoneAccessGranted().
                         expectToBeSent();
 
-                    tester.lostCallsCountRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.slavesNotification().
@@ -1934,7 +1927,6 @@ tests.addTest(options => {
                         microphoneAccessGranted().
                         expectToBeSent();
 
-                    tester.lostCallsCountRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.slavesNotification().
@@ -1978,7 +1970,6 @@ tests.addTest(options => {
                         microphoneAccessGranted().
                         expectToBeSent();
 
-                    tester.lostCallsCountRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.slavesNotification().
@@ -2025,7 +2016,6 @@ tests.addTest(options => {
 
                     notificationTester.grantPermission();
 
-                    tester.lostCallsCountRequest().receiveResponse();
                     authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                     registrationRequest = tester.registrationRequest().expectToBeSent();
 
@@ -2176,7 +2166,6 @@ tests.addTest(options => {
 
             notificationTester.grantPermission();
 
-            tester.lostCallsCountRequest().receiveResponse();
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
             registrationRequest = tester.registrationRequest().expectToBeSent();
 
@@ -2269,7 +2258,6 @@ tests.addTest(options => {
 
             notificationTester.grantPermission();
 
-            tester.lostCallsCountRequest().receiveResponse();
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
             registrationRequest = tester.registrationRequest().expectToBeSent();
 
@@ -2350,7 +2338,6 @@ tests.addTest(options => {
 
             notificationTester.grantPermission();
 
-            tester.lostCallsCountRequest().receiveResponse();
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
             registrationRequest = tester.registrationRequest().expectToBeSent();
 
@@ -2436,7 +2423,6 @@ tests.addTest(options => {
 
             notificationTester.grantPermission();
 
-            tester.lostCallsCountRequest().receiveResponse();
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
             registrationRequest = tester.registrationRequest().expectToBeSent();
 
@@ -2542,7 +2528,6 @@ tests.addTest(options => {
                 softphoneServerConnected().
                 expectToBeSent();
 
-            tester.lostCallsCountRequest().receiveResponse();
             tester.authenticatedUserRequest().receiveResponse();
 
             tester.slavesNotification().

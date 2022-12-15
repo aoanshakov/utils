@@ -97,7 +97,6 @@ tests.addTest(options => {
 
                 notificationTester.grantPermission();
 
-                tester.lostCallsCountRequest().receiveResponse();
                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                 registrationRequest = tester.registrationRequest().expectToBeSent();
 
@@ -194,7 +193,6 @@ tests.addTest(options => {
                                 tester.button('Сигнал о завершении звонка').click();
                                 tester.settingsUpdatingRequest().isNeedDisconnectSignal().receiveResponse();
                                 tester.settingsRequest().isNeedDisconnectSignal().receiveResponse();
-                                tester.lostCallsCountRequest().receiveResponse();
 
                                 tester.othersNotification().
                                     widgetStateUpdate().
@@ -220,7 +218,6 @@ tests.addTest(options => {
                                     expectToBeSent();
 
                                 ringtoneRequest = tester.ringtoneRequest().expectToBeSent();
-                                tester.lostCallsCountRequest().receiveResponse();
                             });
 
                             describe('Мелодия загружена.', function() {
@@ -388,7 +385,6 @@ tests.addTest(options => {
 
                         tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().receiveResponse();
                         tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
-                        tester.lostCallsCountRequest().receiveResponse();
 
                         tester.slavesNotification().
                             userDataFetched().
@@ -412,7 +408,6 @@ tests.addTest(options => {
                         
                         tester.settingsUpdatingRequest().receiveResponse();
                         tester.settingsRequest().dontTriggerScrollRecalculation().receiveResponse();
-                        tester.lostCallsCountRequest().receiveResponse();
 
                         tester.slavesNotification().
                             userDataFetched().
@@ -507,7 +502,6 @@ tests.addTest(options => {
 
             notificationTester.grantPermission();
 
-            tester.lostCallsCountRequest().receiveResponse();
             tester.authenticatedUserRequest().receiveResponse();
             tester.numberCapacityRequest().receiveResponse();
             reportGroupsRequest.receiveResponse();
@@ -642,7 +636,6 @@ tests.addTest(options => {
             tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                 expectToBeSent();
 
-            tester.lostCallsCountRequest().receiveResponse();
             tester.authenticatedUserRequest().receiveResponse();
             tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().
                 softphoneServerConnected().expectToBeSent();
@@ -711,7 +704,6 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.ringtoneRequest().third().receiveResponse();
-                        tester.lostCallsCountRequest().receiveResponse();
 
                         fileReader.accomplishFileLoading(tester.thirdRingtone);
 
@@ -766,7 +758,6 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.ringtoneRequest().third().receiveResponse();
-                tester.lostCallsCountRequest().receiveResponse();
  
                 fileReader.accomplishFileLoading(tester.thirdRingtone);
 
@@ -865,7 +856,6 @@ tests.addTest(options => {
         tester.connectSIPWebSocket();
         tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().expectToBeSent();
 
-        tester.lostCallsCountRequest().receiveResponse();
         tester.authenticatedUserRequest().receiveResponse();
         tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().softphoneServerConnected().
             expectToBeSent();
