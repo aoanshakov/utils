@@ -726,6 +726,7 @@ define(() => function ({
                 Promise.runAll(false, true);
                 spendTime(0);
                 spendTime(0);
+                spendTime(0);
             };
 
             const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked',

@@ -19,7 +19,8 @@ function EasystartBitrix(args) {
 
     easyStartApplicationState = {
         data: {
-            ext_id: 2
+            ext_id: 2,
+            domain: 'chigrakov.bitrix24.ru'
         },
         success: true,
         partner: 'bitrix',
