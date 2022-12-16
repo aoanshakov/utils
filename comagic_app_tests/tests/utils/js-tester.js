@@ -3442,6 +3442,10 @@ function JsTester_ResizeObserver () {
     this.disconnect = () => null;
 }
 
+function JsTester_ResizeObserverFactory (resizeObservables) {
+    return new JsTester_ResizeObserver();
+}
+
 function JsTester_DownloadPreventer () {
     const listener = event => event.target.tagName == 'A' &&
         event.target.getAttribute('download') &&
@@ -7378,6 +7382,9 @@ function JsTester_Tests (factory) {
         },
         set: function () {}
     }); 
+
+    const resizeObservables = new Map(),
+        createResizeObserver = new JsTester_ResizeObserverFactory(resizeObservables);
 
     Object.defineProperty(window, 'ResizeObserver', {
         get: function () {
