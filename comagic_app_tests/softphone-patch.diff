@@ -45,19 +45,10 @@ index db2565a..95e8d85 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d92b9fd..7341d21 100644
+index 8a1f822..2724e6d 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -439,7 +439,7 @@ export const RootStore = types
- 
-             removeSubscriptions();
- 
--            subscribe('root_resize', () => self.incrementResizeCount());
-+            //subscribe('root_resize', () => self.incrementResizeCount());
-             subscribe('outgoing_call', phoneNumber => call(phoneNumber));
-             subscribe('contacts_page_initialized', () => broadcast('settings_fetched', getState().softphone.settings));
- 
-@@ -696,4 +696,5 @@ export const RootStore = types
+@@ -695,4 +695,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
