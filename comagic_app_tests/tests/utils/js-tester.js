@@ -3436,14 +3436,54 @@ function JsTester_FocusSetter (setFocus) {
     }
 }
 
-function JsTester_ResizeObserver () {
-    this.observe = () => null;
-    this.unobserve = () => null;
-    this.disconnect = () => null;
+function JsTester_ResizeObserverTrigger (resizeObservables) {
+    return domElement => resizeObservables.has(domElement) &&
+        resizeObservables.get(domElement).forEach(callback => callback([{
+            contentRect: domElement.getClientRects()
+        }]));
+}
+
+function JsTester_ResizeObserver ({
+    callback,
+    resizeObservables
+}) {
+    const domElements = new Set();
+
+    this.observe = domElement => {
+        if (!domElement) {
+            return;
+        }
+
+        domElements.add(domElement);
+
+        !resizeObservables.has(domElement) && resizeObservables.set(domElement, new Set());
+        resizeObservables.get(domElement).add(callback);
+    };
+
+    this.unobserve = domElement => {
+        if (!domElement) {
+            return;
+        }
+
+        resizeObservables.has(domElement) && resizeObservables.get(domElement).delete(callback);
+    };
+
+    this.disconnect = () => {
+        domElements.forEach(domElement =>
+            resizeObservables.has(domElement) &&
+            resizeObservables.get(domElement).delete(callback));
+
+        domElements.clear();
+    };
 }
 
 function JsTester_ResizeObserverFactory (resizeObservables) {
-    return new JsTester_ResizeObserver();
+    return function (callback) {
+        return new JsTester_ResizeObserver({
+            resizeObservables,
+            callback
+        });
+    };
 }
 
 function JsTester_DownloadPreventer () {
@@ -7384,11 +7424,12 @@ function JsTester_Tests (factory) {
     }); 
 
     const resizeObservables = new Map(),
-        createResizeObserver = new JsTester_ResizeObserverFactory(resizeObservables);
+        triggerResize = new JsTester_ResizeObserverTrigger(resizeObservables),
+        ResizeObserver = new JsTester_ResizeObserverFactory(resizeObservables);
 
     Object.defineProperty(window, 'ResizeObserver', {
         get: function () {
-            return JsTester_ResizeObserver;
+            return ResizeObserver;
         },
         set: function () {}
     }); 
@@ -7813,6 +7854,7 @@ function JsTester_Tests (factory) {
                     '<center>nginx/1.10.2</center>' +
                 '</body>' +
             '</html>',
+            triggerResize,
             sdp: sdp,
             image: image,
             windowSize: windowSize,
@@ -7896,6 +7938,7 @@ function JsTester_Tests (factory) {
 
         setNow(null);
 
+        resizeObservables.clear();
         intersectionObservations.clear();
         intersectionObservationHandlers.clear();
         downloadPreventer.prevent();

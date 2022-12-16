@@ -1,6 +1,7 @@
 define(() => function ({
     testersFactory,
     utils,
+    triggerResize,
     ajax,
     debug,
     fetch,
@@ -11873,11 +11874,19 @@ define(() => function ({
         tester.visibilityButton = testersFactory.createDomElementTester('.cmg-softphone-visibility-button');
 
         const click = tester.visibilityButton.click.bind(tester.visibilityButton);
-        tester.visibilityButton.click = () => (click(), spendTime(0));
+
+        tester.visibilityButton.click = () => {
+            click();
+            spendTime(0);
+            spendTime(0);
+
+            me.triggerPageResize();
+        };
 
         return tester;
     })(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
 
+    me.triggerPageResize = () => (triggerResize(document.querySelector('.cmg-softphone-page')), spendTime(0));
     me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
 

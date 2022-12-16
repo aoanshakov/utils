@@ -45,43 +45,19 @@ index db2565a..95e8d85 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 269c45c..3238fe2 100644
+index d92b9fd..7341d21 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -73,6 +73,7 @@ export const RootStore = types
-             }),
-             {}
-         ),
-+        resizeCount: types.optional(types.number, 0),
-         locale: types.optional(types.string, 'en'),
-         isSoftphoneAvailable: types.optional(types.boolean, false),
-         isLarge: types.optional(types.boolean, false),
-@@ -101,7 +102,8 @@ export const RootStore = types
-             subscribe = (...args) => subscriptionRemovers.push(eventBus.subscribe(...args)),
-             request = async (...args) => doRequest(...args),
-             maybeHidePhoneNumberMethod = (...args) => doMaybeHidePhoneNumber(...args),
--            setSoftphoneAvailable = value => (self.isSoftphoneAvailable = value);
-+            setSoftphoneAvailable = value => (self.isSoftphoneAvailable = value),
-+            incrementResizeCount = () => (self.resizeCount ++);
- 
-         const removeSubscriptions = () => {
-             subscriptionRemovers.forEach(removeSubscription => removeSubscription());
-@@ -437,6 +439,7 @@ export const RootStore = types
+@@ -439,7 +439,7 @@ export const RootStore = types
  
              removeSubscriptions();
  
-+            subscribe('root_resize', () => self.incrementResizeCount());
+-            subscribe('root_resize', () => self.incrementResizeCount());
++            //subscribe('root_resize', () => self.incrementResizeCount());
              subscribe('outgoing_call', phoneNumber => call(phoneNumber));
              subscribe('contacts_page_initialized', () => broadcast('settings_fetched', getState().softphone.settings));
  
-@@ -686,10 +689,12 @@ export const RootStore = types
-             setIsLarge,
-             maybeHidePhoneNumber: maybeHidePhoneNumberMethod,
-             setLocale,
-+            incrementResizeCount,
-         };
-     });
- 
+@@ -696,4 +696,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
