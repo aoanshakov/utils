@@ -483,21 +483,10 @@ index 600884d5..5c894b3b 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3e0dd20e..e6198926 100644
+index 17d9d435..e6198926 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -122,7 +122,9 @@ export const RootStore = types
-         let requestsToRefresh: RequestToRefresh[] = [];
-         let isRefreshRequesting = false;
-         let subscriptionRemovers: Array<() => void> = [];
--        const toggleSoftphoneVisiblity = value => (self.isSoftphoneVisible = !self.isSoftphoneVisible);
-+
-+        const setSoftphoneVisiblity = value => (self.isSoftphoneVisible = value),
-+            toggleSoftphoneVisiblity = () => setSoftphoneVisiblity(!self.isSoftphoneVisible);
- 
-         const subscribe: (eventName: string, callback: CallableFunction) => void = (...args) =>
-             subscriptionRemovers.push(eventBus.subscribe(...args));
-@@ -237,7 +239,7 @@ export const RootStore = types
+@@ -239,7 +239,7 @@ export const RootStore = types
                  }
              );
  
@@ -506,7 +495,7 @@ index 3e0dd20e..e6198926 100644
                  response => {
                      logRequest({response});
  
-@@ -302,6 +304,7 @@ export const RootStore = types
+@@ -304,6 +304,7 @@ export const RootStore = types
          const afterCreate = () => {
              removeSubscriptions();
  
@@ -514,17 +503,7 @@ index 3e0dd20e..e6198926 100644
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -331,7 +334,8 @@ export const RootStore = types
-             downloadLog,
-             handleLogsCollected,
-             setAppStore: store => setAppStore(store),
--            toggleSoftphoneVisiblity
-+            toggleSoftphoneVisiblity,
-+            setSoftphoneVisiblity,
-         };
-     });
- 
-@@ -342,7 +346,8 @@ export type DependencyInjection = {
+@@ -345,7 +346,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
