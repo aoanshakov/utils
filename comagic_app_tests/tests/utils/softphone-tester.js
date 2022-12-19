@@ -381,7 +381,7 @@ define(function () {
                 status_id: 3,
                 is_sip_online: true,
                 image: 'https://thispersondoesnotexist.com/image',
-                lost_calls_count: 0
+                lost_call_count: 0
             };
         };
 
@@ -588,7 +588,7 @@ define(function () {
             var user = this.authenticatedUser();
 
             function addMethods (me) {
-                me.newCall = () => ((user.lost_calls_count = 1), me);
+                me.newCall = () => ((user.lost_call_count = 1), me);
 
                 me.sipIsOffline = function () {
                     user.is_sip_online = false;

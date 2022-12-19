@@ -2152,7 +2152,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent: (requests) => {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('/sup/api/v1/lost_calls_count').
+                    expectPathToContain('/sup/api/v1/lost_call_count').
                     expectToHaveMethod('GET');
 
                 spendTime(0);

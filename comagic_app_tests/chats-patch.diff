@@ -38,7 +38,7 @@ index 1d2805b..f16cf47 100644
      "uuid": "^8.3.2",
      "yup": "^0.32.9"
 diff --git a/src/App.tsx b/src/App.tsx
-index 43db4d8..ee76430 100644
+index 90f51d9..ee76430 100644
 --- a/src/App.tsx
 +++ b/src/App.tsx
 @@ -9,7 +9,7 @@ import './App.less';
@@ -50,13 +50,7 @@ index 43db4d8..ee76430 100644
          websocketStore,
          chatListStore,
          chatChannelsStore,
-@@ -36,17 +36,16 @@ const App: React.FC = observer(() => {
-         updateAuthState();
- 
-         return function unmount() {
--            websocketStore.disable();
-             void chatListStore.setSelectedChat(null);
-             void chatListStore.clear();
+@@ -41,11 +41,11 @@ const App: React.FC = observer(() => {
          };
      });
  

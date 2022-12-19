@@ -1718,6 +1718,7 @@ function JsTester_AudioDecodingTester ({
 
         spendTime(0);
         spendTime(0);
+        spendTime(0);
     };
     this.expectAudioDecodingToHappen = function () {
         audioDecodingTasks.pop();
