@@ -1920,8 +1920,10 @@ tests.addTest(options => {
                             });
                             it('Некие сообщения выведены в лог.', function() {
                                 tester.phoneField.expectNotToBeFocused();
+
                                 tester.contactOpeningButton.expectNotToExist();
                                 tester.contactsButton.expectNotToBePressed();
+                                tester.contactsButton.expectToBeEnabled();
 
                                 tester.bugButton.expectNotToExist();
 
@@ -2065,6 +2067,77 @@ tests.addTest(options => {
                     tester.authLogoutRequest().invalidToken().receiveResponse();
 
                     tester.button('Войти').expectToBeVisible();
+                });
+            });
+            describe('Раздел контактов недоступен.', function() {
+                beforeEach(function() {
+                    accountRequest.addressBookReadingUnavailable().operatorWorkplaceAvailable().receiveResponse();
+
+                    const authCheckRequest = tester.authCheckRequest().expectToBeSent();
+                    const requests = ajax.inAnyOrder();
+
+                    const secondAccountRequest = tester.accountRequest().
+                        addressBookReadingUnavailable().
+                        operatorWorkplaceAvailable().
+                        forChats().
+                        expectToBeSent(requests);
+
+                    const thirdAccountRequest = tester.accountRequest().
+                        addressBookReadingUnavailable().
+                        operatorWorkplaceAvailable().
+                        expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+                    thirdAccountRequest.receiveResponse();
+                    authCheckRequest.receiveResponse();
+
+                    tester.statusesRequest().receiveResponse();
+                    tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+
+                    tester.connectEventsWebSocket();
+                    tester.connectSIPWebSocket();
+
+                    notificationTester.grantPermission();
+                    tester.allowMediaInput();
+
+                    tester.talkOptionsRequest().receiveResponse();
+
+                    tester.permissionsRequest().
+                        allowNumberCapacitySelect().
+                        allowNumberCapacityUpdate().
+                        receiveResponse();
+
+                    tester.authenticatedUserRequest().receiveResponse();
+                    tester.numberCapacityRequest().receiveResponse();
+                    tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                    secondAccountRequest.receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+                    tester.chatsInitMessage().expectToBeSent();
+
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+
+                    tester.countersRequest().receiveResponse();
+
+                    tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+                });
+
+                it('Нажимаю на кнопку контактов в верхнем тулбаре. Ничего не происходит..', function() {
+                    tester.contactsButton.click();
+                });
+                it('Кнопка контактов в верхнем меню заблокирована.', function() {
+                    tester.contactsButton.expectToBeDisabled();
                 });
             });
             it('Пользователь является менеджером.', function() {

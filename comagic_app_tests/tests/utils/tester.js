@@ -11097,6 +11097,14 @@ define(() => function ({
             me.softphoneUnavailable = () => ((response.result.data.permissions =
                 response.result.data.permissions.filter(({unit_id}) => unit_id != 'softphone_login')), me);
 
+            me.addressBookReadingUnavailable = () => {
+                (response.result.data.permissions.find(
+                    ({ unit_id }) => unit_id == 'address_book'
+                ) || {}).is_select = false;
+
+                return me;
+            };
+
             me.addressBookUpdatingUnavailable = () => {
                 (response.result.data.permissions.find(
                     ({ unit_id }) => unit_id == 'address_book'
@@ -11495,6 +11503,8 @@ define(() => function ({
         tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
         tester.expectToBePressed = () => tester.expectToHaveClass('cmg-button-pressed');
         tester.expectNotToBePressed = () => tester.expectNotToHaveClass('cmg-button-pressed');
+        tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-button-disabled');
+        tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cmg-button-disabled');
 
         return tester;
     })();
