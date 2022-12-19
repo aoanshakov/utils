@@ -874,9 +874,26 @@ tests.addTest(options => {
                                         tester.chatsButton.expectNotToBePressed();
                                         tester.callsHistoryButton.expectNotToBePressed();
                                     });
-                                    it('Нажимаю на кнопку видимости. Софтфон скрыт.', function() {
-                                        tester.softphone.visibilityButton.click();
-                                        tester.dialpadButton(1).expectNotToExist();
+                                    describe('Нажимаю на кнопку видимости.', function() {
+                                        beforeEach(function() {
+                                            tester.softphone.visibilityButton.click();
+                                        });
+
+                                        it('Поступил входящий звонок. Софтфон скрыт.', function() {
+                                            tester.incomingCall().receive();
+                                            tester.numaRequest().receiveResponse();
+                                            tester.outCallEvent().activeLeads().receive();
+
+                                            getPackage('electron').ipcRenderer.
+                                                recentlySentMessage().
+                                                expectToBeSentToChannel('incoming-call').
+                                                expectToBeSentWithArguments(false);
+
+                                            tester.dialpadButton(1).expectNotToExist();
+                                        });
+                                        it('Софтфон скрыт.', function() {
+                                            tester.dialpadButton(1).expectNotToExist();
+                                        });
                                     });
                                     it('Отображен большой софтфон.', function() {
                                         tester.button('99+ Чаты').expectNotToBePressed();
@@ -1858,8 +1875,8 @@ tests.addTest(options => {
                                         });
 
                                         it(
-                                            'Открываю раздел контаков. Открываю раздел статистики. Показываю софтфон. ' +
-                                            'Отображена кнопка "Показать все статусы".',
+                                            'Открываю раздел контаков. Открываю раздел статистики. Показываю ' +
+                                            'софтфон. Отображена кнопка "Показать все статусы".',
                                         function() {
                                             tester.button('Контакты').click();
                                             tester.contactsRequest().differentNames().receiveResponse();
@@ -2031,7 +2048,9 @@ tests.addTest(options => {
                                     tester.callsHistoryButton.indicator.expectToBeVisible();
                                 });
                             });
-                            it('SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.', function() {
+                            it(
+                                'SIP-линия не зарегистрирована. Раскрываю список статусов. Отображены статусы.',
+                            function() {
                                 authenticatedUserRequest.sipIsOffline().receiveResponse();
                                 tester.userName.click();
 
@@ -2538,6 +2557,152 @@ tests.addTest(options => {
                 tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
             });
 
+            describe('Нажимаю на кнопку максимизации.', function() {
+                beforeEach(function() {
+                    tester.maximizednessButton.click();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 340,
+                            height: 568
+                        });
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('maximize');
+                    
+                    const requests = ajax.inAnyOrder();
+
+                    const statsRequest = tester.statsRequest().
+                        expectToBeSent(requests);
+
+                    const accountRequest = tester.accountRequest().
+                        operatorWorkplaceAvailable().
+                        forChats().
+                        expectToBeSent(requests);
+
+                    const secondAccountRequest = tester.accountRequest().
+                        operatorWorkplaceAvailable().
+                        expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    statsRequest.receiveResponse();
+                    accountRequest.receiveResponse();
+                    secondAccountRequest.receiveResponse();
+
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+
+                    tester.countersRequest().receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        active().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        closed().
+                        receiveResponse();
+                });
+
+                it('Нажимаю на кнопку видимости. Поступил входящий звонок. Софтфон видим.', function() {
+                    tester.softphone.visibilityButton.click();
+
+                    tester.incomingCall().receive();
+                    tester.numaRequest().receiveResponse();
+                    tester.outCallEvent().activeLeads().receive();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('incoming-call').
+                        expectToBeSentWithArguments(true);
+
+                    const requests = ajax.inAnyOrder();
+
+                    const accountRequest = tester.accountRequest().
+                        operatorWorkplaceAvailable().
+                        expectToBeSent(requests);
+                    
+                    const chatsAccountRequest = tester.accountRequest().
+                        operatorWorkplaceAvailable().
+                        forChats().
+                        expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    accountRequest.receiveResponse();
+                    chatsAccountRequest.receiveResponse();
+
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+
+                    tester.countersRequest().receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        anyScrollFromDate().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        anyScrollFromDate().
+                        active().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        anyScrollFromDate().
+                        closed().
+                        receiveResponse();
+
+                    tester.stopCallButton.expectToBeVisible();
+                });
+                it('Поступил входящий звонок. Звонок завершен. Софтфон скрыт.', function() {
+                    const incomingCall = tester.incomingCall().receive();
+                    tester.numaRequest().receiveResponse();
+                    tester.outCallEvent().activeLeads().receive();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('incoming-call').
+                        expectToBeSentWithArguments(true);
+
+                    tester.stopCallButton.click();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('call-end').
+                        expectToBeSentWithArguments(true);
+
+                    incomingCall.expectTemporarilyUnavailableToBeSent();
+                    tester.dialpadButton(1).expectNotToExist();
+                });
+            });
             describe('Поступил входящий звонок.', function() {
                 let incomingCall;
 
@@ -2821,6 +2986,89 @@ tests.addTest(options => {
                 tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
             });
 
+            it('Нажимаю на кнопку максимизации. Поступил входящий звонок. Звонок завершен. Софтфон видим.', function() {
+                tester.maximizednessButton.click();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 568
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('maximize');
+                
+                const requests = ajax.inAnyOrder();
+
+                const statsRequest = tester.statsRequest().
+                    expectToBeSent(requests);
+
+                const accountRequest = tester.accountRequest().
+                    operatorWorkplaceAvailable().
+                    forChats().
+                    expectToBeSent(requests);
+
+                const secondAccountRequest = tester.accountRequest().
+                    operatorWorkplaceAvailable().
+                    expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                statsRequest.receiveResponse();
+                accountRequest.receiveResponse();
+                secondAccountRequest.receiveResponse();
+
+                tester.offlineMessageCountersRequest().receiveResponse();
+                tester.chatChannelListRequest().receiveResponse();
+                tester.siteListRequest().receiveResponse();
+                tester.markListRequest().receiveResponse();
+                tester.chatChannelTypeListRequest().receiveResponse();
+
+                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                tester.offlineMessageListRequest().processing().receiveResponse();
+                tester.offlineMessageListRequest().processed().receiveResponse();
+
+                tester.countersRequest().receiveResponse();
+
+                tester.chatListRequest().
+                    forCurrentEmployee().
+                    secondPage().
+                    receiveResponse();
+
+                tester.chatListRequest().
+                    forCurrentEmployee().
+                    secondPage().
+                    active().
+                    receiveResponse();
+
+                tester.chatListRequest().
+                    forCurrentEmployee().
+                    secondPage().
+                    closed().
+                    receiveResponse();
+
+                const incomingCall = tester.incomingCall().receive();
+                tester.numaRequest().receiveResponse();
+                tester.outCallEvent().receive();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('incoming-call').
+                    expectToBeSentWithArguments(true);
+
+                tester.stopCallButton.click();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('call-end').
+                    expectToBeSentWithArguments(false);
+
+                incomingCall.expectTemporarilyUnavailableToBeSent();
+                tester.dialpadButton(1).expectToBeVisible();
+            });
             it(
                 'Поступил входящий звонок. Звонок завершен. Отправлено сообщение о том, что скрывать окно софтфона ' +
                 'не нужно.',
