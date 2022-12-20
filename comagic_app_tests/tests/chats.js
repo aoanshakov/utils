@@ -1122,59 +1122,6 @@ tests.addTest(options => {
                     tester.button('8 Чаты').expectToBeVisible();
                 });
             });
-            describe('Нет чатов в работе с неотвеченным сообщениями.', function() {
-                beforeEach(function() {
-                    countersRequest.
-                        noActiveChatsWithUnreadMessages().
-                        receiveResponse();
-
-                    chatListRequest.receiveResponse();
-                    secondChatListRequest.count(0).receiveResponse();
-                    thirdChatListRequest.receiveResponse();
-                });
-
-                it(
-                    'Открываю вкладку "В работе". Открываю раздел заявок. Открываю раздел чатов. Открыта вкладка ' +
-                    '"Новые".',
-                function() {
-                    tester.button('В работе').click();
-                    tester.leftMenu.button('Заявки').click();
-                    tester.leftMenu.button('75 Чаты').click();
-
-                    tester.button('Новые 75').expectToBePressed();
-                    tester.button('В работе').expectNotToBePressed();
-                });
-                it('Открыта вкладка "Новые".', function() {
-                    tester.button('Новые 75').expectToBePressed();
-                    tester.button('В работе').expectNotToBePressed();
-                });
-            });
-            describe('Нет новых чатов.', function() {
-                beforeEach(function() {
-                    countersRequest.
-                        noNewChatsWithUnreadMessages().
-                        receiveResponse();
-
-                    chatListRequest.count(0).receiveResponse();
-                    secondChatListRequest.receiveResponse();
-                    thirdChatListRequest.receiveResponse();
-                });
-
-                it('Получено новое сообщение. Открыта вкладка "В работе".', function() {
-                    tester.newMessage().receive();
-                    notificationTester.grantPermission();
-
-                    tester.chatListRequest().chat().receiveResponse();
-                    tester.countersRequest().receiveResponse();
-
-                    tester.button('Новые 75').expectNotToBePressed();
-                    tester.button('В работе 75').expectToBePressed();
-                });
-                it('Открыта вкладка "В работе".', function() {
-                    tester.button('Новые').expectNotToBePressed();
-                    tester.button('В работе 75').expectToBePressed();
-                });
-            });
         });
         describe('Телеграм каналы в контактах недоступны.', function() {
             beforeEach(function() {
