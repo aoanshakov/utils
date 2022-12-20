@@ -1292,7 +1292,10 @@ function EasystartBitrix(args) {
                                     NAME: 'Марк',
                                     SECOND_NAME: 'Брониславович',
                                     LAST_NAME: 'Чиграков',
-                                    EMAIL: 'chigrakov@example.com'
+                                    EMAIL: 'chigrakov@example.com',
+                                    PERSONAL_PHONE: '',
+                                    PERSONAL_MOBILE: '+7 (495) 123-45-68',
+                                    WORK_PHONE: ''
                                 };
                             }
                         });

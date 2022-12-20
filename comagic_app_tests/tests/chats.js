@@ -938,6 +938,79 @@ tests.addTest(options => {
                             });
                         });
                     });
+                    describe('Получена новая заявка.', function() {
+                        let newOfflineMessage;
+
+                        beforeEach(function() {
+                            newOfflineMessage = tester.newOfflineMessage();
+                        });
+
+                        describe('Имя посетителя указано.', function() {
+                            beforeEach(function() {
+                                newOfflineMessage.receive();
+                                notificationTester.grantPermission();
+                                tester.offlineMessageCountersRequest().newMessage().receiveResponse();
+                            });
+
+                            describe('Открываю раздел заявок. Открываю заявку.', function() {
+                                let visitorCardRequest;
+
+                                beforeEach(function() {
+                                    tester.leftMenu.button('1 Заявки').click();
+                                    tester.chatListItem('Томова Денка Райчовна').click();
+
+                                    tester.offlineMessageAcceptingRequest().anotherMessage().receiveResponse();
+                                    visitorCardRequest = tester.visitorCardRequest().expectToBeSent();
+                                    tester.usersRequest().forContacts().receiveResponse();
+                                });
+
+                                it('Отображена заявка.', function() {
+                                    visitorCardRequest.receiveResponse();
+
+                                    tester.chatHistory.message.atTime('11:17').expectToHaveTextContent(
+                                        'Заявка ' +
+
+                                        'Имя: Помакова Бисерка Драгановна ' +
+                                        'Телефон: 74951523643 ' +
+                                        'Email: tomova@gmail.com ' +
+
+                                        '11:17'
+                                    );
+                                });
+                                it('Отображена заявка.', function() {
+                                    tester.chatHistory.message.atTime('11:17').expectToHaveTextContent(
+                                        'Заявка ' +
+
+                                        'Имя: Рангелова Невена Цветковна ' +
+                                        'Телефон: 74951523643 ' +
+                                        'Email: tomova@gmail.com ' +
+
+                                        '11:17'
+                                    );
+                                });
+                            });
+                            it('Оторажено количество непросмотренных заявок.', function() {
+                                tester.notificationSection.expectToHaveTextContent(
+                                    'РН ' +
+                                    'Рангелова Невена Цветковна ' +
+                                    'Заявка с сайта'
+                                );
+                            });
+                        });
+                        it('Имя посетителя неуказано. Оторажено количество непросмотренных заявок.', function() {
+                            newOfflineMessage.noVisitorName().receive();
+                            notificationTester.grantPermission();
+                            tester.offlineMessageCountersRequest().newMessage().receiveResponse();
+
+                            tester.notificationSection.expectToHaveTextContent(
+                                '03 ' +
+                                '#16479303 Гость ' +
+                                'Заявка с сайта'
+                            );
+
+                            tester.leftMenu.button('1 Заявки').expectToBeVisible();
+                        });
+                    });
                     it('Открываю раздел заявок.', function() {
                         tester.leftMenu.button('Заявки').click();
                         tester.chatListItem('Заявка с сайта').click();
@@ -1047,6 +1120,59 @@ tests.addTest(options => {
                 });
                 it('Отображено количество непрочитанных сообщений.', function() {
                     tester.button('8 Чаты').expectToBeVisible();
+                });
+            });
+            describe('Нет чатов в работе с неотвеченным сообщениями.', function() {
+                beforeEach(function() {
+                    countersRequest.
+                        noActiveChatsWithUnreadMessages().
+                        receiveResponse();
+
+                    chatListRequest.receiveResponse();
+                    secondChatListRequest.count(0).receiveResponse();
+                    thirdChatListRequest.receiveResponse();
+                });
+
+                it(
+                    'Открываю вкладку "В работе". Открываю раздел заявок. Открываю раздел чатов. Открыта вкладка ' +
+                    '"Новые".',
+                function() {
+                    tester.button('В работе').click();
+                    tester.leftMenu.button('Заявки').click();
+                    tester.leftMenu.button('75 Чаты').click();
+
+                    tester.button('Новые 75').expectToBePressed();
+                    tester.button('В работе').expectNotToBePressed();
+                });
+                it('Открыта вкладка "Новые".', function() {
+                    tester.button('Новые 75').expectToBePressed();
+                    tester.button('В работе').expectNotToBePressed();
+                });
+            });
+            describe('Нет новых чатов.', function() {
+                beforeEach(function() {
+                    countersRequest.
+                        noNewChatsWithUnreadMessages().
+                        receiveResponse();
+
+                    chatListRequest.count(0).receiveResponse();
+                    secondChatListRequest.receiveResponse();
+                    thirdChatListRequest.receiveResponse();
+                });
+
+                it('Получено новое сообщение. Открыта вкладка "В работе".', function() {
+                    tester.newMessage().receive();
+                    notificationTester.grantPermission();
+
+                    tester.chatListRequest().chat().receiveResponse();
+                    tester.countersRequest().receiveResponse();
+
+                    tester.button('Новые 75').expectNotToBePressed();
+                    tester.button('В работе 75').expectToBePressed();
+                });
+                it('Открыта вкладка "В работе".', function() {
+                    tester.button('Новые').expectNotToBePressed();
+                    tester.button('В работе 75').expectToBePressed();
                 });
             });
         });

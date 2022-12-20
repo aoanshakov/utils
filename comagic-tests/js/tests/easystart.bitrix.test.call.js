@@ -19,6 +19,7 @@ tests.addTest(function({requestsManager, testersFactory, wait, utils}) {
             EasyStart.getApplication().checkIfPartnerReady();
             tester.tryForFreeButton.click();
             tester.requestCreateAccount().send();
+            tester.supportRequestSender.respondSuccessfully();
             wait(100);
 
             tester.settingsStep('Номер телефона').nextButton().click();
@@ -164,7 +165,7 @@ tests.addTest(function({requestsManager, testersFactory, wait, utils}) {
                             email: 'chigrakov@example.com',
                             message:
                                 'Заявка со страницы Битрикс24 Легкий вход. ' +
-                                'Номер телефона пользоватeля +74951234567. ' +
+                                'Номер телефона пользоватeля - +74951234567. ' +
                                 'Домен - chigrakov.bitrix24.ru. ' +
                                 'Удобное время для звонка - ' + tester.nextDay('Y-m-d') + ' с 13:54 до 20:05',
                             name: 'Марк Брониславович Чиграков',

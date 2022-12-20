@@ -99,11 +99,8 @@ exec "Snippet def Ext.define('". GetExtjsClassName() ."', {<cr>".st.et."<cr>});"
 exec "Snippet cre Ext.create('".st.et."'".st.et.")".st.et
 
 exec "Snippet cons console.log(".st.et.");"
-
-exec "Snippet du jsTestDebug.printExtJsComponent(".st.et.");"
-exec "Snippet log jsTestDebug.printVariable(".st.et.");"
-exec "Snippet no jsTestDebug.printVariable(".st.et.");"
-exec "Snippet tra jsTestDebug.printCallStack();"
+exec "Snippet lo console.log(".st.et.");"
+exec "Snippet tr console.trace(".st.et.");"
 
 exec "Snippet it it('".st.et."', function() {<cr>".st.et."<cr>});"
 exec "Snippet tt tt('".st.et."', function(t) {<cr>".st.et."<cr>});"

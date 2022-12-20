@@ -734,21 +734,22 @@ define(() => function ({
 
             const menuItemSelectedClass = [
                 'src-components-main-menu-nav-item-styles-module__item-selected',
-                'active'
+                'active',
+                'ui-tab-active'
             ];
 
 
-            const getMenuItem = () => domElement.closest(
-                '.src-components-main-menu-nav-item-styles-module__item, .cm-chats--left-menu--item'
+            const getPressableElement = () => domElement.closest(
+                '.src-components-main-menu-nav-item-styles-module__item, .cm-chats--left-menu--item, .ui-tab'
             );
 
-            const menuItem = testersFactory.createDomElementTester(getMenuItem);
+            const pressednessTester = testersFactory.createDomElementTester(getPressableElement);
 
             tester.counter = testersFactory.createDomElementTester(() =>
-                getMenuItem().querySelector('.cm-chats--new-messages-count'));
+                getPressableElement().querySelector('.cm-chats--new-messages-count'));
 
-            tester.expectToBePressed = () => menuItem.expectToHaveAnyOfClasses(menuItemSelectedClass);
-            tester.expectNotToBePressed = () => menuItem.expectToHaveNoneOfClasses(menuItemSelectedClass);
+            tester.expectToBePressed = () => pressednessTester.expectToHaveAnyOfClasses(menuItemSelectedClass);
+            tester.expectNotToBePressed = () => pressednessTester.expectToHaveNoneOfClasses(menuItemSelectedClass);
             tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
             tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
 
@@ -1467,14 +1468,21 @@ define(() => function ({
     me.offlineMessageAcceptingRequest = () => {
         const addResponseModifiers = me => me;
 
+        const bodyParams = {
+            offline_message_id: 178076
+        };
+
         return addResponseModifiers({
+            anotherMessage() {
+                bodyParams.offline_message_id = 18222538;
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL/offline_message').
                     expectToHaveMethod('POST').
-                    expectBodyToContain({
-                        offline_message_id: 178076
-                    });
+                    expectBodyToContain(bodyParams);
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -1740,6 +1748,43 @@ define(() => function ({
             receive: () => {
                 me.chatsWebSocket.receive(JSON.stringify({
                     method: 'new_message',
+                    params 
+                }));
+
+                spendTime(0);
+            } 
+        };
+    };
+
+    me.newOfflineMessage = () => {
+        const params = {
+            offline_message: {
+                id: 18222538,
+                status: 'not_processed',
+                site_id: 4663,
+                visitor_id: 16479303,
+                visitor_type: 'comagic',
+                mark_ids: [],
+                name: 'Томова Денка Райчовна',
+                visitor_name: 'Рангелова Невена Цветковна',
+                is_phone_auto_filled: true,
+                date_time: '2020-02-10 11:17:49+03:00',
+                phone: '74951523643',
+                email: 'tomova@gmail.com',
+                message: '',
+                employee_id: null,
+                contact: null
+            }
+        };
+
+        return {
+            noVisitorName() {
+                params.offline_message.visitor_name = null;
+                return this;
+            },
+            receive: () => {
+                me.chatsWebSocket.receive(JSON.stringify({
+                    method: 'new_offline_message',
                     params 
                 }));
 
@@ -4090,6 +4135,16 @@ define(() => function ({
             me.singlePage = () => (Object.keys(data).forEach(name => (data[name] = 30)), me);
             me.newMessage = () => (processors.push(() => (data.active_with_unread_count ++)), me);
             me.readMessage = () => (processors.push(() => (data.active_with_unread_count --)), me);
+
+            me.noActiveChatsWithUnreadMessages = () => {
+                data.active_with_unread_count = 0;
+                return me;
+            };
+
+            me.noNewChatsWithUnreadMessages = () => {
+                data.new_chat_count = 0;
+                return me;
+            };
 
             me.fewUnreadMessages = () => {
                 data.new_chat_count = 5;
@@ -11940,10 +11995,9 @@ define(() => function ({
 
     me.chatListItem = text => {
         const domElement = utils.descendantOfBody().
-            matchesSelector('.cm-chats--last-chat-message-text').
+            matchesSelector('.cm-chats--chats-list-item').
             textContains(text).
-            find().
-            closest('.cm-chats--chats-list-item');
+            find();
 
         const tester = testersFactory.createDomElementTester(domElement);
 

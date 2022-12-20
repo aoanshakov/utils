@@ -20,6 +20,8 @@ function EasystartAmocrm(args) {
         data: {
             number: 79031234567,
             ext_id: 2,
+            phone: '+7 (495) 123-45-68',
+            domain: 'chigrakov.bitrix24.ru',
             email: 'chigrakov@example.com',
             name: 'Марк Чиграков Брониславович'
         },
