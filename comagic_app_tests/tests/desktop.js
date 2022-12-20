@@ -2156,6 +2156,73 @@ tests.addTest(options => {
 
                             tester.button('1 Заявки').expectToBeVisible();
                         });
+                        it('Нажимаю на кнопку чатов. Выбран пункт "Заявки" левого меню.', function() {
+                            tester.chatsButton.click();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('resize').
+                                expectToBeSentWithArguments({
+                                    width: 340,
+                                    height: 568
+                                });
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('maximize');
+
+                            tester.chatSettingsRequest().receiveResponse();
+                            tester.chatChannelListRequest().receiveResponse();
+                            tester.statusListRequest().receiveResponse();
+                            tester.listRequest().receiveResponse();
+                            tester.siteListRequest().receiveResponse();
+                            tester.messageTemplateListRequest().receiveResponse();
+                            
+                            tester.accountRequest().
+                                operatorWorkplaceAvailable().
+                                forChats().
+                                receiveResponse();
+
+                            tester.accountRequest().
+                                operatorWorkplaceAvailable().
+                                forChats().
+                                receiveResponse();
+
+                            tester.accountRequest().
+                                operatorWorkplaceAvailable().
+                                receiveResponse();
+
+                            tester.offlineMessageCountersRequest().newMessage().receiveResponse();
+                            tester.chatChannelListRequest().receiveResponse();
+                            tester.siteListRequest().receiveResponse();
+                            tester.markListRequest().receiveResponse();
+                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                            tester.offlineMessageListRequest().processing().receiveResponse();
+                            tester.offlineMessageListRequest().processed().receiveResponse();
+
+                            tester.countersRequest().noUnreadMessages().receiveResponse();
+
+                            tester.chatListRequest().
+                                forCurrentEmployee().
+                                anyScrollFromDate().
+                                receiveResponse();
+
+                            tester.chatListRequest().
+                                forCurrentEmployee().
+                                anyScrollFromDate().
+                                active().
+                                receiveResponse();
+
+                            tester.chatListRequest().
+                                forCurrentEmployee().
+                                anyScrollFromDate().
+                                closed().
+                                receiveResponse();
+
+                            tester.button('1 Заявки').expectToBePressed();
+                        });
                         it('Отображен индикатор непрочитанных сообщений.', function() {
                             tester.chatsButton.indicator.expectToBeVisible();
                         });
