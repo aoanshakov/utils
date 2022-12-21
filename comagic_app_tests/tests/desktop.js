@@ -2345,6 +2345,96 @@ tests.addTest(options => {
                                 closedChatListRequest.noUnreadMessages().count(2).receiveResponse();
                             });
 
+                            it('Нажимаю на кнопку максимизаии.', function() {
+                                tester.maximizednessButton.click();
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 568
+                                    });
+
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('maximize');
+                                
+                                const requests = ajax.inAnyOrder();
+
+                                const statsRequest = tester.statsRequest().
+                                    expectToBeSent(requests);
+
+                                const accountRequest = tester.accountRequest().
+                                    operatorWorkplaceAvailable().
+                                    forChats().
+                                    expectToBeSent(requests);
+
+                                const secondAccountRequest = tester.accountRequest().
+                                    operatorWorkplaceAvailable().
+                                    expectToBeSent(requests);
+
+                                requests.expectToBeSent();
+
+                                statsRequest.receiveResponse();
+                                accountRequest.receiveResponse();
+                                secondAccountRequest.receiveResponse();
+
+                                tester.offlineMessageCountersRequest().receiveResponse();
+                                tester.chatChannelListRequest().receiveResponse();
+                                tester.siteListRequest().receiveResponse();
+                                tester.markListRequest().receiveResponse();
+                                tester.chatChannelTypeListRequest().receiveResponse();
+
+                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                tester.offlineMessageListRequest().processing().receiveResponse();
+                                tester.offlineMessageListRequest().processed().receiveResponse();
+
+                                tester.countersRequest().noUnreadMessages().receiveResponse();
+
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    anyScrollFromDate().
+                                    receiveResponse();
+
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    anyScrollFromDate().
+                                    active().
+                                    receiveResponse();
+
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    anyScrollFromDate().
+                                    closed().
+                                    receiveResponse();
+
+                                tester.button('Заявки').click();
+
+                                tester.chatSettingsRequest().receiveResponse();
+                                tester.chatChannelListRequest().receiveResponse();
+                                tester.statusListRequest().receiveResponse();
+                                tester.listRequest().receiveResponse();
+                                tester.siteListRequest().receiveResponse();
+                                tester.messageTemplateListRequest().receiveResponse();
+
+                                tester.accountRequest().
+                                    operatorWorkplaceAvailable().
+                                    forChats().
+                                    receiveResponse(requests);
+
+                                tester.button('В работе').click();
+
+                                tester.newOfflineMessage().receive();
+                                notificationTester.grantPermission();
+                                tester.offlineMessageCountersRequest().newMessage().receiveResponse();
+                                tester.offlineMessageCountersRequest().newMessage().receiveResponse();
+
+                                tester.chatsButton.click();
+
+                                tester.button('Новые 1').expectToBePressed();
+                                tester.button('В работе').expectNotToBePressed();
+                            });
                             it('Получено новое сообщение. Отображено индикатор непрочитанных сообщений.', function() {
                                 tester.newMessage().receive();
                                 tester.chatListRequest().chat().receiveResponse();
