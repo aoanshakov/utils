@@ -379,7 +379,7 @@ tests.addTest(options => {
 
                                         getPackage('electron').ipcRenderer.
                                             recentlySentMessage().
-                                            expectToBeSentToChannel('incoming-call').
+                                            expectToBeSentToChannel('call-start').
                                             expectToBeSentWithArguments(false);
                                     });
 
@@ -715,7 +715,7 @@ tests.addTest(options => {
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
-                                                expectToBeSentToChannel('incoming-call').
+                                                expectToBeSentToChannel('call-start').
                                                 expectToBeSentWithArguments(false);
 
                                             tester.dialpadButton(1).expectNotToExist();
@@ -1406,6 +1406,11 @@ tests.addTest(options => {
                                         tester.phoneField.fill('79161234567');
                                         tester.callStartingButton.click();
 
+                                        getPackage('electron').ipcRenderer.
+                                            recentlySentMessage().
+                                            expectToBeSentToChannel('call-start').
+                                            expectToBeSentWithArguments(false);
+
                                         tester.firstConnection.connectWebRTC();
                                         tester.allowMediaInput();
 
@@ -1429,7 +1434,7 @@ tests.addTest(options => {
 
                                         getPackage('electron').ipcRenderer.
                                             recentlySentMessage().
-                                            expectToBeSentToChannel('incoming-call').
+                                            expectToBeSentToChannel('call-start').
                                             expectToBeSentWithArguments(false);
                                     });
 
@@ -1839,65 +1844,6 @@ tests.addTest(options => {
                                         receiveResponse();
 
                                     tester.chatsButton.expectToBePressed();
-                                });
-                                it(
-                                    'Нажимаю на кнопку контактов в нижнем тулбаре. Открыт раздел контактов.',
-                                function() {
-                                    tester.contactsButton.click();
-                                    tester.contactsRequest().differentNames().receiveResponse();
-
-                                    getPackage('electron').ipcRenderer.
-                                        recentlySentMessage().
-                                        expectToBeSentToChannel('resize').
-                                        expectToBeSentWithArguments({
-                                            width: 340,
-                                            height: 568
-                                        });
-
-                                    getPackage('electron').ipcRenderer.
-                                        recentlySentMessage().
-                                        expectToBeSentToChannel('maximize');
-
-                                    tester.accountRequest().
-                                        operatorWorkplaceAvailable().
-                                        forChats().
-                                        receiveResponse();
-
-                                    tester.accountRequest().
-                                        operatorWorkplaceAvailable().
-                                        receiveResponse();
-
-                                    tester.offlineMessageCountersRequest().receiveResponse();
-                                    tester.chatChannelListRequest().receiveResponse();
-                                    tester.siteListRequest().receiveResponse();
-                                    tester.markListRequest().receiveResponse();
-                                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                    tester.countersRequest().receiveResponse();
-
-                                    tester.chatListRequest().
-                                        forCurrentEmployee().
-                                        secondPage().
-                                        receiveResponse();
-
-                                    tester.chatListRequest().
-                                        forCurrentEmployee().
-                                        secondPage().
-                                        active().
-                                        receiveResponse();
-
-                                    tester.chatListRequest().
-                                        forCurrentEmployee().
-                                        secondPage().
-                                        closed().
-                                        receiveResponse();
-
-                                    tester.contactList.item('Балканска Берислава Силаговна').expectToBeVisible();
-                                    tester.contactsButton.expectToBePressed();
                                 });
                                 it(
                                     'Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.',
@@ -3068,7 +3014,7 @@ tests.addTest(options => {
 
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
-                        expectToBeSentToChannel('incoming-call').
+                        expectToBeSentToChannel('call-start').
                         expectToBeSentWithArguments(true);
 
                     const requests = ajax.inAnyOrder();
@@ -3125,7 +3071,7 @@ tests.addTest(options => {
 
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
-                        expectToBeSentToChannel('incoming-call').
+                        expectToBeSentToChannel('call-start').
                         expectToBeSentWithArguments(true);
 
                     tester.stopCallButton.click();
@@ -3137,6 +3083,159 @@ tests.addTest(options => {
 
                     incomingCall.expectTemporarilyUnavailableToBeSent();
                     tester.dialpadButton(1).expectNotToExist();
+                });
+            });
+            describe('Нажимаю на кнопку контактов в нижнем тулбаре.', function() {
+                beforeEach(function() {
+                    tester.contactsButton.click();
+                    tester.contactsRequest().differentNames().receiveResponse();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 340,
+                            height: 568
+                        });
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('maximize');
+
+                    const requests = ajax.inAnyOrder();
+
+                    const accountRequest = tester.accountRequest().
+                        operatorWorkplaceAvailable().
+                        forChats().
+                        expectToBeSent(requests);
+
+                    const secondAccountRequest = tester.accountRequest().
+                        operatorWorkplaceAvailable().
+                        expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    accountRequest.receiveResponse();
+                    secondAccountRequest.receiveResponse();
+
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+
+                    tester.countersRequest().receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        active().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        closed().
+                        receiveResponse();
+                });
+
+                it('Скрываю софтфон. Открываю контакт.', function() {
+                    tester.softphone.visibilityButton.click();
+                    tester.contactList.item('Бележкова Грета Ервиновна').click();
+
+                    const requests = ajax.inAnyOrder();
+
+                    const contactRequest = tester.contactRequest().expectToBeSent(requests);
+
+                    const contactCommunicationsRequest = tester.contactCommunicationsRequest().
+                        expectToBeSent(requests);
+
+                    const usersRequest = tester.usersRequest().forContacts().
+                        expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    usersRequest.receiveResponse();
+                    contactRequest.receiveResponse();
+                    contactCommunicationsRequest.receiveResponse();
+
+                    tester.contactBar.
+                        section('Телефоны').
+                        anchor('79162729533').
+                        click();
+
+                    tester.firstConnection.connectWebRTC();
+                    tester.allowMediaInput();
+
+                    tester.outgoingCall().fifthPhoneNumber().expectToBeSent().setRinging();
+                    tester.firstConnection.callTrackHandler();
+                    tester.numaRequest().fourthPhoneNumber().receiveResponse();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('call-start').
+                        expectToBeSentWithArguments(true);
+
+                    {
+                        const requests = ajax.inAnyOrder();
+
+                        const accountRequest = tester.accountRequest().
+                            operatorWorkplaceAvailable().
+                            forChats().
+                            expectToBeSent(requests);
+
+                        const secondAccountRequest = tester.accountRequest().
+                            operatorWorkplaceAvailable().
+                            expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+
+                        accountRequest.receiveResponse();
+                        secondAccountRequest.receiveResponse();
+                    }
+
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+
+                    tester.countersRequest().receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        thirdPage().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        thirdPage().
+                        active().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        thirdPage().
+                        closed().
+                        receiveResponse();
+
+                    tester.softphone.expectTextContentToHaveSubstring('+7 (916) 272-95-33');
+                });
+                it('Открыт раздел контактов.', function() {
+                    tester.contactsButton.expectToBePressed();
                 });
             });
             describe('Поступил входящий звонок.', function() {
@@ -3157,7 +3256,7 @@ tests.addTest(options => {
 
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
-                        expectToBeSentToChannel('incoming-call').
+                        expectToBeSentToChannel('call-start').
                         expectToBeSentWithArguments(true);
                 });
 
@@ -3319,7 +3418,7 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('incoming-call').
+                    expectToBeSentToChannel('call-start').
                     expectToBeSentWithArguments(true);
             });
             it('Открываю настройки. Свитчбокс "Открывать во время звонка" отмечен.', function() {
@@ -3492,7 +3591,7 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('incoming-call').
+                    expectToBeSentToChannel('call-start').
                     expectToBeSentWithArguments(true);
 
                 tester.stopCallButton.click();
@@ -3523,7 +3622,7 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('incoming-call').
+                    expectToBeSentToChannel('call-start').
                     expectToBeSentWithArguments(true);
 
                 tester.stopCallButton.click();
@@ -3661,7 +3760,7 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('incoming-call').
+                    expectToBeSentToChannel('call-start').
                     expectToBeSentWithArguments(true);
 
                 tester.stopCallButton.click();

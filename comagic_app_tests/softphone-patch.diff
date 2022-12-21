@@ -45,10 +45,45 @@ index 154467f..3f94cdc 100644
    }
  }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index a3ff076..356bee9 100644
+index a3ff076..88ab24c 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -695,4 +695,5 @@ export const RootStore = types
+@@ -122,7 +122,7 @@ export const RootStore = types
+ 
+             let authStore,
+                 call = () => null,
+-                handleIncomingCall = () => null,
++                handleCallStart = () => null,
+                 handlerCallEnd = () => null,
+                 isAuthorized = false;
+ 
+@@ -290,6 +290,7 @@ export const RootStore = types
+                             break;
+                         case JSSIP_CALL:
+                             isSingleApp && self.callHistoryStore.setContact(null);
++                            handleCallStart(store.getState().settings.toTopOnCall);
+                             break;
+                         case JSSIP_CALL_ENDED:
+                             handlerCallEnd(store.getState().settings.closeOnCallEnd);
+@@ -299,8 +300,6 @@ export const RootStore = types
+                             dispatch(setPrompterSipLine(null));
+                             break;
+                         case JSSIP_INBOUNDING_CALL_INCOMING: {
+-                            handleIncomingCall(store.getState().settings.toTopOnCall);
+-
+                             const state = store.getState(),
+                                 { session } = action,
+                                 { phoneNumber, channel } = session;
+@@ -433,7 +432,7 @@ export const RootStore = types
+             self.onDialpadKeyDown = (...args) => dispatch(onDialpadKeyDown(...args));
+             self.statusesStore.setStatusUpdator((statusId: number) => dispatch(setStatus(statusId)));
+             self.setDictonary = i18n.setDictonary;
+-            self.setIncomingCallHandler = value => (handleIncomingCall = value);
++            self.setCallStartHandler = value => (handleCallStart = value);
+             self.setCallEndHandler = value => (handlerCallEnd = value);
+             window.addEventListener('toggleSoftphoneVisiblity', () => dispatch(toggleWidgetVisiblity));
+ 
+@@ -695,4 +694,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
