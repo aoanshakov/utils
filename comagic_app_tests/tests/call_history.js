@@ -185,7 +185,8 @@ tests.addTest(options => {
                                             '"Создать контакт". Форма контакта скрыта.',
                                         function() {
                                             tester.contactBar.section('ФИО').svg.click();
-                                            tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
+                                            tester.input.withPlaceholder('Фамилия (Обязательное поле)').
+                                                fill('Неделчева');
 
                                             tester.button('Создать контакт').click();
 
@@ -243,8 +244,11 @@ tests.addTest(options => {
                                             tester.radioButton('Необработанные').click();
 
                                             tester.groupsRequest().receiveResponse();
-                                            notProcessedCallsRequest = tester.notProcessedCallsRequest().isProcessedByAny().
+
+                                            notProcessedCallsRequest = tester.notProcessedCallsRequest().
+                                                isProcessedByAny().
                                                 expectToBeSent();
+
                                             tester.marksRequest().receiveResponse();
                                         });
 
@@ -284,8 +288,13 @@ tests.addTest(options => {
 
                                                     tester.button('Войти').click();
 
-                                                    tester.loginRequest().anotherAuthorizationToken().receiveResponse();
-                                                    tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+                                                    tester.loginRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
+
+                                                    tester.accountRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
 
                                                     const requests = ajax.inAnyOrder();
 
@@ -376,13 +385,17 @@ tests.addTest(options => {
                                                 });
 
                                                 it(
-                                                    'Получены права. Получены данные для таблицы истории. Вкладки "Все" ' +
-                                                    'и "Необработанные" заблокированы.',
+                                                    'Получены права. Получены данные для таблицы истории. Вкладки ' +
+                                                    '"Все" и "Необработанные" заблокированы.',
                                                 function() {
                                                     permissionsRequest.disallowSoftphoneAllCallsStatSelect().
                                                         receiveResponse();
 
-                                                    tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+                                                    tester.callsRequest().
+                                                        fromFirstWeekDay().
+                                                        firstPage().
+                                                        receiveResponse();
+
                                                     tester.marksRequest().receiveResponse();
 
                                                     tester.radioButton('Мои').expectNotToExist();
@@ -475,7 +488,8 @@ tests.addTest(options => {
                                                 tester.marksRequest().receiveResponse();
 
                                                 tester.select.option('Отдел дистрибуции').expectToBeSelected();
-                                                tester.select.option('Отдел региональных продаж').expectNotToBeSelected();
+                                                tester.select.option('Отдел региональных продаж').
+                                                    expectNotToBeSelected();
                                                 tester.select.option('Отдел по работе с ключевыми клиентами').
                                                     expectToBeSelected();
                                             });
@@ -754,13 +768,22 @@ tests.addTest(options => {
                                                 tester.calendarField.expectToHaveValue('15 нояб. 2019 - 18 дек. 2019');
                                             });
                                             it('Поля даты заполнены.', function() {
-                                                tester.calendarField.popup.input.first.expectToHaveValue('15.11.2019');
-                                                tester.calendarField.popup.input.atIndex(1).expectToHaveValue('18.12.2019');
+                                                tester.calendarField.
+                                                    popup.
+                                                    input.
+                                                    first.
+                                                    expectToHaveValue('15.11.2019');
+
+                                                tester.calendarField.
+                                                    popup.
+                                                    input.
+                                                    atIndex(1).
+                                                    expectToHaveValue('18.12.2019');
                                             });
                                         });
                                         it(
-                                            'Изменяю фильтр по дате вручную. Нажимаю на кнопку "Применить". Отправлен ' +
-                                            'запрос истории звонков.',
+                                            'Изменяю фильтр по дате вручную. Нажимаю на кнопку "Применить". ' +
+                                            'Отправлен запрос истории звонков.',
                                         function() {
                                             tester.calendarField.popup.input.first.fill('15.11.2019').pressEnter();
                                             tester.calendarField.popup.input.atIndex(1).fill('18.12.2019').pressEnter();
@@ -983,7 +1006,9 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    describe('Нажимаю на кнопку проигрывания записи. Запись проигрывается.', function() {
+                                    describe(
+                                        'Нажимаю на кнопку проигрывания записи. Запись проигрывается.',
+                                    function() {
                                         beforeEach(function() {
                                             tester.table.row.first.column.withHeader('Запись').playIcon.click();
                                             
@@ -996,7 +1021,9 @@ tests.addTest(options => {
                                                 tester.closeButton.click();
                                             });
 
-                                            it('Нажимаю на кнопку проигрывания записи. Плеер отображается.', function() {
+                                            it(
+                                                'Нажимаю на кнопку проигрывания записи. Плеер отображается.',
+                                            function() {
                                                 tester.table.row.first.column.withHeader('Запись').playIcon.click();
                                                 tester.audioPlayer.expectToBeVisible();
                                             });
@@ -1024,7 +1051,8 @@ tests.addTest(options => {
                                                 expectHrefToBeBlobWithContent('29f2f28ofjowf829f').
                                                 expectAttributeToHaveValue(
                                                     'download',
-                                                    '2019-12-19_08-03-02.522_from_74950230625_session_980925444_talk.mp3'
+                                                    '2019-12-19_08-03-02.522_' +
+                                                    'from_74950230625_session_980925444_talk.mp3'
                                                 );
                                         });
                                         it('Кликаю на элемент вне плеера. Плеер скрыт.', function() {
@@ -1057,7 +1085,8 @@ tests.addTest(options => {
                                             ).
                                                 expectAttributeToHaveValue(
                                                     'download',
-                                                    '2019-12-18_18-08-25.522_from_74950230626_session_980925445_1_talk.mp3'
+                                                    '2019-12-18_18-08-25.522_' +
+                                                    'from_74950230626_session_980925445_1_talk.mp3'
                                                 ).
                                                 expectHrefToBeBlobWithContent('j7927g028hhs084kf');
                                         });
@@ -1073,7 +1102,8 @@ tests.addTest(options => {
                                             ).
                                                 expectAttributeToHaveValue(
                                                     'download',
-                                                    '2019-12-18_18-08-25.522_from_74950230626_session_980925445_2_talk.mp3'
+                                                    '2019-12-18_18-08-25.522_' +
+                                                    'from_74950230626_session_980925445_2_talk.mp3'
                                                 ).
                                                 expectHrefToBeBlobWithContent('h398j0184hhls0283');
                                         });
@@ -1089,13 +1119,20 @@ tests.addTest(options => {
                                         it('Изменяю имя. Отправлен запрос обновления контакта.', function() {
                                             tester.contactBar.section('ФИО').svg.click();
 
-                                            tester.input.withPlaceholder('Фамилия (Обязательное поле)').fill('Неделчева');
+                                            tester.input.
+                                                withPlaceholder('Фамилия (Обязательное поле)').
+                                                fill('Неделчева');
+
                                             tester.input.withPlaceholder('Имя').fill('Роза');
                                             tester.input.withPlaceholder('Отчество').fill('Ангеловна');
 
                                             tester.button('Сохранить').click();
 
-                                            tester.contactUpdatingRequest().completeData().anotherName().receiveResponse();
+                                            tester.contactUpdatingRequest().
+                                                completeData().
+                                                anotherName().
+                                                receiveResponse();
+
                                             tester.contactRequest().receiveResponse();
 
                                             tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
@@ -1196,7 +1233,8 @@ tests.addTest(options => {
                                         tester.numaRequest().anotherNumber().receiveResponse();
                                     });
                                     it(
-                                        'Выбираю другое количество строк на странице. Отправлен запрос истории звонков.',
+                                        'Выбираю другое количество строк на странице. Отправлен запрос истории ' +
+                                        'звонков.',
                                     function() {
                                         tester.table.pagingPanel.select.click();
                                         tester.select.option('25').click();
@@ -1405,11 +1443,14 @@ tests.addTest(options => {
                                     );
                                 });
                                 it(
-                                    'Есть неуспешные звонки. Строки с неуспешными звонками внешне отличаются от строк с ' +
-                                    'успешными звонками.',
+                                    'Есть неуспешные звонки. Строки с неуспешными звонками внешне отличаются от ' +
+                                    'строк с успешными звонками.',
                                 function() {
                                     callsRequest.isFailed().receiveResponse();
-                                    tester.table.row.first.expectToHaveClass('cmg-softphone-call-history-failed-call-row');
+
+                                    tester.table.
+                                        row.
+                                        first.expectToHaveClass('cmg-softphone-call-history-failed-call-row');
                                 });
                                 it('Записи для таблицы не были получены. Панель пагинации скрыта.', function() {
                                     callsRequest.noCalls().receiveResponse();
@@ -1436,7 +1477,9 @@ tests.addTest(options => {
                                     callsRequest.chilePhoneNumber().receiveResponse();
                                     tester.table.expectTextContentToHaveSubstring(' +56 (123) 45-6789 ');
                                 });
-                                it('Общее количество записей не было получено. Отображена история звонков.', function() {
+                                it(
+                                    'Общее количество записей не было получено. Отображена история звонков.',
+                                function() {
                                     callsRequest.noTotal().receiveResponse();
 
                                     tester.spin.expectNotToExist();

@@ -535,36 +535,70 @@ tests.addTest(options => {
                                             receiveResponse();
                                     });
 
-                                    describe('Нажимаю на кнопку максимизации.', function() {
+                                    describe('Открываю раздел чатов.', function() {
                                         beforeEach(function() {
+                                            tester.button('99+ Чаты').click();
+
+                                            tester.chatSettingsRequest().receiveResponse();
+                                            tester.chatChannelListRequest().receiveResponse();
+                                            tester.statusListRequest().receiveResponse();
+                                            tester.listRequest().receiveResponse();
+                                            tester.siteListRequest().receiveResponse();
+                                            tester.messageTemplateListRequest().receiveResponse();
+
+                                            tester.accountRequest().
+                                                operatorWorkplaceAvailable().
+                                                forChats().
+                                                receiveResponse();
+                                        });
+
+                                        it('Выбираю чат. Чат открыт.', function() {
+                                            tester.chatList.input.fill('Сообщение #75');
+
+                                            tester.chatList.input.pressEnter();
+                                            tester.searchResultsRequest().receiveResponse();
+
+                                            tester.chatList.item('Сообщение #75').click();
+                                            tester.chatListRequest().thirdChat().receiveResponse();
+
+                                            tester.acceptChatRequest().receiveResponse();
+                                            tester.visitorCardRequest().receiveResponse();
+                                            tester.messageListRequest().receiveResponse();
+
+                                            tester.usersRequest().forContacts().receiveResponse();
+                                            tester.usersRequest().forContacts().receiveResponse();
+
+                                            tester.changeMessageStatusRequest().
+                                                anotherChat().
+                                                anotherMessage().
+                                                read().
+                                                receiveResponse();
+
+                                            tester.changeMessageStatusRequest().
+                                                anotherChat().
+                                                anotherMessage().
+                                                read().
+                                                receiveResponse();
+
+                                            tester.changeMessageStatusRequest().
+                                                anotherChat().
+                                                anotherMessage().
+                                                read().
+                                                receiveResponse();
+                                        });
+                                        it('Сворачиваю софтофон.', function() {
                                             tester.maximizednessButton.click();
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
                                                 expectToBeSentToChannel('unmaximize');
                                         });
-
-                                        it('Нажимаю на кнопку свернутости. Софтфон свернут.', function() {
-                                            tester.collapsednessToggleButton.click();
-
-                                            getPackage('electron').ipcRenderer.
-                                                recentlySentMessage().
-                                                expectToBeSentToChannel('resize').
-                                                expectToBeSentWithArguments({
-                                                    width: 340,
-                                                    height: 212
-                                                });
-
-                                            tester.maximizednessButton.expectToBeUnmaximized();
-                                            tester.collapsednessToggleButton.expectToBeCollapsed();
-
-                                            tester.dialpadButton(1).expectNotToExist();
-                                        });
-                                        it('Софтфон не максимизирован.', function() {
-                                            tester.maximizednessButton.expectToBeUnmaximized();
-                                            tester.collapsednessToggleButton.expectToBeExpanded();
-
-                                            tester.dialpadButton(1).expectToBeVisible();
+                                        it('Пункт меню чатов выделен.', function() {
+                                            tester.button('99+ Чаты').expectToBePressed();
+                                            tester.button('Заявки').expectNotToBePressed();
+                                            tester.button('Статистика').expectNotToBePressed();
+                                            tester.button('История звонков').expectNotToBePressed();
+                                            tester.button('Настройки').expectNotToBePressed();
                                         });
                                     });
                                     describe('Нажимаю на кнопку "Настройки".', function() {
@@ -637,87 +671,58 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    describe('Открываю раздел чатов.', function() {
+                                    describe('Нажимаю на кнопку максимизации.', function() {
                                         beforeEach(function() {
-                                            tester.button('99+ Чаты').click();
-
-                                            tester.chatSettingsRequest().receiveResponse();
-                                            tester.chatChannelListRequest().receiveResponse();
-                                            tester.statusListRequest().receiveResponse();
-                                            tester.listRequest().receiveResponse();
-                                            tester.siteListRequest().receiveResponse();
-                                            tester.messageTemplateListRequest().receiveResponse();
-
-                                            tester.accountRequest().
-                                                operatorWorkplaceAvailable().
-                                                forChats().
-                                                receiveResponse();
-                                        });
-
-                                        it('Выбираю чат. Чат открыт.', function() {
-                                            tester.chatList.input.fill('Сообщение #75');
-
-                                            tester.chatList.input.pressEnter();
-                                            tester.searchResultsRequest().receiveResponse();
-
-                                            tester.chatList.item('Сообщение #75').click();
-                                            tester.chatListRequest().thirdChat().receiveResponse();
-
-                                            tester.acceptChatRequest().receiveResponse();
-                                            tester.visitorCardRequest().receiveResponse();
-                                            tester.messageListRequest().receiveResponse();
-
-                                            tester.usersRequest().forContacts().receiveResponse();
-                                            tester.usersRequest().forContacts().receiveResponse();
-
-                                            tester.changeMessageStatusRequest().
-                                                anotherChat().
-                                                anotherMessage().
-                                                read().
-                                                receiveResponse();
-
-                                            tester.changeMessageStatusRequest().
-                                                anotherChat().
-                                                anotherMessage().
-                                                read().
-                                                receiveResponse();
-
-                                            tester.changeMessageStatusRequest().
-                                                anotherChat().
-                                                anotherMessage().
-                                                read().
-                                                receiveResponse();
-                                        });
-                                        it('Сворачиваю софтофон.', function() {
                                             tester.maximizednessButton.click();
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
                                                 expectToBeSentToChannel('unmaximize');
                                         });
-                                        it('Пункт меню чатов выделен.', function() {
-                                            tester.button('99+ Чаты').expectToBePressed();
-                                            tester.button('Заявки').expectNotToBePressed();
-                                            tester.button('Статистика').expectNotToBePressed();
-                                            tester.button('История звонков').expectNotToBePressed();
-                                            tester.button('Настройки').expectNotToBePressed();
+
+                                        it('Нажимаю на кнопку свернутости. Софтфон свернут.', function() {
+                                            tester.collapsednessToggleButton.click();
+
+                                            getPackage('electron').ipcRenderer.
+                                                recentlySentMessage().
+                                                expectToBeSentToChannel('resize').
+                                                expectToBeSentWithArguments({
+                                                    width: 340,
+                                                    height: 212
+                                                });
+
+                                            tester.maximizednessButton.expectToBeUnmaximized();
+                                            tester.collapsednessToggleButton.expectToBeCollapsed();
+
+                                            tester.dialpadButton(1).expectNotToExist();
+                                        });
+                                        it('Софтфон не максимизирован.', function() {
+                                            tester.maximizednessButton.expectToBeUnmaximized();
+                                            tester.collapsednessToggleButton.expectToBeExpanded();
+
+                                            tester.dialpadButton(1).expectToBeVisible();
                                         });
                                     });
-                                    it('Получено сообщение о максимизации. Ничего не происходит.', function() {
-                                        getPackage('electron').ipcRenderer.receiveMessage('maximize');
+                                    describe('Нажимаю на кнопку видимости.', function() {
+                                        beforeEach(function() {
+                                            tester.softphone.visibilityButton.click();
+                                        });
 
-                                        tester.maximizednessButton.expectToBeMaximized();
-                                        tester.dialpadButton(1).expectToBeVisible();
-                                    });
-                                    it('Нажимаю на кнопку "Контакты". Отображена таблица контактов.', function() {
-                                        tester.button('Контакты').click();
-                                        tester.contactsRequest().differentNames().receiveResponse();
+                                        it('Поступил входящий звонок. Софтфон скрыт.', function() {
+                                            tester.incomingCall().receive();
+                                            tester.numaRequest().receiveResponse();
+                                            tester.outCallEvent().activeLeads().receive();
 
-                                        tester.contactList.item('Балканска Берислава Силаговна').expectToBeVisible();
-                                    });
-                                    it('Нажимаю на кнопку аккаунта в меню. Отображена всплывающая панель.', function() {
-                                        tester.leftMenu.userName.click();
-                                        tester.statusesList.expectTextContentToHaveSubstring('Ганева Стефка');
+                                            getPackage('electron').ipcRenderer.
+                                                recentlySentMessage().
+                                                expectToBeSentToChannel('incoming-call').
+                                                expectToBeSentWithArguments(false);
+
+                                            tester.dialpadButton(1).expectNotToExist();
+                                        });
+                                        it('Софтфон скрыт.', function() {
+                                            tester.dialpadButton(1).expectNotToExist();
+                                        });
                                     });
                                     it('Выхожу из софтфона и вхожу заново.', function() {
                                         tester.leftMenu.userName.click();
@@ -856,45 +861,6 @@ tests.addTest(options => {
 
                                         tester.leftMenu.expectToBeVisible();
                                     });
-                                    it('Нажимаю на кнопку истории звонков. Открыт раздел истории звонков.', function() {
-                                        tester.callsHistoryButton.click();
-
-                                        tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
-                                        tester.marksRequest().receiveResponse();
-
-                                        tester.callsHistoryButton.expectToBePressed();
-                                        tester.chatsButton.expectNotToBePressed();
-                                        tester.settingsButton.expectNotToBePressed();
-                                    });
-                                    it('Нажимаю на кнопку настроек в нижнем меню. Открыт раздел настроек.', function() {
-                                        tester.settingsButton.click();
-                                        tester.button('Автозапуск приложения').expectToBeVisible();
-
-                                        tester.settingsButton.expectToBePressed();
-                                        tester.chatsButton.expectNotToBePressed();
-                                        tester.callsHistoryButton.expectNotToBePressed();
-                                    });
-                                    describe('Нажимаю на кнопку видимости.', function() {
-                                        beforeEach(function() {
-                                            tester.softphone.visibilityButton.click();
-                                        });
-
-                                        it('Поступил входящий звонок. Софтфон скрыт.', function() {
-                                            tester.incomingCall().receive();
-                                            tester.numaRequest().receiveResponse();
-                                            tester.outCallEvent().activeLeads().receive();
-
-                                            getPackage('electron').ipcRenderer.
-                                                recentlySentMessage().
-                                                expectToBeSentToChannel('incoming-call').
-                                                expectToBeSentWithArguments(false);
-
-                                            tester.dialpadButton(1).expectNotToExist();
-                                        });
-                                        it('Софтфон скрыт.', function() {
-                                            tester.dialpadButton(1).expectNotToExist();
-                                        });
-                                    });
                                     it('Отображен большой софтфон.', function() {
                                         tester.button('99+ Чаты').expectNotToBePressed();
                                         tester.button('Заявки').expectNotToBePressed();
@@ -917,6 +883,40 @@ tests.addTest(options => {
                                                 'В локальном хранилище должна быть сохранена максимизация софтфона.'
                                             );
                                         }
+                                    });
+                                    it('Нажимаю на кнопку истории звонков. Открыт раздел истории звонков.', function() {
+                                        tester.callsHistoryButton.click();
+
+                                        tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+                                        tester.marksRequest().receiveResponse();
+
+                                        tester.callsHistoryButton.expectToBePressed();
+                                        tester.chatsButton.expectNotToBePressed();
+                                        tester.settingsButton.expectNotToBePressed();
+                                    });
+                                    it('Нажимаю на кнопку настроек в нижнем меню. Открыт раздел настроек.', function() {
+                                        tester.settingsButton.click();
+                                        tester.button('Автозапуск приложения').expectToBeVisible();
+
+                                        tester.settingsButton.expectToBePressed();
+                                        tester.chatsButton.expectNotToBePressed();
+                                        tester.callsHistoryButton.expectNotToBePressed();
+                                    });
+                                    it('Получено сообщение о максимизации. Ничего не происходит.', function() {
+                                        getPackage('electron').ipcRenderer.receiveMessage('maximize');
+
+                                        tester.maximizednessButton.expectToBeMaximized();
+                                        tester.dialpadButton(1).expectToBeVisible();
+                                    });
+                                    it('Нажимаю на кнопку "Контакты". Отображена таблица контактов.', function() {
+                                        tester.button('Контакты').click();
+                                        tester.contactsRequest().differentNames().receiveResponse();
+
+                                        tester.contactList.item('Балканска Берислава Силаговна').expectToBeVisible();
+                                    });
+                                    it('Нажимаю на кнопку аккаунта в меню. Отображена всплывающая панель.', function() {
+                                        tester.leftMenu.userName.click();
+                                        tester.statusesList.expectTextContentToHaveSubstring('Ганева Стефка');
                                     });
                                 });
                                 describe('Открываю историю звонков.', function() {
