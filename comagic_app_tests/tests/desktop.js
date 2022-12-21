@@ -919,6 +919,145 @@ tests.addTest(options => {
                                         tester.statusesList.expectTextContentToHaveSubstring('Ганева Стефка');
                                     });
                                 });
+                                describe('Зафиксирую ширину окна. Нажимаю на кнопку максимизации.', function() {
+                                    beforeEach(function() {
+                                        document.querySelector('.cm-app').style = 'width: 1015px;';
+                                        tester.maximizednessButton.click();
+
+                                        getPackage('electron').ipcRenderer.
+                                            recentlySentMessage().
+                                            expectToBeSentToChannel('resize').
+                                            expectToBeSentWithArguments({
+                                                width: 340,
+                                                height: 568
+                                            });
+
+                                        getPackage('electron').ipcRenderer.
+                                            recentlySentMessage().
+                                            expectToBeSentToChannel('maximize');
+                                        
+                                        const requests = ajax.inAnyOrder();
+
+                                        const statsRequest = tester.statsRequest().
+                                            expectToBeSent(requests);
+
+                                        const accountRequest = tester.accountRequest().
+                                            operatorWorkplaceAvailable().
+                                            forChats().
+                                            expectToBeSent(requests);
+
+                                        const secondAccountRequest = tester.accountRequest().
+                                            operatorWorkplaceAvailable().
+                                            expectToBeSent(requests);
+
+                                        requests.expectToBeSent();
+
+                                        statsRequest.receiveResponse();
+                                        accountRequest.receiveResponse();
+                                        secondAccountRequest.receiveResponse();
+
+                                        tester.offlineMessageCountersRequest().receiveResponse();
+                                        tester.chatChannelListRequest().receiveResponse();
+                                        tester.siteListRequest().receiveResponse();
+                                        tester.markListRequest().receiveResponse();
+                                        tester.chatChannelTypeListRequest().receiveResponse();
+
+                                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                        tester.offlineMessageListRequest().processing().receiveResponse();
+                                        tester.offlineMessageListRequest().processed().receiveResponse();
+
+                                        tester.countersRequest().receiveResponse();
+
+                                        tester.chatListRequest().
+                                            forCurrentEmployee().
+                                            secondPage().
+                                            receiveResponse();
+
+                                        tester.chatListRequest().
+                                            forCurrentEmployee().
+                                            secondPage().
+                                            active().
+                                            receiveResponse();
+
+                                        tester.chatListRequest().
+                                            forCurrentEmployee().
+                                            secondPage().
+                                            closed().
+                                            receiveResponse();
+                                    });
+
+                                    describe('Скрываю софтфон.', function() {
+                                        beforeEach(function() {
+                                            tester.softphone.visibilityButton.click();
+                                        });
+
+                                        it(
+                                            'Открываю раздел контаков. Открываю раздел статистики. Показываю ' +
+                                            'софтфон. Отображена кнопка "Показать все статусы".',
+                                        function() {
+                                            tester.button('Контакты').click();
+                                            tester.contactsRequest().differentNames().receiveResponse();
+
+                                            tester.button('Статистика').click();
+                                            tester.statsRequest().receiveResponse();
+
+                                            tester.softphone.visibilityButton.click();
+
+                                            const requests = ajax.inAnyOrder();
+
+                                            const accountRequest = tester.accountRequest().
+                                                operatorWorkplaceAvailable().
+                                                forChats().
+                                                expectToBeSent(requests);
+
+                                            const secondAccountRequest = tester.accountRequest().
+                                                operatorWorkplaceAvailable().
+                                                expectToBeSent(requests);
+
+                                            requests.expectToBeSent();
+
+                                            accountRequest.receiveResponse();
+                                            secondAccountRequest.receiveResponse();
+
+                                            tester.offlineMessageCountersRequest().receiveResponse();
+                                            tester.chatChannelListRequest().receiveResponse();
+                                            tester.siteListRequest().receiveResponse();
+                                            tester.markListRequest().receiveResponse();
+                                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                            tester.offlineMessageListRequest().processing().receiveResponse();
+                                            tester.offlineMessageListRequest().processed().receiveResponse();
+
+                                            tester.countersRequest().receiveResponse();
+
+                                            tester.chatListRequest().
+                                                forCurrentEmployee().
+                                                thirdPage().
+                                                receiveResponse();
+
+                                            tester.chatListRequest().
+                                                forCurrentEmployee().
+                                                thirdPage().
+                                                active().
+                                                receiveResponse();
+
+                                            tester.chatListRequest().
+                                                forCurrentEmployee().
+                                                thirdPage().
+                                                closed().
+                                                receiveResponse();
+
+                                            tester.button('Показать все статусы').expectToBeVisible();
+                                        });
+                                        it('Кнопка "Показать все статусы" скрыта.', function() {
+                                            tester.button('Показать все статусы').expectNotToExist();
+                                        });
+                                    });
+                                    it('Отображена кнопка "Показать все статусы".', function() {
+                                        tester.button('Показать все статусы').expectToBeVisible();
+                                    });
+                                });
                                 describe('Открываю историю звонков.', function() {
                                     let callsRequest;
 
@@ -1417,22 +1556,6 @@ tests.addTest(options => {
                                         tester.input.withPlaceholder('Найти').expectToBeVisible();
                                     });
                                 });
-                                it('Нажимаю на кнопку развернутости. Софтфон развернут.', function() {
-                                    tester.collapsednessToggleButton.click();
-
-                                    getPackage('electron').ipcRenderer.
-                                        recentlySentMessage().
-                                        expectToBeSentToChannel('resize').
-                                        expectToBeSentWithArguments({
-                                            width: 340,
-                                            height: 568
-                                        });
-
-                                    tester.maximizednessButton.expectToBeUnmaximized();
-                                    tester.collapsednessToggleButton.expectToBeExpanded();
-
-                                    tester.dialpadButton(1).expectToBeVisible();
-                                });
                                 describe('Получено обновление.', function() {
                                     beforeEach(function() {
                                         getPackage('electron').ipcRenderer.receiveMessage('update-downloaded');
@@ -1718,32 +1841,6 @@ tests.addTest(options => {
                                     tester.chatsButton.expectToBePressed();
                                 });
                                 it(
-                                    'Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.',
-                                function() {
-                                    tester.dialpadVisibilityButton.click();
-
-                                    getPackage('electron').ipcRenderer.
-                                        recentlySentMessage().
-                                        expectToBeSentToChannel('resize').
-                                        expectToBeSentWithArguments({
-                                            width: 340,
-                                            height: 568
-                                        });
-
-                                    tester.userName.click();
-
-                                    tester.statusesList.item('Не беспокоить').expectToBeSelected();
-                                    tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
-                                });
-                                it('Помещаю курсор над иконкой аккаунта. Список статусов не открывается.', function() {
-                                    tester.userName.putMouseOver();
-                                    tester.statusesList.item('Не беспокоить').expectNotToExist();
-                                });
-                                it('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
-                                    utils.pressKey('7');
-                                    tester.phoneField.expectToBeFocused();
-                                });
-                                it(
                                     'Нажимаю на кнопку контактов в нижнем тулбаре. Открыт раздел контактов.',
                                 function() {
                                     tester.contactsButton.click();
@@ -1802,144 +1899,47 @@ tests.addTest(options => {
                                     tester.contactList.item('Балканска Берислава Силаговна').expectToBeVisible();
                                     tester.contactsButton.expectToBePressed();
                                 });
-                                describe('Зафиксирую ширину окна. Нажимаю на кнопку максимизации.', function() {
-                                    beforeEach(function() {
-                                        document.querySelector('.cm-app').style = 'width: 1015px;';
-                                        tester.maximizednessButton.click();
+                                it(
+                                    'Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены статусы.',
+                                function() {
+                                    tester.dialpadVisibilityButton.click();
 
-                                        getPackage('electron').ipcRenderer.
-                                            recentlySentMessage().
-                                            expectToBeSentToChannel('resize').
-                                            expectToBeSentWithArguments({
-                                                width: 340,
-                                                height: 568
-                                            });
-
-                                        getPackage('electron').ipcRenderer.
-                                            recentlySentMessage().
-                                            expectToBeSentToChannel('maximize');
-                                        
-                                        const requests = ajax.inAnyOrder();
-
-                                        const statsRequest = tester.statsRequest().
-                                            expectToBeSent(requests);
-
-                                        const accountRequest = tester.accountRequest().
-                                            operatorWorkplaceAvailable().
-                                            forChats().
-                                            expectToBeSent(requests);
-
-                                        const secondAccountRequest = tester.accountRequest().
-                                            operatorWorkplaceAvailable().
-                                            expectToBeSent(requests);
-
-                                        requests.expectToBeSent();
-
-                                        statsRequest.receiveResponse();
-                                        accountRequest.receiveResponse();
-                                        secondAccountRequest.receiveResponse();
-
-                                        tester.offlineMessageCountersRequest().receiveResponse();
-                                        tester.chatChannelListRequest().receiveResponse();
-                                        tester.siteListRequest().receiveResponse();
-                                        tester.markListRequest().receiveResponse();
-                                        tester.chatChannelTypeListRequest().receiveResponse();
-
-                                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                        tester.offlineMessageListRequest().processing().receiveResponse();
-                                        tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                        tester.countersRequest().receiveResponse();
-
-                                        tester.chatListRequest().
-                                            forCurrentEmployee().
-                                            secondPage().
-                                            receiveResponse();
-
-                                        tester.chatListRequest().
-                                            forCurrentEmployee().
-                                            secondPage().
-                                            active().
-                                            receiveResponse();
-
-                                        tester.chatListRequest().
-                                            forCurrentEmployee().
-                                            secondPage().
-                                            closed().
-                                            receiveResponse();
-                                    });
-
-                                    describe('Скрываю софтфон.', function() {
-                                        beforeEach(function() {
-                                            tester.softphone.visibilityButton.click();
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
+                                        expectToBeSentToChannel('resize').
+                                        expectToBeSentWithArguments({
+                                            width: 340,
+                                            height: 568
                                         });
 
-                                        it(
-                                            'Открываю раздел контаков. Открываю раздел статистики. Показываю ' +
-                                            'софтфон. Отображена кнопка "Показать все статусы".',
-                                        function() {
-                                            tester.button('Контакты').click();
-                                            tester.contactsRequest().differentNames().receiveResponse();
+                                    tester.userName.click();
 
-                                            tester.button('Статистика').click();
-                                            tester.statsRequest().receiveResponse();
+                                    tester.statusesList.item('Не беспокоить').expectToBeSelected();
+                                    tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
+                                });
+                                it('Нажимаю на кнопку развернутости. Софтфон развернут.', function() {
+                                    tester.collapsednessToggleButton.click();
 
-                                            tester.softphone.visibilityButton.click();
-
-                                            const requests = ajax.inAnyOrder();
-
-                                            const accountRequest = tester.accountRequest().
-                                                operatorWorkplaceAvailable().
-                                                forChats().
-                                                expectToBeSent(requests);
-
-                                            const secondAccountRequest = tester.accountRequest().
-                                                operatorWorkplaceAvailable().
-                                                expectToBeSent(requests);
-
-                                            requests.expectToBeSent();
-
-                                            accountRequest.receiveResponse();
-                                            secondAccountRequest.receiveResponse();
-
-                                            tester.offlineMessageCountersRequest().receiveResponse();
-                                            tester.chatChannelListRequest().receiveResponse();
-                                            tester.siteListRequest().receiveResponse();
-                                            tester.markListRequest().receiveResponse();
-                                            tester.chatChannelTypeListRequest().receiveResponse();
-
-                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                            tester.offlineMessageListRequest().processing().receiveResponse();
-                                            tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                            tester.countersRequest().receiveResponse();
-
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                thirdPage().
-                                                receiveResponse();
-
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                thirdPage().
-                                                active().
-                                                receiveResponse();
-
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                thirdPage().
-                                                closed().
-                                                receiveResponse();
-
-                                            tester.button('Показать все статусы').expectToBeVisible();
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
+                                        expectToBeSentToChannel('resize').
+                                        expectToBeSentWithArguments({
+                                            width: 340,
+                                            height: 568
                                         });
-                                        it('Кнопка "Показать все статусы" скрыта.', function() {
-                                            tester.button('Показать все статусы').expectNotToExist();
-                                        });
-                                    });
-                                    it('Отображена кнопка "Показать все статусы".', function() {
-                                        tester.button('Показать все статусы').expectToBeVisible();
-                                    });
+
+                                    tester.maximizednessButton.expectToBeUnmaximized();
+                                    tester.collapsednessToggleButton.expectToBeExpanded();
+
+                                    tester.dialpadButton(1).expectToBeVisible();
+                                });
+                                it('Помещаю курсор над иконкой аккаунта. Список статусов не открывается.', function() {
+                                    tester.userName.putMouseOver();
+                                    tester.statusesList.item('Не беспокоить').expectNotToExist();
+                                });
+                                it('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
+                                    utils.pressKey('7');
+                                    tester.phoneField.expectToBeFocused();
                                 });
                                 it('Некие сообщения выведены в лог.', function() {
                                     tester.phoneField.expectNotToBeFocused();
