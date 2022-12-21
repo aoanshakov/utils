@@ -1524,6 +1524,72 @@ tests.addTest(options => {
                             });
                         });
                         it(
+                            'Совершаю исходящий звонок. Кладу трубку не дожидаясь ответа. Количество пропущенных ' +
+                            'звонков не увеличилось.',
+                        function() {
+                            tester.button('Софтфон').click();
+                            tester.slavesNotification().additional().visible().expectToBeSent();
+
+                            tester.phoneField.fill('79161234567');
+                            tester.callStartingButton.click();
+
+                            tester.firstConnection.connectWebRTC();
+                            tester.allowMediaInput();
+
+                            outgoingCall = tester.outgoingCall().expectToBeSent()
+
+                            tester.slavesNotification().
+                                available().
+                                userDataFetched().
+                                twoChannels().
+                                sending().
+                                expectToBeSent();
+
+                            outgoingCall.setRinging();
+                            
+                            tester.slavesNotification().
+                                available().
+                                userDataFetched().
+                                twoChannels().
+                                progress().
+                                expectToBeSent();
+
+                            tester.firstConnection.callTrackHandler();
+                            tester.numaRequest().receiveResponse();
+
+                            tester.outCallSessionEvent().receive();
+                            tester.outCallSessionEvent().slavesNotification().expectToBeSent();
+
+                            tester.stopCallButton.click();
+
+                            tester.slavesNotification().
+                                available().
+                                userDataFetched().
+                                twoChannels().
+                                ended().
+                                expectToBeSent();
+
+                            outgoingCall.expectCancelingRequestToBeSent();
+
+                            tester.callSessionFinish().
+                                thirdId().
+                                slavesNotification().
+                                expectToBeSent();
+
+                            tester.lostCallSessionEvent().
+                                outgoing().
+                                anotherCallSessionId().
+                                receive();
+
+                            tester.lostCallSessionEvent().
+                                outgoing().
+                                anotherCallSessionId().
+                                slavesNotification().
+                                expectToBeSent();
+
+                            tester.button('История звонков').counter.expectNotToExist();
+                        });
+                        it(
                             'Поступил входящий звонок. Звонок пропущен. Рядом с пунктом меню "История звонков" ' +
                             'отображено количество пропущенных звонков.',
                         function() {

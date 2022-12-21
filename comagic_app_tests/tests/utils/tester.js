@@ -2764,6 +2764,16 @@ define(() => function ({
         });
 
         return {
+            outgoing() {
+                params.direction = 'out';
+                return this;
+            },
+
+            anotherCallSessionId() {
+                params.call_session_id = 980925450;
+                return this;
+            },
+
             slavesNotification: () => {
                 const notification = {
                     type: 'message',
