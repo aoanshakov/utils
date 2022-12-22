@@ -50,7 +50,6 @@ tests.addTest(options => {
 
             accountRequest = tester.accountRequest().
                 webAccountLoginUnavailable().
-                contactsFeatureFlagDisabled().
                 softphoneFeatureFlagDisabled().
                 operatorWorkplaceAvailable().
                 expectToBeSent();
@@ -278,6 +277,8 @@ tests.addTest(options => {
                                                     'Канал ' +
                                                     'Некое имя канала ' +
                                                     
+                                                    'Страница обращения ' +
+
                                                     'Источник входа ' +
                                                     'Некиий источник трафика ' +
 
@@ -1029,6 +1030,14 @@ tests.addTest(options => {
 
                             '12:10'
                         );
+                    });
+                    it('Открываю раздел контактов. Соединение с вебсокетом чатов разрывается.', function() {
+                        tester.leftMenu.button('Контакты').click();
+
+                        tester.contactsRequest().differentNames().receiveResponse();
+                        tester.chatsWebSocket.finishDisconnecting();
+
+                        tester.contactList.item('Бележкова Грета Ервиновна').expectToBeVisible();
                     });
                     it('Отображен список чатов.', function() {
                         tester.body.expectTextContentToHaveSubstring(

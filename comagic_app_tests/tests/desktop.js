@@ -2145,11 +2145,6 @@ tests.addTest(options => {
                                 secondAccountRequest.receiveResponse();
                                 thirdAccountRequest.receiveResponse();
                                 
-                                tester.chatListRequest().
-                                    forCurrentEmployee().
-                                    anyScrollFromDate().
-                                    receiveResponse();
-
                                 tester.offlineMessageCountersRequest().receiveResponse();
                                 tester.chatChannelListRequest().receiveResponse();
                                 tester.siteListRequest().receiveResponse();

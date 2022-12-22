@@ -1629,6 +1629,7 @@ define(() => function ({
         const getWebSocket = index => webSockets.getSocket('$REACT_APP_WS_URL', index);
 
         return {
+            finishDisconnecting: () => getWebSocket(0).finishDisconnecting(),
             connect: () => getWebSocket(0).connect(),
             expectSentMessageToContain: message => getWebSocket(0).expectSentMessageToContain(message),
             receive: message => getWebSocket(0).receiveMessage(message)
