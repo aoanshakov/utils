@@ -1,0 +1,14 @@
+{
+    "project": "uis2",
+    "local_config_db": {
+        "postfix": "_int.0"
+    },  
+    "local_config": {
+        "AMOCRM_NOTIFICATION_SERVER_URL": "http://dev.uis.st:8442/dashboard/",
+        "BITRIX24_INTEGRATION_SERVER_URL": "http://dev.uis.st:8452/dashboard/",
+        "BITRIX_EASY_START_CONFIG": {
+            "client_id": "local.61cbf1f2103c36.42185699",
+            "client_secret": "dlAZ5WyWIIBmMIOeEMwfXFKnBK0YMZbioC2qOieXaOYMEkBqKi"
+        }   
+    }   
+}
