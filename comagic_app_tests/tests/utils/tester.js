@@ -2418,6 +2418,11 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.longMonths = () => ((processors.push(data => {
+                data[0].start_time = '2019-03-17T19:07:28.522+03:00';
+                data[1].start_time = '2019-06-16T21:09:26.522+03:00';
+                data[2].start_time = '2019-07-14T23:10:27.522+03:00';
+            })), me),
             me.shortPhoneNumber = () => ((processors.push(data => (data[0].number = '56123'))), me)
             me.chilePhoneNumber = () => ((processors.push(data => (data[0].number = '56123456789'))), me)
             me.duplicatedCallSessionId = () => (processors.push(data => (data[1].call_session_id = 980925444)), me);

@@ -162,7 +162,7 @@ tests.addTest(options => {
                                     authenticatedUserRequest.receiveResponse();
                                 });
 
-                                xdescribe('Получен доступ к микрофону.', function() {
+                                describe('Получен доступ к микрофону.', function() {
                                     beforeEach(function() {
                                         tester.allowMediaInput();
                                     });

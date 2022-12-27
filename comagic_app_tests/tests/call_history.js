@@ -1477,6 +1477,15 @@ tests.addTest(options => {
                                     callsRequest.chilePhoneNumber().receiveResponse();
                                     tester.table.expectTextContentToHaveSubstring(' +56 (123) 45-6789 ');
                                 });
+                                it('В таблице содержатся записи у которых в датах длинные месяца.', function() {
+                                    callsRequest.longMonths().receiveResponse();
+
+                                    tester.table.expectTextContentToHaveSubstringsConsideringOrder(
+                                        '17 мар.',
+                                        '16 июня',
+                                        '14 июля'
+                                    );
+                                });
                                 it(
                                     'Общее количество записей не было получено. Отображена история звонков.',
                                 function() {
