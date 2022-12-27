@@ -27,10 +27,9 @@ RUN apt-get install nginx -y
 
 RUN pip install virtualenv==20.4.7
 
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
-RUN apt-get install -y nodejs
-RUN curl -L https://npmjs.org/install.sh | sh
-RUN npm install -g gulp
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+RUN /bin/bash -c "source ~/.bashrc && nvm install 8"
+RUN /bin/bash -c "source ~/.bashrc && npm install -g gulp"
 RUN python3 -m venv /home/venv
 RUN /home/venv/bin/pip3 install black astor
 

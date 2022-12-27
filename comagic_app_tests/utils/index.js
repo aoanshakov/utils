@@ -38,7 +38,6 @@ const {
     contacts,
     contactsPatch,
     uisWebRTC,
-    packageLockJson,
     stub,
     shadowContentTsxSource,
     shadowContentTsxTarget,
@@ -222,16 +221,6 @@ const overriding = [{
         applicationPatch: sipLibPatch
     }
 }, {
-    application: analytics,
-    dev: {
-        overridenFiles: analyticsOverridenFiles,
-        applicationPatch: analyticsPatch
-    },
-    test: {
-        overridenFiles: analyticsOverridenFiles,
-        applicationPatch: analyticsPatch
-    }
-}, {
     application: contacts,
     dev: {
         overridenFiles: contactsOverridenFiles,
@@ -242,6 +231,22 @@ const overriding = [{
         applicationPatch: contactsPatch
     }
 }];
+
+const shouldTestAnalytics = false;
+
+if (shouldTestAnalytics) {
+    overriding.push({
+        application: analytics,
+        dev: {
+            overridenFiles: analyticsOverridenFiles,
+            applicationPatch: analyticsPatch
+        },
+        test: {
+            overridenFiles: analyticsOverridenFiles,
+            applicationPatch: analyticsPatch
+        }
+    });
+}
 
 const getOverriding = ({dev}) => overriding.map(overriding => ({
     application: overriding.application,
@@ -315,14 +320,16 @@ actions['copy-magic-ui'] = [
     `cp -rv ${magicUi}/lib ${magicUi}/package.json ${magicUiTarget}`
 ]), []));
 
+const standInt0Branch = '--branch stand-int0';
+
 actions['initialize'] = params => [
-    appModule(['chats', chats, '']),
-    appModule(['softphone', softphone, '']),
+    appModule(['chats', chats, standInt0Branch]),
+    appModule(['softphone', softphone, standInt0Branch]),
+    appModule(['contacts', contacts, standInt0Branch]),
     appModule(['core', core, '']),
-    ['web/magic_ui', magicUi, '', misc],
-    ['analytics/frontend', analytics, '', analyticsDir],
-    ['web/sip_lib', sipLib, '', softphoneMisc],
-    ['web/uis_webrtc', uisWebRTC, '', sipLib]
+    ['web/magic_ui', magicUi, 'feature/softphone', misc],
+    ['web/sip_lib', sipLib, 'multitab-local', softphoneMisc],
+    ['web/uis_webrtc', uisWebRTC, 'stand-int0', sipLib]
 ].map(([module, path, args, misc]) => (!fs.existsSync(path) ? [
     () => mkdir(misc),
     `cd ${misc} && git clone${args} git@gitlab.uis.dev:${module}.git`
