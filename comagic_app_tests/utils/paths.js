@@ -36,6 +36,8 @@ module.exports = {
     stub: `${tests}/Stub.js`,
     shadowContentTsxSource: `${tests}/ShadowContent.tsx`,
     shadowContentTsxTarget: `${analytics}/src/components/ShadowContent.tsx`,
+    testsEntripointSource: `${tests}/tests.tsx`,
+    testsEntripointTarget: `${application}/src/tests.tsx`,
     contactList: `${tests}/contact-list.js`,
     femaleNames: `${tests}/female-names`,
     maleNames: `${tests}/male-names`,

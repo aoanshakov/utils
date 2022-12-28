@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 4e095e2b..0d39bb9e 100644
+index 6f23a52e..6c7bd884 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -13,7 +13,7 @@ index 4e095e2b..0d39bb9e 100644
  
  const { ModuleFederationPlugin } = webpack.container;
  const pkgJson = require('../package.json');
-@@ -17,6 +18,8 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -18,6 +19,8 @@ const ENTRY_POINT = process.env.ENTRY_POINT || 'default';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
@@ -22,7 +22,7 @@ index 4e095e2b..0d39bb9e 100644
  const publicDir = path.resolve(appDirectory, 'public');
  const buildDir = path.resolve(appDirectory, 'build');
  const dotenv = path.resolve(appDirectory, '.env');
-@@ -24,9 +27,20 @@ const isProductionMode = NODE_ENV !== 'development';
+@@ -25,9 +28,20 @@ const isProductionMode = NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
@@ -43,7 +43,7 @@ index 4e095e2b..0d39bb9e 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -103,10 +117,11 @@ const webpackDefinePlugin = () => {
+@@ -105,10 +119,11 @@ const webpackDefinePlugin = () => {
      return opts;
  };
  
@@ -56,7 +56,7 @@ index 4e095e2b..0d39bb9e 100644
          },
          {
              loader: 'css-loader',
-@@ -215,7 +230,7 @@ const plugins = () => {
+@@ -216,7 +231,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -65,7 +65,7 @@ index 4e095e2b..0d39bb9e 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -257,6 +272,11 @@ const plugins = () => {
+@@ -258,6 +273,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -77,7 +77,7 @@ index 4e095e2b..0d39bb9e 100644
      ];
  
      if (isProductionMode) {
-@@ -280,6 +300,17 @@ const plugins = () => {
+@@ -281,6 +301,17 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -93,9 +93,9 @@ index 4e095e2b..0d39bb9e 100644
 +);
 +
  module.exports = {
-     entry: './src/index.tsx',
-     target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
-@@ -301,6 +332,21 @@ module.exports = {
+     entry: `./src/${ENTRY_POINT}.tsx`,
+     target: ENTRY_POINT == 'softphone' ? 'electron-renderer' : 'web',
+@@ -302,6 +333,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -117,7 +117,7 @@ index 4e095e2b..0d39bb9e 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -308,7 +354,7 @@ module.exports = {
+@@ -309,7 +355,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -126,7 +126,7 @@ index 4e095e2b..0d39bb9e 100644
              },
              {
                  test: /\.css$/,
-@@ -319,6 +365,29 @@ module.exports = {
+@@ -320,6 +366,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -156,7 +156,7 @@ index 4e095e2b..0d39bb9e 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -334,6 +403,7 @@ module.exports = {
+@@ -335,6 +404,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -164,7 +164,7 @@ index 4e095e2b..0d39bb9e 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -349,17 +419,130 @@ module.exports = {
+@@ -350,17 +420,130 @@ module.exports = {
                      },
                  ],
              },
@@ -401,193 +401,16 @@ index 54c1319c..abc75561 100644
          headers: { 'Access-Control-Allow-Origin': '*' },
          historyApiFallback: true,
      },
-diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 600884d5..5c894b3b 100644
---- a/src/bootstrap.tsx
-+++ b/src/bootstrap.tsx
-@@ -1,13 +1,18 @@
--import { CoreProvider } from '@comagic/core';
-+import { CoreProvider, eventBus } from '@comagic/core';
- import * as Sentry from '@sentry/react';
- import { Integrations } from '@sentry/tracing';
- import { observer } from 'mobx-react-lite';
- import React, { useEffect } from 'react';
-+import ReactDOM from 'react-dom';
- import { createRoot } from 'react-dom/client';
- import { IntlProvider } from 'react-intl';
- import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
-+import { notification } from 'magic-ui';
- 
--import { Provider, rootStore } from '@models/RootStore';
-+import { Provider, rootStore, createRootStore } from '@models/RootStore';
-+import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
-+import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
-+import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
- 
- import history from '@/history';
- 
-@@ -78,7 +83,52 @@ const Root: React.FC = observer(props => {
-     );
- });
- 
--const container = document.getElementById('root');
--const root = createRoot(container);
-+const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
-+    Window = ({children}) => <div className="cm-test-window">{children}</div>;
- 
--root.render(<Root {...(window.rootConfig || {})}/>);
-+const units = {};
-+let root;
-+
-+window.application = {
-+    run({
-+        setReactDOM = () => null,
-+        setEventBus = () => null,
-+        setHistory = () => null,
-+        setChatsRootStore = () => null,
-+        setNotification = () => null,
-+        appName = ''
-+    }) {
-+        const Unit = units[appName];
-+
-+        if (!Unit) {
-+            setReactDOM(ReactDOM);
-+            setEventBus(eventBus);
-+            createRootStore();
-+            setChatsRootStore(createChatsRootStore());
-+            createSoftphoneRootStore();
-+            createContactsRootStore();
-+            setHistory(history);
-+            setNotification(notification);
-+        }
-+         
-+        this.exit();
-+
-+        const container = document.createElement('div');
-+        container.id = 'root';
-+        document.body.appendChild(container);
-+
-+        root = createRoot(container);
-+        root.render(Unit ? <TestBody><Unit /></TestBody> : <Root appName={appName} />);
-+    },
-+
-+    exit() {
-+        const container = document.getElementById('root');
-+
-+        if (!container) {
-+            return;
-+        }
-+
-+        container.firstChild && root && root.unmount();
-+        container.remove();
-+    }
-+};
-diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3e0dd20e..56362bbe 100644
---- a/src/models/RootStore.ts
-+++ b/src/models/RootStore.ts
-@@ -237,7 +237,7 @@ export const RootStore = types
-                 }
-             );
- 
--            axios.interceptors.response.use(
-+            window.axiosInterceptors = axios.interceptors.response.use(
-                 response => {
-                     logRequest({response});
- 
-@@ -302,6 +302,7 @@ export const RootStore = types
-         const afterCreate = () => {
-             removeSubscriptions();
- 
-+            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
-             initialState = getSnapshot(self);
- 
-             setHttpRequestsDefault();
-@@ -342,7 +343,8 @@ export type DependencyInjection = {
- export type RootInstance = Instance<typeof RootStore>;
- export const RootStoreContext = React.createContext<null | RootInstance>(null);
- export const Provider = RootStoreContext.Provider;
--export const rootStore = RootStore.create({}, { httpRpc, httpRpcAuth });
-+export let rootStore;
-+export const createRootStore = () => (rootStore = RootStore.create({}, { httpRpc, httpRpcAuth }));
- 
- type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
- 
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 2568744f..ec707c3a 100644
+index 01161b3c..5084028d 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -93,7 +93,7 @@ const removeToken = (skipLocalStorage = false) => {
- 
- export const AuthStore = Loader.named('AuthStore')
-     .props({
--        isAuthorized: types.optional(types.boolean, Boolean(getToken())),
-+        isAuthorized: types.optional(types.boolean, false),
-         isTokenRefreshing: types.optional(types.boolean, false),
-         windowId: types.optional(types.string, generateTraceId('local')),
-     })
-@@ -188,6 +188,8 @@ export const AuthStore = Loader.named('AuthStore')
-         });
- 
-         const afterCreate = () => {
-+            setAuthorized(Boolean(getToken()));
-+
-             window.addEventListener('doLogoutUser', (event: CustomEvent) => {
-                 const eventWindowId = event.detail;
-                 if (eventWindowId !== authStore.windowId) {
-diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
-index 8c0a28d7..ce190fe9 100644
---- a/src/rpc/httpRpc.ts
-+++ b/src/rpc/httpRpc.ts
-@@ -25,10 +25,11 @@ export type HttpRpc = <T>(
- 
- const baseUrl: string = process.env.REACT_APP_BASE_URL || '$REACT_APP_BASE_URL';
- 
--let cancelTokenSource: CancelTokenSource = axios.CancelToken.source();
-+let cancelTokenSource: CancelTokenSource = null;
-+const getCancelTokenSource = () => cancelTokenSource || (cancelTokenSource = axios.CancelToken.source());
- 
- export const cancelPendingRequests = (message?: string): void => {
--    cancelTokenSource.cancel(message);
-+    getCancelTokenSource().cancel(message);
-     cancelTokenSource = axios.CancelToken.source();
+@@ -22,7 +22,7 @@ export type LoginUser = {
+     dont_keep_me_signed_in: boolean;
  };
  
-@@ -45,7 +46,7 @@ const httpRpc: HttpRpc = async <T>(method: string, params = {}, headers = {}, ur
-         data: rpcParams,
-         url: `${url}?method=${method}`,
-         headers,
--        cancelToken: cancelTokenSource.token,
-+        cancelToken: getCancelTokenSource().token,
-     };
+-const AUTH_KEY = process.env.REACT_APP_AUTH_COOKIE || '';
++const AUTH_KEY = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_COOKIE';
  
-     try {
-diff --git a/src/utils/cookie.ts b/src/utils/cookie.ts
-index 9882b7ef..62ae7319 100644
---- a/src/utils/cookie.ts
-+++ b/src/utils/cookie.ts
-@@ -40,13 +40,14 @@ const resetElectronCookiesManager = () => {
- };
- 
- window.getElectronCookiesManager = resetElectronCookiesManager;
-+const prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
- 
- export function getCookie(name: string): string {
-     if (isSoftphone()) {
-         return window.getElectronCookiesManager().getItem(name);
-     }
- 
--    const matches = new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)').exec(
-+    const matches = new RegExp('(?:^|; )' + prepareName(name) + '=([^;]*)').exec(
-         document.cookie
-     );
- 
-@@ -68,7 +69,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
-         options.expires = options.expires.toUTCString();
-     }
- 
--    let updatedCookie = encodeURIComponent(name) + '=' + encodeURIComponent(value);
-+    let updatedCookie = prepareName(name) + '=' + encodeURIComponent(value);
- 
-     let optionKey: keyof Options;
-     for (optionKey in options) {
+ type JwtPayload = {
+     app_id: number;

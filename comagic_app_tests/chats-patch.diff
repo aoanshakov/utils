@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 95e34e6..e3499e3 100644
+index a0bd309..2c4d755 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,8 +22,6 @@
@@ -15,7 +15,7 @@ index 95e34e6..e3499e3 100644
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
--    "@comagic/core": "^1.1.1",
+-    "@comagic/core": "0.0.0-int0",
 -    "antd": "^3.26.7",
 +    "antd": "3.26.7",
      "async-mutex": "^0.3.2",
@@ -27,9 +27,9 @@ index 95e34e6..e3499e3 100644
      "madge": "^5.0.1",
 -    "magic-ui": "^2.3.0",
      "mobx": "^6.6.1",
+     "mobx-devtools-mst": "^0.9.30",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-     "mobx-devtools-mst": "^0.9.30",
      "moment": "^2.29.1",
 -    "react": "^18.2.0",
 -    "react-dom": "^18.2.0",
@@ -76,10 +76,10 @@ index b1e30f9..70bc523 100644
    .@{p}chat-panel-quote {
      display: grid;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 5038f67..b518048 100644
+index f0d453d..d6ce0a6 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -116,7 +116,8 @@ export const RootStore = types
+@@ -144,7 +144,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -123,10 +123,10 @@ index 57ad272..166fd36 100644
      }))
      .actions(self => {
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 933fdb3..8e6f31d 100644
+index 17e5a68..ea4743d 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -26,7 +26,7 @@ const AUTH_KEY: string = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_C
+@@ -27,7 +27,7 @@ const AUTH_KEY: string = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_C
  
  export const AuthStore = types
      .model('AuthStore', {
@@ -135,48 +135,3 @@ index 933fdb3..8e6f31d 100644
          windowId: types.optional(types.string, generateTraceId('local')),
      })
      .views(() => ({
-diff --git a/src/utils/index.tsx b/src/utils/index.tsx
-index 79eb948..7f3f539 100644
---- a/src/utils/index.tsx
-+++ b/src/utils/index.tsx
-@@ -114,11 +114,11 @@ type Options = {
-     'max-age'?: number;
- };
- 
--const isElectron = () => typeof window.process?.versions?.electron === 'string',
-+const isSoftphone = () => window.rootConfig?.appName == 'softphone',
-     prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
- 
- export function getCookie(name: string): string {
--    if (isElectron()) {
-+    if (isSoftphone()) {
-         return window.getElectronCookiesManager().getItem(name);
-     }
- 
-@@ -130,7 +130,7 @@ export function getCookie(name: string): string {
- }
- 
- export function setCookie(name: string, value: string, options: Options = {}): void {
--    if (isElectron()) {
-+    if (isSoftphone()) {
-         window.getElectronCookiesManager().setItem(name, value);
-         return;
-     }
-@@ -152,7 +152,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
- 
-         const optionValue = options[optionKey];
-         if (optionValue !== true) {
--            updatedCookie += '=' + (optionValue as string);
-+            updatedCookie += '=' + optionValue;
-         }
-     }
- 
-@@ -160,7 +160,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
- }
- 
- export function deleteCookie(name: string, options: Options = {}): void {
--    if (isElectron()) {
-+    if (isSoftphone()) {
-         window.getElectronCookiesManager().removeItem(name);
-         return;
-     }
