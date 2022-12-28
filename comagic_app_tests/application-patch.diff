@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 6f23a52e..6c7bd884 100644
+index 6f23a52e..a82c3403 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 6f23a52e..6c7bd884 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -350,17 +420,130 @@ module.exports = {
+@@ -350,6 +420,30 @@ module.exports = {
                      },
                  ],
              },
@@ -195,45 +195,43 @@ index 6f23a52e..6c7bd884 100644
          ],
      },
      resolve: {
-         extensions: ['.tsx', '.ts', '.js'],
- 
-         alias: {
--            '@': path.resolve(appDirectory, './src'),
--            '@models': path.resolve(appDirectory, './src/models'),
--            '@lib': path.resolve(appDirectory, './src/components/lib'),
--            '@hooks': path.resolve(appDirectory, './src/hooks'),
-+            '@comagic/core/lib': `${miscDirectory}/core/src`,
+@@ -360,7 +454,101 @@ module.exports = {
+             '@models': path.resolve(appDirectory, './src/models'),
+             '@lib': path.resolve(appDirectory, './src/components/lib'),
+             '@hooks': path.resolve(appDirectory, './src/hooks'),
 +            ...createAliases(appDirectory),
 +            'contacts/Root': `${miscDirectory}/contacts/src/Root.tsx`,
 +            'contacts/ContactBar': `${miscDirectory}/contacts/src/components/contact-bar/ContactBarWrapper.tsx`,
++            'contacts/Menu': `${miscDirectory}/contacts/src/Menu.tsx`,
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
-+            'softphone/Settings': 'softphone/src/Settings.tsx',
-+            'softphone/CallHistory': 'softphone/src/call_history/index.tsx',
-+            'softphone/CallStats': 'softphone/src/call_stats/index.tsx',
-+            'softphone/LostCallsCount': 'softphone/src/call_history/counter.tsx',
++            'softphone/Routes': 'softphone/src/Routes.tsx',
++            'softphone/CallStatsMenuItem': 'softphone/src/CallStatsMenuItem.tsx',
++            'softphone/CallHistoryMenuItem': 'softphone/src/CallHistoryMenuItem.tsx',
++            'softphone/VisibilityButton': 'softphone/src/VisibilityButton.tsx',
++            'softphone/isSoftphoneAvailable': 'softphone/src/utils/isSoftphoneAvailable.ts',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
 +            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
 +            'chats/HistoryLogWrapped': 'chats/src/components/chats/chat-panel/HistoryLogWrapped.tsx',
-+            'chats/AudioPlayerWrapped': 'chats//src/components/chats/chat-panel/AudioPlayerWrapped.tsx',
++            'chats/AudioPlayerWrapped': 'chats/src/components/chats/chat-panel/AudioPlayerWrapped.tsx',
 +            'chats/MessageWrapped': 'chats/src/components/chats/chat-panel/MessageWrapped.tsx',
 +            'chats/QuoteWrapped': 'chats/src/components/chats/chat-panel/QuoteWrapped.tsx',
 +            'chats/HistoryItemWrapped': 'chats/src/components/offline-messages/panel/HistoryItemWrapped.tsx',
-+            'chats/Counter': 'chats/src/components/chats/chat-panel/Counter.tsx',
-+            'chats/MenuItemCounter': 'chats/src/components/main/menu/counter.tsx',
 +            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
 +            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
 +            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,
-+            'callTracking/Root': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingSubstitutionControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingTrafficControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingSubstitutionRules': `${miscDirectory}/Stub.js`,
 +            'callTracking/NumberPools': `${miscDirectory}/Stub.js`,
 +            'callTracking/Sites': `${miscDirectory}/Stub.js`,
++            'callTracking/SiteForm': `${miscDirectory}/Stub.js`,
++            'callTracking/SitesV3': `${miscDirectory}/Stub.js`,
++            'callTracking/Root': `${miscDirectory}/Stub.js`,
 +            'analytics/CreateDashboardButton': `${miscDirectory}/Stub.js`,
 +            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
 +            'analytics/CreateReport': `${miscDirectory}/Stub.js`,
@@ -253,8 +251,8 @@ index 6f23a52e..6c7bd884 100644
 +            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`,
++            'marketplace/Root': `${miscDirectory}/Stub.js`,
 +            'marketplace/Auth': `${miscDirectory}/Stub.js`,
-+            'marketplace/Root': `${miscDirectory}/Stub.js`
          },
 +
 +        plugins: [{
@@ -300,7 +298,7 @@ index 6f23a52e..6c7bd884 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index c41f3458..06f13f98 100644
+index c41f3458..c5744efb 100644
 --- a/package.json
 +++ b/package.json
 @@ -66,13 +66,16 @@
@@ -333,7 +331,7 @@ index c41f3458..06f13f98 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -93,6 +96,10 @@
+@@ -93,7 +96,12 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "^6.4.0",
@@ -342,8 +340,10 @@ index c41f3458..06f13f98 100644
 +    "string-hash": "^1.1.3",
 +    "contacts": "./misc/contacts",
      "stream-buffers": "^3.0.2",
++    "uis-softphone": "./misc/softphone/misc/sip_lib",
      "yup": "^0.28.1"
    },
+   "optionalDependencies": {
 diff --git a/public/index.html b/public/index.html
 index a82eebad..59a999e3 100644
 --- a/public/index.html
