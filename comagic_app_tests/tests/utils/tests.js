@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 afterEach(function() {
-                    window.getElectronCookiesManager().reset();
+                    window.getElectronCookiesManager?.().reset();
                     spendTime(0);
                     spendTime(0);
 

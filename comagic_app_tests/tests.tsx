@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { notification } from 'magic-ui';
 
 import { eventBus, isElectron } from '@comagic/core';
-import { Root } from '@/bootstrap';
+import Root from '@/bootstrap';
 
 import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
 import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
@@ -16,8 +16,8 @@ import history from '@/history';
 import { App as Softphone } from '@/applications/softphone';
 import { App as ComagicApp } from '@/applications/default';
 
-import { createRootStore } from '@models/RootStore';
-import { createRootStore as createElectronRootStore } from '@models/SoftphoneRootStore';
+import { createRootStore } from '@models/default/RootStore';
+import { createRootStore as createElectronRootStore } from '@models/softphone/RootStore';
 
 const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
     Window = ({children}) => <div className="cm-test-window">{children}</div>,
@@ -55,7 +55,7 @@ window.application = {
 
         root = createRoot(document.getElementById('root')),
 
-        root.render(Unit ? <TestBody><Unit /></TestBody> : <Root {...{ rootStore }} >
+        root.render(Unit ? <TestBody><Unit /></TestBody> : <Root {...{ rootStore }}>
             {isElectron() ? <Softphone /> : <ComagicApp />}
         </Root>);
     },
