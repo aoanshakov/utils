@@ -81,8 +81,7 @@ const cda = `cd ${application} &&`,
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
 
-const coreOverridenFiles = 'package.json ' +
-    'src/utils/cookie.ts';
+const coreOverridenFiles = 'package.json';
 
 const chatOverridenFiles = 'src/models/RootStore.ts ' +
     'package.json ' +
@@ -101,8 +100,7 @@ const overridenFiles = [
     'config/webpack.config.js',
     'package.json',
     'src/history.ts',
-    'src/models/RootStore.ts',
-    'src/models/SoftphoneRootStore.ts',
+    'src/models/auth/AuthStore.ts',
 ].join(' ');
 
 actions['install-publisher'] = [`cd ${publisherDir} && npm install --verbose`];
