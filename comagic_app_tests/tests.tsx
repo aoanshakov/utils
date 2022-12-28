@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { notification } from 'magic-ui';
 
 import { eventBus, isElectron } from '@comagic/core';
-import { Root } from '@comagic/host';
+import { Root } from '@/bootstrap';
 
 import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
 import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
@@ -13,20 +13,11 @@ import { createRootStore as createContactsRootStore } from 'contacts/src/models/
 import { intl } from './i18n';
 import history from '@/history';
 
-import Softphone from './Softphone';
-import ComagicApp from './ComagicApp';
+import { App as Softphone } from '@/applications/softphone';
+import { App as ComagicApp } from '@/applications/default';
 
-import {
-    Provider,
-    rootStore,
-    createRootStore 
-} from '@models/RootStore';
-
-import {
-    Provider as SoftphoneProvider,
-    rootStore as softphoneRootStore,
-    createRootStore as createElectronRootStore 
-} from '@models/SoftphoneRootStore';
+import { createRootStore } from '@models/RootStore';
+import { createRootStore as createElectronRootStore } from '@models/SoftphoneRootStore';
 
 const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
     Window = ({children}) => <div className="cm-test-window">{children}</div>,
@@ -43,11 +34,12 @@ window.application = {
         appName = ''
     }) {
         const Unit = units[appName];
+        let rootStore;
 
         if (!Unit) {
             setReactDOM(ReactDOM);
             setEventBus(eventBus);
-            (isElectron() ? createElectronRootStore : createRootStore)();
+            rootStore = (isElectron() ? createElectronRootStore : createRootStore)();
             !isElectron() && setChatsRootStore(createChatsRootStore());
             createSoftphoneRootStore();
             createContactsRootStore();
@@ -63,20 +55,9 @@ window.application = {
 
         root = createRoot(document.getElementById('root')),
 
-        root.render(Unit ? <TestBody><Unit /></TestBody> : <Root
-            {...(isElectron() ? {
-                Provider: SoftphoneProvider,
-                rootStore: softphoneRootStore,
-            } : {
-                Provider,
-                rootStore
-            })}
-
-            {...({
-                history,
-                i18n: intl
-            })}
-        >{isElectron() ? <Softphone /> : <ComagicApp />}</Root>);
+        root.render(Unit ? <TestBody><Unit /></TestBody> : <Root {...{ rootStore }} >
+            {isElectron() ? <Softphone /> : <ComagicApp />}
+        </Root>);
     },
 
     exit() {
