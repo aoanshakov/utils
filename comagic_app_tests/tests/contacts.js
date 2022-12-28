@@ -169,7 +169,7 @@ tests.addTest(options => {
                                         contactCommunicationsRequest.receiveResponse();
                                     });
                                     
-                                    xdescribe('Нажимаю на кнопку редактирования менеджера.', function() {
+                                    describe('Нажимаю на кнопку редактирования менеджера.', function() {
                                         beforeEach(function() {
                                             tester.contactBar.
                                                 section('Персональный менеджер').
@@ -327,7 +327,7 @@ tests.addTest(options => {
                                             tester.select.expectToHaveTextContent('Господинова Николина');
                                         });
                                     });
-                                    xdescribe('Нажимаю на кнопку проигрывания записи звонка.', function() {
+                                    describe('Нажимаю на кнопку проигрывания записи звонка.', function() {
                                         let talkRecordRequest;
 
                                         beforeEach(function() {
@@ -374,7 +374,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    xdescribe('Открываю меню номера.', function() {
+                                    describe('Открываю меню номера.', function() {
                                         beforeEach(function() {
                                             tester.contactBar.
                                                 section('Телефоны').
@@ -497,7 +497,7 @@ tests.addTest(options => {
                                             tester.select.option('Редактировать').expectToBeEnabled();
                                         });
                                     });
-                                    xdescribe('Нажимаю на другое имя. Запрошен другой контакт.', function() {
+                                    describe('Нажимаю на другое имя. Запрошен другой контакт.', function() {
                                         beforeEach(function() {
                                             tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
 
@@ -579,7 +579,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    xdescribe('Добавляю поле для E-Mail.', function() {
+                                    describe('Добавляю поле для E-Mail.', function() {
                                         beforeEach(function() {
                                             tester.contactBar.section('E-Mail').svg.click();
                                         });
@@ -649,7 +649,7 @@ tests.addTest(options => {
                                             tester.contactRequest().receiveResponse();
                                         });
                                     });
-                                    xdescribe(
+                                    describe(
                                         'Нажимаю на иконку с плюсом справа от надписи "Каналы связи".',
                                     function() {
                                         beforeEach(function() {
@@ -743,7 +743,7 @@ tests.addTest(options => {
                                                 expectToHaveClass('cm-contacts-messenger-icon-whatsapp');
                                         });
                                     });
-                                    xdescribe('Нажимаю на кнпоку удаления контакта.', function() {
+                                    describe('Нажимаю на кнпоку удаления контакта.', function() {
                                         beforeEach(function() {
                                             tester.contactBar.title.deleteButton.click();
                                         });
@@ -792,7 +792,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    xdescribe('Перехожу в другой раздел. Перехожу обратно в контакты.', function() {
+                                    describe('Перехожу в другой раздел. Перехожу обратно в контакты.', function() {
                                         beforeEach(function() {
                                             tester.button('Статистика').click();
                                             tester.statsRequest().receiveResponse();
@@ -825,7 +825,7 @@ tests.addTest(options => {
                                                 expectNotToBeSelected();
                                         });
                                     });
-                                    xdescribe('Изменяю значение полей имени.', function() {
+                                    describe('Изменяю значение полей имени.', function() {
                                         beforeEach(function() {
                                             tester.contactBar.section('ФИО').svg.click();
 
@@ -865,7 +865,7 @@ tests.addTest(options => {
                                                 receiveResponse();
                                         });
                                     });
-                                    xit(
+                                    it(
                                         'Добавляю поле для ввода номера телефона. Ввожу номер телефона. Отправлен ' +
                                         'запрос обновления контакта.',
                                     function() {
@@ -888,7 +888,7 @@ tests.addTest(options => {
                                             addPhoneNumber().
                                             receiveResponse();
                                     });
-                                    xit('Нажимаю на номер телефона. Совершается звонок.', function() {
+                                    it('Нажимаю на номер телефона. Совершается звонок.', function() {
                                         tester.contactBar.section('Телефоны').anchor('79162729533').click();
 
                                         tester.firstConnection.connectWebRTC();
@@ -919,7 +919,7 @@ tests.addTest(options => {
 
                                         tester.softphone.expectTextContentToHaveSubstring('+7 (916) 272-95-33');
                                     });
-                                    xit('Нажимаю на превью вложения. Вложение скачивается.', function() {
+                                    it('Нажимаю на превью вложения. Вложение скачивается.', function() {
                                         tester.chatHistory.message.atTime('12:15').preview.click();
                                         tester.resourcePayloadRequest().receiveResponse();
 
@@ -927,7 +927,7 @@ tests.addTest(options => {
                                             expectToHaveName('heart.png').
                                             expectToHaveContent('glg5lg5j8mcrj3o8f');
                                     });
-                                    xit('Нажимаю на кнопку скачивания. Запись скачивается.', function() {
+                                    it('Нажимаю на кнопку скачивания. Запись скачивается.', function() {
                                         tester.chatHistory.message.atTime('12:14').downloadIcon.click();
                                         tester.talkRecordRequest().receiveResponse();
 
@@ -937,7 +937,7 @@ tests.addTest(options => {
                                             ).
                                             expectToHaveContent('29f2f28ofjowf829f');
                                     });
-                                    xit(
+                                    it(
                                         'Помещаю курсор над сиситемным сообщением. Отображена всплывающая подсказка.',
                                     function() {
                                         tester.chatHistory.message.atTime('12:11').inner.putMouseOver();
@@ -948,7 +948,7 @@ tests.addTest(options => {
                                             'www.site.ru'
                                         );
                                     });
-                                    xit('Нажимаю на номер WhatsApp.', function() {
+                                    it('Нажимаю на номер WhatsApp.', function() {
                                         tester.contactBar.
                                             section('Каналы связи').
                                             option('79283810988').
@@ -958,7 +958,7 @@ tests.addTest(options => {
                                             'Невозможно перейти в чат, отсутствуют права на "Чаты и заявки"'
                                         );
                                     });
-                                    xit(
+                                    it(
                                         'Помещаю курсор над сообщением о звонке. Отображена всплывающая подсказка.',
                                     function() {
                                         tester.chatHistory.message.atTime('12:14').inner.putMouseOver();
@@ -1053,7 +1053,6 @@ tests.addTest(options => {
                                         tester.button('Создать контакт').expectNotToExist();
                                     });
                                 });
-                                return;
                                 describe('Сообщений много.', function() {
                                     beforeEach(function() {
                                         contactCommunicationsRequest.firstPage().receiveResponse();
@@ -1248,7 +1247,6 @@ tests.addTest(options => {
                                     );
                                 });
                             });
-                            return;
                             describe('Получена история коммуникаций.', function() {
                                 beforeEach(function() {
                                     contactCommunicationsRequest.receiveResponse();
@@ -1943,7 +1941,6 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        return;
                         describe('Нажимаю на иконку с плюсом в заголовке списка контактов.', function() {
                             beforeEach(function() {
                                 tester.contactList.plusButton.click();
@@ -2183,7 +2180,6 @@ tests.addTest(options => {
                             );
                         });
                     });
-return;
                     describe('Получены данные для списка контактов.', function() {
                         beforeEach(function() {
                             contactsRequest.receiveResponse();
@@ -2351,7 +2347,6 @@ return;
                         tester.spin.expectToBeVisible();
                     });
                 });
-return;
                 describe('Поступил входящий звонок.', function() {
                     let outCallEvent;
 
@@ -2672,7 +2667,6 @@ return;
                     });
                 });
             });
-return;
             describe('Номер должен быть скрыт. Открываю карточку контакта.', function() {
                 beforeEach(function() {
                     settingsRequest.shouldHideNumbers().receiveResponse();
@@ -2825,7 +2819,6 @@ return;
                 tester.softphone.expectTextContentToHaveSubstring('Используется на другом устройстве');
             });
         });
-return;
         describe('Рабочее место оператора доступно.', function() {
             let contactChatRequest;
 
