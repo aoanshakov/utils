@@ -402,7 +402,7 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 01161b3c..5f2b03ca 100644
+index d371ca8f..5f2b03ca 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -22,7 +22,7 @@ export type LoginUser = {
@@ -414,12 +414,3 @@ index 01161b3c..5f2b03ca 100644
  
  type JwtPayload = {
      app_id: number;
-@@ -30,7 +30,7 @@ type JwtPayload = {
-     exp: number;
- };
- 
--export const AuthStore = Loader.named('AuthStore')
-+export const AuthStore = LoaderModel.named('AuthStore')
-     .props({
-         isAuthorized: types.optional(types.boolean, false),
-         isTokenRefreshing: types.optional(types.boolean, false),

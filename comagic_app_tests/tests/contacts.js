@@ -37,7 +37,6 @@ tests.addTest(options => {
 
             tester = new Tester(options);
 
-            return;
             tester.input.withFieldLabel('Логин').fill('botusharova');
             tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
@@ -47,9 +46,6 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        it('', function() {
-        });
-        return;
         describe('Раздел контактов доступен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
