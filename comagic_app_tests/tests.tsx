@@ -40,7 +40,7 @@ window.application = {
             setReactDOM(ReactDOM);
             setEventBus(eventBus);
             rootStore = (isElectron() ? createElectronRootStore : createRootStore)();
-            !isElectron() && setChatsRootStore(createChatsRootStore());
+            setChatsRootStore(createChatsRootStore());
             createSoftphoneRootStore();
             createContactsRootStore();
             setHistory(history);

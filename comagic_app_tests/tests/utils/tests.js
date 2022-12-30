@@ -40,7 +40,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 afterEach(function() {
-                    window.getElectronCookiesManager?.().reset();
+                    window.localStorage.removeItem('electronCookies');
+                    window.resetElectronCookiesManager?.();
                     spendTime(0);
                     spendTime(0);
 

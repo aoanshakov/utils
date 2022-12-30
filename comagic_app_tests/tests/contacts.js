@@ -920,10 +920,10 @@ tests.addTest(options => {
                                         tester.softphone.expectTextContentToHaveSubstring('+7 (916) 272-95-33');
                                     });
                                     it('Нажимаю на превью вложения. Вложение скачивается.', function() {
-                                        tester.chatHistory.message.atTime('12:15').preview.click();
+                                        tester.chatHistory.message.atTime('12:15').notSystem.preview.click();
                                         tester.resourcePayloadRequest().receiveResponse();
 
-                                        tester.chatHistory.message.atTime('12:15').downloadedFile.
+                                        tester.chatHistory.message.atTime('12:15').notSystem.downloadedFile.
                                             expectToHaveName('heart.png').
                                             expectToHaveContent('glg5lg5j8mcrj3o8f');
                                     });
@@ -936,17 +936,6 @@ tests.addTest(options => {
                                                 '2020-02-10_12-14-14.000_from_79161234567_session_482060_talk.mp3'
                                             ).
                                             expectToHaveContent('29f2f28ofjowf829f');
-                                    });
-                                    it(
-                                        'Помещаю курсор над сиситемным сообщением. Отображена всплывающая подсказка.',
-                                    function() {
-                                        tester.chatHistory.message.atTime('12:11').inner.putMouseOver();
-
-                                        tester.tooltip.expectToHaveTextContent(
-                                            'Бележкова Грета Ервиновна (Клиент) ' +
-                                            '79218307632 (Telegram) ' +
-                                            'www.site.ru'
-                                        );
                                     });
                                     it('Нажимаю на номер WhatsApp.', function() {
                                         tester.contactBar.
@@ -984,7 +973,7 @@ tests.addTest(options => {
                                         tester.chatHistory.message.atTime('12:14').directionIcon.
                                             expectToHaveClass('incoming_svg__cmg-direction-icon');
 
-                                        tester.chatHistory.message.atTime('12:15').expectSourceToBeOperator();
+                                        tester.chatHistory.message.atTime('12:15').notSystem.expectSourceToBeOperator();
 
                                         tester.chatHistory.expectToHaveTextContent(
                                             '10 февраля 2020 ' +
@@ -1009,6 +998,8 @@ tests.addTest(options => {
                                             '12:14 Входящий звонок с номера 79161234567 оператору Карадимова Веска ' +
                                                 'Анастасовна ' +
                                             'Запись звонка 53:40 12:14 ' +
+
+                                            '12:15 Чат с оператором Карадимова Веска Анастасовна. ' +
 
                                                 'png 925 B heart.png 12:15 ' +
 
@@ -1098,6 +1089,8 @@ tests.addTest(options => {
                                                     'Веска Анастасовна ' +
                                                 'Запись звонка 53:40 12:14 ' +
 
+                                                '12:15 Чат с оператором Карадимова Веска Анастасовна. ' +
+
                                                     'png 925 B heart.png 12:15 ' +
 
                                                 'Карадимова Веска Анастасовна ' +
@@ -1108,6 +1101,7 @@ tests.addTest(options => {
                                         it('Получена следующая страница.', function() {
                                             tester.chatHistory.expectTextContentToHaveSubstringsConsideringOrder(
                                                 '30 октября 2019 ' +
+                                                '00:44 Чат с оператором Карадимова Веска Анастасовна. ' +
 
                                                 'Пинг # 1 00:44 ' +
                                                     'Понг # 1 06:49 ',
@@ -1207,12 +1201,7 @@ tests.addTest(options => {
 
                                     it('Подсказка корректно отображена.', function() {
                                         tester.chatHistory.message.atTime('12:11').inner.putMouseOver();
-
-                                        tester.tooltip.expectToHaveTextContent(
-                                            'Бележкова Грета Ервиновна (Клиент) ' +
-                                            '79218307632 (Чат) ' +
-                                            'www.site.ru'
-                                        );
+                                        tester.tooltip.expectToHaveTextContent('www.site.ru');
                                     });
                                     it('Сообщение корректно отображено.', function() {
                                         tester.chatHistory.message.atTime('12:11').expectToHaveTextContent(
@@ -2963,7 +2952,6 @@ tests.addTest(options => {
                         tester.chatListRequest().active().receiveResponse();
                         tester.chatListRequest().closed().receiveResponse();
                         tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
-                        tester.chatListRequest().thirdChat().receiveResponse();
 
                         tester.chatChannelListRequest().receiveResponse();
                         tester.statusListRequest().receiveResponse();
@@ -2985,9 +2973,7 @@ tests.addTest(options => {
                             operatorWorkplaceAvailable().
                             receiveResponse();
 
-                        tester.messageListRequest().receiveResponse();
-                        tester.acceptChatRequest().receiveResponse();
-                        tester.visitorCardRequest().receiveResponse();
+                        tester.chatListRequest().thirdChat().receiveResponse();
 
                         tester.offlineMessageCountersRequest().receiveResponse();
                         tester.chatChannelListRequest().receiveResponse();
@@ -3017,6 +3003,10 @@ tests.addTest(options => {
                             secondPage().
                             closed().
                             receiveResponse();
+
+                        tester.messageListRequest().receiveResponse();
+                        tester.acceptChatRequest().receiveResponse();
+                        tester.visitorCardRequest().receiveResponse();
 
                         tester.usersRequest().forContacts().receiveResponse();
 
@@ -3130,7 +3120,6 @@ tests.addTest(options => {
                     tester.chatListRequest().active().receiveResponse();
                     tester.chatListRequest().closed().receiveResponse();
                     tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
-                    tester.chatListRequest().thirdChat().receiveResponse();
 
                     tester.chatChannelListRequest().receiveResponse();
                     tester.statusListRequest().receiveResponse();
@@ -3152,68 +3141,52 @@ tests.addTest(options => {
                         operatorWorkplaceAvailable().
                         receiveResponse();
 
+                    tester.chatListRequest().thirdChat().receiveResponse();
+
+                    tester.offlineMessageCountersRequest().
+                        receiveResponse();
+
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().
+                        notProcessed().
+                        receiveResponse();
+
+                    tester.offlineMessageListRequest().
+                        processing().
+                        receiveResponse();
+
+                    tester.offlineMessageListRequest().
+                        processed().
+                        receiveResponse();
+
+                    tester.countersRequest().receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        active().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        closed().
+                        receiveResponse();
+
                     tester.messageListRequest().receiveResponse();
                     tester.acceptChatRequest().receiveResponse();
                     tester.visitorCardRequest().receiveResponse();
 
-                    const requests = ajax.inAnyOrder();
-
-                    const offlineMessageCountersRequest = tester.offlineMessageCountersRequest().
-                        expectToBeSent(requests);
-
-                    const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
-                    const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
-                    const markListRequest = tester.markListRequest().expectToBeSent(requests);
-                    const chatChannelTypeListRequest = tester.chatChannelTypeListRequest().expectToBeSent(requests);
-
-                    const notProcessedofflineMessageListRequest = tester.offlineMessageListRequest().
-                        notProcessed().
-                        expectToBeSent(requests);
-
-                    const processingOfflineMessageListRequest = tester.offlineMessageListRequest().
-                        processing().
-                        expectToBeSent(requests);
-
-                    const processedOfflineMessageListRequest = tester.offlineMessageListRequest().
-                        processed().
-                        expectToBeSent(requests);
-
-                    const countersRequest = tester.countersRequest().expectToBeSent(requests);
-
-                    const newChatListRequest = tester.chatListRequest().
-                        forCurrentEmployee().
-                        secondPage().
-                        expectToBeSent(requests);
-
-                    const activeChatListRequest = tester.chatListRequest().
-                        forCurrentEmployee().
-                        secondPage().
-                        active().
-                        expectToBeSent(requests);
-
-                    const closedChatListRequest = tester.chatListRequest().
-                        forCurrentEmployee().
-                        secondPage().
-                        closed().
-                        expectToBeSent(requests);
-
-                    const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
-
-                    requests.expectToBeSent();
-
-                    offlineMessageCountersRequest.receiveResponse();
-                    chatChannelListRequest.receiveResponse();
-                    siteListRequest.receiveResponse();
-                    markListRequest.receiveResponse();
-                    chatChannelTypeListRequest.receiveResponse();
-                    notProcessedofflineMessageListRequest.receiveResponse();
-                    processingOfflineMessageListRequest.receiveResponse();
-                    processedOfflineMessageListRequest.receiveResponse();
-                    countersRequest.receiveResponse();
-                    newChatListRequest.receiveResponse();
-                    activeChatListRequest.receiveResponse();
-                    closedChatListRequest.receiveResponse();
-                    usersRequest.receiveResponse();
+                    tester.usersRequest().forContacts().receiveResponse();
 
                     tester.changeMessageStatusRequest().
                         anotherChat().

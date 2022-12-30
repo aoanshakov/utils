@@ -9379,9 +9379,11 @@ define(() => function ({
                     start_time: utils.formatDate(date),
                     communication_type: 'chat_message',
                     data: {
+                        chat_channel_type: 'telegram',
                         chat_id: 2718935,
                         message_source: 'visitor',
                         message_text: `Пинг # ${number}`,
+                        employee_id: 20816,
                         employee_name: 'Карадимова Веска Анастасовна',
                     }
                 });
@@ -9397,6 +9399,7 @@ define(() => function ({
                         chat_channel_type: 'telegram',
                         message_source: 'operator',
                         message_text: `Понг # ${number}`,
+                        employee_id: 20816,
                         employee_name: 'Карадимова Веска Анастасовна',
                     }
                 });
@@ -11605,146 +11608,161 @@ define(() => function ({
 
         tester.message = {
             atTime: desiredTime => {
-                const getMessageElement = () => {
-                    const domElements = utils.descendantOf(getDomElement()).
-                        matchesSelector('.cm-chats--chat-history-message-time').
-                        textEquals(desiredTime).
-                        findAll().
-                        filter(domElement => {
-                            const callRecordElement = domElement.closest('.cm-contacts-communications-call-record');
+                const createTester = (filter = () => true) => {
+                    const getMessageElement = () => {
+                        const domElements = utils.descendantOf(getDomElement()).
+                            matchesSelector('.cm-chats--chat-history-message-time').
+                            textEquals(desiredTime).
+                            findAll().
+                            filter(domElement => {
+                                const callRecordElement = domElement.closest('.cm-contacts-communications-call-record');
 
-                            if (callRecordElement && !(callRecordElement instanceof JsTester_NoElement)) {
-                                return false;
+                                if (callRecordElement && !(callRecordElement instanceof JsTester_NoElement)) {
+                                    return false;
+                                }
+
+                                if (!filter(domElement)) {
+                                    return false;
+                                }
+
+                                return true;
+                            });
+
+                        const domElement = (() => {
+                            if (domElements.length != 1) {
+                                return new JsTester_NoElement();
                             }
 
-                            return true;
-                        });
+                            return domElements[0];
+                        })();
 
-                    const domElement = (() => {
-                        if (domElements.length != 1) {
-                            return new JsTester_NoElement();
+                        const messageElement = domElement.closest(
+                            '.cm-chats--chat-history-message, .cm-contacts-system-message'
+                        ) || new JsTester_NoElement();
+
+                        const callWrapperElement = domElement.closest('.cm-contacts-call-wrapper');
+
+                        if (callWrapperElement && !(callWrapperElement instanceof JsTester_NoElement)) {
+                            return callWrapperElement;
                         }
 
-                        return domElements[0];
-                    })();
+                        return messageElement;
+                    };
 
-                    const messageElement = domElement.closest(
-                        '.cm-chats--chat-history-message, .cm-contacts-system-message'
-                    ) || new JsTester_NoElement();
+                    const tester = testersFactory.createDomElementTester(getMessageElement),
+                        putMouseOver = tester.putMouseOver.bind(tester);
 
-                    const callWrapperElement = domElement.closest('.cm-contacts-call-wrapper');
-
-                    if (callWrapperElement && !(callWrapperElement instanceof JsTester_NoElement)) {
-                        return callWrapperElement;
-                    }
-
-                    return messageElement;
-                };
-
-                const tester = testersFactory.createDomElementTester(getMessageElement),
-                    putMouseOver = tester.putMouseOver.bind(tester);
-
-                tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
-
-                tester.inner = (() => {
-                    const tester = testersFactory.createDomElementTester(
-                        () => getMessageElement().querySelector('.cm-contacts-system-message-inner')
-                    );
-
-                    const putMouseOver = tester.putMouseOver.bind(tester);
                     tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
-                    return tester;
-                })();
+                    tester.inner = (() => {
+                        const tester = testersFactory.createDomElementTester(
+                            () => getMessageElement().querySelector('.cm-contacts-system-message-inner')
+                        );
 
-                tester.directionIcon = testersFactory.createDomElementTester(() => {
-                    const domElements = Array.prototype.filter.call(
-                        getMessageElement().querySelectorAll('svg'),
+                        const putMouseOver = tester.putMouseOver.bind(tester);
+                        tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
-                        domElement => {
-                            return ((domElement.getAttribute('class') || '') + '').includes('cmg-direction-icon');
-                        }
-                    );
+                        return tester;
+                    })();
 
-                    if (domElements.length == 1) {
-                        return domElements[0];
-                    }
+                    tester.directionIcon = testersFactory.createDomElementTester(() => {
+                        const domElements = Array.prototype.filter.call(
+                            getMessageElement().querySelectorAll('svg'),
 
-                    return new JsTester_NoElement();
-                });
+                            domElement => {
+                                return ((domElement.getAttribute('class') || '') + '').includes('cmg-direction-icon');
+                            }
+                        );
 
-                const messageBody  = testersFactory.createDomElementTester(() => {
-                    const messageElement = getMessageElement();
-
-                    if (messageElement.classList.contains('cm-contacts-call-wrapper')) {
-                        return messageElement.querySelector('.cm-chats--chat-history-message');
-                    }
-
-                    return messageElement;
-                });
-
-                tester.expectSourceToBeOperator = () => messageBody.expectToHaveClass(
-                    'cm-chats--chat-history-message-source-operator'
-                );
-
-                tester.expectSourceToBeVisitor = () => messageBody.expectToHaveClass(
-                    'cm-chats--chat-history-message-source-visitor'
-                );
-
-                tester.expectToBeDelivered = () => testersFactory.createDomElementTester(
-                    () => getMessageElement().querySelector('.cm-chats--chat-history-message-text')
-                ).expectToHaveClass('cm-chats--is-delivered-message');
-                    
-                tester.expectToHaveNoStatus = () => testersFactory.createDomElementTester(
-                    () => getMessageElement().querySelector('.cm-chats--chat-history-message-text')
-                ).expectToHaveClass('cm-chats--is-unknown-message');
-
-                tester.preview = testersFactory.createDomElementTester(() =>
-                    getMessageElement().querySelector('.cm-chats--preview'));
-
-                tester.ellipsisButton = (() => {
-                    const tester = testersFactory.createDomElementTester(
-                        () => getMessageElement().querySelector('.cm-chats--download-popup-button')
-                    );
-
-                    const click = tester.click.bind(tester);
-                    tester.click = () => (click(), spendTime(0));
-
-                    return tester;
-                })();
-
-                const downloadAnchor = Array.prototype.find.call(
-                    getMessageElement().querySelectorAll('a'),
-                    domElement => domElement.style.display == 'none'
-                ) || noElement;
-
-                if (!downloadAnchors.has(downloadAnchor)) {
-                    downloadAnchors.add(downloadAnchor);
-                    downloadAnchor.addEventListener('click', event => event.preventDefault());
-                }
-
-                downloadAnchorTester = testersFactory.createAnchorTester(downloadAnchor);
-
-                tester.downloadedFile = {
-                    expectToHaveName: expectedName => {
-                        (downloadAnchor == noElement ? tester.downloadIcon : downloadAnchorTester).
-                            expectAttributeToHaveValue('download', expectedName);
-
-                        return tester.downloadedFile;
-                    },
-
-                    expectToHaveContent: expectedContent => {
-                        if (downloadAnchor == noElement) {
-                            tester.downloadIcon.expectHrefToBeBlobWithContent(expectedContent);
-                        } else {
-                            downloadAnchorTester.expectHrefToHaveHash(expectedContent);
+                        if (domElements.length == 1) {
+                            return domElements[0];
                         }
 
-                        return tester.downloadedFile;
+                        return new JsTester_NoElement();
+                    });
+
+                    const messageBody  = testersFactory.createDomElementTester(() => {
+                        const messageElement = getMessageElement();
+
+                        if (messageElement.classList.contains('cm-contacts-call-wrapper')) {
+                            return messageElement.querySelector('.cm-chats--chat-history-message');
+                        }
+
+                        return messageElement;
+                    });
+
+                    tester.expectSourceToBeOperator = () => messageBody.expectToHaveClass(
+                        'cm-chats--chat-history-message-source-operator'
+                    );
+
+                    tester.expectSourceToBeVisitor = () => messageBody.expectToHaveClass(
+                        'cm-chats--chat-history-message-source-visitor'
+                    );
+
+                    tester.expectToBeDelivered = () => testersFactory.createDomElementTester(
+                        () => getMessageElement().querySelector('.cm-chats--chat-history-message-text')
+                    ).expectToHaveClass('cm-chats--is-delivered-message');
+                        
+                    tester.expectToHaveNoStatus = () => testersFactory.createDomElementTester(
+                        () => getMessageElement().querySelector('.cm-chats--chat-history-message-text')
+                    ).expectToHaveClass('cm-chats--is-unknown-message');
+
+                    tester.preview = testersFactory.createDomElementTester(() =>
+                        getMessageElement().querySelector('.cm-chats--preview'));
+
+                    tester.ellipsisButton = (() => {
+                        const tester = testersFactory.createDomElementTester(
+                            () => getMessageElement().querySelector('.cm-chats--download-popup-button')
+                        );
+
+                        const click = tester.click.bind(tester);
+                        tester.click = () => (click(), spendTime(0));
+
+                        return tester;
+                    })();
+
+                    const downloadAnchor = Array.prototype.find.call(
+                        getMessageElement().querySelectorAll('a'),
+                        domElement => domElement.style.display == 'none'
+                    ) || noElement;
+
+                    if (!downloadAnchors.has(downloadAnchor)) {
+                        downloadAnchors.add(downloadAnchor);
+                        downloadAnchor.addEventListener('click', event => event.preventDefault());
                     }
+
+                    downloadAnchorTester = testersFactory.createAnchorTester(downloadAnchor);
+
+                    tester.downloadedFile = {
+                        expectToHaveName: expectedName => {
+                            (downloadAnchor == noElement ? tester.downloadIcon : downloadAnchorTester).
+                                expectAttributeToHaveValue('download', expectedName);
+
+                            return tester.downloadedFile;
+                        },
+
+                        expectToHaveContent: expectedContent => {
+                            if (downloadAnchor == noElement) {
+                                tester.downloadIcon.expectHrefToBeBlobWithContent(expectedContent);
+                            } else {
+                                downloadAnchorTester.expectHrefToHaveHash(expectedContent);
+                            }
+
+                            return tester.downloadedFile;
+                        }
+                    };
+
+                    return addTesters(tester, getMessageElement);
                 };
 
-                return addTesters(tester, getMessageElement);
+                const tester = createTester();
+
+                tester.notSystem = createTester(domElement => {
+                    const messageElement = domElement.closest('.cm-contacts-system-message');
+                    return !messageElement || messageElement instanceof JsTester_NoElement;
+                });
+
+                return tester;
             }
         };
 
