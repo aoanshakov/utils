@@ -100,6 +100,7 @@ config = {
         'page_data': {
             'test_mode': True,
             'debug_mode': 'dev',
+            'app_page_title': 'UIS',
             'domain_data': {
                 'project': 'uis2'
             },

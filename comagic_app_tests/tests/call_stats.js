@@ -340,7 +340,7 @@ tests.addTest(options => {
 
                     it('Растягиваю окно. Кнопка разворачивания статусов скрыта.', function() {
                         document.querySelector('.cm-app').style = 'width: 2015px;';
-                        tester.dispatchResizeEvent();
+                        tester.triggerPageResize();
 
                         tester.button('Показать все статусы').expectNotToExist();
                     });

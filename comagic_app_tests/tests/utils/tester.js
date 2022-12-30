@@ -1,6 +1,7 @@
 define(() => function ({
     testersFactory,
     utils,
+    triggerResize,
     ajax,
     debug,
     fetch,
@@ -725,6 +726,7 @@ define(() => function ({
                 Promise.runAll(false, true);
                 spendTime(0);
                 spendTime(0);
+                spendTime(0);
             };
 
             const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked',
@@ -732,21 +734,22 @@ define(() => function ({
 
             const menuItemSelectedClass = [
                 'src-components-main-menu-nav-item-styles-module__item-selected',
-                'active'
+                'active',
+                'ui-tab-active'
             ];
 
 
-            const getMenuItem = () => domElement.closest(
-                '.src-components-main-menu-nav-item-styles-module__item, .cm-chats--left-menu--item'
+            const getPressableElement = () => domElement.closest(
+                '.src-components-main-menu-nav-item-styles-module__item, .cm-chats--left-menu--item, .ui-tab'
             );
 
-            const menuItem = testersFactory.createDomElementTester(getMenuItem);
+            const pressednessTester = testersFactory.createDomElementTester(getPressableElement);
 
             tester.counter = testersFactory.createDomElementTester(() =>
-                getMenuItem().querySelector('.cm-chats--new-messages-count'));
+                getPressableElement().querySelector('.cm-chats--new-messages-count'));
 
-            tester.expectToBePressed = () => menuItem.expectToHaveAnyOfClasses(menuItemSelectedClass);
-            tester.expectNotToBePressed = () => menuItem.expectToHaveNoneOfClasses(menuItemSelectedClass);
+            tester.expectToBePressed = () => pressednessTester.expectToHaveAnyOfClasses(menuItemSelectedClass);
+            tester.expectNotToBePressed = () => pressednessTester.expectToHaveNoneOfClasses(menuItemSelectedClass);
             tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
             tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
 
@@ -1465,14 +1468,21 @@ define(() => function ({
     me.offlineMessageAcceptingRequest = () => {
         const addResponseModifiers = me => me;
 
+        const bodyParams = {
+            offline_message_id: 178076
+        };
+
         return addResponseModifiers({
+            anotherMessage() {
+                bodyParams.offline_message_id = 18222538;
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL/offline_message').
                     expectToHaveMethod('POST').
-                    expectBodyToContain({
-                        offline_message_id: 178076
-                    });
+                    expectBodyToContain(bodyParams);
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -1619,6 +1629,7 @@ define(() => function ({
         const getWebSocket = index => webSockets.getSocket('$REACT_APP_WS_URL', index);
 
         return {
+            finishDisconnecting: () => getWebSocket(0).finishDisconnecting(),
             connect: () => getWebSocket(0).connect(),
             expectSentMessageToContain: message => getWebSocket(0).expectSentMessageToContain(message),
             receive: message => getWebSocket(0).receiveMessage(message)
@@ -1738,6 +1749,43 @@ define(() => function ({
             receive: () => {
                 me.chatsWebSocket.receive(JSON.stringify({
                     method: 'new_message',
+                    params 
+                }));
+
+                spendTime(0);
+            } 
+        };
+    };
+
+    me.newOfflineMessage = () => {
+        const params = {
+            offline_message: {
+                id: 18222538,
+                status: 'not_processed',
+                site_id: 4663,
+                visitor_id: 16479303,
+                visitor_type: 'comagic',
+                mark_ids: [],
+                name: 'Томова Денка Райчовна',
+                visitor_name: 'Рангелова Невена Цветковна',
+                is_phone_auto_filled: true,
+                date_time: '2020-02-10 11:17:49+03:00',
+                phone: '74951523643',
+                email: 'tomova@gmail.com',
+                message: '',
+                employee_id: null,
+                contact: null
+            }
+        };
+
+        return {
+            noVisitorName() {
+                params.offline_message.visitor_name = null;
+                return this;
+            },
+            receive: () => {
+                me.chatsWebSocket.receive(JSON.stringify({
+                    method: 'new_offline_message',
                     params 
                 }));
 
@@ -2150,7 +2198,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent: (requests) => {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('/sup/api/v1/lost_calls_count').
+                    expectPathToContain('/sup/api/v1/lost_call_count').
                     expectToHaveMethod('GET');
 
                 spendTime(0);
@@ -2370,6 +2418,11 @@ define(() => function ({
         const processors = [];
 
         const addResponseModifiers = me => {
+            me.longMonths = () => ((processors.push(data => {
+                data[0].start_time = '2019-03-17T19:07:28.522+03:00';
+                data[1].start_time = '2019-06-16T21:09:26.522+03:00';
+                data[2].start_time = '2019-07-14T23:10:27.522+03:00';
+            })), me),
             me.shortPhoneNumber = () => ((processors.push(data => (data[0].number = '56123'))), me)
             me.chilePhoneNumber = () => ((processors.push(data => (data[0].number = '56123456789'))), me)
             me.duplicatedCallSessionId = () => (processors.push(data => (data[1].call_session_id = 980925444)), me);
@@ -2717,6 +2770,16 @@ define(() => function ({
         });
 
         return {
+            outgoing() {
+                params.direction = 'out';
+                return this;
+            },
+
+            anotherCallSessionId() {
+                params.call_session_id = 980925450;
+                return this;
+            },
+
             slavesNotification: () => {
                 const notification = {
                     type: 'message',
@@ -4088,6 +4151,16 @@ define(() => function ({
             me.singlePage = () => (Object.keys(data).forEach(name => (data[name] = 30)), me);
             me.newMessage = () => (processors.push(() => (data.active_with_unread_count ++)), me);
             me.readMessage = () => (processors.push(() => (data.active_with_unread_count --)), me);
+
+            me.noActiveChatsWithUnreadMessages = () => {
+                data.active_with_unread_count = 0;
+                return me;
+            };
+
+            me.noNewChatsWithUnreadMessages = () => {
+                data.new_chat_count = 0;
+                return me;
+            };
 
             me.fewUnreadMessages = () => {
                 data.new_chat_count = 5;
@@ -11095,6 +11168,14 @@ define(() => function ({
             me.softphoneUnavailable = () => ((response.result.data.permissions =
                 response.result.data.permissions.filter(({unit_id}) => unit_id != 'softphone_login')), me);
 
+            me.addressBookReadingUnavailable = () => {
+                (response.result.data.permissions.find(
+                    ({ unit_id }) => unit_id == 'address_book'
+                ) || {}).is_select = false;
+
+                return me;
+            };
+
             me.addressBookUpdatingUnavailable = () => {
                 (response.result.data.permissions.find(
                     ({ unit_id }) => unit_id == 'address_book'
@@ -11486,6 +11567,19 @@ define(() => function ({
         return tester;
     })();
 
+    me.contactsButton = (() => {
+        const tester = testersFactory.createDomElementTester('#cmg-contacts-button'),
+            click = tester.click.bind(tester);
+
+        tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
+        tester.expectToBePressed = () => tester.expectToHaveClass('cmg-button-pressed');
+        tester.expectNotToBePressed = () => tester.expectNotToHaveClass('cmg-button-pressed');
+        tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-button-disabled');
+        tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cmg-button-disabled');
+
+        return tester;
+    })();
+
     me.employeeRow = text => (domElement => {
         const tester = testersFactory.createDomElementTester(domElement);
 
@@ -11862,11 +11956,19 @@ define(() => function ({
         tester.visibilityButton = testersFactory.createDomElementTester('.cmg-softphone-visibility-button');
 
         const click = tester.visibilityButton.click.bind(tester.visibilityButton);
-        tester.visibilityButton.click = () => (click(), spendTime(0));
+
+        tester.visibilityButton.click = () => {
+            click();
+            spendTime(0);
+            spendTime(0);
+
+            me.triggerPageResize();
+        };
 
         return tester;
     })(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
 
+    me.triggerPageResize = () => (triggerResize(document.querySelector('.cmg-softphone-page')), spendTime(0));
     me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
 
@@ -11909,10 +12011,9 @@ define(() => function ({
 
     me.chatListItem = text => {
         const domElement = utils.descendantOfBody().
-            matchesSelector('.cm-chats--last-chat-message-text').
+            matchesSelector('.cm-chats--chats-list-item').
             textContains(text).
-            find().
-            closest('.cm-chats--chats-list-item');
+            find();
 
         const tester = testersFactory.createDomElementTester(domElement);
 

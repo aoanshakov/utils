@@ -50,7 +50,6 @@ tests.addTest(options => {
 
             accountRequest = tester.accountRequest().
                 webAccountLoginUnavailable().
-                contactsFeatureFlagDisabled().
                 softphoneFeatureFlagDisabled().
                 operatorWorkplaceAvailable().
                 expectToBeSent();
@@ -278,6 +277,8 @@ tests.addTest(options => {
                                                     'Канал ' +
                                                     'Некое имя канала ' +
                                                     
+                                                    'Страница обращения ' +
+
                                                     'Источник входа ' +
                                                     'Некиий источник трафика ' +
 
@@ -938,6 +939,79 @@ tests.addTest(options => {
                             });
                         });
                     });
+                    describe('Получена новая заявка.', function() {
+                        let newOfflineMessage;
+
+                        beforeEach(function() {
+                            newOfflineMessage = tester.newOfflineMessage();
+                        });
+
+                        describe('Имя посетителя указано.', function() {
+                            beforeEach(function() {
+                                newOfflineMessage.receive();
+                                notificationTester.grantPermission();
+                                tester.offlineMessageCountersRequest().newMessage().receiveResponse();
+                            });
+
+                            describe('Открываю раздел заявок. Открываю заявку.', function() {
+                                let visitorCardRequest;
+
+                                beforeEach(function() {
+                                    tester.leftMenu.button('1 Заявки').click();
+                                    tester.chatListItem('Томова Денка Райчовна').click();
+
+                                    tester.offlineMessageAcceptingRequest().anotherMessage().receiveResponse();
+                                    visitorCardRequest = tester.visitorCardRequest().expectToBeSent();
+                                    tester.usersRequest().forContacts().receiveResponse();
+                                });
+
+                                it('Отображена заявка.', function() {
+                                    visitorCardRequest.receiveResponse();
+
+                                    tester.chatHistory.message.atTime('11:17').expectToHaveTextContent(
+                                        'Заявка ' +
+
+                                        'Имя: Помакова Бисерка Драгановна ' +
+                                        'Телефон: 74951523643 ' +
+                                        'Email: tomova@gmail.com ' +
+
+                                        '11:17'
+                                    );
+                                });
+                                it('Отображена заявка.', function() {
+                                    tester.chatHistory.message.atTime('11:17').expectToHaveTextContent(
+                                        'Заявка ' +
+
+                                        'Имя: Рангелова Невена Цветковна ' +
+                                        'Телефон: 74951523643 ' +
+                                        'Email: tomova@gmail.com ' +
+
+                                        '11:17'
+                                    );
+                                });
+                            });
+                            it('Оторажено количество непросмотренных заявок.', function() {
+                                tester.notificationSection.expectToHaveTextContent(
+                                    'РН ' +
+                                    'Рангелова Невена Цветковна ' +
+                                    'Заявка с сайта'
+                                );
+                            });
+                        });
+                        it('Имя посетителя неуказано. Оторажено количество непросмотренных заявок.', function() {
+                            newOfflineMessage.noVisitorName().receive();
+                            notificationTester.grantPermission();
+                            tester.offlineMessageCountersRequest().newMessage().receiveResponse();
+
+                            tester.notificationSection.expectToHaveTextContent(
+                                '03 ' +
+                                '#16479303 Гость ' +
+                                'Заявка с сайта'
+                            );
+
+                            tester.leftMenu.button('1 Заявки').expectToBeVisible();
+                        });
+                    });
                     it('Открываю раздел заявок.', function() {
                         tester.leftMenu.button('Заявки').click();
                         tester.chatListItem('Заявка с сайта').click();
@@ -956,6 +1030,14 @@ tests.addTest(options => {
 
                             '12:10'
                         );
+                    });
+                    it('Открываю раздел контактов. Соединение с вебсокетом чатов разрывается.', function() {
+                        tester.leftMenu.button('Контакты').click();
+
+                        tester.contactsRequest().differentNames().receiveResponse();
+                        tester.chatsWebSocket.finishDisconnecting();
+
+                        tester.contactList.item('Бележкова Грета Ервиновна').expectToBeVisible();
                     });
                     it('Отображен список чатов.', function() {
                         tester.body.expectTextContentToHaveSubstring(

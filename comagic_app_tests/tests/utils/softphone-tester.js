@@ -380,7 +380,8 @@ define(function () {
                 short_phone: '9119',
                 status_id: 3,
                 is_sip_online: true,
-                image: 'https://thispersondoesnotexist.com/image'
+                image: 'https://thispersondoesnotexist.com/image',
+                lost_call_count: 0
             };
         };
 
@@ -587,6 +588,8 @@ define(function () {
             var user = this.authenticatedUser();
 
             function addMethods (me) {
+                me.newCall = () => ((user.lost_call_count = 1), me);
+
                 me.sipIsOffline = function () {
                     user.is_sip_online = false;
                     return me;
