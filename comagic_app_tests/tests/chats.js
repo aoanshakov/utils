@@ -248,7 +248,13 @@ tests.addTest(options => {
                                             });
 
                                             it('Измению теги. Отправлен запрос изменения тегов.', function() {
-                                                tester.collapsablePanel('Заметки').content.tagField.button.click();
+                                                tester.collapsablePanel('Заметки').
+                                                    content.
+                                                    row('Тэги').
+                                                    tagField.
+                                                    button.
+                                                    click();
+
                                                 tester.select.option('Продажа').click();
                                                 tester.contactBar.click();
 
@@ -256,7 +262,11 @@ tests.addTest(options => {
                                                 tester.chatListRequest().thirdChat().receiveResponse();
                                             });
                                             it('Оторажены заметки.', function() {
-                                                tester.collapsablePanel('Заметки').content.tagField.putMouseOver();
+                                                tester.collapsablePanel('Заметки').
+                                                    content.
+                                                    row('Тэги').
+                                                    tagField.
+                                                    putMouseOver();
 
                                                 tester.tooltip.expectToHaveTextContent(
                                                     'Нереализованная сделка, Продажа'

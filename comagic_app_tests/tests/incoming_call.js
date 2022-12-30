@@ -592,14 +592,11 @@ tests.addTest(options => {
                 function() {
                     tester.collapsednessToggleButton.click();
 
-                    tester.collapsednessToggleButton.
-                        expectToHaveClass('expand_svg__cmg-expand-icon');
-
+                    tester.collapsednessToggleButton.expectToBeCollapsed();
                     tester.softphone.expectTextContentNotToHaveSubstring('Путь лида');
                 });
                 it('Отображена информация о контакте.', function() {
-                    tester.collapsednessToggleButton.
-                        expectToHaveClass('collapse_svg__cmg-collapse-icon');
+                    tester.collapsednessToggleButton.expectToBeExpanded();
 
                     tester.contactOpeningButton.
                         expectNotToHaveClass('cmg-button-disabled');

@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 afterEach(function() {
                     window.localStorage.removeItem('electronCookies');
-                    window.resetElectronCookiesManager?.();
+
                     spendTime(0);
                     spendTime(0);
 

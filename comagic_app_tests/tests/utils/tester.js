@@ -44,6 +44,8 @@ define(() => function ({
         'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
     ));
 
+    window.resetElectronCookiesManager?.();
+
     window.rootConfig = {appName};
     window.crossTabCommunicatorCache = {};
     window.softphoneCrossTabCommunicatorCache = {};
@@ -300,6 +302,17 @@ define(() => function ({
             })();
 
             tester.content = addTesters(testersFactory.createDomElementTester(getContent), getContent);
+
+            tester.content.row = title => {
+                const getDomElement = () => utils.descendantOf(getContent()).
+                    matchesSelector('.cm-chats--additional-info-panel-row-title').
+                    textEquals(title).
+                    find().
+                    closest('.cm-chats--additional-info-panel-row') ;
+
+                return addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement);
+            };
+
             return tester;
         };
 
@@ -697,7 +710,7 @@ define(() => function ({
             '.src-components-main-menu-settings-styles-module__label, ' +
             '.src-components-main-menu-menu-link-styles-module__item a';
 
-        me.button = (text) => {
+        me.button = (text, logEnabled) => {
             let domElement = utils.descendantOf(getRootElement()).
                 textEquals(text).
                 matchesSelector(buttonSelector).
@@ -719,7 +732,7 @@ define(() => function ({
                     return false;
                 }
             })();
-            
+
             tester.click = () => {
                 isSwitch ? fieldTester.click() : click();
 
@@ -734,13 +747,17 @@ define(() => function ({
 
             const menuItemSelectedClass = [
                 'src-components-main-menu-nav-item-styles-module__item-selected',
+                'misc-core-src-component-styles-module__item-selected', 
                 'active',
                 'ui-tab-active'
             ];
 
 
             const getPressableElement = () => domElement.closest(
-                '.src-components-main-menu-nav-item-styles-module__item, .cm-chats--left-menu--item, .ui-tab'
+                '.src-components-main-menu-nav-item-styles-module__item, ' +
+                '.misc-core-src-component-styles-module__item, ' +
+                '.cm-chats--left-menu--item, ' +
+                '.ui-tab'
             );
 
             const pressednessTester = testersFactory.createDomElementTester(getPressableElement);

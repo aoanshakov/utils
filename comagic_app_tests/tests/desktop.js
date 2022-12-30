@@ -3151,7 +3151,6 @@ tests.addTest(options => {
             describe('Нажимаю на кнопку контактов в нижнем тулбаре.', function() {
                 beforeEach(function() {
                     tester.contactsButton.click();
-                    tester.contactsRequest().differentNames().receiveResponse();
 
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
@@ -3167,6 +3166,10 @@ tests.addTest(options => {
 
                     const requests = ajax.inAnyOrder();
 
+                    const contactsRequest = tester.contactsRequest().
+                        differentNames().
+                        expectToBeSent(requests);
+
                     const accountRequest = tester.accountRequest().
                         operatorWorkplaceAvailable().
                         forChats().
@@ -3180,6 +3183,7 @@ tests.addTest(options => {
 
                     accountRequest.receiveResponse();
                     secondAccountRequest.receiveResponse();
+                    contactsRequest.receiveResponse();
 
                     tester.offlineMessageCountersRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();

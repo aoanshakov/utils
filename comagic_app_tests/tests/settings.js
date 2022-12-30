@@ -831,9 +831,9 @@ tests.addTest(options => {
         tester.masterInfoMessage().receive();
         tester.slavesNotification().expectToBeSent();
         tester.slavesNotification().additional().expectToBeSent();
-        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
         tester.notificationChannel().tellIsLeader().expectToBeSent();
+        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         tester.notificationChannel().applyLeader().expectToBeSent();
         tester.notificationChannel().applyLeader().expectToBeSent();
 
