@@ -49,10 +49,10 @@ index 615e241..6c09095 100644
      "webpack-cli": "^4.10.0"
    }
 diff --git a/src/utils/cookie.ts b/src/utils/cookie.ts
-index 0f22014..55034f4 100644
+index ba3c0bc..910deaf 100644
 --- a/src/utils/cookie.ts
 +++ b/src/utils/cookie.ts
-@@ -108,3 +108,5 @@ export function deleteCookie(name: string, options: Options = {}): void {
+@@ -105,3 +105,5 @@ export function deleteCookie(name: string, options: Options = {}): void {
  export function getCookieDomain(): string {
      return window.location.hostname.split('.').slice(-2).join('.');
  }
