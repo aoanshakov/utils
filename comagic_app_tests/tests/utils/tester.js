@@ -115,7 +115,8 @@ define(() => function ({
 
             me.eventBus = {
                 broadcast,
-                nextEvent: () => stack.pop()
+                nextEvent: () => stack.pop(),
+                assumeSomeMessageMayBeSent: () => stack.removeAll()
             };
         },
         setHistory: value => (history = value),
@@ -11440,6 +11441,36 @@ define(() => function ({
         dispatch: () => {
             me.eventBus.broadcast('outgoing_call', '79161234567');
         }
+    });
+
+    me.callStartMessage = () => ({
+        expectToBeSent: () => me.eventBus.
+            nextEvent().
+            expectEventNameToEqual('call_start')
+    });
+
+    me.callEndMessage = () => ({
+        expectToBeSent: () => me.eventBus.
+            nextEvent().
+            expectEventNameToEqual('call_end')
+    });
+
+    me.appReadyMessage = () => ({
+        expectToBeSent: () => me.eventBus.
+            nextEvent().
+            expectEventNameToEqual('app_ready')
+    });
+
+    me.unmaximizeMessage = () => ({
+        expectToBeSent: () => me.eventBus.
+            nextEvent().
+            expectEventNameToEqual('unmaximize')
+    });
+
+    me.resizeMessage = () => ({
+        expectToBeSent: () => me.eventBus.
+            nextEvent().
+            expectEventNameToEqual('resize')
     });
 
     me.ipcPrompterCallAwaitMessage = () => {

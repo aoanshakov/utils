@@ -139,6 +139,9 @@ tests.addTest(options => {
                     userDataFetched().
                     expectToBeSent();
 
+                tester.appReadyMessage().expectToBeSent();
+                tester.unmaximizeMessage().expectToBeSent();
+                tester.resizeMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
             });
 
@@ -154,6 +157,7 @@ tests.addTest(options => {
                     tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                     incomingCall = tester.incomingCall().receive();
+                    tester.callStartMessage().expectToBeSent();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -187,6 +191,8 @@ tests.addTest(options => {
                     beforeEach(function() {
                         tester.outCallEvent().receive();
                         tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                        tester.resizeMessage().expectToBeSent();
                     });
 
                     describe('Звонок принимается автоматически.', function() {
@@ -207,6 +213,9 @@ tests.addTest(options => {
                             beforeEach(function() {
                                 tester.stopCallButton.click();
 
+                                tester.callEndMessage().expectToBeSent();
+                                tester.resizeMessage().expectToBeSent();
+
                                 tester.slavesNotification().
                                     available().
                                     userDataFetched().
@@ -222,6 +231,7 @@ tests.addTest(options => {
                                 'Поступает входящий звонок. Звонок принимается автоматически.',
                             function() {
                                 incomingCall = tester.incomingCall().receive();
+                                tester.callStartMessage().expectToBeSent();
 
                                 tester.slavesNotification().
                                     twoChannels().
@@ -253,6 +263,7 @@ tests.addTest(options => {
                                 tester.outCallEvent().receive();
                                 tester.outCallEvent().slavesNotification().expectToBeSent();
 
+                                tester.resizeMessage().expectToBeSent();
                                 incomingCall.receiveResponse();
 
                                 tester.slavesNotification().
@@ -275,6 +286,7 @@ tests.addTest(options => {
                                 });
 
                                 incomingCall = tester.incomingCall().receive();
+                                tester.callStartMessage().expectToBeSent();
 
                                 tester.slavesNotification().
                                     twoChannels().
@@ -289,6 +301,7 @@ tests.addTest(options => {
                                 tester.outCallEvent().receive();
                                 tester.outCallEvent().slavesNotification().expectToBeSent();
 
+                                tester.resizeMessage().expectToBeSent();
                                 tester.expectIncomingCallSoundToPlay();
                             });
                             it(
@@ -309,8 +322,11 @@ tests.addTest(options => {
                             'произведено не отправлено.',
                         function() {
                             tester.ipcPrompterCallEndMessage().receive();
+                            tester.callEndMessage().expectToBeSent();
 
                             incomingCall.expectByeRequestToBeSent();
+
+                            tester.resizeMessage().expectToBeSent();
                             tester.callSessionFinish().thirdId().slavesNotification().expectToBeSent();
 
                             tester.slavesNotification().
@@ -391,6 +407,7 @@ tests.addTest(options => {
                         'Отображается уведомление с заголовком "Подключение к звонку".',
                     function() {
                         incomingCall = tester.incomingCall().receive();
+                        tester.callStartMessage().expectToBeSent();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -422,6 +439,7 @@ tests.addTest(options => {
                         tester.outCallEvent().receive();
                         tester.outCallEvent().slavesNotification().expectToBeSent();
 
+                        tester.resizeMessage().expectToBeSent();
                         incomingCall.expectOkToBeSent().receiveResponse();
 
                         tester.slavesNotification().
@@ -446,6 +464,7 @@ tests.addTest(options => {
                         tester.outCallEvent().slavesNotification().expectToBeSent();
 
                         incomingCall = tester.incomingCall().receive();
+                        tester.callStartMessage().expectToBeSent();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -467,6 +486,7 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.numaRequest().receiveResponse();
+                        tester.resizeMessage().expectToBeSent();
 
                         tester.firstConnection.connectWebRTC();
                         tester.firstConnection.callTrackHandler();
@@ -500,6 +520,7 @@ tests.addTest(options => {
                     tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                     tester.incomingCall().receive();
+                    tester.callStartMessage().expectToBeSent();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -515,6 +536,8 @@ tests.addTest(options => {
                     tester.outCallEvent().receive();
                     tester.outCallEvent().slavesNotification().expectToBeSent();
 
+                    tester.resizeMessage().expectToBeSent();
+
                     notificationTester.grantPermission().
                         recentNotification().
                         expectToHaveTitle('Входящий звонок').
@@ -529,6 +552,7 @@ tests.addTest(options => {
                     tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                     incomingCall = tester.incomingCall().receive();
+                    tester.callStartMessage().expectToBeSent();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -560,6 +584,7 @@ tests.addTest(options => {
                     tester.outCallEvent().receive();
                     tester.outCallEvent().slavesNotification().expectToBeSent();
 
+                    tester.resizeMessage().expectToBeSent();
                     incomingCall.expectOkToBeSent().receiveResponse();
 
                     tester.slavesNotification().
@@ -672,6 +697,7 @@ tests.addTest(options => {
                         tester.settingsFetchedMessage().expectToBeSent();
 
                         let incomingCall = tester.incomingCall().receive();
+                        tester.callStartMessage().expectToBeSent();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -701,6 +727,7 @@ tests.addTest(options => {
                         tester.outCallEvent().receive();
                         tester.outCallEvent().slavesNotification().expectToBeSent();
 
+                        tester.resizeMessage().expectToBeSent();
                         incomingCall.expectOkToBeSent().receiveResponse();
 
                         tester.slavesNotification().
@@ -811,6 +838,7 @@ tests.addTest(options => {
                     tester.settingsFetchedMessage().expectToBeSent();
 
                     let incomingCall = tester.incomingCall().receive();
+                    tester.callStartMessage().expectToBeSent();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -839,6 +867,8 @@ tests.addTest(options => {
 
                     tester.outCallEvent().receive();
                     tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                    tester.resizeMessage().expectToBeSent();
 
                     incomingCall.expectOkToBeSent().receiveResponse();
 
@@ -884,6 +914,7 @@ tests.addTest(options => {
                 tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                 incomingCall = tester.incomingCall().receive();
+                tester.callStartMessage().expectToBeSent();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -903,6 +934,7 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.numaRequest().receiveResponse();
+                tester.resizeMessage().expectToBeSent();
 
                 tester.firstConnection.connectWebRTC();
                 tester.firstConnection.callTrackHandler();
@@ -938,6 +970,8 @@ tests.addTest(options => {
             function() {
                 tester.othersNotification().prompterCallPreparation().receive();
                 let incomingCall = tester.incomingCall().receive();
+                
+                tester.callStartMessage().expectToBeSent();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -969,6 +1003,7 @@ tests.addTest(options => {
                 tester.outCallEvent().receive();
                 tester.outCallEvent().slavesNotification().expectToBeSent();
 
+                tester.resizeMessage().expectToBeSent();
                 incomingCall = incomingCall.receiveResponse();
 
                 tester.slavesNotification().
@@ -1038,7 +1073,11 @@ tests.addTest(options => {
                     available().
                     receive();
 
+                tester.appReadyMessage().expectToBeSent();
+                tester.unmaximizeMessage().expectToBeSent();
+                tester.resizeMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
+
                 tester.button('Софтфон').click();
 
                 tester.masterNotification().
@@ -1149,6 +1188,8 @@ tests.addTest(options => {
                             userDataFetched().
                             receive();
 
+                        tester.callStartMessage().expectToBeSent();
+
                         tester.slavesNotification().
                             twoChannels().
                             available().
@@ -1158,6 +1199,7 @@ tests.addTest(options => {
                             receive();
 
                         tester.outCallEvent().slavesNotification().receive();
+                        tester.resizeMessage().expectToBeSent();
 
                         tester.slavesNotification().
                             available().
@@ -1271,6 +1313,8 @@ tests.addTest(options => {
                         userDataFetched().
                         receive();
 
+                    tester.callStartMessage().expectToBeSent();
+
                     tester.slavesNotification().
                         twoChannels().
                         available().
@@ -1280,6 +1324,7 @@ tests.addTest(options => {
                         receive();
 
                     tester.outCallEvent().slavesNotification().receive();
+                    tester.resizeMessage().expectToBeSent();
 
                     tester.slavesNotification().
                         available().
@@ -1328,6 +1373,8 @@ tests.addTest(options => {
                     userDataFetched().
                     receive();
 
+                tester.callStartMessage().expectToBeSent();
+
                 tester.slavesNotification().
                     twoChannels().
                     available().
@@ -1339,6 +1386,8 @@ tests.addTest(options => {
                 tester.outCallEvent().
                     slavesNotification().
                     receive();
+
+                tester.resizeMessage().expectToBeSent();
 
                 tester.slavesNotification().
                     available().
@@ -1361,6 +1410,8 @@ tests.addTest(options => {
                     userDataFetched().
                     receive();
 
+                tester.callStartMessage().expectToBeSent();
+
                 tester.slavesNotification().
                     twoChannels().
                     available().
@@ -1372,6 +1423,8 @@ tests.addTest(options => {
                 tester.outCallEvent().
                     slavesNotification().
                     receive();
+
+                tester.resizeMessage().expectToBeSent();
 
                 tester.slavesNotification().
                     available().
@@ -1418,6 +1471,8 @@ tests.addTest(options => {
                     userDataFetched().
                     receive();
 
+                tester.callStartMessage().expectToBeSent();
+
                 tester.slavesNotification().
                     twoChannels().
                     available().
@@ -1429,6 +1484,8 @@ tests.addTest(options => {
                 tester.outCallEvent().
                     slavesNotification().
                     receive();
+
+                tester.resizeMessage().expectToBeSent();
 
                 tester.slavesNotification().
                     available().

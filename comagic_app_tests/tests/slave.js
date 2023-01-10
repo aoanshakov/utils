@@ -260,10 +260,6 @@ tests.addTest(options => {
                 tester.loginRequest().receiveResponse();
                 tester.accountRequest().receiveResponse();
 
-                tester.reportGroupsRequest().receiveResponse();
-                tester.reportsListRequest().receiveResponse();
-                tester.reportTypesRequest().receiveResponse();
-
                 const requests = ajax.inAnyOrder();
 
                 const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
@@ -273,6 +269,10 @@ tests.addTest(options => {
 
                 authCheckRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
+
+                tester.reportGroupsRequest().receiveResponse();
+                tester.reportsListRequest().receiveResponse();
+                tester.reportTypesRequest().receiveResponse();
 
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
@@ -362,9 +362,13 @@ tests.addTest(options => {
                 tester.loginRequest().receiveResponse();
                 tester.accountRequest().receiveResponse();
 
-                tester.reportGroupsRequest().receiveResponse();
-                tester.reportsListRequest().receiveResponse();
-                tester.reportTypesRequest().receiveResponse();
+                tester.masterInfoMessage().receive();
+                tester.slavesNotification().expectToBeSent();
+                tester.slavesNotification().additional().visible().expectToBeSent();
+
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
 
@@ -376,13 +380,9 @@ tests.addTest(options => {
                 authCheckRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
 
-                tester.masterInfoMessage().receive();
-                tester.slavesNotification().expectToBeSent();
-                tester.slavesNotification().additional().visible().expectToBeSent();
-
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.reportGroupsRequest().receiveResponse();
+                tester.reportsListRequest().receiveResponse();
+                tester.reportTypesRequest().receiveResponse();
 
                 tester.statusesRequest().receiveResponse();
 

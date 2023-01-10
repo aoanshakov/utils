@@ -411,16 +411,6 @@ tests.addTest(options => {
                                                 it('Софтфон доступен. Отображен софтфон.', function() {
                                                     accountRequest.receiveResponse();
 
-                                                    tester.reportGroupsRequest().anotherAuthorizationToken().
-                                                        receiveResponse();
-                                                    tester.reportsListRequest().receiveResponse();
-                                                    tester.reportTypesRequest().receiveResponse();
-
-                                                    tester.masterInfoMessage().receive();
-                                                    tester.slavesNotification().expectToBeSent();
-                                                    tester.slavesNotification().additional().visible().expectToBeSent();
-                                                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-
                                                     const requests = ajax.inAnyOrder();
 
                                                     const secondAccountRequest = tester.accountRequest().
@@ -432,6 +422,16 @@ tests.addTest(options => {
 
                                                     secondAccountRequest.receiveResponse();
                                                     authCheckRequest.receiveResponse();
+
+                                                    tester.reportGroupsRequest().anotherAuthorizationToken().
+                                                        receiveResponse();
+                                                    tester.reportsListRequest().receiveResponse();
+                                                    tester.reportTypesRequest().receiveResponse();
+
+                                                    tester.masterInfoMessage().receive();
+                                                    tester.slavesNotification().expectToBeSent();
+                                                    tester.slavesNotification().additional().visible().expectToBeSent();
+                                                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                                                     tester.statusesRequest().
                                                         createExpectation().
@@ -796,16 +796,6 @@ tests.addTest(options => {
                                                         tester.loginRequest().receiveResponse();
                                                         tester.accountRequest().receiveResponse();
 
-                                                        tester.reportGroupsRequest().receiveResponse();
-                                                        tester.reportsListRequest().receiveResponse();
-                                                        tester.reportTypesRequest().receiveResponse();
-
-                                                        tester.masterInfoMessage().receive();
-                                                        tester.slavesNotification().expectToBeSent();
-                                                        tester.slavesNotification().additional().visible().
-                                                            expectToBeSent();
-                                                        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-
                                                         const requests = ajax.inAnyOrder();
 
                                                         const secondAccountRequest = tester.accountRequest().
@@ -817,6 +807,16 @@ tests.addTest(options => {
 
                                                         secondAccountRequest.receiveResponse();
                                                         authCheckRequest.receiveResponse();
+
+                                                        tester.reportGroupsRequest().receiveResponse();
+                                                        tester.reportsListRequest().receiveResponse();
+                                                        tester.reportTypesRequest().receiveResponse();
+
+                                                        tester.masterInfoMessage().receive();
+                                                        tester.slavesNotification().expectToBeSent();
+                                                        tester.slavesNotification().additional().visible().
+                                                            expectToBeSent();
+                                                        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                                                         tester.statusesRequest().receiveResponse();
                                                         tester.settingsRequest().receiveResponse();
@@ -1232,16 +1232,6 @@ tests.addTest(options => {
                                                 tester.loginRequest().anotherAuthorizationToken().receiveResponse();
                                                 tester.accountRequest().anotherAuthorizationToken().receiveResponse();
 
-                                                tester.reportGroupsRequest().anotherAuthorizationToken().
-                                                    receiveResponse();
-                                                tester.reportsListRequest().receiveResponse();
-                                                tester.reportTypesRequest().receiveResponse();
-
-                                                tester.masterInfoMessage().receive();
-                                                tester.slavesNotification().expectToBeSent();
-                                                tester.slavesNotification().additional().visible().expectToBeSent();
-                                                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-
                                                 const requests = ajax.inAnyOrder();
 
                                                 const authCheckRequest = tester.authCheckRequest().
@@ -1253,6 +1243,16 @@ tests.addTest(options => {
 
                                                 authCheckRequest.receiveResponse();
                                                 accountRequest.receiveResponse();
+
+                                                tester.reportGroupsRequest().anotherAuthorizationToken().
+                                                    receiveResponse();
+                                                tester.reportsListRequest().receiveResponse();
+                                                tester.reportTypesRequest().receiveResponse();
+
+                                                tester.masterInfoMessage().receive();
+                                                tester.slavesNotification().expectToBeSent();
+                                                tester.slavesNotification().additional().visible().expectToBeSent();
+                                                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                                                 tester.statusesRequest().createExpectation().
                                                     anotherAuthorizationToken().checkCompliance().receiveResponse();
@@ -2646,10 +2646,6 @@ tests.addTest(options => {
                     tester.loginRequest().receiveResponse();
                     tester.accountRequest().receiveResponse();
 
-                    tester.reportGroupsRequest().receiveResponse();
-                    tester.reportsListRequest().receiveResponse();
-                    tester.reportTypesRequest().receiveResponse();
-
                     const requests = ajax.inAnyOrder();
 
                     const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
@@ -2659,6 +2655,10 @@ tests.addTest(options => {
 
                     authCheckRequest.receiveResponse();
                     secondAccountRequest.receiveResponse();
+
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
 
                     tester.masterInfoMessage().receive();
                     tester.slavesNotification().expectToBeSent();
@@ -2748,10 +2748,6 @@ tests.addTest(options => {
                     tester.loginRequest().receiveResponse();
                     tester.accountRequest().receiveResponse();
 
-                    tester.reportGroupsRequest().receiveResponse();
-                    tester.reportsListRequest().receiveResponse();
-                    tester.reportTypesRequest().receiveResponse();
-
                     const requests = ajax.inAnyOrder();
 
                     const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
@@ -2761,6 +2757,10 @@ tests.addTest(options => {
 
                     authCheckRequest.receiveResponse();
                     secondAccountRequest.receiveResponse();
+
+                    tester.reportGroupsRequest().receiveResponse();
+                    tester.reportsListRequest().receiveResponse();
+                    tester.reportTypesRequest().receiveResponse();
 
                     tester.masterInfoMessage().receive();
                     tester.slavesNotification().expectToBeSent();

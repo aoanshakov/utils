@@ -154,8 +154,8 @@ tests.addTest(options => {
             tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
 
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
