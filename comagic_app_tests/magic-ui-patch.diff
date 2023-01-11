@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 4e83ff0c..39eb8824 100644
+index 4fe8ee39..62c21b3e 100644
 --- a/package.json
 +++ b/package.json
 @@ -11,9 +11,9 @@
@@ -14,9 +14,9 @@ index 4e83ff0c..39eb8824 100644
    ],
    "engines": {
      "node": ">=12.14.0",
-@@ -37,10 +37,6 @@
-     "react-input-mask": "^2.0.4",
-     "react-resizable": "^3.0.4"
+@@ -40,10 +40,6 @@
+     "react-resizable": "^3.0.4",
+     "react-window": "^1.8.7"
    },
 -  "peerDependencies": {
 -    "react": ">= 17.0.0",
@@ -25,7 +25,7 @@ index 4e83ff0c..39eb8824 100644
    "devDependencies": {
      "@storybook/addon-actions": "^6.5.12",
      "@storybook/addon-essentials": "^6.5.12",
-@@ -56,8 +52,6 @@
+@@ -59,8 +55,6 @@
      "@svgr/plugin-svgo": "^5.5.0",
      "@types/classnames": "^2.2.9",
      "@types/moment": "^2.13.0",
@@ -33,8 +33,8 @@ index 4e83ff0c..39eb8824 100644
 -    "@types/react-dom": "^18.0.6",
      "@types/react-input-mask": "^2.0.5",
      "@types/react-resizable": "^3.0.2",
-     "@typescript-eslint/eslint-plugin": "^5.33.1",
-@@ -75,13 +69,10 @@
+     "@types/react-window": "^1.8.5",
+@@ -79,13 +73,10 @@
      "eslint-plugin-react": "^7.23.2",
      "eslint-plugin-react-hooks": "^4.2.0",
      "file-loader": "^6.2.0",

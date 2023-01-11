@@ -1019,6 +1019,7 @@ define(() => function ({
             tester.click = () => {
                 click();
                 spendTime(0);
+                spendTime(0);
                 windowTester.endTransition('transform');
                 spendTime(0);
             };
@@ -9158,6 +9159,7 @@ define(() => function ({
                         Promise.runAll(false, true);
                         spendTime(0)
                         spendTime(0)
+                        spendTime(0)
                     }
                 });
             },
@@ -11850,7 +11852,13 @@ define(() => function ({
                 const click = tester.click.bind(tester),
                     putMouseOver = tester.putMouseOver.bind(tester);
 
-                tester.click = () => (click(), spendTime(0), spendTime(0));
+                tester.click = () => {
+                    click();
+                    spendTime(0);
+                    spendTime(0);
+                    mainTester.modalWindow.endTransition('transform');
+                };
+
                 tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
                 return tester;

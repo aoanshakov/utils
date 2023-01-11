@@ -1238,6 +1238,7 @@ function JsTester_Audio (args) {
     this.loop = false;
     this.volume = 1;
     this.setSinkId('default');
+    this.load = () => null;
 
     setSource(args.mediaStream);
 }

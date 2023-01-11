@@ -1025,6 +1025,10 @@ tests.addTest(options => {
                                                 'Нажимаю на кнопку проигрывания записи. Плеер отображается.',
                                             function() {
                                                 tester.table.row.first.column.withHeader('Запись').playIcon.click();
+
+                                                tester.talkRecordRequest().receiveResponse();
+                                                audioDecodingTester.accomplishAudioDecoding();
+
                                                 tester.audioPlayer.expectToBeVisible();
                                             });
                                             it('Плеер скрыт.', function() {
