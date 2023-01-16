@@ -302,14 +302,14 @@ index 636ce909..203f9fb5 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index fd2a634b..db8bd8f7 100644
+index e624e7be..d9a9f745 100644
 --- a/package.json
 +++ b/package.json
-@@ -67,12 +67,16 @@
+@@ -68,12 +68,16 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
--    "@comagic/core": "^1.2.8",
+-    "@comagic/core": "0.0.0-int0",
 +    "@comagic/core": "./misc/core",
      "@sentry/react": "^6.17.6",
      "@sentry/tracing": "^6.17.6",
@@ -323,16 +323,16 @@ index fd2a634b..db8bd8f7 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -84,7 +88,7 @@
+@@ -85,7 +89,7 @@
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
--    "magic-ui": "git+https://magic-ui:9d_M4ruzxtnTCt__5qs1@gitlab.uis.dev/web/magic_ui.git#int_2022_13.0",
+-    "magic-ui": "0.0.0-int0",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -93,7 +97,13 @@
+@@ -94,7 +98,13 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "^6.4.0",
@@ -404,10 +404,10 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index d371ca8f..5f2b03ca 100644
+index 273dd60b..055074e2 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -22,7 +22,7 @@ export type LoginUser = {
+@@ -21,7 +21,7 @@ export type LoginUser = {
      dont_keep_me_signed_in: boolean;
  };
  

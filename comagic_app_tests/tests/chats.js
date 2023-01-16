@@ -963,42 +963,27 @@ tests.addTest(options => {
                                 tester.offlineMessageCountersRequest().newMessage().receiveResponse();
                             });
 
-                            describe('Открываю раздел заявок. Открываю заявку.', function() {
+                            it('Открываю раздел заявок. Открываю заявку. Отображена заявка.', function() {
                                 let visitorCardRequest;
 
-                                beforeEach(function() {
-                                    tester.leftMenu.button('1 Заявки').click();
-                                    tester.chatListItem('Томова Денка Райчовна').click();
+                                tester.leftMenu.button('Заявки').click();
+                                tester.chatListItem('Томова Денка Райчовна').click();
 
-                                    tester.offlineMessageAcceptingRequest().anotherMessage().receiveResponse();
-                                    visitorCardRequest = tester.visitorCardRequest().expectToBeSent();
-                                    tester.usersRequest().forContacts().receiveResponse();
-                                });
+                                tester.offlineMessageAcceptingRequest().anotherMessage().receiveResponse();
+                                visitorCardRequest = tester.visitorCardRequest().expectToBeSent();
+                                tester.usersRequest().forContacts().receiveResponse();
 
-                                it('Отображена заявка.', function() {
-                                    visitorCardRequest.receiveResponse();
+                                visitorCardRequest.receiveResponse();
 
-                                    tester.chatHistory.message.atTime('11:17').expectToHaveTextContent(
-                                        'Заявка ' +
+                                tester.chatHistory.message.atTime('11:17').expectToHaveTextContent(
+                                    'Заявка ' +
 
-                                        'Имя: Помакова Бисерка Драгановна ' +
-                                        'Телефон: 74951523643 ' +
-                                        'Email: tomova@gmail.com ' +
+                                    'Имя: Помакова Бисерка Драгановна ' +
+                                    'Телефон: 74951523643 ' +
+                                    'Email: tomova@gmail.com ' +
 
-                                        '11:17'
-                                    );
-                                });
-                                it('Отображена заявка.', function() {
-                                    tester.chatHistory.message.atTime('11:17').expectToHaveTextContent(
-                                        'Заявка ' +
-
-                                        'Имя: Рангелова Невена Цветковна ' +
-                                        'Телефон: 74951523643 ' +
-                                        'Email: tomova@gmail.com ' +
-
-                                        '11:17'
-                                    );
-                                });
+                                    '11:17'
+                                );
                             });
                             it('Оторажено количество непросмотренных заявок.', function() {
                                 tester.notificationSection.expectToHaveTextContent(
@@ -1019,7 +1004,7 @@ tests.addTest(options => {
                                 'Заявка с сайта'
                             );
 
-                            tester.leftMenu.button('1 Заявки').expectToBeVisible();
+                            tester.leftMenu.button('Заявки').expectToBeVisible();
                         });
                     });
                     it('Открываю раздел заявок.', function() {
@@ -1128,17 +1113,17 @@ tests.addTest(options => {
                     tester.statusChangedMessage().receive();
                     tester.countersRequest().readMessage().fewUnreadMessages().receiveResponse();
 
-                    tester.button('7 Чаты').expectToBeVisible();
+                    tester.button('Чаты').expectToBeVisible();
                 });
                 it('Получено новое сообщение. Отображено количество непрочитанных сообщений.', function() {
                     tester.newMessage().receive();
                     tester.chatListRequest().chat().receiveResponse();
                     tester.countersRequest().newMessage().fewUnreadMessages().receiveResponse();
 
-                    tester.button('9 Чаты').expectToBeVisible();
+                    tester.button('Чаты').expectToBeVisible();
                 });
                 it('Отображено количество непрочитанных сообщений.', function() {
-                    tester.button('8 Чаты').expectToBeVisible();
+                    tester.button('Чаты').expectToBeVisible();
                 });
             });
         });

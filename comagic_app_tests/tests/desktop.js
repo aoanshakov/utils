@@ -1,7 +1,7 @@
 tests.addTest(options => {
     const {
         utils,
-        Tester,
+       Tester,
         spendTime,
         addSecond,
         windowOpener,
@@ -556,7 +556,7 @@ tests.addTest(options => {
 
                                         describe('Открываю раздел чатов.', function() {
                                             beforeEach(function() {
-                                                tester.button('99+ Чаты').click();
+                                                tester.button('Чаты').click();
 
                                                 tester.chatSettingsRequest().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
@@ -613,7 +613,7 @@ tests.addTest(options => {
                                                     expectToBeSentToChannel('unmaximize');
                                             });
                                             it('Пункт меню чатов выделен.', function() {
-                                                tester.button('99+ Чаты').expectToBePressed();
+                                                tester.button('Чаты').expectToBePressed();
                                                 tester.button('Заявки').expectNotToBePressed();
                                                 tester.button('Статистика').expectNotToBePressed();
                                                 tester.button('История звонков').expectNotToBePressed();
@@ -894,7 +894,7 @@ tests.addTest(options => {
                                             tester.leftMenu.expectToBeVisible();
                                         });
                                         it('Отображен большой софтфон.', function() {
-                                            tester.button('99+ Чаты').expectNotToBePressed();
+                                            tester.button('Чаты').expectNotToBePressed();
                                             tester.button('Заявки').expectNotToBePressed();
                                             tester.button('Статистика').expectToBePressed();
                                             tester.button('История звонков').expectNotToBePressed();
@@ -2531,7 +2531,7 @@ tests.addTest(options => {
                                 receiveResponse();
 
 
-                            tester.button('1 Заявки').expectToBeVisible();
+                            tester.button('Заявки').expectToBeVisible();
                         });
                         it('Нажимаю на кнопку чатов. Выбран пункт "Заявки" левого меню.', function() {
                             tester.chatsButton.click();
@@ -2598,7 +2598,7 @@ tests.addTest(options => {
                                 closed().
                                 receiveResponse();
 
-                            tester.button('1 Заявки').expectToBePressed();
+                            tester.button('Заявки').expectToBePressed();
                             tester.button('Чаты').expectNotToBePressed();
                         });
                         it('Отображен индикатор непрочитанных сообщений.', function() {

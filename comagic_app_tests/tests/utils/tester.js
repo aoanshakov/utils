@@ -715,7 +715,7 @@ define(() => function ({
             let domElement = utils.descendantOf(getRootElement()).
                 textEquals(text).
                 matchesSelector(buttonSelector).
-                find();
+                find(logEnabled);
 
             domElement = domElement.querySelector('a') || domElement;
 
@@ -763,8 +763,10 @@ define(() => function ({
 
             const pressednessTester = testersFactory.createDomElementTester(getPressableElement);
 
-            tester.counter = testersFactory.createDomElementTester(() =>
-                getPressableElement().querySelector('.cm-chats--new-messages-count'));
+            tester.counter = testersFactory.createDomElementTester(() => getPressableElement().querySelector(
+                '.cm-chats--new-messages-count, ' +
+                '.misc-core-src-component-styles-module__new-items-count'
+            ));
 
             tester.expectToBePressed = () => pressednessTester.expectToHaveAnyOfClasses(menuItemSelectedClass);
             tester.expectNotToBePressed = () => pressednessTester.expectToHaveNoneOfClasses(menuItemSelectedClass);
