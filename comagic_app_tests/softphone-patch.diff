@@ -1,13 +1,13 @@
 diff --git a/package.json b/package.json
-index 20af368..e4e7e3c 100644
+index 5374789..e4e7e3c 100644
 --- a/package.json
 +++ b/package.json
 @@ -18,8 +18,6 @@
      "@svgr/webpack": "^5.5.0",
      "@types/classnames": "^2.2.11",
      "@types/node": "^14.14.37",
--    "@types/react": "^17.0.2",
--    "@types/react-dom": "^17.0.1",
+-    "@types/react": "^18.0.17",
+-    "@types/react-dom": "^18.0.6",
      "@types/uuid": "^8.3.1",
      "@types/yup": "^0.29.11",
      "@typescript-eslint/eslint-plugin": "^4.16.1",
@@ -16,7 +16,7 @@ index 20af368..e4e7e3c 100644
    "dependencies": {
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "0.0.0-int0",
--    "@uiscom/uis_webrtc": "0.0.0-int0"
+-    "@uiscom/uis_webrtc": "0.0.0-int0",
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
@@ -30,9 +30,9 @@ index 20af368..e4e7e3c 100644
      "mobx-state-tree": "^5.0.1",
      "moment": "^2.29.1",
      "nanoid": "^3.2.0",
--    "react": "^17.0.1",
+-    "react": "^18.2.0",
      "react-csv": "^2.0.3",
--    "react-dom": "^17.0.1",
+-    "react-dom": "^18.2.0",
 -    "react-intl": "^5.13.2",
      "react-redux": "^7.0.0",
 -    "react-router-dom": "^6.4.0",

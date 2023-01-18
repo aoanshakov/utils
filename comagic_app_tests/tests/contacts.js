@@ -957,6 +957,10 @@ tests.addTest(options => {
                                         );
                                     });
                                     it('Имя выделено. Отображен контакт. Отображена история коммуникаций.', function() {
+                                        tester.button('Софтфон').expectToBeVisible();
+                                        tester.button('Контакты').expectToBePressed();
+                                        tester.button('Статистика').expectNotToBePressed();
+
                                         tester.contactBar.title.expectToHaveTextContent('Контакт');
 
                                         tester.contactList.item('Балканска Берислава Силаговна').

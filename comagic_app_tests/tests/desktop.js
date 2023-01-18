@@ -1,7 +1,7 @@
 tests.addTest(options => {
     const {
         utils,
-       Tester,
+        Tester,
         spendTime,
         addSecond,
         windowOpener,
