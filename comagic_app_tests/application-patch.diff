@@ -302,10 +302,10 @@ index 636ce909..203f9fb5 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index e624e7be..d9a9f745 100644
+index 31676385..2aa836f7 100644
 --- a/package.json
 +++ b/package.json
-@@ -68,12 +68,16 @@
+@@ -69,12 +69,16 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -323,7 +323,7 @@ index e624e7be..d9a9f745 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -85,7 +89,7 @@
+@@ -86,7 +90,7 @@
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
@@ -332,10 +332,10 @@ index e624e7be..d9a9f745 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -94,7 +98,13 @@
+@@ -95,7 +99,13 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
-     "react-router-dom": "^6.4.0",
+     "react-router-dom": "6.4.0",
 +    "simplebar-react": "^2.4.1",
 +    "softphone": "./misc/softphone",
 +    "string-hash": "^1.1.3",
@@ -347,14 +347,13 @@ index e624e7be..d9a9f745 100644
    },
    "optionalDependencies": {
 diff --git a/public/index.html b/public/index.html
-index a82eebad..59a999e3 100644
+index 92fc7e25..59a999e3 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -23,7 +23,29 @@
+@@ -23,6 +23,29 @@
      })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
      <!-- End Google Tag Manager -->
      <% } %>
--    <script>window.rootConfig = <%= rootConfig %>;</script>
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
 +    <script>
@@ -381,7 +380,7 @@ index a82eebad..59a999e3 100644
  </head>
  <body class="cm-body">
      <% if (htmlWebpackPlugin.options.env.production) { %>
-@@ -35,5 +57,6 @@
+@@ -34,5 +57,6 @@
      <% } %>
      <noscript>You need to enable JavaScript to run this app.</noscript>
      <div id="root"></div>
@@ -403,6 +402,17 @@ index 54c1319c..abc75561 100644
          headers: { 'Access-Control-Allow-Origin': '*' },
          historyApiFallback: true,
      },
+diff --git a/src/components/main/menu/styles.module.less b/src/components/main/menu/styles.module.less
+index 5fbe7192..90ea2716 100644
+--- a/src/components/main/menu/styles.module.less
++++ b/src/components/main/menu/styles.module.less
+@@ -1,6 +1,5 @@
+ @import './variables';
+ @import './mixins';
+-@import '~@comagic/core/lib/styles.css';
+ 
+ .menu-with-header-section {
+     height: calc(100% - @header-height) !important;
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
 index 273dd60b..055074e2 100644
 --- a/src/models/auth/AuthStore.ts

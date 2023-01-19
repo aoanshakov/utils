@@ -6249,6 +6249,16 @@ function JsTester_DomElement (
     this.closest = function (selector) {
         return testersFactory.createDomElementTester(getDomElement().closest(selector));
     };
+
+    Object.defineProperty(this.closest, 'anchor', {
+        set: function () {},
+        get: function () {
+            return testersFactory.createAnchorTester(() => {
+                return getDomElement().closest('a');
+            });
+        }
+    });
+
     function getBoundingClientRect () {
         me.expectToBeVisible();
         return getDomElement().getBoundingClientRect();

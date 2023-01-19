@@ -2202,6 +2202,7 @@ define(() => function ({
                         request.respondSuccessfullyWith(response);
                         Promise.runAll(false, true);
                         spendTime(0);
+                        spendTime(0);
                     }
                 };
             }

@@ -1064,7 +1064,10 @@ tests.addTest(options => {
                                             tester.audioPlayer.expectNotToExist();
                                         });
                                     });
-                                    describe('Имя скачиваемой записи читаемо.', function() {
+                                    describe(
+                                        'Нажимаю на кнопку проигрывания другой записи. Нажимаю на кнопку скачивания ' +
+                                        'записи.',
+                                    function() {
                                         beforeEach(function() {
                                             tester.table.row.atIndex(1).column.withHeader('Запись').playIcon.click();
 
@@ -1163,6 +1166,66 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
+                                    describe('Нажимаю на кнопку скачивания записи.', function() {
+                                        beforeEach(function() {
+                                            tester.table.
+                                                row.atIndex(1).
+                                                column.withHeader('Запись').
+                                                downloadIcon.
+                                                click();
+                                        });
+
+                                        it('Нажимаю на опцию списка записей. Запись скачивается.', function() {
+                                            tester.anchor(
+                                                '2019-12-18_18-08-25.522_from_74950230626_session_980925445_1_talk.mp3'
+                                            ).click();
+                                            
+                                            tester.talkRecordRequest().second().receiveResponse();
+
+                                            tester.anchor(
+                                                '2019-12-18_18-08-25.522_from_74950230626_session_980925445_1_talk.mp3'
+                                            ).
+                                                expectAttributeToHaveValue(
+                                                    'download',
+                                                    '2019-12-18_18-08-25.522_' +
+                                                    'from_74950230626_session_980925445_1_talk.mp3'
+                                                ).
+                                                expectHrefToBeBlobWithContent('j7927g028hhs084kf');
+                                        });
+                                        it('Открыт выпадающий список записей.', function() {
+                                            tester.select.option(
+                                                '2019-12-18_18-08-25.522_from_74950230626_session_980925445_1_talk.mp3'
+                                            ).expectToBeVisible();
+
+                                            tester.select.option(
+                                                '2019-12-18_18-08-25.522_from_74950230626_session_980925445_2_talk.mp3'
+                                            ).expectToBeVisible();
+                                        });
+                                    });
+                                    it('Нажимаю на кнопку скачивания другой записи. Запись скачивается.', function() {
+                                        tester.table.
+                                            row.atIndex(0).
+                                            column.withHeader('Запись').
+                                            downloadIcon.
+                                            closest.
+                                            anchor.
+                                            click();
+
+                                        tester.talkRecordRequest().receiveResponse();
+
+                                        tester.table.
+                                            row.atIndex(0).
+                                            column.withHeader('Запись').
+                                            downloadIcon.
+                                            closest.
+                                            anchor.
+                                            expectAttributeToHaveValue(
+                                                'download',
+                                                '2019-12-19_08-03-02.522_' +
+                                                'from_74950230625_session_980925444_talk.mp3'
+                                            ).
+                                            expectHrefToBeBlobWithContent('29f2f28ofjowf829f');
+                                    });
                                     it('Нажимаю на кнопку "Все". Отправлен запрос истории звонков.', function() {
                                         tester.radioButton('Все').click();
 
@@ -1192,19 +1255,6 @@ tests.addTest(options => {
                                             '+7 (495) 023-06-26 ' +
                                             '00:00:24'
                                         );
-                                    });
-                                    it(
-                                        'Нажимаю на кнопку скачивания записи. Открыт выпадающий список записей.',
-                                    function() {
-                                        tester.table.row.atIndex(1).column.withHeader('Запись').downloadIcon.click();
-
-                                        tester.select.option(
-                                            '2019-12-18_18-08-25.522_from_74950230626_session_980925445_1_talk.mp3'
-                                        ).expectToBeVisible();
-
-                                        tester.select.option(
-                                            '2019-12-18_18-08-25.522_from_74950230626_session_980925445_2_talk.mp3'
-                                        ).expectToBeVisible();
                                     });
                                     it('Нажимаю на ссылку в колонке "Номер абонента". Совершается звонок.', function() {
                                         tester.table.row.first.column.withHeader('Номер абонента').link.click();

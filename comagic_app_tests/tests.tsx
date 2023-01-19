@@ -11,7 +11,7 @@ import { createRootStore as createChatsRootStore } from 'chats/src/models/RootSt
 import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
 
 import { intl } from './i18n';
-import history from '@/history';
+import { createMemoryHistory } from 'history';
 
 import { App as Softphone } from '@/applications/softphone';
 import { App as ComagicApp } from '@/applications/default';
@@ -21,7 +21,8 @@ import { createRootStore as createElectronRootStore } from '@models/softphone/Ro
 
 const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
     Window = ({children}) => <div className="cm-test-window">{children}</div>,
-    units = {};
+    units = {},
+    history = createMemoryHistory();
 let root;
 
 window.application = {
@@ -55,7 +56,7 @@ window.application = {
 
         root = createRoot(document.getElementById('root')),
 
-        root.render(Unit ? <TestBody><Unit /></TestBody> : <Root {...{ rootStore }}>
+        root.render(Unit ? <TestBody><Unit /></TestBody> : <Root {...{ rootStore, history }}>
             {isElectron() ? <Softphone /> : <ComagicApp />}
         </Root>);
     },

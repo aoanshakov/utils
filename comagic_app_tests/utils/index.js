@@ -101,7 +101,7 @@ const overridenFiles = [
     'public/index.html',
     'config/webpack.config.js',
     'package.json',
-    'src/history.ts',
+    'src/components/main/menu/styles.module.less',
     'src/models/auth/AuthStore.ts',
 ].join(' ');
 
