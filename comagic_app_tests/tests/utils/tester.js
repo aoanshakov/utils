@@ -1343,6 +1343,23 @@ define(() => function ({
         const addResponseModifiers = me => {
             me.firstPage = () => (getPage(50), me);
 
+            me.audioAttachment = () => {
+                data[0].text = '';
+
+                data[0].resource = {
+                    id: 5829573,
+                    type: 'audio',
+                    mime: 'audio/mpeg',
+                    filename: 'call.mp3',
+                    size: 925,
+                    width: null,
+                    height: null,
+                    duration: 42820
+                };
+
+                return me;
+            };
+
             me.reply = () => {
                 data[1].reply_to = {
                     id: 482061,
@@ -3321,6 +3338,41 @@ define(() => function ({
                         }, {
                             id: 212,
                             name: 'Продажа',
+                            is_system: true,
+                            rating: 5
+                        }, {
+                            id: 213,
+                            name: 'Спам',
+                            is_system: true,
+                            rating: 5
+                        }, {
+                            id: 214,
+                            name: 'Нецелевой контакт',
+                            is_system: true,
+                            rating: 5
+                        }, {
+                            id: 215,
+                            name: 'Генератор лидов',
+                            is_system: true,
+                            rating: 5
+                        }, {
+                            id: 216,
+                            name: 'Фрод',
+                            is_system: true,
+                            rating: 5
+                        }, {
+                            id: 217,
+                            name: 'Лид',
+                            is_system: true,
+                            rating: 5
+                        }, {
+                            id: 218,
+                            name: 'В обработке',
+                            is_system: true,
+                            rating: 5
+                        }, {
+                            id: 219,
+                            name: 'Отложенный звонок',
                             is_system: true,
                             rating: 5
                         }]

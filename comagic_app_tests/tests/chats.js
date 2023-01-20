@@ -420,6 +420,40 @@ tests.addTest(options => {
                                             'Привет 12:13 Ответить'
                                         );
                                     });
+                                    it('В чате присутсвует сообщение с аудио-вложением. Отображен плеер.', function() {
+                                        messageListRequest.audioAttachment().receiveResponse();
+
+                                        tester.usersRequest().forContacts().receiveResponse();
+                                        tester.usersRequest().forContacts().receiveResponse();
+
+                                        tester.changeMessageStatusRequest().
+                                            anotherChat().
+                                            anotherMessage().
+                                            read().
+                                            receiveResponse();
+
+                                        tester.changeMessageStatusRequest().
+                                            anotherChat().
+                                            anotherMessage().
+                                            read().
+                                            receiveResponse();
+
+                                        tester.changeMessageStatusRequest().
+                                            anotherChat().
+                                            anotherMessage().
+                                            read().
+                                            receiveResponse();
+
+                                        tester.chatHistory.message.atTime('12:12').
+                                            expectToHaveTextContent(
+                                                'call.mp3 ' +
+
+                                                '53:40 ' +
+                                                '12:12 ' +
+
+                                                'Ответить'
+                                            );
+                                    });
                                     it('Сообщение много.', function() {
                                         messageListRequest.firstPage().receiveResponse();
 
@@ -1033,6 +1067,10 @@ tests.addTest(options => {
                         tester.chatsWebSocket.finishDisconnecting();
 
                         tester.contactList.item('Бележкова Грета Ервиновна').expectToBeVisible();
+                    });
+                    it('Прокручиваю список чатов до конца. Запрошена вторая страница.', function() {
+                        tester.chatList.spinWrapper.scrollIntoView();
+                        tester.chatListRequest().forCurrentEmployee().secondPage().expectToBeSent();
                     });
                     it('Отображен список чатов.', function() {
                         tester.body.expectTextContentToHaveSubstring(
