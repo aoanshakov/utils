@@ -34,6 +34,7 @@ module.exports = {
     testsScriptsDir: `${tests}/tests`,
     preCommitHook,
     stub: `${tests}/Stub.js`,
+    stubCss: `${tests}/stub.css`,
     shadowContentTsxSource: `${tests}/ShadowContent.tsx`,
     shadowContentTsxTarget: `${analytics}/src/components/ShadowContent.tsx`,
     testsEntripointSource: `${tests}/tests.tsx`,

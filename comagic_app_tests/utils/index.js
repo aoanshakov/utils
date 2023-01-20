@@ -41,6 +41,7 @@ const {
     contactsPatch,
     uisWebRTC,
     stub,
+    stubCss,
     shadowContentTsxSource,
     shadowContentTsxTarget,
     updater,
@@ -101,7 +102,6 @@ const overridenFiles = [
     'public/index.html',
     'config/webpack.config.js',
     'package.json',
-    'src/components/main/menu/styles.module.less',
     'src/models/auth/AuthStore.ts',
 ].join(' ');
 
@@ -294,6 +294,7 @@ actions['modify-code'] = params => actions['restore-code']({}).
     concat([
         `cp ${testsEntripointSource} ${testsEntripointTarget}`,
         `cp ${stub} ${misc}`,
+        `cp ${stubCss} ${misc}`,
         `cp ${shadowContentTsxSource} ${shadowContentTsxTarget}`
     ]).concat(actions['fix-permissions']);
 

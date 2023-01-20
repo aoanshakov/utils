@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 636ce909..203f9fb5 100644
+index 636ce909..835f0f2d 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -195,7 +195,7 @@ index 636ce909..203f9fb5 100644
          ],
      },
      resolve: {
-@@ -355,7 +449,105 @@ module.exports = {
+@@ -355,7 +449,119 @@ module.exports = {
              '@models': path.resolve(appDirectory, './src/models'),
              '@lib': path.resolve(appDirectory, './src/components/lib'),
              '@hooks': path.resolve(appDirectory, './src/hooks'),
@@ -266,31 +266,45 @@ index 636ce909..203f9fb5 100644
 +                callback
 +            ) =>  {
 +                const target = resolver.ensureHook('resolve'),
-+                    splitted = request.request.split('/');
++                    requestPath = request.request,
++                    splitted = requestPath.split('/');
 +
-+                const {
-+                    directory,
-+                    aliases
-+                } = subModules.concat(['softphone', 'contacts']).map(module => {
-+                    const directory = `${miscDirectory}/${module}`;
-+
-+                    return {
++                if (requestPath.indexOf('magic-ui/lib') === 0) {
++                    splitted[1] = 'src';
++                } else if (['~magic-ui/lib/styles.css', '~@comagic/core/lib/styles.css'].includes(requestPath)) {
++                    splitted.splice(0, splitted.length);
++                    splitted.push(miscDirectory, 'stub.css');
++                } else {
++                    const {
 +                        directory,
-+                        aliases: createAliases(directory)
-+                    };
-+                }).find(({
-+                    directory,
-+                    aliases
-+                }) => request.path.indexOf(directory) === 0 && Object.keys(aliases).some(
-+                    alias => splitted[0] == alias
-+                )) || {};
++                        aliases
++                    } = subModules.concat(['softphone', 'contacts']).map(module => {
++                        const directory = `${miscDirectory}/${module}`;
 +
-+                if (!directory) {
-+                    callback();
-+                    return;
++                        return {
++                            directory,
++                            aliases: createAliases(directory)
++                        };
++                    }).find(({
++                        directory,
++                        aliases
++                    }) => request.path.indexOf(directory) === 0 && Object.keys(aliases).some(
++                        alias => splitted[0] == alias
++                    )) || {};
++
++                    if (!directory) {
++                        callback();
++                        return;
++                    }
++
++                    splitted[0] = aliases[splitted[0]]
 +                }
 +
-+                splitted[0] = aliases[splitted[0]]
++                console.log({
++                    requestPath,
++                    indexOf: request.path.indexOf('magic-ui/lib'),
++                    newRequestPath: splitted.join('/')
++                });
 +
 +                return resolver.doResolve(target, {
 +                    ...request,
@@ -402,17 +416,6 @@ index 54c1319c..abc75561 100644
          headers: { 'Access-Control-Allow-Origin': '*' },
          historyApiFallback: true,
      },
-diff --git a/src/components/main/menu/styles.module.less b/src/components/main/menu/styles.module.less
-index 5fbe7192..90ea2716 100644
---- a/src/components/main/menu/styles.module.less
-+++ b/src/components/main/menu/styles.module.less
-@@ -1,6 +1,5 @@
- @import './variables';
- @import './mixins';
--@import '~@comagic/core/lib/styles.css';
- 
- .menu-with-header-section {
-     height: calc(100% - @header-height) !important;
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
 index 273dd60b..055074e2 100644
 --- a/src/models/auth/AuthStore.ts
