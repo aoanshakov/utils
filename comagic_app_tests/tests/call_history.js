@@ -601,67 +601,118 @@ tests.addTest(options => {
                                             tester.table.row.first.column.withHeader('Теги').svg.click();
                                         });
 
-                                        describe(
-                                            'Нажимаю на кнопку удаления тег "Нецелевой контакт". Отправлен запрос ' +
-                                            'удаления тега.',
-                                        function() {
+                                        describe('Нажимаю на кнопку "По алфавиту".', function() {
                                             beforeEach(function() {
-                                                tester.select.tag('Нецелевой контакт').closeButton.click();
-                                                tester.markDeletingRequest().receiveResponse();
+                                                tester.button('По алфавиту').click();
                                             });
 
-                                            it('Удаляю все теги. Теги не отмечены.', function() {
-                                                tester.select.tag('Отложенный звонок').closeButton.click();
-                                                tester.markDeletingRequest().anotherMark().receiveResponse();
+                                            it(
+                                                'Снова нажимаю на кнопку "По алфавиту". Теги отсортированы ' +
+                                                'по алфавиту в обратном порядке.',
+                                            function() {
+                                                tester.button('По алфавиту').click();
+                                                
+                                                tester.button('По популярности').expectNotToBeChecked();
+                                                tester.button('По алфавиту').expectToBeChecked();
+                                                tester.button('Проставлено').expectNotToBeChecked();
 
-                                                tester.select.tag('Генератор лидов').expectNotToExist();
-                                                tester.select.tag('Нецелевой контакт').expectNotToExist();
-                                                tester.select.tag('Отложенный звонок').expectNotToExist();
-
-                                                tester.select.option('Генератор лидов').expectNotToBeSelected();
-                                                tester.select.option('Нецелевой контакт').expectNotToBeSelected();
-                                                tester.select.option('Отложенный звонок').expectNotToBeSelected();
+                                                tester.select.popup.expectTextContentToHaveSubstring(
+                                                    'искалицезиюнашлипоздноутромсвистящегохна ' +
+                                                    'Генератор лидов ' +
+                                                    'В обработке'
+                                                );
                                             });
-                                            it('Тег не отмечен.', function() {
-                                                tester.select.tag('Генератор лидов').expectNotToExist();
-                                                tester.select.tag('Нецелевой контакт').expectNotToExist();
-                                                tester.select.tag('Отложенный звонок').expectToBeVisible();
+                                            it('Теги отсортированы по алфавиту.', function() {
+                                                tester.button('По популярности').expectNotToBeChecked();
+                                                tester.button('По алфавиту').expectToBeChecked();
+                                                tester.button('Проставлено').expectNotToBeChecked();
 
-                                                tester.select.option('Генератор лидов').expectNotToBeSelected();
+                                                tester.select.popup.expectTextContentToHaveSubstring(
+                                                    'В обработке ' +
+                                                    'Генератор лидов ' +
+                                                    'Кобыла и трупоглазые жабы'
+                                                );
+                                            });
+                                        });
+                                        describe('Изменяю теги.', function() {
+                                            beforeEach(function() {
+                                                tester.select.option('Генератор лидов').click();
+                                                tester.select.option('Нецелевой контакт').click();
+                                            });
+
+                                            describe(
+                                                'Скрываю редактор тегов. Отправлен запрос изменения тегов.',
+                                            function() {
+                                                let markDeletingRequest;
+
+                                                beforeEach(function() {
+                                                    tester.input.withPlaceholder('Имя или телефон').click();
+
+                                                    tester.markAddingRequest().receiveResponse();
+
+                                                    markDeletingRequest = tester.markDeletingRequest().
+                                                        expectToBeSent();
+                                                });
+
+                                                it('Получен ответ на запрос. Спиннер скрыт.', function() {
+                                                    markDeletingRequest.receiveResponse();
+
+                                                    tester.table.
+                                                        row.first.
+                                                        column.withHeader('Теги').
+                                                        spin.
+                                                        expectNotToExist();
+
+                                                    tester.table.expectTextContentToHaveSubstring(
+                                                        'Дата / время ' +
+                                                        'ФИО контакта ' +
+                                                        'Номер абонента ' +
+                                                        'Теги ' +
+                                                        'Комментарий ' +
+                                                        'Длительность ' +
+                                                        'Запись ' +
+
+                                                        '19 дек. 2019 08:03 ' +
+                                                        'Гяурова Марийка ' +
+                                                        '+7 (495) 023-06-25 ' +
+                                                        'Генератор лидов, Отложенный звонок ' +
+                                                        '00:00:20 ' +
+
+                                                        '18 дек. 2019 18:08 ' +
+                                                        'Манова Тома ' +
+                                                        '+7 (495) 023-06-26 ' +
+                                                        '00:00:21'
+                                                    );
+                                                });
+                                                it('Отображен спиннер.', function() {
+                                                    tester.table.
+                                                        row.first.
+                                                        column.withHeader('Теги').
+                                                        spin.
+                                                        expectToBeVisible();
+                                                });
+                                            });
+                                            it('Теги изменены.', function() {
+                                                tester.select.option('Генератор лидов').expectToBeSelected();
                                                 tester.select.option('Нецелевой контакт').expectNotToBeSelected();
                                                 tester.select.option('Отложенный звонок').expectToBeSelected();
                                             });
                                         });
-                                        it('Изменяю теги. Теги изменены.', function() {
-                                            tester.select.option('Генератор лидов').click();
-                                            tester.markAddingRequest().receiveResponse();
+                                        it(
+                                            'Нажимаю на кнопку "По популярности". Теги отсортированы по ' +
+                                            'популярности.',
+                                        function() {
+                                            tester.button('По популярности').click();
 
-                                            tester.select.option('Нецелевой контакт').click();
-                                            tester.markDeletingRequest().receiveResponse();
+                                            tester.button('По популярности').expectToBeChecked();
+                                            tester.button('По алфавиту').expectNotToBeChecked();
+                                            tester.button('Проставлено').expectNotToBeChecked();
 
-                                            tester.select.option('Генератор лидов').expectToBeSelected();
-                                            tester.select.option('Нецелевой контакт').expectNotToBeSelected();
-                                            tester.select.option('Отложенный звонок').expectToBeSelected();
-
-                                            tester.table.expectTextContentToHaveSubstring(
-                                                'Дата / время ' +
-                                                'ФИО контакта ' +
-                                                'Номер абонента ' +
-                                                'Теги ' +
-                                                'Комментарий ' +
-                                                'Длительность ' +
-                                                'Запись ' +
-
-                                                '19 дек. 2019 08:03 ' +
-                                                'Гяурова Марийка ' +
-                                                '+7 (495) 023-06-25 ' +
-                                                'Отложенный звонок, Генератор лидов ' +
-                                                '00:00:20 ' +
-
-                                                '18 дек. 2019 18:08 ' +
-                                                'Манова Тома ' +
-                                                '+7 (495) 023-06-26 ' +
-                                                '00:00:21'
+                                            tester.select.popup.expectTextContentToHaveSubstring(
+                                                'Продажа ' +
+                                                'Нереализованная сделка ' +
+                                                'Нецелевой контакт ' +
+                                                'Фрод'
                                             );
                                         });
                                         it('Ввожу значеиние в поле поиска. Теги отфильтрованы.', function() {
@@ -670,19 +721,21 @@ tests.addTest(options => {
                                             tester.input.withPlaceholder('Найти').expectToHaveValue('не');
                                             tester.select.option('Отложенный звонок').expectNotToExist();
                                             tester.select.option('Нецелевой контакт').expectToBeVisible();
-
-                                            tester.select.tag('Нецелевой контакт').expectToBeVisible();
-                                            tester.select.tag('Отложенный звонок').expectToBeVisible();
-                                            tester.select.tag('Генератор лидов').expectNotToExist();
                                         });
                                         it('Отмечены опции выранных тегов.', function() {
-                                            tester.select.tag('Генератор лидов').expectNotToExist();
-                                            tester.select.option('Нецелевой контакт').expectToBeVisible();
-                                            tester.select.option('Отложенный звонок').expectToBeVisible();
-
                                             tester.select.option('Генератор лидов').expectNotToBeSelected();
                                             tester.select.option('Нецелевой контакт').expectToBeSelected();
                                             tester.select.option('Отложенный звонок').expectToBeSelected();
+
+                                            tester.button('По популярности').expectNotToBeChecked();
+                                            tester.button('По алфавиту').expectNotToBeChecked();
+                                            tester.button('Проставлено').expectToBeChecked();
+
+                                            tester.select.popup.expectTextContentToHaveSubstring(
+                                                'Нецелевой контакт ' +
+                                                'Отложенный звонок ' +
+                                                'Нереализованная сделка'
+                                            );
                                         });
                                     });
                                     describe('Открываю окно добавления комментария.', function() {
@@ -1025,6 +1078,10 @@ tests.addTest(options => {
                                                 'Нажимаю на кнопку проигрывания записи. Плеер отображается.',
                                             function() {
                                                 tester.table.row.first.column.withHeader('Запись').playIcon.click();
+
+                                                tester.talkRecordRequest().receiveResponse();
+                                                audioDecodingTester.accomplishAudioDecoding();
+
                                                 tester.audioPlayer.expectToBeVisible();
                                             });
                                             it('Плеер скрыт.', function() {
@@ -1304,7 +1361,7 @@ tests.addTest(options => {
                                             '19 дек. 2019 08:03 ' +
                                             'Гяурова Марийка ' +
                                             '+7 (495) 023-06-25 ' +
-                                            'Нецелевой контакт, Отложенный звонок ' +
+                                            'Отложенный звонок, Нецелевой контакт ' +
                                             '00:00:20',
 
                                             '14 дек. 2019 10:59 ' +
@@ -1354,6 +1411,15 @@ tests.addTest(options => {
                                             'Гяурова Марийка ' +
                                             '+7 (495) 023-06-25'
                                         );
+                                    });
+                                    it('Помещаю курсор мыши над иконкой тегов. Отображены выбранные теги.', function() {
+                                        tester.table.
+                                            row.first.
+                                            column.withHeader('Теги').
+                                            tagField.display.
+                                            putMouseOver();
+
+                                        tester.tooltip.expectToHaveTextContent('Отложенный звонок, Нецелевой контакт');
                                     });
                                     it('Отображена история звонков.', function() {
                                         tester.calendarField.expectToHaveValue('16 дек. 2019 - 19 дек. 2019');
@@ -1416,7 +1482,7 @@ tests.addTest(options => {
                                             '19 дек. 2019 08:03 ' +
                                             'Гяурова Марийка ' +
                                             '+7 (495) 023-06-25 ' +
-                                            'Нецелевой контакт, Отложенный звонок ' +
+                                            'Отложенный звонок, Нецелевой контакт ' +
                                             '00:00:20 ' +
 
                                             '18 дек. 2019 18:08 ' +
@@ -1508,16 +1574,13 @@ tests.addTest(options => {
 
                                     tester.body.expectTextContentNotToHaveSubstring('Нет данных 0');
                                 });
-                                it('В таблицу содержится звонок от сотрудника. Отображено имя сотрудника.', function() {
+                                it('В таблице содержится звонок от сотрудника. Отображено имя сотрудника.', function() {
                                     callsRequest.employeeName().receiveResponse();
 
-                                    tester.table.expectTextContentToHaveSubstring(
-                                        '19 дек. 2019 08:03 ' +
-                                        'Гяурова Марийка ' +
-                                        '+7 (495) 023-06-25 ' +
-                                        'Нецелевой контакт, Отложенный звонок ' +
-                                        '00:00:20 ',
-                                    );
+                                    tester.table.
+                                        row.first.
+                                        column.withHeader('ФИО контакта').
+                                        expectToHaveTextContent('Гяурова Марийка');
                                 });
                                 it('В таблице содержится короткий номер. Номер не сформатирован.', function() {
                                     callsRequest.shortPhoneNumber().receiveResponse();
@@ -1555,7 +1618,7 @@ tests.addTest(options => {
                                         '19 дек. 2019 08:03 ' +
                                         'Гяурова Марийка ' +
                                         '+7 (495) 023-06-25 ' +
-                                        'Нецелевой контакт, Отложенный звонок ' +
+                                        'Отложенный звонок, Нецелевой контакт ' +
                                         '00:00:20 ',
 
                                         '14 дек. 2019 10:59 ' +
@@ -2158,8 +2221,8 @@ tests.addTest(options => {
 
                     tester.table.row.first.column.withHeader('Теги').svg.click();
 
-                    tester.select.tag('Нецелевой контакт').closeButton.expectNotToExist();
                     tester.select.option('Генератор лидов').click();
+                    tester.input.withPlaceholder('Имя или телефон').click();
                 });
             });
             describe('Номера должны быть скрыты. Открываю историю звонков.', function() {
@@ -2262,22 +2325,18 @@ tests.addTest(options => {
                     it('Ссылка на страницу контакта не была получена.', function() {
                         callsRequest.noCrmContactLink().receiveResponse();
 
-                        tester.table.expectTextContentToHaveSubstring(
-                            '19 дек. 2019 08:03 ' +
-                            '' +
-                            'Позвонить ' +
-                            'Нецелевой контакт'
-                        );
+                        tester.table.
+                            row.first.
+                            column.withHeader('ФИО контакта').
+                            expectToHaveTextContent('');
                     });
                     it('Номер скрыт.', function() {
                         callsRequest.receiveResponse();
 
-                        tester.table.expectTextContentToHaveSubstring(
-                            '19 дек. 2019 08:03 ' +
-                            'Неизвестный номер ' +
-                            'Позвонить ' +
-                            'Нецелевой контакт'
-                        );
+                        tester.table.
+                            row.first.
+                            column.withHeader('ФИО контакта').
+                            expectToHaveTextContent('Неизвестный номер');
                     });
                 });
             });

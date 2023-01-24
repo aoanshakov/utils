@@ -247,30 +247,133 @@ tests.addTest(options => {
                                                 tester.collapsablePanel('Заметки').title.click();
                                             });
 
-                                            it('Измению теги. Отправлен запрос изменения тегов.', function() {
-                                                tester.collapsablePanel('Заметки').
-                                                    content.
-                                                    row('Тэги').
-                                                    tagField.
-                                                    button.
-                                                    click();
+                                            describe('Открываю редактор тегов.', function() {
+                                                beforeEach(function() {
+                                                    tester.collapsablePanel('Заметки').
+                                                        content.
+                                                        row('Тэги').
+                                                        tagField.
+                                                        button.
+                                                        click();
+                                                });
 
-                                                tester.select.option('Продажа').click();
-                                                tester.contactBar.click();
+                                                describe('Нажимаю на кнопку "По алфавиту".', function() {
+                                                    beforeEach(function() {
+                                                        tester.button('По алфавиту').click();
+                                                    });
 
-                                                tester.chatMarkingRequest().receiveResponse();
-                                                tester.chatListRequest().thirdChat().receiveResponse();
+                                                    it(
+                                                        'Снова нажимаю на кнопку "По алфавиту". Теги отсортированы ' +
+                                                        'по алфавиту в обратном порядке.',
+                                                    function() {
+                                                        tester.button('По алфавиту').click();
+                                                        
+                                                        tester.button('По популярности').expectNotToBeChecked();
+                                                        tester.button('По алфавиту').expectToBeChecked();
+                                                        tester.button('Проставлено').expectNotToBeChecked();
+
+                                                        tester.select.popup.expectTextContentToHaveSubstring(
+                                                            'искалицезиюнашлипоздноутромсвистящегохна ' +
+                                                            'Генератор лидов ' +
+                                                            'В обработке'
+                                                        );
+                                                    });
+                                                    it('Теги отсортированы по алфавиту.', function() {
+                                                        tester.button('По популярности').expectNotToBeChecked();
+                                                        tester.button('По алфавиту').expectToBeChecked();
+                                                        tester.button('Проставлено').expectNotToBeChecked();
+
+                                                        tester.select.popup.expectTextContentToHaveSubstring(
+                                                            'В обработке ' +
+                                                            'Генератор лидов ' +
+                                                            'Кобыла и трупоглазые жабы'
+                                                        );
+                                                    });
+                                                });
+                                                describe('Измению теги. Отправлен запрос изменения тегов.', function() {
+                                                    let chatMarkingRequest;
+
+                                                    beforeEach(function() {
+                                                        tester.select.option('Продажа').click();
+                                                        tester.contactBar.click();
+
+                                                        chatMarkingRequest = tester.chatMarkingRequest().
+                                                            expectToBeSent();
+                                                    });
+
+                                                    it('Получен ответ на запрос. Спиннер скрыт.', function() {
+                                                        chatMarkingRequest.receiveResponse();
+                                                        tester.chatListRequest().thirdChat().receiveResponse();
+
+                                                        tester.collapsablePanel('Заметки').
+                                                            content.
+                                                            row('Тэги').
+                                                            spin.
+                                                            expectNotToExist();
+                                                    });
+                                                    it('Отображен спиннер.', function() {
+                                                        tester.collapsablePanel('Заметки').
+                                                            content.
+                                                            row('Тэги').
+                                                            spin.
+                                                            expectToBeVisible();
+                                                    });
+                                                });
+                                                it(
+                                                    'Нажимаю на кнопку "По популярности". Теги отсортированы по ' +
+                                                    'популярности.',
+                                                function() {
+                                                    tester.button('По популярности').click();
+
+                                                    tester.button('По популярности').expectToBeChecked();
+                                                    tester.button('По алфавиту').expectNotToBeChecked();
+                                                    tester.button('Проставлено').expectNotToBeChecked();
+
+                                                    tester.select.popup.expectTextContentToHaveSubstring(
+                                                        'Продажа ' +
+                                                        'Нереализованная сделка ' +
+                                                        'Нецелевой контакт ' +
+                                                        'Фрод'
+                                                    );
+                                                });
+                                                it('Ввожу значение в поле поиска.', function() {
+                                                    tester.select.popup.input.fill('не');
+
+                                                    tester.select.popup.expectToHaveTextContent(
+                                                        'По популярности ' +
+                                                        'По алфавиту ' +
+                                                        'Проставлено ' +
+
+                                                        'Нереализованная сделка ' +
+                                                        'Нецелевой контакт ' +
+                                                        'Генератор лидов ' +
+                                                        'Не обработано'
+                                                    );
+                                                });
+                                                it(
+                                                    'Нажата кнопка "Проставлено". Теги отсортированы по отмеченности.',
+                                                function() {
+                                                    tester.button('По популярности').expectNotToBeChecked();
+                                                    tester.button('По алфавиту').expectNotToBeChecked();
+                                                    tester.button('Проставлено').expectToBeChecked();
+
+                                                    tester.select.popup.expectTextContentToHaveSubstring(
+                                                        'Нереализованная сделка ' +
+                                                        'Продажа ' +
+                                                        'Спам'
+                                                    );
+                                                });
                                             });
                                             it('Оторажены заметки.', function() {
                                                 tester.collapsablePanel('Заметки').
                                                     content.
                                                     row('Тэги').
                                                     tagField.
+                                                    display.
                                                     putMouseOver();
 
-                                                tester.tooltip.expectToHaveTextContent(
-                                                    'Нереализованная сделка, Продажа'
-                                                );
+                                                tester.tooltip.
+                                                    expectToHaveTextContent('Продажа, Нереализованная сделка');
                                             });
                                         });
                                         it(

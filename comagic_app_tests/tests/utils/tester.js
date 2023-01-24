@@ -247,7 +247,7 @@ define(() => function ({
             set: () => null,
             get: () => {
                 const getDomElement = () =>
-                    utils.element(getRootElement()).querySelector('.cm-chats--additional-info-panel-tags-edit');
+                    utils.element(getRootElement()).querySelector('.ui-tag-editor');
 
                 const tester = testersFactory.createDomElementTester(getDomElement);
 
@@ -258,10 +258,28 @@ define(() => function ({
 
                 addTesters(tester, getDomElement);
 
+                {
+                    const getDomElement = () => utils.querySelector('.cm-chats--tags-editor'),
+                        popup = testersFactory.createDomElementTester(getDomElement);
+
+                    addTesters(popup, getDomElement);
+                    tester.popup = popup;
+                }
+
+                tester.display = testersFactory.createDomElementTester(
+                    () => utils.element(getDomElement()).
+                        querySelector('.ui-tag-editor-display')
+                );
+
+                {
+                    const putMouseOver = tester.display.putMouseOver.bind(tester.display);
+                    tester.display.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+                }
+
                 tester.button = (() => {
                     const tester = testersFactory.createDomElementTester(
                         () => utils.element(getDomElement()).
-                            querySelector('.cm-chats--additional-info-panel-tags-edit-icon')
+                            querySelector('.ui-icon')
                     );
 
                     const click = tester.click.bind(tester);
@@ -920,8 +938,10 @@ define(() => function ({
         ), null) || new JsTester_NoElement())
 
         {
-            const getInputs = () =>
-                Array.prototype.slice.call((getRootElement() || new JsTester_NoElement()).querySelectorAll('input'), 0);
+            const getInputs = () => Array.prototype.slice.call(
+                (getRootElement() || new JsTester_NoElement()).querySelectorAll('input[type=text]'), 0
+            );
+
             const getInput = () => utils.getVisibleSilently(getInputs());
 
             const addMethods = getInput => {
@@ -1155,6 +1175,8 @@ define(() => function ({
                         id: 7189362,
                         mark_ids: [587, undefined]
                     });
+
+                spendTime(0);
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -1708,7 +1730,7 @@ define(() => function ({
                     is_operator: false,
                     resource_type: null
                 },
-                mark_ids: ['587', '212'],
+                mark_ids: ['587', '213'],
                 phone: null,
                 site_id: 4663,
                 status: 'active',
@@ -2144,7 +2166,9 @@ define(() => function ({
                 expectPathToContain('/sup/api/v1/users/me/calls/980925444/marks/148').
                 respondSuccessfullyWith(true);
 
-            Promise.runAll(false, true);
+            spendTime(0);
+            spendTime(0);
+            spendTime(0);
         }
     });
 
@@ -2157,13 +2181,24 @@ define(() => function ({
                 return this;
             },
 
-            receiveResponse: () => {
-                ajax.recentRequest().
+            expectToBeSent() {
+                const request = ajax.recentRequest().
                     expectToHaveMethod('DELETE').
-                    expectPathToContain(`/sup/api/v1/users/me/calls/980925444/marks/${id}`).
-                    respondSuccessfullyWith(true);
+                    expectPathToContain(`/sup/api/v1/users/me/calls/980925444/marks/${id}`);
 
-                spendTime(0);
+                return {
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(true);
+
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                    }
+                };
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
             }
         };
     };
@@ -3330,52 +3365,7 @@ define(() => function ({
             return {
                 receiveResponse() {
                     request.respondSuccessfullyWith({
-                        data: [{
-                            id: 587,
-                            name: 'Нереализованная сделка',
-                            is_system: true,
-                            rating: 3
-                        }, {
-                            id: 212,
-                            name: 'Продажа',
-                            is_system: true,
-                            rating: 5
-                        }, {
-                            id: 213,
-                            name: 'Спам',
-                            is_system: true,
-                            rating: 5
-                        }, {
-                            id: 214,
-                            name: 'Нецелевой контакт',
-                            is_system: true,
-                            rating: 5
-                        }, {
-                            id: 215,
-                            name: 'Генератор лидов',
-                            is_system: true,
-                            rating: 5
-                        }, {
-                            id: 216,
-                            name: 'Фрод',
-                            is_system: true,
-                            rating: 5
-                        }, {
-                            id: 217,
-                            name: 'Лид',
-                            is_system: true,
-                            rating: 5
-                        }, {
-                            id: 218,
-                            name: 'В обработке',
-                            is_system: true,
-                            rating: 5
-                        }, {
-                            id: 219,
-                            name: 'Отложенный звонок',
-                            is_system: true,
-                            rating: 5
-                        }]
+                        data: me.getMarks()
                     });
 
                     Promise.runAll(false, true);
@@ -3470,7 +3460,7 @@ define(() => function ({
                             resource_type: null,
                             resource_name: null
                         },
-                        mark_ids: ['587', '212'],
+                        mark_ids: ['587', '213'],
                         phone: '79283810988',
                         site_id: 4663,
                         status: 'new',
@@ -3789,7 +3779,7 @@ define(() => function ({
                 resource_type: null,
                 resource_name: null
             },
-            mark_ids: ['587', '212'],
+            mark_ids: ['587', '213'],
             phone: null,
             site_id: 4663,
             status: 'new',
@@ -3810,7 +3800,7 @@ define(() => function ({
                 resource_type: null,
                 resource_name: null
             },
-            mark_ids: ['587', '212'],
+            mark_ids: ['587', '213'],
             phone: null,
             site_id: 4663,
             status: 'active',
@@ -3844,7 +3834,7 @@ define(() => function ({
                         resource_type: null,
                         resource_name: null
                     },
-                    mark_ids: ['587', '212'],
+                    mark_ids: ['587', '213'],
                     phone: null,
                     site_id: 4663,
                     status: 'active',
@@ -3866,6 +3856,10 @@ define(() => function ({
         }));
         
         function addResponseModifiers (me) {
+            me.shortMarks = () => (processors.push(data => {
+                data.chats[0].mark_ids = ['89', '86'];
+            }), me);
+
             me.fewUnreadMessages = () => {
                 totals.new_chat_count = 5;
                 totals.active_with_unread_count = 3;
@@ -4064,7 +4058,7 @@ define(() => function ({
                         resource_type: null,
                         resource_name: null
                     },
-                    mark_ids: ['587', '212'],
+                    mark_ids: ['587', '213'],
                     phone: null,
                     name: 'Помакова Бисерка Драгановна',
                     site_id: 4663,

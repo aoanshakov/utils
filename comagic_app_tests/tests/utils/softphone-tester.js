@@ -497,6 +497,69 @@ define(function () {
             return data;
         };
 
+        this.getMarks = () => [{
+            id: 587,
+            name: 'Нереализованная сделка',
+            is_system: true,
+            rating: 2
+        }, {
+            id: 87,
+            name: 'Спам',
+            is_system: true,
+            rating: 6
+        }, {
+            id: 213,
+            name: 'Продажа',
+            is_system: true,
+            rating: 1
+        }, {
+            id: 88,
+            name: 'Нецелевой контакт',
+            is_system: true,
+            rating: 3
+        }, {
+            id: 148,
+            name: 'Генератор лидов',
+            is_system: true,
+            rating: 7
+        }, {
+            id: 86,
+            name: 'Фрод',
+            is_system: true,
+            rating: 4
+        }, {
+            id: 89,
+            name: 'Лид',
+            is_system: true,
+            rating: 5
+        }, {
+            id: 2,
+            name: 'В обработке',
+            is_system: true,
+            rating: 5
+        }, {
+            id: 495,
+            name: 'Отложенный звонок',
+            is_system: true,
+            rating: 5
+        }, {
+            id: 1,
+            name: 'Не обработано',
+            is_system: true,
+            rating: 5
+        }, {
+            id: 511,
+            name: 'Обработано',
+            is_system: true,
+            rating: 5
+        }, {
+            id: 91,
+            name: 'Кобыла и трупоглазые жабы искали цезию, нашли поздно кобылаитрупоглазыежаб' +
+                'ыискалицезиюнашлипоздноутромсвистящегохна',
+            is_system: true,
+            rating: 5
+        }];
+
         this.requestMarks = function () {
             return {
                 expectToBeSent: function (requests) {
@@ -505,56 +568,7 @@ define(function () {
                     return {
                         receiveResponse: function () {
                             request.expectPathToContain('/sup/api/v1/marks').respondSuccessfullyWith({
-                                data: [{
-                                    id: 2,
-                                    name: 'В обработке',
-                                    is_system: true
-                                }, {
-                                    id: 148,
-                                    name: 'Генератор лидов',
-                                    is_system: true
-                                }, {
-                                    id: 89,
-                                    name: 'Лид',
-                                    is_system: true
-                                }, {
-                                    id: 1,
-                                    name: 'Не обработано',
-                                    is_system: true
-                                }, {
-                                    id: 587,
-                                    name: 'Нереализованная сделка',
-                                    is_system: true
-                                }, {
-                                    id: 88,
-                                    name: 'Нецелевой контакт',
-                                    is_system: true
-                                }, {
-                                    id: 511,
-                                    name: 'Обработано',
-                                    is_system: true
-                                }, {
-                                    id: 495,
-                                    name: 'Отложенный звонок',
-                                    is_system: true
-                                }, {
-                                    id: 212,
-                                    name: 'Продажа',
-                                    is_system: true
-                                }, {
-                                    id: 87,
-                                    name: 'Спам',
-                                    is_system: true
-                                }, {
-                                    id: 86,
-                                    name: 'Фрод',
-                                    is_system: true
-                                }, {
-                                    id: 91,
-                                    name: 'Кобыла и трупоглазые жабы искали цезию, нашли поздно кобылаитрупоглазыежаб' +
-                                        'ыискалицезиюнашлипоздноутромсвистящегохна',
-                                    is_system: true
-                                }]
+                                data: me.getMarks()
                             });
 
                             Promise.runAll(false, true);
