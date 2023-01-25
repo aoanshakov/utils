@@ -11194,6 +11194,14 @@ define(() => function ({
                 return me;
             };
 
+            me.tagsUpdatingUnavailable = () => {
+                (response.result.data.permissions.find(
+                    ({ unit_id }) => unit_id == 'tag_management'
+                ) || {}).is_update = false;
+
+                return me;
+            };
+
             me.webAccountLoginUnavailable = () => {
                 (response.result.data.permissions.find(
                     ({ unit_id }) => unit_id == 'web_account_login'

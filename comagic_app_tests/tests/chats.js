@@ -1534,5 +1534,144 @@ tests.addTest(options => {
                 });
             });
         });
+        describe('Выбор тегов недоступен.', function() {
+            beforeEach(function() {
+                accountRequest.tagsUpdatingUnavailable().receiveResponse();
+
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                spendTime(1000);
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                spendTime(1000);
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
+
+                const requests = ajax.inAnyOrder();
+
+                const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                    reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
+
+                const secondAccountRequest = tester.accountRequest().
+                    forChats().
+                    webAccountLoginUnavailable().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    tagsUpdatingUnavailable().
+                    expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+                secondAccountRequest.receiveResponse();
+                reportGroupsRequest.receiveResponse();
+
+                tester.chatChannelListRequest().receiveResponse();
+                tester.statusListRequest().receiveResponse();
+                tester.listRequest().receiveResponse();
+                tester.siteListRequest().receiveResponse();
+                tester.messageTemplateListRequest().receiveResponse();
+
+                tester.chatsWebSocket.connect();
+                tester.chatsInitMessage().expectToBeSent();
+                tester.chatSettingsRequest().receiveResponse();
+
+                tester.accountRequest().
+                    forChats().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    tagsUpdatingUnavailable().
+                    receiveResponse();
+
+                tester.accountRequest().
+                    forChats().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    tagsUpdatingUnavailable().
+                    receiveResponse();
+
+                tester.offlineMessageCountersRequest().receiveResponse();
+                tester.chatChannelListRequest().receiveResponse();
+                tester.siteListRequest().receiveResponse();
+                tester.markListRequest().receiveResponse();
+                tester.chatChannelTypeListRequest().receiveResponse();
+
+                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                tester.offlineMessageListRequest().processing().receiveResponse();
+                tester.offlineMessageListRequest().processed().receiveResponse();
+
+                tester.countersRequest().receiveResponse();
+
+                tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+            });
+
+            it('Открываю чат. Раскрываю панель "Заметки". Опции тегов заблокированы.', function() {
+                tester.input.fill('Сообщение #75');
+
+                tester.input.pressEnter();
+                tester.searchResultsRequest().receiveResponse();
+
+                tester.chatListItem('Сообщение #75').click();
+                
+                tester.chatListRequest().thirdChat().receiveResponse();
+                tester.acceptChatRequest().receiveResponse();
+                tester.visitorCardRequest().receiveResponse();
+                tester.messageListRequest().receiveResponse();
+
+                tester.usersRequest().forContacts().receiveResponse();
+                tester.usersRequest().forContacts().receiveResponse();
+
+                tester.changeMessageStatusRequest().
+                anotherChat().
+                anotherMessage().
+                read().
+                receiveResponse();
+
+                tester.changeMessageStatusRequest().
+                anotherChat().
+                anotherMessage().
+                read().
+                receiveResponse();
+
+                tester.changeMessageStatusRequest().
+                anotherChat().
+                anotherMessage().
+                read().
+                receiveResponse();
+
+                tester.collapsablePanel('Заметки').title.click();
+
+                tester.collapsablePanel('Заметки').
+                    content.
+                    row('Тэги').
+                    tagField.
+                    button.
+                    click();
+
+                tester.select.option('Продажа').click();
+                tester.contactBar.click();
+            });
+            it('Открываю заявку. Раскрываю панель "Заметки". Опции тегов заблокированы.', function() {
+                tester.leftMenu.button('Заявки').click();
+                tester.chatListItem('прива').click();
+
+                tester.offlineMessageAcceptingRequest().receiveResponse();
+                tester.visitorCardRequest().receiveResponse();
+                tester.usersRequest().forContacts().receiveResponse();
+
+                tester.collapsablePanel('Заметки').title.click();
+
+                tester.collapsablePanel('Заметки').
+                    content.
+                    row('Тэги').
+                    tagField.
+                    button.
+                    click();
+
+                tester.select.option('Продажа').click();
+                tester.contactBar.click();
+            });
+        });
     });
 });
