@@ -246,8 +246,13 @@ define(() => function ({
         !me.tagField && Object.defineProperty(me, 'tagField', {
             set: () => null,
             get: () => {
-                const getDomElement = () =>
-                    utils.element(getRootElement()).querySelector('.ui-tag-editor');
+                const getDomElement = () => {
+                    const tagEditor = utils.element(getRootElement()).querySelector('.ui-tag-editor');
+
+                    return utils.isNonExisting(tagEditor) ?
+                        utils.element(getRootElement()).querySelector('.cm-chats--additional-info-panel-tags-edit') :
+                        tagEditor;
+                };
 
                 const tester = testersFactory.createDomElementTester(getDomElement);
 
@@ -267,8 +272,10 @@ define(() => function ({
                 }
 
                 tester.display = testersFactory.createDomElementTester(
-                    () => utils.element(getDomElement()).
-                        querySelector('.ui-tag-editor-display')
+                    () => utils.element(getDomElement()).querySelector(
+                        '.ui-tag-editor-display, ' +
+                        '.cm-chats--additional-info-panel-tags-container'
+                    )
                 );
 
                 {
@@ -843,8 +850,10 @@ define(() => function ({
                     set: () => null,
                     get: () => {
                         const getDomElement = () => (
-                            utils.getVisibleSilently(document.querySelectorAll('.ui-select-popup')) ||
-                            new JsTester_NoElement()
+                            utils.getVisibleSilently(document.querySelectorAll(
+                                '.ui-select-popup, ' +
+                                '.cm-chats--tags-editor'
+                            )) || new JsTester_NoElement()
                         ).closest('div');
 
                         const tester = testersFactory.createDomElementTester(getDomElement)
@@ -1145,6 +1154,38 @@ define(() => function ({
                         phone: '79162729534',
                         chat_id: 7189362
                     });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: true
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.offlineMessageMarkRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectToHavePath('$REACT_APP_BASE_URL/offline_message/mark').
+                    expectBodyToContain({
+                        id: 18222538,
+                        mark_ids: [587, undefined]
+                    });
+
+                spendTime(0);
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -1599,7 +1640,7 @@ define(() => function ({
             employee_id: 1875485,
             id: 178073,
             is_phone_auto_filled: true,
-            mark_ids: [],
+            mark_ids: ['587', '213'],
             message: 'Я хочу о чем-то заявить.',
             phone: '79161212122',
             name: 'прива',
@@ -1616,6 +1657,14 @@ define(() => function ({
         };
 
         return {
+            singleMessage() {
+                bodyParams.statuses = ['not_processed', 'processed', 'processing'];
+                bodyParams.offline_message_id = 18222538;
+                bodyParams.limit = 1;
+
+                return this;
+            },
+
             notProcessed() {
                 bodyParams.statuses = ['not_processed'];
 
@@ -1825,7 +1874,7 @@ define(() => function ({
                 site_id: 4663,
                 visitor_id: 16479303,
                 visitor_type: 'comagic',
-                mark_ids: [],
+                mark_ids: ['587', '213'],
                 name: 'Томова Денка Райчовна',
                 visitor_name: 'Рангелова Невена Цветковна',
                 is_phone_auto_filled: true,

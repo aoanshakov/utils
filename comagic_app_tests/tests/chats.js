@@ -1100,27 +1100,92 @@ tests.addTest(options => {
                                 tester.offlineMessageCountersRequest().newMessage().receiveResponse();
                             });
 
-                            it('Открываю раздел заявок. Открываю заявку. Отображена заявка.', function() {
+                            describe('Открываю раздел заявок. Открываю заявку.', function() {
                                 let visitorCardRequest;
 
-                                tester.leftMenu.button('Заявки').click();
-                                tester.chatListItem('Томова Денка Райчовна').click();
+                                beforeEach(function() {
+                                    tester.leftMenu.button('Заявки').click();
+                                    tester.chatListItem('Томова Денка Райчовна').click();
 
-                                tester.offlineMessageAcceptingRequest().anotherMessage().receiveResponse();
-                                visitorCardRequest = tester.visitorCardRequest().expectToBeSent();
-                                tester.usersRequest().forContacts().receiveResponse();
+                                    tester.offlineMessageAcceptingRequest().anotherMessage().receiveResponse();
+                                    tester.visitorCardRequest().receiveResponse();
+                                    tester.usersRequest().forContacts().receiveResponse();
+                                });
 
-                                visitorCardRequest.receiveResponse();
+                                describe('Раскрываю панель "Заметки".', function() {
+                                    beforeEach(function() {
+                                        tester.collapsablePanel('Заметки').title.click();
+                                    });
 
-                                tester.chatHistory.message.atTime('11:17').expectToHaveTextContent(
-                                    'Заявка ' +
+                                    describe('Открываю редактор тегов.', function() {
+                                        beforeEach(function() {
+                                            tester.collapsablePanel('Заметки').
+                                                content.
+                                                row('Тэги').
+                                                tagField.
+                                                button.
+                                                click();
+                                        });
 
-                                    'Имя: Помакова Бисерка Драгановна ' +
-                                    'Телефон: 74951523643 ' +
-                                    'Email: tomova@gmail.com ' +
+                                        describe('Измению теги. Отправлен запрос изменения тегов.', function() {
+                                            let offlineMessageMarkRequest;
 
-                                    '11:17'
-                                );
+                                            beforeEach(function() {
+                                                tester.select.option('Продажа').click();
+                                                tester.contactBar.click();
+
+                                                offlineMessageMarkRequest = tester.offlineMessageMarkRequest().
+                                                    expectToBeSent();
+                                            });
+
+                                            it('Получен ответ на запрос. Спиннер скрыт.', function() {
+                                                offlineMessageMarkRequest.receiveResponse();
+                                                tester.offlineMessageListRequest().singleMessage().receiveResponse();
+
+                                                tester.collapsablePanel('Заметки').
+                                                    content.
+                                                    row('Тэги').
+                                                    spin.
+                                                    expectNotToExist();
+                                            });
+                                            it('Отображен спиннер.', function() {
+                                                tester.collapsablePanel('Заметки').
+                                                    content.
+                                                    row('Тэги').
+                                                    spin.
+                                                    expectToBeVisible();
+                                            });
+                                        });
+                                        it('Теги отсортированы по отмеченности.', function() {
+                                            tester.select.popup.expectTextContentToHaveSubstring(
+                                                'Нереализованная сделка ' +
+                                                'Продажа ' +
+                                                'Спам'
+                                            );
+                                        });
+                                    });
+                                    it('Помещаю курсор над полем тегов. Отображены выбранные теги.', function() {
+                                        tester.collapsablePanel('Заметки').
+                                            content.
+                                            row('Тэги').
+                                            tagField.
+                                            display.
+                                            putMouseOver();
+
+                                        tester.tooltip.expectToHaveTextContent('Продажа, Нереализованная сделка');
+                                    });
+                                });
+                                it('Отображена заявка.', function() {
+                                    tester.chatHistory.message.atTime('11:17').expectToHaveTextContent(
+                                        'Заявка ' +
+
+                                        'Имя: Помакова Бисерка Драгановна ' +
+                                        'Телефон: 74951523643 ' +
+                                        'Email: tomova@gmail.com ' +
+
+                                        '11:17'
+                                    );
+                                });
                             });
                             it('Оторажено количество непросмотренных заявок.', function() {
                                 tester.notificationSection.expectToHaveTextContent(

@@ -3851,6 +3851,10 @@ function JsTester_Utils ({debug, windowSize, spendTime}) {
         return parseInt(value * 100, 0);
     };
 
+    this.isNonExisting = function (value) {
+        return !value || value instanceof JsTester_NoElement;
+    };
+
     this.pipe = function () {
         var functions = Array.prototype.slice.call(arguments, 0);
 
