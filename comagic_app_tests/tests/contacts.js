@@ -87,16 +87,35 @@ tests.addTest(options => {
             describe('Звонки из софтфона доступны.', function() {
                 beforeEach(function() {
                     settingsRequest.receiveResponse();
-                    tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
-                    tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                    tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        widgetStateUpdate().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        updateSettings().
+                        shouldNotPlayCallEndingSignal().
+                        expectToBeSent();
 
                     tester.connectEventsWebSocket();
-                    tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
 
                     tester.connectSIPWebSocket();
-                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
                         expectToBeSent();
 
                     authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
@@ -122,7 +141,11 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     registrationRequest.receiveResponse();
-                    tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
 
                     statusesRequest.receiveResponse();
                 });
@@ -898,7 +921,6 @@ tests.addTest(options => {
 
                                         tester.slavesNotification().
                                             available().
-                                            userDataFetched().
                                             twoChannels().
                                             sending().
                                             sixthPhoneNumber().
@@ -908,7 +930,6 @@ tests.addTest(options => {
 
                                         tester.slavesNotification().
                                             available().
-                                            userDataFetched().
                                             twoChannels().
                                             progress().
                                             sixthPhoneNumber().
@@ -2297,7 +2318,6 @@ tests.addTest(options => {
 
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 sending().
                                 expectToBeSent();
@@ -2306,7 +2326,6 @@ tests.addTest(options => {
 
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 progress().
                                 expectToBeSent();
@@ -2351,7 +2370,6 @@ tests.addTest(options => {
                             available().
                             incoming().
                             progress().
-                            userDataFetched().
                             expectToBeSent();
 
                         tester.numaRequest().receiveResponse();
@@ -2701,7 +2719,10 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     registrationRequest.receiveResponse();
-                    tester.slavesNotification().twoChannels().available().userDataFetched().
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
                         expectToBeSent();
 
                     tester.button('Контакты').click();
@@ -2863,20 +2884,37 @@ tests.addTest(options => {
                     tester.talkOptionsRequest().receiveResponse();
 
                     settingsRequest.receiveResponse();
-                    tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
 
                     permissionsRequest = tester.permissionsRequest().expectToBeSent();
 
                     tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                    tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+                    tester.othersNotification().
+                        updateSettings().
+                        shouldNotPlayCallEndingSignal().
+                        expectToBeSent();
 
                     permissionsRequest.receiveResponse();
 
                     tester.connectEventsWebSocket();
-                    tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
 
                     tester.connectSIPWebSocket();
-                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
                         expectToBeSent();
 
                     notificationTester.grantPermission();
@@ -2904,7 +2942,11 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     registrationRequest.receiveResponse();
-                    tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
 
                     statusesRequest.receiveResponse();
 
@@ -3250,20 +3292,39 @@ tests.addTest(options => {
                 tester.talkOptionsRequest().receiveResponse();
 
                 settingsRequest.receiveResponse();
-                tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+                
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    expectToBeSent();
 
                 permissionsRequest = tester.permissionsRequest().expectToBeSent();
 
-                tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+                tester.othersNotification().
+                    widgetStateUpdate().
+                    expectToBeSent();
+
+                tester.othersNotification().
+                    updateSettings().
+                    shouldNotPlayCallEndingSignal().
+                    expectToBeSent();
 
                 permissionsRequest.receiveResponse();
 
                 tester.connectEventsWebSocket();
-                tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    softphoneServerConnected().
+                    expectToBeSent();
 
                 tester.connectSIPWebSocket();
-                tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                tester.slavesNotification().
+                    twoChannels().
+                    webRTCServerConnected().
+                    softphoneServerConnected().
                     expectToBeSent();
 
                 notificationTester.grantPermission();
@@ -3291,7 +3352,11 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 registrationRequest.receiveResponse();
-                tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    expectToBeSent();
 
                 statusesRequest.receiveResponse();
 
@@ -3366,20 +3431,39 @@ tests.addTest(options => {
                 tester.talkOptionsRequest().receiveResponse();
 
                 settingsRequest.receiveResponse();
-                tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    expectToBeSent();
 
                 permissionsRequest = tester.permissionsRequest().expectToBeSent();
 
-                tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+                tester.othersNotification().
+                    widgetStateUpdate().
+                    expectToBeSent();
+
+                tester.othersNotification().
+                    updateSettings().
+                    shouldNotPlayCallEndingSignal().
+                    expectToBeSent();
 
                 permissionsRequest.receiveResponse();
 
                 tester.connectEventsWebSocket();
-                tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    softphoneServerConnected().
+                    expectToBeSent();
 
                 tester.connectSIPWebSocket();
-                tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                tester.slavesNotification().
+                    twoChannels().
+                    webRTCServerConnected().
+                    softphoneServerConnected().
                     expectToBeSent();
 
                 notificationTester.grantPermission();
@@ -3407,7 +3491,11 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 registrationRequest.receiveResponse();
-                tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    expectToBeSent();
 
                 statusesRequest.receiveResponse();
 
@@ -3496,20 +3584,39 @@ tests.addTest(options => {
                 tester.talkOptionsRequest().receiveResponse();
 
                 settingsRequest.receiveResponse();
-                tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    expectToBeSent();
 
                 permissionsRequest = tester.permissionsRequest().expectToBeSent();
 
-                tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+                tester.othersNotification().
+                    widgetStateUpdate().
+                    expectToBeSent();
+
+                tester.othersNotification().
+                    updateSettings().
+                    shouldNotPlayCallEndingSignal().
+                    expectToBeSent();
 
                 permissionsRequest.receiveResponse();
 
                 tester.connectEventsWebSocket();
-                tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    softphoneServerConnected().
+                    expectToBeSent();
 
                 tester.connectSIPWebSocket();
-                tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                tester.slavesNotification().
+                    twoChannels().
+                    webRTCServerConnected().
+                    softphoneServerConnected().
                     expectToBeSent();
 
                 notificationTester.grantPermission();
@@ -3537,7 +3644,11 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 registrationRequest.receiveResponse();
-                tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    expectToBeSent();
 
                 statusesRequest.receiveResponse();
 
@@ -3624,20 +3735,39 @@ tests.addTest(options => {
                 tester.talkOptionsRequest().receiveResponse();
 
                 settingsRequest.receiveResponse();
-                tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    expectToBeSent();
 
                 permissionsRequest = tester.permissionsRequest().expectToBeSent();
 
-                tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+                tester.othersNotification().
+                    widgetStateUpdate().
+                    expectToBeSent();
+
+                tester.othersNotification().
+                    updateSettings().
+                    shouldNotPlayCallEndingSignal().
+                    expectToBeSent();
 
                 permissionsRequest.receiveResponse();
 
                 tester.connectEventsWebSocket();
-                tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    softphoneServerConnected().
+                    expectToBeSent();
 
                 tester.connectSIPWebSocket();
-                tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                tester.slavesNotification().
+                    twoChannels().
+                    webRTCServerConnected().
+                    softphoneServerConnected().
                     expectToBeSent();
 
                 notificationTester.grantPermission();
@@ -3665,7 +3795,11 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 registrationRequest.receiveResponse();
-                tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    expectToBeSent();
 
                 statusesRequest.receiveResponse();
 
@@ -3772,20 +3906,39 @@ tests.addTest(options => {
             tester.talkOptionsRequest().receiveResponse();
 
             settingsRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                expectToBeSent();
 
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
 
-            tester.othersNotification().widgetStateUpdate().expectToBeSent();
-            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+            tester.othersNotification().
+                widgetStateUpdate().
+                expectToBeSent();
+
+            tester.othersNotification().
+                updateSettings().
+                shouldNotPlayCallEndingSignal().
+                expectToBeSent();
 
             permissionsRequest.receiveResponse();
 
             tester.connectEventsWebSocket();
-            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
 
             tester.connectSIPWebSocket();
-            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
                 expectToBeSent();
 
             notificationTester.grantPermission();
@@ -3813,7 +3966,11 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
 
             statusesRequest.receiveResponse();
 
@@ -3860,20 +4017,39 @@ tests.addTest(options => {
             tester.talkOptionsRequest().receiveResponse();
 
             settingsRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                expectToBeSent();
 
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
 
-            tester.othersNotification().widgetStateUpdate().expectToBeSent();
-            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+            tester.othersNotification().
+                widgetStateUpdate().
+                expectToBeSent();
+
+            tester.othersNotification().
+                updateSettings().
+                shouldNotPlayCallEndingSignal().
+                expectToBeSent();
 
             permissionsRequest.receiveResponse();
 
             tester.connectEventsWebSocket();
-            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
 
             tester.connectSIPWebSocket();
-            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
                 expectToBeSent();
 
             notificationTester.grantPermission();
@@ -3901,7 +4077,11 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
 
             statusesRequest.receiveResponse();
 
@@ -3945,20 +4125,37 @@ tests.addTest(options => {
             tester.talkOptionsRequest().receiveResponse();
 
             settingsRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                expectToBeSent();
 
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
 
             tester.othersNotification().widgetStateUpdate().expectToBeSent();
-            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+            
+            tester.othersNotification().
+                updateSettings().
+                shouldNotPlayCallEndingSignal().
+                expectToBeSent();
 
             permissionsRequest.receiveResponse();
 
             tester.connectEventsWebSocket();
-            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
 
             tester.connectSIPWebSocket();
-            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
                 expectToBeSent();
 
             notificationTester.grantPermission();
@@ -3986,7 +4183,11 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
 
             statusesRequest.receiveResponse();
 
@@ -4091,7 +4292,11 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
 
             statusesRequest.receiveResponse();
 
@@ -4200,7 +4405,11 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
 
             statusesRequest.receiveResponse();
 
@@ -4304,7 +4513,11 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
 
             statusesRequest.receiveResponse();
 

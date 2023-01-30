@@ -5748,6 +5748,7 @@ define(function () {
                     currentChannel: 1,
                     statusId: null,
                     destroyed: false,
+                    isSipOnline: false,
                     microphoneAccessGranted: false,
                     lastChannelChange:  {
                         previousChannelNumber: null,
@@ -5976,11 +5977,16 @@ define(function () {
                         }, state, processing);
                     },
                     userDataFetched: function () {
+                        state.isSipOnline = true;
                         state.statusId = 3;
                         return this;
                     },
+                    sipIsOffline: function () {
+                        processing.push(() => (state.isSipOnline = false));
+                        return this;
+                    },
                     anotherStatus: function () {
-                        state.statusId = 4;
+                        processing.push(() => (state.statusId = 4));
                         return this;
                     },
                     wasIncomingAtTheMomentOfChannelChanging: function () {
@@ -6061,10 +6067,10 @@ define(function () {
                     },
                     available: function () {
                         state.softphoneServerConnected = true;
+                        this.userDataFetched();
                         this.webRTCServerConnected();
                         state.microphoneAccessGranted = true;
                         state.registered = true;
-
                         return this;
                     },
                     ended: function() {
@@ -6561,6 +6567,10 @@ define(function () {
             };
 
             return {
+                isSipOnline: function () {
+                    message.params.data[0].is_sip_online = true;
+                    return this;
+                },
                 isAnotherEmployee: function () {
                     message.params.data[0].id = 1762;
                     return this;

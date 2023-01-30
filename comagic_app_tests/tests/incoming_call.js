@@ -82,13 +82,26 @@ tests.addTest(options => {
             tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
             tester.othersNotification().widgetStateUpdate().expectToBeSent();
-            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            tester.othersNotification().
+                updateSettings().
+                shouldNotPlayCallEndingSignal().
+                expectToBeSent();
 
             tester.connectEventsWebSocket();
-            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
 
             tester.connectSIPWebSocket();
-            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
                 expectToBeSent();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
@@ -114,7 +127,11 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
 
             statusesRequest.receiveResponse();
         });
@@ -130,7 +147,6 @@ tests.addTest(options => {
                     available().
                     incoming().
                     progress().
-                    userDataFetched().
                     expectToBeSent();
 
                 tester.numaRequest().receiveResponse();
@@ -156,7 +172,6 @@ tests.addTest(options => {
 
                         tester.slavesNotification().
                             available().
-                            userDataFetched().
                             twoChannels().
                             incoming().
                             confirmed().
@@ -362,7 +377,6 @@ tests.addTest(options => {
 
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 incoming().
                                 confirmed().
@@ -378,7 +392,6 @@ tests.addTest(options => {
 
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 ended().
                                 expectToBeSent();
@@ -387,7 +400,6 @@ tests.addTest(options => {
 
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 incoming().
                                 progress().
@@ -410,7 +422,6 @@ tests.addTest(options => {
 
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 incoming().
                                 confirmed().
@@ -463,7 +474,6 @@ tests.addTest(options => {
                             
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 incoming().
                                 confirmed().
@@ -480,7 +490,6 @@ tests.addTest(options => {
 
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 incoming().
                                 confirmed().
@@ -515,15 +524,22 @@ tests.addTest(options => {
                         tester.collapsednessToggleButton.click();
                         incomingCall.receiveCancel();
 
-                        tester.slavesNotification().available().userDataFetched().
-                            twoChannels().failed().expectToBeSent();
+                        tester.slavesNotification().
+                            available().
+                            twoChannels().
+                            failed().
+                            expectToBeSent();
 
                         tester.collapsednessToggleButton.click();
 
                         incomingCall = tester.incomingCall().receive();
 
-                        tester.slavesNotification().available().userDataFetched().
-                            twoChannels().incoming().progress().expectToBeSent();
+                        tester.slavesNotification().
+                            available().
+                            twoChannels().
+                            incoming().
+                            progress().
+                            expectToBeSent();
 
                         tester.numaRequest().receiveResponse();
 
@@ -541,8 +557,13 @@ tests.addTest(options => {
                         tester.firstConnection.addCandidate();
 
                         incomingCall.expectOkToBeSent().receiveResponse();
-                        tester.slavesNotification().available().userDataFetched().
-                            twoChannels().incoming().confirmed().expectToBeSent();
+
+                        tester.slavesNotification().
+                            available().
+                            twoChannels().
+                            incoming().
+                            confirmed().
+                            expectToBeSent();
 
                         tester.dialpadButton(1).expectToBeVisible();;
                     });
@@ -560,7 +581,6 @@ tests.addTest(options => {
                     tester.incomingCall().thirdNumber().receive();
 
                     tester.slavesNotification().
-                        userDataFetched().
                         twoChannels().
                         available().
                         incoming().
@@ -572,8 +592,13 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.numaRequest().thirdNumber().receiveResponse();
-                    tester.outCallEvent().anotherPerson().receive();
-                    tester.outCallEvent().anotherPerson().slavesNotification().
+
+                    tester.outCallEvent().
+                        anotherPerson().
+                        receive();
+
+                    tester.outCallEvent().
+                        anotherPerson().slavesNotification().
                         expectToBeSent();
 
                     tester.body.expectTextContentToHaveSubstring(
@@ -642,8 +667,13 @@ tests.addTest(options => {
                         tester.firstConnection.addCandidate();
 
                         incomingCall.expectOkToBeSent().receiveResponse();
-                        tester.slavesNotification().available().userDataFetched().
-                            twoChannels().incoming().confirmed().expectToBeSent();
+
+                        tester.slavesNotification().
+                            available().
+                            twoChannels().
+                            incoming().
+                            confirmed().
+                            expectToBeSent();
 
                         tester.transferIncomingIcon.expectToBeVisible();
                         tester.softphone.expectTextContentToHaveSubstring(
@@ -688,8 +718,13 @@ tests.addTest(options => {
                     tester.firstConnection.addCandidate();
 
                     incomingCall.expectOkToBeSent().receiveResponse();
-                    tester.slavesNotification().available().userDataFetched().
-                        twoChannels().incoming().confirmed().expectToBeSent();
+
+                    tester.slavesNotification().
+                        available().
+                        twoChannels().
+                        incoming().
+                        confirmed().
+                        expectToBeSent();
 
                     tester.softphone.expectTextContentToHaveSubstring(
                         'Шалева Дора +7 (916) 123-45-67 00:00'
@@ -786,7 +821,6 @@ tests.addTest(options => {
                 
                 tester.slavesNotification().
                     available().
-                    userDataFetched().
                     twoChannels().
                     failed().
                     expectToBeSent();
@@ -821,25 +855,36 @@ tests.addTest(options => {
             beforeEach(function() {
                 setDocumentVisible(false);
 
-                tester.slavesNotification().userDataFetched().twoChannels().available().
-                    hidden().expectToBeSent();
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    hidden().
+                    expectToBeSent();
             });
 
             describe('Открывается новая вкладка.', function() {
                 beforeEach(function() {
                     tester.masterNotification().tabOpened().receive();
 
-                    tester.slavesNotification().userDataFetched().twoChannels().
-                        available().expectToBeSent();
-                    tester.slavesNotification().additional().expectToBeSent();
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
+
+                    tester.slavesNotification().
+                        additional().
+                        expectToBeSent();
                 });
 
                 describe('Вкладка скрыта.', function() {
                     beforeEach(function() {
                         tester.masterNotification().tabBecameHidden().receive();
 
-                        tester.slavesNotification().userDataFetched().twoChannels().
-                            available().hidden().expectToBeSent();
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            hidden().
+                            expectToBeSent();
                     });
 
                     it(
@@ -848,12 +893,19 @@ tests.addTest(options => {
                     function() {
                         tester.masterNotification().tabBecameVisible().receive();
 
-                        tester.slavesNotification().userDataFetched().twoChannels().
-                            available().expectToBeSent();
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            expectToBeSent();
 
                         tester.incomingCall().receive();
-                        tester.slavesNotification().available().userDataFetched().
-                            twoChannels().incoming().progress().expectToBeSent();
+
+                        tester.slavesNotification().
+                            available().
+                            twoChannels().
+                            incoming().
+                            progress().
+                            expectToBeSent();
 
                         tester.numaRequest().receiveResponse();
 
@@ -864,8 +916,13 @@ tests.addTest(options => {
                         'Поступил входящий звонок. Отображено браузерное уведомление.',
                     function() {
                         tester.incomingCall().receive();
-                        tester.slavesNotification().available().userDataFetched().
-                            twoChannels().incoming().progress().hidden().
+
+                        tester.slavesNotification().
+                            available().
+                            twoChannels().
+                            incoming().
+                            progress().
+                            hidden().
                             expectToBeSent();
 
                         tester.numaRequest().receiveResponse();
@@ -884,8 +941,13 @@ tests.addTest(options => {
                     'Поступил входящий звонок. браузерное уведомление не отображено.',
                 function() {
                     tester.incomingCall().receive();
-                    tester.slavesNotification().available().userDataFetched().
-                        twoChannels().incoming().progress().expectToBeSent();
+
+                    tester.slavesNotification().
+                        available().
+                        twoChannels().
+                        incoming().
+                        progress().
+                        expectToBeSent();
 
                     tester.numaRequest().receiveResponse();
 
@@ -904,7 +966,6 @@ tests.addTest(options => {
 
                     tester.slavesNotification().
                         available().
-                        userDataFetched().
                         twoChannels().
                         incoming().
                         progress().
@@ -929,7 +990,6 @@ tests.addTest(options => {
 
                     tester.slavesNotification().
                         available().
-                        userDataFetched().
                         twoChannels().
                         incoming().
                         progress().
@@ -961,12 +1021,19 @@ tests.addTest(options => {
             function() {
                 setDocumentVisible(true);
 
-                tester.slavesNotification().userDataFetched().twoChannels().available().
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
                     expectToBeSent();
 
                 tester.incomingCall().receive();
-                tester.slavesNotification().available().userDataFetched().twoChannels().
-                    incoming().progress().expectToBeSent();
+
+                tester.slavesNotification().
+                    available().
+                    twoChannels().
+                    incoming().
+                    progress().
+                    expectToBeSent();
 
                 tester.numaRequest().receiveResponse();
 
@@ -988,7 +1055,6 @@ tests.addTest(options => {
                 available().
                 incoming().
                 progress().
-                userDataFetched().
                 expectToBeSent();
 
             tester.numaRequest().receiveResponse();

@@ -4076,6 +4076,10 @@ function JsTester_Utils ({debug, windowSize, spendTime}) {
         return description + (label ? (' "' + label + '"') : '');
     };
     this.isVisible = function(domElement) {
+        if (!domElement) {
+            return false;
+        }
+
         return !!(domElement.offsetWidth || domElement.offsetHeight || domElement.getClientRects().length);
     };
     this.getVariablePresentation = function (object) {
@@ -4415,6 +4419,16 @@ function JsTester_Utils ({debug, windowSize, spendTime}) {
 
     this.querySelector = function (selector) {
         return element.querySelector(selector);
+    };
+
+    this.isIntersecting = function (container, contained) {
+        const containerRect = container.getBoundingClientRect(),
+            containedRect = contained.getBoundingClientRect();
+
+        return !(
+            (containedRect.top < containerRect.top && containedRect.bottom < containerRect.top) ||
+            (containedRect.top > containerRect.bottom && containedRect.bottom > containerRect.bottom)
+        );
     };
 
     this.enableScrollingIntoView();
@@ -5836,6 +5850,14 @@ function JsTester_DomElement (
         return actualValue;
     }
 
+    this.scrollTo = function (top) {
+        var element = getDomElement(),
+            event = new Event('scroll');
+
+        event.target = element;
+        element.scrollTop = top;
+        element.dispatchEvent(event);
+    };
     this.log = function () {
         this.expectToExist();
         console.log(getDomElement());

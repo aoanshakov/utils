@@ -490,6 +490,134 @@ tests.addTest(options => {
                                             tester.tooltip.expectToHaveTextContent('Доступно после создания контакта');
                                         });
                                     });
+                                    describe('Сообщение много.', function() {
+                                        let chatListRequest;
+
+                                        beforeEach(function() {
+                                            messageListRequest.firstPage().receiveResponse();
+
+                                            tester.usersRequest().forContacts().receiveResponse();
+                                            tester.usersRequest().forContacts().receiveResponse();
+
+                                            tester.changeMessageStatusRequest().
+                                                anotherChat().
+                                                thirdMessage().
+                                                read().
+                                                receiveResponse();
+
+                                            tester.changeMessageStatusRequest().
+                                                anotherChat().
+                                                thirdMessage().
+                                                read().
+                                                receiveResponse();
+
+                                            tester.changeMessageStatusRequest().
+                                                anotherChat().
+                                                thirdMessage().
+                                                read().
+                                                receiveResponse();
+                                        });
+
+                                        describe(
+                                            'Прокрутил список чатов до конца. Отправлен запрос чатов.',
+                                        function() {
+                                            beforeEach(function() {
+                                                tester.chatList.spinWrapper.scrollIntoView();
+
+                                                chatListRequest = tester.chatListRequest().
+                                                    forCurrentEmployee().
+                                                    secondPage().
+                                                    expectToBeSent();
+                                            });
+
+                                            describe('Получен ответ на запрос.', function() {
+                                                beforeEach(function() {
+                                                    chatListRequest.receiveResponse();
+                                                });
+
+                                                it('Прокрутил список чатов до конца. Запрос отправлен.', function() {
+                                                    tester.chatList.spinWrapper.scrollIntoView();
+
+                                                    tester.chatListRequest().
+                                                        forCurrentEmployee().
+                                                        thirdPage().
+                                                        receiveResponse();
+                                                });
+                                                it('Спиннер скрыт.', function() {
+                                                    tester.spin.expectNotToExist();
+                                                    tester.chatList.item('Сообщение #30').expectToBeVisible();
+                                                    tester.chatList.item('Сообщение #31').expectToBeVisible();
+                                                });
+                                            });
+                                            it('Прокрутил список чатов до конца. Запрос не отправлен.', function() {
+                                                tester.chatList.spinWrapper.scrollIntoView();
+                                                ajax.expectNoRequestsToBeSent();
+                                            });
+                                            it('Отображен спиннер.', function() {
+                                                tester.spin.expectToBeVisible();
+                                                tester.chatList.item('Сообщение #31').expectNotToExist();
+                                            });
+                                        });
+                                        /*describe(
+                                            'История сообщений прокручена вверх. Отправлен запрос сообщений.',
+                                        function() {
+                                            beforeEach(function() {
+                                                tester.chatHistory.scrollTo(0);
+
+                                                messageListRequest = tester.messageListRequest().
+                                                    secondPage().
+                                                    expectToBeSent();
+                                            });
+
+                                            it('Получен ответ. Спиннер скрыт.', function() {
+                                                messageListRequest.receiveResponse();
+
+                                                tester.changeMessageStatusRequest().
+                                                    anotherChat().
+                                                    thirdMessage().
+                                                    read().
+                                                    receiveResponse();
+
+                                                tester.spin.expectNotToExist();
+
+                                                tester.chatHistory.message.
+                                                    containsSubstring('Понг # 50').
+                                                    expectToBeVisible();
+
+                                                tester.chatHistory.message.
+                                                    containsSubstring('Понг # 49').
+                                                    expectToBeHidden();
+                                            });
+                                            it('Отображен спиннер.', function() {
+                                                tester.spin.expectToBeVisible();
+                                            });
+                                        });
+                                        */
+                                        it(
+                                            'Получено Новое сообщение. Отправлен запрос чата. Прокрутил список чатов ' +
+                                            'до конца. Запрос не отправлен.',
+                                        function() {
+                                            tester.newMessage().anotherChat().receive();
+                                            tester.chatListRequest().fourthChat().expectToBeSent();
+                                            tester.countersRequest().receiveResponse();
+
+                                            tester.chatList.spinWrapper.scrollIntoView();
+                                            ajax.expectNoRequestsToBeSent();
+                                        });
+                                        it(
+                                            'Получено событие изменения статуса сообщения. Отправлен запрос ' +
+                                            'количества чатов. Прокрутил список чатов до конца. Запрос не отправлен.',
+                                        function() {
+                                            tester.statusChangedMessage().receive();
+                                            const countersRequest = tester.countersRequest().expectToBeSent();
+
+                                            tester.chatList.spinWrapper.scrollIntoView();
+                                            ajax.expectNoRequestsToBeSent();
+                                        });
+                                        it('История сообщений прокручена вниз.', function() {
+                                            tester.chatHistory.bottom.expectToBeVisible();
+                                        });
+                                    });
                                     it(
                                         'Получен ответ на сообщение. Отображено сообщение на которое отвечает ' +
                                         'пользователь.',
@@ -556,30 +684,6 @@ tests.addTest(options => {
 
                                                 'Ответить'
                                             );
-                                    });
-                                    it('Сообщение много.', function() {
-                                        messageListRequest.firstPage().receiveResponse();
-
-                                        tester.usersRequest().forContacts().receiveResponse();
-                                        tester.usersRequest().forContacts().receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            thirdMessage().
-                                            read().
-                                            receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            thirdMessage().
-                                            read().
-                                            receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            thirdMessage().
-                                            read().
-                                            receiveResponse();
                                     });
                                 });
                                 describe('Сообщений немного.', function() {
@@ -1254,16 +1358,17 @@ tests.addTest(options => {
                     secondChatListRequest.failed().receiveResponse();
                     thirdChatListRequest.failed().receiveResponse();
 
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        failed().
-                        receiveResponse();
-
                     tester.button('В работе 75').click();
                     tester.collapsablePanel('Активные').content.spinWrapper.scrollIntoView();
 
                     tester.chatListRequest().
                         active().
+                        forCurrentEmployee().
+                        failed().
+                        expectToBeSent();
+
+                    tester.chatListRequest().
+                        closed().
                         forCurrentEmployee().
                         failed().
                         expectToBeSent();

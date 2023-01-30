@@ -148,7 +148,6 @@ tests.addTest(options => {
                             tester.slavesNotification().
                                 twoChannels().
                                 available().
-                                userDataFetched().
                                 expectToBeSent();
                         });
 
@@ -378,7 +377,6 @@ tests.addTest(options => {
                                                     tester.allowMediaInput();
 
                                                     tester.slavesNotification().
-                                                        userDataFetched().
                                                         twoChannels().
                                                         available().
                                                         expectToBeSent();
@@ -926,7 +924,6 @@ tests.addTest(options => {
                                                 available().
                                                 incoming().
                                                 progress().
-                                                userDataFetched().
                                                 expectToBeSent();
 
                                             tester.numaRequest().receiveResponse();
@@ -946,7 +943,6 @@ tests.addTest(options => {
 
                                                 tester.slavesNotification().
                                                     available().
-                                                    userDataFetched().
                                                     twoChannels().
                                                     failed().
                                                     expectToBeSent();
@@ -974,7 +970,6 @@ tests.addTest(options => {
 
                                                 tester.slavesNotification().
                                                     available().
-                                                    userDataFetched().
                                                     twoChannels().
                                                     failed().
                                                     expectToBeSent();
@@ -1321,7 +1316,6 @@ tests.addTest(options => {
                                         tester.slavesNotification().
                                             available().
                                             thirdPhoneNumber().
-                                            userDataFetched().
                                             twoChannels().
                                             sending().
                                             expectToBeSent();
@@ -1331,7 +1325,6 @@ tests.addTest(options => {
                                         tester.slavesNotification().
                                             thirdPhoneNumber().
                                             available().
-                                            userDataFetched().
                                             twoChannels().
                                             progress().
                                             expectToBeSent();
@@ -1662,7 +1655,6 @@ tests.addTest(options => {
 
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 sending().
                                 expectToBeSent();
@@ -1671,7 +1663,6 @@ tests.addTest(options => {
                             
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 progress().
                                 expectToBeSent();
@@ -1686,7 +1677,6 @@ tests.addTest(options => {
 
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 ended().
                                 expectToBeSent();
@@ -1722,7 +1712,6 @@ tests.addTest(options => {
                                 available().
                                 incoming().
                                 progress().
-                                userDataFetched().
                                 expectToBeSent();
 
                             tester.numaRequest().receiveResponse();
@@ -1739,7 +1728,6 @@ tests.addTest(options => {
 
                             tester.slavesNotification().
                                 available().
-                                userDataFetched().
                                 twoChannels().
                                 failed().
                                 expectToBeSent();
@@ -1760,7 +1748,6 @@ tests.addTest(options => {
                             tester.slavesNotification().
                                 twoChannels().
                                 available().
-                                userDataFetched().
                                 expectToBeSent();
                         });
 
@@ -1838,7 +1825,11 @@ tests.addTest(options => {
                                 expectToBeSent();
 
                             tester.registrationRequest().receiveResponse();
-                            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+                            
+                            tester.slavesNotification().
+                                twoChannels().
+                                available().
+                                expectToBeSent();
 
                             tester.button('История звонков').click();
 
@@ -1875,10 +1866,19 @@ tests.addTest(options => {
                         permissionsRequest.disallowCallSessionCommentingDelete().receiveResponse();
 
                         tester.connectEventsWebSocket();
-                        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            enabled().
+                            softphoneServerConnected().
+                            expectToBeSent();
 
                         tester.connectSIPWebSocket();
-                        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            webRTCServerConnected().
+                            softphoneServerConnected().
                             expectToBeSent();
 
                         notificationTester.grantPermission();
@@ -1903,7 +1903,11 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.registrationRequest().receiveResponse();
-                        tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            expectToBeSent();
 
                         tester.button('История звонков').click();
 
@@ -1919,10 +1923,19 @@ tests.addTest(options => {
                         permissionsRequest.disallowCallSessionCommentingInsert().receiveResponse();
 
                         tester.connectEventsWebSocket();
-                        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+                        
+                        tester.slavesNotification().
+                            twoChannels().
+                            enabled().
+                            softphoneServerConnected().
+                            expectToBeSent();
 
                         tester.connectSIPWebSocket();
-                        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            webRTCServerConnected().
+                            softphoneServerConnected().
                             expectToBeSent();
 
                         notificationTester.grantPermission();
@@ -1947,7 +1960,11 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.registrationRequest().receiveResponse();
-                        tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            expectToBeSent();
 
                         tester.button('История звонков').click();
 
@@ -2013,7 +2030,11 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.registrationRequest().receiveResponse();
-                        tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            expectToBeSent();
 
                         tester.button('История звонков').click();
 
@@ -2081,7 +2102,11 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.registrationRequest().receiveResponse();
-                    tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
 
                     tester.button('История звонков').click();
 
@@ -2098,10 +2123,19 @@ tests.addTest(options => {
                     permissionsRequest.disallowCallSessionCommentingSelect().receiveResponse();
 
                     tester.connectEventsWebSocket();
-                    tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
 
                     tester.connectSIPWebSocket();
-                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
                         expectToBeSent();
 
                     notificationTester.grantPermission();
@@ -2126,7 +2160,11 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.registrationRequest().receiveResponse();
-                    tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
 
                     tester.button('История звонков').click();
 
@@ -2141,10 +2179,19 @@ tests.addTest(options => {
                     permissionsRequest.disallowTagManagementSelect().receiveResponse();
 
                     tester.connectEventsWebSocket();
-                    tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+                    
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
 
                     tester.connectSIPWebSocket();
-                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
                         expectToBeSent();
 
                     notificationTester.grantPermission();
@@ -2169,7 +2216,11 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.registrationRequest().receiveResponse();
-                    tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
 
                     tester.button('История звонков').click();
 
@@ -2184,10 +2235,19 @@ tests.addTest(options => {
                     permissionsRequest.disallowTagManagementUpdate().receiveResponse();
 
                     tester.connectEventsWebSocket();
-                    tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
 
                     tester.connectSIPWebSocket();
-                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
                         expectToBeSent();
 
                     notificationTester.grantPermission();
@@ -2212,7 +2272,11 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.registrationRequest().receiveResponse();
-                    tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
 
                     tester.button('История звонков').click();
 
@@ -2270,7 +2334,10 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     registrationRequest.receiveResponse();
-                    tester.slavesNotification().twoChannels().available().userDataFetched().
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
                         expectToBeSent();
 
                     tester.button('История звонков').click();
@@ -2416,7 +2483,11 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
 
             tester.button('История звонков').click();
 
@@ -2469,18 +2540,35 @@ tests.addTest(options => {
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
 
             settingsRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                expectToBeSent();
 
             tester.othersNotification().widgetStateUpdate().expectToBeSent();
-            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
+            tester.othersNotification().
+                updateSettings().
+                shouldNotPlayCallEndingSignal().
+                expectToBeSent();
 
             permissionsRequest.receiveResponse();
 
             tester.connectEventsWebSocket();
-            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
 
             tester.connectSIPWebSocket();
-            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
                 expectToBeSent();
 
             notificationTester.grantPermission();
@@ -2508,7 +2596,11 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
 
             tester.button('История звонков').expectNotToExist();
         });
@@ -2588,7 +2680,10 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
                 expectToBeSent();
 
             statusesRequest.receiveResponse();
@@ -2673,7 +2768,10 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
                 expectToBeSent();
 
             statusesRequest.receiveResponse();

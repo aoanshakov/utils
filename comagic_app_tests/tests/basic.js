@@ -113,7 +113,11 @@ tests.addTest(options => {
                 expectToBeSent();
 
             registrationRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().available().userDataFetched().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
 
             statusesRequest.receiveResponse();
         });
@@ -162,7 +166,11 @@ tests.addTest(options => {
             tester.statusesRequest().receiveResponse();
 
             tester.settingsRequest().receiveResponse();
-            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                expectToBeSent();
 
             tester.othersNotification().widgetStateUpdate().expectToBeSent();
             tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
@@ -172,23 +180,48 @@ tests.addTest(options => {
             tester.permissionsRequest().receiveResponse();
 
             tester.connectEventsWebSocket();
-            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
 
             tester.connectSIPWebSocket();
-            tester.slavesNotification().twoChannels().softphoneServerConnected().webRTCServerConnected().
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
                 expectToBeSent();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
             tester.registrationRequest().receiveResponse();
-            tester.slavesNotification().twoChannels().softphoneServerConnected().webRTCServerConnected().registered().
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                registered().
                 expectToBeSent();
 
             tester.allowMediaInput();
-            tester.slavesNotification().twoChannels().available().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                registered().
+                microphoneAccessGranted().
+                expectToBeSent();
 
             authenticatedUserRequest.receiveResponse();
-            tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
         });
             
         describe('Получено событие изменения сотрудника. Статус сотрудника изменился.', function() {

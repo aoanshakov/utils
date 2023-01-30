@@ -191,15 +191,8 @@ define(() => function ({
             return;
         }
 
-        const listRect = list.getBoundingClientRect(),
-            spinWrapperRect = domElement.getBoundingClientRect();
-
-        const isIntersecting = !(
-            (spinWrapperRect.top < listRect.top && spinWrapperRect.bottom < listRect.top) ||
-            (spinWrapperRect.top > listRect.bottom && spinWrapperRect.bottom > listRect.bottom)
-        );
-
-        const value = shouldRunCallback(isIntersecting);
+        const isIntersecting = utils.isIntersecting(list, domElement),
+            value = shouldRunCallback(isIntersecting);
 
         intersection.set(domElement, isIntersecting);
         value && intersectionObservable(domElement).runCallback([{ isIntersecting }]);
@@ -1311,6 +1304,8 @@ define(() => function ({
     };
 
     me.messageListRequest = () => {
+        let total_messages_count = 200;
+
         let params = {
             visitor_id: 16479303
         };
@@ -1347,15 +1342,21 @@ define(() => function ({
             error_mnemonic: null
         }];
 
-        const getPage = i => {
+        const getPage = ({
+            end,
+            total,
+            count
+        }) => {
             const interval = (1000 * 60 * 60 * 6) + (5 * 1000 * 60) + (12 * 1000) + 231,
-                length = i + 50;
-            data = [];
+                data = [],
+                start = end - count;
+
+            let i = start;
 
             let date = new Date('2019-12-19T12:00:00');
-            date = new Date(date.getTime() - (interval * 0));
+            date = new Date(date.getTime() - (interval * (total - start) * 2));
 
-            for (; i < length; i ++) {
+            for (; i < end; i ++) {
                 const index = i * 2,
                     number = i + 1;
 
@@ -1399,12 +1400,19 @@ define(() => function ({
             }
 
             data.reverse();
-
-            return me;
+            return data;
         };
 
         const addResponseModifiers = me => {
-            me.firstPage = () => (getPage(50), me);
+            me.firstPage = () => {
+                data = getPage({
+                    end: 100,
+                    total: 100,
+                    count: 50
+                });
+
+                return me;
+            };
 
             me.audioAttachment = () => {
                 data[0].text = '';
@@ -1447,6 +1455,17 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            secondPage() {
+                data = getPage({
+                    end: 50,
+                    total: 100,
+                    count: 50
+                });
+
+                params.scroll_from_date = '2019-11-24T09:24:49'
+                return this;
+            },
+
             anotherChat() {
                 params = {
                     chat_id: 2718936
@@ -1468,17 +1487,21 @@ define(() => function ({
             },
 
             expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectBodyToContain({
+                        method: 'get_message_list',
+                        params
+                    });
+
                 return addResponseModifiers({
                     receiveResponse() {
-                        ajax.recentRequest().
-                            expectToHaveMethod('POST').
-                            expectPathToContain('$REACT_APP_BASE_URL').
-                            expectBodyToContain({
-                                method: 'get_message_list',
-                                params
-                            }).respondSuccessfullyWith({
-                                result: {data}
-                            });
+                        data.forEach(item => (item.total_messages_count = total_messages_count));
+
+                        request.respondSuccessfullyWith({
+                            result: {data}
+                        });
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -1824,6 +1847,12 @@ define(() => function ({
         };
 
         return {
+            anotherChat() {
+                params.chat_id = 582103;
+                params.message.chat_id = 582103;
+                return this;
+            },
+
             withoutText() {
                 params.message.text = '';
                 return this;
@@ -4127,6 +4156,11 @@ define(() => function ({
                 chat(2718936);
                 return this;
             },
+
+            fourthChat() {
+                chat(582103);
+                return this;
+            },
             
             chat() {
                 chat(2718935);
@@ -4268,6 +4302,12 @@ define(() => function ({
             me.singlePage = () => (Object.keys(data).forEach(name => (data[name] = 30)), me);
             me.newMessage = () => (processors.push(() => (data.active_with_unread_count ++)), me);
             me.readMessage = () => (processors.push(() => (data.active_with_unread_count --)), me);
+
+            me.noActiveChats = () => {
+                data.active_chat_count = 0;
+                data.active_with_unread_count = 0;
+                return me;
+            };
 
             me.noActiveChatsWithUnreadMessages = () => {
                 data.active_with_unread_count = 0;
@@ -11440,6 +11480,8 @@ define(() => function ({
                         }
                     });
 
+                spendTime(0);
+
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith(response);
@@ -11760,172 +11802,219 @@ define(() => function ({
         const getDomElement = () => utils.querySelector(selector, true),
             tester = addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement),
             downloadAnchors = new Set(),
-            noElement = new JsTester_NoElement();
+            noElement = new JsTester_NoElement(),
+            messageClassNames = '.cm-chats--chat-history-message, .cm-contacts-system-message';
 
-        tester.message = {
-            atTime: desiredTime => {
-                const createTester = (filter = () => true) => {
-                    const getMessageElement = () => {
-                        const domElements = utils.descendantOf(getDomElement()).
-                            matchesSelector('.cm-chats--chat-history-message-time').
-                            textEquals(desiredTime).
-                            findAll().
-                            filter(domElement => {
-                                const callRecordElement = domElement.closest('.cm-contacts-communications-call-record');
+        const createMessageTester = getMessageElement => {
+            const createTester = (filter = () => true) => {
+                const tester = testersFactory.createDomElementTester(() => getMessageElement(filter)),
+                    putMouseOver = tester.putMouseOver.bind(tester);
 
-                                if (callRecordElement && !(callRecordElement instanceof JsTester_NoElement)) {
-                                    return false;
-                                }
+                tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
-                                if (!filter(domElement)) {
-                                    return false;
-                                }
+                tester.inner = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => getMessageElement(filter).querySelector('.cm-contacts-system-message-inner')
+                    );
 
-                                return true;
-                            });
-
-                        const domElement = (() => {
-                            if (domElements.length != 1) {
-                                return new JsTester_NoElement();
-                            }
-
-                            return domElements[0];
-                        })();
-
-                        const messageElement = domElement.closest(
-                            '.cm-chats--chat-history-message, .cm-contacts-system-message'
-                        ) || new JsTester_NoElement();
-
-                        const callWrapperElement = domElement.closest('.cm-contacts-call-wrapper');
-
-                        if (callWrapperElement && !(callWrapperElement instanceof JsTester_NoElement)) {
-                            return callWrapperElement;
-                        }
-
-                        return messageElement;
-                    };
-
-                    const tester = testersFactory.createDomElementTester(getMessageElement),
-                        putMouseOver = tester.putMouseOver.bind(tester);
-
+                    const putMouseOver = tester.putMouseOver.bind(tester);
                     tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
-                    tester.inner = (() => {
-                        const tester = testersFactory.createDomElementTester(
-                            () => getMessageElement().querySelector('.cm-contacts-system-message-inner')
-                        );
+                    return tester;
+                })();
 
-                        const putMouseOver = tester.putMouseOver.bind(tester);
-                        tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+                tester.directionIcon = testersFactory.createDomElementTester(() => {
+                    const domElements = Array.prototype.filter.call(
+                        getMessageElement(filter).querySelectorAll('svg'),
 
-                        return tester;
-                    })();
-
-                    tester.directionIcon = testersFactory.createDomElementTester(() => {
-                        const domElements = Array.prototype.filter.call(
-                            getMessageElement().querySelectorAll('svg'),
-
-                            domElement => {
-                                return ((domElement.getAttribute('class') || '') + '').includes('cmg-direction-icon');
-                            }
-                        );
-
-                        if (domElements.length == 1) {
-                            return domElements[0];
+                        domElement => {
+                            return ((domElement.getAttribute('class') || '') + '').includes('cmg-direction-icon');
                         }
-
-                        return new JsTester_NoElement();
-                    });
-
-                    const messageBody  = testersFactory.createDomElementTester(() => {
-                        const messageElement = getMessageElement();
-
-                        if (messageElement.classList.contains('cm-contacts-call-wrapper')) {
-                            return messageElement.querySelector('.cm-chats--chat-history-message');
-                        }
-
-                        return messageElement;
-                    });
-
-                    tester.expectSourceToBeOperator = () => messageBody.expectToHaveClass(
-                        'cm-chats--chat-history-message-source-operator'
                     );
 
-                    tester.expectSourceToBeVisitor = () => messageBody.expectToHaveClass(
-                        'cm-chats--chat-history-message-source-visitor'
-                    );
-
-                    tester.expectToBeDelivered = () => testersFactory.createDomElementTester(
-                        () => getMessageElement().querySelector('.cm-chats--chat-history-message-text')
-                    ).expectToHaveClass('cm-chats--is-delivered-message');
-                        
-                    tester.expectToHaveNoStatus = () => testersFactory.createDomElementTester(
-                        () => getMessageElement().querySelector('.cm-chats--chat-history-message-text')
-                    ).expectToHaveClass('cm-chats--is-unknown-message');
-
-                    tester.preview = testersFactory.createDomElementTester(() =>
-                        getMessageElement().querySelector('.cm-chats--preview'));
-
-                    tester.ellipsisButton = (() => {
-                        const tester = testersFactory.createDomElementTester(
-                            () => getMessageElement().querySelector('.cm-chats--download-popup-button')
-                        );
-
-                        const click = tester.click.bind(tester);
-                        tester.click = () => (click(), spendTime(0));
-
-                        return tester;
-                    })();
-
-                    const downloadAnchor = Array.prototype.find.call(
-                        getMessageElement().querySelectorAll('a'),
-                        domElement => domElement.style.display == 'none'
-                    ) || noElement;
-
-                    if (!downloadAnchors.has(downloadAnchor)) {
-                        downloadAnchors.add(downloadAnchor);
-                        downloadAnchor.addEventListener('click', event => event.preventDefault());
+                    if (domElements.length == 1) {
+                        return domElements[0];
                     }
 
-                    downloadAnchorTester = testersFactory.createAnchorTester(downloadAnchor);
-
-                    tester.downloadedFile = {
-                        expectToHaveName: expectedName => {
-                            (downloadAnchor == noElement ? tester.downloadIcon : downloadAnchorTester).
-                                expectAttributeToHaveValue('download', expectedName);
-
-                            return tester.downloadedFile;
-                        },
-
-                        expectToHaveContent: expectedContent => {
-                            if (downloadAnchor == noElement) {
-                                tester.downloadIcon.expectHrefToBeBlobWithContent(expectedContent);
-                            } else {
-                                downloadAnchorTester.expectHrefToHaveHash(expectedContent);
-                            }
-
-                            return tester.downloadedFile;
-                        }
-                    };
-
-                    return addTesters(tester, getMessageElement);
-                };
-
-                const tester = createTester();
-
-                tester.notSystem = createTester(domElement => {
-                    const messageElement = domElement.closest('.cm-contacts-system-message');
-                    return !messageElement || messageElement instanceof JsTester_NoElement;
+                    return new JsTester_NoElement();
                 });
 
-                return tester;
-            }
+                const messageBody  = testersFactory.createDomElementTester(() => {
+                    const messageElement = getMessageElement(filter);
+
+                    if (messageElement.classList.contains('cm-contacts-call-wrapper')) {
+                        return messageElement.querySelector('.cm-chats--chat-history-message');
+                    }
+
+                    return messageElement;
+                });
+
+                tester.expectSourceToBeOperator = () => messageBody.expectToHaveClass(
+                    'cm-chats--chat-history-message-source-operator'
+                );
+
+                tester.expectSourceToBeVisitor = () => messageBody.expectToHaveClass(
+                    'cm-chats--chat-history-message-source-visitor'
+                );
+
+                tester.expectToBeDelivered = () => testersFactory.createDomElementTester(
+                    () => getMessageElement(filter).querySelector('.cm-chats--chat-history-message-text')
+                ).expectToHaveClass('cm-chats--is-delivered-message');
+                    
+                tester.expectToHaveNoStatus = () => testersFactory.createDomElementTester(
+                    () => getMessageElement(filter).querySelector('.cm-chats--chat-history-message-text')
+                ).expectToHaveClass('cm-chats--is-unknown-message');
+
+                tester.preview = testersFactory.createDomElementTester(() =>
+                    getMessageElement(filter).querySelector('.cm-chats--preview'));
+
+                tester.ellipsisButton = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => getMessageElement(filter).querySelector('.cm-chats--download-popup-button')
+                    );
+
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0));
+
+                    return tester;
+                })();
+
+                const downloadAnchor = Array.prototype.find.call(
+                    getMessageElement(filter).querySelectorAll('a'),
+                    domElement => domElement.style.display == 'none'
+                ) || noElement;
+
+                if (!downloadAnchors.has(downloadAnchor)) {
+                    downloadAnchors.add(downloadAnchor);
+                    downloadAnchor.addEventListener('click', event => event.preventDefault());
+                }
+
+                downloadAnchorTester = testersFactory.createAnchorTester(downloadAnchor);
+
+                tester.downloadedFile = {
+                    expectToHaveName: expectedName => {
+                        (downloadAnchor == noElement ? tester.downloadIcon : downloadAnchorTester).
+                            expectAttributeToHaveValue('download', expectedName);
+
+                        return tester.downloadedFile;
+                    },
+
+                    expectToHaveContent: expectedContent => {
+                        if (downloadAnchor == noElement) {
+                            tester.downloadIcon.expectHrefToBeBlobWithContent(expectedContent);
+                        } else {
+                            downloadAnchorTester.expectHrefToHaveHash(expectedContent);
+                        }
+
+                        return tester.downloadedFile;
+                    }
+                };
+
+                return addTesters(tester, () => getMessageElement(filter));
+            };
+
+            const tester = createTester(),
+                expectToBeVisible = tester.expectToBeVisible.bind(tester);
+
+            tester.expectToBeVisible = () => {
+                expectToBeVisible();
+
+                if (!utils.isIntersecting(getDomElement(), getMessageElement())) {
+                    throw new Error('Сообщение должно быть видимым.');
+                }
+            };
+
+            tester.expectToBeHidden = () => {
+                const messageElement = getMessageElement();
+
+                if (utils.isNonExisting(messageElement)) {
+                    throw new Error('Сообщение должно существовать.');
+                }
+                
+                if (!utils.isVisible(messageElement)) {
+                    return;
+                }
+
+                if (utils.isIntersecting(getDomElement(), messageElement)) {
+                    throw new Error('Сообщение должно быть скрытым.');
+                }
+            };
+
+            tester.notSystem = createTester(domElement => {
+                const messageElement = domElement.closest('.cm-contacts-system-message');
+                return !messageElement || messageElement instanceof JsTester_NoElement;
+            });
+
+            return tester;
+        };
+
+        tester.message = {
+            containsSubstring: expectedSubstring => createMessageTester(() => utils.descendantOf(getDomElement()).
+                matchesSelector(messageClassNames).
+                textContains(expectedSubstring).
+                find()),
+
+            atTime: desiredTime => createMessageTester((filter = () => true) => {
+                const domElements = utils.descendantOf(getDomElement()).
+                    matchesSelector('.cm-chats--chat-history-message-time').
+                    textEquals(desiredTime).
+                    findAll().
+                    filter(domElement => {
+                        const callRecordElement = domElement.closest('.cm-contacts-communications-call-record');
+
+                        if (callRecordElement && !(callRecordElement instanceof JsTester_NoElement)) {
+                            return false;
+                        }
+
+                        if (!filter(domElement)) {
+                            return false;
+                        }
+
+                        return true;
+                    });
+
+                const domElement = (() => {
+                    if (domElements.length != 1) {
+                        return new JsTester_NoElement();
+                    }
+
+                    return domElements[0];
+                })();
+
+                const messageElement = domElement.closest(messageClassNames) || new JsTester_NoElement(),
+                    callWrapperElement = domElement.closest('.cm-contacts-call-wrapper');
+
+                if (callWrapperElement && !(callWrapperElement instanceof JsTester_NoElement)) {
+                    return callWrapperElement;
+                }
+
+                return messageElement;
+            })
         };
 
         return tester;
     };
 
-    me.chatHistory = addCommunicationPanelTestingMethods('.cm-chats--chat-panel-history');
+    {
+        const bottomClassName = '.cm-chats--chat-panel-history-bottom';
+
+        me.chatHistory = addCommunicationPanelTestingMethods('.cm-chats--chat-panel-history');
+        me.chatHistory.bottom = testersFactory.createDomElementTester(bottomClassName);
+
+        const scrollTo = me.chatHistory.scrollTo.bind(me.chatHistory);
+
+        me.chatHistory.scrollTo = scrollTop => {
+            scrollTo(scrollTop);
+            spendTime(0);
+        };
+
+        me.chatHistory.bottom.expectToBeVisible = () => {
+            const chatHistoryElement = utils.querySelector('.cm-chats--chat-panel-history'),
+                bottomElement = utils.querySelector(bottomClassName);
+
+            return utils.isIntersecting(chatHistoryElement, bottomElement);
+        };
+    }
 
     me.visitorPanel = (() => {
         const getDomElement = () => utils.querySelector('.cm-chats--visitor-info-panel'),
@@ -12215,6 +12304,7 @@ define(() => function ({
         tester.scrollIntoView = () => {
             scrollIntoView();
             maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
+            spendTime(0);
         };
 
         return tester;
