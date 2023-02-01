@@ -2884,6 +2884,7 @@ define(function () {
 
                     expectSomeStatus(response);
                     Promise.runAll(false, true);
+                    spendTime(0);
 
                     return {
                         expectOkToBeSent: function () {

@@ -45,10 +45,58 @@ index 5374789..e4e7e3c 100644
      "yup": "^0.32.9"
    }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index c23d76b..35692ca 100644
+index 8fb19b7..60f4be3 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -707,4 +707,5 @@ export const RootStore = types
+@@ -14,7 +14,23 @@ import React from 'react';
+ import moment from 'moment';
+ import { combineReducers, createStore, applyMiddleware } from 'redux';
+ import thunkMiddleware from 'redux-thunk';
+-import { toggleWidgetVisiblity, setAxiosProcessor, setStatus, onDialpadKeyDown, showMessage, closeMessage, showWidget, sendBrowserNotification, addNotificationToSession, sendToWebsocket, terminateSession, doToggleCallInfoCollapsedness, makeSoftphoneHigh, openCallsPanel, setIsVirtualNumberGroupsEnabled } from 'uis-softphone/actions';
++import {
++    toggleWidgetVisiblity,
++    setAxiosProcessor,
++    setStatus,
++    onDialpadKeyDown,
++    showMessage,
++    closeMessage,
++    showWidget,
++    sendBrowserNotification,
++    addNotificationToSession,
++    sendToWebsocket,
++    terminateSession,
++    doToggleCallInfoCollapsedness,
++    makeSoftphoneHigh,
++    openCallsPanel,
++    setIsVirtualNumberGroupsEnabled 
++} from 'uis-softphone/actions';
+ import { authorization } from 'uis-softphone/authorization/actions';
+ import { STATUSES_MANAGER_CREATED, HANDLE_WEBRTC_CREATED } from 'uis-softphone/authorization/constants';
+ import createI18N from 'uis-softphone/common/createI18N';
+@@ -210,6 +226,8 @@ export const RootStore = types
+                         })
+                     }),
+                     ...createSoftphoneReducer({
++                        getPhoneNumber: () => '',
++                        multiTabEnabled: !isSingleApp,
+                         createFocusednessGetter: isSingleApp ? createFocusednessGetter : createDefaultFocusednessGetter,
+                         shouldHideDialpadInIPTelephoneMode: () => !self.isLarge,
+                         shouldNotificationBeStickedToBottom: isSingleApp,
+@@ -553,7 +571,12 @@ export const RootStore = types
+                     self.setAccount(account);
+                     localStorage.getItem('isLarge') === 'true' && self.setIsLarge();
+ 
+-                    dispatch(setIsVirtualNumberGroupsEnabled(['usa', 'rolands'].includes(account?.project)));
++                    const areVirtualNumberGroupsEnabled = ['usa', 'rolands'].includes(account?.project);
++
++                    self.reduxStore.getState().rootStore.
++                        setAreVirtualNumberGroupsEnabled(areVirtualNumberGroupsEnabled);
++
++                    dispatch(setIsVirtualNumberGroupsEnabled(areVirtualNumberGroupsEnabled));
+                 };
+ 
+                 window.addEventListener('tokenChange', () => updateState(getTokenParams()));
+@@ -704,4 +727,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
