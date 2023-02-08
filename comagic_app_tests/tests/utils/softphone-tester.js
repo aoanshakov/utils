@@ -1145,9 +1145,7 @@ define(function () {
 
                     return addMethods({
                         receiveResponse: function () {
-                            request.respondSuccessfullyWith({
-                                data: data 
-                            });
+                            request.respondSuccessfullyWith({ data });
 
                             spendTime(0);
                             spendTime(0);

@@ -152,7 +152,7 @@ tests.addTest(options => {
                 tester.numaRequest().receiveResponse();
             });
 
-            xdescribe('Контакт найден.', function() {
+            describe('Контакт найден.', function() {
                 beforeEach(function() {
                     tester.outCallEvent().receive();
                     tester.outCallEvent().slavesNotification().expectToBeSent();
@@ -642,7 +642,7 @@ tests.addTest(options => {
                     tester.softphone.expectToBeExpanded();
                 });
             });
-            xdescribe('Звонок переведен от другого сотрудника.', function() {
+            describe('Звонок переведен от другого сотрудника.', function() {
                 let outCallEvent;
 
                 beforeEach(function() {
@@ -701,7 +701,7 @@ tests.addTest(options => {
                         slavesNotification().expectToBeSent();
                 });
             });
-            xdescribe('Звонок производится в рамках исходящего обзвона.', function() {
+            describe('Звонок производится в рамках исходящего обзвона.', function() {
                 var outCallEvent;
 
                 beforeEach(function() {
@@ -767,7 +767,7 @@ tests.addTest(options => {
                         expectToBeSent();
                 });
                 
-                xit('Нажимаю на ссылку на открытую сделку. Открыта сделка.', function() {
+                it('Нажимаю на ссылку на открытую сделку. Открыта сделка.', function() {
                     tester.anchor('По звонку с 79154394340').click();
 
                     windowOpener.expectToHavePath(
@@ -803,7 +803,6 @@ tests.addTest(options => {
                     );
                 });
             });
-            return;
             it(
                 'Контакт не найден. Отображно направление звонка. Кнопка открытия ' +
                 'контакта заблокирована.',
@@ -890,7 +889,6 @@ tests.addTest(options => {
                 );
             });
         });
-        return;
         describe('Браузер скрыт.', function() {
             beforeEach(function() {
                 setDocumentVisible(false);

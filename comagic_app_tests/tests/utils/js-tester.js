@@ -7783,6 +7783,7 @@ function JsTester_Tests (factory) {
         addSecond = function () {
             nowValue.createSetter()(nowValue.createGetter()() + 1000);
             spendTime(1000);
+            spendTime(0);
         },
         now = new JsTester_Now({
             originalNow: Date.now,

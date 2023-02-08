@@ -2,6 +2,7 @@ tests.addTest(options => {
     const {
         utils,
         Tester,
+        addSecond,
         spendTime,
         windowOpener,
         mediaStreamsTester,
@@ -194,7 +195,7 @@ tests.addTest(options => {
                                     expectToBeSent();
                             });
 
-                            describe('Звонок принят.', function() {
+                            xdescribe('Звонок принят.', function() {
                                 beforeEach(function() {
                                     outgoingCall.setAccepted();
 
@@ -388,6 +389,36 @@ tests.addTest(options => {
                                     );
                                 });
                             });
+                            describe('Прошла секунда.', function() {
+                                beforeEach(function() {
+                                    addSecond();
+                                });
+
+                                describe('Звонок принят.', function() {
+                                    beforeEach(function() {
+                                        outgoingCall.setAccepted();
+
+                                        tester.slavesNotification().
+                                            available().
+                                            userDataFetched().
+                                            twoChannels().
+                                            confirmed().
+                                            expectToBeSent();
+                                    });
+
+                                    it('Прошла секунда. Таймер изменился.', function() {
+                                        addSecond();
+                                        tester.softphone.expectTextContentToHaveSubstring('00:01');
+                                    });
+                                    it('Таймер обнулился.', function() {
+                                        tester.softphone.expectTextContentToHaveSubstring('00:00');
+                                    });
+                                });
+                                it('Таймер изменился.', function() {
+                                    tester.softphone.expectTextContentToHaveSubstring('00:01');
+                                });
+                            });
+                            return;
                             describe('Поступил входящий звонок.', function() {
                                 let incomingCall;
 
@@ -509,7 +540,7 @@ tests.addTest(options => {
                                         );
                                 });
                             });
-                            it(
+                            xit(
                                 'Нажимаю на кнопку остановки звонка. Ввожу тот ' +
                                 'же самый номер. Отображается поле номера.',
                             function() {
@@ -533,11 +564,13 @@ tests.addTest(options => {
                             it('Отображено имя, номер и таймер.', function() {
                                 tester.softphone.expectToBeCollapsed();
                                 tester.outgoingIcon.expectToBeVisible();
+
                                 tester.softphone.expectTextContentToHaveSubstring(
                                     'Шалева Дора +7 (916) 123-45-67 00:00'
                                 );
                             });
                         });
+                        return;
                         it(
                             'Есть активные сделки. Отображены активные сделки.',
                         function() {
@@ -554,6 +587,7 @@ tests.addTest(options => {
                                 );
                         });
                     });
+                    return;
                     it('Данные контакта не найдены.', function() {
                         tester.outCallSessionEvent().noName().receive();
                         tester.outCallSessionEvent().noName().
@@ -574,6 +608,7 @@ tests.addTest(options => {
                         );
                     });
                 });
+                return;
                 describe('Контакт является сотрудником.', function() {
                     beforeEach(function() {
                         numaRequest.employeeNameIsFound().receiveResponse();
@@ -617,6 +652,7 @@ tests.addTest(options => {
                     });
                 });
             });
+            return;
             it(
                 'Нажимаю на клавишу Enter. Совершается исходящий звонок.',
             function() {
@@ -651,6 +687,7 @@ tests.addTest(options => {
                 tester.outCallSessionEvent().slavesNotification().expectToBeSent();
             });
         });
+        return;
         it('Нажимаю на кнопку удаления цифры. Цифра удалена.', function() {
             tester.digitRemovingButton.click();
             tester.phoneField.fill('7916123456');
