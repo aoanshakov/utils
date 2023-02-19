@@ -1,8 +1,155 @@
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index c97b006..422eb32 100644
+index c97b006..8eb7738 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -745,4 +745,5 @@ export const RootStore = types
+@@ -18,7 +18,6 @@ import thunkMiddleware from 'redux-thunk';
+ import {
+     toggleWidgetVisiblity,
+     setAxiosProcessor,
+-    setStatus,
+     onDialpadKeyDown,
+     sendBrowserNotification,
+     addNotificationToSession,
+@@ -31,7 +30,6 @@ import { STATUSES_MANAGER_CREATED, HANDLE_WEBRTC_CREATED } from 'uis-softphone/a
+ import createI18N from 'uis-softphone/common/createI18N';
+ import createSoftphoneMiddleware from 'uis-softphone/middleware';
+ import createSoftphoneReducer from 'uis-softphone/reducer';
+-import { setStartApp, setStartMinimize } from 'uis-softphone/settings/actions';
+ import { createFocusednessGetter as createDefaultFocusednessGetter, createObservable } from 'uis-softphone/utils';
+ import { isSoftphoneAvailable as getSoftphoneAvailability } from '@/utils';
+ 
+@@ -53,6 +51,10 @@ import {
+     SET_PERMISSIONS,
+     IS_TRUE,
+     AFTER_SET_SETTINGS 
++    isStartApp,
++    isStartMinimize,
++    onStartAppChange,
++    onStartMinimize,
+ } from 'uis-softphone/constants';
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+@@ -85,6 +87,10 @@ export const RootStore = types
+             }),
+             {}
+         ),
++        isStartApp: types.optional(types.boolean, false),
++        isStartMinimize: types.optional(types.boolean, false),
++        toTopOnCall: types.optional(types.boolean, false),
++        closeOnCallEnd: types.optional(types.boolean, false),
+         resizeCount: types.optional(types.number, 0),
+         locale: types.optional(types.string, 'en'),
+         isSoftphoneAvailable: types.optional(types.boolean, false),
+@@ -133,6 +139,9 @@ export const RootStore = types
+                 call = () => null,
+                 isAuthorized = false;
+ 
++            self.toTopOnCall = localStorage.getItem('clct:to_top_on_call') !== 'false';
++            self.closeOnCallEnd = localStorage.getItem('clct:close_on_call_end') !== 'false';
++
+             const broadcast = (...args) => {
+                 const doBroadcast = () => eventBus.broadcast(...args);
+ 
+@@ -238,9 +247,6 @@ export const RootStore = types
+                 {},
+                 applyMiddleware(thunkMiddleware, createSoftphoneMiddleware(), store => next => action => {
+                     switch (action.type) {
+-                        case AFTER_SET_SETTINGS:
+-                            broadcast('settings_fetched', action.settings);
+-                            break;
+                         case SET_PERMISSIONS:
+                             self.callHistoryStore.setPermissions(action.permissions);
+                             break;
+@@ -285,10 +291,10 @@ export const RootStore = types
+                             break;
+                         case JSSIP_CALL:
+                             isSingleApp && self.callHistoryStore.setContact(null);
+-                            eventBus.broadcast('call_start', store.getState().settings.toTopOnCall);
++                            eventBus.broadcast('call_start', self.toTopOnCall);
+                             break;
+                         case JSSIP_CALL_ENDED:
+-                            eventBus.broadcast('call_end', store.getState().settings.closeOnCallEnd);
++                            eventBus.broadcast('call_end', self.closeOnCallEnd);
+                             self.callHistoryStore.refreshData(RECENT_REFRESH_DELAY);
+                             break;
+                         case JSSIP_INBOUNDING_CALL_ENDED:
+@@ -418,6 +424,7 @@ export const RootStore = types
+ 
+             addMiddleware(getState().rootStore, (call, next) => {
+                 call.name == 'toggleCallInfoCollapsedness' && self.setNotLarge();
++                call.name == 'setSettings' && broadcast('settings_fetched', ...call.args);
+                 next(call);
+             });
+ 
+@@ -440,9 +447,12 @@ export const RootStore = types
+             };
+ 
+             self.onDialpadKeyDown = (...args) => dispatch(onDialpadKeyDown(...args));
+-            self.statusesStore.setStatusUpdator((statusId: number) => dispatch(setStatus(statusId)));
+             self.setDictonary = i18n.setDictonary;
+ 
++            self.statusesStore.setStatusUpdator(
++                (statusId: number) => getState().rootStore.coreStore.setStatus(statusId)
++            );
++
+             window.addEventListener(
+                 'toggleSoftphoneVisiblity',
+                 () => self.reduxStore.getState().rootStore.uiStore.toggleWidgetVisiblity()
+@@ -598,9 +608,6 @@ export const RootStore = types
+                     accessGranted: false,
+                 }));
+ 
+-                self.setStartApp = isStartApp => self.reduxStore.dispatch(setStartApp(isStartApp));
+-                self.setStartMinimize = isStartMinimize => self.reduxStore.dispatch(setStartMinimize(isStartMinimize));
+-
+                 self.setMounted = () => updateState({
+                     ...getTokenParams(),
+                     mounted: true,
+@@ -728,9 +735,43 @@ export const RootStore = types
+             self.locale = locale;
+         };
+ 
++        const setToTopOnCall = toTopOnCall => {
++            localStorage.setItem('clct:to_top_on_call', toTopOnCall);
++            self.toTopOnCall = toTopOnCall;
++        };
++
++        const setToCloseOnCallEnd = closeOnCallEnd => {
++            localStorage.setItem('clct:close_on_call_end', closeOnCallEnd);
++            self.closeOnCallEnd = closeOnCallEnd;
++        };
++
++        const setStartApp = isStartApp => {
++            self.isStartApp = isStartApp;
++        };
++
++        const onStartAppChange = checked => {
++            setStartApp(checked);
++            eventBus.broadcast('autolauncherchange', checked);
++        };
++
++        const setStartMinimize = isStartMinimize => {
++            self.isStartMinimize = isStartMinimize;
++        };
++
++        const onStartMinimize = checked => {
++            setStartMinimize(checked);
++            eventBus.broadcast('startminimizechange', checked);
++        };
++
+         return {
+             afterCreate,
+             resetStore,
++            setStartApp,
++            onStartAppChange,
++            setStartMinimize,
++            onStartMinimize,
++            setToCloseOnCallEnd,
++            setToTopOnCall,
+             setSoftphoneAvailable,
+             setAccount,
+             request,
+@@ -745,4 +786,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
