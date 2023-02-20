@@ -1,155 +1,201 @@
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index c97b006..8eb7738 100644
+index 4bb7d78..f8f8b48 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -18,7 +18,6 @@ import thunkMiddleware from 'redux-thunk';
- import {
-     toggleWidgetVisiblity,
-     setAxiosProcessor,
--    setStatus,
-     onDialpadKeyDown,
-     sendBrowserNotification,
-     addNotificationToSession,
-@@ -31,7 +30,6 @@ import { STATUSES_MANAGER_CREATED, HANDLE_WEBRTC_CREATED } from 'uis-softphone/a
- import createI18N from 'uis-softphone/common/createI18N';
- import createSoftphoneMiddleware from 'uis-softphone/middleware';
- import createSoftphoneReducer from 'uis-softphone/reducer';
--import { setStartApp, setStartMinimize } from 'uis-softphone/settings/actions';
- import { createFocusednessGetter as createDefaultFocusednessGetter, createObservable } from 'uis-softphone/utils';
- import { isSoftphoneAvailable as getSoftphoneAvailability } from '@/utils';
+@@ -2,7 +2,7 @@ import { intlMessages } from '../i18n';
+ import { AuthStore } from './auth/AuthStore';
+ import { CallHistoryStore } from './call_history/CallHistoryStore';
+ import { EmployeesStore } from './employees/EmployeesStore';
+-import { RootStore as SoftphoneStore, createRootStore } from 'uis-softphone/models/RootStore';
++import { RootStore as SoftphoneStore, createRootStore as createSoftphoneStore } from 'uis-softphone/models/RootStore';
+ import { StatusesStore } from './statuses/StatusesStore';
+ import { WebsocketStore } from './websocket/WebsocketStore';
+ import { CallStatsStore } from '@models/call_stats/CallStatsStore';
+@@ -37,7 +37,7 @@ const createFocusednessGetter = () => {
  
-@@ -53,6 +51,10 @@ import {
-     SET_PERMISSIONS,
-     IS_TRUE,
-     AFTER_SET_SETTINGS 
-+    isStartApp,
-+    isStartMinimize,
-+    onStartAppChange,
-+    onStartMinimize,
- } from 'uis-softphone/constants';
+     return createDefaultFocusednessGetter({
+         handleFocusChange: isFocused => !isFocused && (clicked = false),
+-        shouldConsiderFocused: () => clicked
++        shouldConsiderFocused: () => clicked,
+     });
+ };
  
- type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
-@@ -85,6 +87,10 @@ export const RootStore = types
-             }),
-             {}
-         ),
-+        isStartApp: types.optional(types.boolean, false),
-+        isStartMinimize: types.optional(types.boolean, false),
-+        toTopOnCall: types.optional(types.boolean, false),
-+        closeOnCallEnd: types.optional(types.boolean, false),
-         resizeCount: types.optional(types.number, 0),
-         locale: types.optional(types.string, 'en'),
-         isSoftphoneAvailable: types.optional(types.boolean, false),
-@@ -133,6 +139,9 @@ export const RootStore = types
+@@ -64,7 +64,6 @@ export const RootStore = types
+         websocketStore: types.optional(WebsocketStore, {}),
+         feedbackStore: types.optional(FeedbackStore, {}),
+         promperStore: types.optional(PromperStore, {}),
+-        softphoneStore: types.optional(types.maybeNull(SoftphoneStore), null),
+         statusesStore: types.optional(StatusesStore, {}),
+         callHistoryStore: types.optional(CallHistoryStore, {}),
+         callStatsStore: types.optional(CallStatsStore, {}),
+@@ -77,7 +76,7 @@ export const RootStore = types
+     .actions(self => {
+         let initialState: RootInstanceSnapshotOut,
+             hasError = false,
+-            doRequest = () => null,
++            doRequest = () => null;
+ 
+         const accountFetchedHandlers = [],
+             applicationChangeHandlers = [],
+@@ -87,6 +86,7 @@ export const RootStore = types
+             setSoftphoneAvailable = value => (self.isSoftphoneAvailable = value),
+             incrementResizeCount = () => (self.resizeCount ++);
+ 
++
+         const removeSubscriptions = () => {
+             subscriptionRemovers.forEach(removeSubscription => removeSubscription());
+             subscriptionRemovers = [];
+@@ -98,12 +98,13 @@ export const RootStore = types
+                 isSingleApp = isElectron(),
+                 enablingHandlers = [];
+             hasError = false;
+-            subscriptionRemovers = [];
+ 
+             let authStore,
                  call = () => null,
                  isAuthorized = false;
  
-+            self.toTopOnCall = localStorage.getItem('clct:to_top_on_call') !== 'false';
-+            self.closeOnCallEnd = localStorage.getItem('clct:close_on_call_end') !== 'false';
++            removeSubscriptions();
 +
-             const broadcast = (...args) => {
-                 const doBroadcast = () => eventBus.broadcast(...args);
+             self.toTopOnCall = localStorage.getItem('clct:to_top_on_call') !== 'false';
+             self.closeOnCallEnd = localStorage.getItem('clct:close_on_call_end') !== 'false';
  
-@@ -238,9 +247,6 @@ export const RootStore = types
-                 {},
-                 applyMiddleware(thunkMiddleware, createSoftphoneMiddleware(), store => next => action => {
-                     switch (action.type) {
--                        case AFTER_SET_SETTINGS:
--                            broadcast('settings_fetched', action.settings);
--                            break;
-                         case SET_PERMISSIONS:
-                             self.callHistoryStore.setPermissions(action.permissions);
-                             break;
-@@ -285,10 +291,10 @@ export const RootStore = types
-                             break;
-                         case JSSIP_CALL:
-                             isSingleApp && self.callHistoryStore.setContact(null);
--                            eventBus.broadcast('call_start', store.getState().settings.toTopOnCall);
-+                            eventBus.broadcast('call_start', self.toTopOnCall);
-                             break;
-                         case JSSIP_CALL_ENDED:
--                            eventBus.broadcast('call_end', store.getState().settings.closeOnCallEnd);
-+                            eventBus.broadcast('call_end', self.closeOnCallEnd);
-                             self.callHistoryStore.refreshData(RECENT_REFRESH_DELAY);
-                             break;
-                         case JSSIP_INBOUNDING_CALL_ENDED:
-@@ -418,6 +424,7 @@ export const RootStore = types
+@@ -185,7 +186,7 @@ export const RootStore = types
  
-             addMiddleware(getState().rootStore, (call, next) => {
-                 call.name == 'toggleCallInfoCollapsedness' && self.setNotLarge();
-+                call.name == 'setSettings' && broadcast('settings_fetched', ...call.args);
-                 next(call);
-             });
+             const shouldDisplayCallNotification = phone => !self.promperStore.checkPendingCallToPrompt(phone); 
  
-@@ -440,9 +447,12 @@ export const RootStore = types
-             };
+-            self.softphoneStore = createRootStore( {
++            self.softphoneStore = createSoftphoneStore({
+                 shouldDisplayCallNotification,
+                 getPhoneNumber: () => '',
+                 getWebRTCConfig: doGetWebRTCConfig,
+@@ -254,9 +255,9 @@ export const RootStore = types
+                                     shouldInitialize,
+                                     coreStore: {
+                                         changeAuthToken,
+-                                        authorize,
++                                        authenticate,
+                                     },
+-                                } = self.softphoneStore.coreStore;
++                                } = self.softphoneStore;
  
-             self.onDialpadKeyDown = (...args) => dispatch(onDialpadKeyDown(...args));
--            self.statusesStore.setStatusUpdator((statusId: number) => dispatch(setStatus(statusId)));
-             self.setDictonary = i18n.setDictonary;
+                                 shouldInitialize ? authorize() : changeAuthToken(token);
+                                 requests.forEach(action => action.request(action.args));
+@@ -321,11 +322,11 @@ export const RootStore = types
  
-+            self.statusesStore.setStatusUpdator(
-+                (statusId: number) => getState().rootStore.coreStore.setStatus(statusId)
-+            );
-+
-             window.addEventListener(
-                 'toggleSoftphoneVisiblity',
-                 () => self.reduxStore.getState().rootStore.uiStore.toggleWidgetVisiblity()
-@@ -598,9 +608,6 @@ export const RootStore = types
-                     accessGranted: false,
+                 subscribe('update_downloaded', () => self.softphoneStore.uiStore.showMessage({
+                     id: 'update-downloaded',
+-                    title: 'Update received',
++                    title: self.i18n('Update received'),
+                     buttons: [{
+                         id: 'update',
+-                        text: 'Update',
+-                        handler: () => eventBus.broadcast('quit_and_install')
++                        text: self.i18n('Update'),
++                        event: 'quit_and_install'
+                     }]
                  }));
  
--                self.setStartApp = isStartApp => self.reduxStore.dispatch(setStartApp(isStartApp));
--                self.setStartMinimize = isStartMinimize => self.reduxStore.dispatch(setStartMinimize(isStartMinimize));
--
-                 self.setMounted = () => updateState({
-                     ...getTokenParams(),
-                     mounted: true,
-@@ -728,9 +735,43 @@ export const RootStore = types
-             self.locale = locale;
-         };
+@@ -362,7 +363,44 @@ export const RootStore = types
+             };
  
-+        const setToTopOnCall = toTopOnCall => {
-+            localStorage.setItem('clct:to_top_on_call', toTopOnCall);
-+            self.toTopOnCall = toTopOnCall;
-+        };
+             addMiddleware(self.softphoneStore, (call, next) => {
+-                const result = next(call);
++                next(call, result => {
++                    if (call.name == 'interceptRequest') {
++                        const { request, ...args } = result;
 +
-+        const setToCloseOnCallEnd = closeOnCallEnd => {
-+            localStorage.setItem('clct:close_on_call_end', closeOnCallEnd);
-+            self.closeOnCallEnd = closeOnCallEnd;
-+        };
++                        [['success', response => {
++                            const url = (url => url[0] == '/' ? url : `/${url}`)(args.url);
 +
-+        const setStartApp = isStartApp => {
-+            self.isStartApp = isStartApp;
-+        };
++                            url == '/sup/api/v1/users/me/calls' &&
++                                self.callHistoryStore.resetLostCallsCount();
 +
-+        const onStartAppChange = checked => {
-+            setStartApp(checked);
-+            eventBus.broadcast('autolauncherchange', checked);
-+        };
++                            url == '/sup/api/v1/users/me' &&
++                                self.callHistoryStore.setLostCallsCount(response.lost_call_count);
++                        }], ['failure', () => null]].forEach(([name, additionalCallback]) => {
++                            const callback = args[name] || (() => null);
 +
-+        const setStartMinimize = isStartMinimize => {
-+            self.isStartMinimize = isStartMinimize;
-+        };
++                            args[name] = response => {
++                                additionalCallback(response);
 +
-+        const onStartMinimize = checked => {
-+            setStartMinimize(checked);
-+            eventBus.broadcast('startminimizechange', checked);
-+        };
++                                switch (response?.error?.mnemonic) {
++                                    case 'expired_token':
++                                        requests.push({ request, args });
++                                        self.authStore.doShellRefreshToken();
++                                        break;
++                                    case 'invalid_token':
++                                        logout();
++                                        break;
++                                    default:
++                                        callback(response);
++                                }
++                            };
++                        });
 +
-         return {
-             afterCreate,
-             resetStore,
-+            setStartApp,
-+            onStartAppChange,
-+            setStartMinimize,
-+            onStartMinimize,
-+            setToCloseOnCallEnd,
-+            setToTopOnCall,
-             setSoftphoneAvailable,
-             setAccount,
-             request,
-@@ -745,4 +786,5 @@ export const RootStore = types
++                        request(args);
++                        return;
++                    }
++
++                    return result;
++                });
+ 
+                 call.name == 'toggleCallInfoCollapsedness' && self.setNotLarge();
+                 call.name == 'setSettings' && broadcast('settings_fetched', ...call.args);
+@@ -388,43 +426,6 @@ export const RootStore = types
+                         !data.data?.destroyed &&
+                         self.softphoneStore.coreStore.error == 'appAlreadyOpened' &&
+                         authorize();
+-
+-                    return;
+-                }
+-
+-                if (call.name == 'interceptRequest') {
+-                    const { request, ...args } = result;
+-
+-                    [['success', response => {
+-                        const url = (url => url[0] == '/' ? url : `/${url}`)(args.url);
+-
+-                        url == '/sup/api/v1/users/me/calls' &&
+-                            self.callHistoryStore.resetLostCallsCount();
+-
+-                        url == '/sup/api/v1/users/me' &&
+-                            self.callHistoryStore.setLostCallsCount(response.lost_call_count);
+-                    }], ['failure', () => null]].forEach(([name, additionalCallback]) => {
+-                        const callback = args[name] || (() => null);
+-
+-                        args[name] = response => {
+-                            additionalCallback(response);
+-
+-                            switch (response?.error?.mnemonic) {
+-                                case 'expired_token':
+-                                    requests.push(action);
+-                                    self.authStore.doShellRefreshToken();
+-                                    break;
+-                                case 'invalid_token':
+-                                    logout();
+-                                    break;
+-                                default:
+-                                    callback(response);
+-                            }
+-                        };
+-                    });
+-
+-                    request(args);
+-                    return;
+                 }
+             });
+ 
+@@ -558,8 +559,6 @@ export const RootStore = types
+                 () => self.softphoneStore.uiStore.toggleWidgetVisiblity()
+             );
+ 
+-            removeSubscriptions();
+-
+             subscribe('outgoing_call', phoneNumber => self.call(phoneNumber));
+             subscribe('contacts_page_initialized', () => broadcast('settings_fetched', self.softphoneStore.settings));
+ 
+@@ -704,4 +703,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
