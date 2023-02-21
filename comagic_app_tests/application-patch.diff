@@ -418,7 +418,7 @@ index 1bac09b0..51fecd24 100644
          historyApiFallback: true,
      },
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 273dd60b..f70215c4 100644
+index 273dd60b..055074e2 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -21,7 +21,7 @@ export type LoginUser = {
@@ -430,53 +430,3 @@ index 273dd60b..f70215c4 100644
  
  type JwtPayload = {
      app_id: number;
-@@ -29,6 +29,8 @@ type JwtPayload = {
-     exp: number;
- };
- 
-+let i = 0;
-+
- export const AuthStore = LoaderModel.named('AuthStore')
-     .props({
-         isAuthorized: types.optional(types.boolean, false),
-@@ -36,6 +38,10 @@ export const AuthStore = LoaderModel.named('AuthStore')
-         windowId: types.optional(types.string, generateTraceId('local')),
-     })
-     .actions(self => {
-+        i ++;
-+
-+        self.i = i;
-+
-         const { httpRpcAuth } = getEnv(self);
-         const { authStore, accountStore, notificationStore, resetStore } = getRoot<typeof RootStore>(self);
-         const getToken = (): undefined | Auth => doGetToken(AUTH_KEY);
-@@ -155,14 +161,16 @@ export const AuthStore = LoaderModel.named('AuthStore')
- 
-             window.addEventListener('doLogoutUser', (event: CustomEvent) => {
-                 const eventWindowId = event.detail;
--                if (eventWindowId !== authStore.windowId) {
--                    void authStore.logout(true);
-+                if (eventWindowId !== self.windowId) {
-+                    void self.logout(true);
-                 }
-             });
-+
-             window.addEventListener('doRefreshToken', (event: CustomEvent) => {
-                 const eventWindowId = event.detail;
--                if (eventWindowId !== authStore.windowId) {
--                    authStore
-+
-+                if (eventWindowId !== self.windowId) {
-+                    self
-                         .fetchRefresh()
-                         .then(() => {
-                             const tokenRefreshedEvent = new Event('tokenRefreshed');
-@@ -173,7 +181,7 @@ export const AuthStore = LoaderModel.named('AuthStore')
-             });
- 
-             window.setInterval(() => {
--                if (authStore.isAuthorized) {
-+                if (self.isAuthorized) {
-                     const payload = getJwtPayload();
- 
-                     if (payload) {
