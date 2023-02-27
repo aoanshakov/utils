@@ -76,17 +76,27 @@ tests.addTest(options => {
 
                 authCheckRequest.receiveResponse();
                 tester.statusesRequest().receiveResponse();
-                tester.settingsRequest().receiveResponse();
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
 
-                notificationTester.grantPermission();
+                tester.settingsRequest().receiveResponse();
+
+                tester.othersNotification().
+                    widgetStateUpdate().
+                    expectToBeSent();
+
+                tester.othersNotification().
+                    updateSettings().
+                    shouldNotPlayCallEndingSignal().
+                    expectToBeSent();
 
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
                     expectToBeSent();
 
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                notificationTester.grantPermission();
                 tester.connectEventsWebSocket();
 
                 tester.slavesNotification().
@@ -101,15 +111,6 @@ tests.addTest(options => {
                     twoChannels().
                     webRTCServerConnected().
                     softphoneServerConnected().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    widgetStateUpdate().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 tester.authenticatedUserRequest().receiveResponse();
@@ -141,6 +142,7 @@ tests.addTest(options => {
 
                 tester.appReadyMessage().expectToBeSent();
                 tester.unmaximizeMessage().expectToBeSent();
+                tester.resizeMessage().expectToBeSent();
                 tester.resizeMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
             });
@@ -464,6 +466,8 @@ tests.addTest(options => {
                         tester.outCallEvent().slavesNotification().expectToBeSent();
 
                         incomingCall = tester.incomingCall().receive();
+
+                        tester.resizeMessage().expectToBeSent();
                         tester.callStartMessage().expectToBeSent();
 
                         tester.slavesNotification().
@@ -486,7 +490,6 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.numaRequest().receiveResponse();
-                        tester.resizeMessage().expectToBeSent();
 
                         tester.firstConnection.connectWebRTC();
                         tester.firstConnection.callTrackHandler();
@@ -506,7 +509,9 @@ tests.addTest(options => {
                             hidden().
                             expectToBeSent();
 
-                        notificationTester.grantPermission().recentNotification().
+                        notificationTester.
+                            grantPermission().
+                            recentNotification().
                             expectToHaveTitle('Подключение к звонку').
                             expectToHaveBody('Шалева Дора Добриновна +7 (916) 123-45-69');
                     });
@@ -520,6 +525,7 @@ tests.addTest(options => {
                     tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                     tester.incomingCall().receive();
+
                     tester.callStartMessage().expectToBeSent();
 
                     tester.slavesNotification().
@@ -628,13 +634,23 @@ tests.addTest(options => {
                         tester.authCheckRequest().receiveResponse();
                         tester.statusesRequest().receiveResponse();
                         tester.settingsRequest().receiveResponse();
-                        tester.talkOptionsRequest().receiveResponse();
-                        tester.permissionsRequest().receiveResponse();
+
+                        tester.othersNotification().
+                            widgetStateUpdate().
+                            expectToBeSent();
+
+                        tester.othersNotification().
+                            updateSettings().
+                            shouldNotPlayCallEndingSignal().
+                            expectToBeSent();
 
                         tester.slavesNotification().
                             twoChannels().
                             enabled().
                             expectToBeSent();
+
+                        tester.talkOptionsRequest().receiveResponse();
+                        tester.permissionsRequest().receiveResponse();
 
                         tester.connectEventsWebSocket(1);
 
@@ -650,15 +666,6 @@ tests.addTest(options => {
                             twoChannels().
                             webRTCServerConnected().
                             softphoneServerConnected().
-                            expectToBeSent();
-
-                        tester.othersNotification().
-                            widgetStateUpdate().
-                            expectToBeSent();
-
-                        tester.othersNotification().
-                            updateSettings().
-                            shouldNotPlayCallEndingSignal().
                             expectToBeSent();
 
                         tester.authenticatedUserRequest().receiveResponse();
@@ -775,13 +782,23 @@ tests.addTest(options => {
                     tester.authCheckRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
                     tester.settingsRequest().receiveResponse();
-                    tester.talkOptionsRequest().receiveResponse();
-                    tester.permissionsRequest().receiveResponse();
 
+                    tester.othersNotification().
+                        widgetStateUpdate().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        updateSettings().
+                        shouldNotPlayCallEndingSignal().
+                        expectToBeSent();
+                    
                     tester.slavesNotification().
                         twoChannels().
                         enabled().
                         expectToBeSent();
+
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
 
                     tester.connectEventsWebSocket(1);
 
@@ -797,15 +814,6 @@ tests.addTest(options => {
                         twoChannels().
                         webRTCServerConnected().
                         softphoneServerConnected().
-                        expectToBeSent();
-
-                    tester.othersNotification().
-                        widgetStateUpdate().
-                        expectToBeSent();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
                         expectToBeSent();
 
                     tester.authenticatedUserRequest().receiveResponse();
@@ -914,6 +922,8 @@ tests.addTest(options => {
                 tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                 incomingCall = tester.incomingCall().receive();
+
+                tester.resizeMessage().expectToBeSent();
                 tester.callStartMessage().expectToBeSent();
 
                 tester.slavesNotification().
@@ -934,7 +944,6 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.numaRequest().receiveResponse();
-                tester.resizeMessage().expectToBeSent();
 
                 tester.firstConnection.connectWebRTC();
                 tester.firstConnection.callTrackHandler();
@@ -1075,6 +1084,7 @@ tests.addTest(options => {
 
                 tester.appReadyMessage().expectToBeSent();
                 tester.unmaximizeMessage().expectToBeSent();
+                tester.resizeMessage().expectToBeSent();
                 tester.resizeMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
 

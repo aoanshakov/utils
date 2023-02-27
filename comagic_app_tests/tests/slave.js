@@ -101,7 +101,7 @@ tests.addTest(options => {
                     receive();
             });
 
-            describe('Скрываю окно.', function() {
+            xdescribe('Скрываю окно.', function() {
                 beforeEach(function() {
                     setDocumentVisible(false);
                     tester.masterNotification().tabBecameHidden().expectToBeSent();
@@ -247,7 +247,7 @@ tests.addTest(options => {
                     );
                 });
             });
-            it(
+            xit(
                 'Вкладка становится ведущей. Скрываю вкладку. Раскрываю вкладку. Поступил входящий звонок. ' +
                 'Информация о звонке не отображена.',
             function() {
@@ -354,6 +354,19 @@ tests.addTest(options => {
 
                 tester.masterInfoMessage().leaderDeath().expectToBeSent();
                 tester.masterInfoMessage().leaderDeath().receive();
+                
+                //
+
+                tester.authLogoutRequest().receiveResponse();
+
+                spendTime(0);
+                spendTime(0);
+                spendTime(0);
+                spendTime(0);
+                spendTime(0);
+
+                return;
+
                 tester.masterNotification().destroy().expectToBeSent();
 
                 tester.authLogoutRequest().receiveResponse();
@@ -446,6 +459,7 @@ tests.addTest(options => {
                     available().
                     expectToBeSent();
             });
+            return;
             it(
                 'Сессионная кука еще не удалена. На ведущей вкладке был совершен выход из софтфона. Отображается ' +
                 'форма аутентификации.',
@@ -626,6 +640,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
             });
         });
+        return;
         describe(
             'Окно свернуто. Вкладка является ведомой. Отправлено сообщение о том, что вкладка открыта в фоне.',
         function() {

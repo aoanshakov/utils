@@ -44,7 +44,7 @@ define(function () {
             const tester = testersFactory.createDomElementTester('.cmg-microphone-button');
 
             const click = tester.click.bind(tester);
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             return tester;
         })();
@@ -5381,7 +5381,10 @@ define(function () {
             };
 
             var settings = me.getApplicationSpecificSettings();
+
             delete(settings.sip_login);
+            delete(settings.application_version);
+            delete(settings.numb);
 
             notification.noTelephony = function () {
                 Object.keys(settings).forEach(key => ![
@@ -5886,27 +5889,20 @@ define(function () {
                         var state = {
                             channels: {
                                 1: {
-                                    dtmf: ''
+                                    id: '1',
+                                    dtmf: '',
+                                    isTransfered: false,
                                 },
                                 2: {
-                                    dtmf: ''
-                                }
+                                    id: '2',
+                                    dtmf: '',
+                                    isTransfered: false,
+                                },
                             },
-                            sessions: {
-                                transfered: {
-                                    1: undefined,
-                                    2: undefined
-                                }
-                            },
-                            softphone: {
-                                hidden: true,
-                                sipPhoneIncomingCallNotification: null,
-                                sipPhoneOutgoingCallNotification: null,
-                                names: {
-                                    '79161234567': undefined,
-                                    '79161234569': undefined
-                                }
-                            }
+                            employeeNames: {},
+                            callsData: {},
+                            hidden: true,
+                            openedPanel: 'calls',
                         };
 
                         var notification = {
@@ -5930,7 +5926,7 @@ define(function () {
 
                         return extendAdditionalSlavesNotification({
                             visible: function ()  {
-                                state.softphone.hidden = false;
+                                state.hidden = false;
                                 return this;
                             },
                             dtmf: function (value) {
@@ -5938,37 +5934,42 @@ define(function () {
                                 return this;
                             },
                             notTransfered: function () {
-                                state.sessions.transfered['1'] = false;
+                                state.channels['1'].isTransfered = false;
                                 return this;
                             },
                             transfered: function () {
-                                state.sessions.transfered['1'] = true;
+                                state.channels['1'].isTransfered = true;
                                 return this;
                             },
                             name: function () {
-                                state.softphone.names['79161234567'] = 'Шалева Дора';
+                                state.employeeNames['79161234567'] = {
+                                    id: '79161234567',
+                                    value: 'Шалева Дора'
+                                };
+
                                 return this;
                             },
                             anotherName: function () {
-                                state.softphone.names['79161234569'] =
-                                    'ООО "КОБЫЛА И ТРУПОГЛАЗЫЕ ЖАБЫ ИСКАЛИ ЦЕЗИЮ НАШЛИ ПОЗДНО УТРОМ СВИСТЯЩЕГО ХНА"';
+                                state.employeeNames['79161234569'] = {
+                                    id: '',
+                                    value: 'ООО "КОБЫЛА И ТРУПОГЛАЗЫЕ ЖАБЫ ИСКАЛИ ЦЕЗИЮ НАШЛИ ПОЗДНО УТРОМ ' +
+                                        'СВИСТЯЩЕГО ХНА"'
+                                };
+
                                 return this;
                             },
                             expectToBeSent: function () {
                                 const notification = getNotification();
 
-                                !notification.data.data.state.softphone.notifications &&
-                                    (notification.data.data.state.softphone.notifications = utils.expectEmptyObject());
+                                ['employeeNames', 'callsData'].forEach(
+                                    name => !Object.keys(notification.data.data.state[name]).length &&
+                                        (notification.data.data.state[name] = utils.expectEmptyObject())
+                                );
 
                                 recentMessage().expectToContain(notification);
                             },
                             receive: function () {
-                                const notification = getNotification();
-
-                                !notification.data.data.state.softphone.notifications &&
-                                    (notification.data.data.state.softphone.notifications = {});
-                                
-                                receiveMessage(notification);
+                                receiveMessage(getNotification());
 
                                 Promise.runAll(false, true);
                                 spendTime(0);

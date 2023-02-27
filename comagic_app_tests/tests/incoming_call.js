@@ -9,6 +9,7 @@ tests.addTest(options => {
         ajax,
         fetch,
         soundSources,
+        broadcastChannels,
         setNow,
         fileReader,
         userMedia,
@@ -79,14 +80,17 @@ tests.addTest(options => {
             notificationTester.grantPermission();
 
             settingsRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
-            tester.othersNotification().widgetStateUpdate().expectToBeSent();
+            tester.othersNotification().
+                widgetStateUpdate().
+                expectToBeSent();
 
             tester.othersNotification().
                 updateSettings().
                 shouldNotPlayCallEndingSignal().
                 expectToBeSent();
+
+            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
             tester.connectEventsWebSocket();
 
@@ -322,15 +326,23 @@ tests.addTest(options => {
                                     tester.dtmf('5').expectToBeSent();
                                     spendTime(600);
 
-                                    tester.slavesNotification().additional().visible().
-                                        transfered().dtmf('#295').outCallEvent().
+                                    tester.slavesNotification().
+                                        additional().
+                                        visible().
+                                        transfered().
+                                        dtmf('#295').
+                                        outCallEvent().
                                         expectToBeSent();
 
                                     tester.transferButton.click();
                                     tester.dtmf('#').expectToBeSent();
 
-                                    tester.slavesNotification().additional().visible().
-                                        outCallEvent().notTransfered().dtmf('#295#').
+                                    tester.slavesNotification().
+                                        additional().
+                                        visible().
+                                        outCallEvent().
+                                        notTransfered().
+                                        dtmf('#295#').
                                         expectToBeSent();
                                 });
                                 it('Отображена таблица сотрудников.', function() {
@@ -821,7 +833,10 @@ tests.addTest(options => {
                 'исходящий.',
             function() {
                 tester.outCallEvent().clickToCall().receive();
-                tester.outCallEvent().clickToCall().slavesNotification().
+
+                tester.outCallEvent().
+                    clickToCall().
+                    slavesNotification().
                     expectToBeSent();
 
                 tester.outgoingIcon.expectToBeVisible();

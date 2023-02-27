@@ -83,6 +83,10 @@ tests.addTest(options => {
                 tester.permissionsRequest().receiveResponse();
 
                 settingsRequest.receiveResponse();
+
+                tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+               
                 tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -91,9 +95,6 @@ tests.addTest(options => {
                 tester.connectSIPWebSocket();
                 tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
                     expectToBeSent();
-
-                tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
 
                 notificationTester.grantPermission();
 
@@ -313,16 +314,16 @@ tests.addTest(options => {
                                             localStorage.getItem('audioSettings'),
                                             {
                                                 microphone: {
-                                                    deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a4' +
-                                                        '8ghal4'
+                                                    deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289h' +
+                                                        'g9a48ghal4'
                                                 },
                                                 ringtone: {
-                                                    deviceId: '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad' +
-                                                        '6943ab',
+                                                    deviceId: '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13' +
+                                                        'f0fad6943ab',
                                                     volume: 25
                                                 },
-                                                outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtj' +
-                                                    'og82jgab'
+                                                outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28' +
+                                                    'ogtjog82jgab'
                                             }
                                         );
                                     });
@@ -388,6 +389,9 @@ tests.addTest(options => {
                         tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().receiveResponse();
                         tester.settingsRequest().callsAreManagedByAnotherDevice().receiveResponse();
 
+                        tester.othersNotification().widgetStateUpdate().isNotUsingWidgetForCalls().expectToBeSent();
+                        tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
                         tester.slavesNotification().
                             userDataFetched().
                             twoChannels().
@@ -395,9 +399,6 @@ tests.addTest(options => {
                             microphoneAccessGranted().
                             softphoneServerConnected().
                             expectToBeSent();
-
-                        tester.othersNotification().widgetStateUpdate().isNotUsingWidgetForCalls().expectToBeSent();
-                        tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
 
                         tester.registrationRequest().expired().receiveResponse();
                     });
@@ -411,6 +412,9 @@ tests.addTest(options => {
                         tester.settingsUpdatingRequest().receiveResponse();
                         tester.settingsRequest().dontTriggerScrollRecalculation().receiveResponse();
 
+                        tester.othersNotification().widgetStateUpdate().expectToBeSent();
+                        tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+
                         tester.slavesNotification().
                             userDataFetched().
                             twoChannels().
@@ -418,9 +422,6 @@ tests.addTest(options => {
                             softphoneServerConnected().
                             microphoneAccessGranted().
                             expectToBeSent();
-
-                        tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                        tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
 
                         tester.connectSIPWebSocket(1);
                         tester.slavesNotification().
@@ -636,11 +637,12 @@ tests.addTest(options => {
             tester.statusesRequest().receiveResponse();
             
             tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
-            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
             tester.othersNotification().widgetStateUpdate().expectToBeSent();
             tester.othersNotification().updateSettings().shouldPlayCallEndingSignal().anotherCustomRingtone().
                 expectToBeSent();
+
+            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
             notificationTester.grantPermission();
             tester.talkOptionsRequest().receiveResponse();
@@ -888,11 +890,6 @@ tests.addTest(options => {
         
         tester.settingsRequest().receiveResponse();
 
-        tester.slavesNotification().
-            twoChannels().
-            enabled().
-            expectToBeSent();
-
         tester.othersNotification().
             widgetStateUpdate().
             expectToBeSent();
@@ -900,6 +897,11 @@ tests.addTest(options => {
         tester.othersNotification().
             updateSettings().
             shouldNotPlayCallEndingSignal().
+            expectToBeSent();
+
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
             expectToBeSent();
 
         notificationTester.grantPermission();

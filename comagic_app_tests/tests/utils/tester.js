@@ -2712,7 +2712,7 @@ define(() => function ({
             call_session_id: 182957828,
             call_source: 'va',
             is_internal: false,
-            direction: 'in',
+            direction: 'out',
             virtual_phone_number: '+79161234567',
             contact_phone_number: '+79161234567',
             calling_phone_number: '+79161234567',
@@ -2959,18 +2959,18 @@ define(() => function ({
 
     me.extendAdditionalSlavesNotification((notification, state) => {
         notification.outCallEvent = () => {
-            const {params} = me.outCallEvent().getMessage();
+            const { params } = me.outCallEvent().getMessage();
 
             [
                 'virtual_number_comment',
                 'mark_ids',
-                'auto_call_campaign_name'
+                'auto_call_campaign_name',
+                'organization_name',
+                'first_call',
             ].forEach(param => delete(params[param]));
 
-            state.softphone.notifications = {
-                '79161234567': {
-                    notification: params
-                }
+            state.callsData = {
+                '79161234567': params
             };
 
             return notification;
@@ -3127,10 +3127,6 @@ define(() => function ({
             is_need_open_widget_on_call: true,
             is_need_close_widget_on_call_finished: false,
             number_capacity_usage_rule: 'auto',
-            call_task: {
-                pause_between_calls_duration: 60,
-                call_card_show_duration: 10
-            }
         };
     };
 

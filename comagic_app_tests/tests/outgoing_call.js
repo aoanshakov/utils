@@ -80,7 +80,6 @@ tests.addTest(options => {
             notificationTester.grantPermission();
 
             settingsRequest.receiveResponse();
-            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
             tester.othersNotification().
                 widgetStateUpdate().
@@ -89,6 +88,11 @@ tests.addTest(options => {
             tester.othersNotification().
                 updateSettings().
                 shouldNotPlayCallEndingSignal().
+                expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -191,11 +195,12 @@ tests.addTest(options => {
                             beforeEach(function() {
                                 outCallSessionEvent.receive();
 
-                                tester.outCallSessionEvent().slavesNotification().
+                                tester.outCallSessionEvent().
+                                    slavesNotification().
                                     expectToBeSent();
                             });
 
-                            xdescribe('Звонок принят.', function() {
+                            describe('Звонок принят.', function() {
                                 beforeEach(function() {
                                     outgoingCall.setAccepted();
 
@@ -418,7 +423,6 @@ tests.addTest(options => {
                                     tester.softphone.expectTextContentToHaveSubstring('00:01');
                                 });
                             });
-                            return;
                             describe('Поступил входящий звонок.', function() {
                                 let incomingCall;
 
@@ -480,7 +484,8 @@ tests.addTest(options => {
                                         userDataFetched().
                                         twoChannels().
                                         progress().
-                                        secondChannel().ended().
+                                        secondChannel().
+                                        ended().
                                         expectToBeSent();
 
                                     incomingCall.expectTemporarilyUnavailableToBeSent();
@@ -540,7 +545,7 @@ tests.addTest(options => {
                                         );
                                 });
                             });
-                            xit(
+                            it(
                                 'Нажимаю на кнопку остановки звонка. Ввожу тот ' +
                                 'же самый номер. Отображается поле номера.',
                             function() {
@@ -570,7 +575,6 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        return;
                         it(
                             'Есть активные сделки. Отображены активные сделки.',
                         function() {
@@ -587,7 +591,6 @@ tests.addTest(options => {
                                 );
                         });
                     });
-                    return;
                     it('Данные контакта не найдены.', function() {
                         tester.outCallSessionEvent().noName().receive();
                         tester.outCallSessionEvent().noName().
@@ -608,7 +611,6 @@ tests.addTest(options => {
                         );
                     });
                 });
-                return;
                 describe('Контакт является сотрудником.', function() {
                     beforeEach(function() {
                         numaRequest.employeeNameIsFound().receiveResponse();
@@ -652,7 +654,6 @@ tests.addTest(options => {
                     });
                 });
             });
-            return;
             it(
                 'Нажимаю на клавишу Enter. Совершается исходящий звонок.',
             function() {
@@ -687,7 +688,6 @@ tests.addTest(options => {
                 tester.outCallSessionEvent().slavesNotification().expectToBeSent();
             });
         });
-        return;
         it('Нажимаю на кнопку удаления цифры. Цифра удалена.', function() {
             tester.digitRemovingButton.click();
             tester.phoneField.fill('7916123456');
