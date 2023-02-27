@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 636ce909..85cc93da 100644
+index 5939e8fb..299e4826 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -13,7 +13,11 @@ index 636ce909..85cc93da 100644
  
  const { ModuleFederationPlugin } = webpack.container;
  const pkgJson = require('../package.json');
-@@ -18,6 +19,8 @@ const ENTRY_POINT = process.env.ENTRY_POINT || 'default';
+@@ -15,9 +16,12 @@ const deps = pkgJson.dependencies;
+ 
+ const NODE_ENV = process.env.NODE_ENV || 'prod';
+ const APPLICATION_NAME = process.env.APPLICATION_NAME || 'default';
++const ENTRY_POINT = process.env.ENTRY_POINT || 'default';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
@@ -22,7 +26,7 @@ index 636ce909..85cc93da 100644
  const publicDir = path.resolve(appDirectory, 'public');
  const buildDir = path.resolve(appDirectory, 'build');
  const dotenv = path.resolve(appDirectory, '.env');
-@@ -25,9 +28,20 @@ const isProductionMode = NODE_ENV !== 'development';
+@@ -25,9 +29,20 @@ const isProductionMode = NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
@@ -43,7 +47,7 @@ index 636ce909..85cc93da 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -105,10 +119,11 @@ const webpackDefinePlugin = () => {
+@@ -105,10 +120,11 @@ const webpackDefinePlugin = () => {
      return opts;
  };
  
@@ -56,7 +60,7 @@ index 636ce909..85cc93da 100644
          },
          {
              loader: 'css-loader',
-@@ -211,7 +226,7 @@ const plugins = () => {
+@@ -211,7 +227,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -65,7 +69,7 @@ index 636ce909..85cc93da 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -253,6 +268,11 @@ const plugins = () => {
+@@ -253,6 +269,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -77,7 +81,7 @@ index 636ce909..85cc93da 100644
      ];
  
      if (isProductionMode) {
-@@ -276,6 +296,17 @@ const plugins = () => {
+@@ -276,8 +297,19 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -93,9 +97,12 @@ index 636ce909..85cc93da 100644
 +);
 +
  module.exports = {
-     entry: `./src/${ENTRY_POINT}.tsx`,
-     target: ENTRY_POINT == 'softphone' ? 'electron-renderer' : 'web',
-@@ -297,6 +328,21 @@ module.exports = {
+-    entry: './src/index.tsx',
++    entry: `./src/${ENTRY_POINT}.tsx`,
+     target: APPLICATION_NAME == 'softphone' ? 'electron-renderer' : 'web',
+     mode: webpackMode,
+     devtool: isProductionMode ? undefined : 'inline-source-map',
+@@ -297,6 +329,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -117,7 +124,7 @@ index 636ce909..85cc93da 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -304,7 +350,7 @@ module.exports = {
+@@ -304,7 +351,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -126,7 +133,7 @@ index 636ce909..85cc93da 100644
              },
              {
                  test: /\.css$/,
-@@ -315,6 +361,29 @@ module.exports = {
+@@ -315,6 +362,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -156,7 +163,7 @@ index 636ce909..85cc93da 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -330,6 +399,7 @@ module.exports = {
+@@ -330,6 +400,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -164,7 +171,7 @@ index 636ce909..85cc93da 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -345,6 +415,30 @@ module.exports = {
+@@ -345,6 +416,30 @@ module.exports = {
                      },
                  ],
              },
@@ -195,7 +202,7 @@ index 636ce909..85cc93da 100644
          ],
      },
      resolve: {
-@@ -355,7 +449,113 @@ module.exports = {
+@@ -355,7 +450,113 @@ module.exports = {
              '@models': path.resolve(appDirectory, './src/models'),
              '@lib': path.resolve(appDirectory, './src/components/lib'),
              '@hooks': path.resolve(appDirectory, './src/hooks'),
@@ -397,10 +404,10 @@ index 92fc7e25..59a999e3 100644
  </html>
 \ No newline at end of file
 diff --git a/scripts/dev.js b/scripts/dev.js
-index 54c1319c..abc75561 100644
+index 1bac09b0..51fecd24 100644
 --- a/scripts/dev.js
 +++ b/scripts/dev.js
-@@ -12,7 +12,8 @@ const compiler = webpack(configFactory);
+@@ -13,7 +13,8 @@ const compiler = webpack(configFactory);
  const devServer = new WebpackDevServer(
      {
          port: parseInt(process.env.PORT, 10) || 8080,
