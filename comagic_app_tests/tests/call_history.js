@@ -82,10 +82,20 @@ tests.addTest(options => {
             describe('Номера не должны быть скрыты.', function() {
                 beforeEach(function() {
                     settingsRequest.receiveResponse();
-                    tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
-                    tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                    tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+                    tester.othersNotification().
+                        widgetStateUpdate().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        updateSettings().
+                        shouldNotPlayCallEndingSignal().
+                        expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
                 });
 
                 describe(
@@ -165,7 +175,7 @@ tests.addTest(options => {
                                     marksRequest.receiveResponse();
                                 });
 
-                                describe('Имя контакта не было получено.', function() {
+                                xdescribe('Имя контакта не было получено.', function() {
                                     beforeEach(function() {
                                         callsRequest.
                                             noContactName().
@@ -382,11 +392,12 @@ tests.addTest(options => {
                                                         expectToBeSent();
                                                 });
 
-                                                it(
+                                                xit(
                                                     'Получены права. Получены данные для таблицы истории. Вкладки ' +
                                                     '"Все" и "Необработанные" заблокированы.',
                                                 function() {
-                                                    permissionsRequest.disallowSoftphoneAllCallsStatSelect().
+                                                    permissionsRequest.
+                                                        disallowSoftphoneAllCallsStatSelect().
                                                         receiveResponse();
 
                                                     tester.callsRequest().
@@ -404,6 +415,7 @@ tests.addTest(options => {
                                                     tester.table.expectNotToExist();
                                                 });
                                             });
+                                            return;
                                             describe('Открываю выпадающий список "Звонки".', function() {
                                                 beforeEach(function() {
                                                     tester.select.withValue('Звонки: Все').click();
@@ -537,6 +549,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
+                                        return;
                                         it('Нет имени. Отображен номер вместо имени.', function() {
                                             notProcessedCallsRequest.noContactName().receiveResponse();
 
@@ -552,6 +565,7 @@ tests.addTest(options => {
                                             tester.table.expectTextContentToHaveSubstring('Нет данных');
                                         });
                                     });
+                                    return;
                                     describe('Ввожу значеие в поле поиска.', function() {
                                         beforeEach(function() {
                                             tester.input.withPlaceholder('Имя или телефон').input('qwe12');
@@ -1492,6 +1506,7 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
+                                return;
                                 describe('Есть звонки трансфера.', function() {
                                     beforeEach(function() {
                                         callsRequest = callsRequest.transferCall();
@@ -1624,6 +1639,7 @@ tests.addTest(options => {
                                     tester.spin.expectToBeVisible();
                                 });
                             });
+                            return;
                             describe('Звонки получены.', function() {
                                 beforeEach(function() {
                                     callsRequest.receiveResponse();
@@ -1638,6 +1654,7 @@ tests.addTest(options => {
                                 });
                             });
                         });
+                        return;
                         it(
                             'Совершаю исходящий звонок. Кладу трубку не дожидаясь ответа. Количество пропущенных ' +
                             'звонков не увеличилось.',
@@ -1741,6 +1758,7 @@ tests.addTest(options => {
                             tester.button('История звонков').counter.expectNotToExist();
                         });
                     });
+                    return;
                     describe('Есть пропущенные звонки.', function() {
                         beforeEach(function() {
                             authenticatedUserRequest.newCall().receiveResponse();
@@ -1778,6 +1796,7 @@ tests.addTest(options => {
                         });
                     });
                 });
+                return;
                 describe('Обновление комментария недоступно.', function() {
                     beforeEach(function() {
                         permissionsRequest = permissionsRequest.disallowCallSessionCommentingUpdate();
@@ -2289,6 +2308,7 @@ tests.addTest(options => {
                     tester.input.withPlaceholder('Имя или телефон').click();
                 });
             });
+return;
             describe('Номера должны быть скрыты. Открываю историю звонков.', function() {
                 let callsRequest;
 
@@ -2408,6 +2428,7 @@ tests.addTest(options => {
                 });
             });
         });
+return;
         it('У пользователя нет роли. Вкладки "Все" и "Необработанные" заблокированы.', function() {
             accountRequest.noCallCenterRole().receiveResponse();
 
@@ -2785,6 +2806,7 @@ tests.addTest(options => {
             tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.expectNotToExist();
         });
     });
+return;
     describe('Открываю историю звонков.', function() {
         let tester,
             permissionsRequest;

@@ -403,6 +403,7 @@ define(function () {
 
                     Promise.runAll();
                     spendTime(0);
+                    spendTime(0);
                 }
             };
         };
@@ -1147,6 +1148,7 @@ define(function () {
                         receiveResponse: function () {
                             request.respondSuccessfullyWith({ data });
 
+                            spendTime(0);
                             spendTime(0);
                             spendTime(0);
                         }

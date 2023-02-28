@@ -101,7 +101,7 @@ tests.addTest(options => {
                     receive();
             });
 
-            xdescribe('Скрываю окно.', function() {
+            describe('Скрываю окно.', function() {
                 beforeEach(function() {
                     setDocumentVisible(false);
                     tester.masterNotification().tabBecameHidden().expectToBeSent();
@@ -247,7 +247,7 @@ tests.addTest(options => {
                     );
                 });
             });
-            xit(
+            it(
                 'Вкладка становится ведущей. Скрываю вкладку. Раскрываю вкладку. Поступил входящий звонок. ' +
                 'Информация о звонке не отображена.',
             function() {
@@ -344,6 +344,8 @@ tests.addTest(options => {
             function() {
                 document.cookie = '';
 
+                window.isLogEnabled = true;
+
                 tester.slavesNotification().
                     userDataFetched().
                     twoChannels().
@@ -355,20 +357,6 @@ tests.addTest(options => {
                 tester.masterInfoMessage().leaderDeath().expectToBeSent();
                 tester.masterInfoMessage().leaderDeath().receive();
                 
-                //
-
-                tester.authLogoutRequest().receiveResponse();
-
-                spendTime(0);
-                spendTime(0);
-                spendTime(0);
-                spendTime(0);
-                spendTime(0);
-
-                return;
-
-                tester.masterNotification().destroy().expectToBeSent();
-
                 tester.authLogoutRequest().receiveResponse();
 
                 tester.input.withFieldLabel('Логин').fill('botusharova');
@@ -402,15 +390,24 @@ tests.addTest(options => {
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.statusesRequest().receiveResponse();
-
                 tester.settingsRequest().receiveResponse();
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
+
+                tester.othersNotification().
+                    widgetStateUpdate().
+                    expectToBeSent();
+
+                tester.othersNotification().
+                    updateSettings().
+                    shouldNotPlayCallEndingSignal().
+                    expectToBeSent();
 
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
                     expectToBeSent();
+
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
 
                 tester.connectEventsWebSocket();
 
@@ -427,9 +424,6 @@ tests.addTest(options => {
                     webRTCServerConnected().
                     softphoneServerConnected().
                     expectToBeSent();
-
-                tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
 
                 notificationTester.grantPermission();
 
@@ -459,7 +453,6 @@ tests.addTest(options => {
                     available().
                     expectToBeSent();
             });
-            return;
             it(
                 'Сессионная кука еще не удалена. На ведущей вкладке был совершен выход из софтфона. Отображается ' +
                 'форма аутентификации.',
@@ -504,15 +497,24 @@ tests.addTest(options => {
                 tester.reportTypesRequest().receiveResponse();
 
                 tester.statusesRequest().receiveResponse();
-
                 tester.settingsRequest().receiveResponse();
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
+
+                tester.othersNotification().
+                    widgetStateUpdate().
+                    expectToBeSent();
+
+                tester.othersNotification().
+                    updateSettings().
+                    shouldNotPlayCallEndingSignal().
+                    expectToBeSent();
 
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
                     expectToBeSent();
+
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
 
                 tester.connectEventsWebSocket();
 
@@ -529,9 +531,6 @@ tests.addTest(options => {
                     webRTCServerConnected().
                     softphoneServerConnected().
                     expectToBeSent();
-
-                tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
 
                 notificationTester.grantPermission();
 
@@ -640,7 +639,6 @@ tests.addTest(options => {
                 tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
             });
         });
-        return;
         describe(
             'Окно свернуто. Вкладка является ведомой. Отправлено сообщение о том, что вкладка открыта в фоне.',
         function() {

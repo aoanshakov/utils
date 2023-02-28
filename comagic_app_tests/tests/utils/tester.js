@@ -2697,7 +2697,7 @@ define(() => function ({
                     expectQueryToContain(params);
 
                 return addResponseModifiers({
-                    receiveResponse: () => (receiveResponse(request), spendTime(0), spendTime(0))
+                    receiveResponse: () => (receiveResponse(request), spendTime(0), spendTime(0), spendTime(0))
                 });
             },
 
