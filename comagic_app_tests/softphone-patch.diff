@@ -1,8 +1,34 @@
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 73408a7..dced2c4 100644
+index 530c7b8..fd3eef7 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -713,4 +713,5 @@ export const RootStore = types
+@@ -2,7 +2,6 @@ import { intlMessages } from '../i18n';
+ import { AuthStore } from './auth/AuthStore';
+ import { CallHistoryStore } from './call_history/CallHistoryStore';
+ import { EmployeesStore } from './employees/EmployeesStore';
+-import { RootStore as SoftphoneStore, createRootStore as createSoftphoneStore } from 'uis-softphone/models/RootStore';
+ import { StatusesStore } from './statuses/StatusesStore';
+ import { WebsocketStore } from './websocket/WebsocketStore';
+ import { CallStatsStore } from '@models/call_stats/CallStatsStore';
+@@ -13,10 +12,16 @@ import { autorun } from 'mobx';
+ import { types, Instance, getSnapshot, applySnapshot, SnapshotOut, getRoot, addMiddleware } from 'mobx-state-tree';
+ import React from 'react';
+ import moment from 'moment';
+-import { createFocusednessGetter as createDefaultFocusednessGetter, createObservable } from 'uis-softphone/utils';
+ import { isSoftphoneAvailable as getSoftphoneAvailability } from '@/utils';
+ 
+ import {
++    createFocusednessGetter as createDefaultFocusednessGetter,
++    createObservable,
++    RootStore as SoftphoneStore,
++    createRootStore as createSoftphoneStore,
++} from 'uis-softphone';
++
++import {
+     eventBus,
+     isElectron,
+     ModuleAvailability,
+@@ -712,4 +717,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

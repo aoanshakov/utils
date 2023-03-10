@@ -2890,7 +2890,7 @@ define(function () {
                         expectOkToBeSent: function () {
                             return me.requestAcceptIncomingCall();
                         },
-                        expectTemporarilyUnavailableToBeSent: function () {
+                        expectBusyHereToBeSent: function () {
                             me.requestDeclineIncomingCall();
                         },
                         receiveCancel: function () {
@@ -4068,7 +4068,7 @@ define(function () {
         };
 
         this.requestDeclineIncomingCall = function () {
-            sip.recentResponse().expectTemporarilyUnavailable();
+            sip.recentResponse().expectBusy();
             finishCall();
         };
 
@@ -6319,7 +6319,12 @@ define(function () {
 
                 function addMethods (me) {
                     me.expectToBeSent = function () {
-                        recentMessage().expectToContain(createCustomMessage(createNotification()));
+                        const notification = createNotification();
+
+                        Object.entries(notification).forEach(([key, value]) =>
+                            !Object.keys(value).length && (notification[key] = utils.expectEmptyObject()));
+
+                        recentMessage().expectToContain(createCustomMessage(notification));
                     };
 
                     me.receive = function () {
@@ -6339,7 +6344,7 @@ define(function () {
                     },
                     updateSettings: function () {
                         var settings = {
-                            ringtone: undefined,
+                            ringtone: {},
                             microphone: undefined,
                             remoteStreamVolume: undefined,
                             holdMusic: undefined,

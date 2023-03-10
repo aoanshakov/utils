@@ -318,23 +318,45 @@ tests.addTest(options => {
                                             'Нажимаю на кнопку "Смена статуса". Нажима на кнопку "Автоматически".',
                                         function() {
                                             tester.button('Автоматически').click();
-                                            tester.settingsUpdatingRequest().autoSetStatus().receiveResponse();
-                                            tester.settingsRequest().autoSetStatus().receiveResponse();
+
+                                            tester.settingsUpdatingRequest().
+                                                autoSetStatus().
+                                                receiveResponse();
+
+                                            tester.settingsRequest().
+                                                autoSetStatus().
+                                                receiveResponse();
 
                                             tester.fieldRow('При входе').select.arrow.click();
                                             tester.select.option('Перерыв').click();
-                                            tester.settingsUpdatingRequest().pauseOnLogin().receiveResponse();
-                                            tester.settingsRequest().autoSetStatus().pauseOnLogin().receiveResponse();
+
+                                            tester.settingsUpdatingRequest().
+                                                pauseOnLogin().
+                                                receiveResponse();
+
+                                            tester.settingsRequest().
+                                                autoSetStatus().
+                                                pauseOnLogin().
+                                                receiveResponse();
 
                                             tester.fieldRow('При выходе').select.arrow.click();
                                             tester.select.option('Не беспокоить').click();
-                                            tester.settingsUpdatingRequest().dontDisturbOnLogout().receiveResponse();
+
+                                            tester.settingsUpdatingRequest().
+                                                dontDisturbOnLogout().
+                                                receiveResponse();
 
                                             tester.settingsRequest().
                                                 autoSetStatus().
                                                 pauseOnLogin().
                                                 dontDisturbOnLogout().
                                                 receiveResponse();
+
+                                            tester.fieldRow('При входе').select.
+                                                expectToHaveTextContent('Перерыв');
+
+                                            tester.fieldRow('При выходе').select.
+                                                expectToHaveTextContent('Не беспокоить');
                                         });
                                         it(
                                             'Нажимаю на кнопку "Общие настройки". Нажимаю на кнопку "Софтфон или ' +
@@ -480,7 +502,7 @@ tests.addTest(options => {
                                                 expectToBeSentToChannel('call-end').
                                                 expectToBeSentWithArguments(true);
 
-                                            incomingCall.expectTemporarilyUnavailableToBeSent();
+                                            incomingCall.expectBusyHereToBeSent();
                                         });
                                         it('Нажимаю на открытую сделку. Открывается страница сделки.', function() {
                                             tester.anchor('По звонку с 79154394340').click();
@@ -3162,7 +3184,7 @@ tests.addTest(options => {
                         expectToBeSentToChannel('call-end').
                         expectToBeSentWithArguments(true);
 
-                    incomingCall.expectTemporarilyUnavailableToBeSent();
+                    incomingCall.expectBusyHereToBeSent();
                     tester.dialpadButton(1).expectNotToExist();
                 });
             });
@@ -3361,7 +3383,7 @@ tests.addTest(options => {
                         expectToBeSentToChannel('call-end').
                         expectToBeSentWithArguments(true);
 
-                    incomingCall.expectTemporarilyUnavailableToBeSent();
+                    incomingCall.expectBusyHereToBeSent();
                 });
                 it('Не одно сообщение не отправлено в бэк электрона.', function() {
                     getPackage('electron').ipcRenderer.
@@ -3702,7 +3724,7 @@ tests.addTest(options => {
                     expectToBeSentToChannel('call-end').
                     expectToBeSentWithArguments(false);
 
-                incomingCall.expectTemporarilyUnavailableToBeSent();
+                incomingCall.expectBusyHereToBeSent();
                 tester.dialpadButton(1).expectToBeVisible();
             });
             it(
@@ -3741,7 +3763,7 @@ tests.addTest(options => {
                     expectToBeSentToChannel('call-end').
                     expectToBeSentWithArguments(false);
 
-                incomingCall.expectTemporarilyUnavailableToBeSent();
+                incomingCall.expectBusyHereToBeSent();
             });
             it('Открываю настройки. Свитчбокс "Скрывать после звонка" не отмечен.', function() {
                 tester.settingsButton.click();
@@ -3887,7 +3909,7 @@ tests.addTest(options => {
                     expectToBeSentToChannel('call-end').
                     expectToBeSentWithArguments(true);
 
-                incomingCall.expectTemporarilyUnavailableToBeSent();
+                incomingCall.expectBusyHereToBeSent();
             });
             it('Открываю настройки. Свитчбокс "Скрывать после звонка" отмечен.', function() {
                 tester.settingsButton.click();

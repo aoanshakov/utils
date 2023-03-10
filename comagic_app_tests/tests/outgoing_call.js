@@ -488,7 +488,7 @@ tests.addTest(options => {
                                         ended().
                                         expectToBeSent();
 
-                                    incomingCall.expectTemporarilyUnavailableToBeSent();
+                                    incomingCall.expectBusyHereToBeSent();
 
                                     tester.callSessionFinish().
                                         thirdId().
@@ -575,20 +575,18 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        it(
-                            'Есть активные сделки. Отображены активные сделки.',
-                        function() {
+                        it('Есть активные сделки. Отображены активные сделки.', function() {
                             outCallSessionEvent.activeLeads().receive();
-                            tester.outCallSessionEvent().activeLeads().
-                                slavesNotification().expectToBeSent();
+
+                            tester.outCallSessionEvent().
+                                activeLeads().
+                                slavesNotification().
+                                expectToBeSent();
 
                             tester.softphone.expectToBeExpanded();
 
-                            tester.anchor('По звонку с 79154394340').
-                                expectHrefToHavePath(
-                                    'https://comagicwidgets.amocrm.ru/leads/' +
-                                    'detail/3003651'
-                                );
+                            tester.anchor('По звонку с 79154394340').click();
+                            windowOpener.expectToHavePath('https://comagicwidgets.amocrm.ru/leads/detail/3003651');
                         });
                     });
                     it('Данные контакта не найдены.', function() {

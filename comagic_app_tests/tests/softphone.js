@@ -629,12 +629,6 @@ tests.addTest(options => {
                                                                 });
                                                             });
                                                             it('Кнопка диалпада нажата.', function() {
-                                                                spendTime(0);
-                                                                spendTime(0);
-                                                                spendTime(0);
-                                                                spendTime(0);
-                                                                spendTime(0);
-
                                                                 tester.dialpadButton(1).expectToBeVisible();;
 
                                                                 tester.dialpadVisibilityButton.
@@ -764,25 +758,26 @@ tests.addTest(options => {
                                                                 'открытые сделки.',
                                                             function() {
                                                                 tester.collapsednessToggleButton.click();
+                                                                tester.anchor('По звонку с 79154394340').click();
 
-                                                                tester.anchor('По звонку с 79154394340').
-                                                                    expectHrefToHavePath(
-                                                                        'https://comagicwidgets.amocrm.ru/leads/' +
-                                                                        'detail/3003651'
-                                                                    );
+                                                                windowOpener.expectToHavePath(
+                                                                    'https://comagicwidgets.amocrm.ru/leads/detail/' +
+                                                                    '3003651'
+                                                                );
                                                             });
                                                             it('Софтфон свернут.', function() {
                                                                 tester.softphone.expectToBeCollapsed();
                                                             });
                                                         });
-                                                        it('Отображены открытые сделки.', function() {
-                                                            tester.softphone.expectToBeExpanded();
+                                                        it('Нажимаю на ссылку сделки. Открыта сделка.', function() {
+                                                            tester.anchor('По звонку с 79154394340').click();
 
-                                                            tester.anchor(
-                                                                'По звонку с 79154394340'
-                                                            ).expectHrefToHavePath(
+                                                            windowOpener.expectToHavePath(
                                                                 'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
                                                             );
+                                                        });
+                                                        it('Отображены открытые сделки.', function() {
+                                                            tester.softphone.expectToBeExpanded();
 
                                                             tester.dialpadVisibilityButton.
                                                                 expectToHaveClass('cmg-button-disabled');
