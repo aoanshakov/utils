@@ -162,7 +162,7 @@ tests.addTest(options => {
                     tester.outCallEvent().slavesNotification().expectToBeSent();
                 });
 
-                xdescribe('Принимаю звонок.', function() {
+                describe('Принимаю звонок.', function() {
                     beforeEach(function() {
                         tester.callStartingButton.click();
 
@@ -543,7 +543,6 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.collapsednessToggleButton.click();
-                        return;
                         incomingCall = tester.incomingCall().receive();
 
                         tester.slavesNotification().
@@ -559,10 +558,7 @@ tests.addTest(options => {
                         tester.outCallEvent().slavesNotification().expectToBeSent();
                     });
 
-                    it('', function() {
-                    });
-                    return;
-                    xit('Принимаю звонок. Отображен диалпад.', function() {
+                    it('Принимаю звонок. Отображен диалпад.', function() {
                         tester.callStartingButton.click();
 
                         tester.firstConnection.connectWebRTC();
@@ -589,7 +585,6 @@ tests.addTest(options => {
                         );
                     });
                 });
-                return;
                 it(
                     'Поступил второй входящий звонок. Отображено сообщение о звонке ' +
                     'на вторую линию.',
@@ -658,7 +653,6 @@ tests.addTest(options => {
                     tester.softphone.expectToBeExpanded();
                 });
             });
-            return;
             describe('Звонок переведен от другого сотрудника.', function() {
                 let outCallEvent;
 
@@ -909,7 +903,6 @@ tests.addTest(options => {
                 );
             });
         });
-        return;
         describe('Браузер скрыт.', function() {
             beforeEach(function() {
                 setDocumentVisible(false);
