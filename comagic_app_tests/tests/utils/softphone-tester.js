@@ -175,10 +175,12 @@ define(function () {
             webRtcUrlParam = 'webrtc_urls';
         };
 
+        this.anotherWebRTCURL = () => (webRtcUrlForGettingSocket = 'wss://rtu-webrtc.uiscom.ru');
+
         this.setJsSIPRTUUrl = function () {
             webRtcUrl = ['wss://rtu-webrtc.uiscom.ru'],
             webRtcUrlParam = 'rtu_webrtc_urls';
-            webRtcUrlForGettingSocket = 'wss://rtu-webrtc.uiscom.ru';
+            this.anotherWebRTCURL();
         };
 
         this.body = testersFactory.createDomElementTester(function () {
@@ -1642,6 +1644,8 @@ define(function () {
                                     id: idGetter.getSessionId() 
                                 }
                             });
+
+                            spendTime(0);
                         }
                     };
                 },
@@ -2292,7 +2296,9 @@ define(function () {
                 },
                 receive: function () {
                     message.plugindata.data.result.master_id = idGetter.getMasterId();
+
                     getWebRtcSocket(index).receiveMessage(idGetter.addSessionIdAndSender(message));
+                    spendTime(0);
                 }
             };
         };
@@ -2313,6 +2319,11 @@ define(function () {
             };
 
             return {
+                thirdUser: function () {
+                    message.body.proxy = 'sip:pp-rtu.uis.st:443';
+                    message.body.username = 'sip:Kf98Bzv3@pp-rtu.uis.st:443';
+                    return this;
+                },
                 setAnotherUser: function () {
                     message.body.username = 'sip:077369@voip.uiscom.ru';
                     message.body.secret = 'e2g98jgbfr';
@@ -5384,6 +5395,26 @@ define(function () {
 
             var settings = me.getApplicationSpecificSettings();
 
+            settings.sip = {
+                engine: null,
+                webrtc_urls: Array.isArray(webRtcUrl) ? webRtcUrl : [webRtcUrl],
+                sip_login: settings.sip_login,
+                sip_host: settings.sip_host,
+                ice_servers: settings.ice_servers,
+                sip_password: settings.sip_password,
+                sip_phone: settings.sip_phone || '',
+                sip_channels_count: settings.sip_channels_count,
+            };
+
+            delete(settings.rtu_sip_host);
+            delete(settings.rtu_webrtc_urls);
+            delete(settings.webrtc_url);
+            delete(settings.webrtc_urls);
+            delete(settings.sip_host);
+            delete(settings.ice_servers);
+            delete(settings.sip_password);
+            delete(settings.sip_phone);
+            delete(settings.sip_channels_count);
             delete(settings.sip_login);
             delete(settings.application_version);
             delete(settings.numb);
@@ -5391,19 +5422,69 @@ define(function () {
             notification.noTelephony = function () {
                 Object.keys(settings).forEach(key => ![
                     'ws_url',
-                    'sip_channels_count',
-                    'ice_servers',
+                    'sip',
                     'application_version'
                 ].includes(key) && delete(settings[key]));
 
-                ['sip_host', 'sip_login', 'sip_password'].forEach(key => (settings[key] = null));
-
+                ['sip_host', 'sip_login', 'sip_password'].forEach(key => (settings.sip[key] = ''));
                 return this;
             };
 
             notification.modalWindowHiding = function () {
                 data.type = 'action_invocation';
                 data.action = 'hide_modal_window';
+                return this;
+            };
+
+            notification.sipPhoneSpecified = function () {
+                settings.sip.sip_phone = '076909';
+                return this;
+            };
+
+            notification.sixthSetOfSipCredentials = function () {
+                settings.sip = {
+                    engine: 'janus',
+                    sip_channels_count: 2,
+                    webrtc_urls: ['wss://rtu-webrtc.uiscom.ru'],
+                    sip_phone: '076909',
+                    sip_host: 'pp-rtu.uis.st:443',
+                    sip_login: 'Kf98Bzv3',
+                    sip_password: 'e2tcXhxbfr',
+                    ice_servers: [{
+                        urls: ['stun:stun.uiscom.ru:19302']
+                    }],
+                };
+
+                return this;
+            };
+
+            notification.fifthSetOfSipCredentials = function () {
+                settings.sip.engine = 'janus';
+
+                settings.sip.webrtc_urls = [{
+                    url: 'wss://pp-janus-1.uiscom.ru:8989',
+                    weight: 1,
+                }, {
+                    url: 'wss://pp-janus-2.uiscom.ru:8989',
+                    weight: 0,
+                }];
+                
+                return this;
+            };
+
+            notification.fourthSetOfSipCredentials = function () {
+                settings.sip.engine = 'janus';
+                settings.sip.webrtc_urls = ['wss://pp-janus-1.uiscom.ru:8989', 'wss://pp-janus-2.uiscom.ru:8989'];
+                return this;
+            };
+
+            notification.thirdSetOfSipCredentials = function () {
+                settings.sip.engine = 'rtu';
+                settings.sip.webrtc_urls = ['wss://rtu-webrtc.uiscom.ru'];
+                settings.sip.sip_phone = '076909';
+                settings.sip.sip_host = 'pp-rtu.uis.st:443';
+                settings.sip.sip_login = 'Kf98Bzv3';
+                settings.sip.sip_password = 'e2tcXhxbfr';
                 return this;
             };
 

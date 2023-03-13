@@ -125,7 +125,7 @@ define(() => function ({
         appName
     });
 
-    notification.destroyAll();
+    notification?.destroyAll();
 
     me.history = (() => {
         return {
@@ -141,7 +141,7 @@ define(() => function ({
         };
     })();
 
-    history.replace(path);
+    history?.replace(path);
 
     Promise.runAll(false, true);
     spendTime(0);
@@ -3161,6 +3161,7 @@ define(() => function ({
                 ].includes(key) && delete(response.data[key]));
 
                 ['sip_host', 'sip_login', 'sip_password'].forEach(key => (response.data[key] = null));
+
                 return me;
             };
 
@@ -3201,6 +3202,26 @@ define(() => function ({
             me.setInvalidRTUConfig = () => {
                 response.data.rtu_webrtc_urls = ['wss://rtu-webrtc.uiscom.ru'],
                 response.data.sip_phone = '076909';
+                return me;
+            };
+
+            me.sipPropertySpecified = () => {
+                response.data.sip_channels_count = 1;
+                response.data.ice_servers = [];
+
+                response.data.sip = {
+                    engine: 'janus',
+                    sip_channels_count: 2,
+                    webrtc_urls: ['wss://rtu-webrtc.uiscom.ru'],
+                    sip_phone: '076909',
+                    sip_host: 'pp-rtu.uis.st:443',
+                    sip_login: 'Kf98Bzv3',
+                    sip_password: 'e2tcXhxbfr',
+                    ice_servers: [{
+                        urls: ['stun:stun.uiscom.ru:19302']
+                    }],
+                };
+
                 return me;
             };
 
@@ -11225,6 +11246,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.callGear = () => {
+                response.result.data.project = 'usa';
+                return me;
+            };
+
             me.en = () => {
                 response.result.data.lang = 'en';
                 return me;

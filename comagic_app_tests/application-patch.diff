@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 5939e8fb..06abb11e 100644
+index 5939e8fb..da1b5bf9 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -102,7 +102,15 @@ index 5939e8fb..06abb11e 100644
      target: APPLICATION_NAME == 'softphone' ? 'electron-renderer' : 'web',
      mode: webpackMode,
      devtool: isProductionMode ? undefined : 'inline-source-map',
-@@ -297,6 +329,21 @@ module.exports = {
+@@ -294,9 +326,36 @@ module.exports = {
+     performance: {
+         hints: false,
+     },
++    snapshot: {
++        managedPaths: [
++            /^(.+?[\\/]node_modules)[\\/]((?!react-dom)).*[\\/]*/
++        ],
++    },
      module: {
          rules: [
              {
@@ -121,10 +129,17 @@ index 5939e8fb..06abb11e 100644
 +                }]
 +            },
 +            {
++                test: require.resolve('janus-gateway'),
++                loader: 'exports-loader',
++                options: {
++                    exports: 'Janus'
++                }
++            },
++            {
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -304,7 +351,7 @@ module.exports = {
+@@ -304,7 +363,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -133,7 +148,7 @@ index 5939e8fb..06abb11e 100644
              },
              {
                  test: /\.css$/,
-@@ -315,6 +362,29 @@ module.exports = {
+@@ -315,6 +374,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -163,7 +178,7 @@ index 5939e8fb..06abb11e 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -330,6 +400,7 @@ module.exports = {
+@@ -330,6 +412,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -171,7 +186,7 @@ index 5939e8fb..06abb11e 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -345,6 +416,30 @@ module.exports = {
+@@ -345,6 +428,30 @@ module.exports = {
                      },
                  ],
              },
@@ -202,7 +217,7 @@ index 5939e8fb..06abb11e 100644
          ],
      },
      resolve: {
-@@ -355,7 +450,113 @@ module.exports = {
+@@ -355,7 +462,113 @@ module.exports = {
              '@models': path.resolve(appDirectory, './src/models'),
              '@lib': path.resolve(appDirectory, './src/components/lib'),
              '@hooks': path.resolve(appDirectory, './src/hooks'),

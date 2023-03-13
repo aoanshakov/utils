@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { notification } from 'magic-ui';
@@ -21,9 +21,21 @@ import { createRootStore as createElectronRootStore } from '@models/softphone/Ro
 
 const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
     Window = ({children}) => <div className="cm-test-window">{children}</div>,
-    units = {},
     history = createMemoryHistory();
 let root;
+
+const Fiber = () => {
+    const [counter, setCounter] = useState(0);
+
+    return <div>
+        <p>Clicks count: {counter}</p>
+        <button onClick={useCallback(() => setCounter(counter + 1), [counter])}>Increment</button>
+    </div>;
+};
+
+const units = {
+    fiber: Fiber,
+};
 
 window.application = {
     run({
