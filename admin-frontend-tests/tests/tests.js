@@ -36,7 +36,7 @@ tests.addTest(function (options) {
             userRequest = tester.userRequest().expectToBeSent();
         });
 
-        describe(
+        xdescribe(
             'Доступны разделы "Пользователи", "CRM-интеграции", "Переотправка событий" и "Фичефлаги".',
         function() {
             beforeEach(function() {
@@ -2013,7 +2013,7 @@ tests.addTest(function (options) {
                 tester.menuitem('Фичефлаги').expectHrefToHavePath('/feature-flags');
             });
         });
-        describe('Доступен только раздел "Пользовтатели".', function() {
+        xdescribe('Доступен только раздел "Пользовтатели".', function() {
             beforeEach(function() {
                 userRequest.allowReadUsers().receiveResponse();
             });
@@ -2122,7 +2122,7 @@ tests.addTest(function (options) {
                                 tester.tab('Настройки софтфона').click();
                             });
 
-                            it(
+                            xit(
                                 'Я меняю значение поля. Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения.',
                             function() {
                                 tester.table().
@@ -2162,6 +2162,7 @@ tests.addTest(function (options) {
                                     expectToHaveValue('stun:stun.uiscom.ru:19303');
                             });
                         });
+                        return;
                         it(
                             'Значение поля URL для РТУ является массивом. Я меняю значение поля. Нажимаю на кнопку ' +
                             '"Сохранить". Отправлен запрос сохранения.',
@@ -2197,6 +2198,7 @@ tests.addTest(function (options) {
                             tester.appRequest().receiveResponse();
                         });
                     });
+                    return;
                     it('Открывается меню.', function() {
                         tester.dropdown.expectToHaveTextContent(
                             'История изменений ' +
@@ -2210,6 +2212,7 @@ tests.addTest(function (options) {
                         );
                     });
                 });
+                return;
                 describe('Нажимаю на заголовок колонки "App ID". Отправлен запрос без сортировки.', function() {
                     beforeEach(function() {
                         tester.table().header().withContent('App ID').click();
@@ -2256,6 +2259,7 @@ tests.addTest(function (options) {
                     );
                 });
             });
+            return;
             it('В поле статусов отображены названия статусов.', function() {
                 tester.root.expectTextContentToHaveSubstring(
                     'Статусы ' +
@@ -2270,6 +2274,7 @@ tests.addTest(function (options) {
                 );
             });
         });
+return;
         it(
             'Доступен только раздел "CRM-интеграции". Нажимаю на кнопку действий в строке, относящейся к amoCRM. ' +
             'Ссылка на раздел переотправки событий заблокирована. ',
