@@ -36,9 +36,18 @@ index eb25c85..201f6e0 100644
      "yup": "^0.32.9"
    }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 2a08c74..8da548b 100644
+index 2a08c74..9281e35 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
+@@ -19,7 +19,7 @@ import {
+     createObservable,
+     RootStore as SoftphoneStore,
+     createRootStore as createSoftphoneStore,
+-} from 'uis-softphone';
++} from '@comagic/softphone-widget';
+ 
+ import {
+     eventBus,
 @@ -717,4 +717,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);

@@ -332,10 +332,10 @@ index 5939e8fb..da1b5bf9 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 31676385..2aa836f7 100644
+index 31676385..796b5be1 100644
 --- a/package.json
 +++ b/package.json
-@@ -69,12 +69,16 @@
+@@ -69,12 +69,15 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -344,7 +344,6 @@ index 31676385..2aa836f7 100644
      "@sentry/react": "^6.17.6",
      "@sentry/tracing": "^6.17.6",
      "archiver": "^5.3.0",
-+    "antd": "3.26.7",
      "auto-launch": "^5.0.5",
      "axios": "^0.24.0",
 +    "babel-loader": "^8.0.4",
@@ -353,7 +352,7 @@ index 31676385..2aa836f7 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -86,7 +90,7 @@
+@@ -86,7 +89,7 @@
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
@@ -362,7 +361,7 @@ index 31676385..2aa836f7 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -95,7 +99,13 @@
+@@ -95,7 +98,13 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "6.4.0",
@@ -371,8 +370,8 @@ index 31676385..2aa836f7 100644
 +    "string-hash": "^1.1.3",
 +    "contacts": "./misc/contacts",
      "stream-buffers": "^3.0.2",
-+    "uis-softphone": "./misc/softphone/misc/sip_lib",
-+    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
++    "@comagic/softphone-widget": "./misc/softphone/misc/sip_lib",
++    "@comagic/softphone-core": "./misc/softphone/misc/sip_lib/uis_webrtc",
      "yup": "^0.28.1"
    },
    "optionalDependencies": {

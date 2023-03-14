@@ -1,7 +1,14 @@
 diff --git a/package.json b/package.json
-index b83ce7d..390dfd9 100644
+index b83ce7d..6d9e7e2 100644
 --- a/package.json
 +++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "uis-softphone",
++  "name": "@comagic/softphone-widget",
+   "version": "v0.0.190",
+   "description": "UIS Softphone",
+   "main": "src/index.ts",
 @@ -23,8 +23,6 @@
    },
    "homepage": "https://gitlab.uis.dev/web/sip_lib",
