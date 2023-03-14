@@ -7,7 +7,7 @@ cd $path
 if [ ! -d $path/node_modules ]
 then
     cd $path
-    npm install
+    npm install --verbose
     fix-permissions $path
 fi
 
@@ -23,7 +23,7 @@ cd $path
 if [ ! -d $path/node_modules ]
 then
     cd $path
-    npm install
+    npm install --verbose
     fix-permissions $path
 fi
 
