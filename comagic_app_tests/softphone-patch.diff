@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 83687da..201f6e0 100644
+index eb25c85..201f6e0 100644
 --- a/package.json
 +++ b/package.json
 @@ -52,8 +52,6 @@
@@ -31,7 +31,7 @@ index 83687da..201f6e0 100644
      "redux-thunk": "^2.3.0",
      "short-uuid": "^4.2.0",
      "string-hash": "^1.1.3",
--    "uis-softphone": "git+https://sip_lib:glpat-Xzs1ef2zY2QoxFSchj8P@gitlab.uis.dev/web/sip_lib.git#multitab-local",
+-    "uis-softphone": "git+https://sip_lib:glpat-Xzs1ef2zY2QoxFSchj8P@gitlab.uis.dev/web/sip_lib.git#feature/mst",
      "uuid": "^8.3.2",
      "yup": "^0.32.9"
    }
