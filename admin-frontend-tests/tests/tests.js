@@ -36,7 +36,7 @@ tests.addTest(function (options) {
             userRequest = tester.userRequest().expectToBeSent();
         });
 
-        xdescribe(
+        describe(
             'Доступны разделы "Пользователи", "CRM-интеграции", "Переотправка событий" и "Фичефлаги".',
         function() {
             beforeEach(function() {
@@ -2013,7 +2013,7 @@ tests.addTest(function (options) {
                 tester.menuitem('Фичефлаги').expectHrefToHavePath('/feature-flags');
             });
         });
-        xdescribe('Доступен только раздел "Пользовтатели".', function() {
+        describe('Доступен только раздел "Пользовтатели".', function() {
             beforeEach(function() {
                 userRequest.allowReadUsers().receiveResponse();
             });
@@ -2122,7 +2122,7 @@ tests.addTest(function (options) {
                                 tester.tab('Настройки софтфона').click();
                             });
 
-                            xit(
+                            it(
                                 'Я меняю значение поля. Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения.',
                             function() {
                                 tester.table().
@@ -2130,20 +2130,22 @@ tests.addTest(function (options) {
                                     column().withHeader('ICE servers').textfield().
                                     fill('stun:stun.uiscom.ru:19304');
 
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('Движок').select().arrowIcon().click();
+
+                                tester.select().
+                                    option('Janus').click();
+
                                 tester.button('Сохранить').click();
 
-                                tester.appUpdatingRequest().receiveResponse();
+                                tester.appUpdatingRequest().janus().receiveResponse();
                                 tester.appRequest().receiveResponse();
                             });
                             it('Форма заполнена.', function() {
                                 tester.table().
                                     cell().withContent('call_center').row().
                                     column().withHeader('WebRTC url').textfield().
-                                    expectToHaveValue('wss://webrtc.uiscom.ru');
-
-                                tester.table().
-                                    cell().withContent('call_center').row().
-                                    column().withHeader('РТУ WebRTC url').textfield().
                                     expectToHaveValue('wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru');
 
                                 tester.table().
@@ -2153,21 +2155,20 @@ tests.addTest(function (options) {
 
                                 tester.table().
                                     cell().withContent('call_center').row().
-                                    column().withHeader('РТУ SIP host').textfield().
-                                    expectToHaveValue('rtu.uis.st:443');
+                                    column().withHeader('ICE servers').textfield().
+                                    expectToHaveValue('stun:stun.uiscom.ru:19303');
 
                                 tester.table().
                                     cell().withContent('call_center').row().
-                                    column().withHeader('ICE servers').textfield().
-                                    expectToHaveValue('stun:stun.uiscom.ru:19303');
+                                    column().withHeader('Движок').select().
+                                    expectToHaveValue('РТУ');
                             });
                         });
-                        return;
                         it(
                             'Значение поля URL для РТУ является массивом. Я меняю значение поля. Нажимаю на кнопку ' +
                             '"Сохранить". Отправлен запрос сохранения.',
                         function() {
-                            appRequest.rtuWebrtcUrlsAreArray().receiveResponse();
+                            appRequest.webrtcUrlsAreArray().receiveResponse();
                             tester.tab('Настройки софтфона').click();
 
                             tester.table().
@@ -2184,7 +2185,7 @@ tests.addTest(function (options) {
                             'Значение поля URL для РТУ является пустым. Я меняю значение поля. Нажимаю на кнопку ' +
                             '"Сохранить". Отправлен запрос сохранения.',
                         function() {
-                            appRequest.noRtuWebrtcUrls().receiveResponse();
+                            appRequest.noWebrtcUrls().receiveResponse();
                             tester.tab('Настройки софтфона').click();
 
                             tester.table().
@@ -2194,11 +2195,10 @@ tests.addTest(function (options) {
 
                             tester.button('Сохранить').click();
 
-                            tester.appUpdatingRequest().noRtuWebrtcUrls().receiveResponse();
+                            tester.appUpdatingRequest().noWebrtcUrls().receiveResponse();
                             tester.appRequest().receiveResponse();
                         });
                     });
-                    return;
                     it('Открывается меню.', function() {
                         tester.dropdown.expectToHaveTextContent(
                             'История изменений ' +
@@ -2212,7 +2212,6 @@ tests.addTest(function (options) {
                         );
                     });
                 });
-                return;
                 describe('Нажимаю на заголовок колонки "App ID". Отправлен запрос без сортировки.', function() {
                     beforeEach(function() {
                         tester.table().header().withContent('App ID').click();
@@ -2259,7 +2258,6 @@ tests.addTest(function (options) {
                     );
                 });
             });
-            return;
             it('В поле статусов отображены названия статусов.', function() {
                 tester.root.expectTextContentToHaveSubstring(
                     'Статусы ' +
@@ -2274,7 +2272,6 @@ tests.addTest(function (options) {
                 );
             });
         });
-return;
         it(
             'Доступен только раздел "CRM-интеграции". Нажимаю на кнопку действий в строке, относящейся к amoCRM. ' +
             'Ссылка на раздел переотправки событий заблокирована. ',

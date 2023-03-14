@@ -49,6 +49,54 @@ define(() => {
                 find().
                 closest('div');
 
+            me.select = () => {
+                const createTester = getSelect => {
+                    const tester = testersFactory.createDomElementTester(getSelect);
+
+                    tester.expectToHaveValue = expectedValue => {
+                        const actualValue = utils.getTextContent(getSelect().querySelector(
+                            '.ant-select-selection-selected-value, ' +
+                            '.ant-select-selection__rendered ul'
+                        ));
+
+                        if (actualValue != expectedValue) {
+                            throw new Error(
+                                `Выпадающий список с плейсхолдером "${placeholder}" должен иметь значение ` +
+                                `"${expectedValue}", а не "${actualValue}".`
+                            );
+                        }
+                    };
+
+                    tester.arrowIcon = () => testersFactory.createDomElementTester(
+                        getSelect().querySelector('.ant-select-arrow-icon')
+                    );
+                    
+                    addErrorIcon(tester, getSelect);
+
+                    return tester;
+                };
+
+                const tester = createTester(() => getRoot().querySelector('.ant-select') || new JsTester_NoElement());
+
+                tester.option = text => testersFactory.createDomElementTester(
+                    utils.descendantOfBody().
+                        matchesSelector('.ant-select-dropdown-menu-item').
+                        textEquals(text).
+                        find()
+                );
+
+                tester.withPlaceholder = placeholder => createTester(
+                    () => utils.descendantOf(getRoot()).
+                        matchesSelector('.ant-select-selection__placeholder').
+                        textEquals(placeholder).
+                        maybeInvisible().
+                        find().
+                        closest('.ant-select') || new JsTester_NoElement()
+                );
+
+                return tester;
+            };
+
             me.textfield = () => {
                 const tester = testersFactory.createTextFieldTester(() =>
                     (getRoot() || new JsTester_NoElement()).querySelector('input'));
@@ -414,49 +462,6 @@ define(() => {
                 const getPage = () => document.querySelector('.page');
                 return createTesters(getPage, testersFactory.createDomElementTester(getPage));
             })(),
-
-            select() {
-                return {
-                    option: text => testersFactory.createDomElementTester(
-                        utils.descendantOfBody().
-                            matchesSelector('.ant-select-dropdown-menu-item').
-                            textEquals(text).
-                            find()
-                    ),
-                    withPlaceholder: placeholder => {
-                        const getSelect = () => utils.descendantOfBody().
-                            matchesSelector('.ant-select-selection__placeholder').
-                            textEquals(placeholder).
-                            maybeInvisible().
-                            find().
-                            closest('.ant-select') || new JsTester_NoElement();
-
-                        const tester = testersFactory.createDomElementTester(getSelect);
-
-                        tester.expectToHaveValue = expectedValue => {
-                            const actualValue = utils.getTextContent(getSelect().querySelector(
-                                '.ant-select-selection-selected-value, ' +
-                                '.ant-select-selection__rendered ul'
-                            ));
-
-                            if (actualValue != expectedValue) {
-                                throw new Error(
-                                    `Выпадающий список с плейсхолдером "${placeholder}" должен иметь значение ` +
-                                    `"${expectedValue}", а не "${actualValue}".`
-                                );
-                            }
-                        };
-
-                        tester.arrowIcon = () => testersFactory.createDomElementTester(
-                            getSelect().querySelector('.ant-select-arrow-icon')
-                        );
-                        
-                        addErrorIcon(tester, getSelect);
-
-                        return tester;
-                    }
-                };
-            },
 
             forceUpdate() {
                 app.forceUpdate();
@@ -1135,15 +1140,19 @@ define(() => {
                         widget_type: 'call_center',
                         ice_servers: 'stun:stun.uiscom.ru:19304',
                         sip_host: 'voip.uiscom.ru',
-                        webrtc_urls: 'wss://webrtc.uiscom.ru',
-                        rtu_sip_host: 'rtu.uis.st:443',
-                        rtu_webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru'
+                        webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru',
+                        engine: 'rtu',
                     }]
                 };
 
                 return {
-                    noRtuWebrtcUrls() {
-                        params.softphone_settings[0].rtu_webrtc_urls = '';
+                    janus() {
+                        params.softphone_settings[0].engine = 'janus';
+                        return this;
+                    },
+
+                    noWebrtcUrls() {
+                        params.softphone_settings[0].webrtc_urls = '';
                         return this;
                     },
 
@@ -1207,20 +1216,19 @@ define(() => {
                             widget_type: 'call_center',
                             ice_servers: 'stun:stun.uiscom.ru:19303',
                             sip_host: 'voip.uiscom.ru',
-                            webrtc_urls: 'wss://webrtc.uiscom.ru',
-                            rtu_sip_host: 'rtu.uis.st:443',
-                            rtu_webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru'
+                            webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru',
+                            engine: 'rtu',
                         }]
                     }
                 };
 
                 const addResponseModifiers = me => {
-                    me.rtuWebrtcUrlsAreArray = () => (result.data.softphone_settings[0].rtu_webrtc_urls = [
+                    me.webrtcUrlsAreArray = () => (result.data.softphone_settings[0].webrtc_urls = [
                         'wss://rtu-1-webrtc.uiscom.ru',
                         'wss://rtu-2-webrtc.uiscom.ru'
                     ], me);
 
-                    me.noRtuWebrtcUrls = () => (result.data.softphone_settings[0].rtu_webrtc_urls = null, me);
+                    me.noWebrtcUrls = () => (result.data.softphone_settings[0].webrtc_urls = null, me);
 
                     return me;
                 };
