@@ -2135,7 +2135,7 @@ tests.addTest(function (options) {
                                     column().withHeader('Движок').select().arrowIcon().click();
 
                                 tester.select().
-                                    option('Janus').click();
+                                    option('Janus WebRTC').click();
 
                                 tester.button('Сохранить').click();
 
@@ -2161,7 +2161,7 @@ tests.addTest(function (options) {
                                 tester.table().
                                     cell().withContent('call_center').row().
                                     column().withHeader('Движок').select().
-                                    expectToHaveValue('РТУ');
+                                    expectToHaveValue('РТУ WebRTC');
                             });
                         });
                         it(

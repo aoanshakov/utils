@@ -3210,7 +3210,7 @@ define(() => function ({
                 response.data.ice_servers = [];
 
                 response.data.sip = {
-                    engine: 'janus',
+                    engine: 'janus_webrtc',
                     sip_channels_count: 2,
                     webrtc_urls: ['wss://rtu-webrtc.uiscom.ru'],
                     sip_phone: '076909',

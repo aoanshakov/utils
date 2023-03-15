@@ -5443,7 +5443,7 @@ define(function () {
 
             notification.sixthSetOfSipCredentials = function () {
                 settings.sip = {
-                    engine: 'janus',
+                    engine: 'janus_webrtc',
                     sip_channels_count: 2,
                     webrtc_urls: ['wss://rtu-webrtc.uiscom.ru'],
                     sip_phone: '076909',
@@ -5459,7 +5459,7 @@ define(function () {
             };
 
             notification.fifthSetOfSipCredentials = function () {
-                settings.sip.engine = 'janus';
+                settings.sip.engine = 'janus_webrtc';
 
                 settings.sip.webrtc_urls = [{
                     url: 'wss://pp-janus-1.uiscom.ru:8989',
@@ -5473,13 +5473,13 @@ define(function () {
             };
 
             notification.fourthSetOfSipCredentials = function () {
-                settings.sip.engine = 'janus';
+                settings.sip.engine = 'janus_webrtc';
                 settings.sip.webrtc_urls = ['wss://pp-janus-1.uiscom.ru:8989', 'wss://pp-janus-2.uiscom.ru:8989'];
                 return this;
             };
 
             notification.thirdSetOfSipCredentials = function () {
-                settings.sip.engine = 'rtu';
+                settings.sip.engine = 'rtu_webrtc';
                 settings.sip.webrtc_urls = ['wss://rtu-webrtc.uiscom.ru'];
                 settings.sip.sip_phone = '076909';
                 settings.sip.sip_host = 'pp-rtu.uis.st:443';

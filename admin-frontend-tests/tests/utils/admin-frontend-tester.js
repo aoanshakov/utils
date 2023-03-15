@@ -50,7 +50,7 @@ define(() => {
                 closest('div');
 
             me.select = () => {
-                const createTester = getSelect => {
+                const createTester = (getSelect, description = '') => {
                     const tester = testersFactory.createDomElementTester(getSelect);
 
                     tester.expectToHaveValue = expectedValue => {
@@ -61,7 +61,7 @@ define(() => {
 
                         if (actualValue != expectedValue) {
                             throw new Error(
-                                `Выпадающий список с плейсхолдером "${placeholder}" должен иметь значение ` +
+                                `Выпадающий список${description} должен иметь значение ` +
                                 `"${expectedValue}", а не "${actualValue}".`
                             );
                         }
@@ -91,7 +91,9 @@ define(() => {
                         textEquals(placeholder).
                         maybeInvisible().
                         find().
-                        closest('.ant-select') || new JsTester_NoElement()
+                        closest('.ant-select') || new JsTester_NoElement(),
+
+                    ` с плейсхолдером "${placeholder}"`
                 );
 
                 return tester;
@@ -1141,13 +1143,13 @@ define(() => {
                         ice_servers: 'stun:stun.uiscom.ru:19304',
                         sip_host: 'voip.uiscom.ru',
                         webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru',
-                        engine: 'rtu',
+                        engine: 'rtu_webrtc',
                     }]
                 };
 
                 return {
                     janus() {
-                        params.softphone_settings[0].engine = 'janus';
+                        params.softphone_settings[0].engine = 'janus_webrtc';
                         return this;
                     },
 
@@ -1217,7 +1219,7 @@ define(() => {
                             ice_servers: 'stun:stun.uiscom.ru:19303',
                             sip_host: 'voip.uiscom.ru',
                             webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru',
-                            engine: 'rtu',
+                            engine: 'rtu_webrtc',
                         }]
                     }
                 };
