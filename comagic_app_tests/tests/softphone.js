@@ -1160,7 +1160,6 @@ tests.addTest(options => {
                                                         expectToBeSent();
 
                                                     tester.employeeRow('Шалева Дора').expectToBeDisabled();
-
                                                     tester.softphone.expectTextContentToHaveSubstring('Разрыв сети');
                                                 });
                                                 it('Нажимаю на кнопку первой линии. Софтфон свернут.', function() {
@@ -1172,7 +1171,9 @@ tests.addTest(options => {
                                                     tester.dialpadButton(1).expectToBeVisible();
                                                 });
                                                 it('Отображена таблица сотрудников.', function() {
-                                                    tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
+                                                    tester.employeeRow('Божилова Йовка').expectToBeDisabled();
+                                                    tester.employeeRow('Шалева Дора').expectToBeEnabled();
+
                                                     tester.softphone.expectToBeExpanded();
                                                 });
                                             });
@@ -2714,6 +2715,15 @@ tests.addTest(options => {
                                     receiveResponse();
 
                                 tester.dialpadButton(1).expectNotToExist();
+                            });
+                            it('Открываю список сотрудников.', function() {
+                                tester.addressBookButton.click();
+
+                                tester.usersRequest().receiveResponse();
+                                tester.usersInGroupsRequest().receiveResponse();
+                                tester.groupsRequest().receiveResponse();
+
+                                tester.employeeRow('Шалева Дора').expectToBeDisabled();
                             });
                             it('Отображено сообщение "Нет доступной sip-линии".', function() {
                                 tester.softphone.expectToBeCollapsed();
