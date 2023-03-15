@@ -384,6 +384,10 @@ tests.addTest(options => {
                 });
                 describe('Выбираю режим IP-телефон.', function() {
                     beforeEach(function() {
+                        tester.button('Софтфон').click();
+                        tester.slavesNotification().additional().visible().expectToBeSent();
+
+                        tester.dialpadVisibilityButton.click();
                         tester.button('IP-телефон').click();
 
                         tester.settingsUpdatingRequest().callsAreManagedByAnotherDevice().receiveResponse();
@@ -439,9 +443,6 @@ tests.addTest(options => {
                             available().
                             expectToBeSent();
 
-                        tester.button('Софтфон').click();
-                        tester.slavesNotification().additional().visible().expectToBeSent();
-
                         spendTime(1000);
                         tester.getWebRtcSocket(0).finishDisconnecting();
 
@@ -451,9 +452,18 @@ tests.addTest(options => {
                         spendTime(1000);
                         tester.webrtcWebsocket.finishDisconnecting();
                     });
+                    it('Разворачиваю виджет. Отображен заблокированный диалпад.', function() {
+                        tester.collapsednessToggleButton.click();
+                        tester.dialpadButton(1).expectToHaveAttribute('disabled');
+                    });
                     it('Свитчбокс "IP-телефон" отмечен.', function() {
                         tester.button('Текущее устройство').expectNotToBeChecked();
                         tester.button('IP-телефон').expectToBeChecked();
+
+                        tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                        tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
+
+                        tester.dialpadButton(1).expectNotToExist();
                     });
                 });
                 it('Установлены настройки по умолчанию.', function() {

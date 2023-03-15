@@ -629,7 +629,7 @@ tests.addTest(options => {
                                                                 });
                                                             });
                                                             it('Кнопка диалпада нажата.', function() {
-                                                                tester.dialpadButton(1).expectToBeVisible();;
+                                                                tester.dialpadButton(1).expectToBeVisible();
 
                                                                 tester.dialpadVisibilityButton.
                                                                     expectNotToHaveClass('cmg-button-disabled');
@@ -667,10 +667,10 @@ tests.addTest(options => {
                                                             confirmed().
                                                             expectToBeSent();
 
-                                                        tester.dialpadButton(1).expectNotToHaveAttribute('disabled');;
+                                                        tester.dialpadButton(1).expectNotToHaveAttribute('disabled');
                                                     });
                                                     it('Диалпад заблокирован.', function() {
-                                                        tester.dialpadButton(1).expectToHaveAttribute('disabled');;
+                                                        tester.dialpadButton(1).expectToHaveAttribute('disabled');
                                                     });
                                                 });
                                                 describe('Нажимаю на кнопку таблицы сотрудников.', function() {
@@ -791,7 +791,7 @@ tests.addTest(options => {
                                                         tester.outCallSessionEvent().slavesNotification().
                                                             expectToBeSent();
 
-                                                        tester.dialpadButton(1).expectToBeVisible();;
+                                                        tester.dialpadButton(1).expectToBeVisible();
 
                                                         tester.dialpadVisibilityButton.
                                                             expectNotToHaveClass('cmg-button-disabled');
@@ -1169,7 +1169,7 @@ tests.addTest(options => {
                                                 });
                                                 it('Нажимаю на кнопку диалпада. Отображен диалпад.', function() {
                                                     tester.dialpadVisibilityButton.click();
-                                                    tester.dialpadButton(1).expectToBeVisible();;
+                                                    tester.dialpadButton(1).expectToBeVisible();
                                                 });
                                                 it('Отображена таблица сотрудников.', function() {
                                                     tester.employeeRow('Божилова Йовка').callIcon.expectToBeVisible();
@@ -1976,7 +1976,7 @@ tests.addTest(options => {
                         tester.slavesNotification().additional().visible().expectToBeSent();
                     });
 
-                    xdescribe('Пользователь имеет права на список номеров.', function() {
+                    describe('Пользователь имеет права на список номеров.', function() {
                         beforeEach(function() {
                             permissionsRequest = permissionsRequest.allowNumberCapacitySelect();
                             settingsRequest = settingsRequest.allowNumberCapacitySelect();
@@ -2575,7 +2575,7 @@ tests.addTest(options => {
                             permissionsRequest.receiveResponse();
                         });
 
-                        xdescribe('Включено управление звонками на другом устройстве.', function() {
+                        describe('Включено управление звонками на другом устройстве.', function() {
                             beforeEach(function() {
                                 settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
 
@@ -2664,7 +2664,63 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        xit('Необходимо подключиться к РТУ напрямую. Подключаюсь.', function() {
+                        describe('Телефония недоступна.', function() {
+                            beforeEach(function() {
+                                settingsRequest.
+                                    noTelephony().
+                                    receiveResponse();
+
+                                tester.othersNotification().
+                                    widgetStateUpdate().
+                                    noTelephony().
+                                    expectToBeSent();
+
+                                tester.othersNotification().
+                                    updateSettings().
+                                    shouldNotPlayCallEndingSignal().
+                                    expectToBeSent();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    disabled().
+                                    expectToBeSent();
+
+                                tester.slavesNotification().expectToBeSent();
+                                tester.connectEventsWebSocket();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    disabled().
+                                    softphoneServerConnected().
+                                    expectToBeSent();
+
+                                notificationTester.grantPermission();
+
+                                tester.authenticatedUserRequest().receiveResponse();
+
+                                tester.slavesNotification().
+                                    userDataFetched().
+                                    twoChannels().
+                                    disabled().
+                                    softphoneServerConnected().
+                                    expectToBeSent();
+                            });
+                            
+                            it('Нажимаю на кнопку контактов.', function() {
+                                tester.contactsButton.click();
+
+                                tester.contactsRequest().
+                                    differentNames().
+                                    receiveResponse();
+
+                                tester.dialpadButton(1).expectNotToExist();
+                            });
+                            it('Отображено сообщение "Нет доступной sip-линии".', function() {
+                                tester.softphone.expectToBeCollapsed();
+                                tester.softphone.expectTextContentToHaveSubstring('Нет доступной sip-линии');
+                            });
+                        });
+                        it('Необходимо подключиться к РТУ напрямую. Подключаюсь.', function() {
                             tester.setJsSIPRTUUrl();
 
                             settingsRequest.
@@ -2732,7 +2788,7 @@ tests.addTest(options => {
                                 available().
                                 expectToBeSent();
                         });
-                        xit('Необходимо подключиться к Janus. Подключаюсь.', function() {
+                        it('Необходимо подключиться к Janus. Подключаюсь.', function() {
                             tester.setTwoJanusUrls();
                             settingsRequest.receiveResponse();
                             
@@ -2812,7 +2868,7 @@ tests.addTest(options => {
                                 available().
                                 expectToBeSent();
                         });
-                        xit('Используется свойство sip. Необходимо подключиться к Janus. Подключаюсь.', function() {
+                        it('Используется свойство sip. Необходимо подключиться к Janus. Подключаюсь.', function() {
                             tester.anotherWebRTCURL();
 
                             settingsRequest.
@@ -2900,7 +2956,7 @@ tests.addTest(options => {
                                 available().
                                 expectToBeSent();
                         });
-                        xit(
+                        it(
                             'Получена некорректная конфигурация прямого подключения к РТУ. Подключаюсь к каме.',
                         function() {
                             settingsRequest.
@@ -2966,52 +3022,6 @@ tests.addTest(options => {
                                 available().
                                 expectToBeSent();
                         });
-                        it('Телефония недоступна. Отображено сообщение "Нет доступной sip-линии".', function() {
-                            settingsRequest.
-                                noTelephony().
-                                receiveResponse();
-
-                            tester.othersNotification().
-                                widgetStateUpdate().
-                                noTelephony().
-                                expectToBeSent();
-
-                            tester.othersNotification().
-                                updateSettings().
-                                shouldNotPlayCallEndingSignal().
-                                expectToBeSent();
-
-                            tester.slavesNotification().
-                                twoChannels().
-                                disabled().
-                                expectToBeSent();
-
-                            tester.slavesNotification().expectToBeSent();
-                            tester.connectEventsWebSocket();
-
-                            tester.slavesNotification().
-                                twoChannels().
-                                disabled().
-                                softphoneServerConnected().
-                                expectToBeSent();
-
-                            notificationTester.grantPermission();
-
-                            tester.authenticatedUserRequest().receiveResponse();
-
-                            tester.slavesNotification().
-                                userDataFetched().
-                                twoChannels().
-                                disabled().
-                                softphoneServerConnected().
-                                expectToBeSent();
-
-                            tester.softphone.expectToBeCollapsed();
-                            tester.softphone.expectTextContentToHaveSubstring(
-                                'Нет доступной sip-линии'
-                            );
-                        });
-                        return;
                         it('Выбран кастомный рингтон. Сигнал завершения звонка включен.', function() {
                             settingsRequest.secondRingtone().isNeedDisconnectSignal().receiveResponse();
 
@@ -3097,7 +3107,6 @@ tests.addTest(options => {
                     });
                 });
             });
-return;
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().isNotMaster().receive();
@@ -3727,7 +3736,6 @@ return;
                 });
             });
         });
-return;
         describe('Пользователь является руководителем.', function() {
             beforeEach(function() {
                 accountRequest = accountRequest.manager();

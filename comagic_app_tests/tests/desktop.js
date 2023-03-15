@@ -1075,49 +1075,8 @@ tests.addTest(options => {
 
                                                 tester.softphone.visibilityButton.click();
 
-                                                const requests = ajax.inAnyOrder();
-
-                                                const accountRequest = tester.accountRequest().
+                                                tester.accountRequest().
                                                     operatorWorkplaceAvailable().
-                                                    forChats().
-                                                    expectToBeSent(requests);
-
-                                                const secondAccountRequest = tester.accountRequest().
-                                                    operatorWorkplaceAvailable().
-                                                    expectToBeSent(requests);
-
-                                                requests.expectToBeSent();
-
-                                                accountRequest.receiveResponse();
-                                                secondAccountRequest.receiveResponse();
-
-                                                tester.offlineMessageCountersRequest().receiveResponse();
-                                                tester.chatChannelListRequest().receiveResponse();
-                                                tester.siteListRequest().receiveResponse();
-                                                tester.markListRequest().receiveResponse();
-                                                tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                tester.offlineMessageListRequest().processing().receiveResponse();
-                                                tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                tester.countersRequest().receiveResponse();
-
-                                                tester.chatListRequest().
-                                                    forCurrentEmployee().
-                                                    thirdPage().
-                                                    receiveResponse();
-
-                                                tester.chatListRequest().
-                                                    forCurrentEmployee().
-                                                    thirdPage().
-                                                    active().
-                                                    receiveResponse();
-
-                                                tester.chatListRequest().
-                                                    forCurrentEmployee().
-                                                    thirdPage().
-                                                    closed().
                                                     receiveResponse();
 
                                                 tester.button('Показать все статусы').expectToBeVisible();
@@ -1235,21 +1194,11 @@ tests.addTest(options => {
                                                 anotherAuthorizationToken().
                                                 expectToBeSent();
 
-                                            const requests = ajax.inAnyOrder();
-
-                                            const secondAccountRequest = tester.accountRequest().
+                                            tester.accountRequest().
                                                 anotherAuthorizationToken().
                                                 operatorWorkplaceAvailable().
-                                                forChats().
-                                                expectToBeSent(requests);
+                                                receiveResponse();
 
-                                            const thirdAccountRequest = tester.accountRequest().
-                                                anotherAuthorizationToken().
-                                                operatorWorkplaceAvailable().
-                                                expectToBeSent(requests);
-
-                                            requests.expectToBeSent();
-                                            thirdAccountRequest.receiveResponse();
                                             authCheckRequest.receiveResponse();
 
                                             tester.statusesRequest().
@@ -1277,37 +1226,6 @@ tests.addTest(options => {
 
                                             tester.authenticatedUserRequest().receiveResponse();
                                             tester.registrationRequest().desktopSoftphone().receiveResponse();
-
-                                            secondAccountRequest.receiveResponse();
-
-                                            tester.offlineMessageCountersRequest().receiveResponse();
-                                            tester.chatChannelListRequest().receiveResponse();
-                                            tester.siteListRequest().receiveResponse();
-                                            tester.markListRequest().receiveResponse();
-                                            tester.chatChannelTypeListRequest().receiveResponse();
-
-                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                            tester.offlineMessageListRequest().processing().receiveResponse();
-                                            tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                            tester.countersRequest().receiveResponse();
-
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                secondPage().
-                                                receiveResponse();
-
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                secondPage().
-                                                active().
-                                                receiveResponse();
-
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                secondPage().
-                                                closed().
-                                                receiveResponse();
                                         });
                                         it('Выбираю статус. Список статусов скрыт.', function() {
                                             tester.statusesList.item('Нет на месте').click();
@@ -1385,19 +1303,10 @@ tests.addTest(options => {
                                             tester.usersInGroupsRequest().receiveResponse();
                                             tester.groupsRequest().receiveResponse();
 
-                                            const requests = ajax.inAnyOrder();
-
-                                            const secondAccountRequest = tester.accountRequest().
+                                            tester.accountRequest().
                                                 operatorWorkplaceAvailable().
-                                                forChats().
-                                                expectToBeSent(requests);
+                                                receiveResponse();
 
-                                            const thirdAccountRequest = tester.accountRequest().
-                                                operatorWorkplaceAvailable().
-                                                expectToBeSent(requests);
-
-                                            requests.expectToBeSent();
-                                            thirdAccountRequest.receiveResponse();
                                             authCheckRequest.receiveResponse();
 
                                             tester.statusesRequest().receiveResponse();
@@ -1419,37 +1328,6 @@ tests.addTest(options => {
                                             tester.authenticatedUserRequest().receiveResponse();
                                             tester.numberCapacityRequest().receiveResponse();
                                             tester.registrationRequest().desktopSoftphone().receiveResponse();
-
-                                            secondAccountRequest.receiveResponse();
-
-                                            tester.offlineMessageCountersRequest().receiveResponse();
-                                            tester.chatChannelListRequest().receiveResponse();
-                                            tester.siteListRequest().receiveResponse();
-                                            tester.markListRequest().receiveResponse();
-                                            tester.chatChannelTypeListRequest().receiveResponse();
-
-                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                            tester.offlineMessageListRequest().processing().receiveResponse();
-                                            tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                            tester.countersRequest().receiveResponse();
-
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                secondPage().
-                                                receiveResponse();
-
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                secondPage().
-                                                active().
-                                                receiveResponse();
-
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                secondPage().
-                                                closed().
-                                                receiveResponse();
 
                                             tester.userName.click();
 
@@ -1699,21 +1577,11 @@ tests.addTest(options => {
                                             anotherAuthorizationToken().
                                             expectToBeSent();
 
-                                        const requests = ajax.inAnyOrder();
-
-                                        const secondAccountRequest = tester.accountRequest().
+                                        tester.accountRequest().
                                             anotherAuthorizationToken().
                                             operatorWorkplaceAvailable().
-                                            forChats().
-                                            expectToBeSent(requests);
+                                            receiveResponse();
 
-                                        const thirdAccountRequest = tester.accountRequest().
-                                            anotherAuthorizationToken().
-                                            operatorWorkplaceAvailable().
-                                            expectToBeSent(requests);
-
-                                        requests.expectToBeSent();
-                                        thirdAccountRequest.receiveResponse();
                                         authCheckRequest.receiveResponse();
 
                                         tester.statusesRequest().
@@ -1741,37 +1609,6 @@ tests.addTest(options => {
 
                                         tester.authenticatedUserRequest().receiveResponse();
                                         tester.registrationRequest().desktopSoftphone().receiveResponse();
-
-                                        secondAccountRequest.receiveResponse();
-
-                                        tester.offlineMessageCountersRequest().receiveResponse();
-                                        tester.chatChannelListRequest().receiveResponse();
-                                        tester.siteListRequest().receiveResponse();
-                                        tester.markListRequest().receiveResponse();
-                                        tester.chatChannelTypeListRequest().receiveResponse();
-
-                                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                        tester.offlineMessageListRequest().processing().receiveResponse();
-                                        tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                        tester.countersRequest().receiveResponse();
-
-                                        tester.chatListRequest().
-                                            forCurrentEmployee().
-                                            secondPage().
-                                            receiveResponse();
-
-                                        tester.chatListRequest().
-                                            forCurrentEmployee().
-                                            secondPage().
-                                            active().
-                                            receiveResponse();
-
-                                        tester.chatListRequest().
-                                            forCurrentEmployee().
-                                            secondPage().
-                                            closed().
-                                            receiveResponse();
 
                                         tester.phoneField.fill('79161234567');
                                         tester.callStartingButton.expectNotToHaveAttribute('disabled');
@@ -3120,49 +2957,8 @@ tests.addTest(options => {
                         expectToBeSentToChannel('call-start').
                         expectToBeSentWithArguments(true);
 
-                    const requests = ajax.inAnyOrder();
-
-                    const accountRequest = tester.accountRequest().
+                    tester.accountRequest().
                         operatorWorkplaceAvailable().
-                        expectToBeSent(requests);
-                    
-                    const chatsAccountRequest = tester.accountRequest().
-                        operatorWorkplaceAvailable().
-                        forChats().
-                        expectToBeSent(requests);
-
-                    requests.expectToBeSent();
-
-                    accountRequest.receiveResponse();
-                    chatsAccountRequest.receiveResponse();
-
-                    tester.offlineMessageCountersRequest().receiveResponse();
-                    tester.chatChannelListRequest().receiveResponse();
-                    tester.siteListRequest().receiveResponse();
-                    tester.markListRequest().receiveResponse();
-                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                    tester.offlineMessageListRequest().processing().receiveResponse();
-                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                    tester.countersRequest().receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        anyScrollFromDate().
-                        receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        anyScrollFromDate().
-                        active().
-                        receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        anyScrollFromDate().
-                        closed().
                         receiveResponse();
 
                     tester.stopCallButton.expectToBeVisible();
@@ -3292,51 +3088,8 @@ tests.addTest(options => {
                         expectToBeSentToChannel('call-start').
                         expectToBeSentWithArguments(true);
 
-                    {
-                        const requests = ajax.inAnyOrder();
-
-                        const accountRequest = tester.accountRequest().
-                            operatorWorkplaceAvailable().
-                            forChats().
-                            expectToBeSent(requests);
-
-                        const secondAccountRequest = tester.accountRequest().
-                            operatorWorkplaceAvailable().
-                            expectToBeSent(requests);
-
-                        requests.expectToBeSent();
-
-                        accountRequest.receiveResponse();
-                        secondAccountRequest.receiveResponse();
-                    }
-
-                    tester.offlineMessageCountersRequest().receiveResponse();
-                    tester.chatChannelListRequest().receiveResponse();
-                    tester.siteListRequest().receiveResponse();
-                    tester.markListRequest().receiveResponse();
-                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                    tester.offlineMessageListRequest().processing().receiveResponse();
-                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                    tester.countersRequest().receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        thirdPage().
-                        receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        thirdPage().
-                        active().
-                        receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        thirdPage().
-                        closed().
+                    tester.accountRequest().
+                        operatorWorkplaceAvailable().
                         receiveResponse();
 
                     tester.softphone.expectTextContentToHaveSubstring('+7 (916) 272-95-33');
