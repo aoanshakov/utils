@@ -1,20 +1,13 @@
 diff --git a/package.json b/package.json
-index b83ce7d..6d9e7e2 100644
+index 1aa5a75..6d9e7e2 100644
 --- a/package.json
 +++ b/package.json
-@@ -1,5 +1,5 @@
- {
--  "name": "uis-softphone",
-+  "name": "@comagic/softphone-widget",
-   "version": "v0.0.190",
-   "description": "UIS Softphone",
-   "main": "src/index.ts",
 @@ -23,8 +23,6 @@
    },
    "homepage": "https://gitlab.uis.dev/web/sip_lib",
    "peerDependencies": {
 -    "@comagic/core": "0.0.0-int0",
--    "@uiscom/uis_webrtc": "0.0.0-int2",
+-    "@comagic/softphone-core": "0.0.0-int0",
      "axios": "^0.21.1"
    },
    "dependencies": {

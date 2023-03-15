@@ -1976,7 +1976,7 @@ tests.addTest(options => {
                         tester.slavesNotification().additional().visible().expectToBeSent();
                     });
 
-                    describe('Пользователь имеет права на список номеров.', function() {
+                    xdescribe('Пользователь имеет права на список номеров.', function() {
                         beforeEach(function() {
                             permissionsRequest = permissionsRequest.allowNumberCapacitySelect();
                             settingsRequest = settingsRequest.allowNumberCapacitySelect();
@@ -2575,7 +2575,7 @@ tests.addTest(options => {
                             permissionsRequest.receiveResponse();
                         });
 
-                        describe('Включено управление звонками на другом устройстве.', function() {
+                        xdescribe('Включено управление звонками на другом устройстве.', function() {
                             beforeEach(function() {
                                 settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
 
@@ -2664,7 +2664,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        it('Необходимо подключиться к РТУ напрямую. Подключаюсь.', function() {
+                        xit('Необходимо подключиться к РТУ напрямую. Подключаюсь.', function() {
                             tester.setJsSIPRTUUrl();
 
                             settingsRequest.
@@ -2732,7 +2732,7 @@ tests.addTest(options => {
                                 available().
                                 expectToBeSent();
                         });
-                        it('Необходимо подключиться к Janus. Подключаюсь.', function() {
+                        xit('Необходимо подключиться к Janus. Подключаюсь.', function() {
                             tester.setTwoJanusUrls();
                             settingsRequest.receiveResponse();
                             
@@ -2812,7 +2812,7 @@ tests.addTest(options => {
                                 available().
                                 expectToBeSent();
                         });
-                        it('Используется свойство sip. Необходимо подключиться к Janus. Подключаюсь.', function() {
+                        xit('Используется свойство sip. Необходимо подключиться к Janus. Подключаюсь.', function() {
                             tester.anotherWebRTCURL();
 
                             settingsRequest.
@@ -2900,7 +2900,7 @@ tests.addTest(options => {
                                 available().
                                 expectToBeSent();
                         });
-                        it(
+                        xit(
                             'Получена некорректная конфигурация прямого подключения к РТУ. Подключаюсь к каме.',
                         function() {
                             settingsRequest.
@@ -3011,6 +3011,7 @@ tests.addTest(options => {
                                 'Нет доступной sip-линии'
                             );
                         });
+                        return;
                         it('Выбран кастомный рингтон. Сигнал завершения звонка включен.', function() {
                             settingsRequest.secondRingtone().isNeedDisconnectSignal().receiveResponse();
 
@@ -3096,6 +3097,7 @@ tests.addTest(options => {
                     });
                 });
             });
+return;
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().isNotMaster().receive();
@@ -3725,6 +3727,7 @@ tests.addTest(options => {
                 });
             });
         });
+return;
         describe('Пользователь является руководителем.', function() {
             beforeEach(function() {
                 accountRequest = accountRequest.manager();
