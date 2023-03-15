@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index eb25c85..201f6e0 100644
+index c803dcc..201f6e0 100644
 --- a/package.json
 +++ b/package.json
 @@ -52,8 +52,6 @@
@@ -7,7 +7,7 @@ index eb25c85..201f6e0 100644
    "dependencies": {
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "0.0.0-int0",
--    "@uiscom/uis_webrtc": "0.0.0-int2",
+-    "@comagic/softphone-core": "0.0.0-int0",
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
@@ -31,7 +31,7 @@ index eb25c85..201f6e0 100644
      "redux-thunk": "^2.3.0",
      "short-uuid": "^4.2.0",
      "string-hash": "^1.1.3",
--    "uis-softphone": "git+https://sip_lib:glpat-Xzs1ef2zY2QoxFSchj8P@gitlab.uis.dev/web/sip_lib.git#feature/mst",
+-    "@comagic/softphone-widget": "0.0.0-int0",
      "uuid": "^8.3.2",
      "yup": "^0.32.9"
    }
