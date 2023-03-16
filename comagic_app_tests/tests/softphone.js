@@ -319,6 +319,28 @@ tests.addTest(options => {
                                                         );
                                                     });
                                                     it(
+                                                        'Нажимаю на строку с контактом. Открывается раздел контактов.',
+                                                    function() {
+                                                        tester.callsHistoryRow.
+                                                            withText('Манова Тома').
+                                                            name.
+                                                            click();
+
+                                                        tester.contactsRequest().
+                                                            differentNames().
+                                                            receiveResponse();
+
+                                                        tester.contactCommunicationsRequest().
+                                                            anotherRangeStartingTime().
+                                                            receiveResponse();
+
+                                                        tester.usersRequest().
+                                                            forContacts().
+                                                            receiveResponse();
+
+                                                        tester.contactRequest().receiveResponse();
+                                                    });
+                                                    it(
                                                         'Нажимаю на кнопку сворачивания софтфона. Отображено поле ' +
                                                         'для ввода телефона.',
                                                     function() {
@@ -370,6 +392,32 @@ tests.addTest(options => {
                                                             'Совершите звонок для отображения истории'
                                                         );
                                                     });
+                                                });
+                                                it(
+                                                    'Есть записи в которых не найденн контакт. Нажимаю на номер записи. ' +
+                                                    'Открыта форма создания контакта.',
+                                                function() {
+                                                    callsRequest.noContact().receiveResponse();
+
+                                                    tester.callsHistoryRow.
+                                                        withText('+7 (495) 023-06-26').
+                                                        name.
+                                                        click();
+
+                                                    tester.contactsRequest().
+                                                        differentNames().
+                                                        receiveResponse();
+
+                                                    tester.usersRequest().
+                                                        forContacts().
+                                                        receiveResponse();
+
+                                                    tester.contactBar.expectTextContentToHaveSubstring(
+                                                        'Телефоны ' +
+                                                        '74950230626'
+                                                    );
+
+                                                    tester.button('Сохранить').expectNotToExist();
                                                 });
                                                 it(
                                                     'Звонок является трансфером. Отображена иконка трансфера.',
@@ -3951,6 +3999,149 @@ tests.addTest(options => {
                 tester.button('История звонков').expectNotToExist();
             });
         });
+        describe('Раздел контактов недоступен.', function() {
+            beforeEach(function() {
+                accountRequest.contactsFeatureFlagDisabled().receiveResponse();
+
+                const requests = ajax.inAnyOrder();
+
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+                secondAccountRequest.contactsFeatureFlagDisabled().receiveResponse();
+                reportGroupsRequest.receiveResponse();
+
+                tester.masterInfoMessage().receive();
+                tester.slavesNotification().expectToBeSent();
+                tester.slavesNotification().additional().expectToBeSent();
+
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                authCheckRequest.receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+
+                settingsRequest = tester.settingsRequest().expectToBeSent();
+                tester.talkOptionsRequest().receiveResponse();
+
+                settingsRequest.receiveResponse();
+
+                tester.othersNotification().
+                    widgetStateUpdate().
+                    expectToBeSent();
+
+                tester.othersNotification().
+                    updateSettings().
+                    shouldNotPlayCallEndingSignal().
+                    expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    expectToBeSent();
+
+                tester.permissionsRequest().receiveResponse();
+
+                tester.connectEventsWebSocket();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    softphoneServerConnected().
+                    expectToBeSent();
+
+                tester.connectSIPWebSocket();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    webRTCServerConnected().
+                    softphoneServerConnected().
+                    expectToBeSent();
+
+                notificationTester.grantPermission();
+
+                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                tester.allowMediaInput();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    expectToBeSent();
+
+                authenticatedUserRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    userDataFetched().
+                    expectToBeSent();
+
+                registrationRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    expectToBeSent();
+
+                statusesRequest.receiveResponse();
+            });
+
+            it(
+                'Нажимаю на кнопку "Софтфон". Открываю историю звонков. Нажатие на имя контакта не приводит к ' +
+                'открытию раздела контактов.',
+            function() {
+                tester.button('Софтфон').click();
+
+                tester.slavesNotification().
+                    additional().
+                    visible().
+                    expectToBeSent();
+
+                tester.callsHistoryButton.click();
+                tester.callsRequest().receiveResponse();
+
+                tester.callsHistoryRow.
+                    withText('Манова Тома').
+                    name.
+                    click();
+            });
+            it('Поступил входящий звонок. Кнопка открытия контакта заблокирована.', function() {
+                tester.incomingCall().receive();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    incoming().
+                    progress().
+                    expectToBeSent();
+
+                tester.numaRequest().receiveResponse();
+
+                tester.outCallEvent().knownContact().receive();
+                tester.outCallEvent().knownContact().slavesNotification().expectToBeSent();
+
+                tester.contactOpeningButton.click();
+
+                tester.contactOpeningButton.expectToHaveClass('cmg-button-disabled');
+                windowOpener.expectNoWindowToBeOpened();
+            });
+        });
         it(
             'Используеся проект CallGear. Необходимо подключиться к Janus. Подключаюсь.',
         function() {
@@ -4113,126 +4304,6 @@ tests.addTest(options => {
                 setAnotherSession().
                 setHelper().
                 receive();
-        });
-        it('Раздел контактов недоступен. Кнопка открытия контакта заблокирована.', function() {
-            accountRequest.contactsFeatureFlagDisabled().receiveResponse();
-
-            const requests = ajax.inAnyOrder();
-
-            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
-
-            requests.expectToBeSent();
-
-            reportsListRequest.receiveResponse();
-            reportTypesRequest.receiveResponse();
-            secondAccountRequest.contactsFeatureFlagDisabled().receiveResponse();
-            reportGroupsRequest.receiveResponse();
-
-            tester.masterInfoMessage().receive();
-            tester.slavesNotification().expectToBeSent();
-            tester.slavesNotification().additional().expectToBeSent();
-
-            tester.notificationChannel().tellIsLeader().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-
-            authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
-            tester.talkOptionsRequest().receiveResponse();
-
-            settingsRequest.receiveResponse();
-
-            tester.othersNotification().
-                widgetStateUpdate().
-                expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
-                expectToBeSent();
-
-            tester.permissionsRequest().receiveResponse();
-
-            tester.connectEventsWebSocket();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
-                softphoneServerConnected().
-                expectToBeSent();
-
-            tester.connectSIPWebSocket();
-
-            tester.slavesNotification().
-                twoChannels().
-                webRTCServerConnected().
-                softphoneServerConnected().
-                expectToBeSent();
-
-            notificationTester.grantPermission();
-
-            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-            registrationRequest = tester.registrationRequest().expectToBeSent();
-
-            tester.allowMediaInput();
-
-            tester.slavesNotification().
-                twoChannels().
-                softphoneServerConnected().
-                webRTCServerConnected().
-                microphoneAccessGranted().
-                expectToBeSent();
-
-            authenticatedUserRequest.receiveResponse();
-
-            tester.slavesNotification().
-                twoChannels().
-                softphoneServerConnected().
-                webRTCServerConnected().
-                microphoneAccessGranted().
-                userDataFetched().
-                expectToBeSent();
-
-            registrationRequest.receiveResponse();
-
-            tester.slavesNotification().
-                twoChannels().
-                available().
-                expectToBeSent();
-
-            statusesRequest.receiveResponse();
-
-            tester.incomingCall().receive();
-
-            tester.slavesNotification().
-                twoChannels().
-                available().
-                incoming().
-                progress().
-                expectToBeSent();
-
-            tester.numaRequest().receiveResponse();
-
-            tester.outCallEvent().knownContact().receive();
-            tester.outCallEvent().knownContact().slavesNotification().expectToBeSent();
-
-            tester.contactOpeningButton.click();
-
-            tester.contactOpeningButton.expectToHaveClass('cmg-button-disabled');
-            windowOpener.expectNoWindowToBeOpened();
         });
         it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneFeatureFlagDisabled().receiveResponse();

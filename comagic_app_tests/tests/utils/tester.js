@@ -2582,6 +2582,11 @@ define(() => function ({
             me.noContactName = () => (processors.push(data => (data[0].contact_name = null)), me);
             me.noCrmContactLink = () => (processors.push(data => (data[0].crm_contact_link = null)), me);
 
+            me.noContact = () => (processors.push(data => {
+                data[1].contact_id = null;
+                data[1].contact_name = null;
+            }), me);
+
             me.serverError = () => {
                 receiveResponse = request =>
                     request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
@@ -9653,6 +9658,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            anotherRangeStartingTime() {
+                queryParams.from_start_time = '2019-12-19T12:10:08.000+03:00'
+                return this;
+            },
+
             secondPage() {
                 response.data = getPage({
                     end: 50,
@@ -11744,6 +11754,16 @@ define(() => function ({
 
             tester.name =
                 testersFactory.createDomElementTester(row.querySelector('.clct-calls-history__item-inner-row'));
+
+            const click = tester.name.click.bind(tester.name);
+            tester.name.click = () => {
+                click();
+
+                spendTime(0);
+                spendTime(0);
+                spendTime(0);
+            };
+
             tester.callIcon =
                 testersFactory.createDomElementTester(row.querySelector('.clct-calls-history__start-call'));
             tester.directory =
