@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index c803dcc..201f6e0 100644
+index fed46af..03916b2 100644
 --- a/package.json
 +++ b/package.json
 @@ -52,8 +52,6 @@
@@ -11,8 +11,8 @@ index c803dcc..201f6e0 100644
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -62,23 +60,17 @@
-     "file-saver": "^2.0.5",
+@@ -63,23 +61,17 @@
+     "exports-loader": "2.0.0",
      "filesize": "^8.0.3",
      "formik": "^2.2.9",
 -    "magic-ui": "0.0.0-int0",
@@ -36,15 +36,23 @@ index c803dcc..201f6e0 100644
      "yup": "^0.32.9"
    }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3f5b5b7..cef48b2 100644
+index f43f159..503872d 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -726,4 +726,5 @@ export const RootStore = types
+@@ -40,6 +40,9 @@ import FeedbackWebStore from '@models/feedback/FeedbackWebStore';
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+ 
+ export const RECENT_REFRESH_DELAY = 1500;
++export const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
++export const REFRESH_TOKEN_EXPIRED = 'refresh_token_expired';
++export const ACCESS_TOKEN_INVALID = 'access_token_invalid';
+ 
+ const body = createObservable(document.body);
+ 
+@@ -726,4 +729,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
 -export const rootStore = RootStore.create({});
-\ No newline at end of file
 +export let rootStore;
 +export const createRootStore = () => (rootStore = RootStore.create({}));
-\ No newline at end of file
