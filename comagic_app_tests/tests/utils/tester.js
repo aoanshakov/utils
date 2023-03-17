@@ -3157,6 +3157,11 @@ define(() => function ({
             me.shouldHideNumbers = () => ((response.data.is_need_hide_numbers = true), me);
             me.incomingCallSoundDisabled = () => ((response.data.is_enable_incoming_call_sound = false), me);;
 
+            me.shouldCloseWidgetOnCallFinished = () => {
+                response.data.is_need_close_widget_on_call_finished = true;
+                return me;
+            };
+
             me.noTelephony = () => {
                 Object.keys(response.data).forEach(key => ![
                     'ws_url',

@@ -2981,6 +2981,7 @@ define(function () {
                 receive: () => {
                     eventsWebSocket.receiveMessage(createMessage());
                     Promise.runAll(false, true);
+                    spendTime(0);
                 }
             };
         };
@@ -5418,6 +5419,11 @@ define(function () {
             delete(settings.sip_login);
             delete(settings.application_version);
             delete(settings.numb);
+
+            notification.shouldCloseWidgetOnCallFinished = function () {
+                settings.is_need_close_widget_on_call_finished = true;
+                return this;
+            };
 
             notification.noTelephony = function () {
                 Object.keys(settings).forEach(key => ![
