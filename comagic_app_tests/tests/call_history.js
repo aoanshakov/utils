@@ -191,7 +191,7 @@ tests.addTest(options => {
 
                                         it(
                                             'Открываю поля ФИО. Ввожу значение в поле фамилии. Нажимаю на кнопку ' +
-                                            '"Создать контакт". Форма контакта скрыта.',
+                                            '"Создать контакт". Форма контакта видима.',
                                         function() {
                                             tester.contactBar.section('ФИО').svg.click();
 
@@ -211,12 +211,8 @@ tests.addTest(options => {
                                                 receiveResponse();
 
                                             tester.marksRequest().receiveResponse();
-
-                                            return;
-
-                                            tester.contactBar.expectNotToExist();
+                                            tester.contactBar.expectToBeVisible();
                                         });
-                                        return;
                                         it('Добавляю почту. Запрос сохранения контакта не был отправлен.', function() {
                                             tester.contactBar.
                                                 section('E-Mail').
@@ -244,13 +240,11 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    return;
                                     it('Оторажен номер.', function() {
                                         tester.table.row.first.column.withHeader('ФИО контакта').link.
                                             expectToHaveTextContent('+7 (495) 023-06-25');
                                     });
                                 });
-                                return;
                                 describe('Все звонки успешны.', function() {
                                     beforeEach(function() {
                                         callsRequest.receiveResponse();
@@ -1607,7 +1601,7 @@ tests.addTest(options => {
                                 });
                                 it('В таблице содержится чилийский номер. Номер сформатирован корректно.', function() {
                                     callsRequest.chilePhoneNumber().receiveResponse();
-                                    tester.table.expectTextContentToHaveSubstring(' +56 (123) 45-6789 ');
+                                    tester.table.expectTextContentToHaveSubstring(' +56 (123) 45-67-89 ');
                                 });
                                 it('В таблице содержатся записи у которых в датах длинные месяца.', function() {
                                     callsRequest.longMonths().receiveResponse();
@@ -1650,7 +1644,6 @@ tests.addTest(options => {
                                     tester.spin.expectToBeVisible();
                                 });
                             });
-                            return;
                             describe('Звонки получены.', function() {
                                 beforeEach(function() {
                                     callsRequest.receiveResponse();
@@ -1665,7 +1658,6 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        return;
                         it(
                             'Совершаю исходящий звонок. Кладу трубку не дожидаясь ответа. Количество пропущенных ' +
                             'звонков не увеличилось.',
@@ -1769,7 +1761,6 @@ tests.addTest(options => {
                             tester.button('История звонков').counter.expectNotToExist();
                         });
                     });
-                    return;
                     describe('Есть пропущенные звонки.', function() {
                         beforeEach(function() {
                             authenticatedUserRequest.newCall().receiveResponse();
@@ -1807,7 +1798,6 @@ tests.addTest(options => {
                         });
                     });
                 });
-                return;
                 describe('Обновление комментария недоступно.', function() {
                     beforeEach(function() {
                         permissionsRequest = permissionsRequest.disallowCallSessionCommentingUpdate();
@@ -2319,7 +2309,6 @@ tests.addTest(options => {
                     tester.input.withPlaceholder('Имя или телефон').click();
                 });
             });
-return;
             describe('Номера должны быть скрыты. Открываю историю звонков.', function() {
                 let callsRequest;
 
@@ -2449,7 +2438,6 @@ return;
                 });
             });
         });
-return;
         it('У пользователя нет роли. Вкладки "Все" и "Необработанные" заблокированы.', function() {
             accountRequest.noCallCenterRole().receiveResponse();
 
@@ -2859,7 +2847,6 @@ return;
             tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.expectNotToExist();
         });
     });
-return;
     describe('Открываю историю звонков.', function() {
         let tester,
             permissionsRequest;
