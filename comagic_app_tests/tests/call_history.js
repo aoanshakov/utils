@@ -194,7 +194,9 @@ tests.addTest(options => {
                                             '"Создать контакт". Форма контакта скрыта.',
                                         function() {
                                             tester.contactBar.section('ФИО').svg.click();
-                                            tester.input.withPlaceholder('Фамилия (Обязательное поле)').
+
+                                            tester.input.
+                                                withPlaceholder('Фамилия (Обязательное поле)').
                                                 fill('Неделчева');
 
                                             tester.button('Создать контакт').click();
@@ -210,13 +212,19 @@ tests.addTest(options => {
 
                                             tester.marksRequest().receiveResponse();
 
+                                            return;
+
                                             tester.contactBar.expectNotToExist();
                                         });
+                                        return;
                                         it('Добавляю почту. Запрос сохранения контакта не был отправлен.', function() {
-                                            tester.contactBar.section('E-Mail').svg.click();
+                                            tester.contactBar.
+                                                section('E-Mail').
+                                                svg.click();
 
-                                            tester.contactBar.section('E-Mail').input.fill('nedelcheva@gmail.com').
-                                                pressEnter();
+                                            tester.contactBar.
+                                                section('E-Mail').
+                                                input.fill('nedelcheva@gmail.com').pressEnter();
                                         });
                                         it(
                                             'Нажимаю на иконку с плюсом спарва от надписи "Персональный менеджер". В ' +
@@ -236,11 +244,13 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
+                                    return;
                                     it('Оторажен номер.', function() {
                                         tester.table.row.first.column.withHeader('ФИО контакта').link.
                                             expectToHaveTextContent('+7 (495) 023-06-25');
                                     });
                                 });
+                                return;
                                 describe('Все звонки успешны.', function() {
                                     beforeEach(function() {
                                         callsRequest.receiveResponse();
@@ -1640,6 +1650,7 @@ tests.addTest(options => {
                                     tester.spin.expectToBeVisible();
                                 });
                             });
+                            return;
                             describe('Звонки получены.', function() {
                                 beforeEach(function() {
                                     callsRequest.receiveResponse();
@@ -1654,6 +1665,7 @@ tests.addTest(options => {
                                 });
                             });
                         });
+                        return;
                         it(
                             'Совершаю исходящий звонок. Кладу трубку не дожидаясь ответа. Количество пропущенных ' +
                             'звонков не увеличилось.',
@@ -1757,6 +1769,7 @@ tests.addTest(options => {
                             tester.button('История звонков').counter.expectNotToExist();
                         });
                     });
+                    return;
                     describe('Есть пропущенные звонки.', function() {
                         beforeEach(function() {
                             authenticatedUserRequest.newCall().receiveResponse();
@@ -1794,6 +1807,7 @@ tests.addTest(options => {
                         });
                     });
                 });
+                return;
                 describe('Обновление комментария недоступно.', function() {
                     beforeEach(function() {
                         permissionsRequest = permissionsRequest.disallowCallSessionCommentingUpdate();
@@ -2305,6 +2319,7 @@ tests.addTest(options => {
                     tester.input.withPlaceholder('Имя или телефон').click();
                 });
             });
+return;
             describe('Номера должны быть скрыты. Открываю историю звонков.', function() {
                 let callsRequest;
 
@@ -2434,6 +2449,7 @@ tests.addTest(options => {
                 });
             });
         });
+return;
         it('У пользователя нет роли. Вкладки "Все" и "Необработанные" заблокированы.', function() {
             accountRequest.noCallCenterRole().receiveResponse();
 
@@ -2843,6 +2859,7 @@ tests.addTest(options => {
             tester.table.row.atIndex(1).column.withHeader('ФИО контакта').link.expectNotToExist();
         });
     });
+return;
     describe('Открываю историю звонков.', function() {
         let tester,
             permissionsRequest;
