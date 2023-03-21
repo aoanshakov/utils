@@ -36,47 +36,10 @@ index fed46af..03916b2 100644
      "yup": "^0.32.9"
    }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 5d819ea..2255ba0 100644
+index 7571a79..2255ba0 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -177,12 +177,7 @@ export const RootStore = types
-                 size.height = newSize.height;
-             };
- 
--            const softphoneHost = process.env.REACT_APP_SOFTPHONE_BACKEND_HOST || '$REACT_APP_SOFTPHONE_BACKEND_HOST';
--
--            const doGetWebRTCConfig = () => ({
--                debugMode: localStorage.getItem('debugMode') == '1',
--                softphoneHost,
--                multiTabEnabled: !isSingleApp,
-+            self.softphoneStore = createSoftphoneStore({
-                 ...(isSingleApp ? {
-                     userAgent: 'UIS Softphone Desktop',
-                     opaqueIdPrefix: 'janus-softphone-desktop',
-@@ -193,17 +188,14 @@ export const RootStore = types
-                 } : {
-                     userAgent: 'UIS Softphone Web',
-                     opaqueIdPrefix: 'janus-softphone-web',
--                })
--            });
--
--            const shouldDisplayCallNotification = phone => !self.promperStore.checkPendingCallToPrompt(phone); 
--
--            self.softphoneStore = createSoftphoneStore({
--                shouldDisplayCallNotification,
-+                    multiTabEnabled: true,
-+                }),
-+                softphoneHost: process.env.REACT_APP_SOFTPHONE_BACKEND_HOST || '$REACT_APP_SOFTPHONE_BACKEND_HOST',
-+                debugMode: localStorage.getItem('debugMode') == '1',
-                 getPhoneNumber: () => '',
--                getWebRTCConfig: doGetWebRTCConfig,
-                 createFocusednessGetter: isSingleApp ? createFocusednessGetter : createDefaultFocusednessGetter,
-                 processAxios: axios => (axios.defaults.headers['X-Auth-Type'] = 'jwt'),
-+                shouldDisplayCallNotification: phone => !self.promperStore.checkPendingCallToPrompt(phone),
-                 shouldHideDialpadInIPTelephoneMode: () => !self.isLarge,
-                 shouldNotificationBeStickedToBottom: isSingleApp,
-                 mayHideSoftphone: () => true,
-@@ -729,4 +721,5 @@ export const RootStore = types
+@@ -721,4 +721,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
