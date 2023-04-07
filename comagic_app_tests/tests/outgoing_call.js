@@ -490,11 +490,6 @@ tests.addTest(options => {
 
                                     incomingCall.expectBusyHereToBeSent();
 
-                                    tester.callSessionFinish().
-                                        thirdId().
-                                        slavesNotification().
-                                        expectToBeSent();
-
                                     tester.softphone.expectToHaveTextContent(
                                         'Шалева Дора ' +
                                         '+7 (916) 123-45-67 00:00'

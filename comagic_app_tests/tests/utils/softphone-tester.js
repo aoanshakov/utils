@@ -194,7 +194,7 @@ define(function () {
         this.stopButton = testersFactory.createDomElementTester(function () {
             return document.querySelector('#cmg-top-buttons .cmg-call-button-stop');
         });
-        
+
         this.clctCButton = function (text) {
             return testersFactory.createDomElementTester(utils.descendantOfBody().
                 matchesSelector('.clct-c-button').textEquals(text).find());
@@ -819,7 +819,7 @@ define(function () {
         this.requestUsersInGroups = function () {
             var additionalUsersInGroups = [];
 
-            var respond = request =>  request.respondSuccessfullyWith({
+            var respond = request => request.respondSuccessfullyWith({
                 data: [{
                     employee_id: 20816,
                     group_id: 89203,
@@ -3789,7 +3789,10 @@ define(function () {
                     return {
                         expectByeRequestToBeSent: function () {
                             me.requestCallFinish();
-                        }
+                        },
+                        expectByeToBeSent: function () {
+                            this.expectByeRequestToBeSent();
+                        },
                     };
                 }
             };

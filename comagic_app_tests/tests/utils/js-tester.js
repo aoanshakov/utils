@@ -269,7 +269,7 @@ function JsTester_UserMedia (args) {
         spendTime(0);
     }
 
-    this.plugInNewDevice = function () {
+    this.plugInNewDevice = () => {
         additionalDevices.push({
             kind: 'audiooutput',
             label: 'Колонка Marshall',
@@ -724,7 +724,7 @@ function JsTester_RTCPeerConnectionTester (options) {
         return !getLocalAudioTrack().enabled;
     }
     
-    function getDeviceId (logEnabled) {
+    function getDeviceId () {
         return getLocalAudioTrack().getSettings().deviceId;
     }
 
@@ -814,7 +814,7 @@ function JsTester_RTCPeerConnectionTester (options) {
     };
 
     this.expectInputDeviceIdToEqual = function (expectedValue) {
-        var actualValue = getDeviceId(true);
+        var actualValue = getDeviceId();
 
         if (!actualValue) {
             throw new Error('Устройство не выбрано.');
@@ -1060,7 +1060,6 @@ function JsTester_CopiedTextsTester (copiedTexts) {
     };
 }
 
-
 function JsTester_CookieTester (cookie) {
     Object.defineProperty(document, 'cookie', {
         get: function () {
@@ -1110,7 +1109,13 @@ function JsTester_Audio (args) {
     };
 
     [
-        'play', 'stop', 'setCyclical', 'setVolume', 'setSinkId', 'addAudioEndListener', 'removeAudioEndListener'
+        'play',
+        'stop',
+        'setCyclical',
+        'setVolume',
+        'setSinkId',
+        'addAudioEndListener',
+        'removeAudioEndListener'
     ].forEach(function (methodName) {
         mediaStreamProxy[methodName] = function () {
             if (!mediaStream) {
@@ -1852,7 +1857,13 @@ function JsTester_MediaStreamPlayingState(options) {
         state[key] = value;
         var hasMediaStream = playingMediaStreams.has(mediaStream);
 
-        if (state.playing && !state.disabled && !state.disconnected && !state.sourcesStopped && state.volume) {
+        if (
+            state.playing &&
+            !state.disabled &&
+            !state.disconnected &&
+            !state.sourcesStopped &&
+            state.volume
+        ) {
             !hasMediaStream && playingMediaStreams.set(mediaStream, debug.getCallStack());
             maybeThrowIsNotPlaying = function () {};
         } else {
@@ -2011,7 +2022,7 @@ function JsTester_MediaStreams (options) {
         mediaStreams.set(mediaStream, {
             audioEndListeners: audioEndListeners,
             mediaStreamPlayingState: mediaStreamPlayingState,
-            volume: 1
+            volume: 1,
         });
     };
 
@@ -2034,7 +2045,12 @@ function JsTester_MediaStreams (options) {
         };
     }).bind(this));
 
-    ['finish', 'play', 'stop', 'setCyclical'].forEach((function (methodName) {
+    [
+        'finish',
+        'play',
+        'stop',
+        'setCyclical',
+    ].forEach((function (methodName) {
         this[methodName] = function () {
             var args = Array.prototype.slice.call(arguments, 0),
                 mediaStream = args.shift(),
@@ -2430,7 +2446,7 @@ function JsTester_NotificationTester (args) {
 
 function JsTester_BrowserVisibilityReplacer ({
     isBrowserHidden,
-    isBrowserVisible
+    isBrowserVisible,
 }) {
     var getBrowserHiddennes = isBrowserHidden.createGetter(),
         getBrowserVisibility = isBrowserVisible.createGetter();
@@ -2466,7 +2482,7 @@ function JsTester_BlobTester(args) {
     var constructorArguments = args.constructorArguments,
         utils = args.utils,
         me = this;
-    
+
     function getActualContent () {
         var actualContent = '';
 
@@ -3334,7 +3350,6 @@ function JsTester_BroadcastChannelFactory (args) {
     };
 }
 
-
 function JsTester_BroadcastChannelTester (args) {
     var fireEvent = args.eventFirer,
         channelName = args.channelName,
@@ -3591,7 +3606,7 @@ function JsTester_TestersFactory (args) {
             utils.fieldDescription('текстовое поле', label),
             utils.fieldDescription('текстового поля', label),
             factory,
-            spendTime
+            spendTime,
         );
     };
     this.createTextAreaTester = function (getDomElement, label) {
@@ -4307,11 +4322,6 @@ function JsTester_Utils ({debug, windowSize, spendTime}) {
 
         (new JsTester_ParamsContainingExpectation(object))(expectedContent);
     };
-    this.getAllVisible = function (domElements) {
-        return Array.prototype.filter.call(domElements, (function (domElement) {
-            return this.isVisible(domElement);
-        }).bind(this));
-    };
     function getVisible (domElements, handleError) {
         var results = me.getAllVisible(domElements);
 
@@ -4322,6 +4332,11 @@ function JsTester_Utils ({debug, windowSize, spendTime}) {
 
         return results[0];
     }
+    this.getAllVisible = function (domElements) {
+        return Array.prototype.filter.call(domElements, (function (domElement) {
+            return this.isVisible(domElement);
+        }).bind(this));
+    };
     this.getVisibleSilently = function (domElements) {
         return getVisible.call(this, domElements, function () {});
     };
@@ -4441,7 +4456,7 @@ function JsTester_OpenedWindow (path, query) {
                 'URL имеет путь "' + path + '".');
         }
     };
-    
+
     this.expectQueryToContain = function (params) {
         query.expectToContain(params);
     };
@@ -5714,7 +5729,7 @@ function JsTester_InputElement (
     };
     this.fill = function (value) {
         clear();
-        
+
         setSelectionRange(0, 0);
         input(value);
     };
@@ -6120,7 +6135,7 @@ function JsTester_DomElement (
         scrollIntoView();
     };
     this.expectToBeVisible = function () {
-        if (!isAudio()) {
+        if (isAudio()) {
             return;
         }
 
@@ -7454,30 +7469,19 @@ function JsTester_Debugger () {
 }
 
 function JsTester_Tests (factory) {
-    Object.defineProperty(window, 'performance', {
-        get: function () {
-            return {};
-        },
-        set: function () {}
-    }); 
-
-    const resizeObservables = new Map(),
-        triggerResize = new JsTester_ResizeObserverTrigger(resizeObservables),
-        ResizeObserver = new JsTester_ResizeObserverFactory(resizeObservables);
-
-    Object.defineProperty(window, 'ResizeObserver', {
-        get: function () {
-            return ResizeObserver;
-        },
-        set: function () {}
-    }); 
-
     Object.defineProperty(window, 'MessageChannel', {
         get: function () {
             return undefined;
         },
         set: function () {}
     }); 
+
+    Object.defineProperty(window, 'performance', {
+        get: function () {
+            return {};
+        },
+        set: function () {}
+    });
 
     ['requestAnimationFrame', 'requestIdleCallback', 'queueMicrotask'].forEach(methodName => {
         Object.defineProperty(window, methodName, {
@@ -7488,6 +7492,17 @@ function JsTester_Tests (factory) {
             },
             set: function () {}
         });
+    });
+
+    const resizeObservables = new Map(),
+        triggerResize = new JsTester_ResizeObserverTrigger(resizeObservables),
+        ResizeObserver = new JsTester_ResizeObserverFactory(resizeObservables);
+
+    Object.defineProperty(window, 'ResizeObserver', {
+        get: function () {
+            return ResizeObserver;
+        },
+        set: function () {}
     });
 
     Object.defineProperty(window, 'cancelAnimationFrame', {
@@ -7559,8 +7574,6 @@ function JsTester_Tests (factory) {
             handlers: broadcastChannelHandlers,
             shortcutHandlers: broadcastChannelShortcutHandlers
         }),
-        mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
-        mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
         intersectionObservations = new Map(),
         intersectionObservationHandlers = new Map(),
         FakeIntersectionObserver = new JsTester_IntersectionObserverFactory({
@@ -7573,6 +7586,8 @@ function JsTester_Tests (factory) {
             intersectionObservationHandlers
         }),
         intersectionObserverMocker = new JsTester_IntersectionObserverMocker(FakeIntersectionObserver),
+        mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
+        mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
         mutationObserverTester =  mutationObserverFactory.createTester(),
         hasFocus = new JsTester_Variable(false, true),
         isBrowserHidden = new JsTester_Variable(),
@@ -7899,10 +7914,15 @@ function JsTester_Tests (factory) {
             windowSize: windowSize,
             broadcastChannels: broadcastChannelTester,
             mutationObserverMocker: mutationObserverMocker,
-            fileReader: fileReaderTester,
-            triggerMutation: mutationObserverTester,
             intersectionObservable: intersectionObservablesTester,
             cookie: cookieTester,
+            addSecond: addSecond,
+            unload: () => {
+                windowEventsFirerer('unload');
+                Promise.runAll(false, true);
+            },
+            fileReader: fileReaderTester,
+            triggerMutation: mutationObserverTester,
             ajax: ajaxTester,
             fetch: fetchTester,
             testersFactory: testersFactory,
@@ -7919,25 +7939,20 @@ function JsTester_Tests (factory) {
             timeoutLogger: timeoutLogger,
             mediaStreamsTester: mediaStreamsTester,
             setNow: setNow,
-            addSecond: addSecond,
             playingOscillatorsTester: playingOscillatorsTester,
-            unload: () => {
-                windowEventsFirerer('unload');
-                Promise.runAll(false, true);
-            },
             audioDecodingTester: audioDecodingTester,
             decodedTracksTester: decodedTracksTester,
             audioProcessing: audioProcessingTester,
             audioGain: audioGainTester,
             notificationTester: notificationTester,
-            blobsTester: blobsTester,
-            copiedTextsTester: copiedTextsTester,
             setFocus: new JsTester_FocusSetter(hasFocus.createSetter()),
             setDocumentVisible: new JsTester_VisibilitySetter({
                 setBrowserHidden,
                 setBrowserVisible,
                 isBrowserHidden: isBrowserHidden.createGetter(),
-            })
+            }),
+            blobsTester: blobsTester,
+            copiedTextsTester: copiedTextsTester,
         };
 
         (function () {

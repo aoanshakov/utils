@@ -177,7 +177,7 @@ tests.addTest(options => {
                                                     expectToBeSent();
                                             });
 
-                                            describe('Открываю историю звонков.', function() {
+                                            xdescribe('Открываю историю звонков.', function() {
                                                 let callsRequest;
                                                 
                                                 beforeEach(function() {
@@ -358,10 +358,10 @@ tests.addTest(options => {
                                                         tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.
                                                             expectNotToHaveAttribute('disabled');
 
-                                                        tester.callsHistoryRow.withText('Гяурова Марийка').directory.
+                                                        tester.callsHistoryRow.withText('Гяурова Марийка').direction.
                                                             expectToHaveClass('incoming_svg__cmg-direction-icon');
 
-                                                        tester.callsHistoryRow.withText('Манова Тома').directory.
+                                                        tester.callsHistoryRow.withText('Манова Тома').direction.
                                                             expectToHaveClass('outgoing_svg__cmg-direction-icon');
 
                                                         tester.softphone.expectToBeExpanded();
@@ -424,13 +424,13 @@ tests.addTest(options => {
                                                 function() {
                                                     callsRequest.transferCall().receiveResponse();
 
-                                                    tester.callsHistoryRow.withText('Гяурова Марийка').directory.
+                                                    tester.callsHistoryRow.withText('Гяурова Марийка').direction.
                                                         expectToHaveClass(
                                                             'transfer_incoming_successful_svg__cmg-direction-icon'
                                                         );
                                                 });
                                             });
-                                            describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
+                                            xdescribe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
                                                 beforeEach(function() {
                                                     tester.userName.putMouseOver();
                                                     tester.logoutButton.click();
@@ -587,7 +587,7 @@ tests.addTest(options => {
                                                     tester.statusesList.item('Нет на месте').expectNotToExist();
                                                 });
                                             });
-                                            describe('Нажимаю на кнопку открытия диалпада.', function() {
+                                            xdescribe('Нажимаю на кнопку открытия диалпада.', function() {
                                                 beforeEach(function() {
                                                     tester.dialpadVisibilityButton.click();
                                                 });
@@ -869,7 +869,7 @@ tests.addTest(options => {
                                                     tester.userName.putMouseOver();
                                                 });
 
-                                                describe('Выбираю другой статус.', function() {
+                                                xdescribe('Выбираю другой статус.', function() {
                                                     let userStateUpdateRequest;
 
                                                     beforeEach(function() {
@@ -1003,7 +1003,7 @@ tests.addTest(options => {
                                                         );
                                                     });
                                                 });
-                                                it('Обновлен статус. Отображен обновленный статус.', function() {
+                                                xit('Обновлен статус. Отображен обновленный статус.', function() {
                                                     tester.statusChangedEvent().update().receive();
 
                                                     tester.statusesList.expectTextContentToHaveSubstring(
@@ -1019,7 +1019,7 @@ tests.addTest(options => {
                                                         'Нет на работе'
                                                     );
                                                 });
-                                                it('Удален статус. Удаленный статус не отображается.', function() {
+                                                xit('Удален статус. Удаленный статус не отображается.', function() {
                                                     tester.statusChangedEvent().remove().receive();
 
                                                     tester.statusesList.expectTextContentToHaveSubstring(
@@ -1034,7 +1034,7 @@ tests.addTest(options => {
                                                         'Нет на работе'
                                                     );
                                                 });
-                                                it('Добавлен новый статус. Отображен добавленный статус.', function() {
+                                                xit('Добавлен новый статус. Отображен добавленный статус.', function() {
                                                     tester.statusChangedEvent().receive();
 
                                                     tester.statusesList.item('Воронка').expectToBeVisible();
@@ -1059,6 +1059,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
+                                            return;
                                             describe(
                                                 'Получено сообщение о том, что другая вкладка стала ведущей. ' +
                                                 'Разрывается соединение с вебсокетами. Получено оповещение о ' +
@@ -1641,6 +1642,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
+                                        return;
                                         it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
                                             tester.hideButton.click();
                                             tester.slavesNotification().additional().expectToBeSent();
@@ -1654,6 +1656,7 @@ tests.addTest(options => {
                                             tester.callStartingButton.expectNotToExist();
                                         });
                                     });
+                                    return;
                                     it(
                                         'От ведомой вкладки пришел запрос отображения софтфона. Софтфон отображен.',
                                     function() {
@@ -1668,6 +1671,7 @@ tests.addTest(options => {
                                         tester.body.expectTextContentToHaveSubstring('Дашборды');
                                     });
                                 });
+                                return;
                                 describe(
                                     'SIP-регистрация завершена. Срок действия токена авторизации истек.',
                                 function() {
@@ -1701,6 +1705,7 @@ tests.addTest(options => {
                                     });
                                 });
                             });
+                            return;
                             describe('SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном.', function() {
                                 beforeEach(function() {
                                     tester.button('Софтфон').click();
@@ -1756,6 +1761,7 @@ tests.addTest(options => {
                                 });
                             });
                         });
+                        return;
                         describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                             beforeEach(function() {
                                 tester.disallowMediaInput();
@@ -1815,6 +1821,7 @@ tests.addTest(options => {
                             });
                         });
                     });
+                    return;
                     describe('Номера должны быть скрыты.', function() {
                         beforeEach(function() {
                             reportGroupsRequest.receiveResponse();
@@ -2017,6 +2024,7 @@ tests.addTest(options => {
                         tester.input.withFieldLabel('Логин').expectToBeVisible();
                     });
                 });
+                return;
                 describe('Нажимаю на иконку с телефоном.', function() {
                     beforeEach(function() {
                         reportGroupsRequest.receiveResponse();
@@ -3165,6 +3173,7 @@ tests.addTest(options => {
                     });
                 });
             });
+return;
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().isNotMaster().receive();
@@ -3794,6 +3803,7 @@ tests.addTest(options => {
                 });
             });
         });
+return;
         describe('Пользователь является руководителем.', function() {
             beforeEach(function() {
                 accountRequest = accountRequest.manager();

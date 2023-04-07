@@ -200,20 +200,19 @@ function! SetUpEslint()
             noremap ;aa k^f)%Ix<esc>^zz
             noremap ;zz vi{o<esc>?desc<cr>zz
             noremap ;ab vi{<esc>joreturn;<esc>zz
-        else
-            let isReactApp = stridx(path, '/amocrm_widget/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/proposal_generator_frontend/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/admin_frontend/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/consultant/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/sip_lib/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/bitrix_widget/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/react_widget/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/call_center_frontend/') != -1
-            let isReactApp = isReactApp || stridx(path, '/comagic_app/') != -1
-            let isReactApp = isReactApp || stridx(path, '/softphone/') != -1
-            let isReactApp = isReactApp || stridx(path, '/iframe_autoplay/') != -1
-        endif
-
+        endif 
+        
+        let isReactApp = stridx(path, '/amocrm_widget/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/proposal_generator_frontend/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/admin_frontend/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/consultant/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/sip_lib/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/bitrix_widget/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/react_widget/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/call_center_frontend/') != -1
+        let isReactApp = isReactApp || stridx(path, '/comagic_app/') != -1
+        let isReactApp = isReactApp || stridx(path, '/softphone/') != -1
+        let isReactApp = isReactApp || stridx(path, '/iframe_autoplay/') != -1
         let isReactApp = isReactApp || stridx(path, '/bitrix-digital-pipeline/')  != -1
         let isReactApp = isReactApp || stridx(path, '/admin-frontend-tests/')  != -1
         let isReactApp = isReactApp || stridx(path, '/proposal_generator_frontend_tests/')  != -1

@@ -153,30 +153,9 @@ define(() => function ({
     spendTime(0);
     spendTime(0);
 
-    const createBottomButtonTester = selectorOrTester => {
-        const tester = typeof selectorOrTester == 'string' ?
-            testersFactory.createDomElementTester(selectorOrTester) :
-            selectorOrTester;
-
-        const click = tester.click.bind(tester),
-            selectedClassName = 'cmg-bottom-button-selected';
-
-        tester.click = () => (click(), spendTime(0), spendTime(0));
-
-        tester.expectToBePressed = () => tester.expectToHaveClass(selectedClassName);
-        tester.expectNotToBePressed = () => tester.expectNotToHaveClass(selectedClassName);
-        tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-button-disabled');
-        tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cmg-button-disabled');
-
-        tester.indicator = tester.findElement('.cmg-indicator');
-
-        return tester;
-    };
-
     me.callStatsButton = createBottomButtonTester('.cmg-call-stats-button');
     me.chatsButton = createBottomButtonTester('.cmg-chats-button');
     me.callsHistoryButton = createBottomButtonTester('.cmg-calls-history-button');
-    me.settingsButton = createBottomButtonTester('.cmg-settings-button');
 
     const intersection = new Map();
 
@@ -690,136 +669,6 @@ define(() => function ({
         me.callStartingButton = testersFactory.createDomElementTester(() =>
             rootTester.querySelector('.cmg-call-button-start'));
 
-        me.slider = (() => {
-            const tester = testersFactory.createDomElementTester(() =>
-                (getRootElement() || new JsTester_NoElement()).querySelector('.ant-slider-track, .ui-slider-rail'))
-
-            const click = tester.click.bind(tester);
-            tester.click = (...args) => (click(...args), spendTime(100));
-
-            return tester;
-        })();
-
-        me.radioButton = text => {
-            const tester = testersFactory.createDomElementTester(utils.descendantOf(getRootElement()).
-                textEquals(text).
-                matchesSelector('.ui-radio-wrapper, .cm-radio-button').
-                find());
-
-            tester.expectToBeSelected = () => tester.expectToHaveClass('ui-radio-wrapper-checked');
-            tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('ui-radio-wrapper-checked');
-            tester.expectToBeDisabled = () => tester.expectToHaveClass('ui-radio-wrapper-disabled');
-            tester.expectToBeEnabled = () => tester.expectNotToHaveClass('ui-radio-wrapper-disabled');
-
-            return tester;
-        };
-
-        const buttonSelector = 
-            'button, ' +
-            '.cm-contacts-contact-bar-section-header-subtitle, ' +
-            '.ui-pagination-btns-pages__item, ' +
-            '.clct-c-button, ' +
-            '.ui-radio-content, ' +
-            '.cmg-switch-label, ' +
-            '.misc-core-src-component-styles-module__label, ' +
-            '.misc-core-src-components-menu-styles-module__label, ' +
-            '.cm-chats--chat-menu-item, ' +
-            '.cm-chats--tab-title, ' +
-            '.src-components-main-menu-nav-item-styles-module__label, ' +
-            '.src-components-main-menu-settings-styles-module__label, ' +
-            '.src-components-main-menu-menu-link-styles-module__item a';
-
-        me.button = (text, logEnabled) => {
-            let domElement = utils.descendantOf(getRootElement()).
-                textEquals(text).
-                matchesSelector(buttonSelector).
-                find(logEnabled);
-
-            domElement = domElement.querySelector('a') || domElement;
-
-            const fieldTester = testersFactory.createDomElementTester(() => (
-                domElement.closest('.ui-radio-wrapper, .cmg-switch-wrapper') || new JsTester_NoElement()
-            ).querySelector('.ui-radio, .ui-switch'));
-
-            const tester = testersFactory.createDomElementTester(domElement),
-                click = tester.click.bind(tester);
-
-            const isSwitch = (() => {
-                try {
-                    return domElement.classList.contains('cmg-switch-label')
-                } catch (e) {
-                    return false;
-                }
-            })();
-
-            tester.click = () => {
-                isSwitch ? fieldTester.click() : click();
-
-                Promise.runAll(false, true);
-                spendTime(0);
-                spendTime(0);
-                spendTime(0);
-            };
-
-            const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked',
-                disabledClass = isSwitch ? 'ui-switch-disabled' : 'ui-button-disabled';
-
-            const menuItemSelectedClass = [
-                'src-components-main-menu-nav-item-styles-module__item-selected',
-                'misc-core-src-component-styles-module__item-selected', 
-                'active',
-                'ui-tab-active'
-            ];
-
-
-            const getPressableElement = () => domElement.closest(
-                '.src-components-main-menu-nav-item-styles-module__item, ' +
-                '.misc-core-src-component-styles-module__item, ' +
-                '.cm-chats--left-menu--item, ' +
-                '.ui-tab'
-            );
-
-            const pressednessTester = testersFactory.createDomElementTester(getPressableElement);
-
-            tester.counter = testersFactory.createDomElementTester(() => getPressableElement().querySelector(
-                '.cm-chats--new-messages-count, ' +
-                '.misc-core-src-component-styles-module__new-items-count'
-            ));
-
-            tester.expectToBePressed = () => pressednessTester.expectToHaveAnyOfClasses(menuItemSelectedClass);
-            tester.expectNotToBePressed = () => pressednessTester.expectToHaveNoneOfClasses(menuItemSelectedClass);
-            tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
-            tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
-
-            tester.expectToBeEnabled = () => isSwitch ?
-                fieldTester.expectNotToHaveClass(disabledClass) :
-                tester.expectNotToHaveAttribute('disabled');
-
-            tester.expectToBeDisabled = () => isSwitch ?
-                fieldTester.expectToHaveClass(disabledClass) :
-                tester.expectToHaveAttribute('disabled');
-            
-            return tester;
-        };
-
-        me.button.atIndex = index => testersFactory.createDomElementTester(() =>
-            utils.element(getRootElement()).querySelectorAll(buttonSelector)[index] || new JsTester_NoElement());
-
-        me.button.first = me.button.atIndex(0);
-
-        me.switchButton = (() => {
-            const tester = testersFactory.createDomElementTester('.ui-switch'),
-                checkedClass = 'ui-switch-checked',
-                disabledClass = 'ui-switch-disabled';
-
-            tester.expectToBeChecked = () => tester.expectToHaveClass(checkedClass);
-            tester.expectNotToBeChecked = () => tester.expectNotToHaveClass(checkedClass);
-            tester.expectToBeDisabled = () => tester.expectToHaveClass(disabledClass)
-            tester.expectToBeEnabled = () => tester.expectNotToHaveClass(disabledClass)
-
-            return tester;
-        })();
-
         me.select = (getSelectField => {
             const createTester = (filter = () => true) => {
                 const tester = testersFactory.createDomElementTester(() => getSelectField(filter)),
@@ -938,82 +787,6 @@ define(() => function ({
                 0
             ).filter(filter)
         ), null) || new JsTester_NoElement())
-
-        {
-            const getInputs = () => Array.prototype.slice.call(
-                (getRootElement() || new JsTester_NoElement()).querySelectorAll('input[type=text]'), 0
-            );
-
-            const getInput = () => utils.getVisibleSilently(getInputs());
-
-            const addMethods = getInput => {
-                const tester = testersFactory.createTextFieldTester(getInput),
-                    clear = tester.clear.bind(tester),
-                    fill = tester.fill.bind(tester),
-                    input = tester.input.bind(tester),
-                    click = tester.click.bind(tester),
-                    pressEnter = tester.pressEnter.bind(tester),
-                    getUiInput = () => (getInput() || new JsTester_NoElement()).closest('.ui-input'),
-                    uiInputTester = testersFactory.createDomElementTester(getUiInput);
-
-                tester.clear = () => (clear(), spendTime(0), spendTime(0));
-                tester.click = () => (click(), spendTime(0), spendTime(0), tester);
-                tester.fill = value => (clear(), spendTime(0), fill(value), spendTime(0), spendTime(0), tester);
-                tester.input = value => (input(value), spendTime(0), tester); 
-                tester.pressEnter = () => (pressEnter(), spendTime(0), tester);
-
-                tester.expectNotToHaveError = () => uiInputTester.expectNotToHaveClass('ui-input-error');
-                tester.expectToHaveError = () => uiInputTester.expectToHaveClass('ui-input-error');
-
-                tester.clearIcon = (() => {
-                    const tester = testersFactory.createDomElementTester(
-                        () => getUiInput().querySelector('.ui-input-suffix-close')
-                    );
-
-                    const click = tester.click.bind(tester);
-                    tester.click = () => (click(), spendTime(0), spendTime(0));
-
-                    return tester;
-                })();
-
-                return tester;
-            };
-
-            me.input = addMethods(getInput);
-            me.input.atIndex = index => addMethods(() => getInputs()[index]);
-            me.input.first = me.input.atIndex(0);
-
-            me.input.withPlaceholder = placeholder => addMethods(() =>
-                utils.getVisibleSilently(getInputs().filter(input => input.placeholder == placeholder)));
-
-            me.input.withFieldLabel = label => {
-                const labelEl = utils.descendantOf(getRootElement()).
-                    textEquals(label).
-                    matchesSelector('.ui-label-content-field-label').
-                    find();
-
-                const row = labelEl.closest('.ant-row'),
-                    input = (row || labelEl.closest('.ui-label')).querySelector('input');
-
-                return addMethods(() => input);
-            };
-        }
-
-        me.closeButton = (() => {
-            const tester = testersFactory.createDomElementTester(
-                () => utils.element(getRootElement()).querySelector(
-                    '.cmg-miscrophone-unavailability-message-close, ' +
-                    '.cmg-connecting-message-close, ' +
-                    '.ui-audio-player__close, ' +
-                    '.ui-notification-close-x'
-                ) 
-            );
-
-            const click = tester.click.bind(tester);
-            tester.click = () => (click(), spendTime(0), spendTime(0));
-
-            return tester;
-        })();
 
         return me;
     };
@@ -2507,211 +2280,6 @@ define(() => function ({
         });
     };
 
-    me.callsRequest = () => {
-        const params = {
-            offset: undefined,
-            limit: '100',
-            search: '',
-            is_strict_date_till: '0',
-            with_names: undefined,
-            from: '2019-09-19T00:00:00.000+03:00',
-            to: '2019-12-19T23:59:59.999+03:00',
-            call_directions: undefined,
-            call_types: undefined,
-            is_processed_by_any: undefined,
-            group_id: undefined
-        };
-
-        let count = 100,
-            total;
-
-        let getResponse = count => [{
-            cdr_type: 'default',
-            call_session_id: 980925444,
-            comment: [
-                'Некий https://ya.ru комментарий ' +
-                'http://ya.ru http тоже можно ' +
-                'hhttp://ya.ru уже нельзя',
-                'ищет на всех https://go.comagic.ru/', 'строках'
-            ].join("\n"),
-            phone_book_contact_id: 2204382409,
-            direction: 'in',
-            duration: 20,
-            contact_name: 'Гяурова Марийка',
-            crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/218401',
-            is_failed: false,
-            mark_ids: [88, 495],
-            number: '74950230625',
-            start_time: '2019-12-19T08:03:02.522+03:00',
-            file_links: ['https://app.comagic.ru/system/media/talk/1306955705/3667abf2738dfa0a95a7f421b8493d3c/']
-        }, {
-            cdr_type: 'default',
-            call_session_id: 980925445,
-            comment: null,
-            phone_book_contact_id: null,
-            direction: 'out',
-            duration: 21,
-            contact_id: 1689283,
-            contact_name: 'Манова Тома',
-            crm_contact_link: null,
-            is_failed: false,
-            mark_ids: [],
-            number: '74950230626',
-            start_time: '2019-12-18T18:08:25.522+03:00',
-            file_links: [
-                'https://app.comagic.ru/system/media/talk/1306955705/baf9be6ace6b0cb2f9b0e1ed0738db1a/',
-                'https://app.comagic.ru/system/media/talk/2938571928/2fj923fholfr32hlf498f8h18f1hfl1c/'
-            ]
-        }].concat(me.getCalls({
-            date: '2019-12-17T18:07:25',
-            count: count - 2
-        }));
-
-        const processors = [];
-
-        const addResponseModifiers = me => {
-            me.longMonths = () => ((processors.push(data => {
-                data[0].start_time = '2019-03-17T19:07:28.522+03:00';
-                data[1].start_time = '2019-06-16T21:09:26.522+03:00';
-                data[2].start_time = '2019-07-14T23:10:27.522+03:00';
-            })), me),
-            me.shortPhoneNumber = () => ((processors.push(data => (data[0].number = '56123'))), me)
-            me.chilePhoneNumber = () => ((processors.push(data => (data[0].number = '56123456789'))), me)
-            me.duplicatedCallSessionId = () => (processors.push(data => (data[1].call_session_id = 980925444)), me);
-            me.isFailed = () => (processors.push(data => data.forEach(item => (item.is_failed = true))), me);
-            me.noContactName = () => (processors.push(data => (data[0].contact_name = null)), me);
-            me.noCrmContactLink = () => (processors.push(data => (data[0].crm_contact_link = null)), me);
-
-            me.noContact = () => (processors.push(data => {
-                data[1].contact_id = null;
-                data[1].contact_name = null;
-            }), me);
-
-            me.serverError = () => {
-                receiveResponse = request =>
-                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
-
-                return me;
-            };
-
-            me.employeeName = () => {
-                processors.push(data => {
-                    data[0].contact_name = null;
-                    data[0].employee_name = 'Гяурова Марийка';
-                });
-
-                return me;
-            };
-
-            me.noCalls = () => {
-                getResponse = () => [];
-                total = 0;
-                return me;
-            };
-
-            me.transferCall = () =>
-                (processors.push(data => (data.forEach(item => (item.cdr_type = 'transfer_call')))), me);
-
-            me.noTotal = () => {
-                total = undefined;
-                count = 15;
-                return me;
-            };
-
-            return me;
-        };
-
-        let receiveResponse = request => {
-            const data = getResponse(count);
-            processors.forEach(process => process(data));
-            total !== undefined && data.forEach(item => (item.total_count = total))
-
-            request.respondSuccessfullyWith({data});
-            Promise.runAll();
-            me.triggerScrollRecalculation();
-
-            spendTime(0);
-        };
-
-        return addResponseModifiers({
-            fromHalfOfTheYearAgo() {
-                params.from = '2019-06-19T00:00:00.000+03:00';
-                return this;
-            },
-
-            fromFirstWeekDay() {
-                params.from = '2019-12-16T00:00:00.000+03:00';
-                return this;
-            },
-
-            search(value) {
-                params.search = value;
-                return this;
-            },
-
-            changeDate() {
-                params.from = '2019-11-15T00:00:00.000+03:00';
-                params.to = '2019-12-18T23:59:59.999+03:00';
-                return this;
-            },
-
-            numa() {
-                params.numa = '38294829382;';
-                data = [];
-                return this;
-            },
-
-            anotherLimit() {
-                count = 15;
-                total = 15;
-                params.offset = '0';
-                params.limit = '25';
-                return this;
-            },
-
-            firstPage() {
-                count = 10;
-                total = 15;
-                params.offset = '0';
-                params.limit = '10';
-                return this;
-            },
-
-            secondPage() {
-                total = 15;
-                params.offset = params.limit = '10';
-
-                getResponse = () => me.getCalls({
-                    date: '2021-05-17T18:07:25',
-                    count: 5
-                });
-
-                return this;
-            },
-
-            infiniteScrollSecondPage() {
-                params.to = '2019-11-22T21:37:26.362+03:00';
-                params.is_strict_date_till = '1';
-
-                return this;
-            },
-
-            expectToBeSent() {
-                const request = ajax.recentRequest().
-                    expectPathToContain('/sup/api/v1/users/me/calls').
-                    expectQueryToContain(params);
-
-                return addResponseModifiers({
-                    receiveResponse: () => (receiveResponse(request), spendTime(0), spendTime(0), spendTime(0))
-                });
-            },
-
-            receiveResponse() {
-                return this.expectToBeSent().receiveResponse();
-            }
-        });
-    };
-
     me.outCallSessionEvent = () => {
         const params = {
             call_session_id: 182957828,
@@ -2983,62 +2551,6 @@ define(() => function ({
 
         return notification;
     });
-
-    me.numaRequest = () => {
-        let numa = 79161234567;
-
-        let respond = request => request.
-            respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
-
-        return {
-            intercept: function () {
-                numa = 88;
-                return this;
-            },
-
-            fourthPhoneNumber: function() {
-                numa = 79162729533; 
-                return this;
-            },
-
-            thirdNumber: function () {
-                numa = 79161234510;
-                return this;
-            },
-
-            anotherNumber() {
-                numa = 74950230625;
-                return this;
-            },
-
-            expectToBeSent() {
-                const request = ajax.recentRequest().
-                    expectPathToContain(`/sup/api/v1/numa/${numa}`).
-                    expectToHaveMethod('GET');
-
-                return {
-                    employeeNameIsFound() {
-                        respond = request => request.respondSuccessfullyWith({
-                            data: 'Шалева Дора'
-                        });
-
-                        return this;
-                    },
-
-                    receiveResponse() {
-                        respond(request);
-
-                        Promise.runAll(false, true);
-                        spendTime(0)
-                    }
-                };
-            },
-
-            receiveResponse() {
-                this.expectToBeSent().receiveResponse();
-            } 
-        };
-    };
 
     me.settingsUpdatingRequest = () => {
         const params = {};
@@ -11730,90 +11242,15 @@ define(() => function ({
     me.incomingIcon = testersFactory.createDomElementTester('.incoming_svg__cmg-direction-icon');
     me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
 
-    me.holdButton = (() => {
-        const tester = testersFactory.createDomElementTester('.cmg-hold-button');
-
-        const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0), spendTime(0));
-
-        return tester;
-    })();
-
     me.transferIncomingIcon = testersFactory.
         createDomElementTester('.transfer_incoming_successful_svg__cmg-direction-icon');
 
     me.productsButton = testersFactory.
         createDomElementTester('.src-components-main-menu-products-styles-module__icon-container');
 
-    me.transferButton = (tester => {
-        const click = tester.click.bind(tester);
-
-        tester.click = () => (click(), spendTime(0));
-        return tester;
-    })(testersFactory.createDomElementTester('#cmg-transfer-button'));
-
-    me.callsHistoryRow = (() => {
-        const createTester = row => {
-            row = row || new JsTester_NoElement();
-            const tester = testersFactory.createDomElementTester(row);
-
-            tester.name =
-                testersFactory.createDomElementTester(row.querySelector('.clct-calls-history__item-inner-row'));
-
-            const click = tester.name.click.bind(tester.name);
-            tester.name.click = () => {
-                click();
-
-                spendTime(0);
-                spendTime(0);
-                spendTime(0);
-            };
-
-            tester.callIcon =
-                testersFactory.createDomElementTester(row.querySelector('.clct-calls-history__start-call'));
-            tester.directory =
-                testersFactory.createDomElementTester(row.querySelector('.clct-calls-history__item-direction svg'));
-
-            return tester;
-        };
-
-        return {
-            atIndex: index => createTester(document.querySelectorAll('.clct-calls-history__item')[index]),
-
-            withText: text => createTester(utils.descendantOfBody().matchesSelector(
-                '.clct-calls-history__item-inner-row'
-            ).textEquals(text).find().closest('.clct-calls-history__item'))
-        };
-    })();
-
     addTesters(me, () => document.body);
 
-    me.dialpadVisibilityButton = (() => {
-        const tester = testersFactory.createDomElementTester('#cmg-dialpad-visibility-toggler'),
-            click = tester.click.bind(tester);
-
-        tester.click = () => (click(), spendTime(0));
-        return tester;
-    })();
-
     me.searchButton = testersFactory.createDomElementTester('.cmg-search-button');
-
-    me.addressBookButton = (() => {
-        const tester = testersFactory.createDomElementTester('#cmg-address-book-button');
-
-        const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0));
-
-        return tester;
-    })();
-
-    me.contactOpeningButton = (() => {
-        const tester = testersFactory.createDomElementTester('#cmg-open-contact-button'),
-            click = tester.click.bind(tester);
-
-        tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
-        return tester;
-    })();
 
     me.contactsButton = (() => {
         const tester = testersFactory.createDomElementTester('#cmg-contacts-button'),
@@ -11827,23 +11264,6 @@ define(() => function ({
 
         return tester;
     })();
-
-    me.employeeRow = text => (domElement => {
-        const tester = testersFactory.createDomElementTester(domElement);
-
-        tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-disabled');
-        tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cmg-disabled');
-
-        tester.transferIcon = testersFactory.createDomElementTester(domElement.querySelector(
-            '.transfer_employee_svg__cmg-employee-transfer-icon'
-        ));
-
-        tester.callIcon = testersFactory.createDomElementTester(domElement.querySelector(
-            '.employees_grid_call_icon_svg__cmg-employee-call-icon'
-        ));
-
-        return tester;
-    })(utils.descendantOfBody().matchesSelector('.cmg-employee').textContains(text).find());
 
     const addCommunicationPanelTestingMethods = selector => {
         const getDomElement = () => utils.querySelector(selector, true),
@@ -12288,19 +11708,6 @@ define(() => function ({
     me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');
     me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
 
-    me.collapsednessToggleButton = (() => {
-        const tester = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button svg'),
-            buttonTester = testersFactory.createDomElementTester('.cmg-collapsedness-toggle-button');
-
-        const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0), spendTime(0));
-
-        tester.expectToBeExpanded = () => buttonTester.expectToHaveClass('cmg-expanded');
-        tester.expectToBeCollapsed = () => buttonTester.expectNotToHaveClass('cmg-expanded');
-
-        return tester;
-    })();
-
     me.maximizednessButton = (() => {
         const tester = testersFactory.createDomElementTester('.cmg-maximization-button svg'),
             buttonTester = testersFactory.createDomElementTester('.cmg-maximization-button');
@@ -12401,24 +11808,6 @@ define(() => function ({
     me.notificationSection = testersFactory.createDomElementTester('.cm-chats--chat-notifications');
     me.statusDurations = testersFactory.createDomElementTester('.cmg-softphone--call-stats-statuses-duration');
 
-    me.otherChannelCallNotification = (() => {
-        const tester = createRootTester('#cmg-another-sip-line-incoming-call-notification');
-
-        const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0), spendTime(0));
-
-        return tester;
-    })();
-
-    me.hideButton = (() => {
-        const tester = testersFactory.createDomElementTester('.cmg-hide-button');
-
-        const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0));
-
-        return tester;
-    })();
-
     me.playerButton = (() => {
         const tester = testersFactory.createDomElementTester('.clct-audio-button');
 
@@ -12460,18 +11849,6 @@ define(() => function ({
             tester = testersFactory.createDomElementTester(getDomElement);
 
         return addTesters(tester, getDomElement);
-    })();
-
-    me.fieldRow = text => (() => {
-        const labelEl = utils.descendantOfBody().
-            textEquals(text).
-            matchesSelector('.ui-label-content-field-label, .clct-settings-field-label').
-            find();
-
-        const row = labelEl.closest('.ant-row, .clct-settings-field-row'),
-            me = testersFactory.createDomElementTester(row);
-
-        return addTesters(me, () => row);
     })();
 
     me.statusesList = (() => {
