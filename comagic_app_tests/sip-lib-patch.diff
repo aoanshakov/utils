@@ -1,17 +1,16 @@
 diff --git a/package.json b/package.json
-index 1aa5a75..6d9e7e2 100644
+index ed51526..1bf707c 100644
 --- a/package.json
 +++ b/package.json
-@@ -23,8 +23,6 @@
+@@ -23,7 +23,6 @@
    },
    "homepage": "https://gitlab.uis.dev/web/sip_lib",
    "peerDependencies": {
 -    "@comagic/core": "0.0.0-int0",
--    "@comagic/softphone-core": "0.0.0-int0",
      "axios": "^0.21.1"
    },
    "dependencies": {
-@@ -39,7 +37,6 @@
+@@ -38,7 +37,6 @@
      "classnames": "^2.2.6",
      "exports-loader": "2.0.0",
      "history": "^5.3.0",
@@ -19,11 +18,11 @@ index 1aa5a75..6d9e7e2 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.5",
-@@ -47,7 +44,6 @@
+@@ -46,7 +44,6 @@
      "prop-types": "^15.6.2",
      "qs": "6.7.0",
      "react-draggable": "^4.2.0",
 -    "react-intl": "^6.0.5",
-     "react-list": "^0.8.10",
+     "react-list": "0.8.17",
+     "jssip": "3.3.4",
      "sdp-transform": "^2.7.0",
-     "simplebar-react": "^2.2.1",

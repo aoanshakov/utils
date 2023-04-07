@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 5939e8fb..da1b5bf9 100644
+index 5939e8fb..d31e27b6 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -217,7 +217,7 @@ index 5939e8fb..da1b5bf9 100644
          ],
      },
      resolve: {
-@@ -355,7 +462,113 @@ module.exports = {
+@@ -355,7 +462,112 @@ module.exports = {
              '@models': path.resolve(appDirectory, './src/models'),
              '@lib': path.resolve(appDirectory, './src/components/lib'),
              '@hooks': path.resolve(appDirectory, './src/hooks'),
@@ -235,7 +235,6 @@ index 5939e8fb..da1b5bf9 100644
 +            'softphone/isSoftphoneAvailable': 'softphone/src/utils/isSoftphoneAvailable.ts',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
-+            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
 +            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
 +            'chats/HistoryLogWrapped': 'chats/src/components/chats/chat-panel/HistoryLogWrapped.tsx',
 +            'chats/AudioPlayerWrapped': 'chats/src/components/chats/chat-panel/AudioPlayerWrapped.tsx',

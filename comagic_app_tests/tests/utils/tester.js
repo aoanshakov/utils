@@ -50,6 +50,8 @@ define(() => function ({
     window.crossTabCommunicatorCache = {};
     window.softphoneCrossTabCommunicatorCache = {};
 
+    me.getUserAgent = softphoneType => 'UIS Softphone ' + softphoneType;
+
     me.ReactDOM = {
         flushSync: () => null
     };
@@ -153,9 +155,9 @@ define(() => function ({
     spendTime(0);
     spendTime(0);
 
-    me.callStatsButton = createBottomButtonTester('.cmg-call-stats-button');
-    me.chatsButton = createBottomButtonTester('.cmg-chats-button');
-    me.callsHistoryButton = createBottomButtonTester('.cmg-calls-history-button');
+    me.callStatsButton = me.createBottomButtonTester('.cmg-call-stats-button');
+    me.chatsButton = me.createBottomButtonTester('.cmg-chats-button');
+    me.callsHistoryButton = me.createBottomButtonTester('.cmg-calls-history-button');
 
     const intersection = new Map();
 
@@ -195,6 +197,8 @@ define(() => function ({
         getSpinWrapper(() => utils.querySelector('.cm-chats--chat-panel-history'));
 
     const addTesters = (me, getRootElement) => {
+        softphoneTester.addTesters(me, getRootElement);
+
         me.plusButton = (() => {
             const tester = testersFactory.createDomElementTester(
                 () => getRootElement().querySelector('.cm-contacts-add-button')
@@ -353,9 +357,9 @@ define(() => function ({
             const putMouseOver = tester.putMouseOver.bind(tester);
             tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
 
-            return createBottomButtonTester(tester);
+            return softphoneTester.createBottomButtonTester(tester);
         })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector(
-            '.cm-user-only-account--username, .cm-chats--account'
+            '.cm-user-only-account--username, .ui-account'
         )));
 
         (() => {
@@ -11852,12 +11856,12 @@ define(() => function ({
     })();
 
     me.statusesList = (() => {
-        const selector = '.cm-chats--account-popup',
+        const selector = '.ui-account-popup',
             tester = testersFactory.createDomElementTester(selector);
 
         tester.item = text => {
             const domElement = utils.descendantOf(document.querySelector(selector)).
-                matchesSelector('.cm-chats--account-popup--item').
+                matchesSelector('.ui-account-popup--item').
                 textEquals(text).
                 find();
 
@@ -11873,7 +11877,7 @@ define(() => function ({
                 expectToBeVisible();
 
                 if ((
-                    domElement.closest('.cm-chats--account-popup') || new JsTester_NoElement()
+                    domElement.closest('.ui-account-popup') || new JsTester_NoElement()
                 ).parentNode.style.visibility == 'hidden') {
                     throw new Error('Выпадающий список статусов должен быть видимым.');
                 }
@@ -11904,12 +11908,12 @@ define(() => function ({
     me.logoutButton = (() => {
         const tester = testersFactory.createDomElementTester(() => {
             let domElement = utils.descendantOfBody().
-                matchesSelector('.cm-user-only-account--popup-content span').
+                matchesSelector('.ui-popup-content span').
                 textEquals('Выход').
                 find();
 
             domElement instanceof JsTester_NoElement && (domElement = utils.descendantOfBody().
-                matchesSelector('.cm-chats--account-popup--item').
+                matchesSelector('.ui-account-popup--item').
                 textEquals('Выход').
                 find());
 

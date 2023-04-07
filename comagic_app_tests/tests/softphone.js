@@ -869,7 +869,7 @@ tests.addTest(options => {
                                                     tester.userName.putMouseOver();
                                                 });
 
-                                                xdescribe('Выбираю другой статус.', function() {
+                                                describe('Выбираю другой статус.', function() {
                                                     let userStateUpdateRequest;
 
                                                     beforeEach(function() {
@@ -1003,7 +1003,7 @@ tests.addTest(options => {
                                                         );
                                                     });
                                                 });
-                                                xit('Обновлен статус. Отображен обновленный статус.', function() {
+                                                it('Обновлен статус. Отображен обновленный статус.', function() {
                                                     tester.statusChangedEvent().update().receive();
 
                                                     tester.statusesList.expectTextContentToHaveSubstring(
@@ -1019,7 +1019,7 @@ tests.addTest(options => {
                                                         'Нет на работе'
                                                     );
                                                 });
-                                                xit('Удален статус. Удаленный статус не отображается.', function() {
+                                                it('Удален статус. Удаленный статус не отображается.', function() {
                                                     tester.statusChangedEvent().remove().receive();
 
                                                     tester.statusesList.expectTextContentToHaveSubstring(
@@ -1034,11 +1034,16 @@ tests.addTest(options => {
                                                         'Нет на работе'
                                                     );
                                                 });
-                                                xit('Добавлен новый статус. Отображен добавленный статус.', function() {
+                                                it('Добавлен новый статус. Отображен добавленный статус.', function() {
                                                     tester.statusChangedEvent().receive();
 
-                                                    tester.statusesList.item('Воронка').expectToBeVisible();
-                                                    tester.statusesList.item('Доступен').findElement('circle').
+                                                    tester.statusesList.
+                                                        item('Воронка').
+                                                        expectToBeVisible();
+
+                                                    tester.statusesList.
+                                                        item('Доступен').
+                                                        findElement('circle').
                                                         expectToHaveStyle('fill', '#48b882');
                                                 });
                                                 it('Отображен список статусов.', function() {
