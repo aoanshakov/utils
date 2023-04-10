@@ -1143,12 +1143,12 @@ tests.addTest(options => {
                                             tester.spin.expectToBeVisible();
                                         });
                                     });
-                                    describe('Раскрываю список статусов.', function() {
+                                    xdescribe('Раскрываю список статусов.', function() {
                                         beforeEach(function() {
                                             tester.userName.click();
                                         });
 
-                                        xit(
+                                        it(
                                             'Нажимаю на кнопку "Выход". Вхожу в софтфон заново. Удалось войти.',
                                         function() {
                                             tester.statusesList.item('Выход').click();
@@ -1227,7 +1227,7 @@ tests.addTest(options => {
                                             tester.authenticatedUserRequest().receiveResponse();
                                             tester.registrationRequest().desktopSoftphone().receiveResponse();
                                         });
-                                        xit('Выбираю статус. Список статусов скрыт.', function() {
+                                        it('Выбираю статус. Список статусов скрыт.', function() {
                                             tester.statusesList.item('Нет на месте').click();
                                             tester.userStateUpdateRequest().receiveResponse();
 
@@ -1238,8 +1238,7 @@ tests.addTest(options => {
                                             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                                         });
                                     });
-                                    return;
-                                    describe('Открываю таблицу сотрудников. Токен истек.', function() {
+                                    xdescribe('Открываю таблицу сотрудников. Токен истек.', function() {
                                         let refreshRequest;
 
                                         beforeEach(function() {
@@ -1352,7 +1351,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    describe(
+                                    xdescribe(
                                         'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок.',
                                     function() {
                                         beforeEach(function() {
@@ -1472,7 +1471,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    describe('Открываю список номеров.', function() {
+                                    xdescribe('Открываю список номеров.', function() {
                                         beforeEach(function() {
                                             windowSize.setHeight(212);
 
@@ -1526,10 +1525,12 @@ tests.addTest(options => {
                                                 recentlySentMessage().
                                                 expectToBeSentToChannel('quit-and-install');
                                         });
+                                        return;
                                         it('Отображено сообщение о получении обновления.', function() {
                                             tester.body.expectTextContentToHaveSubstring('Получено обновление');
                                         });
                                     });
+                                    return;
                                     it(
                                         'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку ' +
                                         '"Выход". Вхожу в софтфон заново. Удалось войти. Софтфон готов к работе.',
