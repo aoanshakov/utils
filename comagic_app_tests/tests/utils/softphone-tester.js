@@ -230,9 +230,16 @@ define(function () {
 
                 domElement = domElement.querySelector('a') || domElement;
 
-                const fieldTester = testersFactory.createDomElementTester(() => (
-                    domElement.closest('.ui-radio-wrapper, .cmg-switch-wrapper') || new JsTester_NoElement()
-                ).querySelector('.ui-radio, .ui-switch'));
+                const fieldTester = testersFactory.createDomElementTester(() => {
+                    const radioWrapper = domElement.closest('.ui-radio-wrapper') || new JsTester_NoElement();
+
+                    if (!utils.isNonExisting(radioWrapper)) {
+                        return radioWrapper;
+                    }
+
+                    return (domElement.closest('.cmg-switch-wrapper') || new JsTester_NoElement()).
+                        querySelector('.ui-switch');
+                });
 
                 const tester = testersFactory.createDomElementTester(domElement),
                     click = tester.click.bind(tester);
@@ -254,7 +261,7 @@ define(function () {
                     spendTime(0);
                 };
 
-                const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-checked',
+                const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-wrapper-checked',
                     disabledClass = isSwitch ? 'ui-switch-disabled' : 'ui-button-disabled';
 
                 const menuItemSelectedClass = [
@@ -1138,6 +1145,7 @@ define(function () {
                     );
 
                     Promise.runAll(false, true);
+                    spendTime(0);
                     spendTime(0);
                 }
             };
@@ -2330,6 +2338,10 @@ define(function () {
                     data.tag_management.is_select = null;
                     return this;
                 },
+                disallowTagManagementUpdate: function () {
+                    data.tag_management.is_update = null;
+                    return this;
+                },
                 disallowCallSessionCommentingDelete: function () {
                     data.call_session_commenting.is_delete = false;
                     return this;
@@ -2371,8 +2383,8 @@ define(function () {
                         } 
                     });
                 },
-                expectToBeSent: function () {
-                    var request = ajax.recentRequest().expectPathToContain('/sup/api/v1/permissions/me');
+                expectToBeSent: function (requests) {
+                    var request = (requests ? requests.someRequest() : ajax.recentRequest()).expectPathToContain('/sup/api/v1/permissions/me');
 
                     var requestSender = {
                         receiveResponse: function () {
@@ -3433,7 +3445,9 @@ define(function () {
             return {
                 thirdUser: function () {
                     message.body.proxy = 'sip:pp-rtu.uis.st:443';
-                    message.body.username = 'sip:Kf98Bzv3@pp-rtu.uis.st:443';
+                    message.body.username = 'sip:076909@pp-rtu.uis.st:443';
+                    message.body.authuser = 'Kf98Bzv3';
+                    message.body.display_name = '076909';
                     return this;
                 },
                 setAnotherUser: function () {
@@ -4394,11 +4408,6 @@ define(function () {
 
             Promise.runAll(false, true);
             spendTime(0);
-
-            me.callSessionFinish().
-                thirdId().
-                slavesNotification().
-                expectToBeSent();
         }
 
         this.notificationOfUserStateChanging = function () {
@@ -6823,7 +6832,7 @@ define(function () {
                                 'application_version'
                             ].includes(key) && delete(data.params[key]));
 
-                            ['sip_host', 'sip_login', 'sip_password'].forEach(key => (data.params.sip[key] = ''));
+                            ['sip_host', 'sip_login', 'sip_phone', 'sip_password'].forEach(key => (data.params.sip[key] = ''));
                         });
 
                         return this;

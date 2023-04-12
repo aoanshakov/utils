@@ -1795,8 +1795,8 @@ define(() => function ({
     };
 
     me.userLogoutRequest = () => ({
-        expectToBeSent() {
-            const request = ajax.recentRequest().
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                 expectPathToContain('$REACT_APP_AUTH_URL').
                 expectToHaveMethod('POST').
                 expectBodyToContain({
@@ -2640,6 +2640,7 @@ define(() => function ({
             sip_channels_count: 2,
             sip_host: 'voip.uiscom.ru',
             sip_login: '077368',
+            sip_phone: '077368',
             sip_password: 'e2tcXhxbfr',
             ws_url: '/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
             is_need_hide_numbers: false,
@@ -2686,7 +2687,7 @@ define(() => function ({
                     'application_version'
                 ].includes(key) && delete(response.data[key]));
 
-                ['sip_host', 'sip_login', 'sip_password'].forEach(key => (response.data[key] = null));
+                ['sip_host', 'sip_login', 'sip_phone', 'sip_password'].forEach(key => (response.data[key] = null));
 
                 return me;
             };
@@ -2869,8 +2870,8 @@ define(() => function ({
         };
 
         return addResponseModifiers({
-            expectToBeSent() {
-                let request = ajax.recentRequest().
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('/sup/auth/logout').
                     expectToHaveHeaders({
                         Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
@@ -11243,8 +11244,8 @@ define(() => function ({
     me.forceUpdate = () => utils.pressKey('k');
     me.body = testersFactory.createDomElementTester('body');
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
-    me.incomingIcon = testersFactory.createDomElementTester('.incoming_svg__cmg-direction-icon');
-    me.outgoingIcon = testersFactory.createDomElementTester('.outgoing_svg__cmg-direction-icon');
+    me.incomingIcon = testersFactory.createDomElementTester('.cmg-incoming-direction-icon');
+    me.outgoingIcon = testersFactory.createDomElementTester('.cmg-outgoing-direction-icon');
 
     me.transferIncomingIcon = testersFactory.
         createDomElementTester('.transfer_incoming_successful_svg__cmg-direction-icon');

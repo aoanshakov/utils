@@ -72,11 +72,10 @@ tests.addTest(options => {
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
-                tester.statusesRequest().receiveResponse();
-
-                settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
                 permissionsRequest = tester.permissionsRequest().expectToBeSent();
+                tester.statusesRequest().receiveResponse();
+                settingsRequest = tester.settingsRequest().expectToBeSent();
             });
 
             describe('Номера не должны быть скрыты.', function() {
@@ -331,6 +330,9 @@ tests.addTest(options => {
                                                     tester.slavesNotification().additional().expectToBeSent();
                                                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
+                                                    tester.talkOptionsRequest().receiveResponse();
+                                                    permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
                                                     tester.statusesRequest().
                                                         createExpectation().
                                                         anotherAuthorizationToken().
@@ -356,8 +358,6 @@ tests.addTest(options => {
                                                         enabled().
                                                         expectToBeSent();
 
-                                                    tester.talkOptionsRequest().receiveResponse();
-                                                    permissionsRequest = tester.permissionsRequest().expectToBeSent();
                                                     tester.connectEventsWebSocket(1);
 
                                                     tester.slavesNotification().
@@ -514,7 +514,7 @@ tests.addTest(options => {
                                             it(
                                                 'Снимаю отметку со свитчбокса. Отправлен запрос истории звонков.',
                                             function() {
-                                                tester.switchButton.click();
+                                                tester.switchButton.first.click();
 
                                                 tester.notProcessedCallsRequest().
                                                     isNotProcessedByAny().
@@ -522,14 +522,14 @@ tests.addTest(options => {
 
                                                 tester.marksRequest().receiveResponse();
 
-                                                tester.switchButton.expectNotToBeChecked();
+                                                tester.switchButton.first.expectNotToBeChecked();
                                             });
                                             it('Отображена история звонков.', function() {
                                                 tester.radioButton('Мои').expectNotToBeSelected();
                                                 tester.radioButton('Все').expectNotToBeSelected();
                                                 tester.radioButton('Необработанные').expectToBeSelected();
 
-                                                tester.switchButton.expectToBeChecked();
+                                                tester.switchButton.first.expectToBeChecked();
 
                                                 tester.table.row.first.
                                                     expectToHaveClass('cmg-softphone-call-history-failed-call-row');
@@ -740,7 +740,7 @@ tests.addTest(options => {
                                             tester.select.option('Отложенный звонок').expectNotToExist();
                                             tester.select.option('Нецелевой контакт').expectToBeVisible();
                                         });
-                                        it('Отмечены опции выранных тегов.', function() {
+                                        it('Отмечены опции выбранных тегов.', function() {
                                             tester.select.option('Генератор лидов').expectNotToBeSelected();
                                             tester.select.option('Нецелевой контакт').expectToBeSelected();
                                             tester.select.option('Отложенный звонок').expectToBeSelected();
@@ -1444,19 +1444,37 @@ tests.addTest(options => {
                                         tester.select.withValue('Звонки: Все').expectNotToExist();
                                         tester.select.withValue('Направления: Все').expectNotToExist();
                                         tester.select.withPlaceholder('Группы').expectNotToExist();
-                                        tester.switchButton.expectNotToExist();
+                                        tester.switchButton.first.expectNotToExist();
 
                                         tester.table.
                                             row.first.
                                             column.first.
                                             svg.
-                                            expectToHaveClass('incoming_svg__cmg-direction-icon');
+                                            expectToHaveClass('cmg-incoming-direction-icon');
+
+                                        tester.table.
+                                            row.first.
+                                            column.first.
+                                            svg.
+                                            expectToHaveNoneOfClasses([
+                                                'cmg-direction-icon-failed',
+                                                'cmg-direction-icon-transfer',
+                                            ]);
 
                                         tester.table.
                                             row.atIndex(1).
                                             column.first.
                                             svg.
-                                            expectToHaveClass('outgoing_svg__cmg-direction-icon');
+                                            expectToHaveClass('cmg-outgoing-direction-icon');
+
+                                        tester.table.
+                                            row.atIndex(1).
+                                            column.first.
+                                            svg.
+                                            expectToHaveNoneOfClasses([
+                                                'cmg-direction-icon-failed',
+                                                'cmg-direction-icon-transfer',
+                                            ]);
 
                                         tester.table.pagingPanel.pageButton('1').expectToBePressed();
                                         tester.table.pagingPanel.pageButton('2').expectNotToBePressed();
@@ -1520,18 +1538,40 @@ tests.addTest(options => {
                                     it('Есть пропущенные звонки. Звонки трансфера отличаются от обычных.', function() {
                                         callsRequest.isFailed().receiveResponse();
 
+                                        tester.table.row.first.column.first.svg.expectToHaveAllOfClasses([
+                                            'cmg-direction-icon-transfer',
+                                            'cmg-incoming-direction-icon',
+                                        ]);
+
                                         tester.table.row.first.column.first.svg.
-                                            expectToHaveClass('transfer_incoming_failed_svg__cmg-direction-icon');
+                                            expectToHaveClass('cmg-direction-icon-failed');
+
+                                        tester.table.row.atIndex(1).column.first.svg.expectToHaveAllOfClasses([
+                                            'cmg-direction-icon-transfer',
+                                            'cmg-outgoing-direction-icon',
+                                        ]);
+
                                         tester.table.row.atIndex(1).column.first.svg.
-                                            expectToHaveClass('transfer_outgoing_failed_svg__cmg-direction-icon');
+                                            expectToHaveClass('cmg-direction-icon-failed');
                                     });
                                     it('Звонки трансфера отличаются от обычных.', function() {
                                         callsRequest.receiveResponse();
 
+                                        tester.table.row.first.column.first.svg.expectToHaveAllOfClasses([
+                                            'cmg-direction-icon-transfer',
+                                            'cmg-incoming-direction-icon',
+                                        ]);
+
                                         tester.table.row.first.column.first.svg.
-                                            expectToHaveClass('transfer_incoming_successful_svg__cmg-direction-icon');
+                                            expectNotToHaveClass('cmg-direction-icon-failed');
+
+                                        tester.table.row.atIndex(1).column.first.svg.expectToHaveAllOfClasses([
+                                            'cmg-direction-icon-transfer',
+                                            'cmg-outgoing-direction-icon',
+                                        ]);
+
                                         tester.table.row.atIndex(1).column.first.svg.
-                                            expectToHaveClass('transfer_outgoing_successful_svg__cmg-direction-icon');
+                                            expectNotToHaveClass('cmg-direction-icon-failed');
                                     });
                                 });
                                 it(
@@ -1679,7 +1719,7 @@ tests.addTest(options => {
                                 sending().
                                 expectToBeSent();
 
-                            outgoingCall.setRinging();
+                            outgoingCall.receiveRinging();
                             
                             tester.slavesNotification().
                                 available().
@@ -1701,7 +1741,7 @@ tests.addTest(options => {
                                 ended().
                                 expectToBeSent();
 
-                            outgoingCall.expectCancelingRequestToBeSent();
+                            outgoingCall.expectCancelToBeSent();
 
                             tester.callSessionFinish().
                                 thirdId().
@@ -2253,7 +2293,6 @@ tests.addTest(options => {
                     'Редактирование тегов недоступно. Открываю раздел "История звонков". Теги не изменяются.',
                 function() {
                     permissionsRequest.disallowTagManagementUpdate().receiveResponse();
-
                     tester.connectEventsWebSocket();
 
                     tester.slavesNotification().
@@ -2467,11 +2506,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            tester.statusesRequest().receiveResponse();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
+            tester.statusesRequest().receiveResponse();
+            settingsRequest = tester.settingsRequest().expectToBeSent();
 
             settingsRequest.receiveResponse();
 
@@ -2573,11 +2611,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            tester.statusesRequest().receiveResponse();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
+            tester.statusesRequest().receiveResponse();
+            settingsRequest = tester.settingsRequest().expectToBeSent();
 
             settingsRequest.receiveResponse();
 
@@ -2675,12 +2712,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-
-            settingsRequest.receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+            tester.settingsRequest().receiveResponse();
 
             tester.othersNotification().
                 widgetStateUpdate().
@@ -2695,10 +2730,6 @@ tests.addTest(options => {
                 twoChannels().
                 enabled().
                 expectToBeSent();
-
-            permissionsRequest = tester.permissionsRequest().expectToBeSent();
-
-            permissionsRequest.receiveResponse();
 
             tester.connectEventsWebSocket();
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -2773,10 +2804,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+            settingsRequest = tester.settingsRequest().expectToBeSent();
 
             settingsRequest.receiveResponse();
 
@@ -2793,10 +2824,6 @@ tests.addTest(options => {
                 twoChannels().
                 enabled().
                 expectToBeSent();
-
-            permissionsRequest = tester.permissionsRequest().expectToBeSent();
-
-            permissionsRequest.receiveResponse();
 
             tester.connectEventsWebSocket();
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -2888,6 +2915,8 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
 
@@ -2906,9 +2935,6 @@ tests.addTest(options => {
                 expectToBeSent();
 
             notificationTester.grantPermission();
-            tester.talkOptionsRequest().receiveResponse();
-            permissionsRequest = tester.permissionsRequest().expectToBeSent();
-
             tester.connectEventsWebSocket();
 
             tester.slavesNotification().

@@ -76,11 +76,10 @@ tests.addTest(options => {
                     tester.notificationChannel().applyLeader().expectToBeSent();
 
                     authCheckRequest.receiveResponse();
-                    tester.statusesRequest().receiveResponse();
-
-                    settingsRequest = tester.settingsRequest().expectToBeSent();
                     tester.talkOptionsRequest().receiveResponse();
                     permissionsRequest = tester.permissionsRequest().expectToBeSent();
+                    tester.statusesRequest().receiveResponse();
+                    settingsRequest = tester.settingsRequest().expectToBeSent();
                 });
 
                 describe('Получены права.', function() {
@@ -177,7 +176,7 @@ tests.addTest(options => {
                                                     expectToBeSent();
                                             });
 
-                                            xdescribe('Открываю историю звонков.', function() {
+                                            describe('Открываю историю звонков.', function() {
                                                 let callsRequest;
                                                 
                                                 beforeEach(function() {
@@ -331,7 +330,6 @@ tests.addTest(options => {
                                                             receiveResponse();
 
                                                         tester.contactCommunicationsRequest().
-                                                            anotherRangeStartingTime().
                                                             receiveResponse();
 
                                                         tester.usersRequest().
@@ -358,11 +356,35 @@ tests.addTest(options => {
                                                         tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.
                                                             expectNotToHaveAttribute('disabled');
 
-                                                        tester.callsHistoryRow.withText('Гяурова Марийка').direction.
-                                                            expectToHaveClass('incoming_svg__cmg-direction-icon');
+                                                        tester.callsHistoryRow.
+                                                            withText('Гяурова Марийка').
+                                                            direction.
+                                                            expectNotToHaveClass('cmg-direction-icon-failed');
 
-                                                        tester.callsHistoryRow.withText('Манова Тома').direction.
-                                                            expectToHaveClass('outgoing_svg__cmg-direction-icon');
+                                                        tester.callsHistoryRow.
+                                                            withText('Гяурова Марийка').
+                                                            direction.
+                                                            expectToHaveClass('cmg-incoming-direction-icon');
+
+                                                        tester.callsHistoryRow.
+                                                            withText('Гяурова Марийка').
+                                                            direction.
+                                                            expectNotToHaveClass('cmg-direction-icon-transfer');
+
+                                                        tester.callsHistoryRow.
+                                                            withText('Манова Тома').
+                                                            direction.
+                                                            expectNotToHaveClass('cmg-direction-icon-failed');
+
+                                                        tester.callsHistoryRow.
+                                                            withText('Манова Тома').
+                                                            direction.
+                                                            expectToHaveClass('cmg-outgoing-direction-icon');
+
+                                                        tester.callsHistoryRow.
+                                                            withText('Манова Тома').
+                                                            direction.
+                                                            expectNotToHaveClass('cmg-direction-icon-transfer');
 
                                                         tester.softphone.expectToBeExpanded();
                                                     });
@@ -424,13 +446,23 @@ tests.addTest(options => {
                                                 function() {
                                                     callsRequest.transferCall().receiveResponse();
 
-                                                    tester.callsHistoryRow.withText('Гяурова Марийка').direction.
-                                                        expectToHaveClass(
-                                                            'transfer_incoming_successful_svg__cmg-direction-icon'
-                                                        );
+                                                    tester.callsHistoryRow.
+                                                        withText('Гяурова Марийка').
+                                                        direction.
+                                                        expectNotToHaveClass('cmg-direction-icon-failed');
+
+                                                    tester.callsHistoryRow.
+                                                        withText('Гяурова Марийка').
+                                                        direction.
+                                                        expectToHaveClass('cmg-incoming-direction-icon');
+
+                                                    tester.callsHistoryRow.
+                                                        withText('Гяурова Марийка').
+                                                        direction.
+                                                        expectToHaveClass('cmg-direction-icon-transfer');
                                                 });
                                             });
-                                            xdescribe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
+                                            describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
                                                 beforeEach(function() {
                                                     tester.userName.putMouseOver();
                                                     tester.logoutButton.click();
@@ -506,6 +538,9 @@ tests.addTest(options => {
                                                     tester.slavesNotification().additional().visible().expectToBeSent();
                                                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
+                                                    tester.talkOptionsRequest().receiveResponse();
+                                                    tester.permissionsRequest().receiveResponse();
+
                                                     tester.statusesRequest().
                                                         createExpectation().
                                                         anotherAuthorizationToken().
@@ -532,9 +567,6 @@ tests.addTest(options => {
                                                         twoChannels().
                                                         enabled().
                                                         expectToBeSent();
-
-                                                    tester.talkOptionsRequest().receiveResponse();
-                                                    tester.permissionsRequest().receiveResponse();
 
                                                     tester.connectEventsWebSocket(1);
 
@@ -587,7 +619,7 @@ tests.addTest(options => {
                                                     tester.statusesList.item('Нет на месте').expectNotToExist();
                                                 });
                                             });
-                                            xdescribe('Нажимаю на кнопку открытия диалпада.', function() {
+                                            describe('Нажимаю на кнопку открытия диалпада.', function() {
                                                 beforeEach(function() {
                                                     tester.dialpadVisibilityButton.click();
                                                 });
@@ -934,6 +966,8 @@ tests.addTest(options => {
                                                             expectToBeSent();
                                                         tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
+                                                        tester.talkOptionsRequest().receiveResponse();
+                                                        tester.permissionsRequest().receiveResponse();
                                                         tester.statusesRequest().receiveResponse();
                                                         tester.settingsRequest().receiveResponse();
 
@@ -950,9 +984,6 @@ tests.addTest(options => {
                                                             twoChannels().
                                                             enabled().
                                                             expectToBeSent();
-
-                                                        tester.talkOptionsRequest().receiveResponse();
-                                                        tester.permissionsRequest().receiveResponse();
 
                                                         tester.connectEventsWebSocket(1);
                                                         tester.slavesNotification().twoChannels().
@@ -1064,7 +1095,6 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            return;
                                             describe(
                                                 'Получено сообщение о том, что другая вкладка стала ведущей. ' +
                                                 'Разрывается соединение с вебсокетами. Получено оповещение о ' +
@@ -1396,8 +1426,14 @@ tests.addTest(options => {
 
                                                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-                                                tester.statusesRequest().createExpectation().
-                                                    anotherAuthorizationToken().checkCompliance().receiveResponse();
+                                                tester.talkOptionsRequest().receiveResponse();
+                                                tester.permissionsRequest().receiveResponse();
+
+                                                tester.statusesRequest().
+                                                    createExpectation().
+                                                    anotherAuthorizationToken().
+                                                    checkCompliance().
+                                                    receiveResponse();
 
                                                 tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
 
@@ -1414,9 +1450,6 @@ tests.addTest(options => {
                                                     twoChannels().
                                                     enabled().
                                                     expectToBeSent();
-
-                                                tester.talkOptionsRequest().receiveResponse();
-                                                tester.permissionsRequest().receiveResponse();
 
                                                 tester.connectEventsWebSocket(1);
 
@@ -1647,7 +1680,6 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        return;
                                         it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
                                             tester.hideButton.click();
                                             tester.slavesNotification().additional().expectToBeSent();
@@ -1661,7 +1693,6 @@ tests.addTest(options => {
                                             tester.callStartingButton.expectNotToExist();
                                         });
                                     });
-                                    return;
                                     it(
                                         'От ведомой вкладки пришел запрос отображения софтфона. Софтфон отображен.',
                                     function() {
@@ -1676,7 +1707,6 @@ tests.addTest(options => {
                                         tester.body.expectTextContentToHaveSubstring('Дашборды');
                                     });
                                 });
-                                return;
                                 describe(
                                     'SIP-регистрация завершена. Срок действия токена авторизации истек.',
                                 function() {
@@ -1710,7 +1740,6 @@ tests.addTest(options => {
                                     });
                                 });
                             });
-                            return;
                             describe('SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном.', function() {
                                 beforeEach(function() {
                                     tester.button('Софтфон').click();
@@ -1766,7 +1795,6 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        return;
                         describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                             beforeEach(function() {
                                 tester.disallowMediaInput();
@@ -1826,7 +1854,6 @@ tests.addTest(options => {
                             });
                         });
                     });
-                    return;
                     describe('Номера должны быть скрыты.', function() {
                         beforeEach(function() {
                             reportGroupsRequest.receiveResponse();
@@ -2020,8 +2047,15 @@ tests.addTest(options => {
                         settingsRequest.accessTokenInvalid().receiveResponse();
                         notificationTester.grantPermission();
 
-                        tester.userLogoutRequest().receiveResponse();
-                        tester.authLogoutRequest().receiveResponse();
+                        const requests = ajax.inAnyOrder();
+
+                        userLogoutRequest = tester.userLogoutRequest().expectToBeSent(requests);
+                        authLogoutRequest = tester.authLogoutRequest().expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+
+                        userLogoutRequest.receiveResponse();
+                        authLogoutRequest.receiveResponse();
 
                         tester.masterInfoMessage().leaderDeath().expectToBeSent();
                         tester.slavesNotification().destroyed().expectToBeSent();
@@ -2029,7 +2063,6 @@ tests.addTest(options => {
                         tester.input.withFieldLabel('Логин').expectToBeVisible();
                     });
                 });
-                return;
                 describe('Нажимаю на иконку с телефоном.', function() {
                     beforeEach(function() {
                         reportGroupsRequest.receiveResponse();
@@ -2134,13 +2167,11 @@ tests.addTest(options => {
                                                 tester.numberCapacityRequest().receiveResponse();
                                             });
 
-                                            describe(
-                                                'Выбираю номер. Отправлен запрос смены номера.',
-                                            function() {
+                                            describe('Выбираю номер. Отправлен запрос смены номера.', function() {
                                                 beforeEach(function() {
                                                     tester.select.option('+7 (916) 123-89-29 Некий номер').click();
 
-                                                    tester.saveNumberCapacityRequest().receiveResponse();
+                                                    tester.numberCapacitySavingRequest().receiveResponse();
                                                     tester.othersNotification().numberCapacityUpdate().expectToBeSent();
                                                 });
 
@@ -3178,13 +3209,19 @@ tests.addTest(options => {
                     });
                 });
             });
-return;
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().isNotMaster().receive();
                     tester.masterNotification().tabOpened().expectToBeSent();
 
                     authCheckRequest.receiveResponse();
+                    tester.talkOptionsRequest().receiveResponse();
+
+                    tester.permissionsRequest().
+                        allowNumberCapacitySelect().
+                        allowNumberCapacityUpdate().
+                        receiveResponse();
+
                     tester.statusesRequest().receiveResponse();
 
                     tester.settingsRequest().
@@ -3202,13 +3239,6 @@ return;
                         shouldNotPlayCallEndingSignal().
                         expectToBeSent();
                     
-                    tester.talkOptionsRequest().receiveResponse();
-
-                    tester.permissionsRequest().
-                        allowNumberCapacitySelect().
-                        allowNumberCapacityUpdate().
-                        receiveResponse();
-
                     notificationTester.grantPermission();
 
                     tester.authenticatedUserRequest().receiveResponse();
@@ -3323,7 +3353,7 @@ return;
                             notificationTester.grantPermission().
                                 recentNotification().
                                 expectToHaveTitle('Входящий звонок').
-                                expectToHaveBody('Шалева Дора +7 (916) 123-45-67').
+                                expectToHaveBody('Шалева Дора, +7 (916) 123-45-67, somesite.com').
                                 expectToBeOpened();
                         });
                         it(
@@ -3518,6 +3548,8 @@ return;
                     tester.notificationChannel().tellIsLeader().expectToBeSent();
                     tester.notificationChannel().applyLeader().expectToBeSent();
 
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
                     tester.settingsRequest().receiveResponse();
 
@@ -3534,9 +3566,6 @@ return;
                         twoChannels().
                         enabled().
                         expectToBeSent();
-
-                    tester.talkOptionsRequest().receiveResponse();
-                    tester.permissionsRequest().receiveResponse();
 
                     tester.connectEventsWebSocket();
 
@@ -3586,8 +3615,13 @@ return;
                     'Сессионная кука еще не удалена. На ведущей вкладке был совершен выход из софтфона. Отображается ' +
                     'форма аутентификации.',
                 function() {
-                    tester.slavesNotification().userDataFetched().twoChannels().microphoneAccessGranted().
-                        destroyed().enabled().receive();
+                    tester.slavesNotification().
+                        userDataFetched().
+                        twoChannels().
+                        microphoneAccessGranted().
+                        destroyed().
+                        enabled().
+                        receive();
 
                     tester.masterInfoMessage().leaderDeath().expectToBeSent();
                     tester.masterInfoMessage().leaderDeath().receive();
@@ -3625,6 +3659,8 @@ return;
                     tester.notificationChannel().tellIsLeader().expectToBeSent();
                     tester.notificationChannel().applyLeader().expectToBeSent();
 
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
                     tester.settingsRequest().receiveResponse();
 
@@ -3641,9 +3677,6 @@ return;
                         twoChannels().
                         enabled().
                         expectToBeSent();
-
-                    tester.talkOptionsRequest().receiveResponse();
-                    tester.permissionsRequest().receiveResponse();
 
                     tester.connectEventsWebSocket();
 
@@ -3778,6 +3811,9 @@ return;
                     tester.masterNotification().tabOpenedInBackground().expectToBeSent();
 
                     authCheckRequest.receiveResponse();
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().
+                        receiveResponse();
                     tester.statusesRequest().receiveResponse();
 
                     tester.settingsRequest().
@@ -3788,10 +3824,6 @@ return;
                     tester.othersNotification().widgetStateUpdate().fixedNumberCapacityRule().expectToBeSent();
                     tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
                     
-                    tester.talkOptionsRequest().receiveResponse();
-                    tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().
-                        receiveResponse();
-
                     notificationTester.grantPermission();
 
                     tester.authenticatedUserRequest().receiveResponse();
@@ -3808,7 +3840,6 @@ return;
                 });
             });
         });
-return;
         describe('Пользователь является руководителем.', function() {
             beforeEach(function() {
                 accountRequest = accountRequest.manager();
@@ -3843,6 +3874,8 @@ return;
                 secondAccountRequest.manager().receiveResponse();
                 authCheckRequest.receiveResponse();
 
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().dontTriggerScrollRecalculation().receiveResponse();
 
@@ -3854,9 +3887,6 @@ return;
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
                     expectToBeSent();
-
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
 
                 notificationTester.grantPermission();
 
@@ -3938,6 +3968,8 @@ return;
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().dontTriggerScrollRecalculation().receiveResponse();
 
@@ -3949,9 +3981,6 @@ return;
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
                     expectToBeSent();
-
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
 
                 notificationTester.grantPermission();
 
@@ -4044,12 +4073,10 @@ return;
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
-                statusesRequest = tester.statusesRequest().expectToBeSent();
-
-                settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
-
-                settingsRequest.receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+                tester.statusesRequest().receiveResponse();
+                tester.settingsRequest().receiveResponse();
 
                 tester.othersNotification().
                     widgetStateUpdate().
@@ -4064,8 +4091,6 @@ return;
                     twoChannels().
                     enabled().
                     expectToBeSent();
-
-                tester.permissionsRequest().receiveResponse();
 
                 tester.connectEventsWebSocket();
 
@@ -4113,8 +4138,6 @@ return;
                     twoChannels().
                     available().
                     expectToBeSent();
-
-                statusesRequest.receiveResponse();
             });
 
             it(
@@ -4186,12 +4209,10 @@ return;
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            tester.statusesRequest().receiveResponse();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
-
+            tester.statusesRequest().receiveResponse();
+            settingsRequest = tester.settingsRequest().expectToBeSent();
             reportGroupsRequest.receiveResponse();
 
             tester.button('Софтфон').click();

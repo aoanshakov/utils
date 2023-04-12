@@ -553,12 +553,14 @@ tests.addTest(options => {
                                     ended().
                                     expectToBeSent();
 
-                                outgoingCall.expectCancelingRequestToBeSent();
-                                tester.callSessionFinish().thirdId().
-                                    slavesNotification().expectToBeSent();
+                                outgoingCall.expectCancelToBeSent();
+
+                                tester.callSessionFinish().
+                                    thirdId().
+                                    slavesNotification().
+                                    expectToBeSent();
 
                                 tester.phoneField.fill('79161234567');
-
                                 tester.phoneField.expectToHaveValue('79161234567');
                             });
                             it('Отображено имя, номер и таймер.', function() {
@@ -628,13 +630,14 @@ tests.addTest(options => {
                             ended().
                             expectToBeSent();
 
-                        outgoingCall.expectCancelingRequestToBeSent();
+                        outgoingCall.expectCancelToBeSent();
 
-                        tester.callSessionFinish().thirdId().slavesNotification().
+                        tester.callSessionFinish().
+                            thirdId().
+                            slavesNotification().
                             expectToBeSent();
 
                         tester.phoneField.fill('79161234567');
-
                         tester.phoneField.expectToHaveValue('79161234567');
                     });
                     it('Отображено имя, номер и таймер.', function() {

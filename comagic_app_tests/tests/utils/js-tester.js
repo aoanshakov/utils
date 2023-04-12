@@ -6065,6 +6065,9 @@ function JsTester_DomElement (
             }
         })
     };
+    this.expectToHaveAllOfClasses = function (classNames) {
+        classNames.forEach(className => this.expectToHaveClass(className));
+    };
     this.expectToHaveClass = function (className) {
         this.expectToBeVisible();
 

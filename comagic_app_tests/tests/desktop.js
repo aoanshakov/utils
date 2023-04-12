@@ -105,6 +105,12 @@ tests.addTest(options => {
                     beforeEach(function() {
                         thirdAccountRequest.receiveResponse();
                         authCheckRequest.receiveResponse();
+                        tester.talkOptionsRequest().receiveResponse();
+
+                        tester.permissionsRequest().
+                            allowNumberCapacitySelect().
+                            allowNumberCapacityUpdate().
+                            receiveResponse();
 
                         tester.statusesRequest().receiveResponse();
                         tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -113,17 +119,9 @@ tests.addTest(options => {
                         tester.connectSIPWebSocket();
 
                         notificationTester.grantPermission();
-
-                        tester.talkOptionsRequest().receiveResponse();
-
-                        tester.permissionsRequest().
-                            allowNumberCapacitySelect().
-                            allowNumberCapacityUpdate().
-                            receiveResponse();
-
+                        tester.numberCapacityRequest().receiveResponse();
                         authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
-                        tester.numberCapacityRequest().receiveResponse();
                         tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                         secondAccountRequest.receiveResponse();
@@ -175,7 +173,7 @@ tests.addTest(options => {
                                         tester.allowMediaInput();
                                     });
 
-                                    xdescribe('Нажимаю на кнопку настроек.', function() {
+                                    describe('Нажимаю на кнопку настроек.', function() {
                                         beforeEach(function() {
                                             tester.settingsButton.click();
 
@@ -405,7 +403,7 @@ tests.addTest(options => {
                                             tester.collapsednessToggleButton.expectToBeExpanded();
                                         });
                                     });
-                                    xdescribe(
+                                    describe(
                                         'Поступает входящий звонок от пользователя имеющего открытые сделки.',
                                     function() {
                                         let incomingCall;
@@ -519,7 +517,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    xdescribe('Нажимаю на кнопку максимизации.', function() {
+                                    describe('Нажимаю на кнопку максимизации.', function() {
                                         beforeEach(function() {
                                             tester.maximizednessButton.click();
 
@@ -888,32 +886,18 @@ tests.addTest(options => {
                                                 receiveResponse();
 
                                             authCheckRequest.receiveResponse();
-                                            requests = ajax.inAnyOrder();
+                                            tester.talkOptionsRequest().receiveResponse();
+                                            tester.permissionsRequest().receiveResponse();
 
-                                            const statusesRequest = tester.statusesRequest().
-                                                createExpectation(requests).
+                                            tester.statusesRequest().
+                                                createExpectation().
                                                 anotherAuthorizationToken().
-                                                checkCompliance();
+                                                checkCompliance().
+                                                receiveResponse();
 
-                                            const settingsRequest = tester.settingsRequest().
+                                            tester.settingsRequest().
                                                 anotherAuthorizationToken().
-                                                expectToBeSent(requests);
-
-                                            const talkOptionsRequest = tester.talkOptionsRequest().
-                                                expectToBeSent(requests);
-
-                                            const permissionsRequest = tester.permissionsRequest().
-                                                expectToBeSent(requests);
-
-                                            requests.expectToBeSent();
-
-                                            statsRequest.receiveResponse();
-                                            accountRequest.receiveResponse();
-                                            secondAccountRequest.receiveResponse();
-                                            statusesRequest.receiveResponse();
-                                            talkOptionsRequest.receiveResponse();
-                                            permissionsRequest.receiveResponse();
-                                            settingsRequest.receiveResponse();
+                                                receiveResponse();
 
                                             tester.connectEventsWebSocket(1);
                                             tester.connectSIPWebSocket(1);
@@ -922,7 +906,6 @@ tests.addTest(options => {
                                             tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                                             tester.allowMediaInput();
-
                                             tester.leftMenu.expectToBeVisible();
                                         });
                                         it('Отображен большой софтфон.', function() {
@@ -991,7 +974,7 @@ tests.addTest(options => {
                                             tester.statusesList.expectTextContentToHaveSubstring('Ганева Стефка');
                                         });
                                     });
-                                    xdescribe('Зафиксирую ширину окна. Нажимаю на кнопку максимизации.', function() {
+                                    describe('Зафиксирую ширину окна. Нажимаю на кнопку максимизации.', function() {
                                         beforeEach(function() {
                                             document.querySelector('.cm-app').style = 'width: 1015px;';
                                             tester.maximizednessButton.click();
@@ -1089,7 +1072,7 @@ tests.addTest(options => {
                                             tester.button('Показать все статусы').expectToBeVisible();
                                         });
                                     });
-                                    xdescribe('Открываю историю звонков.', function() {
+                                    describe('Открываю историю звонков.', function() {
                                         let callsRequest;
 
                                         beforeEach(function() {
@@ -1123,7 +1106,17 @@ tests.addTest(options => {
                                                 getPackage('electron-log').expectToContain([
                                                     'Ajax request',
                                                     'URL "sup/api/v1/users/me/calls"',
-                                                    'Time consumed 1000 ms'
+                                                    'Time consumed 1000 ms',
+                                                    'Method "get"',
+                                                    'Parameters ' + JSON.stringify({
+                                                        limit: 100,
+                                                        to: '2019-12-19T23:59:59.999+03:00',
+                                                        from: '2019-10-19T00:00:00.000+03:00',
+                                                        is_strict_date_till:  0,
+                                                        search:  ''
+                                                    }),
+
+                                                    'Response [{"cdr_type":"default",'
                                                 ].join("\n"));
 
                                                 tester.spin.expectNotToExist();
@@ -1136,14 +1129,24 @@ tests.addTest(options => {
                                             getPackage('electron-log').expectToContain([
                                                 'Ajax request',
                                                 'URL "sup/api/v1/users/me/calls"',
-                                                'Time consumed 1000 ms'
+                                                'Time consumed 1000 ms',
+                                                'Method "get"',
+                                                'Parameters ' + JSON.stringify({
+                                                    limit: 100,
+                                                    to: '2019-12-19T23:59:59.999+03:00',
+                                                    from: '2019-10-19T00:00:00.000+03:00',
+                                                    is_strict_date_till:  0,
+                                                    search:  ''
+                                                }),
+
+                                                'Error "500 Internal Server Error Server got itself in trouble"'
                                             ].join("\n"));
                                         });
                                         it('Отображен спиннер.', function() {
                                             tester.spin.expectToBeVisible();
                                         });
                                     });
-                                    xdescribe('Раскрываю список статусов.', function() {
+                                    describe('Раскрываю список статусов.', function() {
                                         beforeEach(function() {
                                             tester.userName.click();
                                         });
@@ -1200,6 +1203,12 @@ tests.addTest(options => {
                                                 receiveResponse();
 
                                             authCheckRequest.receiveResponse();
+                                            tester.talkOptionsRequest().receiveResponse();
+
+                                            tester.permissionsRequest().
+                                                allowNumberCapacitySelect().
+                                                allowNumberCapacityUpdate().
+                                                receiveResponse();
 
                                             tester.statusesRequest().
                                                 createExpectation().
@@ -1217,13 +1226,6 @@ tests.addTest(options => {
                                             notificationTester.grantPermission();
                                             tester.allowMediaInput();
 
-                                            tester.talkOptionsRequest().receiveResponse();
-
-                                            tester.permissionsRequest().
-                                                allowNumberCapacitySelect().
-                                                allowNumberCapacityUpdate().
-                                                receiveResponse();
-
                                             tester.authenticatedUserRequest().receiveResponse();
                                             tester.registrationRequest().desktopSoftphone().receiveResponse();
                                         });
@@ -1238,7 +1240,7 @@ tests.addTest(options => {
                                             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                                         });
                                     });
-                                    xdescribe('Открываю таблицу сотрудников. Токен истек.', function() {
+                                    describe('Открываю таблицу сотрудников. Токен истек.', function() {
                                         let refreshRequest;
 
                                         beforeEach(function() {
@@ -1308,6 +1310,12 @@ tests.addTest(options => {
                                                 receiveResponse();
 
                                             authCheckRequest.receiveResponse();
+                                            tester.talkOptionsRequest().receiveResponse();
+
+                                            tester.permissionsRequest().
+                                                allowNumberCapacitySelect().
+                                                allowNumberCapacityUpdate().
+                                                receiveResponse();
 
                                             tester.statusesRequest().receiveResponse();
                                             tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -1318,15 +1326,8 @@ tests.addTest(options => {
                                             notificationTester.grantPermission();
                                             tester.allowMediaInput();
 
-                                            tester.talkOptionsRequest().receiveResponse();
-
-                                            tester.permissionsRequest().
-                                                allowNumberCapacitySelect().
-                                                allowNumberCapacityUpdate().
-                                                receiveResponse();
-
-                                            tester.authenticatedUserRequest().receiveResponse();
                                             tester.numberCapacityRequest().receiveResponse();
+                                            tester.authenticatedUserRequest().receiveResponse();
                                             tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                                             tester.userName.click();
@@ -1351,7 +1352,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    xdescribe(
+                                    describe(
                                         'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий звонок.',
                                     function() {
                                         beforeEach(function() {
@@ -1471,7 +1472,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    xdescribe('Открываю список номеров.', function() {
+                                    describe('Открываю список номеров.', function() {
                                         beforeEach(function() {
                                             windowSize.setHeight(212);
 
@@ -1525,12 +1526,10 @@ tests.addTest(options => {
                                                 recentlySentMessage().
                                                 expectToBeSentToChannel('quit-and-install');
                                         });
-                                        return;
                                         it('Отображено сообщение о получении обновления.', function() {
                                             tester.body.expectTextContentToHaveSubstring('Получено обновление');
                                         });
                                     });
-                                    return;
                                     it(
                                         'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на кнопку ' +
                                         '"Выход". Вхожу в софтфон заново. Удалось войти. Софтфон готов к работе.',
@@ -1585,6 +1584,12 @@ tests.addTest(options => {
                                             receiveResponse();
 
                                         authCheckRequest.receiveResponse();
+                                        tester.talkOptionsRequest().receiveResponse();
+
+                                        tester.permissionsRequest().
+                                            allowNumberCapacitySelect().
+                                            allowNumberCapacityUpdate().
+                                            receiveResponse();
 
                                         tester.statusesRequest().
                                             createExpectation().
@@ -1601,13 +1606,6 @@ tests.addTest(options => {
 
                                         notificationTester.grantPermission();
                                         tester.allowMediaInput();
-
-                                        tester.talkOptionsRequest().receiveResponse();
-
-                                        tester.permissionsRequest().
-                                            allowNumberCapacitySelect().
-                                            allowNumberCapacityUpdate().
-                                            receiveResponse();
 
                                         tester.authenticatedUserRequest().receiveResponse();
                                         tester.registrationRequest().desktopSoftphone().receiveResponse();
@@ -1831,7 +1829,6 @@ tests.addTest(options => {
                                         }
                                     });
                                 });
-                                return;
                                 it('Доступ к микрофону отклонен.', function() {
                                     tester.disallowMediaInput();
 
@@ -1840,7 +1837,6 @@ tests.addTest(options => {
                                     );
                                 });
                             });
-                            return;
                             describe('Получен доступ к микрофону.', function() {
                                 beforeEach(function() {
                                     tester.allowMediaInput();
@@ -1934,7 +1930,6 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        return;
                         describe('Получен доступ к микрофону.', function() {
                             beforeEach(function() {
                                 tester.allowMediaInput();
@@ -2327,7 +2322,6 @@ tests.addTest(options => {
                             });
                         });
                     });
-return;
                     describe('Есть непрочитанные заявки. ', function() {
                         beforeEach(function() {
                             tester.allowMediaInput();
@@ -2481,10 +2475,17 @@ return;
                         });
                     });
                 });
-return;
                 it('Не удалось авторизоваться в софтфоне.', function() {
                     authCheckRequest.invalidToken().receiveResponse();
-                    tester.userLogoutRequest().receiveResponse();
+
+                    const requests = ajax.inAnyOrder(),
+                        userLogoutRequest = tester.userLogoutRequest().expectToBeSent(requests),
+                        authLogoutRequest = tester.authLogoutRequest().invalidToken().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    userLogoutRequest.receiveResponse();
+                    authLogoutRequest.receiveResponse();
 
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
@@ -2494,12 +2495,9 @@ return;
                             height: 350
                         });
                     
-                    tester.authLogoutRequest().invalidToken().receiveResponse();
-
                     tester.button('Войти').expectToBeVisible();
                 });
             });
-return;
             describe('Раздел контактов недоступен.', function() {
                 beforeEach(function() {
                     accountRequest.addressBookReadingUnavailable().operatorWorkplaceAvailable().receiveResponse();
@@ -2521,6 +2519,12 @@ return;
                     requests.expectToBeSent();
                     thirdAccountRequest.receiveResponse();
                     authCheckRequest.receiveResponse();
+                    tester.talkOptionsRequest().receiveResponse();
+
+                    tester.permissionsRequest().
+                        allowNumberCapacitySelect().
+                        allowNumberCapacityUpdate().
+                        receiveResponse();
 
                     tester.statusesRequest().receiveResponse();
                     tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -2531,15 +2535,8 @@ return;
                     notificationTester.grantPermission();
                     tester.allowMediaInput();
 
-                    tester.talkOptionsRequest().receiveResponse();
-
-                    tester.permissionsRequest().
-                        allowNumberCapacitySelect().
-                        allowNumberCapacityUpdate().
-                        receiveResponse();
-
-                    tester.authenticatedUserRequest().receiveResponse();
                     tester.numberCapacityRequest().receiveResponse();
+                    tester.authenticatedUserRequest().receiveResponse();
                     tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                     secondAccountRequest.receiveResponse();
@@ -2591,6 +2588,12 @@ return;
                 requests.expectToBeSent();
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
 
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -2601,15 +2604,8 @@ return;
                 notificationTester.grantPermission();
                 tester.allowMediaInput();
 
-                tester.talkOptionsRequest().receiveResponse();
-
-                tester.permissionsRequest().
-                    allowNumberCapacitySelect().
-                    allowNumberCapacityUpdate().
-                    receiveResponse();
-
-                tester.authenticatedUserRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 secondAccountRequest.receiveResponse();
@@ -2657,6 +2653,12 @@ return;
                 requests.expectToBeSent();
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
 
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -2667,15 +2669,8 @@ return;
                 notificationTester.grantPermission();
                 tester.allowMediaInput();
 
-                tester.talkOptionsRequest().receiveResponse();
-
-                tester.permissionsRequest().
-                    allowNumberCapacitySelect().
-                    allowNumberCapacityUpdate().
-                    receiveResponse();
-
-                tester.authenticatedUserRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 secondAccountRequest.receiveResponse();
@@ -2729,6 +2724,12 @@ return;
                 requests.expectToBeSent();
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
 
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -2739,15 +2740,8 @@ return;
                 notificationTester.grantPermission();
                 tester.allowMediaInput();
 
-                tester.talkOptionsRequest().receiveResponse();
-
-                tester.permissionsRequest().
-                    allowNumberCapacitySelect().
-                    allowNumberCapacityUpdate().
-                    receiveResponse();
-
-                tester.authenticatedUserRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 secondAccountRequest.receiveResponse();
@@ -2793,7 +2787,6 @@ return;
                 tester.button('Войти').expectToBeVisible();
             });
         });
-return;
         describe(
             'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
         function() {
@@ -2845,6 +2838,12 @@ return;
                 requests.expectToBeSent();
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
 
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -2855,15 +2854,8 @@ return;
                 notificationTester.grantPermission();
                 tester.allowMediaInput();
 
-                tester.talkOptionsRequest().receiveResponse();
-
-                tester.permissionsRequest().
-                    allowNumberCapacitySelect().
-                    allowNumberCapacityUpdate().
-                    receiveResponse();
-
-                tester.authenticatedUserRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 secondAccountRequest.receiveResponse();
@@ -3237,6 +3229,12 @@ return;
                 requests.expectToBeSent();
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
 
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -3247,15 +3245,8 @@ return;
                 notificationTester.grantPermission();
                 tester.allowMediaInput();
 
-                tester.talkOptionsRequest().receiveResponse();
-
-                tester.permissionsRequest().
-                    allowNumberCapacitySelect().
-                    allowNumberCapacityUpdate().
-                    receiveResponse();
-
-                tester.authenticatedUserRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 secondAccountRequest.receiveResponse();
@@ -3363,6 +3354,12 @@ return;
                 requests.expectToBeSent();
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
 
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -3373,15 +3370,8 @@ return;
                 notificationTester.grantPermission();
                 tester.allowMediaInput();
 
-                tester.talkOptionsRequest().receiveResponse();
-
-                tester.permissionsRequest().
-                    allowNumberCapacitySelect().
-                    allowNumberCapacityUpdate().
-                    receiveResponse();
-
-                tester.authenticatedUserRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 secondAccountRequest.receiveResponse();
@@ -3593,6 +3583,12 @@ return;
                 requests.expectToBeSent();
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
 
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -3603,15 +3599,8 @@ return;
                 notificationTester.grantPermission();
                 tester.allowMediaInput();
 
-                tester.talkOptionsRequest().receiveResponse();
-
-                tester.permissionsRequest().
-                    allowNumberCapacitySelect().
-                    allowNumberCapacityUpdate().
-                    receiveResponse();
-
-                tester.authenticatedUserRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 secondAccountRequest.receiveResponse();
@@ -3772,6 +3761,8 @@ return;
             tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
             authCheckRequest.receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
 
@@ -3782,9 +3773,6 @@ return;
 
             notificationTester.grantPermission();
             tester.allowMediaInput();
-
-            tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
             tester.authenticatedUserRequest().receiveResponse();
 
             tester.dialpadButton(1).expectToBeVisible();
@@ -3832,6 +3820,12 @@ return;
             requests.expectToBeSent();
             thirdAccountRequest.receiveResponse();
             authCheckRequest.receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+
+            tester.permissionsRequest().
+                allowNumberCapacitySelect().
+                allowNumberCapacityUpdate().
+                receiveResponse();
 
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -3842,15 +3836,8 @@ return;
             notificationTester.grantPermission();
             tester.allowMediaInput();
 
-            tester.talkOptionsRequest().receiveResponse();
-
-            tester.permissionsRequest().
-                allowNumberCapacitySelect().
-                allowNumberCapacityUpdate().
-                receiveResponse();
-
-            tester.authenticatedUserRequest().receiveResponse();
             tester.numberCapacityRequest().receiveResponse();
+            tester.authenticatedUserRequest().receiveResponse();
             tester.registrationRequest().desktopSoftphone().receiveResponse();
 
             secondAccountRequest.receiveResponse();
@@ -3920,6 +3907,12 @@ return;
             requests.expectToBeSent();
             thirdAccountRequest.receiveResponse();
             authCheckRequest.receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+
+            tester.permissionsRequest().
+                allowNumberCapacitySelect().
+                allowNumberCapacityUpdate().
+                receiveResponse();
 
             tester.statusesRequest().receiveResponse();
             tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
@@ -3930,15 +3923,8 @@ return;
             notificationTester.grantPermission();
             tester.allowMediaInput();
 
-            tester.talkOptionsRequest().receiveResponse();
-
-            tester.permissionsRequest().
-                allowNumberCapacitySelect().
-                allowNumberCapacityUpdate().
-                receiveResponse();
-
-            tester.authenticatedUserRequest().receiveResponse();
             tester.numberCapacityRequest().receiveResponse();
+            tester.authenticatedUserRequest().receiveResponse();
             tester.registrationRequest().desktopSoftphone().receiveResponse();
 
             secondAccountRequest.receiveResponse();
