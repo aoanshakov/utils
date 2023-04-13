@@ -1105,7 +1105,8 @@ tests.addTest(options => {
                                             it('Спиннер скрыт.', function() {
                                                 getPackage('electron-log').expectToContain([
                                                     'Ajax request',
-                                                    'URL "sup/api/v1/users/me/calls"',
+                                                    'URL "https://$REACT_APP_SOFTPHONE_BACKEND_HOST' +
+                                                        '/sup/api/v1/users/me/calls"',
                                                     'Time consumed 1000 ms',
                                                     'Method "get"',
                                                     'Parameters ' + JSON.stringify({
@@ -1115,8 +1116,7 @@ tests.addTest(options => {
                                                         is_strict_date_till:  0,
                                                         search:  ''
                                                     }),
-
-                                                    'Response [{"cdr_type":"default",'
+                                                    'Response {"data":[{"cdr_type":"default",'//...}]}
                                                 ].join("\n"));
 
                                                 tester.spin.expectNotToExist();
@@ -1128,7 +1128,8 @@ tests.addTest(options => {
 
                                             getPackage('electron-log').expectToContain([
                                                 'Ajax request',
-                                                'URL "sup/api/v1/users/me/calls"',
+                                                'URL "https://$REACT_APP_SOFTPHONE_BACKEND_HOST' +
+                                                    '/sup/api/v1/users/me/calls"',
                                                 'Time consumed 1000 ms',
                                                 'Method "get"',
                                                 'Parameters ' + JSON.stringify({

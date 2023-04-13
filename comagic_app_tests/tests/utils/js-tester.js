@@ -397,10 +397,6 @@ function JsTester_NavigatorMock (args) {
                 kind: 'audiooutput',
                 label: 'Встроенный динамик',
                 deviceId: '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943ab'
-            }, {
-                kind: 'audiooutput',
-                label: 'Колонка JBL',
-                deviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab'
             }].concat(additionalDevices));
         }
     };
@@ -2245,7 +2241,7 @@ function JsTester_NoNotificationMessage () {
 
 function JsTester_NotificationMessage (args) {
     var actualTitle = args.title,
-        actualOptions = args.options,
+        actualOptions = args.options || {},
         actualTag = actualOptions.tag,
         actualBody = actualOptions.body,
         handleClick = args.notificationClickHandler,

@@ -71,11 +71,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+            settingsRequest = tester.settingsRequest().expectToBeSent();
 
             notificationTester.grantPermission();
 
@@ -489,6 +488,11 @@ tests.addTest(options => {
                                         expectToBeSent();
 
                                     incomingCall.expectBusyHereToBeSent();
+
+                                    tester.callSessionFinish().
+                                        thirdId().
+                                        slavesNotification().
+                                        expectToBeSent();
 
                                     tester.softphone.expectToHaveTextContent(
                                         'Шалева Дора ' +

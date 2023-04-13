@@ -1639,7 +1639,10 @@ tests.addTest(options => {
                                             });
                                             it('Нажимаю на кнопку с жуком. Скачивается лог.', function() {
                                                 tester.bugButton.click();
-                                                windowOpener.expectTextToContain('URL "sup/auth/check"');
+
+                                                windowOpener.expectTextToContain(
+                                                    'URL "https://$REACT_APP_SOFTPHONE_BACKEND_HOST/sup/auth/check"'
+                                                );
                                             });
                                             it('Отображен софтфон.', function() {
                                                 if (localStorage.getItem('isSoftphoneHigh') != 'false') {

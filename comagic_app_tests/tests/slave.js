@@ -66,6 +66,13 @@ tests.addTest(options => {
                 tester.masterNotification().tabOpened().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
+
                 tester.statusesRequest().receiveResponse();
 
                 tester.settingsRequest().
@@ -75,10 +82,6 @@ tests.addTest(options => {
 
                 tester.othersNotification().widgetStateUpdate().fixedNumberCapacityRule().expectToBeSent();
                 tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
-                
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().
-                    receiveResponse();
 
                 notificationTester.grantPermission();
 
@@ -192,7 +195,7 @@ tests.addTest(options => {
                         notificationTester.grantPermission().
                             recentNotification().
                             expectToHaveTitle('Входящий звонок').
-                            expectToHaveBody('Шалева Дора +7 (916) 123-45-67').
+                            expectToHaveBody('Шалева Дора, +7 (916) 123-45-67, somesite.com').
                             expectToBeOpened();
                     });
                     it(
@@ -389,6 +392,8 @@ tests.addTest(options => {
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
 
@@ -405,9 +410,6 @@ tests.addTest(options => {
                     twoChannels().
                     enabled().
                     expectToBeSent();
-
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
 
                 tester.connectEventsWebSocket();
 
@@ -496,6 +498,8 @@ tests.addTest(options => {
                 tester.reportsListRequest().receiveResponse();
                 tester.reportTypesRequest().receiveResponse();
 
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
 
@@ -512,9 +516,6 @@ tests.addTest(options => {
                     twoChannels().
                     enabled().
                     expectToBeSent();
-
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
 
                 tester.connectEventsWebSocket();
 
@@ -649,6 +650,13 @@ tests.addTest(options => {
                 tester.masterNotification().tabOpenedInBackground().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
+
                 tester.statusesRequest().receiveResponse();
 
                 tester.settingsRequest().
@@ -658,10 +666,6 @@ tests.addTest(options => {
 
                 tester.othersNotification().widgetStateUpdate().fixedNumberCapacityRule().expectToBeSent();
                 tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
-                
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().allowNumberCapacitySelect().allowNumberCapacityUpdate().
-                    receiveResponse();
 
                 notificationTester.grantPermission();
 

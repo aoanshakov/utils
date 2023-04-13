@@ -76,10 +76,10 @@ tests.addTest(options => {
                 tester.notificationChannel().applyLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
-                statusesRequest = tester.statusesRequest().expectToBeSent();
-                settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+                settingsRequest = tester.settingsRequest().expectToBeSent();
 
                 notificationTester.grantPermission();
             });
@@ -995,8 +995,21 @@ tests.addTest(options => {
                                         tester.chatHistory.message.atTime('12:13').expectSourceToBeOperator();
 
                                         tester.chatHistory.message.atTime('12:14').expectSourceToBeVisitor();
-                                        tester.chatHistory.message.atTime('12:14').directionIcon.
-                                            expectToHaveClass('incoming_svg__cmg-direction-icon');
+
+                                        tester.chatHistory.
+                                            message.
+                                            atTime('12:14').
+                                            directionIcon.
+                                            expectToHaveClass('cmg-incoming-direction-icon');
+
+                                        tester.chatHistory.
+                                            message.
+                                            atTime('12:14').
+                                            directionIcon.
+                                            expectToHaveNoneOfClasses([
+                                                'cmg-direction-icon-failed',
+                                                'cmg-direction-icon-transfer'
+                                            ]);
 
                                         tester.chatHistory.message.atTime('12:15').notSystem.expectSourceToBeOperator();
 
@@ -1196,8 +1209,20 @@ tests.addTest(options => {
                                             );
                                         });
                                         it('Отображено сообщение о входящем звонке.', function() {
-                                            tester.chatHistory.message.atTime('12:14').directionIcon.
-                                                expectToHaveClass('incoming_failed_svg__cmg-direction-icon');
+                                            tester.chatHistory.
+                                                message.
+                                                atTime('12:14').
+                                                directionIcon.
+                                                expectToHaveAllOfClasses([
+                                                    'cmg-incoming-direction-icon',
+                                                    'cmg-direction-icon-failed',
+                                                ]);
+
+                                            tester.chatHistory.
+                                                message.
+                                                atTime('12:14').
+                                                directionIcon.
+                                                expectNotToHaveClass('cmg-direction-icon-transfer');
 
                                             tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
                                                 '12:14 ' +
@@ -1210,7 +1235,11 @@ tests.addTest(options => {
                                     it('Длительность разговора не получена.', function() {
                                         contactCommunicationsRequest.noTalkDuration().receiveResponse();
 
-                                        tester.chatHistory.message.atTime('12:14').inner.putMouseOver();
+                                        tester.chatHistory.
+                                            message.
+                                            atTime('12:14').
+                                            inner.
+                                            putMouseOver();
 
                                         tester.tooltip.expectToHaveTextContent(
                                             'Время ожидания ответа: 53:39 ' +
@@ -2849,6 +2878,12 @@ tests.addTest(options => {
                 usersRequest.receiveResponse();
 
                 tester.contactBar.section('Телефоны').anchor('79162729533').click();
+
+                tester.slavesNotification().
+                    additional().
+                    visible().
+                    expectToBeSent();
+
                 tester.softphone.expectTextContentToHaveSubstring('Используется на другом устройстве');
             });
         });
@@ -2897,12 +2932,10 @@ tests.addTest(options => {
                     tester.notificationChannel().applyLeader().expectToBeSent();
 
                     authCheckRequest.receiveResponse();
-                    statusesRequest = tester.statusesRequest().expectToBeSent();
-
-                    settingsRequest = tester.settingsRequest().expectToBeSent();
                     tester.talkOptionsRequest().receiveResponse();
-
-                    settingsRequest.receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
+                    statusesRequest = tester.statusesRequest().expectToBeSent();
+                    tester.settingsRequest().receiveResponse();
 
                     tester.othersNotification().
                         widgetStateUpdate().
@@ -2917,8 +2950,6 @@ tests.addTest(options => {
                         twoChannels().
                         enabled().
                         expectToBeSent();
-
-                    tester.permissionsRequest().receiveResponse();
 
                     tester.connectEventsWebSocket();
 
@@ -3305,12 +3336,10 @@ tests.addTest(options => {
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
-                statusesRequest = tester.statusesRequest().expectToBeSent();
-
-                settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
-
-                settingsRequest.receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+                tester.settingsRequest().receiveResponse();
 
                 tester.othersNotification().
                     widgetStateUpdate().
@@ -3326,7 +3355,6 @@ tests.addTest(options => {
                     enabled().
                     expectToBeSent();
 
-                tester.permissionsRequest().receiveResponse();
                 tester.connectEventsWebSocket();
 
                 tester.slavesNotification().
@@ -3441,12 +3469,10 @@ tests.addTest(options => {
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
-                statusesRequest = tester.statusesRequest().expectToBeSent();
-
-                settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
-
-                settingsRequest.receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+                tester.settingsRequest().receiveResponse();
 
                 tester.othersNotification().
                     widgetStateUpdate().
@@ -3462,7 +3488,6 @@ tests.addTest(options => {
                     enabled().
                     expectToBeSent();
 
-                tester.permissionsRequest().receiveResponse();
                 tester.connectEventsWebSocket();
 
                 tester.slavesNotification().
@@ -3591,12 +3616,10 @@ tests.addTest(options => {
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
-                statusesRequest = tester.statusesRequest().expectToBeSent();
-
-                settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
-
-                settingsRequest.receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+                tester.settingsRequest().receiveResponse();
 
                 tester.othersNotification().
                     widgetStateUpdate().
@@ -3611,8 +3634,6 @@ tests.addTest(options => {
                     twoChannels().
                     enabled().
                     expectToBeSent();
-
-                tester.permissionsRequest().receiveResponse();
 
                 tester.connectEventsWebSocket();
 
@@ -3740,12 +3761,10 @@ tests.addTest(options => {
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
-                statusesRequest = tester.statusesRequest().expectToBeSent();
-
-                settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
-
-                settingsRequest.receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+                tester.settingsRequest().receiveResponse();
 
                 tester.othersNotification().
                     widgetStateUpdate().
@@ -3761,7 +3780,6 @@ tests.addTest(options => {
                     enabled().
                     expectToBeSent();
 
-                tester.permissionsRequest().receiveResponse();
                 tester.connectEventsWebSocket();
 
                 tester.slavesNotification().
@@ -3908,12 +3926,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-
-            settingsRequest.receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+            tester.settingsRequest().receiveResponse();
 
             tester.othersNotification().
                 widgetStateUpdate().
@@ -3929,7 +3945,6 @@ tests.addTest(options => {
                 enabled().
                 expectToBeSent();
 
-            tester.permissionsRequest().receiveResponse();
             tester.connectEventsWebSocket();
 
             tester.slavesNotification().
@@ -4016,12 +4031,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-
-            settingsRequest.receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+            tester.settingsRequest().receiveResponse();
 
             tester.othersNotification().
                 widgetStateUpdate().
@@ -4037,7 +4050,6 @@ tests.addTest(options => {
                 enabled().
                 expectToBeSent();
 
-            tester.permissionsRequest().receiveResponse();
             tester.connectEventsWebSocket();
 
             tester.slavesNotification().
@@ -4121,12 +4133,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-
-            settingsRequest.receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+            tester.settingsRequest().receiveResponse();
 
             tester.othersNotification().
                 widgetStateUpdate().
@@ -4142,7 +4152,6 @@ tests.addTest(options => {
                 enabled().
                 expectToBeSent();
 
-            tester.permissionsRequest().receiveResponse();
             tester.connectEventsWebSocket();
 
             tester.slavesNotification().
@@ -4246,12 +4255,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-
-            settingsRequest.receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+            tester.settingsRequest().receiveResponse();
 
             tester.othersNotification().
                 widgetStateUpdate().
@@ -4267,7 +4274,6 @@ tests.addTest(options => {
                 enabled().
                 expectToBeSent();
 
-            tester.permissionsRequest().receiveResponse();
             tester.connectEventsWebSocket();
 
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -4367,12 +4373,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-
-            settingsRequest.receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+            tester.settingsRequest().receiveResponse();
 
             tester.othersNotification().
                 widgetStateUpdate().
@@ -4388,7 +4392,6 @@ tests.addTest(options => {
                 enabled().
                 expectToBeSent();
 
-            tester.permissionsRequest().receiveResponse();
             tester.connectEventsWebSocket();
 
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
@@ -4483,12 +4486,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-
-            settingsRequest.receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+            tester.settingsRequest().receiveResponse();
 
             tester.othersNotification().
                 widgetStateUpdate().
@@ -4504,7 +4505,6 @@ tests.addTest(options => {
                 enabled().
                 expectToBeSent();
 
-            tester.permissionsRequest().receiveResponse();
             tester.connectEventsWebSocket();
 
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();

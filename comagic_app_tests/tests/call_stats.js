@@ -76,12 +76,10 @@ tests.addTest(options => {
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
-                statusesRequest = tester.statusesRequest().expectToBeSent();
-
-                settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
-
-                settingsRequest.receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+                tester.settingsRequest().receiveResponse();
 
                 tester.othersNotification().
                     widgetStateUpdate().
@@ -97,7 +95,6 @@ tests.addTest(options => {
                     enabled().
                     expectToBeSent();
 
-                tester.permissionsRequest().receiveResponse();
                 tester.connectEventsWebSocket();
 
                 tester.slavesNotification().
@@ -214,13 +211,17 @@ tests.addTest(options => {
                     secondAccountRequest.receiveResponse();
                     authCheckRequest.receiveResponse();
 
-                    tester.reportGroupsRequest().anotherAuthorizationToken().
-                        receiveResponse();
+                    tester.reportGroupsRequest().anotherAuthorizationToken().receiveResponse();
                     tester.reportsListRequest().receiveResponse();
                     tester.reportTypesRequest().receiveResponse();
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
 
-                    tester.statusesRequest().createExpectation().
-                        anotherAuthorizationToken().checkCompliance().receiveResponse();
+                    tester.statusesRequest().
+                        createExpectation().
+                        anotherAuthorizationToken().
+                        checkCompliance().
+                        receiveResponse();
 
                     tester.settingsRequest().
                         anotherAuthorizationToken().
@@ -239,9 +240,6 @@ tests.addTest(options => {
                         twoChannels().
                         enabled().
                         expectToBeSent();
-
-                    tester.talkOptionsRequest().receiveResponse();
-                    tester.permissionsRequest().receiveResponse();
 
                     tester.connectEventsWebSocket(1);
 
@@ -446,12 +444,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-
-            settingsRequest.receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+            tester.settingsRequest().receiveResponse();
 
             tester.othersNotification().
                 widgetStateUpdate().
@@ -466,8 +462,6 @@ tests.addTest(options => {
                 twoChannels().
                 enabled().
                 expectToBeSent();
-
-            tester.permissionsRequest().receiveResponse();
 
             tester.connectEventsWebSocket();
 
@@ -549,12 +543,10 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-
-            settingsRequest = tester.settingsRequest().expectToBeSent();
             tester.talkOptionsRequest().receiveResponse();
-
-            settingsRequest.receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            statusesRequest = tester.statusesRequest().expectToBeSent();
+            tester.settingsRequest().receiveResponse();
 
             tester.othersNotification().
                 widgetStateUpdate().
@@ -569,8 +561,6 @@ tests.addTest(options => {
                 twoChannels().
                 enabled().
                 expectToBeSent();
-
-            tester.permissionsRequest().receiveResponse();
 
             tester.connectEventsWebSocket();
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();

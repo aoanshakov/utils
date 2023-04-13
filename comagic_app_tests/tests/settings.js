@@ -76,13 +76,10 @@ tests.addTest(options => {
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
-                tester.statusesRequest().receiveResponse();
-
-                settingsRequest = tester.settingsRequest().expectToBeSent();
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
-
-                settingsRequest.receiveResponse();
+                tester.statusesRequest().receiveResponse();
+                tester.settingsRequest().receiveResponse();
 
                 tester.othersNotification().widgetStateUpdate().expectToBeSent();
                 tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
@@ -500,8 +497,14 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
-            tester.statusesRequest().receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
 
+            tester.permissionsRequest().
+                allowNumberCapacitySelect().
+                allowNumberCapacityUpdate().
+                receiveResponse();
+
+            tester.statusesRequest().receiveResponse();
             tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
             tester.notificationChannel().applyLeader().expectToBeSent();
@@ -515,13 +518,6 @@ tests.addTest(options => {
                 updateSettings().
                 shouldNotPlayCallEndingSignal().
                 expectToBeSent();
-            
-            tester.talkOptionsRequest().receiveResponse();
-
-            tester.permissionsRequest().
-                allowNumberCapacitySelect().
-                allowNumberCapacityUpdate().
-                receiveResponse();
 
             notificationTester.grantPermission();
 
@@ -644,6 +640,8 @@ tests.addTest(options => {
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
             tester.statusesRequest().receiveResponse();
             
             tester.settingsRequest().secondRingtone().isNeedDisconnectSignal().receiveResponse();
@@ -655,8 +653,6 @@ tests.addTest(options => {
             tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
             notificationTester.grantPermission();
-            tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
 
             tester.ringtoneRequest().receiveResponse();
             fileReader.accomplishFileLoading(tester.secondRingtone);
@@ -896,8 +892,9 @@ tests.addTest(options => {
         tester.notificationChannel().applyLeader().expectToBeSent();
 
         authCheckRequest.receiveResponse();
+        tester.talkOptionsRequest().receiveResponse();
+        tester.permissionsRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();
-        
         tester.settingsRequest().receiveResponse();
 
         tester.othersNotification().
@@ -915,9 +912,6 @@ tests.addTest(options => {
             expectToBeSent();
 
         notificationTester.grantPermission();
-        tester.talkOptionsRequest().receiveResponse();
-        tester.permissionsRequest().receiveResponse();
-
         tester.connectEventsWebSocket();
 
         tester.slavesNotification().

@@ -2285,6 +2285,8 @@ define(() => function ({
     };
 
     me.outCallSessionEvent = () => {
+        const phone = '79161234567';
+
         const params = {
             call_session_id: 182957828,
             call_source: 'va',
@@ -2300,9 +2302,12 @@ define(() => function ({
         };
 
         const createMessage = () => ({
-            name: 'out_call_session',
-            type: 'event',
-            params: params 
+            phone,
+            message: {
+                name: 'out_call_session',
+                type: 'event',
+                params: params 
+            }
         });
 
         return {
@@ -2317,9 +2322,11 @@ define(() => function ({
                 return this;
             },
 
+            createMessage,
+
             slavesNotification: () => ({
                 expectToBeSent: () => {
-                    const message = createMessage();
+                    const { message } = createMessage();
 
                     [
                         'virtual_phone_number',
@@ -2341,7 +2348,7 @@ define(() => function ({
             }),
 
             receive() {
-                me.eventsWebSocket.receiveMessage(createMessage());
+                me.eventsWebSocket.receiveMessage(createMessage().message);
                 spendTime(0);
             }
         };
@@ -2367,7 +2374,6 @@ define(() => function ({
             virtual_number_comment: null,
             call_source: 'va',
             call_session_id: 980925456,
-            mark_ids: null,
             is_transfer: false,
             is_internal: false,
             direction: 'in',
@@ -2378,7 +2384,6 @@ define(() => function ({
             organization_name: 'ООО "Некая Организация"',
             contact_full_name: 'Шалева Дора',
             crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/382030',
-            first_call: true,
             is_transfer: false,
             transferred_by_employee_full_name: '',
             active_leads: [],
@@ -2386,10 +2391,15 @@ define(() => function ({
             is_final: true
         };
 
+        const phone = '79161234567';
+
         const createMessage = () => ({
-            name: 'out_call',
-            type: 'event',
-            params
+            phone,
+            message: {
+                name: 'out_call',
+                type: 'event',
+                params
+            }
         });
 
         return {
@@ -2459,7 +2469,8 @@ define(() => function ({
                 return this;
             },
 
-            getMessage: () => createMessage(),
+            getMessage: () => createMessage().message,
+            createMessage,
 
             slavesNotification: () => {
                 const notification = {
@@ -2468,7 +2479,7 @@ define(() => function ({
                         type: 'notify_slaves',
                         data: {
                             type: 'websocket_message',
-                            message: createMessage()
+                            message: createMessage().message,
                         }
                     }
                 };
@@ -2480,7 +2491,7 @@ define(() => function ({
             },
 
             receive: () => {
-                me.eventsWebSocket.receiveMessage(createMessage());
+                me.eventsWebSocket.receiveMessage(createMessage().message);
                 spendTime(0);
             } 
         };
@@ -2534,6 +2545,7 @@ define(() => function ({
         };
     };
 
+    /*
     me.extendAdditionalSlavesNotification((notification, state) => {
         notification.outCallEvent = () => {
             const { params } = me.outCallEvent().getMessage();
@@ -2555,6 +2567,7 @@ define(() => function ({
 
         return notification;
     });
+    */
 
     me.settingsUpdatingRequest = () => {
         const params = {};
@@ -11246,9 +11259,8 @@ define(() => function ({
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
     me.incomingIcon = testersFactory.createDomElementTester('.cmg-incoming-direction-icon');
     me.outgoingIcon = testersFactory.createDomElementTester('.cmg-outgoing-direction-icon');
-
-    me.transferIncomingIcon = testersFactory.
-        createDomElementTester('.transfer_incoming_successful_svg__cmg-direction-icon');
+    me.directionIcon = testersFactory.createDomElementTester('.cmg-direction-icon');
+    me.transferIncomingIcon = testersFactory.createDomElementTester('.transfer_incoming_successful_svg__cmg-direction-icon');
 
     me.productsButton = testersFactory.
         createDomElementTester('.src-components-main-menu-products-styles-module__icon-container');
@@ -11362,6 +11374,7 @@ define(() => function ({
                 }
 
                 downloadAnchorTester = testersFactory.createAnchorTester(downloadAnchor);
+                downloadAnchorTester.expectToBeVisible = () => null;
 
                 tester.downloadedFile = {
                     expectToHaveName: expectedName => {

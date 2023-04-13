@@ -6316,7 +6316,7 @@ define(function () {
                             };
                         }
 
-                        return extendAdditionalSlavesNotification({
+                        var methods = {
                             visible: function ()  {
                                 state.hidden = false;
                                 return this;
@@ -6392,7 +6392,52 @@ define(function () {
                                 spendTime(0);
                                 spendTime(0);
                             }
-                        }, state, processing);
+                        };
+
+                        const addCallEvent = (key) => {
+                            methods[key] = function () {
+                                const builder = softphoneTester[key]();
+
+                                const me = {
+                                    include: () => {
+                                        const {
+                                            phone,
+                                            message: { params }
+                                        } = builder.createMessage();
+
+                                        [
+                                            'virtual_phone_number',
+                                            'contact_phone_number',
+                                            'calling_phone_number'
+                                        ].forEach(param => params[param][0] == '+' && (params[param] = params[param].slice(1)));
+
+                                        state.callsData = {
+                                            [phone]: params,
+                                        };
+
+                                        return methods;
+                                    },
+                                };
+
+                                Object.entries(builder).forEach(([key, method]) => {
+                                    if (['createMessage', 'slavesNotification', 'receive'].includes(key)) {
+                                        return;
+                                    }
+
+                                    me[key] = function () {
+                                        method.apply(builder, arguments);
+                                        return me;
+                                    };
+                                });
+
+                                return me;
+                            };
+                        };
+
+                        addCallEvent('outCallEvent');
+                        addCallEvent('outCallSessionEvent');
+
+                        return extendAdditionalSlavesNotification(methods, state, processing);
                     },
                     userDataFetched: function () {
                         state.isSipOnline = true;
