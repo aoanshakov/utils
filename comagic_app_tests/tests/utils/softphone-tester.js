@@ -1357,6 +1357,11 @@ define(function () {
             getWebSocketURL = () => `wss://${softphoneHost}/sup/ws/935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf`;
         };
 
+        this.thirdEventWebSocketPath = () => {
+            getWebSocketURL = () =>
+                'wss://softphone-events-server.com/sup/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+        };
+
         this.getEventsWebSocket = function (index) {
             this.eventsWebSocket = eventsWebSocket =
                 webSockets.getSocket(softphoneHost ? getWebSocketURL() : webSocketRegExp, index || 0);
@@ -5418,6 +5423,13 @@ define(function () {
             notification.isNeedHideNumbers = function () {
                 settings.is_need_hide_numbers = true;
                 return this;
+            };
+
+            notification.anotherWsUrl = function () {
+                settings.ws_url =
+                    'wss://softphone-events-server.com/sup/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+
+                return notification;
             };
 
             notification.widgetStateUpdate = function () {

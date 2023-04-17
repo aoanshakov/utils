@@ -28,7 +28,8 @@ tests.addTest(options => {
             reportGroupsRequest,
             settingsRequest,
             accountRequest,
-            permissionsRequest;
+            permissionsRequest,
+            authCheckRequest;
 
         beforeEach(function() {
             setNow('2019-12-19T12:10:06');
@@ -46,8 +47,8 @@ tests.addTest(options => {
 
         describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
-                tester.notificationChannel().applyLeader().expectToBeSent();
                 accountRequest.receiveResponse();
+                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
 
@@ -55,14 +56,13 @@ tests.addTest(options => {
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                     secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
-
-                tester.configRequest().softphone().receiveResponse();
             });
 
             describe('Вкладка является ведущей.', function() {
@@ -75,7 +75,7 @@ tests.addTest(options => {
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
                     tester.notificationChannel().applyLeader().expectToBeSent();
 
-                    tester.authCheckRequest().receiveResponse();
+                    authCheckRequest.receiveResponse();
                     tester.statusesRequest().receiveResponse();
 
                     settingsRequest = tester.settingsRequest().expectToBeSent();
@@ -88,7 +88,7 @@ tests.addTest(options => {
                         permissionsRequest.receiveResponse();
                     });
 
-                    xdescribe('Получены настройки софтфона.', function() {
+                    describe('Получены настройки софтфона.', function() {
                         let authenticatedUserRequest,
                             registrationRequest;
 
@@ -3023,7 +3023,7 @@ tests.addTest(options => {
                             });
                         });
                     });
-                    xdescribe('Номера должны быть скрыты.', function() {
+                    describe('Номера должны быть скрыты.', function() {
                         beforeEach(function() {
                             reportGroupsRequest.receiveResponse();
 
@@ -3081,7 +3081,7 @@ tests.addTest(options => {
                             tester.softphone.expectTextContentToHaveSubstring('Неизвестный номер Поиск контакта...');
                         });
                     });
-                    xit(
+                    it(
                         'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                         'авторизации. Отправлен только один запрос обновления токена.',
                     function() {
@@ -3095,7 +3095,7 @@ tests.addTest(options => {
                         tester.refreshRequest().anotherAuthorizationToken().receiveResponse();
                         tester.settingsRequest().thirdAuthorizationToken().expectToBeSent();
                     });
-                    xit(
+                    it(
                         'Сначала запрос от софтфона, а потом и запрос от лк завершился ошибкой истечения токена ' +
                         'авторизации. Отправлен только один запрос обновления токена.',
                     function() {
@@ -3108,7 +3108,7 @@ tests.addTest(options => {
                         tester.refreshRequest().anotherAuthorizationToken().receiveResponse();
                         tester.reportGroupsRequest().thirdAuthorizationToken().expectToBeSent();
                     });
-                    xit(
+                    it(
                         'Срок действия токена авторизации истек. Токен авторизации обновлен. Софтфон подключен.',
                     function() {
                         settingsRequest.accessTokenExpired().receiveResponse();
@@ -3142,7 +3142,7 @@ tests.addTest(options => {
                         tester.registrationRequest().receiveResponse();
                         tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
                     });
-                    xit('Токен невалиден. Отображена форма аутентификации.', function() {
+                    it('Токен невалиден. Отображена форма аутентификации.', function() {
                         settingsRequest.accessTokenInvalid().receiveResponse();
                         notificationTester.grantPermission();
 
@@ -3155,13 +3155,14 @@ tests.addTest(options => {
                         tester.input.withFieldLabel('Логин').expectToBeVisible();
                     });
                     it('Получен абсолютный URL сервера. Открыт веб-сокет.', function() {
-                        settingsRequest.receiveResponse();
+                        settingsRequest.anotherWsUrl().receiveResponse();
 
                         tester.slavesNotification().
                             twoChannels().
                             enabled().
                             expectToBeSent();
 
+                        tester.thirdEventWebSocketPath();
                         tester.connectEventsWebSocket();
 
                         tester.slavesNotification().
@@ -3180,6 +3181,7 @@ tests.addTest(options => {
 
                         tester.othersNotification().
                             widgetStateUpdate().
+                            anotherWsUrl().
                             expectToBeSent();
 
                         tester.othersNotification().
@@ -3220,7 +3222,6 @@ tests.addTest(options => {
                             expectToBeSent();
                     });
                 });
-return;
                 describe('Нажимаю на иконку с телефоном.', function() {
                     beforeEach(function() {
                         reportGroupsRequest.receiveResponse();
@@ -3933,7 +3934,6 @@ return;
                     });
                 });
             });
-return;
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().isNotMaster().receive();
@@ -4435,7 +4435,6 @@ return;
                 });
             });
         });
-return;
         describe('Вкладка является ведущей.', function() {
             beforeEach(function() {
                 tester.masterInfoMessage().receive();
@@ -4765,7 +4764,6 @@ return;
             });
         });
     });
-return;
     describe('Я уже аутентифицирован. Открываю новый личный кабинет.', function() {
         let authenticatedUserRequest,
             tester;
@@ -5109,5 +5107,122 @@ return;
 
         tester.allowMediaInput();
         tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
+    });
+    it('Получен фичефлаг нового бэкенда софтфона. Используется новый бекэнд софтфона.', function() {
+        let tester,
+            reportGroupsRequest,
+            settingsRequest,
+            accountRequest,
+            permissionsRequest,
+            authCheckRequest;
+
+        setNow('2019-12-19T12:10:06');
+
+        tester = new Tester({
+            ...options,
+            softphoneHost: '$REACT_APP_NEW_SOFTPHONE_BACKEND_HOST',
+        });
+
+        tester.input.withFieldLabel('Логин').fill('botusharova');
+        tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+        tester.button('Войти').click();
+
+        tester.loginRequest().receiveResponse();
+        tester.accountRequest().newSoftphoneBackendFeatureFlagEnabled().receiveResponse();
+        tester.notificationChannel().applyLeader().expectToBeSent();
+
+        const requests = ajax.inAnyOrder();
+
+        reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+        const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+        reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+        secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+        authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+
+        requests.expectToBeSent();
+
+        reportsListRequest.receiveResponse();
+        reportTypesRequest.receiveResponse();
+        secondAccountRequest.receiveResponse();
+        tester.masterInfoMessage().receive();
+        tester.slavesNotification().expectToBeSent();
+        tester.slavesNotification().additional().expectToBeSent();
+
+        tester.notificationChannel().tellIsLeader().expectToBeSent();
+        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+        tester.notificationChannel().applyLeader().expectToBeSent();
+
+        authCheckRequest.receiveResponse();
+        tester.statusesRequest().receiveResponse();
+
+        settingsRequest = tester.settingsRequest().expectToBeSent();
+        tester.talkOptionsRequest().receiveResponse();
+        permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
+        permissionsRequest.receiveResponse();
+        settingsRequest.receiveResponse();
+
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
+            expectToBeSent();
+
+        tester.connectEventsWebSocket();
+
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
+            softphoneServerConnected().
+            expectToBeSent();
+
+        tester.connectSIPWebSocket();
+
+        tester.slavesNotification().
+            twoChannels().
+            webRTCServerConnected().
+            softphoneServerConnected().
+            expectToBeSent();
+
+        tester.othersNotification().
+            widgetStateUpdate().
+            expectToBeSent();
+
+        tester.othersNotification().
+            updateSettings().
+            shouldNotPlayCallEndingSignal().
+            expectToBeSent();
+
+        notificationTester.grantPermission();
+
+        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+        registrationRequest = tester.registrationRequest().expectToBeSent();
+        tester.allowMediaInput();
+
+        tester.slavesNotification().
+            twoChannels().
+            softphoneServerConnected().
+            webRTCServerConnected().
+            microphoneAccessGranted().
+            expectToBeSent();
+
+        authenticatedUserRequest.receiveResponse();
+
+        tester.slavesNotification().
+            twoChannels().
+            softphoneServerConnected().
+            webRTCServerConnected().
+            microphoneAccessGranted().
+            userDataFetched().
+            expectToBeSent();
+
+        reportGroupsRequest.receiveResponse();
+        registrationRequest.receiveResponse();
+
+        tester.slavesNotification().
+            twoChannels().
+            available().
+            userDataFetched().
+            expectToBeSent();
     });
 });

@@ -414,7 +414,7 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 600884d5..5d915729 100644
+index 600884d5..07605c0c 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,18 @@
@@ -438,16 +438,7 @@ index 600884d5..5d915729 100644
  
  import history from '@/history';
  
-@@ -47,6 +52,8 @@ if (sentryDSN) {
-     });
- }
- 
-+const history = createMemoryHistory();
-+
- const Root: React.FC = observer(props => {
-     const { accountStore, notificationStore } = rootStore;
-     const {
-@@ -78,7 +85,52 @@ const Root: React.FC = observer(props => {
+@@ -78,7 +83,52 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -455,7 +446,8 @@ index 600884d5..5d915729 100644
 -const root = createRoot(container);
 +const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
 +    Window = ({children}) => <div className="cm-test-window">{children}</div>;
-+
+ 
+-root.render(<Root {...(window.rootConfig || {})}/>);
 +const units = {};
 +let root;
 +
@@ -497,8 +489,7 @@ index 600884d5..5d915729 100644
 +        if (!container) {
 +            return;
 +        }
- 
--root.render(<Root {...(window.rootConfig || {})}/>);
++
 +        container.firstChild && root && root.unmount();
 +        container.remove();
 +    }

@@ -53,10 +53,55 @@ index 77ba5d9..3101001 100644
      }
    }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index f9ebfad..4a5ed81 100644
+index f9ebfad..46de59e 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -737,4 +737,5 @@ export const RootStore = types
+@@ -66,7 +66,9 @@ export const RECENT_REFRESH_DELAY = 1500;
+ export const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
+ export const REFRESH_TOKEN_EXPIRED = 'refresh_token_expired';
+ export const ACCESS_TOKEN_INVALID = 'access_token_invalid';
+-const returnTrue = () => true,
++
++const SET_NEW_SOFTPHONE_BACKEND = 'SET_NEW_SOFTPHONE_BACKEND',
++    returnTrue = () => true,
+     shouldDisplayCallNotification = (phone, state) => !checkPendingCallToPrompt(state, phone),
+     body = createObservable(document.body);
+ 
+@@ -206,12 +208,22 @@ export const RootStore = types
+             self.reduxStore = createStore(
+                 combineReducers({
+                     prompter,
+-                    requestUrls: (
++                    requestUrls: (state = (
+                         state = {
+                             httpServerUrl:
+                                 process.env.REACT_APP_SOFTPHONE_BACKEND_HOST || '$REACT_APP_SOFTPHONE_BACKEND_HOST',
+                         }
+-                    ) => state,
++                    ), action) => {
++                        switch (action.type) {
++                            case SET_NEW_SOFTPHONE_BACKEND:
++                                return {
++                                    httpServerUrl: process.env.REACT_APP_NEW_SOFTPHONE_BACKEND_HOST ||
++                                        '$REACT_APP_NEW_SOFTPHONE_BACKEND_HOST',
++                                };
++                        }
++                        
++                        return state;
++                    },
+                     mayHideSoftphone: () => returnTrue,
+                     shouldDisplayCallNotification: () => shouldDisplayCallNotification,
+                     getPhoneNumber: () => () => '',
+@@ -582,6 +594,8 @@ export const RootStore = types
+                 });
+ 
+                 self.handleAccountFetched = ({ accountStore, isSoftphoneAvailable, ...args }) => {
++                    accountStore.hasFeatureFlag('new_softphone_backend') && dispatch({ type: SET_NEW_SOFTPHONE_BACKEND });
++
+                     authStore = args.authStore;
+                     const accessGranted = isSoftphoneAvailable(accountStore),
+                         account = accountStore.toJSON()?.account;
+@@ -737,4 +751,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
