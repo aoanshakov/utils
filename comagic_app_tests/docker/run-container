@@ -15,10 +15,12 @@ if [ $(uname | grep Darwin | wc -l) -eq 0 ]
 then
     dockerArguments="$dockerArguments --mount type=bind,source=/etc/passwd,target=/etc/passwd"
     dockerArguments="$dockerArguments --mount type=bind,source=/etc/group,target=/etc/group"
+    dockerArguments="$dockerArguments --mount type=bind,source=$HOME/.ssh/id_ed25519,target=/root/.ssh/id_ed25519"
     entrypointArguments="$entrypointArguments --owner $USER"
     farg="-f"
 else
     isOsX=1
+    dockerArguments="$dockerArguments --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa"
 fi
 
 function getAbsolutePath {
@@ -59,6 +61,10 @@ do
     elif [ "$1" = "--application-directory" ]
     then
         applicationDirectory=$2
+        shift
+    elif [ "$1" = "--network=host" ]
+    then
+        dockerArguments="$dockerArguments $1"
         shift
     else
         entrypointArguments="$entrypointArguments $1"
@@ -187,16 +193,9 @@ then
     exit 1
 fi
 
-if [ -z "$distDirectory" ]
-then
-    echo "Путь к дистрибутивам не указан"
-    exit 1
-fi
-
 docker run -it --rm \
     -v $testsDir:/usr/local/src/tests \
     --mount type=bind,source=$HOME/.ssh/known_hosts,target=/root/.ssh/known_hosts \
-    --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa \
     $dockerArguments \
     $imageTag \
     --action $action \

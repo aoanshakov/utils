@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 7257c68b..47becde4 100644
+index 0ccc4cb1..27093759 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -56,7 +56,7 @@ index 7257c68b..47becde4 100644
          },
          {
              loader: 'css-loader',
-@@ -207,7 +222,7 @@ const plugins = () => {
+@@ -210,7 +225,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -65,7 +65,7 @@ index 7257c68b..47becde4 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -247,6 +262,11 @@ const plugins = () => {
+@@ -252,6 +267,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -77,7 +77,7 @@ index 7257c68b..47becde4 100644
      ];
  
      if (isProductionMode) {
-@@ -270,6 +290,17 @@ const plugins = () => {
+@@ -275,6 +295,17 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -95,7 +95,7 @@ index 7257c68b..47becde4 100644
  module.exports = {
      entry: './src/index.tsx',
      target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
-@@ -291,6 +322,21 @@ module.exports = {
+@@ -296,6 +327,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -117,7 +117,7 @@ index 7257c68b..47becde4 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -298,7 +344,7 @@ module.exports = {
+@@ -303,7 +349,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -126,7 +126,7 @@ index 7257c68b..47becde4 100644
              },
              {
                  test: /\.css$/,
-@@ -309,6 +355,29 @@ module.exports = {
+@@ -314,6 +360,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -156,7 +156,7 @@ index 7257c68b..47becde4 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -324,6 +393,7 @@ module.exports = {
+@@ -329,6 +398,7 @@ module.exports = {
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -164,7 +164,7 @@ index 7257c68b..47becde4 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -339,17 +409,125 @@ module.exports = {
+@@ -344,17 +414,129 @@ module.exports = {
                      },
                  ],
              },
@@ -229,6 +229,9 @@ index 7257c68b..47becde4 100644
 +            'callTracking/CalltrackingSubstitutionRules': `${miscDirectory}/Stub.js`,
 +            'callTracking/NumberPools': `${miscDirectory}/Stub.js`,
 +            'callTracking/Sites': `${miscDirectory}/Stub.js`,
++            'callTracking/SitesV3': `${miscDirectory}/Stub.js`,
++            'callTracking/Root': `${miscDirectory}/Stub.js`,
++            'callTracking/SiteForm': `${miscDirectory}/Stub.js`,
 +            'analytics/CreateDashboardButton': `${miscDirectory}/Stub.js`,
 +            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
 +            'analytics/CreateReport': `${miscDirectory}/Stub.js`,
@@ -245,6 +248,7 @@ index 7257c68b..47becde4 100644
 +            'analytics/CalendarButton': `${miscDirectory}/Stub.js`,
 +            'analytics/RadioButton': `${miscDirectory}/Stub.js`,
 +            'analytics/RadioGroup': `${miscDirectory}/Stub.js`,
++            'analytics/Monitoring': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`,
@@ -295,23 +299,21 @@ index 7257c68b..47becde4 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 9b1ded71..06f13f98 100644
+index fd2a634b..3adeeabe 100644
 --- a/package.json
 +++ b/package.json
-@@ -66,13 +66,16 @@
+@@ -67,12 +67,15 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
--    "@comagic/core": "^1.2.0",
+-    "@comagic/core": "^1.2.8",
 -    "@sentry/react": "^6.17.6",
 -    "@sentry/tracing": "^6.17.6",
--    "@uiscom/uis_webrtc": "git+https://uis_webrtc:glpat-ydssS-Qi8NFPN7dmjkcp@gitlab.uis.dev/web/uis_webrtc.git#local-multitab",
 +    "@comagic/core": "./misc/core",
 +    "@sentry/react": "^6.19.4",
 +    "@sentry/tracing": "^6.19.4",
 +    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
      "archiver": "^5.3.0",
-+    "antd": "3.26.7",
      "auto-launch": "^5.0.5",
      "axios": "^0.24.0",
 +    "babel-loader": "^8.0.4",
@@ -397,15 +399,14 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index e1f15e6f..e5f0950d 100644
+index 600884d5..5d915729 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,14 +1,19 @@
+@@ -1,13 +1,18 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
  import { Integrations } from '@sentry/tracing';
- import { createMemoryHistory } from 'history';
  import { observer } from 'mobx-react-lite';
  import React, { useEffect } from 'react';
 +import ReactDOM from 'react-dom';
@@ -420,9 +421,9 @@ index e1f15e6f..e5f0950d 100644
 +import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
 +import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
  
- import App from './App';
- import './global';
-@@ -46,6 +51,8 @@ if (sentryDSN) {
+ import history from '@/history';
+ 
+@@ -47,6 +52,8 @@ if (sentryDSN) {
      });
  }
  
@@ -431,16 +432,7 @@ index e1f15e6f..e5f0950d 100644
  const Root: React.FC = observer(props => {
      const { accountStore, notificationStore } = rootStore;
      const {
-@@ -59,7 +66,7 @@ const Root: React.FC = observer(props => {
-     }, [accountStore.account.project]);
- 
-     return (
--        <HistoryRouter history={createMemoryHistory()}>
-+        <HistoryRouter history={history}>
-             <CoreProvider isHostApp accountStore={accountStore} locale={locale} notificationStore={notificationStore}>
-                 <Provider value={rootStore}>
-                     <IntlProvider locale={getIntlLocale(locale)} messages={getIntlMessages(locale)}>
-@@ -71,7 +78,52 @@ const Root: React.FC = observer(props => {
+@@ -78,7 +85,52 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -497,10 +489,10 @@ index e1f15e6f..e5f0950d 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 1e8a2022..b45d9bf9 100644
+index 17d9d435..e6198926 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -228,7 +228,7 @@ export const RootStore = types
+@@ -239,7 +239,7 @@ export const RootStore = types
                  }
              );
  
@@ -509,15 +501,15 @@ index 1e8a2022..b45d9bf9 100644
                  response => {
                      logRequest({response});
  
-@@ -294,6 +294,7 @@ export const RootStore = types
-             subscribe('contact_opened', () => self.setSoftphoneVisible(false));
-             subscribe('contact_closed', () => self.setSoftphoneVisible(true));
+@@ -304,6 +304,7 @@ export const RootStore = types
+         const afterCreate = () => {
+             removeSubscriptions();
  
 +            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
              initialState = getSnapshot(self);
  
              setHttpRequestsDefault();
-@@ -334,7 +335,8 @@ export type DependencyInjection = {
+@@ -345,7 +346,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
