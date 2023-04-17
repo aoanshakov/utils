@@ -1,0 +1,432 @@
+diff --git a/config/webpack.config.js b/config/webpack.config.js
+index 5939e8fb..c0ad5265 100644
+--- a/config/webpack.config.js
++++ b/config/webpack.config.js
+@@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+ const TerserPlugin = require('terser-webpack-plugin');
+-const ExternalRemotesPlugin = require('external-remotes-plugin');
++//const ExternalRemotesPlugin = require('external-remotes-plugin');
+ const CopyPlugin = require('copy-webpack-plugin');
++const hash = require('string-hash');
+ 
+ const { ModuleFederationPlugin } = webpack.container;
+ const pkgJson = require('../package.json');
+@@ -15,9 +16,12 @@ const deps = pkgJson.dependencies;
+ 
+ const NODE_ENV = process.env.NODE_ENV || 'prod';
+ const APPLICATION_NAME = process.env.APPLICATION_NAME || 'default';
++const ENTRY_POINT = process.env.ENTRY_POINT || 'index';
+ const REACT_APP = /^REACT_APP_/i;
+ 
+ const appDirectory = fs.realpathSync(process.cwd());
++const miscDirectory = `${appDirectory}/misc`;
++const magicUIDirectory = `${miscDirectory}/magic_ui`;
+ const publicDir = path.resolve(appDirectory, 'public');
+ const buildDir = path.resolve(appDirectory, 'build');
+ const dotenv = path.resolve(appDirectory, '.env');
+@@ -25,9 +29,20 @@ const isProductionMode = NODE_ENV !== 'development';
+ const webpackMode = isProductionMode ? 'production' : 'development';
+ const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
+ const isBundleAnalyzerPlugin = false;
++const subModules = ['chats', 'analytics/frontend'];
+ 
+ const lessLoader = {
+     loader: 'less-loader',
++    options: {
++        lessOptions: {
++            modifyVars: {
++                'hack': `true; ${
++                    subModules.map(module => `@import "${miscDirectory}/${module}/theme/theme.less"`).join('; ')
++                }`,
++            },
++            javascriptEnabled: true,
++        },
++    },
+ };
+ 
+ const fontsOptions = isProductionMode
+@@ -105,10 +120,11 @@ const webpackDefinePlugin = () => {
+     return opts;
+ };
+ 
+-const cssLoaders = extra => {
++const cssLoaders = (extra, loaderParams = {}) => {
+     const loaders = [
+         {
+             loader: isProductionMode ? MiniCssExtractPlugin.loader : 'style-loader',
++            ...loaderParams
+         },
+         {
+             loader: 'css-loader',
+@@ -211,7 +227,7 @@ const plugins = () => {
+             ignoreOrder: true,
+         }),
+ 
+-        new ModuleFederationPlugin({
++        /*new ModuleFederationPlugin({
+             name: 'shell',
+             shared: getSharedDeps(),
+             remotes: {
+@@ -253,6 +269,11 @@ const plugins = () => {
+             },
+         }),
+         new ExternalRemotesPlugin(),
++        }),*/
++
++        new webpack.optimize.LimitChunkCountPlugin({
++            maxChunks: 1
++        })
+     ];
+ 
+     if (isProductionMode) {
+@@ -276,8 +297,19 @@ const plugins = () => {
+     return pluginsList;
+ };
+ 
++const createAliases = appDirectory => ({
++    '@': path.resolve(appDirectory, './src'),
++    '@models': path.resolve(appDirectory, './src/models'),
++    '@lib': path.resolve(appDirectory, './src/components/lib'),
++    '@hooks': path.resolve(appDirectory, './src/hooks'),
++});
++
++const iconsRegExp = new RegExp(
++    ['', '(softphone|softphone', 'src|call_history|uis_webrtc', 'src)', 'icons', ''].join('\\' + path.sep)
++);
++
+ module.exports = {
+-    entry: './src/index.tsx',
++    entry: `./src/${ENTRY_POINT}.tsx`,
+     target: APPLICATION_NAME == 'softphone' ? 'electron-renderer' : 'web',
+     mode: webpackMode,
+     devtool: isProductionMode ? undefined : 'inline-source-map',
+@@ -297,6 +329,21 @@ module.exports = {
+     module: {
+         rules: [
+             {
++                test: /\.js$/,
++                exclude: /node_modules(?!\/(uis-softphone|magic-ui)\/)/,
++                use: [{
++                    loader: 'babel-loader',
++                    options: {
++                        presets: ['@babel/preset-react', '@babel/preset-env'],
++                        comments: false,
++                        plugins: [
++                            '@babel/plugin-proposal-private-methods',
++                            '@babel/plugin-proposal-class-properties',
++                        ]
++                    }
++                }]
++            },
++            {
+                 test: /\.(ts|tsx)$/,
+                 use: {
+                     loader: 'ts-loader',
+@@ -304,7 +351,7 @@ module.exports = {
+                         transpileOnly: true,
+                     },
+                 },
+-                exclude: /node_modules/,
++                exclude: /node_modules(?!\/(uis-softphone|magic-ui)\/)/,
+             },
+             {
+                 test: /\.css$/,
+@@ -315,6 +362,29 @@ module.exports = {
+                 use: cssLoaders(lessLoader),
+             },
+             {
++                test: /\.(sa|sc|c)ss$/,
++                include: `${magicUIDirectory}/src`,
++                use: [
++                    {
++                        loader: 'style-loader',
++                    },
++                    {
++                        loader: 'css-loader',
++                    },
++                    {
++                        loader: 'resolve-url-loader',
++                    },
++                    {
++                        loader: 'sass-loader',
++                        options: {
++                            sassOptions: {
++                                includePaths: [magicUIDirectory]
++                            }
++                        }
++                    },
++                ],
++            },
++            {
+                 test: /\.(png|jpg)$/,
+                 loader: 'url-loader',
+                 options: {
+@@ -330,6 +400,7 @@ module.exports = {
+             },
+             {
+                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
++                exclude: iconsRegExp,
+                 use: [
+                     {
+                         loader: '@svgr/webpack',
+@@ -345,6 +416,30 @@ module.exports = {
+                     },
+                 ],
+             },
++            {
++                test: iconsRegExp,
++                use: ({resource}) => [{
++                    loader: 'babel-loader',
++                    options: {
++                        presets: ['@babel/preset-react', '@babel/preset-env'],
++                        comments: false
++                    }
++                }, {
++                    loader: '@svgr/webpack',
++                    options: {
++                        babel: false,
++                        icon: true,
++                        svgoConfig: {
++                            plugins: [{
++                                cleanupIDs: {
++                                    prefix: `svg${hash(path.relative(__dirname, resource))}`,
++                                    force: true
++                                }
++                            }]
++                        }
++                    }
++                }]
++            },
+         ],
+     },
+     resolve: {
+@@ -355,7 +450,113 @@ module.exports = {
+             '@models': path.resolve(appDirectory, './src/models'),
+             '@lib': path.resolve(appDirectory, './src/components/lib'),
+             '@hooks': path.resolve(appDirectory, './src/hooks'),
++            ...createAliases(appDirectory),
++            'contacts/Root': `${miscDirectory}/contacts/src/Root.tsx`,
++            'contacts/ContactBar': `${miscDirectory}/contacts/src/components/contact-bar/ContactBarWrapper.tsx`,
++            'contacts/Menu': `${miscDirectory}/contacts/src/Menu.tsx`,
++            'leadgen/Root': `${miscDirectory}/Stub.js`,
++            'softphone/Root': 'softphone/src/Root.tsx',
++            'softphone/Account': 'softphone/src/Account.tsx',
++            'softphone/Routes': 'softphone/src/Routes.tsx',
++            'softphone/CallStatsMenuItem': 'softphone/src/CallStatsMenuItem.tsx',
++            'softphone/CallHistoryMenuItem': 'softphone/src/CallHistoryMenuItem.tsx',
++            'softphone/VisibilityButton': 'softphone/src/VisibilityButton.tsx',
++            'softphone/isSoftphoneAvailable': 'softphone/src/utils/isSoftphoneAvailable.ts',
++            'chats/Root': 'chats/src/Root.tsx',
++            'chats/Account': 'chats/src/components/account/index.tsx',
++            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
++            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
++            'chats/HistoryLogWrapped': 'chats/src/components/chats/chat-panel/HistoryLogWrapped.tsx',
++            'chats/AudioPlayerWrapped': 'chats/src/components/chats/chat-panel/AudioPlayerWrapped.tsx',
++            'chats/MessageWrapped': 'chats/src/components/chats/chat-panel/MessageWrapped.tsx',
++            'chats/QuoteWrapped': 'chats/src/components/chats/chat-panel/QuoteWrapped.tsx',
++            'chats/HistoryItemWrapped': 'chats/src/components/offline-messages/panel/HistoryItemWrapped.tsx',
++            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
++            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
++            'chats/isWorkplaceAllowed': 'chats/src/utils/isWorkplaceAllowed.ts',
++            'chats/Counter': 'chats/src/components/chats/chat-panel/Counter.tsx',
++            'chats/MenuItemCounter': 'chats/src/components/main/menu/counter.tsx',
++            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,
++            'callTracking/CalltrackingSubstitutionControl': `${miscDirectory}/Stub.js`,
++            'callTracking/CalltrackingTrafficControl': `${miscDirectory}/Stub.js`,
++            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
++            'callTracking/CalltrackingSubstitutionRules': `${miscDirectory}/Stub.js`,
++            'callTracking/NumberPools': `${miscDirectory}/Stub.js`,
++            'callTracking/Sites': `${miscDirectory}/Stub.js`,
++            'callTracking/SiteForm': `${miscDirectory}/Stub.js`,
++            'callTracking/SitesV3': `${miscDirectory}/Stub.js`,
++            'callTracking/Root': `${miscDirectory}/Stub.js`,
++            'analytics/CreateDashboardButton': `${miscDirectory}/Stub.js`,
++            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
++            'analytics/CreateReport': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/ChiefDashboard': `${miscDirectory}/Stub.js`,
++            'analytics/Communications': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/Dashboard': `${miscDirectory}/Stub.js`,
++            'analytics/DealsAnalytics': `${miscDirectory}/Stub.js`,
++            'analytics/Deals': `${miscDirectory}/Stub.js`,
++            'analytics/Leads': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/MarketerDashboard': `${miscDirectory}/Stub.js`,
++            'analytics/SharedReport': `${miscDirectory}/Stub.js`,
++            'analytics/cancelPendingRequests': `${miscDirectory}/Stub.js`,
++            'analytics/ReportTable': `${miscDirectory}/Stub.js`,
++            'analytics/CalendarButton': `${miscDirectory}/Stub.js`,
++            'analytics/RadioButton': `${miscDirectory}/Stub.js`,
++            'analytics/RadioGroup': `${miscDirectory}/Stub.js`,
++            'analytics/Monitoring': `${miscDirectory}/Stub.js`,
++            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
++            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
++            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`,
++            'marketplace/Root': `${miscDirectory}/Stub.js`,
++            'marketplace/Auth': `${miscDirectory}/Stub.js`,
+         },
++
++        plugins: [{
++            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
++                request,
++                resolveContext,
++                callback
++            ) =>  {
++                const target = resolver.ensureHook('resolve'),
++                    requestPath = request.request,
++                    splitted = requestPath.split('/');
++
++                if (requestPath.indexOf('magic-ui/lib') === 0) {
++                    splitted[1] = 'src';
++                } else if (['~magic-ui/lib/styles.css', '~@comagic/core/lib/styles.css'].includes(requestPath)) {
++                    splitted.splice(0, splitted.length);
++                    splitted.push(miscDirectory, 'stub.css');
++                } else {
++                    const {
++                        directory,
++                        aliases
++                    } = subModules.concat(['softphone', 'contacts']).map(module => {
++                        const directory = `${miscDirectory}/${module}`;
++
++                        return {
++                            directory,
++                            aliases: createAliases(directory)
++                        };
++                    }).find(({
++                        directory,
++                        aliases
++                    }) => request.path.indexOf(directory) === 0 && Object.keys(aliases).some(
++                        alias => splitted[0] == alias
++                    )) || {};
++
++                    if (!directory) {
++                        callback();
++                        return;
++                    }
++
++                    splitted[0] = aliases[splitted[0]]
++                }
++
++                return resolver.doResolve(target, {
++                    ...request,
++                    request: splitted.join('/') 
++                }, null, resolveContext, callback);
++            })
++        }]
+     },
+     output: {
+         clean: true,
+diff --git a/package.json b/package.json
+index 31676385..2aa836f7 100644
+--- a/package.json
++++ b/package.json
+@@ -69,12 +69,16 @@
+     "webpack-merge": "^5.7.3"
+   },
+   "dependencies": {
+-    "@comagic/core": "0.0.0-int0",
++    "@comagic/core": "./misc/core",
+     "@sentry/react": "^6.17.6",
+     "@sentry/tracing": "^6.17.6",
+     "archiver": "^5.3.0",
++    "antd": "3.26.7",
+     "auto-launch": "^5.0.5",
+     "axios": "^0.24.0",
++    "babel-loader": "^8.0.4",
++    "broadcast-channel": "^4.11.0",
++    "chats": "./misc/chats",
+     "classnames": "^2.2.6",
+     "dotenv": "^8.2.0",
+     "dotenv-expand": "^5.1.0",
+@@ -86,7 +90,7 @@
+     "formik": "^2.2.9",
+     "history": "^5.3.0",
+     "lodash.clonedeep": "^4.5.0",
+-    "magic-ui": "0.0.0-int0",
++    "magic-ui": "./misc/magic_ui",
+     "mobx": "^6.6.1",
+     "mobx-react-lite": "^3.4.0",
+     "mobx-state-tree": "^5.1.6",
+@@ -95,7 +99,13 @@
+     "react-dom": "^18.2.0",
+     "react-intl": "^6.0.5",
+     "react-router-dom": "6.4.0",
++    "simplebar-react": "^2.4.1",
++    "softphone": "./misc/softphone",
++    "string-hash": "^1.1.3",
++    "contacts": "./misc/contacts",
+     "stream-buffers": "^3.0.2",
++    "uis-softphone": "./misc/softphone/misc/sip_lib",
++    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
+     "yup": "^0.28.1"
+   },
+   "optionalDependencies": {
+diff --git a/public/index.html b/public/index.html
+index 92fc7e25..59a999e3 100644
+--- a/public/index.html
++++ b/public/index.html
+@@ -23,6 +23,29 @@
+     })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
+     <!-- End Google Tag Manager -->
+     <% } %>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
++    <script>
++        var windowLoadHandler = window.onload;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/boot.js"></script>
++    <script>
++        window.onload = windowLoadHandler;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-ajax/lib/mock-ajax.js"></script>
++    <script src="/tests/utils/jasmine/console-reporter.js"></script>
++    <script src="/tests/utils/js-tester.js"></script>
++    <script type="text/javascript">
++        var tests = new JsTester_Tests(new JsTester_Factory());
++        tests.exposeDebugUtils('jsTestDebug');
++    </script>
++    <script src="/tests/utils/require.js"></script>
++    <script src="/tests/{script}.js"></script>
++    <style>
++        #root {
++            position: static !important;
++        }
++    </style>
+ </head>
+ <body class="cm-body">
+     <% if (htmlWebpackPlugin.options.env.production) { %>
+@@ -34,5 +57,6 @@
+     <% } %>
+     <noscript>You need to enable JavaScript to run this app.</noscript>
+     <div id="root"></div>
++    <script src="/tests/utils/tests.js"></script>
+ </body>
+ </html>
+\ No newline at end of file
+diff --git a/scripts/dev.js b/scripts/dev.js
+index 1bac09b0..51fecd24 100644
+--- a/scripts/dev.js
++++ b/scripts/dev.js
+@@ -13,7 +13,8 @@ const compiler = webpack(configFactory);
+ const devServer = new WebpackDevServer(
+     {
+         port: parseInt(process.env.PORT, 10) || 8080,
+-        hot: true,
++        hot: false,
++        liveReload: false,
+         headers: { 'Access-Control-Allow-Origin': '*' },
+         historyApiFallback: true,
+     },
+diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
+index 273dd60b..055074e2 100644
+--- a/src/models/auth/AuthStore.ts
++++ b/src/models/auth/AuthStore.ts
+@@ -21,7 +21,7 @@ export type LoginUser = {
+     dont_keep_me_signed_in: boolean;
+ };
+ 
+-const AUTH_KEY = process.env.REACT_APP_AUTH_COOKIE || '';
++const AUTH_KEY = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_COOKIE';
+ 
+ type JwtPayload = {
+     app_id: number;

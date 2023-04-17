@@ -16,11 +16,14 @@ docker/vim-container/profile/.NERDTreeBookmarks
 docker/vim-container/profile/.bash_history
 docker/vim-container/profile/.cache/
 docker/vim-container/profile/.lesshst
+docker/vim-container/profile/.npmrc
+docker/vim-container/profile/.nvm/
 docker/vim-container/profile/.npm/
 docker/vim-container/profile/.ssh/
 docker/vim-container/profile/.tmp
 docker/vim-container/profile/.viminfo
 docker/vim-container/profile/patch.diff
+
 admin-frontend-tests/node_modules
 
 comagic_app_tests/assets/
