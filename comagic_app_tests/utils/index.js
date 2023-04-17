@@ -326,10 +326,13 @@ actions['initialize'] = params => [
     `${cda} npm install --verbose`
 ].concat(actions['patch-node-modules']).concat(actions['fix-permissions']) : []);
 
-actions['remove-node-modules'] = overriding.map(({application}) => [
-    rmVerbose(`${application}/node_modules`),
-    rmVerbose(`${application}/package-lock.json`)
-]).reduce((allCommands, commands) => allCommands.concat(commands), []);
+actions['remove-node-modules'] = [uisWebRTC].map(application => ({ application })).
+    concat(overriding).
+    map(({ application }) => [
+        rmVerbose(`${application}/node_modules`),
+        rmVerbose(`${application}/package-lock.json`)
+    ]).
+    reduce((allCommands, commands) => allCommands.concat(commands), []);
 
 actions['bash'] = [];
 actions['disable-hook'] = [`chmod +x ${preCommitHook}`, `${cda} patch -p1 < ${huskyPatch}`];

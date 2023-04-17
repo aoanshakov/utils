@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0ccc4cb1..c7dfa896 100644
+index 0ccc4cb1..76c412b7 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 0ccc4cb1..c7dfa896 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -344,17 +414,140 @@ module.exports = {
+@@ -344,17 +414,141 @@ module.exports = {
                      },
                  ],
              },
@@ -212,6 +212,7 @@ index 0ccc4cb1..c7dfa896 100644
 +            'softphone/Settings': 'softphone/src/Settings.tsx',
 +            'softphone/CallHistory': 'softphone/src/call_history/index.tsx',
 +            'softphone/CallStats': 'softphone/src/call_stats/index.tsx',
++            'softphone/LostCallsCount': 'softphone/src/call_history/counter.tsx',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
@@ -310,10 +311,10 @@ index 0ccc4cb1..c7dfa896 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index fd2a634b..29a7fc5d 100644
+index fd2a634b..645c0de9 100644
 --- a/package.json
 +++ b/package.json
-@@ -67,12 +67,15 @@
+@@ -67,12 +67,17 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -321,6 +322,8 @@ index fd2a634b..29a7fc5d 100644
 -    "@sentry/react": "^6.17.6",
 -    "@sentry/tracing": "^6.17.6",
 +    "@comagic/core": "./misc/core",
++    "@comagic/softphone-widget": "./misc/softphone/misc/sip_lib",
++    "@comagic/softphone-core": "./misc/softphone/misc/sip_lib/uis_webrtc",
 +    "@sentry/react": "^6.19.4",
 +    "@sentry/tracing": "^6.19.4",
 +    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
@@ -332,7 +335,7 @@ index fd2a634b..29a7fc5d 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -84,7 +87,7 @@
+@@ -84,7 +89,7 @@
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
@@ -341,7 +344,7 @@ index fd2a634b..29a7fc5d 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -93,6 +96,11 @@
+@@ -93,6 +98,11 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "^6.4.0",

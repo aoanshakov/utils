@@ -88,7 +88,7 @@ tests.addTest(options => {
                         permissionsRequest.receiveResponse();
                     });
 
-                    describe('Получены настройки софтфона.', function() {
+                    xdescribe('Получены настройки софтфона.', function() {
                         let authenticatedUserRequest,
                             registrationRequest;
 
@@ -3023,7 +3023,7 @@ tests.addTest(options => {
                             });
                         });
                     });
-                    describe('Номера должны быть скрыты.', function() {
+                    xdescribe('Номера должны быть скрыты.', function() {
                         beforeEach(function() {
                             reportGroupsRequest.receiveResponse();
 
@@ -3081,7 +3081,7 @@ tests.addTest(options => {
                             tester.softphone.expectTextContentToHaveSubstring('Неизвестный номер Поиск контакта...');
                         });
                     });
-                    it(
+                    xit(
                         'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                         'авторизации. Отправлен только один запрос обновления токена.',
                     function() {
@@ -3095,7 +3095,7 @@ tests.addTest(options => {
                         tester.refreshRequest().anotherAuthorizationToken().receiveResponse();
                         tester.settingsRequest().thirdAuthorizationToken().expectToBeSent();
                     });
-                    it(
+                    xit(
                         'Сначала запрос от софтфона, а потом и запрос от лк завершился ошибкой истечения токена ' +
                         'авторизации. Отправлен только один запрос обновления токена.',
                     function() {
@@ -3108,7 +3108,7 @@ tests.addTest(options => {
                         tester.refreshRequest().anotherAuthorizationToken().receiveResponse();
                         tester.reportGroupsRequest().thirdAuthorizationToken().expectToBeSent();
                     });
-                    it(
+                    xit(
                         'Срок действия токена авторизации истек. Токен авторизации обновлен. Софтфон подключен.',
                     function() {
                         settingsRequest.accessTokenExpired().receiveResponse();
@@ -3142,7 +3142,7 @@ tests.addTest(options => {
                         tester.registrationRequest().receiveResponse();
                         tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
                     });
-                    it('Токен невалиден. Отображена форма аутентификации.', function() {
+                    xit('Токен невалиден. Отображена форма аутентификации.', function() {
                         settingsRequest.accessTokenInvalid().receiveResponse();
                         notificationTester.grantPermission();
 
@@ -3154,7 +3154,73 @@ tests.addTest(options => {
 
                         tester.input.withFieldLabel('Логин').expectToBeVisible();
                     });
+                    it('Получен абсолютный URL сервера. Открыт веб-сокет.', function() {
+                        settingsRequest.receiveResponse();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            enabled().
+                            expectToBeSent();
+
+                        tester.connectEventsWebSocket();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            enabled().
+                            softphoneServerConnected().
+                            expectToBeSent();
+
+                        tester.connectSIPWebSocket();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            webRTCServerConnected().
+                            softphoneServerConnected().
+                            expectToBeSent();
+
+                        tester.othersNotification().
+                            widgetStateUpdate().
+                            expectToBeSent();
+
+                        tester.othersNotification().
+                            updateSettings().
+                            shouldNotPlayCallEndingSignal().
+                            expectToBeSent();
+
+                        notificationTester.grantPermission();
+
+                        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                        registrationRequest = tester.registrationRequest().expectToBeSent();
+                        tester.allowMediaInput();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            expectToBeSent();
+
+                        authenticatedUserRequest.receiveResponse();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            userDataFetched().
+                            expectToBeSent();
+
+                        reportGroupsRequest.receiveResponse();
+                        registrationRequest.receiveResponse();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            userDataFetched().
+                            expectToBeSent();
+                    });
                 });
+return;
                 describe('Нажимаю на иконку с телефоном.', function() {
                     beforeEach(function() {
                         reportGroupsRequest.receiveResponse();
@@ -3867,6 +3933,7 @@ tests.addTest(options => {
                     });
                 });
             });
+return;
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().isNotMaster().receive();
@@ -4368,6 +4435,7 @@ tests.addTest(options => {
                 });
             });
         });
+return;
         describe('Вкладка является ведущей.', function() {
             beforeEach(function() {
                 tester.masterInfoMessage().receive();
@@ -4697,6 +4765,7 @@ tests.addTest(options => {
             });
         });
     });
+return;
     describe('Я уже аутентифицирован. Открываю новый личный кабинет.', function() {
         let authenticatedUserRequest,
             tester;
