@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0ccc4cb1..27093759 100644
+index 0ccc4cb1..c7dfa896 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 0ccc4cb1..27093759 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -344,17 +414,129 @@ module.exports = {
+@@ -344,17 +414,140 @@ module.exports = {
                      },
                  ],
              },
@@ -217,11 +217,14 @@ index 0ccc4cb1..27093759 100644
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
 +            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
 +            'chats/HistoryLogWrapped': 'chats/src/components/chats/chat-panel/HistoryLogWrapped.tsx',
-+            'chats/AudioPlayerWrapped': 'chats//src/components/chats/chat-panel/AudioPlayerWrapped.tsx',
++            'chats/AudioPlayerWrapped': 'chats/src/components/chats/chat-panel/AudioPlayerWrapped.tsx',
 +            'chats/MessageWrapped': 'chats/src/components/chats/chat-panel/MessageWrapped.tsx',
++            'chats/QuoteWrapped': 'chats/src/components/chats/chat-panel/QuoteWrapped.tsx',
 +            'chats/HistoryItemWrapped': 'chats/src/components/offline-messages/panel/HistoryItemWrapped.tsx',
 +            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
 +            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
++            'chats/Counter': 'chats/src/components/chats/chat-panel/Counter.tsx',
++            'chats/MenuItemCounter': 'chats/src/components/main/menu/counter.tsx',
 +            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingSubstitutionControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingTrafficControl': `${miscDirectory}/Stub.js`,
@@ -263,43 +266,51 @@ index 0ccc4cb1..27093759 100644
 +                callback
 +            ) =>  {
 +                const target = resolver.ensureHook('resolve'),
-+                    splitted = request.request.split('/');
++                    requestPath = request.request,
++                    splitted = requestPath.split('/');
 +
-+                const {
-+                    directory,
-+                    aliases
-+                } = subModules.concat(['softphone', 'contacts']).map(module => {
-+                    const directory = `${miscDirectory}/${module}`;
-+
-+                    return {
++                if (requestPath.indexOf('magic-ui/lib') === 0) {
++                    splitted[1] = 'src';
++                } else if (['~magic-ui/lib/styles.css', '~@comagic/core/lib/styles.css'].includes(requestPath)) {
++                    splitted.splice(0, splitted.length);
++                    splitted.push(miscDirectory, 'stub.css');
++                } else {
++                    const {
 +                        directory,
-+                        aliases: createAliases(directory)
-+                    };
-+                }).find(({
-+                    directory,
-+                    aliases
-+                }) => request.path.indexOf(directory) === 0 && Object.keys(aliases).some(
-+                    alias => splitted[0] == alias
-+                )) || {};
++                        aliases
++                    } = subModules.concat(['softphone', 'contacts']).map(module => {
++                        const directory = `${miscDirectory}/${module}`;
 +
-+                if (!directory) {
-+                    callback();
-+                    return;
++                        return {
++                            directory,
++                            aliases: createAliases(directory)
++                        };
++                    }).find(({
++                        directory,
++                        aliases
++                    }) => request.path.indexOf(directory) === 0 && Object.keys(aliases).some(
++                        alias => splitted[0] == alias
++                    )) || {};
++
++                    if (!directory) {
++                        callback();
++                        return;
++                    }
++
++                    splitted[0] = aliases[splitted[0]]
 +                }
-+
-+                splitted[0] = aliases[splitted[0]]
 +
 +                return resolver.doResolve(target, {
 +                    ...request,
 +                    request: splitted.join('/') 
 +                }, null, resolveContext, callback);
-+            })
-+        }]
++            }),
++        }],
      },
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index fd2a634b..3adeeabe 100644
+index fd2a634b..29a7fc5d 100644
 --- a/package.json
 +++ b/package.json
 @@ -67,12 +67,15 @@
@@ -330,12 +341,13 @@ index fd2a634b..3adeeabe 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -93,6 +96,10 @@
+@@ -93,6 +96,11 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "^6.4.0",
 +    "simplebar-react": "^2.4.1",
 +    "softphone": "./misc/softphone",
++    "uis-softphone": "./misc/softphone/misc/sip_lib",
 +    "string-hash": "^1.1.3",
 +    "contacts": "./misc/contacts",
      "stream-buffers": "^3.0.2",
