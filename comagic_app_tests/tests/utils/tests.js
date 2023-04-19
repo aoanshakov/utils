@@ -22,10 +22,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const WrappedTester = function (options) {
-                options.softphoneTester = new SoftphoneTester({
-                    softphoneHost: '$REACT_APP_SOFTPHONE_BACKEND_HOST',
-                    ...options,
-                });
+                options.softphoneHost = options.softphoneHost || '$REACT_APP_SOFTPHONE_BACKEND_HOST';
+                options.softphoneTester = new SoftphoneTester(options);
 
                 return new Tester(options);
             };

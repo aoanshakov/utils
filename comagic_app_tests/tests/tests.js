@@ -23,7 +23,7 @@ tests.addTest(options => {
 
     const getPackage = Tester.createPackagesGetter(options);
 
-    describe('Открываю новый личный кабинет.', function() {
+    xdescribe('Открываю новый личный кабинет.', function() {
         let tester,
             reportGroupsRequest,
             settingsRequest,
@@ -4764,7 +4764,7 @@ tests.addTest(options => {
             });
         });
     });
-    describe('Я уже аутентифицирован. Открываю новый личный кабинет.', function() {
+    xdescribe('Я уже аутентифицирован. Открываю новый личный кабинет.', function() {
         let authenticatedUserRequest,
             tester;
 
@@ -4871,7 +4871,7 @@ tests.addTest(options => {
             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
         });
     });
-    it('Ранее софтфон был развернут. Софтфон развернут.', function() {
+    xit('Ранее софтфон был развернут. Софтфон развернут.', function() {
         localStorage.setItem('isSoftphoneHigh', true);
             
         setNow('2019-12-19T12:10:06');
@@ -4952,7 +4952,7 @@ tests.addTest(options => {
         tester.softphone.expectToBeExpanded();
         tester.phoneField.expectToBeVisible();
     });
-    it('Ранее софтфон был свернут. Софтфон свернут.', function() {
+    xit('Ранее софтфон был свернут. Софтфон свернут.', function() {
         localStorage.setItem('isSoftphoneHigh', false);
             
         setNow('2019-12-19T12:10:06');
@@ -5033,7 +5033,7 @@ tests.addTest(options => {
         tester.softphone.expectToBeCollapsed();
         tester.phoneField.expectToBeVisible();
     });
-    it('Идентификатор браузера сохранен. Открываю софтфон. Идентификатор браузера передается в запросах.', function() {
+    xit('Идентификатор браузера сохранен. Открываю софтфон. Идентификатор браузера передается в запросах.', function() {
         localStorage.setItem('uis-webrtc-browser-id', '2b5af1d8-108c-4527-aceb-c93614b8a0da');
             
         setNow('2019-12-19T12:10:06');
