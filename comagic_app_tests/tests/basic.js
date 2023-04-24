@@ -62,12 +62,14 @@ tests.addTest(options => {
 
             tester.settingsRequest().receiveResponse();
 
-            tester.othersNotification().widgetStateUpdate().expectToBeSent();
-            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
-
             tester.slavesNotification().
                 twoChannels().
                 enabled().
+                expectToBeSent();
+
+            tester.othersNotification().
+                updateSettings().
+                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
             notificationTester.grantPermission();
@@ -117,14 +119,20 @@ tests.addTest(options => {
         });
             
         describe('Получено событие изменения сотрудника. Статус сотрудника изменился.', function() {
-            let notificationOfUserStateChanging;
+            let employeeChangedEvent;
 
             beforeEach(function() {
-                notificationOfUserStateChanging = tester.notificationOfUserStateChanging().anotherStatus();
+                employeeChangedEvent = tester.employeeChangedEvent().secondStatus();
             });
 
             it('Структура некорректна. Отображен новый статус сотрудника.', function() {
-                notificationOfUserStateChanging.wrongStructure().receive();
+                employeeChangedEvent.wrongStructure().receive();
+
+                tester.employeeChangedEvent().
+                    secondStatus().
+                    wrongStructure().
+                    slavesNotification().
+                    expectToBeSent();
 
                 tester.slavesNotification().
                     userDataFetched().
@@ -136,7 +144,12 @@ tests.addTest(options => {
                 tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
             });
             it('Структура корректна. Отображен новый статус сотрудника.', function() {
-                notificationOfUserStateChanging.receive();
+                employeeChangedEvent.receive();
+
+                tester.employeeChangedEvent().
+                    secondStatus().
+                    slavesNotification().
+                    expectToBeSent();
 
                 tester.slavesNotification().
                     userDataFetched().
@@ -209,16 +222,30 @@ tests.addTest(options => {
 
             notificationTester.grantPermission();
 
-            tester.othersNotification().widgetStateUpdate().expectToBeSent();
-            tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                expectToBeSent();
 
-            tester.slavesNotification().twoChannels().enabled().expectToBeSent();
+            tester.othersNotification().
+                updateSettings().
+                shouldNotPlayCallEndingSignal().
+                expectToBeSent();
 
             tester.connectEventsWebSocket();
-            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
 
             tester.connectSIPWebSocket();
-            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
                 expectToBeSent();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
@@ -307,19 +334,15 @@ tests.addTest(options => {
             isNeedDisconnectSignal().
             receiveResponse();
 
-        tester.othersNotification().
-            widgetStateUpdate().
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
             expectToBeSent();
 
         tester.othersNotification().
             updateSettings().
             shouldPlayCallEndingSignal().
             anotherCustomRingtone().
-            expectToBeSent();
-
-        tester.slavesNotification().
-            twoChannels().
-            enabled().
             expectToBeSent();
 
         notificationTester.grantPermission();
@@ -329,24 +352,54 @@ tests.addTest(options => {
         mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
 
         tester.connectEventsWebSocket();
-        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
+            softphoneServerConnected().
+            expectToBeSent();
 
         tester.connectSIPWebSocket();
-        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().expectToBeSent();
+
+        tester.slavesNotification().
+            twoChannels().
+            webRTCServerConnected().
+            softphoneServerConnected().
+            expectToBeSent();
 
         tester.authenticatedUserRequest().receiveResponse();
-        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+        tester.slavesNotification().
+            userDataFetched().
+            twoChannels().
+            webRTCServerConnected().
+            softphoneServerConnected().
             expectToBeSent();
 
         tester.registrationRequest().receiveResponse();
-        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().softphoneServerConnected().
-            registered().expectToBeSent();
+
+        tester.slavesNotification().
+            userDataFetched().
+            twoChannels().
+            webRTCServerConnected().
+            softphoneServerConnected().
+            registered().
+            expectToBeSent();
 
         tester.allowMediaInput();
-        tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
+
+        tester.slavesNotification().
+            userDataFetched().
+            twoChannels().
+            available().
+            expectToBeSent();
 
         tester.button('Софтфон').click();
-        tester.slavesNotification().additional().visible().expectToBeSent();
+
+        tester.slavesNotification().
+            additional().
+            visible().
+            expectToBeSent();
 
         tester.softphone.expectToBeExpanded();
         tester.phoneField.expectToBeVisible();
@@ -401,19 +454,15 @@ tests.addTest(options => {
             isNeedDisconnectSignal().
             receiveResponse();
 
-        tester.othersNotification().
-            widgetStateUpdate().
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
             expectToBeSent();
 
         tester.othersNotification().
             updateSettings().
             shouldPlayCallEndingSignal().
             anotherCustomRingtone().
-            expectToBeSent();
-
-        tester.slavesNotification().
-            twoChannels().
-            enabled().
             expectToBeSent();
 
         notificationTester.grantPermission();
@@ -495,19 +544,15 @@ tests.addTest(options => {
             isNeedDisconnectSignal().
             receiveResponse();
 
-        tester.othersNotification().
-            widgetStateUpdate().
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
             expectToBeSent();
 
         tester.othersNotification().
             updateSettings().
             shouldPlayCallEndingSignal().
             anotherCustomRingtone().
-            expectToBeSent();
-
-        tester.slavesNotification().
-            twoChannels().
-            enabled().
             expectToBeSent();
 
         notificationTester.grantPermission();

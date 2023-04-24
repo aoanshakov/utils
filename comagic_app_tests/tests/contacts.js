@@ -88,18 +88,14 @@ tests.addTest(options => {
                 beforeEach(function() {
                     settingsRequest.receiveResponse();
 
-                    tester.othersNotification().
-                        widgetStateUpdate().
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
                         expectToBeSent();
 
                     tester.othersNotification().
                         updateSettings().
                         shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        enabled().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket();
@@ -2711,19 +2707,14 @@ tests.addTest(options => {
                 beforeEach(function() {
                     settingsRequest.shouldHideNumbers().receiveResponse();
 
-                    tester.othersNotification().
-                        widgetStateUpdate().
-                        isNeedHideNumbers().
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
                         expectToBeSent();
 
                     tester.othersNotification().
                         updateSettings().
                         shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        enabled().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket();
@@ -2828,19 +2819,14 @@ tests.addTest(options => {
             it('Выбрано другое устройство для управления звонками.', function() {
                 settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
 
-                tester.othersNotification().
-                    widgetStateUpdate().
-                    isNotUsingWidgetForCalls().
+                tester.slavesNotification().
+                    twoChannels().
+                    disabled().
                     expectToBeSent();
 
                 tester.othersNotification().
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    disabled().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -2937,18 +2923,14 @@ tests.addTest(options => {
                     statusesRequest = tester.statusesRequest().expectToBeSent();
                     tester.settingsRequest().receiveResponse();
 
-                    tester.othersNotification().
-                        widgetStateUpdate().
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
                         expectToBeSent();
 
                     tester.othersNotification().
                         updateSettings().
                         shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        enabled().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket();
@@ -3340,19 +3322,15 @@ tests.addTest(options => {
                 tester.permissionsRequest().receiveResponse();
                 statusesRequest = tester.statusesRequest().expectToBeSent();
                 tester.settingsRequest().receiveResponse();
-
-                tester.othersNotification().
-                    widgetStateUpdate().
+                
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
                     expectToBeSent();
 
                 tester.othersNotification().
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-                
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -3474,18 +3452,14 @@ tests.addTest(options => {
                 statusesRequest = tester.statusesRequest().expectToBeSent();
                 tester.settingsRequest().receiveResponse();
 
-                tester.othersNotification().
-                    widgetStateUpdate().
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
                     expectToBeSent();
 
                 tester.othersNotification().
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -3621,18 +3595,14 @@ tests.addTest(options => {
                 statusesRequest = tester.statusesRequest().expectToBeSent();
                 tester.settingsRequest().receiveResponse();
 
-                tester.othersNotification().
-                    widgetStateUpdate().
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
                     expectToBeSent();
 
                 tester.othersNotification().
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -3766,18 +3736,14 @@ tests.addTest(options => {
                 statusesRequest = tester.statusesRequest().expectToBeSent();
                 tester.settingsRequest().receiveResponse();
 
-                tester.othersNotification().
-                    widgetStateUpdate().
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
                     expectToBeSent();
 
                 tester.othersNotification().
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -3931,18 +3897,14 @@ tests.addTest(options => {
             statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
 
-            tester.othersNotification().
-                widgetStateUpdate().
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
                 expectToBeSent();
 
             tester.othersNotification().
                 updateSettings().
                 shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -4036,18 +3998,14 @@ tests.addTest(options => {
             statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
 
-            tester.othersNotification().
-                widgetStateUpdate().
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
                 expectToBeSent();
 
             tester.othersNotification().
                 updateSettings().
                 shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -4138,18 +4096,14 @@ tests.addTest(options => {
             statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
 
-            tester.othersNotification().
-                widgetStateUpdate().
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
                 expectToBeSent();
             
             tester.othersNotification().
                 updateSettings().
                 shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -4260,18 +4214,14 @@ tests.addTest(options => {
             statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
 
-            tester.othersNotification().
-                widgetStateUpdate().
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
                 expectToBeSent();
 
             tester.othersNotification().
                 updateSettings().
                 shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -4378,18 +4328,14 @@ tests.addTest(options => {
             statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
 
-            tester.othersNotification().
-                widgetStateUpdate().
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
                 expectToBeSent();
 
             tester.othersNotification().
                 updateSettings().
                 shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -4491,18 +4437,14 @@ tests.addTest(options => {
             statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
 
-            tester.othersNotification().
-                widgetStateUpdate().
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
                 expectToBeSent();
 
             tester.othersNotification().
                 updateSettings().
                 shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();

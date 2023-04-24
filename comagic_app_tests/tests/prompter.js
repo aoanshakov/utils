@@ -78,21 +78,16 @@ tests.addTest(options => {
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
                 tester.statusesRequest().receiveResponse();
-
                 tester.settingsRequest().receiveResponse();
 
-                tester.othersNotification().
-                    widgetStateUpdate().
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
                     expectToBeSent();
 
                 tester.othersNotification().
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
                     expectToBeSent();
 
                 notificationTester.grantPermission();
@@ -143,6 +138,7 @@ tests.addTest(options => {
                 tester.unmaximizeMessage().expectToBeSent();
                 tester.resizeMessage().expectToBeSent();
                 tester.resizeMessage().expectToBeSent();
+                tester.settingsFetchedMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
             });
 
@@ -225,7 +221,7 @@ tests.addTest(options => {
                                     expectToBeSent();
 
                                 incomingCall.expectByeRequestToBeSent();
-                                tester.callSessionFinish().thirdId().slavesNotification().expectToBeSent();
+                                //tester.callSessionFinish().thirdId().slavesNotification().expectToBeSent();
                             });
 
                             it(
@@ -328,7 +324,7 @@ tests.addTest(options => {
                             incomingCall.expectByeRequestToBeSent();
 
                             tester.resizeMessage().expectToBeSent();
-                            tester.callSessionFinish().thirdId().slavesNotification().expectToBeSent();
+                            //tester.callSessionFinish().thirdId().slavesNotification().expectToBeSent();
 
                             tester.slavesNotification().
                                 available().
@@ -337,9 +333,13 @@ tests.addTest(options => {
                                 ended().
                                 expectToBeSent();
 
-                            tester.ipcPrompterCallPreparationMessage().anotherPhoneNumber().receive();
+                            tester.ipcPrompterCallPreparationMessage().
+                                anotherPhoneNumber().
+                                receive();
                             
-                            tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().
+                            tester.othersNotification().
+                                prompterCallPreparation().
+                                anotherPhoneNumber().
                                 expectToBeSent();
 
                             tester.ipcPrompterCallAwaitMessage().expectToBeSent();
@@ -636,18 +636,14 @@ tests.addTest(options => {
                         tester.statusesRequest().receiveResponse();
                         tester.settingsRequest().receiveResponse();
 
-                        tester.othersNotification().
-                            widgetStateUpdate().
+                        tester.slavesNotification().
+                            twoChannels().
+                            enabled().
                             expectToBeSent();
 
                         tester.othersNotification().
                             updateSettings().
                             shouldNotPlayCallEndingSignal().
-                            expectToBeSent();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            enabled().
                             expectToBeSent();
 
                         tester.connectEventsWebSocket(1);
@@ -698,6 +694,7 @@ tests.addTest(options => {
                             userDataFetched().
                             expectToBeSent();
 
+                        tester.settingsFetchedMessage().expectToBeSent();
                         tester.ipcPrompterCallAwaitMessage().expectToBeSent();
                         tester.settingsFetchedMessage().expectToBeSent();
 
@@ -782,19 +779,15 @@ tests.addTest(options => {
                     tester.permissionsRequest().receiveResponse();
                     tester.statusesRequest().receiveResponse();
                     tester.settingsRequest().receiveResponse();
-
-                    tester.othersNotification().
-                        widgetStateUpdate().
+                    
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
                         expectToBeSent();
 
                     tester.othersNotification().
                         updateSettings().
                         shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-                    
-                    tester.slavesNotification().
-                        twoChannels().
-                        enabled().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket(1);
@@ -840,6 +833,7 @@ tests.addTest(options => {
                         userDataFetched().
                         expectToBeSent();
 
+                    tester.settingsFetchedMessage().expectToBeSent();
                     tester.settingsFetchedMessage().expectToBeSent();
 
                     let incomingCall = tester.incomingCall().receive();
@@ -1059,19 +1053,14 @@ tests.addTest(options => {
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.othersNotification().
-                    widgetStateUpdate().
-                    fixedNumberCapacityRule().
-                    expectToBeSent();
-
-                tester.othersNotification().
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 notificationTester.grantPermission();
 
-                tester.authenticatedUserRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
 
                 tester.slavesNotification().
                     userDataFetched().
@@ -1083,6 +1072,7 @@ tests.addTest(options => {
                 tester.unmaximizeMessage().expectToBeSent();
                 tester.resizeMessage().expectToBeSent();
                 tester.resizeMessage().expectToBeSent();
+                tester.settingsFetchedMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
 
                 tester.button('Софтфон').click();
@@ -1127,10 +1117,6 @@ tests.addTest(options => {
                         tester.settingsRequest().receiveResponse();
 
                         tester.notificationChannel().tellIsLeader().expectToBeSent();
-
-                        tester.othersNotification().
-                            widgetStateUpdate().
-                            expectToBeSent();
 
                         tester.othersNotification().
                             updateSettings().
@@ -1183,6 +1169,7 @@ tests.addTest(options => {
                             receive();
 
                         tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+                        tester.settingsFetchedMessage().expectToBeSent();
                         tester.settingsFetchedMessage().expectToBeSent();
 
                         tester.slavesNotification().
@@ -1259,10 +1246,6 @@ tests.addTest(options => {
                     tester.notificationChannel().tellIsLeader().expectToBeSent();
 
                     tester.othersNotification().
-                        widgetStateUpdate().
-                        expectToBeSent();
-
-                    tester.othersNotification().
                         updateSettings().
                         shouldNotPlayCallEndingSignal().
                         expectToBeSent();
@@ -1307,6 +1290,7 @@ tests.addTest(options => {
                         userDataFetched().
                         receive();
 
+                    tester.settingsFetchedMessage().expectToBeSent();
                     tester.settingsFetchedMessage().expectToBeSent();
 
                     tester.slavesNotification().

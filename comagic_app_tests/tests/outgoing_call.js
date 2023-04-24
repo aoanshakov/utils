@@ -74,24 +74,18 @@ tests.addTest(options => {
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
             statusesRequest = tester.statusesRequest().expectToBeSent();
-            settingsRequest = tester.settingsRequest().expectToBeSent();
+            tester.settingsRequest().receiveResponse();
 
             notificationTester.grantPermission();
 
-            settingsRequest.receiveResponse();
-
-            tester.othersNotification().
-                widgetStateUpdate().
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
                 expectToBeSent();
 
             tester.othersNotification().
                 updateSettings().
                 shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -489,11 +483,6 @@ tests.addTest(options => {
 
                                     incomingCall.expectBusyHereToBeSent();
 
-                                    tester.callSessionFinish().
-                                        thirdId().
-                                        slavesNotification().
-                                        expectToBeSent();
-
                                     tester.softphone.expectToHaveTextContent(
                                         'Шалева Дора ' +
                                         '+7 (916) 123-45-67 00:00'
@@ -558,11 +547,6 @@ tests.addTest(options => {
                                     expectToBeSent();
 
                                 outgoingCall.expectCancelToBeSent();
-
-                                tester.callSessionFinish().
-                                    thirdId().
-                                    slavesNotification().
-                                    expectToBeSent();
 
                                 tester.phoneField.fill('79161234567');
                                 tester.phoneField.expectToHaveValue('79161234567');
@@ -635,11 +619,6 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         outgoingCall.expectCancelToBeSent();
-
-                        tester.callSessionFinish().
-                            thirdId().
-                            slavesNotification().
-                            expectToBeSent();
 
                         tester.phoneField.fill('79161234567');
                         tester.phoneField.expectToHaveValue('79161234567');

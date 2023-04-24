@@ -81,18 +81,14 @@ tests.addTest(options => {
                 statusesRequest = tester.statusesRequest().expectToBeSent();
                 tester.settingsRequest().receiveResponse();
 
-                tester.othersNotification().
-                    widgetStateUpdate().
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
                     expectToBeSent();
 
                 tester.othersNotification().
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -227,18 +223,14 @@ tests.addTest(options => {
                         anotherAuthorizationToken().
                         receiveResponse();
 
-                    tester.othersNotification().
-                        widgetStateUpdate().
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
                         expectToBeSent();
 
                     tester.othersNotification().
                         updateSettings().
                         shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        enabled().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket(1);
@@ -326,6 +318,8 @@ tests.addTest(options => {
                 });
                 it('Добавлен новый статус. Отображен добавленный статус.', function() {
                     tester.statusChangedEvent().receive();
+                    tester.statusChangedEvent().slavesNotification().expectToBeSent();
+
                     tester.body.expectTextContentToHaveSubstring('Воронка 00:00:00');
                 });
                 it('Отображена статистика звонков.', function() {
@@ -449,18 +443,14 @@ tests.addTest(options => {
             statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
 
-            tester.othersNotification().
-                widgetStateUpdate().
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
                 expectToBeSent();
 
             tester.othersNotification().
                 updateSettings().
                 shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -548,8 +538,9 @@ tests.addTest(options => {
             statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
 
-            tester.othersNotification().
-                widgetStateUpdate().
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
                 expectToBeSent();
 
             tester.othersNotification().
@@ -557,16 +548,20 @@ tests.addTest(options => {
                 shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
+            tester.connectEventsWebSocket();
+
             tester.slavesNotification().
                 twoChannels().
                 enabled().
+                softphoneServerConnected().
                 expectToBeSent();
 
-            tester.connectEventsWebSocket();
-            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
-
             tester.connectSIPWebSocket();
-            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
                 expectToBeSent();
 
             notificationTester.grantPermission();

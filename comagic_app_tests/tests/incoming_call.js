@@ -83,16 +83,15 @@ tests.addTest(options => {
             beforeEach(function() {
                 settingsRequest.receiveResponse();
 
-                tester.othersNotification().
-                    widgetStateUpdate().
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
                     expectToBeSent();
 
                 tester.othersNotification().
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
                     expectToBeSent();
-
-                tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
                 tester.connectEventsWebSocket();
 
@@ -295,8 +294,8 @@ tests.addTest(options => {
                                             tester.softphone.expectToHaveTextContent(
                                                 'Сотрудники Группы ' +
 
-                                                'Господинова Николина 29 5 ' +
-                                                'Божилова Йовка 29 6'
+                                                'Божилова Йовка 29 6 ' +
+                                                'Господинова Николина 29 5'
                                             );
                                         });
                                     });
@@ -1135,17 +1134,15 @@ tests.addTest(options => {
                         shouldCloseWidgetOnCallFinished().
                         receiveResponse();
 
-                    tester.othersNotification().
-                        widgetStateUpdate().
-                        shouldCloseWidgetOnCallFinished().
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
                         expectToBeSent();
 
                     tester.othersNotification().
                         updateSettings().
                         shouldNotPlayCallEndingSignal().
                         expectToBeSent();
-
-                    tester.slavesNotification().twoChannels().enabled().expectToBeSent();
 
                     tester.connectEventsWebSocket();
 
@@ -1287,22 +1284,18 @@ tests.addTest(options => {
             });
             describe('Включено управление звонками на другом устройстве.', function() {
                 beforeEach(function() {
-                    settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+                    settingsRequest.
+                        callsAreManagedByAnotherDevice().
+                        receiveResponse();
 
-                    tester.othersNotification().
-                        widgetStateUpdate().
-                        isNotUsingWidgetForCalls().
-                        shouldCloseWidgetOnCallFinished().
+                    tester.slavesNotification().
+                        twoChannels().
+                        disabled().
                         expectToBeSent();
 
                     tester.othersNotification().
                         updateSettings().
                         shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        disabled().
                         expectToBeSent();
 
                     notificationTester.grantPermission();

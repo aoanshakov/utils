@@ -80,13 +80,15 @@ tests.addTest(options => {
                     allowNumberCapacitySelect().
                     receiveResponse();
 
-                tester.othersNotification().widgetStateUpdate().fixedNumberCapacityRule().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+                tester.othersNotification().
+                    updateSettings().
+                    shouldNotPlayCallEndingSignal().
+                    expectToBeSent();
 
                 notificationTester.grantPermission();
 
-                tester.authenticatedUserRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
                 tester.slavesNotification().
@@ -397,18 +399,14 @@ tests.addTest(options => {
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
 
-                tester.othersNotification().
-                    widgetStateUpdate().
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
                     expectToBeSent();
 
                 tester.othersNotification().
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -503,18 +501,14 @@ tests.addTest(options => {
                 tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
 
-                tester.othersNotification().
-                    widgetStateUpdate().
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
                     expectToBeSent();
 
                 tester.othersNotification().
                     updateSettings().
                     shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -588,7 +582,17 @@ tests.addTest(options => {
                 tester.phoneField.expectToBeVisible();
             });
             it('Получен запрос выбора номера от другой вкладки.', function() {
-                tester.othersNotification().numberCapacityUpdate().receive();
+                tester.othersNotification().
+                    widgetStateUpdate().
+                    fixedNumberCapacityRule().
+                    anotherNumberCapacity().
+                    receive();
+
+                tester.othersNotification().
+                    updateSettings().
+                    shouldNotPlayCallEndingSignal().
+                    expectToBeSent();
+
                 tester.select.expectToHaveTextContent('+7 (916) 123-89-29');
             });
             it('Выбран другой статус. Отображен выбранный статус.', function() {
@@ -664,13 +668,15 @@ tests.addTest(options => {
                     allowNumberCapacitySelect().
                     receiveResponse();
 
-                tester.othersNotification().widgetStateUpdate().fixedNumberCapacityRule().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldNotPlayCallEndingSignal().expectToBeSent();
+                tester.othersNotification().
+                    updateSettings().
+                    shouldNotPlayCallEndingSignal().
+                    expectToBeSent();
 
                 notificationTester.grantPermission();
 
-                tester.authenticatedUserRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
                 reportGroupsRequest.receiveResponse();
             });
 

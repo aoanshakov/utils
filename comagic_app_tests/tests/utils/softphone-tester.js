@@ -2512,6 +2512,9 @@ define(function () {
         this.connectEventsWebSocket = function (index) {
             this.getEventsWebSocket(index).connect();
             Promise.runAll(false, true);
+            spendTime(0);
+            spendTime(0);
+            spendTime(0);
         };
 
         this.expectBrowserIdToHaveKnownValue = function (browser_id) {
@@ -3959,6 +3962,7 @@ define(function () {
 
                             checkFromAndToHeaders(sip.recentRequest().expectToHaveMethod('ACK'));
 
+                            /*
                             me.eventsWebSocket.receiveMessage({
                                 name: 'employee_changed',
                                 type: 'event',
@@ -3970,6 +3974,7 @@ define(function () {
                                     }] 
                                 }
                             });
+                            */
 
                             Promise.runAll(false, true);
 
@@ -4250,6 +4255,7 @@ define(function () {
 
                     spendTime(0);
 
+                    /*
                     me.eventsWebSocket.receiveMessage({
                         name: 'employee_changed',
                         type: 'event',
@@ -4261,6 +4267,7 @@ define(function () {
                             }]
                         }
                     });
+                    */
 
                     spendTime(0);
 
@@ -4494,6 +4501,13 @@ define(function () {
                 }]
             };
 
+            const createMessage = () => ({
+                type: 'event',
+                id: 'e24bcc05529d4ae19674bd4163f0b6a7',
+                name: 'status_changed',
+                params
+            });
+
             return {
                 updateRemoved() {
                     params.action = 'update';
@@ -4537,14 +4551,25 @@ define(function () {
                     return this;
                 },
 
-                receive: () => {
-                    eventsWebSocket.receiveMessage({
-                        type: 'event',
-                        id: 'e24bcc05529d4ae19674bd4163f0b6a7',
-                        name: 'status_changed',
-                        params
-                    });
+                slavesNotification: function () {
+                    return {
+                        expectToBeSent: function () {
+                            me.recentCrosstabMessage().expectToContain({
+                                type: 'message',
+                                data: {
+                                    type: 'notify_slaves',
+                                    data: {
+                                        type: 'websocket_message',
+                                        message: createMessage(),
+                                    }
+                                }
+                            });
+                        }
+                    };
+                },
 
+                receive: () => {
+                    eventsWebSocket.receiveMessage(createMessage());
                     spendTime(0);
                 }
             }
@@ -4552,17 +4577,19 @@ define(function () {
 
         this.requestCallFinish = function () {
             sip.recentRequest().expectToHaveMethod('BYE').response().send();
-            finishCall();
+            spendTime(0);
+            //finishCall();
         };
 
         this.requestCancelOutgoingCall = function () {
             sip.recentRequest().expectToHaveMethod('CANCEL').response().send();
-            finishCall();
+            //finishCall();
         };
 
         this.requestDeclineIncomingCall = function () {
             sip.recentResponse().expectBusy();
-            finishCall();
+            spendTime(0);
+            //finishCall();
         };
 
         this.tabStateChangeMessage = function () {
@@ -6825,6 +6852,15 @@ define(function () {
                 }
 
                 var me = addMethods(extendOthersNotification({
+                    anotherNumberCapacity: function () {
+                        processors.push(() => {
+                            data.params.numb = '79161238929';
+                            data.params.number_capacity_id = 124825;
+                            data.params.number_capacity_comment = 'Некий номер';
+                        });
+
+                        return this;
+                    },
                     undefinedOpeningWidgetOnCallSetting: function () {
                         processors.push(() => delete(data.params.is_need_open_widget_on_call));
                         return this;
@@ -7000,7 +7036,6 @@ define(function () {
                         var settings = softphoneTester.getApplicationSpecificSettings();
 
                         settings.sip = {
-                            engine: null,
                             webrtc_urls: Array.isArray(webRtcUrl) ? webRtcUrl : [webRtcUrl],
                             sip_login: settings.sip_login,
                             sip_host: settings.sip_host,
@@ -7316,44 +7351,50 @@ define(function () {
         };
 
         this.employeeChangedEvent = function () {
+            const data = {
+                id: 20816
+            };
+
             const message = {
                 type: 'event',
                 name: 'employee_changed',
                 params: {
                     action: 'update',
-                    data: [{
-                        id: 20816
-                    }]
+                    data: [data]
                 }
             };
 
             return {
+                wrongStructure: function () {
+                    message.params.data = data;
+                    return this;
+                },
                 isSipOnline: function () {
-                    message.params.data[0].is_sip_online = true;
+                    data.is_sip_online = true;
                     return this;
                 },
                 thirdEmployee: function () {
-                    message.params.data[0].id = 583783;
+                    data.id = 583783;
                     return this;
                 },
                 isAnotherEmployee: function () {
-                    message.params.data[0].id = 1762;
+                    data.id = 1762;
                     return this;
                 },
                 secondStatus: function() {
-                    message.params.data[0].status_id = 4;
+                    data.status_id = 4;
                     return this;
                 },
                 anotherStatus: function() {
-                    message.params.data[0].status_id = 2;
+                    data.status_id = 2;
                     return this;
                 },
                 isNeedHideNumbers: function () {
-                    message.params.data[0].is_need_hide_numbers = true;
+                    data.is_need_hide_numbers = true;
                     return this;
                 },
                 isNotNeedHideNumbers: function () {
-                    message.params.data[0].is_need_hide_numbers = false;
+                    data.is_need_hide_numbers = false;
                     return this;
                 },
                 slavesNotification: function () {
