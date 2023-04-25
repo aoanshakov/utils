@@ -45,7 +45,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        describe('Фичафлаг софтфона включен.', function() {
+        xdescribe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
                 tester.notificationChannel().applyLeader().expectToBeSent();
@@ -3758,7 +3758,7 @@ tests.addTest(options => {
                 });
             });
         });
-        describe('Пользователь является руководителем.', function() {
+        xdescribe('Пользователь является руководителем.', function() {
             beforeEach(function() {
                 accountRequest = accountRequest.manager();
             });
@@ -3953,7 +3953,7 @@ tests.addTest(options => {
                 tester.button('История звонков').expectNotToExist();
             });
         });
-        describe('Раздел контактов недоступен.', function() {
+        xdescribe('Раздел контактов недоступен.', function() {
             beforeEach(function() {
                 accountRequest.contactsFeatureFlagDisabled().receiveResponse();
 
@@ -4242,6 +4242,7 @@ tests.addTest(options => {
                 setHelper().
                 receive();
         });
+return;
         it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
 

@@ -110,10 +110,20 @@ index 57ad272..166fd36 100644
      }))
      .actions(self => {
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 17e5a68..ea4743d 100644
+index 17e5a68..8e6f31d 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -27,7 +27,7 @@ const AUTH_KEY: string = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_C
+@@ -1,8 +1,7 @@
+ import { types, flow, getRoot } from 'mobx-state-tree';
+ import type { RootInstance } from '../RootStore';
+ import { authHttpRpc } from '@/httpRpc';
+-import { generateTraceId } from '@/utils';
+-import { getCookie, setCookie, deleteCookie } from '@comagic/core';
++import { generateTraceId, getCookie, setCookie, deleteCookie } from '@/utils';
+ 
+ const getCookieDomain = () => {
+     return window.location.hostname.split('.').slice(-2).join('.');
+@@ -27,7 +26,7 @@ const AUTH_KEY: string = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_C
  
  export const AuthStore = types
      .model('AuthStore', {

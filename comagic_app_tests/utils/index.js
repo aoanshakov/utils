@@ -78,13 +78,12 @@ const cda = `cd ${application} &&`,
     actions = {},
     packageJson = 'package.json',
     magicUiOverridenFiles = packageJson,
+    coreOverridenFiles = packageJson,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
     contactsOverridenFiles = packageJson,
     softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
-
-const coreOverridenFiles = 'package.json src/utils/cookie.ts';
 
 const chatOverridenFiles = 'src/models/RootStore.ts ' +
     'package.json ' +
@@ -99,10 +98,14 @@ const analyticsOverridenFiles = 'src/models/RootStore.ts ' +
 
 const overridenFiles = [
     'scripts/dev.js',
+    'src/utils/cookie.ts',
     'public/index.html',
+    'src/bootstrap.tsx',
     'config/webpack.config.js',
     'package.json',
+    'src/models/RootStore.ts',
     'src/models/auth/AuthStore.ts',
+    'src/rpc/httpRpc.ts'
 ].join(' ');
 
 actions['install-publisher'] = [`cd ${publisherDir} && npm install --verbose`];
