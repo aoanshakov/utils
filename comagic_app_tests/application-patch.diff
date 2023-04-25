@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0ccc4cb1..76c412b7 100644
+index 0ccc4cb1..064e688a 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 0ccc4cb1..76c412b7 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -344,17 +414,141 @@ module.exports = {
+@@ -344,17 +414,148 @@ module.exports = {
                      },
                  ],
              },
@@ -191,6 +191,13 @@ index 0ccc4cb1..76c412b7 100644
 +                        }
 +                    }
 +                }]
++            },
++            {
++                test: require.resolve('janus-gateway'),
++                loader: 'exports-loader',
++                options: {
++                    exports: 'Janus'
++                }
 +            },
          ],
      },
