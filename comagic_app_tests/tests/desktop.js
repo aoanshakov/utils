@@ -1697,20 +1697,19 @@ tests.addTest(options => {
                                             recentlySentMessage().
                                             expectToBeSentToChannel('maximize');
                                         
-                                        tester.chatSettingsRequest().receiveResponse();
-                                        tester.chatChannelListRequest().receiveResponse();
-                                        tester.statusListRequest().receiveResponse();
-                                        tester.listRequest().receiveResponse();
-                                        tester.siteListRequest().receiveResponse();
-                                        tester.messageTemplateListRequest().receiveResponse();
-
                                         const requests = ajax.inAnyOrder();
-
+                                        
                                         const accountRequest = tester.accountRequest().
                                             operatorWorkplaceAvailable().
-                                            forChats().
                                             expectToBeSent(requests);
 
+                                        const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
+                                        const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+                                        const statusListRequest = tester.statusListRequest().expectToBeSent(requests);
+                                        const listRequest = tester.listRequest().expectToBeSent(requests);
+                                        const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+                                        const messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
+                                        
                                         const secondAccountRequest = tester.accountRequest().
                                             operatorWorkplaceAvailable().
                                             forChats().
@@ -1718,11 +1717,18 @@ tests.addTest(options => {
 
                                         const thirdAccountRequest = tester.accountRequest().
                                             operatorWorkplaceAvailable().
+                                            forChats().
                                             expectToBeSent(requests);
 
                                         requests.expectToBeSent();
 
                                         accountRequest.receiveResponse();
+                                        chatSettingsRequest.receiveResponse();
+                                        chatChannelListRequest.receiveResponse();
+                                        statusListRequest.receiveResponse();
+                                        listRequest.receiveResponse();
+                                        siteListRequest.receiveResponse();
+                                        messageTemplateListRequest.receiveResponse();
                                         secondAccountRequest.receiveResponse();
                                         thirdAccountRequest.receiveResponse();
 
@@ -2418,26 +2424,40 @@ tests.addTest(options => {
                                 recentlySentMessage().
                                 expectToBeSentToChannel('maximize');
 
-                            tester.chatSettingsRequest().receiveResponse();
-                            tester.chatChannelListRequest().receiveResponse();
-                            tester.statusListRequest().receiveResponse();
-                            tester.listRequest().receiveResponse();
-                            tester.siteListRequest().receiveResponse();
-                            tester.messageTemplateListRequest().receiveResponse();
+                            const requests = ajax.inAnyOrder();
                             
-                            tester.accountRequest().
+                            const accountRequest = tester.accountRequest().
+                                operatorWorkplaceAvailable().
+                                expectToBeSent(requests);
+
+                            const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
+                            const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+                            const statusListRequest = tester.statusListRequest().expectToBeSent(requests);
+                            const listRequest = tester.listRequest().expectToBeSent(requests);
+                            const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+                            const messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
+                            
+                            const secondAccountRequest = tester.accountRequest().
                                 operatorWorkplaceAvailable().
                                 forChats().
-                                receiveResponse();
+                                expectToBeSent(requests);
 
-                            tester.accountRequest().
+                            const thirdAccountRequest = tester.accountRequest().
                                 operatorWorkplaceAvailable().
                                 forChats().
-                                receiveResponse();
+                                expectToBeSent(requests);
 
-                            tester.accountRequest().
-                                operatorWorkplaceAvailable().
-                                receiveResponse();
+                            requests.expectToBeSent();
+
+                            accountRequest.receiveResponse();
+                            chatSettingsRequest.receiveResponse();
+                            chatChannelListRequest.receiveResponse();
+                            statusListRequest.receiveResponse();
+                            listRequest.receiveResponse();
+                            siteListRequest.receiveResponse();
+                            messageTemplateListRequest.receiveResponse();
+                            secondAccountRequest.receiveResponse();
+                            thirdAccountRequest.receiveResponse();
 
                             tester.offlineMessageCountersRequest().newMessage().receiveResponse();
                             tester.chatChannelListRequest().receiveResponse();
@@ -2768,6 +2788,8 @@ tests.addTest(options => {
 
                 tester.collapsednessToggleButton.expectToBeVisible();
                 tester.maximizednessButton.expectNotToExist();
+            });
+            it('', function() {
             });
             it('Софтфон недоступен. Отображена форма аутентификации.', function() {
                 accountRequest.

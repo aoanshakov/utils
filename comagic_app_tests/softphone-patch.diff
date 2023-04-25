@@ -1,5 +1,5 @@
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 91a06ca..bd6ad87 100644
+index 91a06ca..211a09d 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -15,6 +15,7 @@ import {
@@ -33,19 +33,27 @@ index 91a06ca..bd6ad87 100644
      })
      .views(self => ({
          i18n: key => intlMessages(self.locale)[key],
-@@ -322,11 +316,6 @@ export const RootStore = types
+@@ -321,17 +315,13 @@ export const RootStore = types
+                     authStore = args.authStore;
                      const accessGranted = getSoftphoneAvailability(accountStore),
                          account = accountStore.toJSON()?.account;
- 
+-
 -                    handleModuleAvailabilityGetterFetched({
 -                        moduleAvailability: self.moduleAvailability,
 -                        accountStore,
 -                    })('chats', import('chats/isWorkplaceAllowed'));
--
++                    self.setAccount(account);
+ 
                      accessGranted && accountFetchedHandlers.forEach(handler => handler(accountStore));
                      updateState({ accessGranted });
  
-@@ -674,4 +663,5 @@ export const RootStore = types
+                     account?.app_id && isSingleApp && !accessGranted && logout();
+-                    self.setAccount(account);
++
+                     localStorage.getItem('isLarge') === 'true' && self.setIsLarge();
+ 
+                     const areVirtualNumberGroupsEnabled = ['usa', 'rolands'].includes(account?.project);
+@@ -674,4 +664,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

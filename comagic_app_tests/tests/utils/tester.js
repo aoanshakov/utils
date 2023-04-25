@@ -10982,6 +10982,8 @@ define(() => function ({
                         spendTime(0);
                         spendTime(0);
                         spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
                     }
                 });
 
@@ -11076,8 +11078,8 @@ define(() => function ({
                 return this;
             },
 
-            receiveResponse() {
-                ajax.recentRequest().
+            expectToBeSent() {
+                const request = ajax.recentRequest().
                     expectPathToContain('$REACT_APP_AUTH_URL').
                     expectToHaveMethod('POST').
                     expectBodyToContain({
@@ -11087,14 +11089,23 @@ define(() => function ({
                             password: '8Gls8h31agwLf5k',
                             project: 'comagic'
                         }
-                    }).
-                    respondSuccessfullyWith(response);
+                    });
 
-                Promise.runAll(false, true);
-                spendTime(0)
-                spendTime(0);
-                spendTime(0);
-                spendTime(0);
+                return {
+                    receiveResponse() {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                    }
+                };
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
             }
         };
     };

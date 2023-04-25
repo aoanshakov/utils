@@ -372,6 +372,10 @@ tests.addTest(options => {
                 tester.loginRequest().receiveResponse();
                 tester.accountRequest().receiveResponse();
 
+                tester.reportGroupsRequest().receiveResponse();
+                tester.reportsListRequest().receiveResponse();
+                tester.reportTypesRequest().receiveResponse();
+
                 const requests = ajax.inAnyOrder();
 
                 const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
@@ -381,10 +385,6 @@ tests.addTest(options => {
 
                 authCheckRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
-
-                tester.reportGroupsRequest().receiveResponse();
-                tester.reportsListRequest().receiveResponse();
-                tester.reportTypesRequest().receiveResponse();
 
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
@@ -457,9 +457,14 @@ tests.addTest(options => {
                 'Сессионная кука еще не удалена. На ведущей вкладке был совершен выход из софтфона. Отображается ' +
                 'форма аутентификации.',
             function() {
-                tester.slavesNotification().userDataFetched().twoChannels().microphoneAccessGranted().
-                    destroyed().enabled().receive();
-
+                tester.slavesNotification().
+                    userDataFetched().
+                    twoChannels().
+                    microphoneAccessGranted().
+                    destroyed().
+                    enabled().
+                    receive();
+                
                 tester.masterInfoMessage().leaderDeath().expectToBeSent();
                 tester.masterInfoMessage().leaderDeath().receive();
 
@@ -473,6 +478,10 @@ tests.addTest(options => {
 
                 tester.loginRequest().receiveResponse();
                 tester.accountRequest().receiveResponse();
+
+                tester.reportGroupsRequest().receiveResponse();
+                tester.reportsListRequest().receiveResponse();
+                tester.reportTypesRequest().receiveResponse();
 
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().expectToBeSent();
@@ -491,10 +500,6 @@ tests.addTest(options => {
 
                 authCheckRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
-
-                tester.reportGroupsRequest().receiveResponse();
-                tester.reportsListRequest().receiveResponse();
-                tester.reportTypesRequest().receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();

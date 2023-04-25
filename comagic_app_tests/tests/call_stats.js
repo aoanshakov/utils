@@ -192,24 +192,15 @@ tests.addTest(options => {
                     tester.slavesNotification().additional().expectToBeSent();
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-                    const requests = ajax.inAnyOrder();
-
-                    const statsRequest = tester.statsRequest().
-                        anotherAuthorizationToken().expectToBeSent(requests);
-                    const secondAccountRequest = tester.accountRequest().
-                        anotherAuthorizationToken().expectToBeSent(requests);
-                    const authCheckRequest = tester.authCheckRequest().
-                        anotherAuthorizationToken().expectToBeSent(requests);
-
-                    requests.expectToBeSent();
-
-                    statsRequest.receiveResponse();
-                    secondAccountRequest.receiveResponse();
-                    authCheckRequest.receiveResponse();
+                    tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+                    tester.statsRequest().anotherAuthorizationToken().receiveResponse();
 
                     tester.reportGroupsRequest().anotherAuthorizationToken().receiveResponse();
                     tester.reportsListRequest().receiveResponse();
                     tester.reportTypesRequest().receiveResponse();
+
+                    tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
+
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
 

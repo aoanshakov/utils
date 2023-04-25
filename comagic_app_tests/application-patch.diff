@@ -421,7 +421,7 @@ index 54c1319c..abc75561 100644
          historyApiFallback: true,
      },
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 600884d5..07605c0c 100644
+index 600884d5..5c894b3b 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,18 @@
@@ -473,7 +473,7 @@ index 600884d5..07605c0c 100644
 +            setReactDOM(ReactDOM);
 +            setEventBus(eventBus);
 +            createRootStore();
-+            !appName && setChatsRootStore(createChatsRootStore());
++            setChatsRootStore(createChatsRootStore());
 +            createSoftphoneRootStore();
 +            createContactsRootStore();
 +            setHistory(history);
@@ -502,10 +502,75 @@ index 600884d5..07605c0c 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 17d9d435..e6198926 100644
+index 17d9d435..d3dc0b4c 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -239,7 +239,7 @@ export const RootStore = types
+@@ -39,55 +39,6 @@ const getIpcRender = () => (
+     send: () => null
+ };
+ 
+-const createSoftphoneStoreCreatingHandler = rootStore => {
+-    let isLargeCurrently = false;
+-
+-    let handleStoreCreating = store => {
+-        [{
+-            channelName: 'checkautolauncher',
+-            paramName: 'isStartApp',
+-            setParamValue: 'setStartApp'
+-        }, {
+-            channelName: 'checkstartminimize',
+-            paramName: 'isStartMinimize',
+-            setParamValue: 'setStartMinimize'
+-        }].forEach(({channelName, paramName, setParamValue}) =>
+-            getIpcRender().on(channelName, (event, data) => store[setParamValue]((data || {})[paramName])));
+-
+-        getIpcRender().send('app-ready');
+-
+-        getIpcRender().on('update-downloaded', () => store.showMessage({
+-            id: 'update-downloaded',
+-            title: 'Update received',
+-            buttons: [{
+-                id: 'update',
+-                text: 'Update',
+-                handler: () => getIpcRender().send('quit-and-install')
+-            }]
+-        }));
+-
+-        getIpcRender().on('maximize', () => store.setIsLarge());
+-        getIpcRender().on('unmaximize', () => store.setNotLarge());
+-
+-        store.onLargenessChange(isLarge => {
+-            rootStore.setLarge(isLarge);
+-
+-            isLarge != isLargeCurrently && getIpcRender().send(isLarge ? 'maximize' : 'unmaximize');
+-            isLargeCurrently = isLarge;
+-        });
+-
+-        store.onApplicationChangeChanger(data => getIpcRender().send(
+-            'application-version-changed',
+-            data?.params?.application_version
+-        ));
+-
+-        store.onSizeChange(size => getIpcRender().send('resize', size));
+-        handleStoreCreating = () => null;
+-    };
+-
+-    return store => handleStoreCreating(store);
+-};
+-
+ const log = (...messages) => getIpcRender().send('log', messages.map(
+     message => typeof message == 'object' ? JSON.stringify(message) : `${message}`
+ ).join(' ').trim());
+@@ -100,7 +51,7 @@ window.addEventListener('error', function(event) {
+ export const RootStore = types
+     .model('RootStore', {
+         isSoftphoneVisible: types.optional(types.boolean, true),
+-        isLarge: types.optional(types.boolean, false),
++        isMaximized: types.optional(types.boolean, false),
+         isGodMode: types.optional(types.boolean, isGodMode()),
+         isIpDisallowed: types.optional(types.boolean, false),
+         isLogDownloading: types.optional(types.boolean, false),
+@@ -239,7 +190,7 @@ export const RootStore = types
                  }
              );
  
@@ -514,15 +579,101 @@ index 17d9d435..e6198926 100644
                  response => {
                      logRequest({response});
  
-@@ -304,6 +304,7 @@ export const RootStore = types
+@@ -286,8 +237,6 @@ export const RootStore = types
+             );
+         };
+ 
+-        let setAppStore = () => null;
+-
+         const downloadLog = () => {
+             self.isLogDownloading = true;
+             getIpcRender().send('collect_logs');
+@@ -302,24 +251,66 @@ export const RootStore = types
+         };
+ 
          const afterCreate = () => {
++            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
++
++            let isMaximizedCurrently = false;
              removeSubscriptions();
  
-+            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
-             initialState = getSnapshot(self);
+-            initialState = getSnapshot(self);
++            const maximizednessChangeHandler = (isMaximized: boolean) => {
++                self.setMaximized(isMaximized);
++
++                isMaximized !== isMaximizedCurrently && getIpcRender().send(isMaximized ? 'maximize' : 'unmaximize');
++                isMaximizedCurrently = isMaximized;
++            };
  
              setHttpRequestsDefault();
-@@ -345,7 +346,8 @@ export type DependencyInjection = {
+ 
+-            getIpcRender().on('logs_collected', (event, data) => self.handleLogsCollected(data));
+-            setAppStore = createSoftphoneStoreCreatingHandler(self);
++            subscribe('call_start', (toTopOnCall: string) => {
++                getIpcRender().send('call-start', toTopOnCall);
++                toTopOnCall && self.setSoftphoneVisiblity(true);
++            });
++
++            subscribe('call_end', (closeOnCallEnd: string) => {
++                getIpcRender().send('call-end', closeOnCallEnd);
++                closeOnCallEnd && self.setSoftphoneVisiblity(false);
++            });
++
++            subscribe('log', log);
++            subscribe('collect_logs', () => self.downloadLog());
++            subscribe('quit_and_install', () => getIpcRender().send('quit-and-install'));
++            subscribe('maximize', () => maximizednessChangeHandler(true));
++            subscribe('unmaximize', () => maximizednessChangeHandler(false));
++            subscribe('resize', size => getIpcRender().send('resize', size));
++            subscribe('startminimizechange', value => getIpcRender().send('startminimizechange', value));
++            subscribe('autolauncherchange', value => getIpcRender().send('autolauncherchange', value));
++
++            subscribe('app_ready', () => {
++                getIpcRender().on('checkautolauncher', (event, data) =>
++                    eventBus.broadcast('checkautolauncher', (data as { isStartApp: boolean }).isStartApp));
++
++                getIpcRender().on('checkstartminimize', (event, data) =>
++                    eventBus.broadcast('checkstartminimize', (data as { isStartMinimize: boolean }).isStartMinimize)
++                );
++
++                getIpcRender().on('update-downloaded', () => eventBus.broadcast('update_downloaded'));
++                getIpcRender().on('maximize', () => eventBus.broadcast('maximize'));
++                getIpcRender().on('unmaximize', () => eventBus.broadcast('unmaximize'));
++
++                getIpcRender().send('app-ready');
++            });
++
++            initialState = getSnapshot(self);
++            getIpcRender().on('logs_collected', (event, data) => self.handleLogsCollected(data as BlobPart));
+         };
+ 
+         const resetStore = () => {
+             applySnapshot(self, {
+-                initialState,
+-                isLarge: self.isLarge
++                ...initialState,
++                isMaximized: self.isMaximized
+             });
+         };
+ 
+-        const setLarge = value => (self.isLarge = value);
++        const setMaximized = value => (self.isMaximized = value);
+ 
+         self.fileLogger = {
+             downloadLog: () => self.downloadLog(),
+@@ -329,10 +320,9 @@ export const RootStore = types
+         return {
+             afterCreate,
+             resetStore,
+-            setLarge,
++            setMaximized,
+             downloadLog,
+             handleLogsCollected,
+-            setAppStore: store => setAppStore(store),
+             toggleSoftphoneVisiblity,
+             setSoftphoneVisiblity,
+         };
+@@ -345,7 +335,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -533,10 +684,20 @@ index 17d9d435..e6198926 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 2568744f..ec707c3a 100644
+index 2568744f..08552ce9 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -93,7 +93,7 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -4,8 +4,7 @@ import { flow, getEnv, getRoot, types } from 'mobx-state-tree';
+ 
+ import { getProject } from '@/i18n';
+ import { cancelPendingRequests } from '@/rpc/httpRpc';
+-import { deleteCookie, getCookie, setCookie } from '@/utils';
+-import { generateTraceId } from '@/utils';
++import { generateTraceId, deleteCookie, getCookie, setCookie } from '@/utils';
+ import { Options } from '@/utils/cookie';
+ 
+ import { RootStore } from '../RootStore';
+@@ -93,7 +92,7 @@ const removeToken = (skipLocalStorage = false) => {
  
  export const AuthStore = Loader.named('AuthStore')
      .props({
@@ -545,7 +706,7 @@ index 2568744f..ec707c3a 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -188,6 +188,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -188,6 +187,8 @@ export const AuthStore = Loader.named('AuthStore')
          });
  
          const afterCreate = () => {
@@ -582,17 +743,29 @@ index 8c0a28d7..ce190fe9 100644
  
      try {
 diff --git a/src/utils/cookie.ts b/src/utils/cookie.ts
-index 9882b7ef..62ae7319 100644
+index 9882b7ef..41a232d5 100644
 --- a/src/utils/cookie.ts
 +++ b/src/utils/cookie.ts
-@@ -40,13 +40,14 @@ const resetElectronCookiesManager = () => {
+@@ -6,7 +6,7 @@ export type Options = {
+     'max-age'?: number;
  };
  
+-const isSoftphone = () => window.rootConfig?.appName == 'softphone';
++const isElectron = () => typeof window.process?.versions?.electron === 'string';
+ 
+ const resetElectronCookiesManager = () => {
+     let electronCookies = window.localStorage.getItem('electronCookies');
+@@ -39,14 +39,16 @@ const resetElectronCookiesManager = () => {
+     return electronCookiesManager;
+ };
+ 
++window.resetElectronCookiesManager = resetElectronCookiesManager;
  window.getElectronCookiesManager = resetElectronCookiesManager;
 +const prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
  
  export function getCookie(name: string): string {
-     if (isSoftphone()) {
+-    if (isSoftphone()) {
++    if (isElectron()) {
          return window.getElectronCookiesManager().getItem(name);
      }
  
@@ -601,7 +774,16 @@ index 9882b7ef..62ae7319 100644
          document.cookie
      );
  
-@@ -68,7 +69,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+@@ -54,7 +56,7 @@ export function getCookie(name: string): string {
+ }
+ 
+ export function setCookie(name: string, value: string, options: Options = {}): void {
+-    if (isSoftphone()) {
++    if (isElectron()) {
+         window.getElectronCookiesManager().setItem(name, value);
+         return;
+     }
+@@ -68,7 +70,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
          options.expires = options.expires.toUTCString();
      }
  
@@ -610,3 +792,12 @@ index 9882b7ef..62ae7319 100644
  
      let optionKey: keyof Options;
      for (optionKey in options) {
+@@ -84,7 +86,7 @@ export function setCookie(name: string, value: string, options: Options = {}): v
+ }
+ 
+ export function deleteCookie(name: string, options: Options = {}): void {
+-    if (isSoftphone()) {
++    if (isElectron()) {
+         window.getElectronCookiesManager().removeItem(name);
+         return;
+     }

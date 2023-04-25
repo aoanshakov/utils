@@ -216,8 +216,8 @@ define(function () {
                 '.cmg-switch-label, ' +
                 '.misc-core-src-component-styles-module__label, ' +
                 '.misc-core-src-components-menu-styles-module__label, ' +
-                '.cm-chats--chat-menu-item, ' +
                 '.cm-chats--tab-title, ' +
+                '.cm-chats--title, ' +
                 '.src-components-main-menu-nav-item-styles-module__label, ' +
                 '.src-components-main-menu-settings-styles-module__label, ' +
                 '.src-components-main-menu-menu-link-styles-module__item a';
@@ -2512,9 +2512,6 @@ define(function () {
         this.connectEventsWebSocket = function (index) {
             this.getEventsWebSocket(index).connect();
             Promise.runAll(false, true);
-            spendTime(0);
-            spendTime(0);
-            spendTime(0);
         };
 
         this.expectBrowserIdToHaveKnownValue = function (browser_id) {
