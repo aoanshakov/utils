@@ -624,14 +624,12 @@ tests.addTest(options => {
         tester.notificationChannel().applyLeader().expectToBeSent();
 
         authCheckRequest.receiveResponse();
-        tester.statusesRequest().receiveResponse();
-
-        settingsRequest = tester.settingsRequest().expectToBeSent();
         tester.talkOptionsRequest().receiveResponse();
-        permissionsRequest = tester.permissionsRequest().expectToBeSent();
+        tester.permissionsRequest().receiveResponse();
+        tester.statusesRequest().receiveResponse(); 
+        tester.settingsRequest().receiveResponse();
 
-        permissionsRequest.receiveResponse();
-        settingsRequest.receiveResponse();
+        notificationTester.grantPermission();
 
         tester.slavesNotification().
             twoChannels().
@@ -655,15 +653,9 @@ tests.addTest(options => {
             expectToBeSent();
 
         tester.othersNotification().
-            widgetStateUpdate().
-            expectToBeSent();
-
-        tester.othersNotification().
             updateSettings().
             shouldNotPlayCallEndingSignal().
             expectToBeSent();
-
-        notificationTester.grantPermission();
 
         authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
         registrationRequest = tester.registrationRequest().expectToBeSent();

@@ -7043,7 +7043,7 @@ define(function () {
                             'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0'
                         ));
                         
-                        return notification;
+                        return this;
                     },
                     widgetStateUpdate: function () {
                         data.type = 'update_widget_state';

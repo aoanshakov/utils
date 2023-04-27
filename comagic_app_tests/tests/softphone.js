@@ -2187,6 +2187,7 @@ tests.addTest(options => {
                         });
                         it('Получен абсолютный URL сервера. Открыт веб-сокет.', function() {
                             settingsRequest.anotherWsUrl().receiveResponse();
+                            notificationTester.grantPermission();
 
                             tester.slavesNotification().
                                 twoChannels().
@@ -2211,19 +2212,13 @@ tests.addTest(options => {
                                 expectToBeSent();
 
                             tester.othersNotification().
-                                widgetStateUpdate().
-                                anotherWsUrl().
-                                expectToBeSent();
-
-                            tester.othersNotification().
                                 updateSettings().
                                 shouldNotPlayCallEndingSignal().
                                 expectToBeSent();
 
-                            notificationTester.grantPermission();
-
                             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                             registrationRequest = tester.registrationRequest().expectToBeSent();
+
                             tester.allowMediaInput();
 
                             tester.slavesNotification().
