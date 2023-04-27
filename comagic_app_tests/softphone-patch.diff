@@ -1,12 +1,12 @@
 diff --git a/package.json b/package.json
-index fed46af..2177fbe 100644
+index 4517e1a..2177fbe 100644
 --- a/package.json
 +++ b/package.json
 @@ -52,8 +52,6 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
--    "@comagic/core": "0.0.0-int0",
+-    "@comagic/core": "^0.6.7",
 -    "@comagic/softphone-core": "0.0.0-int0",
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
@@ -15,7 +15,7 @@ index fed46af..2177fbe 100644
      "exports-loader": "2.0.0",
      "filesize": "^8.0.3",
      "formik": "^2.2.9",
--    "magic-ui": "0.0.0-int0",
+-    "magic-ui": "0.0.0-int1",
      "mobx": "^6.1.8",
      "mobx-react-lite": "^3.2.0",
      "mobx-state-tree": "^5.0.1",
@@ -36,39 +36,10 @@ index fed46af..2177fbe 100644
      "yup": "^0.32.9"
    }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 246818d..d7e51a3 100644
+index 5402fe7..b28c98a 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -209,6 +209,7 @@ export const RootStore = types
-                             case 'expired_token':
-                                 return new Promise(resolve => {
-                                     delete(error.config.headers.Authorization);
-+
-                                     requests.push(() => resolve(axios(error.config)));
-                                     self.authStore.doShellRefreshToken();
-                                 });
-@@ -281,6 +282,8 @@ export const RootStore = types
- 
-                             const { token } = state;
- 
-+                            console.trace('UPDATE TOKEN', token);
-+
-                             if (isSoftphoneAvailable()) {
-                                 const {
-                                     shouldInitialize,
-@@ -328,7 +331,10 @@ export const RootStore = types
-                     self.softphoneStore.setAreVirtualNumberGroupsEnabled(areVirtualNumberGroupsEnabled);
-                 };
- 
--                window.addEventListener('tokenChange', () => updateState(getTokenParams()));
-+                window.addEventListener('tokenChange', () => {
-+                    console.trace('TOKEN CHANGE', getTokenParams());
-+                    updateState(getTokenParams());
-+                });
- 
-                 window.addEventListener('tokenRemove', () =>
-                     updateState({
-@@ -663,4 +669,5 @@ export const RootStore = types
+@@ -680,4 +680,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
