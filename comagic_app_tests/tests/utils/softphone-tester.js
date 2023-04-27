@@ -2492,6 +2492,11 @@ define(function () {
             getWebSocketURL = () => `wss://${softphoneHost}/sup/ws/935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf`;
         };
 
+        this.thirdEventWebSocketPath = () => {
+            getWebSocketURL = () =>
+                'wss://softphone-events-server.com/sup/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+        };
+
         this.getEventsWebSocket = function (index) {
             this.eventsWebSocket = eventsWebSocket =
                 webSockets.getSocket(softphoneHost ? getWebSocketURL() : webSocketRegExp, index || 0);
@@ -7031,6 +7036,14 @@ define(function () {
                     janus: function () {
                         processors.push(() => (data.params.sip.engine = 'janus_webrtc'));
                         return this;
+                    },
+                    anotherWsUrl: function () {
+                        processors.push(() => (
+                            data.params.ws_url = 'wss://softphone-events-server.com/sup/ws/' +
+                            'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0'
+                        ));
+                        
+                        return notification;
                     },
                     widgetStateUpdate: function () {
                         data.type = 'update_widget_state';

@@ -578,4 +578,121 @@ tests.addTest(options => {
         tester.allowMediaInput();
         tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
     });
+    it('Получен фичефлаг нового бэкенда софтфона. Используется новый бекэнд софтфона.', function() {
+        let tester,
+            reportGroupsRequest,
+            settingsRequest,
+            accountRequest,
+            permissionsRequest,
+            authCheckRequest;
+
+        setNow('2019-12-19T12:10:06');
+
+        tester = new Tester({
+            ...options,
+            softphoneHost: '$REACT_APP_NEW_SOFTPHONE_BACKEND_HOST',
+        });
+
+        tester.input.withFieldLabel('Логин').fill('botusharova');
+        tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+        tester.button('Войти').click();
+
+        tester.loginRequest().receiveResponse();
+        tester.accountRequest().newSoftphoneBackendFeatureFlagEnabled().receiveResponse();
+        tester.notificationChannel().applyLeader().expectToBeSent();
+
+        const requests = ajax.inAnyOrder();
+
+        reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+        const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+        reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+        secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+        authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+
+        requests.expectToBeSent();
+
+        reportsListRequest.receiveResponse();
+        reportTypesRequest.receiveResponse();
+        secondAccountRequest.receiveResponse();
+        tester.masterInfoMessage().receive();
+        tester.slavesNotification().expectToBeSent();
+        tester.slavesNotification().additional().expectToBeSent();
+
+        tester.notificationChannel().tellIsLeader().expectToBeSent();
+        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+        tester.notificationChannel().applyLeader().expectToBeSent();
+
+        authCheckRequest.receiveResponse();
+        tester.statusesRequest().receiveResponse();
+
+        settingsRequest = tester.settingsRequest().expectToBeSent();
+        tester.talkOptionsRequest().receiveResponse();
+        permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
+        permissionsRequest.receiveResponse();
+        settingsRequest.receiveResponse();
+
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
+            expectToBeSent();
+
+        tester.connectEventsWebSocket();
+
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
+            softphoneServerConnected().
+            expectToBeSent();
+
+        tester.connectSIPWebSocket();
+
+        tester.slavesNotification().
+            twoChannels().
+            webRTCServerConnected().
+            softphoneServerConnected().
+            expectToBeSent();
+
+        tester.othersNotification().
+            widgetStateUpdate().
+            expectToBeSent();
+
+        tester.othersNotification().
+            updateSettings().
+            shouldNotPlayCallEndingSignal().
+            expectToBeSent();
+
+        notificationTester.grantPermission();
+
+        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+        registrationRequest = tester.registrationRequest().expectToBeSent();
+        tester.allowMediaInput();
+
+        tester.slavesNotification().
+            twoChannels().
+            softphoneServerConnected().
+            webRTCServerConnected().
+            microphoneAccessGranted().
+            expectToBeSent();
+
+        authenticatedUserRequest.receiveResponse();
+
+        tester.slavesNotification().
+            twoChannels().
+            softphoneServerConnected().
+            webRTCServerConnected().
+            microphoneAccessGranted().
+            userDataFetched().
+            expectToBeSent();
+
+        reportGroupsRequest.receiveResponse();
+        registrationRequest.receiveResponse();
+
+        tester.slavesNotification().
+            twoChannels().
+            available().
+            userDataFetched().
+            expectToBeSent();
+    });
 });

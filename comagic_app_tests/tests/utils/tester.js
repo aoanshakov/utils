@@ -12,7 +12,8 @@ define(() => function ({
     webSockets,
     path = '/',
     intersectionObservable,
-    image
+    image,
+    softphoneHost,
 }) {
     let history,
         eventBus,
@@ -2683,6 +2684,10 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
+            me.anotherWsUrl = () => ((
+                response.data.ws_url = 'wss://softphone-events-server.com/sup/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0'
+            ), me);
+
             me.dontTriggerScrollRecalculation = () => ((shouldTriggerScrollRecalculation = false), me);
             me.shouldHideNumbers = () => ((response.data.is_need_hide_numbers = true), me);
             me.incomingCallSoundDisabled = () => ((response.data.is_enable_incoming_call_sound = false), me);;
@@ -2957,7 +2962,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('https://$REACT_APP_SOFTPHONE_BACKEND_HOST/sup/auth/check').
+                    expectToHavePath(`https://${softphoneHost}/sup/auth/check`).
                     expectToHaveHeaders({
                         Authorization: `Bearer ${token}`,
                         'X-Auth-Type': 'jwt',
@@ -10889,6 +10894,9 @@ define(() => function ({
             me.contactCreatingFeatureFlagDisabled = () =>
                 ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
                     featureFlag != 'contact_creating')), me);
+
+            me.newSoftphoneBackendFeatureFlagEnabled = () =>
+                ((response.result.data.feature_flags.push('new_softphone_backend')), me);
             
             me.softphoneFeatureFlagDisabled = () =>
                 ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>

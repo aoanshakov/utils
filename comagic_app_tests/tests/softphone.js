@@ -2185,6 +2185,73 @@ tests.addTest(options => {
 
                             tester.input.withFieldLabel('Логин').expectToBeVisible();
                         });
+                        it('Получен абсолютный URL сервера. Открыт веб-сокет.', function() {
+                            settingsRequest.anotherWsUrl().receiveResponse();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                enabled().
+                                expectToBeSent();
+
+                            tester.thirdEventWebSocketPath();
+                            tester.connectEventsWebSocket();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                enabled().
+                                softphoneServerConnected().
+                                expectToBeSent();
+
+                            tester.connectSIPWebSocket();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                webRTCServerConnected().
+                                softphoneServerConnected().
+                                expectToBeSent();
+
+                            tester.othersNotification().
+                                widgetStateUpdate().
+                                anotherWsUrl().
+                                expectToBeSent();
+
+                            tester.othersNotification().
+                                updateSettings().
+                                shouldNotPlayCallEndingSignal().
+                                expectToBeSent();
+
+                            notificationTester.grantPermission();
+
+                            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                            registrationRequest = tester.registrationRequest().expectToBeSent();
+                            tester.allowMediaInput();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                softphoneServerConnected().
+                                webRTCServerConnected().
+                                microphoneAccessGranted().
+                                expectToBeSent();
+
+                            authenticatedUserRequest.receiveResponse();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                softphoneServerConnected().
+                                webRTCServerConnected().
+                                microphoneAccessGranted().
+                                userDataFetched().
+                                expectToBeSent();
+
+                            reportGroupsRequest.receiveResponse();
+                            registrationRequest.receiveResponse();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                available().
+                                userDataFetched().
+                                expectToBeSent();
+                        });
                     });
                     describe('Нажимаю на иконку с телефоном.', function() {
                         beforeEach(function() {
