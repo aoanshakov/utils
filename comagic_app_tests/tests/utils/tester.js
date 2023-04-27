@@ -2925,7 +2925,19 @@ define(() => function ({
                 };
 
                 respond = request => request.respondUnauthorizedWith(response);
+                return me;
+            };
 
+            me.expiredToken = () => {
+                response = {
+                    error: {
+                        code: 401,
+                        mnemonic: 'expired_token',
+                        message: 'Token has been expired'
+                    }
+                };
+
+                respond = request => request.respondUnauthorizedWith(response);
                 return me;
             };
 

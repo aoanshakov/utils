@@ -36,10 +36,39 @@ index fed46af..2177fbe 100644
      "yup": "^0.32.9"
    }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 246818d..5709f61 100644
+index 246818d..d7e51a3 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -663,4 +663,5 @@ export const RootStore = types
+@@ -209,6 +209,7 @@ export const RootStore = types
+                             case 'expired_token':
+                                 return new Promise(resolve => {
+                                     delete(error.config.headers.Authorization);
++
+                                     requests.push(() => resolve(axios(error.config)));
+                                     self.authStore.doShellRefreshToken();
+                                 });
+@@ -281,6 +282,8 @@ export const RootStore = types
+ 
+                             const { token } = state;
+ 
++                            console.trace('UPDATE TOKEN', token);
++
+                             if (isSoftphoneAvailable()) {
+                                 const {
+                                     shouldInitialize,
+@@ -328,7 +331,10 @@ export const RootStore = types
+                     self.softphoneStore.setAreVirtualNumberGroupsEnabled(areVirtualNumberGroupsEnabled);
+                 };
+ 
+-                window.addEventListener('tokenChange', () => updateState(getTokenParams()));
++                window.addEventListener('tokenChange', () => {
++                    console.trace('TOKEN CHANGE', getTokenParams());
++                    updateState(getTokenParams());
++                });
+ 
+                 window.addEventListener('tokenRemove', () =>
+                     updateState({
+@@ -663,4 +669,5 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

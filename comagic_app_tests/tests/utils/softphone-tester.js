@@ -5635,6 +5635,11 @@ define(function () {
                         }
                     };
                 },
+                anotherAuthorizationToken: function() {
+                    return addResponseModifiers(
+                        this.createExpectation().anotherAuthorizationToken().checkCompliance()
+                    );
+                },
                 expectToBeSent: function (requests) {
                     return addResponseModifiers(this.createExpectation(requests).checkCompliance());
                 },
