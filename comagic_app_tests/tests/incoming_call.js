@@ -1324,24 +1324,23 @@ tests.addTest(options => {
                 describe('Поступил входящий звонок.', function() {
                     beforeEach(function() {
                         tester.outCallEvent().receive();
+                        tester.outCallEvent().slavesNotification().expectToBeSent();
 
                         tester.slavesNotification().
                             additional().
                             visible().
                             outCallEvent().include().
                             expectToBeSent();
-
-                        tester.outCallEvent().slavesNotification().expectToBeSent();
                     });
 
                     it('Звонок завершен. Софтфон скрыт.', function() {
                         tester.callSessionFinish().receive();
+                        tester.callSessionFinish().slavesNotification().expectToBeSent();
 
                         tester.slavesNotification().
                             additional().
                             expectToBeSent();
 
-                        tester.callSessionFinish().slavesNotification().expectToBeSent();
                         tester.softphone.expectNotToExist();
                     });
                     it('Софтфон видим.', function() {
