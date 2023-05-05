@@ -36,7 +36,7 @@ index 4517e1a..2177fbe 100644
      "yup": "^0.32.9"
    }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index b88d801..e24691f 100644
+index 5c8bc70..e39294e 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -679,4 +679,5 @@ export const RootStore = types

@@ -61,8 +61,8 @@ tests.addTest(options => {
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
-            tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+            tester.slavesNotification().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -923,12 +923,12 @@ tests.addTest(options => {
                         tester.masterNotification().tabOpened().receive();
 
                         tester.slavesNotification().
-                            twoChannels().
-                            available().
+                            additional().
                             expectToBeSent();
 
                         tester.slavesNotification().
-                            additional().
+                            twoChannels().
+                            available().
                             expectToBeSent();
                     });
 

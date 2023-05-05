@@ -62,8 +62,8 @@ tests.addTest(options => {
                 reportGroupsRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -322,8 +322,8 @@ tests.addTest(options => {
                                                     tester.reportTypesRequest().receiveResponse();
 
                                                     tester.masterInfoMessage().receive();
-                                                    tester.slavesNotification().expectToBeSent();
                                                     tester.slavesNotification().additional().expectToBeSent();
+                                                    tester.slavesNotification().expectToBeSent();
                                                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                                                     tester.talkOptionsRequest().receiveResponse();
@@ -2484,8 +2484,8 @@ tests.addTest(options => {
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
-            tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+            tester.slavesNotification().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -2592,8 +2592,8 @@ tests.addTest(options => {
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
-            tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+            tester.slavesNotification().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -2687,8 +2687,8 @@ tests.addTest(options => {
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
-            tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+            tester.slavesNotification().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -2784,8 +2784,8 @@ tests.addTest(options => {
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
-            tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+            tester.slavesNotification().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -2889,8 +2889,8 @@ tests.addTest(options => {
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
-            tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+            tester.slavesNotification().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();

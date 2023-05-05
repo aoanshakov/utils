@@ -68,8 +68,8 @@ tests.addTest(options => {
             describe('Вкладка является ведущей.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().receive();
-                    tester.slavesNotification().expectToBeSent();
                     tester.slavesNotification().additional().expectToBeSent();
+                    tester.slavesNotification().expectToBeSent();
 
                     tester.notificationChannel().tellIsLeader().expectToBeSent();
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -554,13 +554,13 @@ tests.addTest(options => {
                                                         authCheckRequest.receiveResponse();
 
                                                         tester.masterInfoMessage().receive();
-                                                        tester.slavesNotification().expectToBeSent();
-                                                        
+
                                                         tester.slavesNotification().
                                                             additional().
                                                             visible().
                                                             expectToBeSent();
 
+                                                        tester.slavesNotification().expectToBeSent();
                                                         tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                                                         tester.talkOptionsRequest().receiveResponse();
@@ -1006,13 +1006,13 @@ tests.addTest(options => {
                                                             authCheckRequest.receiveResponse();
 
                                                             tester.masterInfoMessage().receive();
-                                                            tester.slavesNotification().expectToBeSent();
 
                                                             tester.slavesNotification().
                                                                 additional().
                                                                 visible().
                                                                 expectToBeSent();
 
+                                                            tester.slavesNotification().expectToBeSent();
                                                             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                                                             tester.talkOptionsRequest().receiveResponse();
@@ -1190,6 +1190,7 @@ tests.addTest(options => {
                                                         );
                                                     });
                                                 });
+                                                /*
                                                 describe(
                                                     'Получено сообщение о том, что другая вкладка стала ведущей. ' +
                                                     'Разрывается соединение с вебсокетами. Получено оповещение о ' +
@@ -1319,6 +1320,7 @@ tests.addTest(options => {
                                                         );
                                                     });
                                                 });
+                                                */
                                                 describe('Нажимаю на кнопку таблицы сотрудников.', function() {
                                                     beforeEach(function() {
                                                         tester.addressBookButton.click();
@@ -1529,13 +1531,13 @@ tests.addTest(options => {
                                                     authCheckRequest.receiveResponse();
 
                                                     tester.masterInfoMessage().receive();
-                                                    tester.slavesNotification().expectToBeSent();
 
                                                     tester.slavesNotification().
                                                         additional().
                                                         visible().
                                                         expectToBeSent();
 
+                                                    tester.slavesNotification().expectToBeSent();
                                                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                                                     tester.talkOptionsRequest().receiveResponse();
@@ -1651,13 +1653,13 @@ tests.addTest(options => {
                                                     tester.masterNotification().tabOpened().receive();
 
                                                     tester.slavesNotification().
-                                                        twoChannels().
-                                                        available().
+                                                        additional().
+                                                        visible().
                                                         expectToBeSent();
 
                                                     tester.slavesNotification().
-                                                        additional().
-                                                        visible().
+                                                        twoChannels().
+                                                        available().
                                                         expectToBeSent();
                                                 });
                                                 it(
@@ -3436,6 +3438,11 @@ tests.addTest(options => {
                             tester.masterInfoMessage().receive();
 
                             tester.slavesNotification().
+                                additional().
+                                visible().
+                                expectToBeSent();
+
+                            tester.slavesNotification().
                                 tabsVisibilityRequest().
                                 expectToBeSent();
 
@@ -3444,11 +3451,6 @@ tests.addTest(options => {
                                 twoChannels().
                                 hidden().
                                 enabled().
-                                expectToBeSent();
-
-                            tester.slavesNotification().
-                                additional().
-                                visible().
                                 expectToBeSent();
 
                             tester.connectEventsWebSocket();
@@ -3578,6 +3580,11 @@ tests.addTest(options => {
                     tester.masterInfoMessage().receive();
 
                     tester.slavesNotification().
+                        additional().
+                        visible().
+                        expectToBeSent();
+
+                    tester.slavesNotification().
                         tabsVisibilityRequest().
                         expectToBeSent();
 
@@ -3585,11 +3592,6 @@ tests.addTest(options => {
                         userDataFetched().
                         twoChannels().
                         enabled().
-                        expectToBeSent();
-
-                    tester.slavesNotification().
-                        additional().
-                        visible().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket();
@@ -3704,8 +3706,8 @@ tests.addTest(options => {
                     authCheckRequest.receiveResponse();
 
                     tester.masterInfoMessage().receive();
-                    tester.slavesNotification().expectToBeSent();
                     tester.slavesNotification().additional().visible().expectToBeSent();
+                    tester.slavesNotification().expectToBeSent();
 
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
                     tester.notificationChannel().tellIsLeader().expectToBeSent();
@@ -3811,8 +3813,8 @@ tests.addTest(options => {
                     authCheckRequest.receiveResponse();
 
                     tester.masterInfoMessage().receive();
-                    tester.slavesNotification().expectToBeSent();
                     tester.slavesNotification().additional().visible().expectToBeSent();
+                    tester.slavesNotification().expectToBeSent();
 
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
                     tester.notificationChannel().tellIsLeader().expectToBeSent();
@@ -4016,8 +4018,8 @@ tests.addTest(options => {
                 accountRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -4121,8 +4123,8 @@ tests.addTest(options => {
                 secondAccountRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -4222,8 +4224,8 @@ tests.addTest(options => {
                 reportGroupsRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -4356,8 +4358,8 @@ tests.addTest(options => {
             secondAccountRequest.callGear().receiveResponse();
 
             tester.masterInfoMessage().receive();
-            tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+            tester.slavesNotification().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();

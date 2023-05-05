@@ -66,8 +66,8 @@ tests.addTest(options => {
 
             beforeEach(function() {
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -418,17 +418,17 @@ tests.addTest(options => {
                             isNotUsingWidgetForCalls().
                             expectToBeSent();
 
+                        tester.othersNotification().
+                            updateSettings().
+                            shouldNotPlayCallEndingSignal().
+                            expectToBeSent();
+
                         tester.slavesNotification().
                             userDataFetched().
                             twoChannels().
                             disabled().
                             microphoneAccessGranted().
                             softphoneServerConnected().
-                            expectToBeSent();
-
-                        tester.othersNotification().
-                            updateSettings().
-                            shouldNotPlayCallEndingSignal().
                             expectToBeSent();
 
                         tester.registrationRequest().expired().receiveResponse();
@@ -447,6 +447,11 @@ tests.addTest(options => {
                             widgetStateUpdate().
                             expectToBeSent();
 
+                        tester.othersNotification().
+                            updateSettings().
+                            shouldNotPlayCallEndingSignal().
+                            expectToBeSent();
+
                         tester.slavesNotification().
                             userDataFetched().
                             twoChannels().
@@ -455,12 +460,8 @@ tests.addTest(options => {
                             microphoneAccessGranted().
                             expectToBeSent();
 
-                        tester.othersNotification().
-                            updateSettings().
-                            shouldNotPlayCallEndingSignal().
-                            expectToBeSent();
-
                         tester.connectSIPWebSocket(1);
+
                         tester.slavesNotification().
                             userDataFetched().
                             twoChannels().
@@ -662,8 +663,8 @@ tests.addTest(options => {
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
-            tester.slavesNotification().expectToBeSent();
             tester.slavesNotification().additional().expectToBeSent();
+            tester.slavesNotification().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -936,8 +937,8 @@ tests.addTest(options => {
         secondAccountRequest.receiveResponse();
 
         tester.masterInfoMessage().receive();
-        tester.slavesNotification().expectToBeSent();
         tester.slavesNotification().additional().expectToBeSent();
+        tester.slavesNotification().expectToBeSent();
 
         tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         tester.notificationChannel().tellIsLeader().expectToBeSent();

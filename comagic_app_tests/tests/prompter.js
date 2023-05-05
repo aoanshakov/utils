@@ -67,8 +67,8 @@ tests.addTest(options => {
         function() {
             beforeEach(function() {
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
@@ -626,8 +626,8 @@ tests.addTest(options => {
                     beforeEach(function() {
                         tester.ipcPrompterCallPreparationMessage().receive();
 
-                        tester.slavesNotification().expectToBeSent();
                         tester.slavesNotification().additional().visible().expectToBeSent();
+                        tester.slavesNotification().expectToBeSent();
                         tester.othersNotification().prompterCallPreparation().expectToBeSent();
 
                         tester.authCheckRequest().receiveResponse();
@@ -771,8 +771,8 @@ tests.addTest(options => {
                 function() {
                     tester.othersNotification().prompterCallPreparation().receive();
 
-                    tester.slavesNotification().expectToBeSent();
                     tester.slavesNotification().additional().expectToBeSent();
+                    tester.slavesNotification().expectToBeSent();
 
                     tester.authCheckRequest().receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();

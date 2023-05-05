@@ -117,6 +117,11 @@ tests.addTest(options => {
                         tester.masterInfoMessage().receive();
 
                         tester.slavesNotification().
+                            additional().
+                            visible().
+                            expectToBeSent();
+
+                        tester.slavesNotification().
                             tabsVisibilityRequest().
                             expectToBeSent();
 
@@ -125,11 +130,6 @@ tests.addTest(options => {
                             twoChannels().
                             hidden().
                             enabled().
-                            expectToBeSent();
-
-                        tester.slavesNotification().
-                            additional().
-                            visible().
                             expectToBeSent();
 
                         tester.connectEventsWebSocket();
@@ -259,6 +259,11 @@ tests.addTest(options => {
                 tester.masterInfoMessage().receive();
 
                 tester.slavesNotification().
+                    additional().
+                    visible().
+                    expectToBeSent();
+
+                tester.slavesNotification().
                     tabsVisibilityRequest().
                     expectToBeSent();
 
@@ -266,11 +271,6 @@ tests.addTest(options => {
                     userDataFetched().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    additional().
-                    visible().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -387,8 +387,8 @@ tests.addTest(options => {
                 secondAccountRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().visible().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
 
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
@@ -484,8 +484,8 @@ tests.addTest(options => {
                 tester.reportTypesRequest().receiveResponse();
 
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().expectToBeSent();
                 tester.slavesNotification().additional().visible().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
 
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
