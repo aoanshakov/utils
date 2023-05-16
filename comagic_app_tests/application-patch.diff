@@ -318,14 +318,14 @@ index 0ccc4cb1..064e688a 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 06a3df83..35075ce8 100644
+index d9796c37..65066f5c 100644
 --- a/package.json
 +++ b/package.json
 @@ -67,12 +67,17 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
--    "@comagic/core": "^1.2.8",
+-    "@comagic/core": "1.5.0",
 -    "@sentry/react": "^6.17.6",
 -    "@sentry/tracing": "^6.17.6",
 +    "@comagic/core": "./misc/core",
@@ -407,21 +407,21 @@ index a82eebad..59a999e3 100644
  </html>
 \ No newline at end of file
 diff --git a/scripts/dev.js b/scripts/dev.js
-index 54c1319c..abc75561 100644
+index eb9c62ef..d95f1a11 100644
 --- a/scripts/dev.js
 +++ b/scripts/dev.js
-@@ -12,7 +12,8 @@ const compiler = webpack(configFactory);
- const devServer = new WebpackDevServer(
-     {
+@@ -25,7 +25,8 @@ const devServer = new WebpackDevServer(
+             },
+         },
          port: parseInt(process.env.PORT, 10) || 8080,
 -        hot: true,
 +        hot: false,
 +        liveReload: false,
          headers: { 'Access-Control-Allow-Origin': '*' },
          historyApiFallback: true,
-     },
+         // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 600884d5..5c894b3b 100644
+index abb1f850..04e3e65b 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,18 @@
@@ -445,7 +445,7 @@ index 600884d5..5c894b3b 100644
  
  import history from '@/history';
  
-@@ -78,7 +83,52 @@ const Root: React.FC = observer(props => {
+@@ -79,7 +84,52 @@ const Root: React.FC = observer(props => {
      );
  });
  

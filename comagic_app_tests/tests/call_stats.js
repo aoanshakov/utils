@@ -400,7 +400,7 @@ tests.addTest(options => {
                 });
             });
         });
-        it('Пользователь является руководителем. Пункт меню скрыт.', function() {
+        it('Пользователь является руководителем. Пункт меню видим.', function() {
             accountRequest.manager().receiveResponse();
 
             const requests = ajax.inAnyOrder();
@@ -493,7 +493,7 @@ tests.addTest(options => {
 
             statusesRequest.receiveResponse();
 
-            tester.button('Статистика').expectNotToExist();
+            tester.button('Статистика').expectToBeVisible();
         });
         it('Статистика по звонкам недоступна. Пункт меню скрыт.', function() {
             accountRequest.callStatsFeatureFlagDisabled().receiveResponse();

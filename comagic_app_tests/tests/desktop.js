@@ -2650,7 +2650,7 @@ tests.addTest(options => {
                 tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
-                tester.callsHistoryButton.expectToBeDisabled();
+                tester.callsHistoryButton.expectToBeEnabled();
             });
             it(
                 'Используется английский язык. Открываю список номеров. Плейсхолдер поля поиска локализован.',
