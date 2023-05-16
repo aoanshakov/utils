@@ -48,6 +48,8 @@ tests.addTest(options => {
         describe('Фичафлаг софтфона включен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
+                tester.ticketsContactsRequest().receiveResponse()
+
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
@@ -100,11 +102,6 @@ tests.addTest(options => {
                                 tester.slavesNotification().
                                     twoChannels().
                                     enabled().
-                                    expectToBeSent();
-
-                                tester.othersNotification().
-                                    updateSettings().
-                                    shouldNotPlayCallEndingSignal().
                                     expectToBeSent();
 
                                 tester.connectEventsWebSocket();
@@ -544,6 +541,9 @@ tests.addTest(options => {
                                                             anotherAuthorizationToken().
                                                             expectToBeSent(requests);
 
+                                                        const ticketsContactsRequest = tester.ticketsContactsRequest().
+                                                            expectToBeSent(requests);
+
                                                         const authCheckRequest = tester.authCheckRequest().
                                                             anotherAuthorizationToken().
                                                             expectToBeSent(requests);
@@ -551,6 +551,7 @@ tests.addTest(options => {
                                                         requests.expectToBeSent();
 
                                                         secondAccountRequest.receiveResponse();
+                                                        ticketsContactsRequest.receiveResponse();
                                                         authCheckRequest.receiveResponse();
 
                                                         tester.masterInfoMessage().receive();
@@ -582,11 +583,6 @@ tests.addTest(options => {
                                                         tester.slavesNotification().
                                                             twoChannels().
                                                             enabled().
-                                                            expectToBeSent();
-
-                                                        tester.othersNotification().
-                                                            updateSettings().
-                                                            shouldNotPlayCallEndingSignal().
                                                             expectToBeSent();
 
                                                         tester.connectEventsWebSocket(1);
@@ -997,12 +993,17 @@ tests.addTest(options => {
                                                             const secondAccountRequest = tester.accountRequest().
                                                                 expectToBeSent(requests);
 
+                                                            const ticketsContactsRequest =
+                                                                tester.ticketsContactsRequest().
+                                                                expectToBeSent(requests);
+
                                                             const authCheckRequest = tester.authCheckRequest().
                                                                 expectToBeSent(requests);
 
                                                             requests.expectToBeSent();
 
                                                             secondAccountRequest.receiveResponse();
+                                                            ticketsContactsRequest.receiveResponse();
                                                             authCheckRequest.receiveResponse();
 
                                                             tester.masterInfoMessage().receive();
@@ -1023,11 +1024,6 @@ tests.addTest(options => {
                                                             tester.slavesNotification().
                                                                 twoChannels().
                                                                 enabled().
-                                                                expectToBeSent();
-
-                                                            tester.othersNotification().
-                                                                updateSettings().
-                                                                shouldNotPlayCallEndingSignal().
                                                                 expectToBeSent();
 
                                                             tester.connectEventsWebSocket(1);
@@ -1521,6 +1517,9 @@ tests.addTest(options => {
                                                         anotherAuthorizationToken().
                                                         expectToBeSent(requests);
 
+                                                    const ticketsContactsRequest = tester.ticketsContactsRequest().
+                                                        expectToBeSent(requests);
+
                                                     const authCheckRequest = tester.authCheckRequest().
                                                         anotherAuthorizationToken().
                                                         expectToBeSent(requests);
@@ -1528,6 +1527,7 @@ tests.addTest(options => {
                                                     requests.expectToBeSent();
 
                                                     secondAccountRequest.receiveResponse();
+                                                    ticketsContactsRequest.receiveResponse();
                                                     authCheckRequest.receiveResponse();
 
                                                     tester.masterInfoMessage().receive();
@@ -1556,11 +1556,6 @@ tests.addTest(options => {
                                                     tester.slavesNotification().
                                                         twoChannels().
                                                         enabled().
-                                                        expectToBeSent();
-
-                                                    tester.othersNotification().
-                                                        updateSettings().
-                                                        shouldNotPlayCallEndingSignal().
                                                         expectToBeSent();
 
                                                     tester.connectEventsWebSocket(1);
@@ -1997,13 +1992,7 @@ tests.addTest(options => {
                                     enabled().
                                     expectToBeSent();
 
-                                tester.othersNotification().
-                                    updateSettings().
-                                    shouldNotPlayCallEndingSignal().
-                                    expectToBeSent();
-
                                 notificationTester.grantPermission();
-
                                 tester.connectEventsWebSocket();
 
                                 tester.slavesNotification().
@@ -2119,11 +2108,6 @@ tests.addTest(options => {
                                 enabled().
                                 expectToBeSent();
 
-                            tester.othersNotification().
-                                updateSettings().
-                                shouldNotPlayCallEndingSignal().
-                                expectToBeSent();
-
                             notificationTester.grantPermission();
 
                             tester.connectEventsWebSocket();
@@ -2213,11 +2197,6 @@ tests.addTest(options => {
                                 softphoneServerConnected().
                                 expectToBeSent();
 
-                            tester.othersNotification().
-                                updateSettings().
-                                shouldNotPlayCallEndingSignal().
-                                expectToBeSent();
-
                             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                             registrationRequest = tester.registrationRequest().expectToBeSent();
 
@@ -2271,11 +2250,6 @@ tests.addTest(options => {
                                     tester.slavesNotification().
                                         twoChannels().
                                         enabled().
-                                        expectToBeSent();
-
-                                    tester.othersNotification().
-                                        updateSettings().
-                                        shouldNotPlayCallEndingSignal().
                                         expectToBeSent();
 
                                     notificationTester.grantPermission();
@@ -2359,11 +2333,6 @@ tests.addTest(options => {
                                                             widgetStateUpdate().
                                                             fixedNumberCapacityRule().
                                                             anotherNumberCapacity().
-                                                            expectToBeSent();
-
-                                                        tester.othersNotification().
-                                                            updateSettings().
-                                                            shouldNotPlayCallEndingSignal().
                                                             expectToBeSent();
                                                     });
 
@@ -2548,11 +2517,6 @@ tests.addTest(options => {
                                         enabled().
                                         expectToBeSent();
 
-                                    tester.othersNotification().
-                                        updateSettings().
-                                        shouldNotPlayCallEndingSignal().
-                                        expectToBeSent();
-
                                     notificationTester.grantPermission();
                                     permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
 
@@ -2618,11 +2582,6 @@ tests.addTest(options => {
                                                 slavesNotification().
                                                 expectToBeSent();
 
-                                            tester.othersNotification().
-                                                updateSettings().
-                                                shouldNotPlayCallEndingSignal().
-                                                expectToBeSent();
-
                                             tester.softphone.expectTextContentToHaveSubstring('Другой комментарий');
                                         });
                                         it('Отображен комментарий к номеру.', function() {
@@ -2664,11 +2623,6 @@ tests.addTest(options => {
                                     tester.slavesNotification().
                                         twoChannels().
                                         disabled().
-                                        expectToBeSent();
-
-                                    tester.othersNotification().
-                                        updateSettings().
-                                        shouldNotPlayCallEndingSignal().
                                         expectToBeSent();
 
                                     notificationTester.grantPermission();
@@ -2780,11 +2734,6 @@ tests.addTest(options => {
                                         enabled().
                                         expectToBeSent();
 
-                                    tester.othersNotification().
-                                        updateSettings().
-                                        shouldNotPlayCallEndingSignal().
-                                        expectToBeSent();
-
                                     notificationTester.grantPermission();
                                     permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
 
@@ -2859,11 +2808,6 @@ tests.addTest(options => {
                                     tester.slavesNotification().
                                         twoChannels().
                                         disabled().
-                                        expectToBeSent();
-
-                                    tester.othersNotification().
-                                        updateSettings().
-                                        shouldNotPlayCallEndingSignal().
                                         expectToBeSent();
 
                                     notificationTester.grantPermission();
@@ -2958,12 +2902,6 @@ tests.addTest(options => {
                                         expectToBeSent();
 
                                     tester.slavesNotification().expectToBeSent();
-
-                                    tester.othersNotification().
-                                        updateSettings().
-                                        shouldNotPlayCallEndingSignal().
-                                        expectToBeSent();
-
                                     tester.connectEventsWebSocket();
 
                                     tester.slavesNotification().
@@ -3019,11 +2957,6 @@ tests.addTest(options => {
                                     enabled().
                                     expectToBeSent();
 
-                                tester.othersNotification().
-                                    updateSettings().
-                                    shouldNotPlayCallEndingSignal().
-                                    expectToBeSent();
-
                                 notificationTester.grantPermission();
 
                                 tester.connectEventsWebSocket();
@@ -3077,11 +3010,6 @@ tests.addTest(options => {
                                 tester.slavesNotification().
                                     twoChannels().
                                     enabled().
-                                    expectToBeSent();
-
-                                tester.othersNotification().
-                                    updateSettings().
-                                    shouldNotPlayCallEndingSignal().
                                     expectToBeSent();
 
                                 notificationTester.grantPermission();
@@ -3155,11 +3083,6 @@ tests.addTest(options => {
                                 tester.slavesNotification().
                                     twoChannels().
                                     enabled().
-                                    expectToBeSent();
-
-                                tester.othersNotification().
-                                    updateSettings().
-                                    shouldNotPlayCallEndingSignal().
                                     expectToBeSent();
                                 
                                 notificationTester.grantPermission();
@@ -3331,11 +3254,6 @@ tests.addTest(options => {
                         enabled().
                         expectToBeSent();
 
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-
                     tester.connectEventsWebSocket();
 
                     tester.slavesNotification().
@@ -3398,11 +3316,6 @@ tests.addTest(options => {
                         dontTriggerScrollRecalculation().
                         allowNumberCapacitySelect().
                         receiveResponse();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
                     
                     notificationTester.grantPermission();
 
@@ -3698,11 +3611,13 @@ tests.addTest(options => {
                     const requests = ajax.inAnyOrder();
 
                     const secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                        ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                         authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                     requests.expectToBeSent();
 
                     secondAccountRequest.receiveResponse();
+                    ticketsContactsRequest.receiveResponse();
                     authCheckRequest.receiveResponse();
 
                     tester.masterInfoMessage().receive();
@@ -3721,11 +3636,6 @@ tests.addTest(options => {
                     tester.slavesNotification().
                         twoChannels().
                         enabled().
-                        expectToBeSent();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket();
@@ -3805,11 +3715,13 @@ tests.addTest(options => {
                     const requests = ajax.inAnyOrder();
 
                     const secondAccountRequest = tester.accountRequest().expectToBeSent(requests),
+                        ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                         authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                     requests.expectToBeSent();
 
                     secondAccountRequest.receiveResponse();
+                    ticketsContactsRequest.receiveResponse();
                     authCheckRequest.receiveResponse();
 
                     tester.masterInfoMessage().receive();
@@ -3828,11 +3740,6 @@ tests.addTest(options => {
                     tester.slavesNotification().
                         twoChannels().
                         enabled().
-                        expectToBeSent();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket();
@@ -3912,11 +3819,6 @@ tests.addTest(options => {
                         anotherNumberCapacity().
                         receive();
 
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-
                     tester.select.expectToHaveTextContent('+7 (916) 123-89-29');
                 });
                 it('Выбран другой статус. Отображен выбранный статус.', function() {
@@ -3987,11 +3889,6 @@ tests.addTest(options => {
                         dontTriggerScrollRecalculation().
                         allowNumberCapacitySelect().
                         receiveResponse();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
                     
                     notificationTester.grantPermission();
 
@@ -4016,6 +3913,7 @@ tests.addTest(options => {
 
             it('Фичефлаг софтфона включен. Кнопка софтфона отображена.', function() {
                 accountRequest.receiveResponse();
+                tester.ticketsContactsRequest().receiveResponse()
 
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().additional().expectToBeSent();
@@ -4051,11 +3949,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 notificationTester.grantPermission();
@@ -4106,6 +3999,7 @@ tests.addTest(options => {
             });
             it('Фичефлаг софтфона для руководителя включен. Кнопка софтфона отображена.', function() {
                 accountRequest.managerSoftphoneFeatureFlagEnabled().receiveResponse();
+                tester.ticketsContactsRequest().receiveResponse()
 
                 const requests = ajax.inAnyOrder();
 
@@ -4141,11 +4035,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 notificationTester.grantPermission();
@@ -4207,6 +4096,7 @@ tests.addTest(options => {
         describe('Раздел контактов недоступен.', function() {
             beforeEach(function() {
                 accountRequest.contactsFeatureFlagDisabled().receiveResponse();
+                tester.ticketsContactsRequest().receiveResponse()
 
                 const requests = ajax.inAnyOrder();
 
@@ -4242,11 +4132,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -4341,6 +4226,8 @@ tests.addTest(options => {
             'Используеся проект CallGear. Необходимо подключиться к Janus. Подключаюсь.',
         function() {
             accountRequest.callGear().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
+
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             const requests = ajax.inAnyOrder();
@@ -4387,11 +4274,6 @@ tests.addTest(options => {
             tester.slavesNotification().
                 twoChannels().
                 enabled().
-                expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
             
             notificationTester.grantPermission();

@@ -34,7 +34,8 @@ tests.addTest(options => {
 
             const requests = ajax.inAnyOrder();
 
-            const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+            const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
@@ -42,6 +43,7 @@ tests.addTest(options => {
 
             requests.expectToBeSent();
 
+            ticketsContactsRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
@@ -65,11 +67,6 @@ tests.addTest(options => {
             tester.slavesNotification().
                 twoChannels().
                 enabled().
-                expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
             notificationTester.grantPermission();
@@ -188,6 +185,7 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -225,11 +223,6 @@ tests.addTest(options => {
             tester.slavesNotification().
                 twoChannels().
                 enabled().
-                expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -298,6 +291,7 @@ tests.addTest(options => {
 
         tester.loginRequest().receiveResponse();
         tester.accountRequest().receiveResponse();
+        tester.ticketsContactsRequest().receiveResponse()
 
         tester.notificationChannel().applyLeader().expectToBeSent();
 
@@ -418,6 +412,7 @@ tests.addTest(options => {
 
         tester.loginRequest().receiveResponse();
         tester.accountRequest().receiveResponse();
+        tester.ticketsContactsRequest().receiveResponse()
 
         tester.notificationChannel().applyLeader().expectToBeSent();
 
@@ -508,6 +503,7 @@ tests.addTest(options => {
 
         tester.loginRequest().receiveResponse();
         tester.accountRequest().receiveResponse();
+        tester.ticketsContactsRequest().receiveResponse()
 
         tester.notificationChannel().applyLeader().expectToBeSent();
 
@@ -600,6 +596,8 @@ tests.addTest(options => {
 
         tester.loginRequest().receiveResponse();
         tester.accountRequest().newSoftphoneBackendFeatureFlagEnabled().receiveResponse();
+        tester.ticketsContactsRequest().receiveResponse()
+
         tester.notificationChannel().applyLeader().expectToBeSent();
 
         const requests = ajax.inAnyOrder();
@@ -651,11 +649,6 @@ tests.addTest(options => {
             twoChannels().
             webRTCServerConnected().
             softphoneServerConnected().
-            expectToBeSent();
-
-        tester.othersNotification().
-            updateSettings().
-            shouldNotPlayCallEndingSignal().
             expectToBeSent();
 
         authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();

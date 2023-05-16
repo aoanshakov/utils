@@ -40,9 +40,9 @@ tests.addTest(options => {
             tester.button('Войти').click();
 
             tester.loginRequest().receiveResponse();
-            accountRequest = tester.accountRequest().expectToBeSent();
+            tester.accountRequest().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
-            accountRequest.receiveResponse();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             const requests = ajax.inAnyOrder();
@@ -79,11 +79,6 @@ tests.addTest(options => {
                     dontTriggerScrollRecalculation().
                     allowNumberCapacitySelect().
                     receiveResponse();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
 
                 notificationTester.grantPermission();
 
@@ -379,11 +374,13 @@ tests.addTest(options => {
                 const requests = ajax.inAnyOrder();
 
                 const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                    ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 authCheckRequest.receiveResponse();
+                ticketsContactsRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
@@ -402,11 +399,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -494,11 +486,13 @@ tests.addTest(options => {
                 const requests = ajax.inAnyOrder();
 
                 const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                    ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 authCheckRequest.receiveResponse();
+                ticketsContactsRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
@@ -509,11 +503,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -593,11 +582,6 @@ tests.addTest(options => {
                     anotherNumberCapacity().
                     receive();
 
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
                 tester.select.expectToHaveTextContent('+7 (916) 123-89-29');
             });
             it('Выбран другой статус. Отображен выбранный статус.', function() {
@@ -672,11 +656,6 @@ tests.addTest(options => {
                     dontTriggerScrollRecalculation().
                     allowNumberCapacitySelect().
                     receiveResponse();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
 
                 notificationTester.grantPermission();
 

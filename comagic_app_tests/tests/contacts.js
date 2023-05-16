@@ -49,6 +49,7 @@ tests.addTest(options => {
         describe('Раздел контактов доступен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
+                tester.ticketsContactsRequest().receiveResponse()
 
                 const requests = ajax.inAnyOrder();
 
@@ -91,11 +92,6 @@ tests.addTest(options => {
                     tester.slavesNotification().
                         twoChannels().
                         enabled().
-                        expectToBeSent();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket();
@@ -2712,11 +2708,6 @@ tests.addTest(options => {
                         enabled().
                         expectToBeSent();
 
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-
                     tester.connectEventsWebSocket();
 
                     tester.slavesNotification().
@@ -2824,11 +2815,6 @@ tests.addTest(options => {
                     disabled().
                     expectToBeSent();
 
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
                 tester.connectEventsWebSocket();
 
                 tester.slavesNotification().
@@ -2886,6 +2872,7 @@ tests.addTest(options => {
             function() {
                 beforeEach(function() {
                     accountRequest.otherEmployeeChatsAccessAvailable().receiveResponse();
+                    tester.ticketsContactsRequest().receiveResponse()
 
                     const requests = ajax.inAnyOrder();
 
@@ -2926,11 +2913,6 @@ tests.addTest(options => {
                     tester.slavesNotification().
                         twoChannels().
                         enabled().
-                        expectToBeSent();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket();
@@ -3291,6 +3273,7 @@ tests.addTest(options => {
                 'Получен чужой чат.',
             function() {
                 accountRequest.receiveResponse();
+                tester.ticketsContactsRequest().receiveResponse()
 
                 const requests = ajax.inAnyOrder();
 
@@ -3326,11 +3309,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -3420,6 +3398,7 @@ tests.addTest(options => {
         describe('Редактирование контактов недоступно. Открываю раздел контактов. Нажимаю на имя.', function() {
             beforeEach(function() {
                 accountRequest.addressBookUpdatingUnavailable().receiveResponse();
+                tester.ticketsContactsRequest().receiveResponse()
 
                 const requests = ajax.inAnyOrder();
 
@@ -3455,11 +3434,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -3563,6 +3537,7 @@ tests.addTest(options => {
         describe('Добавление каналов недоступно.', function() {
             beforeEach(function() {
                 accountRequest.contactChannelCreatingFeatureFlagDisabled().receiveResponse();
+                tester.ticketsContactsRequest().receiveResponse()
 
                 const requests = ajax.inAnyOrder();
 
@@ -3598,11 +3573,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -3700,6 +3670,8 @@ tests.addTest(options => {
                     operatorWorkplaceAvailable().
                     receiveResponse();
 
+                tester.ticketsContactsRequest().receiveResponse()
+
                 const requests = ajax.inAnyOrder();
 
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
@@ -3739,11 +3711,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -3865,6 +3832,7 @@ tests.addTest(options => {
         });
         it('Создание контакта недоступно. Кнопка добавления контакта заблокирована.', function() {
             accountRequest.addressBookCreatingUnavailable().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -3900,11 +3868,6 @@ tests.addTest(options => {
             tester.slavesNotification().
                 twoChannels().
                 enabled().
-                expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -3966,6 +3929,7 @@ tests.addTest(options => {
         });
         it('Фичефлаг создания контакта выключен. Кнопка добавления контакта скрыта.', function() {
             accountRequest.contactCreatingFeatureFlagDisabled().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -4001,11 +3965,6 @@ tests.addTest(options => {
             tester.slavesNotification().
                 twoChannels().
                 enabled().
-                expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -4064,6 +4023,7 @@ tests.addTest(options => {
         });
         it('Удаление контакта недоступно. Кнопка уделения заблокирована.', function() {
             accountRequest.addressBookDeletingUnavailable().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -4099,11 +4059,6 @@ tests.addTest(options => {
             tester.slavesNotification().
                 twoChannels().
                 enabled().
-                expectToBeSent();
-            
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -4182,6 +4137,7 @@ tests.addTest(options => {
         });
         it('Фичефлаг удаления контакта выключен. Кнопка уделения скрыта.', function() {
             accountRequest.contactDeletingFeatureFlagDisabled().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -4219,13 +4175,7 @@ tests.addTest(options => {
                 enabled().
                 expectToBeSent();
 
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
             tester.connectEventsWebSocket();
-
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
 
             tester.connectSIPWebSocket();
@@ -4292,6 +4242,8 @@ tests.addTest(options => {
                 operatorWorkplaceAvailable().
                 receiveResponse();
 
+            tester.ticketsContactsRequest().receiveResponse()
+
             const requests = ajax.inAnyOrder();
 
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
@@ -4333,13 +4285,7 @@ tests.addTest(options => {
                 enabled().
                 expectToBeSent();
 
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
             tester.connectEventsWebSocket();
-
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
 
             tester.connectSIPWebSocket();
@@ -4405,6 +4351,7 @@ tests.addTest(options => {
         });
         it('Раздел контактов недоступен. Пункт меню "Контакты" скрыт.', function() {
             accountRequest.contactsFeatureFlagDisabled().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -4442,13 +4389,7 @@ tests.addTest(options => {
                 enabled().
                 expectToBeSent();
 
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
             tester.connectEventsWebSocket();
-
             tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
 
             tester.connectSIPWebSocket();

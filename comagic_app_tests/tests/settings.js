@@ -41,6 +41,7 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse();
 
             const requests = ajax.inAnyOrder();
 
@@ -84,11 +85,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -418,11 +414,6 @@ tests.addTest(options => {
                             isNotUsingWidgetForCalls().
                             expectToBeSent();
 
-                        tester.othersNotification().
-                            updateSettings().
-                            shouldNotPlayCallEndingSignal().
-                            expectToBeSent();
-
                         tester.slavesNotification().
                             userDataFetched().
                             twoChannels().
@@ -445,11 +436,6 @@ tests.addTest(options => {
 
                         tester.othersNotification().
                             widgetStateUpdate().
-                            expectToBeSent();
-
-                        tester.othersNotification().
-                            updateSettings().
-                            shouldNotPlayCallEndingSignal().
                             expectToBeSent();
 
                         tester.slavesNotification().
@@ -545,12 +531,6 @@ tests.addTest(options => {
             tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
             tester.notificationChannel().applyLeader().expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
             notificationTester.grantPermission();
 
             tester.numberCapacityRequest().receiveResponse();
@@ -646,6 +626,7 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -920,6 +901,7 @@ tests.addTest(options => {
         });
 
         tester.accountRequest().receiveResponse();
+        //tester.ticketsContactsRequest().receiveResponse()
 
         const requests = ajax.inAnyOrder();
 
@@ -946,6 +928,7 @@ tests.addTest(options => {
         tester.notificationChannel().applyLeader().expectToBeSent();
 
         authCheckRequest.receiveResponse();
+        tester.ticketsContactsRequest().receiveResponse()
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();
@@ -954,11 +937,6 @@ tests.addTest(options => {
         tester.slavesNotification().
             twoChannels().
             enabled().
-            expectToBeSent();
-
-        tester.othersNotification().
-            updateSettings().
-            shouldNotPlayCallEndingSignal().
             expectToBeSent();
 
         notificationTester.grantPermission();

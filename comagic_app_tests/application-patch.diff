@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0ccc4cb1..4454d5c2 100644
+index 0ccc4cb1..93d752cb 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 0ccc4cb1..4454d5c2 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -344,17 +414,149 @@ module.exports = {
+@@ -344,17 +414,150 @@ module.exports = {
                      },
                  ],
              },
@@ -220,6 +220,7 @@ index 0ccc4cb1..4454d5c2 100644
 +            'softphone/CallHistory': 'softphone/src/call_history/index.tsx',
 +            'softphone/CallStats': 'softphone/src/call_stats/index.tsx',
 +            'softphone/LostCallsCount': 'softphone/src/call_history/counter.tsx',
++            'softphone/FeedbackWebModal': 'softphone/src/feedback/feedbackWeb/index.tsx',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
@@ -408,12 +409,35 @@ index a82eebad..59a999e3 100644
  </html>
 \ No newline at end of file
 diff --git a/scripts/dev.js b/scripts/dev.js
-index eb9c62ef..d95f1a11 100644
+index eb9c62ef..5fb7fee9 100644
 --- a/scripts/dev.js
 +++ b/scripts/dev.js
-@@ -25,7 +25,8 @@ const devServer = new WebpackDevServer(
-             },
-         },
+@@ -2,8 +2,6 @@
+ 
+ process.env.NODE_ENV = 'development';
+ 
+-const fs = require('fs');
+-const path = require('path');
+ const webpack = require('webpack');
+ const WebpackDevServer = require('webpack-dev-server');
+ 
+@@ -11,21 +9,11 @@ const configFactory = require('../config/webpack.config.js');
+ 
+ const compiler = webpack(configFactory);
+ 
+-const certsDir = `${path.dirname(require.main.filename)}/certs`;
+-
+ const devServer = new WebpackDevServer(
+     {
+-        allowedHosts: ['.localhost.uis.st'],
+-        server: {
+-            type: 'https',
+-            options: {
+-                key: fs.readFileSync(`${certsDir}/_wildcard.localhost.uis.st+5-key.pem`),
+-                cert: fs.readFileSync(`${certsDir}/_wildcard.localhost.uis.st+5.pem`),
+-                ca: fs.readFileSync(`${certsDir}/rootCA.cer`),
+-            },
+-        },
          port: parseInt(process.env.PORT, 10) || 8080,
 -        hot: true,
 +        hot: false,

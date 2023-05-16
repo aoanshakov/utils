@@ -44,6 +44,7 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -86,11 +87,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -1139,11 +1135,6 @@ tests.addTest(options => {
                         enabled().
                         expectToBeSent();
 
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-
                     tester.connectEventsWebSocket();
 
                     tester.slavesNotification().
@@ -1291,11 +1282,6 @@ tests.addTest(options => {
                     tester.slavesNotification().
                         twoChannels().
                         disabled().
-                        expectToBeSent();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
                         expectToBeSent();
 
                     notificationTester.grantPermission();

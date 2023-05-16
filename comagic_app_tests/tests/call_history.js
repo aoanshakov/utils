@@ -45,6 +45,7 @@ tests.addTest(options => {
         describe('История звонков доступна.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
+                tester.ticketsContactsRequest().receiveResponse()
 
                 const requests = ajax.inAnyOrder();
 
@@ -85,11 +86,6 @@ tests.addTest(options => {
                     tester.slavesNotification().
                         twoChannels().
                         enabled().
-                        expectToBeSent();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
                         expectToBeSent();
                 });
 
@@ -308,12 +304,15 @@ tests.addTest(options => {
 
                                                     const secondAccountRequest = tester.accountRequest().
                                                         anotherAuthorizationToken().expectToBeSent(requests);
+                                                    const ticketsContactsRequest = tester.ticketsContactsRequest().
+                                                        expectToBeSent(requests);
                                                     const authCheckRequest = tester.authCheckRequest().
                                                         anotherAuthorizationToken().expectToBeSent(requests);
 
                                                     requests.expectToBeSent();
 
                                                     secondAccountRequest.receiveResponse();
+                                                    ticketsContactsRequest.receiveResponse();
                                                     authCheckRequest.receiveResponse();
 
                                                     tester.reportGroupsRequest().anotherAuthorizationToken().
@@ -343,12 +342,6 @@ tests.addTest(options => {
                                                         twoChannels().
                                                         enabled().
                                                         expectToBeSent();
-
-                                                    tester.othersNotification().
-                                                        updateSettings().
-                                                        shouldNotPlayCallEndingSignal().
-                                                        expectToBeSent();
-
 
                                                     tester.connectEventsWebSocket(1);
 
@@ -1394,11 +1387,6 @@ tests.addTest(options => {
                                             slavesNotification().
                                             expectToBeSent();
 
-                                        tester.othersNotification().
-                                            updateSettings().
-                                            shouldNotPlayCallEndingSignal().
-                                            expectToBeSent();
-
                                         tester.table.expectTextContentToHaveSubstring(
                                             'Гяурова Марийка ' +
                                             'Позвонить'
@@ -2352,11 +2340,6 @@ tests.addTest(options => {
                         enabled().
                         expectToBeSent();
 
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-
                     permissionsRequest.receiveResponse();
 
                     tester.connectEventsWebSocket();
@@ -2467,6 +2450,7 @@ tests.addTest(options => {
         });
         it('Пользователь является менеджером. Пункт меню видим.', function() {
             accountRequest.manager().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -2504,13 +2488,7 @@ tests.addTest(options => {
                 enabled().
                 expectToBeSent();
 
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
             permissionsRequest.receiveResponse();
-
             tester.connectEventsWebSocket();
 
             tester.slavesNotification().
@@ -2562,6 +2540,7 @@ tests.addTest(options => {
         });
         it('У пользователя нет роли. Вкладки "Все" и "Необработанные" заблокированы.', function() {
             accountRequest.noCallCenterRole().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -2599,13 +2578,7 @@ tests.addTest(options => {
                 enabled().
                 expectToBeSent();
 
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
-                expectToBeSent();
-
             permissionsRequest.receiveResponse();
-
             tester.connectEventsWebSocket();
 
             tester.slavesNotification().
@@ -2670,6 +2643,7 @@ tests.addTest(options => {
         });
         it('История недоступна. Пункт меню скрыт.', function() {
             accountRequest.callHistoryFeatureFlagDisabled().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -2705,11 +2679,6 @@ tests.addTest(options => {
             tester.slavesNotification().
                 twoChannels().
                 enabled().
-                expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -2767,6 +2736,7 @@ tests.addTest(options => {
             'Контакты недоступны. Открываю историю звонков. Ссылка на редактирование контакта не отображается.',
         function() {
             accountRequest.contactsFeatureFlagDisabled().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -2802,11 +2772,6 @@ tests.addTest(options => {
             tester.slavesNotification().
                 twoChannels().
                 enabled().
-                expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -2872,6 +2837,7 @@ tests.addTest(options => {
             });
 
             tester.accountRequest().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -2907,11 +2873,6 @@ tests.addTest(options => {
             tester.slavesNotification().
                 twoChannels().
                 enabled().
-                expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
             notificationTester.grantPermission();

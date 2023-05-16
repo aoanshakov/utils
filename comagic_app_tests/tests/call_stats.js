@@ -49,6 +49,7 @@ tests.addTest(options => {
         describe('Пользователь является сотрудником.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
+                tester.ticketsContactsRequest().receiveResponse()
 
                 const requests = ajax.inAnyOrder();
 
@@ -84,11 +85,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 tester.connectEventsWebSocket();
@@ -193,6 +189,7 @@ tests.addTest(options => {
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                     tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+                    tester.ticketsContactsRequest().receiveResponse()
                     tester.statsRequest().anotherAuthorizationToken().receiveResponse();
 
                     tester.reportGroupsRequest().anotherAuthorizationToken().receiveResponse();
@@ -217,11 +214,6 @@ tests.addTest(options => {
                     tester.slavesNotification().
                         twoChannels().
                         enabled().
-                        expectToBeSent();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket(1);
@@ -402,6 +394,7 @@ tests.addTest(options => {
         });
         it('Пользователь является руководителем. Пункт меню видим.', function() {
             accountRequest.manager().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -437,11 +430,6 @@ tests.addTest(options => {
             tester.slavesNotification().
                 twoChannels().
                 enabled().
-                expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
@@ -497,6 +485,7 @@ tests.addTest(options => {
         });
         it('Статистика по звонкам недоступна. Пункт меню скрыт.', function() {
             accountRequest.callStatsFeatureFlagDisabled().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
@@ -532,11 +521,6 @@ tests.addTest(options => {
             tester.slavesNotification().
                 twoChannels().
                 enabled().
-                expectToBeSent();
-
-            tester.othersNotification().
-                updateSettings().
-                shouldNotPlayCallEndingSignal().
                 expectToBeSent();
 
             tester.connectEventsWebSocket();

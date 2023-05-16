@@ -38,6 +38,7 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
+            tester.ticketsContactsRequest().receiveResponse()
 
             tester.notificationChannel().applyLeader().expectToBeSent();
 
@@ -83,11 +84,6 @@ tests.addTest(options => {
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
-                    expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
                     expectToBeSent();
 
                 notificationTester.grantPermission();
@@ -641,11 +637,6 @@ tests.addTest(options => {
                             enabled().
                             expectToBeSent();
 
-                        tester.othersNotification().
-                            updateSettings().
-                            shouldNotPlayCallEndingSignal().
-                            expectToBeSent();
-
                         tester.connectEventsWebSocket(1);
 
                         tester.slavesNotification().
@@ -783,11 +774,6 @@ tests.addTest(options => {
                     tester.slavesNotification().
                         twoChannels().
                         enabled().
-                        expectToBeSent();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket(1);
@@ -1051,12 +1037,6 @@ tests.addTest(options => {
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
                 tester.notificationChannel().applyLeader().expectToBeSent();
-
-                tester.othersNotification().
-                    updateSettings().
-                    shouldNotPlayCallEndingSignal().
-                    expectToBeSent();
-
                 notificationTester.grantPermission();
 
                 tester.numberCapacityRequest().receiveResponse();
@@ -1117,12 +1097,6 @@ tests.addTest(options => {
                         tester.settingsRequest().receiveResponse();
 
                         tester.notificationChannel().tellIsLeader().expectToBeSent();
-
-                        tester.othersNotification().
-                            updateSettings().
-                            shouldNotPlayCallEndingSignal().
-                            expectToBeSent();
-
                         tester.authenticatedUserRequest().receiveResponse();
 
                         tester.slavesNotification().
@@ -1244,12 +1218,6 @@ tests.addTest(options => {
                     tester.settingsRequest().receiveResponse();
 
                     tester.notificationChannel().tellIsLeader().expectToBeSent();
-
-                    tester.othersNotification().
-                        updateSettings().
-                        shouldNotPlayCallEndingSignal().
-                        expectToBeSent();
-
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.slavesNotification().
