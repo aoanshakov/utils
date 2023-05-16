@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0ccc4cb1..064e688a 100644
+index 0ccc4cb1..4454d5c2 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -164,7 +164,7 @@ index 0ccc4cb1..064e688a 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -344,17 +414,148 @@ module.exports = {
+@@ -344,17 +414,149 @@ module.exports = {
                      },
                  ],
              },
@@ -260,6 +260,7 @@ index 0ccc4cb1..064e688a 100644
 +            'analytics/RadioButton': `${miscDirectory}/Stub.js`,
 +            'analytics/RadioGroup': `${miscDirectory}/Stub.js`,
 +            'analytics/Monitoring': `${miscDirectory}/Stub.js`,
++            'analytics/Visits': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`,
