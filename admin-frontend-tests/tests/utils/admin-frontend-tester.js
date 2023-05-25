@@ -403,7 +403,13 @@ define(() => {
                                                 );
 
                                                 if (index == -1) {
-                                                    throw new Error(`Колонка с заголовком "${text}" не найдена.`);
+                                                    return createTesters(
+                                                        () => new JsTester_NoElement(),
+
+                                                        testersFactory.createDomElementTester(
+                                                            () => new JsTester_NoElement()
+                                                        ),
+                                                    );
                                                 }
 
                                                 const getCell = () =>
@@ -1143,18 +1149,77 @@ define(() => {
                         ice_servers: 'stun:stun.uiscom.ru:19304',
                         sip_host: 'voip.uiscom.ru',
                         webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru',
+                        rtu_sip_host: undefined,
+                        registrar_sip_host: undefined,
+                        rtu_webrtc_urls: undefined,
+                        registrar_webrtc_urls: undefined,
                         engine: 'rtu_webrtc',
                     }]
                 };
 
                 return {
+                    engineUndefined() {
+                        delete(params.softphone_settings[0].engine);
+                        return this;
+                    },
+
+                    rtuSipHostSpecified() {
+                        params.softphone_settings[0].rtu_sip_host = 'rtu.uiscom.ru';
+                        return this;
+                    },
+
+                    registrarSipHostSpecified() {
+                        params.softphone_settings[0].registrar_sip_host = 'registrar.uiscom.ru';
+                        return this;
+                    },
+
                     janus() {
                         params.softphone_settings[0].engine = 'janus_webrtc';
                         return this;
                     },
 
+                    webrtcUrlsAreArray() {
+                        params.softphone_settings[0].webrtc_urls = [
+                            'wss://rtu-1-webrtc.uiscom.ru',
+                            'wss://rtu-2-webrtc.uiscom.ru',
+                        ];
+
+                        return this;
+                    },
+
+                    rtuWebrtcUrlsSpecified() {
+                        params.softphone_settings[0].rtu_webrtc_urls = 
+                            'wss://rtu-3-webrtc.uiscom.ru,' +
+                            'wss://rtu-4-webrtc.uiscom.ru';
+
+                        return this;
+                    },
+
+                    registrarWebrtcUrlsSpecified() {
+                        params.softphone_settings[0].registrar_webrtc_urls = 
+                            'wss://registrar-1-webrtc.uiscom.ru,' +
+                            'wss://registrar-2-webrtc.uiscom.ru';
+
+                        return this;
+                    },
+
+                    nullWebrtcUrls() {
+                        params.softphone_settings[0].webrtc_urls = null;
+                        return this;
+                    },
+
                     noWebrtcUrls() {
                         params.softphone_settings[0].webrtc_urls = '';
+                        return this;
+                    },
+
+                    noRtuWebrtcUrls() {
+                        params.softphone_settings[0].rtu_webrtc_urls = '';
+                        return this;
+                    },
+
+                    noRegistrarWebrtcUrls() {
+                        params.softphone_settings[0].registrar_webrtc_urls = '';
                         return this;
                     },
 
@@ -1218,19 +1283,53 @@ define(() => {
                             widget_type: 'call_center',
                             ice_servers: 'stun:stun.uiscom.ru:19303',
                             sip_host: 'voip.uiscom.ru',
-                            webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru',
+                            webrtc_urls:
+                                'wss://rtu-1-webrtc.uiscom.ru,' +
+                                'wss://rtu-2-webrtc.uiscom.ru',
                             engine: 'rtu_webrtc',
                         }]
                     }
                 };
 
                 const addResponseModifiers = me => {
+                    me.engineUndefined = () => (delete(result.data.softphone_settings[0].engine), me);
+
+                    me.rtuSipHostSpecified = () =>
+                        (result.data.softphone_settings[0].rtu_sip_host = 'rtu.uiscom.ru', me);
+
+                    me.registrarSipHostSpecified = () =>
+                        (result.data.softphone_settings[0].registrar_sip_host = 'registrar.uiscom.ru', me);
+
+                    me.rtuWebrtcUrlsAreString = () => (result.data.softphone_settings[0].rtu_webrtc_urls =
+                        'wss://rtu-3-webrtc.uiscom.ru,' +
+                        'wss://rtu-4-webrtc.uiscom.ru',
+                    me);
+
+                    me.registrarWebrtcUrlsAreString = () => (result.data.softphone_settings[0].registrar_webrtc_urls =
+                        'wss://registrar-1-webrtc.uiscom.ru,' +
+                        'wss://registrar-2-webrtc.uiscom.ru',
+                    me);
+
                     me.webrtcUrlsAreArray = () => (result.data.softphone_settings[0].webrtc_urls = [
                         'wss://rtu-1-webrtc.uiscom.ru',
                         'wss://rtu-2-webrtc.uiscom.ru'
                     ], me);
 
+                    me.rtuWebrtcUrlsAreArray = () => (result.data.softphone_settings[0].rtu_webrtc_urls = [
+                        'wss://rtu-3-webrtc.uiscom.ru',
+                        'wss://rtu-4-webrtc.uiscom.ru'
+                    ], me);
+
+                    me.registrarWebrtcUrlsAreArray = () => (result.data.softphone_settings[0].registrar_webrtc_urls = [
+                        'wss://registrar-1-webrtc.uiscom.ru',
+                        'wss://registrar-2-webrtc.uiscom.ru'
+                    ], me);
+
                     me.noWebrtcUrls = () => (result.data.softphone_settings[0].webrtc_urls = null, me);
+                    me.noRtuWebrtcUrls = () => (result.data.softphone_settings[0].rtu_webrtc_urls = null, me);
+
+                    me.noRegistrarWebrtcUrls = () =>
+                        (result.data.softphone_settings[0].registrar_webrtc_urls = null, me);
 
                     return me;
                 };

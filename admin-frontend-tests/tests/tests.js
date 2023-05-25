@@ -24,7 +24,16 @@ tests.addTest(function (options) {
             notificationsContainer && (notificationsContainer.innerHTML = '');
 
             setNow('2020-08-24 13:21:55');
-            tester = new AdminFrontendTester(options);
+            tester = new AdminFrontendTester({
+                ...options,
+                features: {
+                    'softphone-engine': [
+                        '127.0.0.1',
+                        'localhost'
+                    ]
+                }
+            });
+
             tester.path.open('/');
 
             tester.textfield().withPlaceholder('Username').fill('s.karamanova');
@@ -2150,8 +2159,28 @@ tests.addTest(function (options) {
 
                                 tester.table().
                                     cell().withContent('call_center').row().
+                                    column().withHeader('РТУ WebRTC url').textfield().
+                                    expectNotToExist();
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('SipVE WebRTC url').textfield().
+                                    expectNotToExist();
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
                                     column().withHeader('SIP host').textfield().
                                     expectToHaveValue('voip.uiscom.ru');
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('РТУ SIP host').textfield().
+                                    expectNotToExist();
+
+                                tester.table().
+                                    cell().withContent('call_center').row().
+                                    column().withHeader('SipVE SIP host').textfield().
+                                    expectNotToExist();
 
                                 tester.table().
                                     cell().withContent('call_center').row().
@@ -2312,6 +2341,193 @@ tests.addTest(function (options) {
 
             tester.table().cell().withContent('79157389283').row().checkbox().click();
             tester.button('Повторить отправку').expectToHaveAttribute('disabled');
+        });
+    });
+    describe(
+        'Открываю новую админку. Аутентифицируюсь. Поле движка доступно. Доступен только раздел "Клиенты". Нажимаю ' +
+        'на кнпоку "Применить". Нажимаю на кнпоку меню в строке таблицы. Нажимаю на пункт меню "Редактирование ' +
+        'клиента".',
+    function() {
+        let tester,
+            userRequest,
+            appRequest;
+
+        beforeEach(function() {
+            const notificationsContainer = document.querySelector('.ant-notification span');
+            notificationsContainer && (notificationsContainer.innerHTML = '');
+
+            setNow('2020-08-24 13:21:55');
+            tester = new AdminFrontendTester({
+                ...options,
+                features: {
+                    'softphone-engine': [],
+                }
+            });
+
+            tester.path.open('/');
+
+            tester.textfield().withPlaceholder('Username').fill('s.karamanova');
+            tester.textfield().withPlaceholder('Password').fill('2i3g8h89sdG32r');
+
+            tester.button('Sign in').click();
+            tester.userLoginRequest().receiveResponse();
+
+            tester.userRequest().
+                allowReadStatisticsRevisionHistory().
+                allowReadManagementAppsLoginToApp().
+                allowReadApps().
+                allowWriteApps().
+                allowReadSoftphoneSettings().
+                receiveResponse();
+
+            tester.directionRequest().
+                addAppStates().
+                addTpTpvAll().
+                receiveResponse();
+
+            tester.button('Применить').click();
+            tester.appsRequest().receiveResponse();
+
+            tester.table().cell().withContent('ООО "Трупоглазые жабы" # 1').row().actionsMenu().click();
+            tester.appUsersRequest().receiveResponse();
+
+            tester.menuitem('Редактирование клиента').click();
+
+            appRequest = tester.appRequest().
+                engineUndefined().
+                rtuSipHostSpecified().
+                registrarSipHostSpecified().
+                expectToBeSent();
+        });
+
+        describe('Значение поля URL для РТУ является строкой.', function() {
+            beforeEach(function() {
+                appRequest.
+                    rtuWebrtcUrlsAreString().
+                    registrarWebrtcUrlsAreString().
+                    receiveResponse();
+
+                tester.tab('Настройки софтфона').click();
+            });
+
+            it('Я меняю значение поля. Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения.', function() {
+                tester.table().
+                    cell().withContent('call_center').row().
+                    column().withHeader('ICE servers').textfield().
+                    fill('stun:stun.uiscom.ru:19304');
+
+                tester.button('Сохранить').click();
+
+                tester.appUpdatingRequest().
+                    engineUndefined().
+                    rtuSipHostSpecified().
+                    registrarSipHostSpecified().
+                    rtuWebrtcUrlsSpecified().
+                    registrarWebrtcUrlsSpecified().
+                    receiveResponse();
+
+                tester.appRequest().receiveResponse();
+            });
+            it('Форма заполнена.', function() {
+                tester.table().
+                    cell().withContent('call_center').row().
+                    column().withHeader('WebRTC url').textfield().
+                    expectToHaveValue('wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru');
+
+                tester.table().
+                    cell().withContent('call_center').row().
+                    column().withHeader('РТУ WebRTC url').textfield().
+                    expectToHaveValue('wss://rtu-3-webrtc.uiscom.ru,wss://rtu-4-webrtc.uiscom.ru');
+
+                tester.table().
+                    cell().withContent('call_center').row().
+                    column().withHeader('SipVE WebRTC url').textfield().
+                    expectToHaveValue('wss://registrar-1-webrtc.uiscom.ru,wss://registrar-2-webrtc.uiscom.ru');
+
+                tester.table().
+                    cell().withContent('call_center').row().
+                    column().withHeader('SIP host').textfield().
+                    expectToHaveValue('voip.uiscom.ru');
+
+                tester.table().
+                    cell().withContent('call_center').row().
+                    column().withHeader('РТУ SIP host').textfield().
+                    expectToHaveValue('rtu.uiscom.ru');
+
+                tester.table().
+                    cell().withContent('call_center').row().
+                    column().withHeader('SipVE SIP host').textfield().
+                    expectToHaveValue('registrar.uiscom.ru');
+
+                tester.table().
+                    cell().withContent('call_center').row().
+                    column().withHeader('ICE servers').textfield().
+                    expectToHaveValue('stun:stun.uiscom.ru:19303');
+
+                tester.table().
+                    cell().withContent('call_center').row().
+                    column().withHeader('Движок').expectNotToExist();
+            });
+        });
+        it(
+            'Значение поля URL для РТУ является массивом. Я меняю значение поля. Нажимаю на кнопку "Сохранить". ' +
+            'Отправлен запрос сохранения.',
+        function() {
+            appRequest.
+                webrtcUrlsAreArray().
+                rtuWebrtcUrlsAreArray().
+                registrarWebrtcUrlsAreArray().
+                receiveResponse();
+
+            tester.tab('Настройки софтфона').click();
+
+            tester.table().
+                cell().withContent('call_center').row().
+                column().withHeader('ICE servers').textfield().
+                fill('stun:stun.uiscom.ru:19304');
+
+            tester.button('Сохранить').click();
+
+            tester.appUpdatingRequest().
+                engineUndefined().
+                rtuSipHostSpecified().
+                registrarSipHostSpecified().
+                webrtcUrlsAreArray().
+                rtuWebrtcUrlsSpecified().
+                registrarWebrtcUrlsSpecified().
+                receiveResponse();
+
+            tester.appRequest().receiveResponse();
+        });
+        it(
+            'Значение поля URL для РТУ является пустым. Я меняю значение поля. Нажимаю на кнопку "Сохранить". ' +
+            'Отправлен запрос сохранения.',
+        function() {
+            appRequest.
+                noWebrtcUrls().
+                noRtuWebrtcUrls().
+                noRegistrarWebrtcUrls().
+                receiveResponse();
+            
+            tester.tab('Настройки софтфона').click();
+
+            tester.table().
+                cell().withContent('call_center').row().
+                column().withHeader('ICE servers').textfield().
+                fill('stun:stun.uiscom.ru:19304');
+
+            tester.button('Сохранить').click();
+
+            tester.appUpdatingRequest().
+                engineUndefined().
+                rtuSipHostSpecified().
+                registrarSipHostSpecified().
+                nullWebrtcUrls().
+                noRtuWebrtcUrls().
+                noRegistrarWebrtcUrls().
+                receiveResponse();
+
+            tester.appRequest().receiveResponse();
         });
     });
 });

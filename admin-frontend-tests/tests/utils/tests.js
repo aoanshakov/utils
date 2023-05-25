@@ -16,13 +16,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             tests.runTests({
                 AdminFrontendTester: AdminFrontendTester,
-                runApplication: ({utils}) => {
+                runApplication: ({ utils, features }) => {
                     var result = {};
 
                     window.application.run({
                         setHistory: history => (result.path = new Path({history, utils})),
                         setApp: app => (result.app = app),
-                        setStores: stores => (result.stores = stores)
+                        setStores: stores => (result.stores = stores),
+                        features,
                     });
 
                     return result;

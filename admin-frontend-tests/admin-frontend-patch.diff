@@ -131,11 +131,14 @@ index 9937105..d590c48 100644
 -export default createBrowserHistory();
 +export default createMemoryHistory();
 diff --git a/src/index.js b/src/index.js
-index d0eb9cc..0065a1d 100644
+index 3b3caf5..f4720e6 100644
 --- a/src/index.js
 +++ b/src/index.js
-@@ -29,15 +29,47 @@ if (process.env.NODE_ENV === 'development') {
+@@ -28,18 +28,51 @@ if (process.env.NODE_ENV === 'development') {
+ }
+ 
  window.isGodMode = window.location.search.indexOf('godmode') !== -1;
+-stores.appStore.setFeatures(features);
  
  
 -ReactDOM.render(
@@ -144,10 +147,12 @@ index d0eb9cc..0065a1d 100644
 +    run({
 +        setHistory = () => null,
 +        setApp = () => null,
-+        setStores = () => null
++        setStores = () => null,
++        ...params
 +    }) {
 +        setHistory(history);
 +        setStores(stores);
++        stores.appStore.setFeatures(params.features || features);
  
 -        <Router history={history}>
 -            <ConfigProvider locale={ruRU}>

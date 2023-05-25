@@ -2691,7 +2691,15 @@ function JsTester_Utils (debug) {
         }
 
         if (typeof value != 'string') {
-            value = value.innerHTML;
+            if (value instanceof JsTester_NoElement) {
+                value = '';
+            } else {
+                if (!('innerHTML' in value)) {
+                    throw new Error('Не удается получить текстовое содержимое значения ' + value + '.');
+                }
+
+                value = value.innerHTML;
+            }
         }
 
         return value.replace(/<[^<>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/[\s]+/g, ' ').trim();
@@ -4220,7 +4228,7 @@ function JsTester_DomElement (
     this.expectToExist = function () {
         var domElement = getDomElement();
 
-        if (!domElement) {
+        if (domElement instanceof JsTester_NoElement || !domElement) {
             throw new Error(
                 utils.capitalize(getNominativeDescription()) + ' ' + gender.should + ' существовать.'
             );
