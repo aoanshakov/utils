@@ -161,13 +161,6 @@ tests.addTest(options => {
                         enabled().
                         expectToBeSent();
 
-                    Promise.runAll(false, true);
-                    spendTime(0);
-                    Promise.runAll(false, true);
-                    spendTime(0);
-                    Promise.runAll(false, true);
-                    spendTime(0);
-
                     tester.authLogoutRequest().receiveResponse();
                     tester.eventsWebSocket.finishDisconnecting();
                     tester.registrationRequest().expired().receiveResponse();
@@ -188,15 +181,15 @@ tests.addTest(options => {
                     tester.slavesNotification().expectToBeSent();
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-                    tester.accountRequest().anotherAuthorizationToken().receiveResponse();
                     tester.ticketsContactsRequest().receiveResponse()
                     tester.statsRequest().anotherAuthorizationToken().receiveResponse();
+
+                    tester.accountRequest().anotherAuthorizationToken().receiveResponse();
+                    tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
 
                     tester.reportGroupsRequest().anotherAuthorizationToken().receiveResponse();
                     tester.reportsListRequest().receiveResponse();
                     tester.reportTypesRequest().receiveResponse();
-
-                    tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
 
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();

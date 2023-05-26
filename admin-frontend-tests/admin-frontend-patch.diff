@@ -131,10 +131,18 @@ index 9937105..d590c48 100644
 -export default createBrowserHistory();
 +export default createMemoryHistory();
 diff --git a/src/index.js b/src/index.js
-index 3b3caf5..f4720e6 100644
+index 3b3caf5..4bdbc5a 100644
 --- a/src/index.js
 +++ b/src/index.js
-@@ -28,18 +28,51 @@ if (process.env.NODE_ENV === 'development') {
+@@ -14,7 +14,6 @@ import { initReactI18next } from 'react-i18next';
+ import i18nconfig from './lib/i18n';
+ import 'moment/locale/ru';
+ import ru from './components/i18n/ru.json';
+-import features from './features.json';
+ moment.locale('ru');
+ 
+ i18n
+@@ -28,18 +27,50 @@ if (process.env.NODE_ENV === 'development') {
  }
  
  window.isGodMode = window.location.search.indexOf('godmode') !== -1;
@@ -152,7 +160,6 @@ index 3b3caf5..f4720e6 100644
 +    }) {
 +        setHistory(history);
 +        setStores(stores);
-+        stores.appStore.setFeatures(params.features || features);
  
 -        <Router history={history}>
 -            <ConfigProvider locale={ruRU}>

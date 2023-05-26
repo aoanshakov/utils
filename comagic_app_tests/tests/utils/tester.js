@@ -3123,7 +3123,11 @@ define(() => function ({
 
     me.searchResultsRequest = () => {
         const processors = [];
-        let search_string = 'Сообщение #75';
+
+        const params = {
+            search_string: 'Сообщение #75',
+            is_only_whatsapp_out: undefined,
+        };
 
         const response = {
             result: {
@@ -3218,20 +3222,23 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            onlyWhatsAppOut() {
+                params.is_only_whatsapp_out = true;
+                return this;
+            },
+
             channelSearch() {
-                search_string = '79283810988';
+                params.search_string = '79283810988';
                 return this;
             },
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectPathToContain('BASE_URL').
                     expectToHaveMethod('POST').
                     expectBodyToContain({
                         method: 'get_search_results',
-                        params: {
-                            search_string
-                        }
+                        params,
                     });
 
                 return addResponseModifiers({
@@ -8900,6 +8907,62 @@ define(() => function ({
 
                         Promise.runAll(false, true);
                         spendTime(0)
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.chatChannelSearchRequest = () => {
+        const result = {
+            channel_id: 216395,
+            channel_name: 'WhatsApp',
+            channel_type: 'whatsapp',
+            channel_ext_identity: '79283810988',
+            chats: [{
+                id: 7189362,
+                status: 'active',
+                employee_id: 20816,
+            }] 
+        };
+
+        const addResponseModifiers = me => {
+            me.anotherPhone = () => (result.channel_ext_identity = '79357818431', me);
+            me.anotherEmployee = () => (result.chats[0].employee_id = 57292, me);
+            me.anotherChannelType = () => (result.channel_type = 'telegram', me);
+            me.noChat = () => (result.chats = [], me);
+            me.closed = () => (result.chats[0].status = 'closed', me);
+
+            return me;
+        };
+
+        const response = { result };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath('$REACT_APP_CHAT_BASE_URL').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'get_chat_start_chat_channel_search',
+                        params: {
+                            contact: {
+                                phone: '79283810988',
+                            },
+                        },
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
                         spendTime(0)
                         spendTime(0)
                     }
