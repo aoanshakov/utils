@@ -144,6 +144,20 @@ define(() => {
                 return tester;
             };
 
+            me.checkbox = () => {
+                const tester = new Checkbox(getRoot().querySelector('.ant-checkbox-input'));
+
+                tester.withLabel = label => new Checkbox(
+                    utils.descendantOf(getRoot()).
+                        matchesSelector('.comagic-checkbox').
+                        textEquals(label).
+                        find().
+                        querySelector('.ant-checkbox-input')
+                );
+
+                return tester;
+            };
+
             {
                 const getTester = getRoot => {
                     const tester = testersFactory.createDomElementTester(() => getRoot().querySelector('.ant-switch'));
@@ -198,20 +212,6 @@ define(() => {
                 return tester;
             },
             
-            checkbox() {
-                return {
-                    withLabel(label) {
-                        return new Checkbox(
-                            utils.descendantOfBody().
-                                matchesSelector('.comagic-checkbox').
-                                textEquals(label).
-                                find().
-                                querySelector('.ant-checkbox-input')
-                        );
-                    }
-                };
-            },
-
             calendar() {
                 const applyDatePicker = (me, getElement) => {
                     me.cell = content => {
@@ -1140,6 +1140,31 @@ define(() => {
                 };
             },
 
+            callCenterSystemSettingsDeleteRequest() {
+                const params = {
+                    app_id: 386524,
+                    widget_type: 'call_center',
+                };
+
+                return {
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                method: 'delete.call_center_system_settings',
+                                params
+                            }).respondSuccessfullyWith({
+                                result: {
+                                    data: true,
+                                } 
+                            });
+
+                        Promise.runAll(false, true);
+                    }
+                };
+            },
+
             appUpdatingRequest() {
                 const params = {
                     app_id: 386524,
@@ -1153,13 +1178,24 @@ define(() => {
                         registrar_sip_host: undefined,
                         rtu_webrtc_urls: undefined,
                         registrar_webrtc_urls: undefined,
+                        is_use_tls: false,
                         engine: 'rtu_webrtc',
                     }]
                 };
 
                 return {
+                    tls() {
+                        params.softphone_settings[0].is_use_tls = true;
+                        return this;
+                    },
+
                     engineUndefined() {
                         delete(params.softphone_settings[0].engine);
+                        return this;
+                    },
+
+                    isUseTlsUndefined() {
+                        delete(params.softphone_settings[0].is_use_tls);
                         return this;
                     },
 
@@ -1283,6 +1319,7 @@ define(() => {
                             widget_type: 'call_center',
                             ice_servers: 'stun:stun.uiscom.ru:19303',
                             sip_host: 'voip.uiscom.ru',
+                            is_use_tls: false,
                             webrtc_urls:
                                 'wss://rtu-1-webrtc.uiscom.ru,' +
                                 'wss://rtu-2-webrtc.uiscom.ru',
@@ -1293,6 +1330,7 @@ define(() => {
 
                 const addResponseModifiers = me => {
                     me.engineUndefined = () => (delete(result.data.softphone_settings[0].engine), me);
+                    me.isUseTlsUndefined = () => (delete(result.data.softphone_settings[0].is_use_tls), me);
 
                     me.rtuSipHostSpecified = () =>
                         (result.data.softphone_settings[0].rtu_sip_host = 'rtu.uiscom.ru', me);

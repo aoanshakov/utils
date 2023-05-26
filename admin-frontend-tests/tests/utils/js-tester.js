@@ -2090,6 +2090,7 @@ function JsTester_Tests (factory) {
     var spendTime = function (time) {
         timeout.spendTime(time);
         interval.spendTime(time);
+        Promise.runAll(false, true);
     };
 
     this.exposeDebugUtils = function (variableName) {
@@ -4331,7 +4332,7 @@ function JsTester_DomElement (
         return testersFactory.createDomElementTester(utils.findElementByTextContent(getDomElement(), text));
     };
     this.closest = function (selector) {
-        return testersFactory.createDomElementTester(getDomElement().closest(selector));
+        return testersFactory.createDomElementTester((getDomElement() || (new JsTester_NoElement())).closest(selector));
     };
     function getBoundingClientRect () {
         me.expectToBeVisible();

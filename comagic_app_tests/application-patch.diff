@@ -320,7 +320,7 @@ index 0ccc4cb1..93d752cb 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index d9796c37..65066f5c 100644
+index 4df5d762..52335b09 100644
 --- a/package.json
 +++ b/package.json
 @@ -67,12 +67,17 @@
@@ -353,7 +353,7 @@ index d9796c37..65066f5c 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -93,6 +98,11 @@
+@@ -94,6 +99,11 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "^6.4.0",
