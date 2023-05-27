@@ -884,7 +884,27 @@ define(() => function ({
     };
 
     me.ticketsContactsRequest = () => {
-        const addResponseModifiers = me => me;
+        let respond = request => request.respondSuccessfullyWith({
+            data: {
+                contacts: [],
+                phones: [],
+                emails: [],
+            },
+        });
+
+        const addResponseModifiers = me => {
+            me.accessTokenExpired = () => {
+                respond = request => request.respond({
+                    status: 401,
+                    statusText: 'access_token_expired',
+                    responseText: ''
+                });
+
+                return me;
+            };
+
+            return me;
+        };
 
         return addResponseModifiers({
             expectToBeSent(requests) {
@@ -894,14 +914,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith({
-                            data: {
-                                contacts: [],
-                                phones: [],
-                                emails: [],
-                            },
-                        });
-
+                        respond(request);
                         Promise.runAll(false, true);
                         spendTime(0)
                     }
@@ -3125,8 +3138,7 @@ define(() => function ({
         const processors = [];
 
         const params = {
-            search_string: 'Сообщение #75',
-            is_only_whatsapp_out: undefined,
+            search_string: 'Сообщение #75'
         };
 
         const response = {

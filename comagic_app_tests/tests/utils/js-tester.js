@@ -4878,6 +4878,7 @@ function JsTester_SomeRequest (args) {
     [
         'printCallStack',
         'proceedUploading',
+        'respond',
         'respondSuccessfullyWith',
         'respondUnsuccessfullyWith',
         'respondUnauthorizedWith'
@@ -4894,6 +4895,7 @@ function JsTester_MaybeResponder () {
     [
         'printCallStack',
         'proceedUploading',
+        'respond',
         'respondSuccessfullyWith',
         'respondUnsuccessfullyWith',
         'respondUnauthorizedWith'

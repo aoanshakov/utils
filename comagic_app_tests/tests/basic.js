@@ -21,6 +21,7 @@ tests.addTest(options => {
 
     describe('Я уже аутентифицирован. Открываю новый личный кабинет.', function() {
         let authenticatedUserRequest,
+            ticketsContactsRequest,
             tester;
 
         beforeEach(function() {
@@ -34,8 +35,8 @@ tests.addTest(options => {
 
             const requests = ajax.inAnyOrder();
 
-            const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
-                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+            ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests);
+            const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
@@ -43,7 +44,6 @@ tests.addTest(options => {
 
             requests.expectToBeSent();
 
-            ticketsContactsRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
@@ -120,6 +120,7 @@ tests.addTest(options => {
 
             beforeEach(function() {
                 employeeChangedEvent = tester.employeeChangedEvent().secondStatus();
+                ticketsContactsRequest.receiveResponse();
             });
 
             it('Структура некорректна. Отображен новый статус сотрудника.', function() {
@@ -157,6 +158,12 @@ tests.addTest(options => {
 
                 tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
             });
+        });
+        it('Токен авторизации в инфопине истек.', function() {
+            ticketsContactsRequest.accessTokenExpired().receiveResponse();
+            tester.refreshRequest().receiveResponse();
+
+            tester.ticketsContactsRequest().receiveResponse();
         });
         it('Отображен статус сотрудника.', function() {
             tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
