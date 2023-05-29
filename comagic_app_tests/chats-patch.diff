@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index e728b81..8f7924f 100644
+index 9a971f9..a3a5008 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,8 +22,6 @@
@@ -15,15 +15,15 @@ index e728b81..8f7924f 100644
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
--    "@comagic/core": "0.0.0-int0",
+-    "@comagic/core": "^1.1.1",
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -68,15 +65,10 @@
-     "history": "^5.3.0",
+@@ -67,15 +64,10 @@
+     "formik": "^2.2.9",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
--    "magic-ui": "0.0.0-int0",
+-    "magic-ui": "^2.23.0",
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
@@ -63,7 +63,7 @@ index ed8715e..325651b 100644
  
  export default App;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 1dcfa78..9274d4b 100644
+index 6ec9d08..9635ac6 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -130,7 +130,8 @@ export const RootStore = types
@@ -110,20 +110,10 @@ index 57ad272..166fd36 100644
      }))
      .actions(self => {
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 17e5a68..8e6f31d 100644
+index 933fdb3..8e6f31d 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -1,8 +1,7 @@
- import { types, flow, getRoot } from 'mobx-state-tree';
- import type { RootInstance } from '../RootStore';
- import { authHttpRpc } from '@/httpRpc';
--import { generateTraceId } from '@/utils';
--import { getCookie, setCookie, deleteCookie } from '@comagic/core';
-+import { generateTraceId, getCookie, setCookie, deleteCookie } from '@/utils';
- 
- const getCookieDomain = () => {
-     return window.location.hostname.split('.').slice(-2).join('.');
-@@ -27,7 +26,7 @@ const AUTH_KEY: string = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_C
+@@ -26,7 +26,7 @@ const AUTH_KEY: string = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_C
  
  export const AuthStore = types
      .model('AuthStore', {

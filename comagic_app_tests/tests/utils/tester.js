@@ -9002,8 +9002,14 @@ define(() => function ({
             }
         };
 
+        const params = {
+            chat_channel_id: '216395',
+            chat_statuses: ['new', 'active', 'closed', undefined]
+        };
+
         const addResponseModifiers = me => {
             me.anotherPhone = () => (data.chat.phone = '79357818431', me);
+            me.thirdPhone = () => (data.chat.phone = '79218307632', me);
             me.anotherEmployee = () => (data.chat.employee_id = 57292, me);
             me.anotherChannelType = () => (data.chat.chat_channel_type = 'telegram', me);
             me.channelInactive = () => (data.is_chat_channel_active = false, me);
@@ -9017,14 +9023,16 @@ define(() => function ({
         const response = {data};
 
         return addResponseModifiers({
+            anotherChannelId() {
+                params.chat_channel_id = '101';
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/1689283/chat/20816`).
                     expectToHaveMethod('GET').
-                    expectQueryToContain({
-                        chat_channel_id: '216395',
-                        chat_statuses: ['new', 'active', 'closed', undefined]
-                    });
+                    expectQueryToContain(params);
 
                 return addResponseModifiers({
                     receiveResponse: () => {

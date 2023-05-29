@@ -1475,6 +1475,22 @@ define(function () {
                     return me;
                 };
 
+                me.empty = function () {
+                    respond = request => request.respondSuccessfullyWith({
+                        data: ''
+                    });
+
+                    return me;
+                };
+
+                me.normalizedNumber = function () {
+                    respond = request => request.respondSuccessfullyWith({
+                        data: numa + ''
+                    });
+
+                    return me;
+                };
+
                 me.employeeNameIsFound = () => {
                     respond = request => request.respondSuccessfullyWith({
                         data: 'Шалева Дора'
@@ -6404,6 +6420,22 @@ define(function () {
                             anotherContact: function () {
                                 state.employeeNames['74999951240'] = {
                                     id: '74999951240',
+                                    value: null,
+                                };
+
+                                return this;
+                            },
+                            thirdContact: function () {
+                                state.employeeNames['79161234567'] = {
+                                    id: '79161234567',
+                                    value: null,
+                                };
+
+                                return this;
+                            },
+                            fourthContact: function () {
+                                state.employeeNames['79161234570'] = {
+                                    id: '79161234570',
                                     value: null,
                                 };
 

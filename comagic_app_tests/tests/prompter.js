@@ -145,8 +145,14 @@ tests.addTest(options => {
 
                 beforeEach(function() {
                     tester.ipcPrompterCallPreparationMessage().receive();
-                    tester.othersNotification().prompterCallPreparation().expectToBeSent();
 
+                    tester.slavesNotification().
+                        additional().
+                        thirdContact().
+                        visible().
+                        expectToBeSent();
+
+                    tester.othersNotification().prompterCallPreparation().expectToBeSent();
                     tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                     incomingCall = tester.incomingCall().receive();
@@ -169,7 +175,7 @@ tests.addTest(options => {
                         userDataFetched().
                         expectToBeSent();
 
-                    tester.numaRequest().receiveResponse();
+                    tester.numaRequest().normalizedNumber().receiveResponse();
 
                     tester.firstConnection.connectWebRTC();
                     tester.firstConnection.callTrackHandler();
@@ -217,7 +223,6 @@ tests.addTest(options => {
                                     expectToBeSent();
 
                                 incomingCall.expectByeRequestToBeSent();
-                                //tester.callSessionFinish().thirdId().slavesNotification().expectToBeSent();
                             });
 
                             it(
@@ -301,9 +306,19 @@ tests.addTest(options => {
                                 'Происходит подготовка к подключению ко звонку. Сообщение о том, что ' +
                                 'подключение ко звонку уже произведено не отправлено.',
                             function() {
-                                tester.ipcPrompterCallPreparationMessage().anotherPhoneNumber().receive();
+                                tester.ipcPrompterCallPreparationMessage().
+                                    anotherPhoneNumber().
+                                    receive();
 
-                                tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().
+                                tester.slavesNotification().
+                                    additional().
+                                    fourthContact().
+                                    visible().
+                                    expectToBeSent();
+
+                                tester.othersNotification().
+                                    prompterCallPreparation().
+                                    anotherPhoneNumber().
                                     expectToBeSent();
 
                                 tester.ipcPrompterCallAwaitMessage().expectToBeSent();
@@ -318,9 +333,7 @@ tests.addTest(options => {
                             tester.callEndMessage().expectToBeSent();
 
                             incomingCall.expectByeRequestToBeSent();
-
                             tester.resizeMessage().expectToBeSent();
-                            //tester.callSessionFinish().thirdId().slavesNotification().expectToBeSent();
 
                             tester.slavesNotification().
                                 available().
@@ -332,6 +345,12 @@ tests.addTest(options => {
                             tester.ipcPrompterCallPreparationMessage().
                                 anotherPhoneNumber().
                                 receive();
+
+                            tester.slavesNotification().
+                                additional().
+                                fourthContact().
+                                visible().
+                                expectToBeSent();
                             
                             tester.othersNotification().
                                 prompterCallPreparation().
@@ -344,12 +363,18 @@ tests.addTest(options => {
                             'Происходит подготовка к подключению ко звонку. Отправлено сообщение о ' +
                             'том, что подключение ко звонку уже произведено.',
                         function() {
-                            tester.ipcPrompterCallPreparationMessage().anotherPhoneNumber().receive();
+                            tester.ipcPrompterCallPreparationMessage().
+                                anotherPhoneNumber().
+                                receive();
 
-                            tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().
+                            tester.othersNotification().
+                                prompterCallPreparation().
+                                anotherPhoneNumber().
                                 expectToBeSent();
 
-                            tester.ipcPrompterCallAwaitMessage().alreadyPreparing().expectToBeSent();
+                            tester.ipcPrompterCallAwaitMessage().
+                                alreadyPreparing().
+                                expectToBeSent();
                         });
                         it('Кнопки заблокированы.', function() {
                             tester.microphoneButton.expectToHaveClass('clct-call-option--pressed');
@@ -394,7 +419,16 @@ tests.addTest(options => {
                 describe('Звонок должен прийти с ожидаемого номера.', function() {
                     beforeEach(function() {
                         ipcPrompterCallPreparationMessage.receive();
-                        tester.othersNotification().prompterCallPreparation().expectToBeSent();
+                        
+                        tester.slavesNotification().
+                            additional().
+                            thirdContact().
+                            visible().
+                            expectToBeSent();
+
+                        tester.othersNotification().
+                            prompterCallPreparation().
+                            expectToBeSent();
 
                         tester.ipcPrompterCallAwaitMessage().expectToBeSent();
                     });
@@ -515,10 +549,22 @@ tests.addTest(options => {
                     'Поступил входящий звонок с номером отличающимся от ожидаемого. Отображается ' +
                     'уведомление с заголовком "Входящий вызов".',
                 function() {
-                    ipcPrompterCallPreparationMessage.anotherPhoneNumber().receive();
-                    tester.othersNotification().prompterCallPreparation().anotherPhoneNumber().expectToBeSent();
-                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+                    ipcPrompterCallPreparationMessage.
+                        anotherPhoneNumber().
+                        receive();
 
+                    tester.slavesNotification().
+                        additional().
+                        fourthContact().
+                        visible().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        prompterCallPreparation().
+                        anotherPhoneNumber().
+                        expectToBeSent();
+
+                    tester.ipcPrompterCallAwaitMessage().expectToBeSent();
                     tester.incomingCall().receive();
 
                     tester.callStartMessage().expectToBeSent();
@@ -549,7 +595,18 @@ tests.addTest(options => {
                     'Звонок принимается автоматически. Уведомление не отображается.',
                 function() {
                     ipcPrompterCallPreparationMessage.dontShowNotification().receive();
-                    tester.othersNotification().prompterCallPreparation().dontShowNotification().expectToBeSent();
+                    
+                    tester.slavesNotification().
+                        additional().
+                        thirdContact().
+                        visible().
+                        expectToBeSent();
+
+                    tester.othersNotification().
+                        prompterCallPreparation().
+                        dontShowNotification().
+                        expectToBeSent();
+
                     tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                     incomingCall = tester.incomingCall().receive();
@@ -621,6 +678,12 @@ tests.addTest(options => {
                 describe('На активной вкладке происходит подготовка к подключению ко звонку.', function() {
                     beforeEach(function() {
                         tester.ipcPrompterCallPreparationMessage().receive();
+                        
+                        tester.slavesNotification().
+                            additional().
+                            thirdContact().
+                            visible().
+                            expectToBeSent();
 
                         tester.slavesNotification().additional().visible().expectToBeSent();
                         tester.slavesNotification().expectToBeSent();
@@ -761,6 +824,11 @@ tests.addTest(options => {
                     'Поступает входящий звонок. Кнопки заблокированы.',
                 function() {
                     tester.othersNotification().prompterCallPreparation().receive();
+                    
+                    tester.slavesNotification().
+                        additional().
+                        thirdContact().
+                        expectToBeSent();
 
                     tester.slavesNotification().additional().expectToBeSent();
                     tester.slavesNotification().expectToBeSent();
@@ -895,9 +963,20 @@ tests.addTest(options => {
                 tester.outCallEvent().anotherContactNumber().slavesNotification().expectToBeSent();
 
                 tester.ipcPrompterCallPreparationMessage().noSubscriberNumber().receive();
-                tester.othersNotification().prompterCallPreparation().noSubscriberNumber().expectToBeSent();
-                tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+                        
+                tester.slavesNotification().
+                    additional().
+                    thirdContact().
+                    visible().
+                    outCallEvent().anotherContactNumber().include().
+                    expectToBeSent();
 
+                tester.othersNotification().
+                    prompterCallPreparation().
+                    noSubscriberNumber().
+                    expectToBeSent();
+
+                tester.ipcPrompterCallAwaitMessage().expectToBeSent();
                 incomingCall = tester.incomingCall().receive();
 
                 tester.resizeMessage().expectToBeSent();
@@ -954,9 +1033,16 @@ tests.addTest(options => {
                 'Происходит подготовка к подключению ко звонку. Поступил входящий звонок с ожидаемого номера. ' +
                 'Получена информация о звонке. Звонок принимается автоматически. Кнопки заблокированы.',
             function() {
-                tester.othersNotification().prompterCallPreparation().receive();
-                let incomingCall = tester.incomingCall().receive();
+                tester.othersNotification().
+                    prompterCallPreparation().
+                    receive();
                 
+                tester.slavesNotification().
+                    additional().
+                    thirdContact().
+                    expectToBeSent();
+
+                let incomingCall = tester.incomingCall().receive();
                 tester.callStartMessage().expectToBeSent();
 
                 tester.slavesNotification().
@@ -1086,7 +1172,7 @@ tests.addTest(options => {
                         tester.othersNotification().prompterCallPreparation().expectToBeSent();
 
                         tester.slavesNotification().receive();
-                        tester.slavesNotification().additional().receive();
+                        tester.slavesNotification().additional().thirdContact().receive();
 
                         tester.masterNotification().tabOpened().expectToBeSent();
 
@@ -1415,7 +1501,16 @@ tests.addTest(options => {
                 'подключению ко звонку.',
             function() {
                 tester.ipcPrompterCallPreparationMessage().receive();
-                tester.othersNotification().prompterCallPreparation().expectToBeSent();
+                
+                tester.slavesNotification().
+                    additional().
+                    thirdContact().
+                    visible().
+                    receive();
+
+                tester.othersNotification().
+                    prompterCallPreparation().
+                    expectToBeSent();
 
                 tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 

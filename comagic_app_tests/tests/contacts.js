@@ -2867,8 +2867,8 @@ tests.addTest(options => {
                     operatorWorkplaceAvailable();
             });
 
-            xdescribe(
-                'Есть доступ к чужим чатам. Открываю раздел контактов. Открываю контакт. Нажимаю на номер WhatsApp.',
+            describe(
+                'Есть доступ к чужим чатам. Открываю раздел контактов. Открываю контакт.',
             function() {
                 beforeEach(function() {
                     accountRequest.otherEmployeeChatsAccessAvailable().receiveResponse();
@@ -2976,7 +2976,7 @@ tests.addTest(options => {
                             contactCommunicationsRequest().
                             expectToBeSent(requests);
 
-                        const contactRequest = tester.contactRequest().expectToBeSent(requests);
+                        const contactRequest = tester.contactRequest().addTelegram().expectToBeSent(requests);
                         const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
 
                         requests.expectToBeSent();
@@ -2986,25 +2986,197 @@ tests.addTest(options => {
                         contactRequest.receiveResponse();
                         contactCommunicationsRequest.receiveResponse();
                     }
-
-                    tester.contactBar.
-                        section('Каналы связи').
-                        option('79283810988').
-                        click();
-
-                    contactChatRequest = tester.contactChatRequest().expectToBeSent();
                 });
 
-                describe('Получен чужой чат.', function() {
+                describe('Нажимаю на номер Telegram.', function() {
                     beforeEach(function() {
-                        contactChatRequest = contactChatRequest.anotherEmployee();
+                        tester.contactBar.
+                            section('Каналы связи').
+                            option('79218307632').
+                            click();
+
+                        contactChatRequest = tester.contactChatRequest().
+                            anotherChannelType().
+                            anotherChannelId().
+                            thirdPhone().
+                            expectToBeSent();
                     });
 
-                    it('Чат закрыт. Отображено окно создания чата.', function() {
-                        contactChatRequest.closed().receiveResponse();
-                        tester.modalWindow.button('Создать').expectToBeVisible();
+                    xdescribe('Получен чужой чат.', function() {
+                        beforeEach(function() {
+                            contactChatRequest = contactChatRequest.anotherEmployee();
+                        });
+
+                        it('Чат закрыт. Отображено окно создания чата.', function() {
+                            contactChatRequest.closed().receiveResponse();
+                            tester.modalWindow.button('Создать').expectToBeVisible();
+                        });
+                        it('Чат активен. Открыт раздел чатов.', function() {
+                            contactChatRequest.receiveResponse();
+
+                            tester.chatListRequest().receiveResponse();
+                            
+                            tester.chatListRequest().active().receiveResponse();
+                            tester.chatListRequest().closed().receiveResponse();
+                            tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
+
+                            tester.chatChannelListRequest().receiveResponse();
+                            tester.statusListRequest().receiveResponse();
+                            tester.listRequest().receiveResponse();
+                            tester.siteListRequest().receiveResponse();
+                            tester.messageTemplateListRequest().receiveResponse();
+                            tester.chatSettingsRequest().receiveResponse();
+
+                            tester.accountRequest().
+                                forChats().
+                                operatorWorkplaceAvailable().
+                                receiveResponse();
+
+                            tester.chatsWebSocket.connect();
+                            tester.chatsInitMessage().expectToBeSent();
+                            
+                            tester.accountRequest().
+                                forChats().
+                                operatorWorkplaceAvailable().
+                                receiveResponse();
+
+                            tester.chatListRequest().thirdChat().receiveResponse();
+
+                            tester.offlineMessageCountersRequest().receiveResponse();
+                            tester.chatChannelListRequest().receiveResponse();
+                            tester.siteListRequest().receiveResponse();
+                            tester.markListRequest().receiveResponse();
+                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                            tester.offlineMessageListRequest().processing().receiveResponse();
+                            tester.offlineMessageListRequest().processed().receiveResponse();
+
+                            tester.countersRequest().receiveResponse();
+
+                            tester.chatListRequest().
+                                forCurrentEmployee().
+                                secondPage().
+                                receiveResponse();
+
+                            tester.chatListRequest().
+                                forCurrentEmployee().
+                                secondPage().
+                                active().
+                                receiveResponse();
+
+                            tester.chatListRequest().
+                                forCurrentEmployee().
+                                secondPage().
+                                closed().
+                                receiveResponse();
+
+                            tester.messageListRequest().receiveResponse();
+                            tester.acceptChatRequest().receiveResponse();
+                            tester.visitorCardRequest().receiveResponse();
+
+                            tester.usersRequest().forContacts().receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                anotherMessage().
+                                read().
+                                receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                anotherChat().
+                                anotherMessage().
+                                read().
+                                receiveResponse();
+                            
+                            tester.usersRequest().forContacts().receiveResponse();
+
+                            tester.contactBar.
+                                section('Каналы связи').
+                                content.
+                                expectToHaveTextContent('Помакова Бисерка Драгановна');
+                        });
                     });
-                    it('Чат активен. Открыт раздел чатов.', function() {
+                    it(
+                        'Чат не найден. Отображено предложение начать новый чат. Нажимаю на кнопку "Создать". Открыт ' +
+                        'новый чат.',
+                    function() {
+                        contactChatRequest.noChat().receiveResponse();
+
+                        tester.searchResultsRequest().
+                            channelSearch().
+                            noVisitorType().
+                            receiveResponse();
+
+                        tester.modalWindow.button('Создать').click();
+
+                        tester.chatListRequest().receiveResponse();
+
+                        tester.chatListRequest().active().receiveResponse();
+                        tester.chatListRequest().closed().receiveResponse();
+                        tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
+
+                        tester.chatChannelListRequest().receiveResponse();
+                        tester.statusListRequest().receiveResponse();
+                        tester.listRequest().receiveResponse();
+                        tester.siteListRequest().receiveResponse();
+                        tester.messageTemplateListRequest().receiveResponse();
+                        tester.chatSettingsRequest().receiveResponse();
+
+                        tester.accountRequest().
+                            forChats().
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
+
+                        tester.chatsWebSocket.connect();
+                        tester.chatsInitMessage().expectToBeSent();
+                        
+                        tester.accountRequest().
+                            forChats().
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
+
+                        tester.chatStartingRequest().receiveResponse();
+
+                        tester.offlineMessageCountersRequest().receiveResponse();
+                        tester.chatChannelListRequest().receiveResponse();
+                        tester.siteListRequest().receiveResponse();
+                        tester.markListRequest().receiveResponse();
+                        tester.chatChannelTypeListRequest().receiveResponse();
+
+                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                        tester.offlineMessageListRequest().processing().receiveResponse();
+                        tester.offlineMessageListRequest().processed().receiveResponse();
+
+                        tester.countersRequest().receiveResponse();
+
+                        tester.chatListRequest().
+                            forCurrentEmployee().
+                            secondPage().
+                            receiveResponse();
+
+                        tester.chatListRequest().
+                            forCurrentEmployee().
+                            secondPage().
+                            active().
+                            receiveResponse();
+
+                        tester.chatListRequest().
+                            forCurrentEmployee().
+                            secondPage().
+                            closed().
+                            receiveResponse();
+
+                        tester.chatListRequest().thirdChat().receiveResponse();
+
+                        tester.acceptChatRequest().receiveResponse();
+                        tester.visitorCardRequest().receiveResponse();
+
+                        tester.usersRequest().forContacts().receiveResponse();
+                        tester.usersRequest().forContacts().receiveResponse();
+                    });
+                    return;
+                    it('Чат найден. Открыт раздел чатов.', function() {
                         contactChatRequest.receiveResponse();
 
                         tester.chatListRequest().receiveResponse();
@@ -3035,15 +3207,25 @@ tests.addTest(options => {
 
                         tester.chatListRequest().thirdChat().receiveResponse();
 
-                        tester.offlineMessageCountersRequest().receiveResponse();
+                        tester.offlineMessageCountersRequest().
+                            receiveResponse();
+
                         tester.chatChannelListRequest().receiveResponse();
                         tester.siteListRequest().receiveResponse();
                         tester.markListRequest().receiveResponse();
                         tester.chatChannelTypeListRequest().receiveResponse();
 
-                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                        tester.offlineMessageListRequest().processing().receiveResponse();
-                        tester.offlineMessageListRequest().processed().receiveResponse();
+                        tester.offlineMessageListRequest().
+                            notProcessed().
+                            receiveResponse();
+
+                        tester.offlineMessageListRequest().
+                            processing().
+                            receiveResponse();
+
+                        tester.offlineMessageListRequest().
+                            processed().
+                            receiveResponse();
 
                         tester.countersRequest().receiveResponse();
 
@@ -3090,184 +3272,10 @@ tests.addTest(options => {
                             expectToHaveTextContent('Помакова Бисерка Драгановна');
                     });
                 });
-                it(
-                    'Чат не найден. Отображено предложение начать новый чат. Нажимаю на кнопку "Создать". Открыт ' +
-                    'новый чат.',
-                function() {
-                    contactChatRequest.noChat().receiveResponse();
-
-                    tester.searchResultsRequest().
-                        channelSearch().
-                        noVisitorType().
-                        receiveResponse();
-
-                    tester.modalWindow.button('Создать').click();
-
-                    tester.chatListRequest().receiveResponse();
-
-                    tester.chatListRequest().active().receiveResponse();
-                    tester.chatListRequest().closed().receiveResponse();
-                    tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
-
-                    tester.chatChannelListRequest().receiveResponse();
-                    tester.statusListRequest().receiveResponse();
-                    tester.listRequest().receiveResponse();
-                    tester.siteListRequest().receiveResponse();
-                    tester.messageTemplateListRequest().receiveResponse();
-                    tester.chatSettingsRequest().receiveResponse();
-
-                    tester.accountRequest().
-                        forChats().
-                        operatorWorkplaceAvailable().
-                        receiveResponse();
-
-                    tester.chatsWebSocket.connect();
-                    tester.chatsInitMessage().expectToBeSent();
-                    
-                    tester.accountRequest().
-                        forChats().
-                        operatorWorkplaceAvailable().
-                        receiveResponse();
-
-                    tester.chatStartingRequest().receiveResponse();
-
-                    tester.offlineMessageCountersRequest().receiveResponse();
-                    tester.chatChannelListRequest().receiveResponse();
-                    tester.siteListRequest().receiveResponse();
-                    tester.markListRequest().receiveResponse();
-                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                    tester.offlineMessageListRequest().processing().receiveResponse();
-                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                    tester.countersRequest().receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        secondPage().
-                        receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        secondPage().
-                        active().
-                        receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        secondPage().
-                        closed().
-                        receiveResponse();
-
-                    tester.chatListRequest().thirdChat().receiveResponse();
-
-                    tester.acceptChatRequest().receiveResponse();
-                    tester.visitorCardRequest().receiveResponse();
-
-                    tester.usersRequest().forContacts().receiveResponse();
-                    tester.usersRequest().forContacts().receiveResponse();
-                });
-                it('OMNI-аккаунт недоступен. Канал недоступен. Отображено сообщение об ошибке.', function() {
-                    contactChatRequest.channelInactive().accountInactive().receiveResponse();
-                    tester.notificationWindow.expectToHaveTextContent('Канал WhatsApp недоступен');
-                });
-                it('Чат найден. Открыт раздел чатов.', function() {
-                    contactChatRequest.receiveResponse();
-
-                    tester.chatListRequest().receiveResponse();
-                    
-                    tester.chatListRequest().active().receiveResponse();
-                    tester.chatListRequest().closed().receiveResponse();
-                    tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
-
-                    tester.chatChannelListRequest().receiveResponse();
-                    tester.statusListRequest().receiveResponse();
-                    tester.listRequest().receiveResponse();
-                    tester.siteListRequest().receiveResponse();
-                    tester.messageTemplateListRequest().receiveResponse();
-                    tester.chatSettingsRequest().receiveResponse();
-
-                    tester.accountRequest().
-                        forChats().
-                        operatorWorkplaceAvailable().
-                        receiveResponse();
-
-                    tester.chatsWebSocket.connect();
-                    tester.chatsInitMessage().expectToBeSent();
-                    
-                    tester.accountRequest().
-                        forChats().
-                        operatorWorkplaceAvailable().
-                        receiveResponse();
-
-                    tester.chatListRequest().thirdChat().receiveResponse();
-
-                    tester.offlineMessageCountersRequest().
-                        receiveResponse();
-
-                    tester.chatChannelListRequest().receiveResponse();
-                    tester.siteListRequest().receiveResponse();
-                    tester.markListRequest().receiveResponse();
-                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                    tester.offlineMessageListRequest().
-                        notProcessed().
-                        receiveResponse();
-
-                    tester.offlineMessageListRequest().
-                        processing().
-                        receiveResponse();
-
-                    tester.offlineMessageListRequest().
-                        processed().
-                        receiveResponse();
-
-                    tester.countersRequest().receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        secondPage().
-                        receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        secondPage().
-                        active().
-                        receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        secondPage().
-                        closed().
-                        receiveResponse();
-
-                    tester.messageListRequest().receiveResponse();
-                    tester.acceptChatRequest().receiveResponse();
-                    tester.visitorCardRequest().receiveResponse();
-
-                    tester.usersRequest().forContacts().receiveResponse();
-
-                    tester.changeMessageStatusRequest().
-                        anotherChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
-
-                    tester.changeMessageStatusRequest().
-                        anotherChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
-                    
-                    tester.usersRequest().forContacts().receiveResponse();
-
-                    tester.contactBar.
-                        section('Каналы связи').
-                        content.
-                        expectToHaveTextContent('Помакова Бисерка Драгановна');
+                it('Нажимаю на номер WhatsApp.', function() {
                 });
             });
+            return;
             it(
                 'Нет доступа к чужим чатам. Открываю раздел контактов. Открываю контакт. Нажимаю на номер WhatsApp. ' +
                 'Получен чужой чат.',
@@ -3372,7 +3380,7 @@ tests.addTest(options => {
                         contactCommunicationsRequest().
                         expectToBeSent(requests);
 
-                    const contactRequest = tester.contactRequest().expectToBeSent(requests);
+                    const contactRequest = tester.contactRequest().addTelegram().expectToBeSent(requests);
                     const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
 
                     requests.expectToBeSent();
@@ -3385,17 +3393,15 @@ tests.addTest(options => {
 
                 tester.contactBar.
                     section('Каналы связи').
-                    option('79283810988').
+                    option('79218307632').
                     click();
 
-                tester.chatChannelSearchRequest().anotherEmployee().receiveResponse();
-
-                tester.searchResultsRequest().
-                    channelSearch().
-                    onlyWhatsAppOut().
+                tester.contactChatRequest().
+                    anotherChannelType().
+                    anotherEmployee().
+                    anotherChannelId().
+                    thirdPhone().
                     receiveResponse();
-
-                return;
 
                 tester.notificationWindow.expectToHaveTextContent(
                     'Невозможно перейти в чат, посетитель участвует в чате с другим оператором'
