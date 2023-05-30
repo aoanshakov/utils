@@ -2134,7 +2134,7 @@ tests.addTest(options => {
 
                                     newChatListRequest.count(0).receiveResponse();
                                     activeChatListRequest.receiveResponse();
-                                    closedChatListRequest.receiveResponse();
+                                    closedChatListRequest.count(0).receiveResponse();
 
                                     tester.chatsButton.click();
 
@@ -2156,20 +2156,28 @@ tests.addTest(options => {
                                     tester.listRequest().receiveResponse();
                                     tester.siteListRequest().receiveResponse();
                                     tester.messageTemplateListRequest().receiveResponse();
+
+                                    const requests = ajax.inAnyOrder();
+
+                                    const accountRequest = tester.accountRequest().
+                                        operatorWorkplaceAvailable().
+                                        expectToBeSent(requests);
                                     
-                                    tester.accountRequest().
+                                    const chatAccountRequest = tester.accountRequest().
                                         operatorWorkplaceAvailable().
                                         forChats().
-                                        receiveResponse();
+                                        expectToBeSent(requests);
 
-                                    tester.accountRequest().
+                                    const secondChatAccountRequest = tester.accountRequest().
                                         operatorWorkplaceAvailable().
                                         forChats().
-                                        receiveResponse();
+                                        expectToBeSent(requests);
 
-                                    tester.accountRequest().
-                                        operatorWorkplaceAvailable().
-                                        receiveResponse();
+                                    requests.expectToBeSent();
+
+                                    accountRequest.receiveResponse();
+                                    chatAccountRequest.receiveResponse();
+                                    secondChatAccountRequest.receiveResponse();
 
                                     tester.offlineMessageCountersRequest().newMessage().receiveResponse();
                                     tester.chatChannelListRequest().receiveResponse();
@@ -2200,6 +2208,7 @@ tests.addTest(options => {
                                     tester.chatListRequest().
                                         forCurrentEmployee().
                                         anyScrollFromDate().
+                                        count(0).
                                         closed().
                                         receiveResponse();
                                 });
@@ -2792,8 +2801,6 @@ tests.addTest(options => {
 
                 tester.collapsednessToggleButton.expectToBeVisible();
                 tester.maximizednessButton.expectNotToExist();
-            });
-            it('', function() {
             });
             it('Софтфон недоступен. Отображена форма аутентификации.', function() {
                 accountRequest.
