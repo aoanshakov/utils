@@ -796,6 +796,13 @@ define(() => function ({
         return me;
     };
 
+    me.whatsAppChannelSelect = (() => {
+        const getDomElement = () => utils.querySelector('.cm-chats--whatsapp-channel-select'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
+
     me.tooltip = (() => {
         const getDomElement = () => utils.querySelector('.ui-tooltip-inner'),
             tester = testersFactory.createDomElementTester(getDomElement);
@@ -1085,21 +1092,25 @@ define(() => function ({
     };
 
     me.chatStartingRequest = () => {
-        let params = {
-            chat_channel_type: 'whatsapp',
-            account_id: utils.expectNonStrict(425802),
+        const params = {
+            channel_id: 216395,
             contact: {
                 phone: '79283810988'
             }
         };
 
-        let data = {
+        const data = {
             chat_id: 7189362
         };
 
         const addResponseModifiers = me => me;
 
         return addResponseModifiers({
+            noPhone() {
+                params.contact.phone = null;
+                return this;
+            },
+
             expectToBeSent() {
                 return addResponseModifiers({
                     receiveResponse() {
@@ -3236,11 +3247,17 @@ define(() => function ({
         return addResponseModifiers({
             onlyWhatsAppOut() {
                 params.is_only_whatsapp_out = true;
+                this.whatsApp();
                 return this;
             },
 
             channelSearch() {
                 params.search_string = '79283810988';
+                return this;
+            },
+
+            noSearchString() {
+                params.search_string = null;
                 return this;
             },
 
@@ -8932,7 +8949,13 @@ define(() => function ({
     };
 
     me.chatChannelSearchRequest = () => {
-        const result = {
+        const params = {
+            contact: {
+                phone: '79283810988',
+            },
+        };
+
+        const data = [{
             channel_id: 216395,
             channel_name: 'WhatsApp',
             channel_type: 'whatsapp',
@@ -8942,32 +8965,35 @@ define(() => function ({
                 status: 'active',
                 employee_id: 20816,
             }] 
-        };
+        }];
 
         const addResponseModifiers = me => {
-            me.anotherPhone = () => (result.channel_ext_identity = '79357818431', me);
-            me.anotherEmployee = () => (result.chats[0].employee_id = 57292, me);
-            me.anotherChannelType = () => (result.channel_type = 'telegram', me);
-            me.noChat = () => (result.chats = [], me);
-            me.closed = () => (result.chats[0].status = 'closed', me);
+            me.anotherPhone = () => (data[0].channel_ext_identity = '79357818431', me);
+            me.anotherEmployee = () => (data[0].chats[0].employee_id = 57292, me);
+            me.anotherChannelType = () => (data[0].channel_type = 'telegram', me);
+            me.noChat = () => (data[0].chats = [], me);
+            me.closed = () => (data[0].chats[0].status = 'closed', me);
 
             return me;
         };
 
-        const response = { result };
+        const response = {
+            result: { data },
+        };
 
         return addResponseModifiers({
+            noPhone() {
+                params.contact.phone = null;
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath('$REACT_APP_CHAT_BASE_URL').
                     expectToHaveMethod('POST').
                     expectBodyToContain({
                         method: 'get_chat_start_chat_channel_search',
-                        params: {
-                            contact: {
-                                phone: '79283810988',
-                            },
-                        },
+                        params,
                     });
 
                 return addResponseModifiers({
@@ -12003,7 +12029,25 @@ define(() => function ({
             '.misc-host-src-components-menu-styles-module__nav'
         );
 
-        return addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement);
+        const tester = testersFactory.createDomElementTester(getDomElement);
+
+        tester.item = text => {
+            const getItemElement = () => utils.descendantOf(getDomElement()).
+                matchesSelector('.cm-chats--chat-menu-item .cm-chats--title').
+                textEquals(text).
+                find().
+                closest('.cm-chats--chat-menu-item');
+
+            const tester = testersFactory.createDomElementTester(getItemElement);
+
+            tester.counter = testersFactory.createDomElementTester(
+                () => getItemElement().querySelector('.cm-chats--new-messages-count')
+            );
+
+            return tester;
+        };
+
+        return addTesters(tester, getDomElement);
     })();
 
     me.popover = (() => {

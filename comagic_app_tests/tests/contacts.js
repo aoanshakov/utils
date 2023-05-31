@@ -46,7 +46,7 @@ tests.addTest(options => {
             accountRequest = tester.accountRequest().expectToBeSent();
         });
 
-        xdescribe('Раздел контактов доступен.', function() {
+        describe('Раздел контактов доступен.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
                 tester.ticketsContactsRequest().receiveResponse()
@@ -950,11 +950,27 @@ tests.addTest(options => {
                                             ).
                                             expectToHaveContent('29f2f28ofjowf829f');
                                     });
-                                    it('Нажимаю на номер WhatsApp.', function() {
+                                    it(
+                                        'Нажимаю на номер WhatsApp. Выбираю канал. Нажимаю на кнопку перехода в чат. ' +
+                                        'Отображено сообщение о невозможности перейти в чат.',
+                                    function() {
                                         tester.contactBar.
                                             section('Каналы связи').
                                             option('79283810988').
                                             click();
+
+                                        tester.chatChannelSearchRequest().receiveResponse();
+
+                                        tester.searchResultsRequest().
+                                            onlyWhatsAppOut().
+                                            channelSearch().
+                                            receiveResponse();
+
+                                        tester.select.
+                                            option('WhatsApp 79283810988').
+                                            click();
+
+                                        tester.button('Перейти в чат').click();
 
                                         tester.notificationWindow.expectToHaveTextContent(
                                             'Невозможно перейти в чат, отсутствуют права на "Чаты и заявки"'
@@ -2988,7 +3004,7 @@ tests.addTest(options => {
                     }
                 });
 
-                describe('Нажимаю на номер Telegram.', function() {
+                describe('Нажимаю на номер Telegram. Получен чужой чат.', function() {
                     beforeEach(function() {
                         tester.contactBar.
                             section('Каналы связи').
@@ -2999,119 +3015,134 @@ tests.addTest(options => {
                             anotherChannelType().
                             anotherChannelId().
                             thirdPhone().
+                            anotherEmployee().
                             expectToBeSent();
                     });
 
-                    xdescribe('Получен чужой чат.', function() {
-                        beforeEach(function() {
-                            contactChatRequest = contactChatRequest.anotherEmployee();
-                        });
+                    it('Чат закрыт. Отображено сообщение о невозможности перейти в чат.', function() {
+                        contactChatRequest.closed().receiveResponse();
 
-                        it('Чат закрыт. Отображено окно создания чата.', function() {
-                            contactChatRequest.closed().receiveResponse();
-                            tester.modalWindow.button('Создать').expectToBeVisible();
-                        });
-                        it('Чат активен. Открыт раздел чатов.', function() {
-                            contactChatRequest.receiveResponse();
-
-                            tester.chatListRequest().receiveResponse();
-                            
-                            tester.chatListRequest().active().receiveResponse();
-                            tester.chatListRequest().closed().receiveResponse();
-                            tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
-
-                            tester.chatChannelListRequest().receiveResponse();
-                            tester.statusListRequest().receiveResponse();
-                            tester.listRequest().receiveResponse();
-                            tester.siteListRequest().receiveResponse();
-                            tester.messageTemplateListRequest().receiveResponse();
-                            tester.chatSettingsRequest().receiveResponse();
-
-                            tester.accountRequest().
-                                forChats().
-                                operatorWorkplaceAvailable().
-                                receiveResponse();
-
-                            tester.chatsWebSocket.connect();
-                            tester.chatsInitMessage().expectToBeSent();
-                            
-                            tester.accountRequest().
-                                forChats().
-                                operatorWorkplaceAvailable().
-                                receiveResponse();
-
-                            tester.chatListRequest().thirdChat().receiveResponse();
-
-                            tester.offlineMessageCountersRequest().receiveResponse();
-                            tester.chatChannelListRequest().receiveResponse();
-                            tester.siteListRequest().receiveResponse();
-                            tester.markListRequest().receiveResponse();
-                            tester.chatChannelTypeListRequest().receiveResponse();
-
-                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                            tester.offlineMessageListRequest().processing().receiveResponse();
-                            tester.offlineMessageListRequest().processed().receiveResponse();
-
-                            tester.countersRequest().receiveResponse();
-
-                            tester.chatListRequest().
-                                forCurrentEmployee().
-                                secondPage().
-                                receiveResponse();
-
-                            tester.chatListRequest().
-                                forCurrentEmployee().
-                                secondPage().
-                                active().
-                                receiveResponse();
-
-                            tester.chatListRequest().
-                                forCurrentEmployee().
-                                secondPage().
-                                closed().
-                                receiveResponse();
-
-                            tester.messageListRequest().receiveResponse();
-                            tester.acceptChatRequest().receiveResponse();
-                            tester.visitorCardRequest().receiveResponse();
-
-                            tester.usersRequest().forContacts().receiveResponse();
-
-                            tester.changeMessageStatusRequest().
-                                anotherChat().
-                                anotherMessage().
-                                read().
-                                receiveResponse();
-
-                            tester.changeMessageStatusRequest().
-                                anotherChat().
-                                anotherMessage().
-                                read().
-                                receiveResponse();
-                            
-                            tester.usersRequest().forContacts().receiveResponse();
-
-                            tester.contactBar.
-                                section('Каналы связи').
-                                content.
-                                expectToHaveTextContent('Помакова Бисерка Драгановна');
-                        });
+                        tester.notificationWindow.expectToHaveTextContent(
+                            'Невозможно перейти в чат, посетитель участвует в чате с другим оператором'
+                        );
                     });
+                    it('Чат активен. Открыт раздел чатов.', function() {
+                        contactChatRequest.receiveResponse();
+
+                        tester.chatListRequest().receiveResponse();
+                        
+                        tester.chatListRequest().active().receiveResponse();
+                        tester.chatListRequest().closed().receiveResponse();
+                        tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
+
+                        tester.chatChannelListRequest().receiveResponse();
+                        tester.statusListRequest().receiveResponse();
+                        tester.listRequest().receiveResponse();
+                        tester.siteListRequest().receiveResponse();
+                        tester.messageTemplateListRequest().receiveResponse();
+                        tester.chatSettingsRequest().receiveResponse();
+
+                        tester.accountRequest().
+                            forChats().
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
+
+                        tester.chatsWebSocket.connect();
+                        tester.chatsInitMessage().expectToBeSent();
+                        
+                        tester.accountRequest().
+                            forChats().
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
+
+                        tester.chatListRequest().thirdChat().receiveResponse();
+
+                        tester.offlineMessageCountersRequest().receiveResponse();
+                        tester.chatChannelListRequest().receiveResponse();
+                        tester.siteListRequest().receiveResponse();
+                        tester.markListRequest().receiveResponse();
+                        tester.chatChannelTypeListRequest().receiveResponse();
+
+                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                        tester.offlineMessageListRequest().processing().receiveResponse();
+                        tester.offlineMessageListRequest().processed().receiveResponse();
+
+                        tester.countersRequest().receiveResponse();
+
+                        tester.chatListRequest().
+                            forCurrentEmployee().
+                            secondPage().
+                            receiveResponse();
+
+                        tester.chatListRequest().
+                            forCurrentEmployee().
+                            secondPage().
+                            active().
+                            receiveResponse();
+
+                        tester.chatListRequest().
+                            forCurrentEmployee().
+                            secondPage().
+                            closed().
+                            receiveResponse();
+
+                        tester.messageListRequest().receiveResponse();
+                        tester.acceptChatRequest().receiveResponse();
+                        tester.visitorCardRequest().receiveResponse();
+
+                        tester.usersRequest().forContacts().receiveResponse();
+
+                        tester.changeMessageStatusRequest().
+                            anotherChat().
+                            anotherMessage().
+                            read().
+                            receiveResponse();
+
+                        tester.changeMessageStatusRequest().
+                            anotherChat().
+                            anotherMessage().
+                            read().
+                            receiveResponse();
+                        
+                        tester.usersRequest().forContacts().receiveResponse();
+
+                        tester.contactBar.
+                            section('Каналы связи').
+                            content.
+                            expectToHaveTextContent('Помакова Бисерка Драгановна');
+                    });
+                });
+                describe('Нажимаю на номер WhatsApp.', function() {
+                    let chatChannelSearchRequest;
+
+                    beforeEach(function() {
+                        tester.contactBar.
+                            section('Каналы связи').
+                            option('79283810988').
+                            click();
+
+                        chatChannelSearchRequest = tester.chatChannelSearchRequest().
+                            expectToBeSent();
+                    });
+
                     it(
                         'Чат не найден. Отображено предложение начать новый чат. Нажимаю на кнопку "Создать". Открыт ' +
                         'новый чат.',
                     function() {
-                        contactChatRequest.noChat().receiveResponse();
+                        chatChannelSearchRequest.noChat().receiveResponse();
 
                         tester.searchResultsRequest().
+                            onlyWhatsAppOut().
                             channelSearch().
-                            noVisitorType().
                             receiveResponse();
 
-                        tester.modalWindow.button('Создать').click();
+                        tester.select.
+                            option('WhatsApp 79283810988').
+                            click();
+
+                        tester.button('Начать чат').click();
 
                         tester.chatListRequest().receiveResponse();
-
                         tester.chatListRequest().active().receiveResponse();
                         tester.chatListRequest().closed().receiveResponse();
                         tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
@@ -3175,12 +3206,23 @@ tests.addTest(options => {
                         tester.usersRequest().forContacts().receiveResponse();
                         tester.usersRequest().forContacts().receiveResponse();
                     });
-                    return;
-                    it('Чат найден. Открыт раздел чатов.', function() {
-                        contactChatRequest.receiveResponse();
+                    it(
+                        'Есть доступный чат. Выбираю канал. Нажимаю на кнопку перехода в чат. Открыт раздел чатов.',
+                    function() {
+                        chatChannelSearchRequest.receiveResponse();
+
+                        tester.searchResultsRequest().
+                            onlyWhatsAppOut().
+                            channelSearch().
+                            receiveResponse();
+
+                        tester.select.
+                            option('WhatsApp 79283810988').
+                            click();
+
+                        tester.button('Перейти в чат').click();
 
                         tester.chatListRequest().receiveResponse();
-                        
                         tester.chatListRequest().active().receiveResponse();
                         tester.chatListRequest().closed().receiveResponse();
                         tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
@@ -3272,10 +3314,7 @@ tests.addTest(options => {
                             expectToHaveTextContent('Помакова Бисерка Драгановна');
                     });
                 });
-                it('Нажимаю на номер WhatsApp.', function() {
-                });
             });
-            return;
             it(
                 'Нет доступа к чужим чатам. Открываю раздел контактов. Открываю контакт. Нажимаю на номер WhatsApp. ' +
                 'Получен чужой чат.',
@@ -3408,7 +3447,6 @@ tests.addTest(options => {
                 );
             });
         });
-return;
         describe('Редактирование контактов недоступно. Открываю раздел контактов. Нажимаю на имя.', function() {
             beforeEach(function() {
                 accountRequest.addressBookUpdatingUnavailable().receiveResponse();

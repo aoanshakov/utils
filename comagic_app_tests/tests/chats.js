@@ -373,7 +373,7 @@ tests.addTest(options => {
                                                     putMouseOver();
 
                                                 tester.tooltip.
-                                                    expectToHaveTextContent('Продажа, Нереализованная сделка');
+                                                    expectToHaveTextContent('Нереализованная сделка, Продажа');
                                             });
                                         });
                                         it(
@@ -1147,8 +1147,48 @@ tests.addTest(options => {
 
                                 it('Нажимаю на кнпоку "Начать чат". Чат начат.', function() {
                                     tester.button('Начать чат').click();
-                                    tester.chatStartingRequest().receiveResponse();
 
+                                    tester.chatChannelSearchRequest().
+                                        noChat().
+                                        receiveResponse();
+
+                                    tester.searchResultsRequest().
+                                        onlyWhatsAppOut().
+                                        channelSearch().
+                                        receiveResponse();
+
+                                    tester.select.
+                                        option('WhatsApp 79283810988').
+                                        click();
+
+                                    tester.whatsAppChannelSelect.
+                                        button('Начать чат').
+                                        click();
+
+                                    tester.chatListRequest().
+                                        forCurrentEmployee().
+                                        secondPage().
+                                        receiveResponse();
+
+                                    tester.chatListRequest().
+                                        active().
+                                        forCurrentEmployee().
+                                        secondPage().
+                                        receiveResponse();
+
+                                    tester.chatListRequest().
+                                        closed().
+                                        forCurrentEmployee().
+                                        secondPage().
+                                        receiveResponse();
+
+                                    tester.chatListRequest().
+                                        active().
+                                        forCurrentEmployee().
+                                        isOtherEmployeesAppeals().
+                                        receiveResponse();
+
+                                    tester.chatStartingRequest().receiveResponse();
                                     tester.chatListRequest().thirdChat().receiveResponse();
 
                                     tester.acceptChatRequest().receiveResponse();
@@ -1171,8 +1211,49 @@ tests.addTest(options => {
 
                                 it('Нажимаю на кнпоку "Начать чат". Чат начат.', function() {
                                     tester.button('Начать чат').click();
-                                    tester.chatStartingRequest().receiveResponse();
 
+                                    tester.chatChannelSearchRequest().
+                                        noPhone().
+                                        noChat().
+                                        receiveResponse();
+
+                                    tester.searchResultsRequest().
+                                        onlyWhatsAppOut().
+                                        noSearchString().
+                                        receiveResponse();
+
+                                    tester.select.
+                                        option('WhatsApp 79283810988').
+                                        click();
+
+                                    tester.whatsAppChannelSelect.
+                                        button('Начать чат').
+                                        click();
+
+                                    tester.chatListRequest().
+                                        forCurrentEmployee().
+                                        secondPage().
+                                        receiveResponse();
+
+                                    tester.chatListRequest().
+                                        active().
+                                        forCurrentEmployee().
+                                        secondPage().
+                                        receiveResponse();
+
+                                    tester.chatListRequest().
+                                        closed().
+                                        forCurrentEmployee().
+                                        secondPage().
+                                        receiveResponse();
+
+                                    tester.chatListRequest().
+                                        active().
+                                        forCurrentEmployee().
+                                        isOtherEmployeesAppeals().
+                                        receiveResponse();
+
+                                    tester.chatStartingRequest().noPhone().receiveResponse();
                                     tester.chatListRequest().thirdChat().receiveResponse();
 
                                     tester.acceptChatRequest().receiveResponse();
@@ -1183,7 +1264,7 @@ tests.addTest(options => {
                                 });
                                 it('Отображена кнопка "Начать чат".', function() {
                                     tester.body.expectTextContentToHaveSubstring(
-                                        '79283810988 Начать чат ' +
+                                        'Начать чат ' +
                                         '#679729 Гость'
                                     );
                                 });
@@ -1276,7 +1357,7 @@ tests.addTest(options => {
                                             display.
                                             putMouseOver();
 
-                                        tester.tooltip.expectToHaveTextContent('Продажа, Нереализованная сделка');
+                                        tester.tooltip.expectToHaveTextContent('Нереализованная сделка, Продажа');
                                     });
                                 });
                                 it('Отображена заявка.', function() {
@@ -1355,6 +1436,8 @@ tests.addTest(options => {
                 });
                 it('Не удалось получить данные чатов. Перехожу на вкладку "В работе".', function() {
                     chatListRequest.failed().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().expectToBeSent();
+
                     secondChatListRequest.failed().receiveResponse();
                     thirdChatListRequest.failed().receiveResponse();
 
@@ -1364,13 +1447,6 @@ tests.addTest(options => {
                     tester.chatListRequest().
                         active().
                         forCurrentEmployee().
-                        failed().
-                        expectToBeSent();
-
-                    tester.chatListRequest().
-                        closed().
-                        forCurrentEmployee().
-                        failed().
                         expectToBeSent();
                 });
             });
@@ -1423,18 +1499,19 @@ tests.addTest(options => {
 
                     tester.statusChangedMessage().receive();
                     tester.countersRequest().readMessage().fewUnreadMessages().receiveResponse();
+                    tester.countersRequest().readMessage().fewUnreadMessages().receiveResponse();
 
-                    tester.button('Чаты').expectToBeVisible();
+                    tester.leftMenu.item('Чаты').counter.expectToHaveTextContent('7');
                 });
                 it('Получено новое сообщение. Отображено количество непрочитанных сообщений.', function() {
                     tester.newMessage().receive();
                     tester.chatListRequest().chat().receiveResponse();
                     tester.countersRequest().newMessage().fewUnreadMessages().receiveResponse();
 
-                    tester.button('Чаты').expectToBeVisible();
+                    tester.leftMenu.item('Чаты').counter.expectToHaveTextContent('9');
                 });
                 it('Отображено количество непрочитанных сообщений.', function() {
-                    tester.button('Чаты').expectToBeVisible();
+                    tester.leftMenu.item('Чаты').counter.expectToHaveTextContent('8');
                 });
             });
         });
@@ -1752,10 +1829,7 @@ tests.addTest(options => {
                     row('Тэги').
                     tagField.
                     button.
-                    click();
-
-                tester.select.option('Продажа').click();
-                tester.contactBar.click();
+                    expectNotToExist();
             });
             it('Открываю заявку. Раскрываю панель "Заметки". Опции тегов заблокированы.', function() {
                 tester.leftMenu.button('Заявки').click();
@@ -1772,10 +1846,7 @@ tests.addTest(options => {
                     row('Тэги').
                     tagField.
                     button.
-                    click();
-
-                tester.select.option('Продажа').click();
-                tester.contactBar.click();
+                    expectNotToExist();
             });
         });
     });
