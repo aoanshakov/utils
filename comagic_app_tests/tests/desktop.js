@@ -2602,6 +2602,91 @@ tests.addTest(options => {
                     tester.contactsButton.expectToBeDisabled();
                 });
             });
+            describe('Софтфон недоступен.', function() {
+                beforeEach(function() {
+                    accountRequest.softphoneUnavailable();
+                });
+
+                it('Отображен раздел чатов.', function() {
+                    accountRequest.
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 0,
+                            height: 0,
+                        });
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('maximize');
+
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.statusListRequest().receiveResponse();
+                    tester.listRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.messageTemplateListRequest().receiveResponse();
+
+                    tester.chatSettingsRequest().receiveResponse();
+
+                    tester.accountRequest().
+                        forChats().
+                        softphoneUnavailable().
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.accountRequest().
+                        forChats().
+                        softphoneUnavailable().
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.accountRequest().
+                        forChats().
+                        softphoneUnavailable().
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+                    tester.chatsInitMessage().expectToBeSent();
+
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+
+                    tester.countersRequest().receiveResponse();
+
+                    tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
+                    tester.accountButton.expectToHaveTextContent('Доступен');
+                    tester.chatList.expectToBeVisible();
+                });
+                it('Чаты недоступны. Отображена форма аутентификации.', function() {
+                    accountRequest.receiveResponse();
+                    tester.userLogoutRequest().receiveResponse();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 300,
+                            height: 350
+                        });
+
+                    tester.button('Войти').expectToBeVisible();
+                });
+            });
             it('Пользователь является менеджером.', function() {
                 accountRequest.operatorWorkplaceAvailable().manager().receiveResponse();
 
@@ -2801,24 +2886,6 @@ tests.addTest(options => {
 
                 tester.collapsednessToggleButton.expectToBeVisible();
                 tester.maximizednessButton.expectNotToExist();
-            });
-            it('Софтфон недоступен. Отображена форма аутентификации.', function() {
-                accountRequest.
-                    operatorWorkplaceAvailable().
-                    softphoneUnavailable().
-                    receiveResponse();
-
-                tester.userLogoutRequest().receiveResponse();
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
-                    expectToBeSentToChannel('resize').
-                    expectToBeSentWithArguments({
-                        width: 300,
-                        height: 350
-                    });
-
-                tester.button('Войти').expectToBeVisible();
             });
         });
         describe(

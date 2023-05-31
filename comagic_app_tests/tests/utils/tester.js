@@ -354,13 +354,13 @@ define(() => function ({
             return tester;
         })();
 
-        me.userName = (tester => {
+        me.userName = me.accountButton = (tester => {
             const putMouseOver = tester.putMouseOver.bind(tester);
             tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
 
             return softphoneTester.createBottomButtonTester(tester);
         })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector(
-            '.cm-user-only-account--username, .ui-account'
+            '.cm-user-only-account--username, .ui-account, .cm-chats--account'
         )));
 
         (() => {

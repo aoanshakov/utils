@@ -37,10 +37,10 @@ index 7e5942e..dfc0eb1 100644
      "yup": "^0.32.9"
    }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index bc769b9..aad1b65 100644
+index 5a24a8c..ff7894f 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -784,4 +784,5 @@ export type RootInstance = Instance<typeof RootStore> & {
+@@ -805,4 +805,5 @@ export type RootInstance = Instance<typeof RootStore> & {
  
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
