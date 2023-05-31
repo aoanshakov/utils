@@ -1849,38 +1849,82 @@ define(() => function ({
         this.getEventsWebSocket(index).connect();
     };
 
-    me.userLogoutRequest = () => ({
-        expectToBeSent(requests) {
-            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_AUTH_URL').
-                expectToHaveMethod('POST').
-                expectBodyToContain({
-                    method: 'logout',
-                    params: {
-                        jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0'
-                    }
+    me.userLogoutRequest = () => {
+        let respond = request => request.respondSuccessfullyWith({
+            result: {
+                data: {
+                    success: true,
+                },
+            },
+        });
+
+        const params = {
+            jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+        };
+
+        const addResponseModifiers = me => {
+            me.invalidJwt = () => {
+                respond = request => request.respondUnsuccessfullyWith({
+                    result: null,
+                    error: {
+                        code: '-33000',
+                        message: 'Invalid JWT',
+                    },
                 });
 
-            return {
-                receiveResponse() {
-                    request.respondSuccessfullyWith({
-                        result: {
-                            data: {
-                                success: true
-                            }
-                        }
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            badRequest() {
+                params.jwt = undefined;
+
+                respond = request => request.respondUnsuccessfullyWith({
+                    result: null,
+                    error: {
+                        code: '400',
+                        message: {
+                            error: {
+                                code: 'bad_request',
+                                message: [{
+                                    loc: ['jwt'],
+                                    msg: 'field required',
+                                    type: 'value_error.missing',
+                                }],
+                            },
+                        },
+                    },
+                });
+
+                return this;
+            },
+            
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_AUTH_URL').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        method: 'logout',
+                        params,
                     });
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                }
-            };
-        },
+                return addResponseModifiers({
+                    receiveResponse() {
+                        respond(request);
+                        Promise.runAll(false, true);
+                        spendTime(0);
+                    },
+                });
+            },
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        }
-    });
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
+        });
+    };
 
     me.notProcessedCallsRequest = () => {
         const queryParams = {
@@ -2930,8 +2974,22 @@ define(() => function ({
                         code: 401,
                         message: 'Token is not active or invalid',
                         mnemonic: 'invalid_token',
-                        is_smart: false
-                    }
+                        is_smart: false,
+                    },
+                };
+
+                respond = request => request.respondUnauthorizedWith(response);
+                return me;
+            };
+
+            me.expiredToken = () => {
+                response = {
+                    error: {
+                        code: 401,
+                        message: 'Token has been expired',
+                        mnemonic: 'expired_token',
+                        is_smart: false,
+                    },
                 };
 
                 respond = request => request.respondUnauthorizedWith(response);
@@ -11166,7 +11224,28 @@ define(() => function ({
         let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
             refresh = '2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2';
 
+        let getHeaders = () => ({
+            Authorization: `Bearer ${token}`,
+            'X-Auth-Type': 'jwt',
+        });
+
+        let getParams = () => ({
+            jwt: token,
+            refresh,
+        });
+
         const addResponseModifiers = me => {
+            me.invalidJwt = () => {
+                response.result = null;
+
+                response.error = {
+                    code: '-33000',
+                    message: 'Invalid JWT',
+                };
+
+                return me;
+            };
+
             me.refreshTokenExpired = () => {
                 response.result = null;
 
@@ -11192,20 +11271,48 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            badRequest() {
+                getParams = () => ({
+                    jwt: undefined,
+                    refresh: undefined,
+                });
+
+                getHeaders = () => ({
+                    Authorization: undefined,
+                    'X-Auth-Type': undefined,
+                });
+
+                response.result = null;
+
+                response.error = {
+                    code: '400',
+                    message: {
+                        error: {
+                            code: 'bad_request',
+                            message: [{
+                                loc: ['jwt'],
+                                msg: 'field required',
+                                type: 'value_error.missing',
+                            }, {
+                                loc: ['refresh'],
+                                msg: 'field required',
+                                type: 'value_error.missing',
+                            }],
+                        },
+                    },
+                };
+
+                return this;
+            },
+
             expectToBeSent() {
                 request = ajax.recentRequest().
                     expectPathToContain('$REACT_APP_AUTH_URL').
                     expectToHaveMethod('POST').
-                    expectToHaveHeaders({
-                        Authorization: `Bearer ${token}`,
-                        'X-Auth-Type': 'jwt'
-                    }).
+                    expectToHaveHeaders(getHeaders()).
                     expectBodyToContain({
                         method: 'refresh',
-                        params: {
-                            jwt: token,
-                            refresh
-                        }
+                        params: getParams(),
                     });
 
                 spendTime(0);

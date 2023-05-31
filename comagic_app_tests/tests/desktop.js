@@ -1259,15 +1259,18 @@ tests.addTest(options => {
                                             tester.usersInGroupsRequest().expectToBeSent();
                                             tester.groupsRequest().accessTokenExpired().receiveResponse();
 
-                                            refreshRequest = tester.refreshRequest().expectToBeSent()
+                                            refreshRequest = tester.refreshRequest().expectToBeSent();
                                         });
 
                                         it(
                                             'Не удалось обновить токен. Авторизуюсь заново. Пытаюсь поменять статус, ' +
                                             'но токен истек.',
                                         function() {
-                                            refreshRequest.refreshTokenExpired().receiveResponse();
-                                            tester.userLogoutRequest().receiveResponse();
+                                            refreshRequest.invalidJwt().receiveResponse();
+                                            tester.userLogoutRequest().invalidJwt().receiveResponse();
+
+                                            tester.eventsWebSocket.finishDisconnecting();
+                                            tester.registrationRequest().desktopSoftphone().expired().receiveResponse();
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
@@ -1277,9 +1280,7 @@ tests.addTest(options => {
                                                     height: 350
                                                 });
 
-                                            tester.authLogoutRequest().receiveResponse();
-                                            tester.eventsWebSocket.finishDisconnecting();
-                                            tester.registrationRequest().desktopSoftphone().expired().receiveResponse();
+                                            tester.authLogoutRequest().expiredToken().receiveResponse();
 
                                             spendTime(2000);
                                             tester.webrtcWebsocket.finishDisconnecting();
@@ -1288,7 +1289,6 @@ tests.addTest(options => {
                                             tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
                                             tester.button('Войти').click();
-
                                             tester.loginRequest().receiveResponse();
 
                                             getPackage('electron').ipcRenderer.
@@ -2614,15 +2614,15 @@ tests.addTest(options => {
 
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
+                        expectToBeSentToChannel('maximize');
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
                         expectToBeSentToChannel('resize').
                         expectToBeSentWithArguments({
                             width: 0,
                             height: 0,
                         });
-
-                    getPackage('electron').ipcRenderer.
-                        recentlySentMessage().
-                        expectToBeSentToChannel('maximize');
 
                     tester.chatChannelListRequest().receiveResponse();
                     tester.statusListRequest().receiveResponse();
