@@ -41,20 +41,21 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
-            tester.ticketsContactsRequest().receiveResponse()
 
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             const requests = ajax.inAnyOrder();
 
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+            const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
+            ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
             secondAccountRequest.receiveResponse();

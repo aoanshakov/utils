@@ -79,9 +79,10 @@ tests.addTest(options => {
 
                 beforeEach(function() {
                     accountRequest.operatorWorkplaceAvailable().receiveResponse();
-                    authCheckRequest = tester.authCheckRequest().expectToBeSent();
 
                     const requests = ajax.inAnyOrder();
+
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                     secondAccountRequest = tester.accountRequest().
                         operatorWorkplaceAvailable().
@@ -1300,11 +1301,12 @@ tests.addTest(options => {
                                                 });
 
                                             tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
-                                            const authCheckRequest = tester.authCheckRequest().expectToBeSent();
 
                                             tester.usersRequest().receiveResponse();
                                             tester.usersInGroupsRequest().receiveResponse();
                                             tester.groupsRequest().receiveResponse();
+
+                                            const authCheckRequest = tester.authCheckRequest().expectToBeSent();
 
                                             tester.accountRequest().
                                                 operatorWorkplaceAvailable().
@@ -2536,8 +2538,8 @@ tests.addTest(options => {
                 beforeEach(function() {
                     accountRequest.addressBookReadingUnavailable().operatorWorkplaceAvailable().receiveResponse();
 
-                    const authCheckRequest = tester.authCheckRequest().expectToBeSent();
                     const requests = ajax.inAnyOrder();
+                    const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                     const secondAccountRequest = tester.accountRequest().
                         addressBookReadingUnavailable().
@@ -2690,8 +2692,8 @@ tests.addTest(options => {
             it('Пользователь является менеджером.', function() {
                 accountRequest.operatorWorkplaceAvailable().manager().receiveResponse();
 
-                const authCheckRequest = tester.authCheckRequest().expectToBeSent();
                 const requests = ajax.inAnyOrder();
+                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 const secondAccountRequest = tester.accountRequest().
                     manager().
@@ -2755,8 +2757,8 @@ tests.addTest(options => {
             function() {
                 accountRequest.en().operatorWorkplaceAvailable().receiveResponse();
 
-                const authCheckRequest = tester.authCheckRequest().expectToBeSent();
                 const requests = ajax.inAnyOrder();
+                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 const secondAccountRequest = tester.accountRequest().
                     en().
@@ -2826,8 +2828,8 @@ tests.addTest(options => {
                     largeSoftphoneFeatureFlagDisabled().
                     receiveResponse();
 
-                const authCheckRequest = tester.authCheckRequest().expectToBeSent();
                 const requests = ajax.inAnyOrder();
+                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 const secondAccountRequest = tester.accountRequest().
                     operatorWorkplaceAvailable().
@@ -2923,9 +2925,9 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
                 tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
-                const authCheckRequest = tester.authCheckRequest().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
+                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 const secondAccountRequest = tester.accountRequest().
                     operatorWorkplaceAvailable().
@@ -3314,9 +3316,9 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
                 tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
-                const authCheckRequest = tester.authCheckRequest().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
+                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 const secondAccountRequest = tester.accountRequest().
                     operatorWorkplaceAvailable().
@@ -3439,9 +3441,9 @@ tests.addTest(options => {
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
                 tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
-                const authCheckRequest = tester.authCheckRequest().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
+                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 const secondAccountRequest = tester.accountRequest().
                     operatorWorkplaceAvailable().
@@ -3667,10 +3669,12 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
-                tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
-                const authCheckRequest = tester.authCheckRequest().expectToBeSent();
+                tester.accountRequest().
+                    operatorWorkplaceAvailable().
+                    receiveResponse();
 
                 const requests = ajax.inAnyOrder();
+                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                 const secondAccountRequest = tester.accountRequest().
                     operatorWorkplaceAvailable().
@@ -3905,9 +3909,9 @@ tests.addTest(options => {
             getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
 
             tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
-            const authCheckRequest = tester.authCheckRequest().expectToBeSent();
 
             const requests = ajax.inAnyOrder();
+            const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             const secondAccountRequest = tester.accountRequest().
                 operatorWorkplaceAvailable().
@@ -3989,12 +3993,15 @@ tests.addTest(options => {
                     height: 350
                 });
 
-            getPackage('electron').ipcRenderer.recentlySentMessage().expectToBeSentToChannel('app-ready');
+            getPackage('electron').
+                ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('app-ready');
 
             tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
-            const authCheckRequest = tester.authCheckRequest().expectToBeSent();
 
             const requests = ajax.inAnyOrder();
+            const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             const secondAccountRequest = tester.accountRequest().
                 operatorWorkplaceAvailable().

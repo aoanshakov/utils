@@ -41,12 +41,12 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
-            tester.ticketsContactsRequest().receiveResponse();
 
             const requests = ajax.inAnyOrder();
 
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+            const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
@@ -69,10 +69,9 @@ tests.addTest(options => {
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().additional().expectToBeSent();
                 tester.slavesNotification().expectToBeSent();
-
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
@@ -626,11 +625,11 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
-            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
             const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
@@ -638,6 +637,7 @@ tests.addTest(options => {
 
             requests.expectToBeSent();
 
+            ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
             accountRequest.receiveResponse();
@@ -646,9 +646,9 @@ tests.addTest(options => {
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
@@ -901,11 +901,11 @@ tests.addTest(options => {
         });
 
         tester.accountRequest().receiveResponse();
-        //tester.ticketsContactsRequest().receiveResponse()
 
         const requests = ajax.inAnyOrder();
 
         const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
             reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
             reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
@@ -913,6 +913,7 @@ tests.addTest(options => {
 
         requests.expectToBeSent();
 
+        ticketsContactsRequest.receiveResponse();
         reportGroupsRequest.receiveResponse();
         reportsListRequest.receiveResponse();
         reportTypesRequest.receiveResponse();
@@ -921,14 +922,13 @@ tests.addTest(options => {
         tester.masterInfoMessage().receive();
         tester.slavesNotification().additional().expectToBeSent();
         tester.slavesNotification().expectToBeSent();
-
         tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
         tester.notificationChannel().tellIsLeader().expectToBeSent();
         tester.notificationChannel().applyLeader().expectToBeSent();
         tester.notificationChannel().applyLeader().expectToBeSent();
 
         authCheckRequest.receiveResponse();
-        tester.ticketsContactsRequest().receiveResponse()
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
         tester.statusesRequest().receiveResponse();

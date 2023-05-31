@@ -49,18 +49,19 @@ tests.addTest(options => {
         describe('Пользователь является сотрудником.', function() {
             beforeEach(function() {
                 accountRequest.receiveResponse();
-                tester.ticketsContactsRequest().receiveResponse()
 
                 const requests = ajax.inAnyOrder();
 
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                     authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
                     secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
+                ticketsContactsRequest.receiveResponse();
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
@@ -69,10 +70,9 @@ tests.addTest(options => {
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().additional().expectToBeSent();
                 tester.slavesNotification().expectToBeSent();
-
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
@@ -387,18 +387,19 @@ tests.addTest(options => {
         });
         it('Пользователь является руководителем. Пункт меню видим.', function() {
             accountRequest.manager().receiveResponse();
-            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
                 secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
+            ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
             secondAccountRequest.manager().receiveResponse();
@@ -407,10 +408,9 @@ tests.addTest(options => {
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-
-            tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
+            tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
@@ -478,18 +478,19 @@ tests.addTest(options => {
         });
         it('Статистика по звонкам недоступна. Пункт меню скрыт.', function() {
             accountRequest.callStatsFeatureFlagDisabled().receiveResponse();
-            tester.ticketsContactsRequest().receiveResponse()
 
             const requests = ajax.inAnyOrder();
 
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
                 secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
+            ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
             secondAccountRequest.callStatsFeatureFlagDisabled().receiveResponse();
@@ -498,10 +499,9 @@ tests.addTest(options => {
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-
-            tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
+            tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 

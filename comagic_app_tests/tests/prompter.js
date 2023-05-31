@@ -38,13 +38,13 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             tester.accountRequest().receiveResponse();
-            tester.ticketsContactsRequest().receiveResponse()
 
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             const requests = ajax.inAnyOrder();
 
-            const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
@@ -52,6 +52,7 @@ tests.addTest(options => {
 
             requests.expectToBeSent();
 
+            ticketsContactsRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
@@ -70,9 +71,9 @@ tests.addTest(options => {
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().additional().expectToBeSent();
                 tester.slavesNotification().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
