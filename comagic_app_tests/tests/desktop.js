@@ -2609,70 +2609,80 @@ tests.addTest(options => {
                     accountRequest.softphoneUnavailable();
                 });
 
-                it('Отображен раздел чатов.', function() {
-                    accountRequest.
-                        operatorWorkplaceAvailable().
-                        receiveResponse();
+                describe('Чаты доступны.', function() {
+                    beforeEach(function() {
+                        accountRequest.
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
 
-                    getPackage('electron').ipcRenderer.
-                        recentlySentMessage().
-                        expectToBeSentToChannel('maximize');
+                        getPackage('electron').ipcRenderer.
+                            recentlySentMessage().
+                            expectToBeSentToChannel('maximize');
 
-                    getPackage('electron').ipcRenderer.
-                        recentlySentMessage().
-                        expectToBeSentToChannel('resize').
-                        expectToBeSentWithArguments({
-                            width: 0,
-                            height: 0,
-                        });
+                        getPackage('electron').ipcRenderer.
+                            recentlySentMessage().
+                            expectToBeSentToChannel('resize').
+                            expectToBeSentWithArguments({
+                                width: 0,
+                                height: 0,
+                            });
 
-                    tester.chatChannelListRequest().receiveResponse();
-                    tester.statusListRequest().receiveResponse();
-                    tester.listRequest().receiveResponse();
-                    tester.siteListRequest().receiveResponse();
-                    tester.messageTemplateListRequest().receiveResponse();
+                        tester.chatChannelListRequest().receiveResponse();
+                        tester.statusListRequest().receiveResponse();
+                        tester.listRequest().receiveResponse();
+                        tester.siteListRequest().receiveResponse();
+                        tester.messageTemplateListRequest().receiveResponse();
 
-                    tester.chatSettingsRequest().receiveResponse();
+                        tester.chatSettingsRequest().receiveResponse();
 
-                    tester.accountRequest().
-                        forChats().
-                        softphoneUnavailable().
-                        operatorWorkplaceAvailable().
-                        receiveResponse();
+                        tester.accountRequest().
+                            forChats().
+                            softphoneUnavailable().
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
 
-                    tester.accountRequest().
-                        forChats().
-                        softphoneUnavailable().
-                        operatorWorkplaceAvailable().
-                        receiveResponse();
+                        tester.accountRequest().
+                            forChats().
+                            softphoneUnavailable().
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
 
-                    tester.accountRequest().
-                        forChats().
-                        softphoneUnavailable().
-                        operatorWorkplaceAvailable().
-                        receiveResponse();
+                        tester.accountRequest().
+                            forChats().
+                            softphoneUnavailable().
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
 
-                    tester.chatsWebSocket.connect();
-                    tester.chatsInitMessage().expectToBeSent();
+                        tester.chatsWebSocket.connect();
+                        tester.chatsInitMessage().expectToBeSent();
 
-                    tester.offlineMessageCountersRequest().receiveResponse();
-                    tester.chatChannelListRequest().receiveResponse();
-                    tester.siteListRequest().receiveResponse();
-                    tester.markListRequest().receiveResponse();
-                    tester.chatChannelTypeListRequest().receiveResponse();
+                        tester.offlineMessageCountersRequest().receiveResponse();
+                        tester.chatChannelListRequest().receiveResponse();
+                        tester.siteListRequest().receiveResponse();
+                        tester.markListRequest().receiveResponse();
+                        tester.chatChannelTypeListRequest().receiveResponse();
 
-                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                    tester.offlineMessageListRequest().processing().receiveResponse();
-                    tester.offlineMessageListRequest().processed().receiveResponse();
+                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                        tester.offlineMessageListRequest().processing().receiveResponse();
+                        tester.offlineMessageListRequest().processed().receiveResponse();
 
-                    tester.countersRequest().receiveResponse();
+                        tester.countersRequest().receiveResponse();
 
-                    tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                    tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+                        tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                        tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                        tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+                    });
 
-                    tester.accountButton.expectToHaveTextContent('Доступен');
-                    tester.chatList.expectToBeVisible();
+                    it('Пользователь свернул приложение. Отображен раздел чатов.', function() {
+                        getPackage('electron').ipcRenderer.receiveMessage('unmaximize');
+
+                        tester.accountButton.expectToHaveTextContent('Доступен');
+                        tester.chatList.expectToBeVisible();
+                    });
+                    it('Отображен раздел чатов.', function() {
+                        tester.accountButton.expectToHaveTextContent('Доступен');
+                        tester.chatList.expectToBeVisible();
+                    });
                 });
                 it('Чаты недоступны. Отображена форма аутентификации.', function() {
                     accountRequest.receiveResponse();

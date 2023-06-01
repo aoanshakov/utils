@@ -1,20 +1,21 @@
 diff --git a/package.json b/package.json
-index 2a91841..dfc0eb1 100644
+index 8515735..7d3deb1 100644
 --- a/package.json
 +++ b/package.json
-@@ -55,8 +55,6 @@
+@@ -56,9 +56,6 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "^0.6.7",
 -    "@comagic/softphone-core": "2.0.1",
+-    "@comagic/softphone-widget": "2.0.4",
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -66,24 +64,14 @@
-     "exports-loader": "2.0.0",
+@@ -70,20 +67,11 @@
      "filesize": "^8.0.3",
      "formik": "^2.2.9",
+     "janus-gateway": "1.1.4",
 -    "magic-ui": "0.0.0-int1",
      "mobx": "^6.1.8",
      "mobx-react-lite": "^3.2.0",
@@ -29,26 +30,14 @@ index 2a91841..dfc0eb1 100644
 -    "react-router-dom": "^6.4.0",
 -    "redux": "^4.0.0",
 -    "redux-thunk": "^2.3.0",
-     "janus-gateway": "1.1.4",
      "short-uuid": "^4.2.0",
      "string-hash": "^1.1.3",
--    "@comagic/softphone-widget": "2.0.4",
      "uuid": "^8.3.2",
-     "yup": "^0.32.9"
-   }
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3c2a775..802456f 100644
+index e2962e7..c06df01 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -407,6 +407,7 @@ export const RootStore = types
-                         isInChatsMode = false;
-                     }
- 
-+                    (self as RootInstance).fireSizeChangeEvent();
-                     localStorage.getItem('isLarge') === 'true' && (self as RootInstance).setIsLarge();
- 
-                     const areVirtualNumberGroupsEnabled = ['usa', 'rolands'].includes(account?.project);
-@@ -807,4 +808,5 @@ export type RootInstance = Instance<typeof RootStore> & {
+@@ -806,4 +806,5 @@ export type RootInstance = Instance<typeof RootStore> & {
  
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

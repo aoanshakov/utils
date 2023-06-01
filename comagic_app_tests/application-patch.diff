@@ -529,10 +529,10 @@ index abb1f850..04e3e65b 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index f7f62543..d3dc0b4c 100644
+index a6556971..3e2fcfcb 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -190,7 +190,7 @@ export const RootStore = types
+@@ -191,7 +191,7 @@ export const RootStore = types
                  }
              );
  
@@ -541,7 +541,7 @@ index f7f62543..d3dc0b4c 100644
                  response => {
                      logRequest({response});
  
-@@ -251,6 +251,8 @@ export const RootStore = types
+@@ -252,6 +252,8 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -550,7 +550,7 @@ index f7f62543..d3dc0b4c 100644
              let isMaximizedCurrently = false;
              removeSubscriptions();
  
-@@ -333,7 +335,8 @@ export type DependencyInjection = {
+@@ -342,7 +344,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
