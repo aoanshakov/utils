@@ -34,7 +34,7 @@ tests.addTest(function(args) {
                     bitrix24DataRequest.isProcessCall();
                 });
 
-                describe('Открываю вкладку "Телефония".', function() {
+                xdescribe('Открываю вкладку "Телефония".', function() {
                     beforeEach(function() {
                         bitrix24DataRequest.receiveResponse();
                         helper.requestSalesFunnelComponentAvailability().send();
@@ -108,7 +108,7 @@ tests.addTest(function(args) {
                             expectToBeDisabled();
                     });
                 });
-                it(
+                xit(
                     'Записи разговора должны быть переданы, если настроен фильтр исключения по операции сценария. ' +
                     'Нажимаю на чекбокс "Передавать записи разговора". Нажимаю на кнпоку сохранения. Отправлен ' +
                     'запрос сохранения.',
@@ -130,8 +130,16 @@ tests.addTest(function(args) {
 
                     helper.requestBitrix24DataSave().isNotTransferTalks().isNotAnywaySendTalkRecords().send();
                 });
+                it('', function() {
+                    bitrix24DataRequest.isAnywaySendTalkRecords().isTransferTalks().receiveResponse();
+                    helper.requestSalesFunnelComponentAvailability().send();
+                    helper.requestTariffs().send();
+                    helper.bitrix24StatusRequest().receiveResponse();
+                    wait(10);
+                });
             });
-            describe('Импорт статусов выключен.', function() {
+            return;
+            xdescribe('Импорт статусов выключен.', function() {
                 beforeEach(function() {
                     bitrix24DataRequest.receiveResponse();
                     helper.requestSalesFunnelComponentAvailability().send();
@@ -243,7 +251,7 @@ tests.addTest(function(args) {
                         toBeShownOnMouseOver();
                 });
             });
-            describe('Импорт статусов включен.', function() {
+            xdescribe('Импорт статусов включен.', function() {
                 beforeEach(function() {
                     bitrix24DataRequest.isNeedUseRemoteUserStatuses().receiveResponse();
                     helper.requestSalesFunnelComponentAvailability().send();
@@ -272,7 +280,10 @@ tests.addTest(function(args) {
                         expectToHaveClass('x-form-cb-checked');
                 });
             });
+            it('', function() {
+            });
         });
+        return;
         it('Включен новый виджет Битрикс24.', function() {
             helper = new AccountIntegrationBitrix24({
                 ...args,

@@ -36,7 +36,7 @@ index 9a971f9..a3a5008 100644
      "uuid": "^8.3.2",
      "yup": "^0.32.9"
 diff --git a/src/App.tsx b/src/App.tsx
-index ed8715e..325651b 100644
+index 0f9176a..6d8a414 100644
 --- a/src/App.tsx
 +++ b/src/App.tsx
 @@ -9,7 +9,7 @@ import './App.less';
@@ -48,7 +48,7 @@ index ed8715e..325651b 100644
          websocketStore,
          chatListStore,
          chatChannelsStore,
-@@ -53,11 +53,11 @@ const App: React.FC = observer(() => {
+@@ -51,11 +51,11 @@ const App: React.FC = observer(() => {
          };
      });
  
@@ -63,10 +63,10 @@ index ed8715e..325651b 100644
  
  export default App;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 6ec9d08..9635ac6 100644
+index c67c14d..1b77cc0 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -130,7 +130,8 @@ export const RootStore = types
+@@ -135,7 +135,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

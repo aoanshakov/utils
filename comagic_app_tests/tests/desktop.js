@@ -1117,7 +1117,7 @@ tests.addTest(options => {
                                                         is_strict_date_till:  0,
                                                         search:  ''
                                                     }),
-                                                    'Response {"data":[{"cdr_type":"default",'//...}]}
+                                                    'Response {"data":[{"cdr_type":"forward_call",'//...}]}
                                                 ].join("\n"));
 
                                                 tester.spin.expectNotToExist();
@@ -2623,8 +2623,8 @@ tests.addTest(options => {
                             recentlySentMessage().
                             expectToBeSentToChannel('resize').
                             expectToBeSentWithArguments({
-                                width: 0,
-                                height: 0,
+                                width: 1150,
+                                height: 630,
                             });
 
                         tester.chatChannelListRequest().receiveResponse();
@@ -2673,14 +2673,34 @@ tests.addTest(options => {
                         tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
                     });
 
+                    it('Открываю раздел контактов.', function() {
+                        tester.button('Контакты').click();
+                        tester.contactsRequest().differentNames().receiveResponse();
+
+                        tester.contactList.item('Бележкова Грета Ервиновна').click();
+
+                        const requests = ajax.inAnyOrder();
+
+                        contactCommunicationsRequest = tester.
+                            contactCommunicationsRequest().
+                            secondEarlier().
+                            expectToBeSent(requests);
+
+                        contactRequest = tester.contactRequest().expectToBeSent(requests);
+                        const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+
+                        usersRequest.receiveResponse();
+                        contactRequest.receiveResponse();
+                        contactCommunicationsRequest.receiveResponse();
+                    });
                     it('Пользователь свернул приложение. Отображен раздел чатов.', function() {
                         getPackage('electron').ipcRenderer.receiveMessage('unmaximize');
-
-                        tester.accountButton.expectToHaveTextContent('Доступен');
                         tester.chatList.expectToBeVisible();
                     });
                     it('Отображен раздел чатов.', function() {
-                        tester.accountButton.expectToHaveTextContent('Доступен');
+                        tester.button('Настройки').expectNotToExist();
                         tester.chatList.expectToBeVisible();
                     });
                 });

@@ -1218,7 +1218,7 @@ define(function () {
                 total;
 
             let getResponse = count => [{
-                cdr_type: 'default',
+                cdr_type: 'forward_call',
                 call_session_id: 980925444,
                 comment: [
                     'Некий https://ya.ru комментарий ' +
@@ -4118,7 +4118,7 @@ define(function () {
 
                     return {
                         expectOkToBeSent: function () {
-                            return me.requestAcceptIncomingCall();
+                            return me.requestAcceptIncomingCall(this);
                         },
                         expectBusyHereToBeSent: function () {
                             me.requestDeclineIncomingCall();
@@ -4258,12 +4258,36 @@ define(function () {
             };
         };
 
-        this.requestAcceptIncomingCall = function () {
-            var request = sip.recentResponse().
+        this.requestAcceptIncomingCall = function (incomingCall) {
+            const request = sip.recentResponse().
                 expectOk().
                 request();
 
             return {
+                receiveCancel: function () {
+                    request.
+                        setServerName('voip.uiscom.ru').
+                        setMethod('CANCEL').
+                        setCallReceiverLogin('077368').
+                        receive();
+
+                    spendTime(0);
+                    spendTime(0);
+
+                    return {
+                        expectOkToBeSent: function () {
+                            const request = sip.recentResponse().
+                                expectOk().
+                                request();
+
+                            return {
+                                expectByeToBeSent: function () {
+                                    me.requestCallFinish();
+                                },
+                            };
+                        },
+                    };
+                },
                 receiveResponse: function () {
                     request.
                         setServerName('voip.uiscom.ru').
@@ -4272,24 +4296,12 @@ define(function () {
                         receive();
 
                     spendTime(0);
-
-                    /*
-                    me.eventsWebSocket.receiveMessage({
-                        name: 'employee_changed',
-                        type: 'event',
-                        params: {
-                            action: 'update',
-                            data: [{
-                                id: 20816,
-                                is_in_call: true
-                            }]
-                        }
-                    });
-                    */
-
                     spendTime(0);
 
                     return {
+                        receiveBye: function() {
+                            incomingCall.receiveBye();
+                        },
                         expectByeRequestToBeSent: function () {
                             me.requestCallFinish();
                         },
@@ -4297,7 +4309,10 @@ define(function () {
                             this.expectByeRequestToBeSent();
                         },
                     };
-                }
+                },
+                receiveAck: function () {
+                    return this.receiveResponse() ;
+                },
             };
         };
 

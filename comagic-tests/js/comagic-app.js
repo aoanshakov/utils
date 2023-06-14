@@ -158,6 +158,9 @@ Ext.application({
             }
 
             Comagic.Permission = this.Permission = {
+                isRolands: function () {
+                    return false;
+                },
                 useSiteCategory: function () {
                     return true;
                 },

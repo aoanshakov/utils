@@ -1,11 +1,44 @@
 tests.requireClass('Comagic.account.integration.integrationslist.controller.Page');
     
-function AccountIntegrationsList(requestsManager, testersFactory, utils) {
+function AccountIntegrationsList({ requestsManager, testersFactory, utils }) {
     var controller = Comagic.getApplication().
         getController('Comagic.account.integration.integrationslist.controller.Page');
             
     controller.init();
     controller.actionIndex();
+
+    this.disableCrmRequest = function () {
+        let queryParams = {
+            crm_id: '3750',
+            crm_type: 'amo_crm_ws',
+            disable_reason_mnemonic: '',
+            disable_integration_comment: 'Некая причина',
+        };
+
+        function addMethods (me) {
+            return me;
+        }
+
+        return addMethods({
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
+                    expectQueryToContain(queryParams).
+                    expectToHavePath('/account/integration/disable_crm/');
+ 
+                return addMethods({
+                    receiveResponse: function () {
+                       request.respondSuccessfullyWith({
+                           success: true,
+                           data: {},
+                       });
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     this.integrationsRequest = function () {
         var amoCRMIntegration = {
@@ -66,6 +99,15 @@ function AccountIntegrationsList(requestsManager, testersFactory, utils) {
     this.body = testersFactory.createDomElementTester(function () {
         return document.body;
     });
+
+    this.textarea = testersFactory.createTextFieldTester(function () {
+        return document.querySelector('textarea');
+    });
+
+    this.button = function (text) {
+        return testersFactory.
+            createDomElementTester(utils.descendantOfBody().textEquals(text).matchesSelector('.x-btn').find());
+    };
 
     this.enableButton = function (index) {
         return testersFactory.createDomElementTester(utils.findElementsByTextContent(

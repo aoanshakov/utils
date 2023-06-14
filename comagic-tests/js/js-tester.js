@@ -264,70 +264,6 @@ function JsTester_NoElement () {
     };
 }
 
-function JsTester_DescendantFinder (ascendantElement, utils) {
-    var selector = '*';
-    ascendantElement = ascendantElement || new JsTester_NoElement();
-
-    var isDesiredText = function () {
-        throw new Error('Не указаны критерии поиска');
-    };
-
-    this.matchesSelector = function (value) {
-        selector = value;
-        return this;
-    };
-
-    this.textEquals = function (desiredTextContent) {
-        isDesiredText = function (actualTextContent) {
-            return actualTextContent == desiredTextContent;
-        };
-
-        return this;
-    };
-
-    this.textContains = function (desiredTextContent) {
-        isDesiredText = function (actualTextContent) {
-            return actualTextContent.indexOf(desiredTextContent) != -1;
-        };
-
-        return this;
-    };
-
-    this.findAll = function () {
-        var i,
-            descendants = ascendantElement.querySelectorAll(selector),
-            length = descendants.length,
-            descendant,
-            desiredDescendants = [];
-        
-        for (i = 0; i < length; i ++) {
-            descendant = descendants[i];
-
-            if (isDesiredText(utils.getTextContent(descendant))) {
-                desiredDescendants.push(descendant);
-            }
-        }
-
-        return desiredDescendants;
-    };
-
-    this.findAllVisible = function () {
-        return this.findAll().filter(function (domElement) {
-            return utils.isVisible(domElement);
-        });
-    };
-
-    this.find = function () {
-        var desiredDescendants = this.findAll();
-
-        if (desiredDescendants.length) {
-            return utils.getVisibleSilently(desiredDescendants) || new JsTester_NoElement();
-        }
-
-        return new JsTester_NoElement();
-    };
-}
-
 function JsTester_Utils (debug) {
     var me = this;
 
@@ -2294,5 +2230,110 @@ function JsTester_Tests (factory) {
         errors.forEach(function (error) {
             throw error;
         });
+    };
+}
+
+function JsTester_DescendantFinder (ascendantElement, utils) {
+    var selector = '*';
+    ascendantElement = ascendantElement || new JsTester_NoElement();
+
+    var isDesiredText = function () {
+        throw new Error('Не указаны критерии поиска');
+    };
+
+    this.matchesSelector = function (value) {
+        selector = value;
+        return this;
+    };
+
+    this.textEquals = function (desiredTextContent) {
+        isDesiredText = function (actualTextContent, comparisons) {
+            const result = actualTextContent == desiredTextContent;
+
+            (comparisons || []).push(
+                `Строка ${
+                    JSON.stringify(actualTextContent)
+                } должна быть равна строке ${
+                    JSON.stringify(desiredTextContent)
+                }. Условие ${result ? '' : 'не '}удовлетворено.`
+            );
+
+            return result;
+        };
+
+        return this;
+    };
+
+    this.textContains = function (desiredTextContent) {
+        isDesiredText = function (actualTextContent, comparisons) {
+            const result = actualTextContent.indexOf(desiredTextContent) != -1;
+
+            (comparisons || []).push(
+                `Строка ${
+                    JSON.stringify(actualTextContent)
+                } должна содержать строку ${
+                    JSON.stringify(desiredTextContent)
+                }. Условие ${result ? '' : 'не '}удовлетворено.`
+            );
+
+            return result;
+        };
+
+        return this;
+    };
+
+    this.findAll = function (logEnabled) {
+        if (!ascendantElement.querySelectorAll) {
+            throw new Error(`Объект ${ascendantElement} не является HTML-элементом.`);
+        }
+
+        var i,
+            descendants = ascendantElement.querySelectorAll(selector),
+            length = descendants.length,
+            descendant,
+            text,
+            desiredDescendants = [],
+            allDescendants = [],
+            comparisons = [];
+
+        for (i = 0; i < length; i ++) {
+            descendant = descendants[i];
+            text = utils.getTextContent(descendant);
+
+            logEnabled && allDescendants.push({
+                domElement: descendant,
+                text: text
+            });
+
+            if (isDesiredText(text, comparisons)) {
+                desiredDescendants.push(descendant);
+            }
+        }
+
+        logEnabled && console.log({
+            selector,
+            ascendantElement,
+            comparisons,
+            allDescendants,
+            desiredDescendants
+        });
+
+        return desiredDescendants;
+    };
+
+    this.findAllVisible = function () {
+        return this.findAll().filter(function (domElement) {
+            return utils.isVisible(domElement);
+        });
+    };
+
+    this.find = function (logEnabled) {
+        var desiredDescendants = this.findAll(logEnabled);
+
+        if (desiredDescendants.length) {
+            return utils.getVisibleSilently(desiredDescendants) || new JsTester_NoElement();
+        }
+
+        return new JsTester_NoElement();
     };
 }

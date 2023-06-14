@@ -1,0 +1,49 @@
+src/components/account/account.less
+src/components/account/statuses.less
+src/components/infinite-scroll/infinite-scroll.less
+src/components/tag-editor/tag-editor.less
+
+.@{prefix}-icon {
+    &.@{prefix}-icon-round {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 24px;
+        height: 24px;
+        background: #FFFFFF;
+        border: 1px solid #D1D1D1;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        border-radius: 16px;
+        cursor: pointer;
+
+        svg {
+            color: var(--mgui-gray-90);
+            height: 14px;
+            width: 14px;
+        }
+    }
+}
+
+.@{prefix}-select-popup-header-contains-cancel-button {
+    display: flex;
+
+    .@{prefix}-input-container {
+        flex: 1;
+        margin-right: 7px;
+    }
+
+    .@{prefix}-select-popup-header-cancel-button {
+        background-color: transparent;
+        border: 0;
+        cursor: pointer;
+        color: var(--mgui-gray-110);
+        padding: 0 4px 0 3px;
+    } 
+}
+
+.@{prefix}-select-popup {
+    &-placement-top {
+        position: relative;
+        bottom: @spacer-4;
+    }
+}

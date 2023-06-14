@@ -1,4 +1,4 @@
-FROM debian:stretch
+FROM debian:buster
 
 RUN apt-get update -y
 RUN apt-get upgrade -y
@@ -7,7 +7,7 @@ RUN apt-get install -y \
     python2.7 \
     python-pip \
     postgresql \
-    postgresql-server-dev-9.6 \
+    postgresql-server-dev-all \
     mercurial \
     git \
     curl \
@@ -29,7 +29,7 @@ RUN apt-get install -y \
     sudo
 
 RUN pip install virtualenv
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs
 RUN curl -L https://npmjs.org/install.sh | sh
 

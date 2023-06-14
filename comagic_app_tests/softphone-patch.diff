@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 8515735..7d3deb1 100644
+index fbb558a..7d3deb1 100644
 --- a/package.json
 +++ b/package.json
 @@ -56,9 +56,6 @@
@@ -8,7 +8,7 @@ index 8515735..7d3deb1 100644
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "^0.6.7",
 -    "@comagic/softphone-core": "2.0.1",
--    "@comagic/softphone-widget": "2.0.4",
+-    "@comagic/softphone-widget": "2.0.5",
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
@@ -34,7 +34,7 @@ index 8515735..7d3deb1 100644
      "string-hash": "^1.1.3",
      "uuid": "^8.3.2",
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index e2962e7..c06df01 100644
+index 8b0c236..7b196cb 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -806,4 +806,5 @@ export type RootInstance = Instance<typeof RootStore> & {

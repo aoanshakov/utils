@@ -167,90 +167,185 @@ tests.addTest(options => {
                             tester.allowMediaInput();
                             tester.firstConnection.addCandidate();
 
-                            incomingCall.expectOkToBeSent().receiveResponse();
-
-                            tester.slavesNotification().
-                                available().
-                                twoChannels().
-                                incoming().
-                                confirmed().
-                                expectToBeSent();
+                            incomingCall = incomingCall.expectOkToBeSent();
                         });
 
-                        describe('Нажимаю на кнопку трансфера.', function() {
-                            let usersRequest,
-                                usersInGroupsRequest;
-
+                        describe('Сервер подтвердил принятие звонка.', function() {
                             beforeEach(function() {
-                                tester.transferButton.click();
+                                incomingCall = incomingCall.receiveAck();
 
-                                usersRequest = tester.usersRequest().expectToBeSent();
-                                usersInGroupsRequest = tester.usersInGroupsRequest().
+                                tester.slavesNotification().
+                                    available().
+                                    twoChannels().
+                                    incoming().
+                                    confirmed().
                                     expectToBeSent();
-                                tester.groupsRequest().receiveResponse();
                             });
 
-                            describe('Сотрдников мало.', function() {
+                            describe('Нажимаю на кнопку трансфера.', function() {
+                                let usersRequest,
+                                    usersInGroupsRequest;
+
                                 beforeEach(function() {
-                                    usersInGroupsRequest.receiveResponse();
+                                    tester.transferButton.click();
+
+                                    usersRequest = tester.usersRequest().expectToBeSent();
+                                    usersInGroupsRequest = tester.usersInGroupsRequest().
+                                        expectToBeSent();
+                                    tester.groupsRequest().receiveResponse();
                                 });
 
-                                describe(
-                                    'Ни один из номеров не включает в себя другой.',
-                                function() {
+                                describe('Сотрдников мало.', function() {
                                     beforeEach(function() {
-                                        usersRequest.receiveResponse();
+                                        usersInGroupsRequest.receiveResponse();
                                     });
 
-                                    describe('Открываю вкладку групп.', function() {
+                                    describe(
+                                        'Ни один из номеров не включает в себя другой.',
+                                    function() {
                                         beforeEach(function() {
-                                            tester.button('Группы').click();
+                                            usersRequest.receiveResponse();
                                         });
 
+                                        describe('Открываю вкладку групп.', function() {
+                                            beforeEach(function() {
+                                                tester.button('Группы').click();
+                                            });
+
+                                            it(
+                                                'Соединение разрывается. Кнопка звонка ' +
+                                                'заблокирована.',
+                                            function() {
+                                                tester.disconnectEventsWebSocket();
+
+                                                tester.slavesNotification().
+                                                    twoChannels().
+                                                    registered().
+                                                    webRTCServerConnected().
+                                                    microphoneAccessGranted().
+                                                    userDataFetched().
+                                                    incoming().
+                                                    confirmed().
+                                                    expectToBeSent();
+
+                                                tester.employeeRow('Отдел дистрибуции').
+                                                    expectToBeDisabled();
+                                            });
+                                            it('Отображена таблица групп.', function() {
+                                                tester.employeeRow('Отдел дистрибуции').
+                                                    expectToBeEnabled();
+
+                                                tester.softphone.expectToHaveTextContent(
+                                                    'Сотрудники Группы ' +
+
+                                                    'Отдел дистрибуции 298 1 /1 ' +
+                                                    'Отдел по работе с ключевыми клиентами ' +
+                                                        '726 0 ' +
+                                                    '/1 Отдел региональных продаж 828 2 /2'
+                                                );
+                                            });
+                                        });
+                                        describe('Ввожу значение в поле поиска.', function() {
+                                            beforeEach(function() {
+                                                tester.softphone.input.fill('ова');
+                                            });
+
+                                            it(
+                                                'Нажимаю на иконку очищения поля. Отображены ' +
+                                                'все сотрудники.',
+                                            function() {
+                                                tester.softphone.input.clearIcon.click();
+
+                                                tester.softphone.expectToHaveTextContent(
+                                                    'Сотрудники Группы ' +
+
+                                                    'Божилова Йовка 296 ' +
+                                                    'Господинова Николина 295 ' +
+                                                    'Шалева Дора 8258'
+                                                );
+
+                                                tester.softphone.input.expectToHaveValue('');
+                                            });
+                                            it('Отображены найденные сотрудники.', function() {
+                                                tester.softphone.expectToHaveTextContent(
+                                                    'Сотрудники Группы ' +
+
+                                                    'Божил ова Йовка 296 ' +
+                                                    'Господин ова Николина 295'
+                                                );
+                                            });
+                                        });
+                                        describe('Ввожу номер в поле поиска.', function() {
+                                            beforeEach(function() {
+                                                tester.softphone.input.fill('29');
+                                            });
+
+                                            it(
+                                                'Открываю вкладку "Группы". Список групп ' +
+                                                'отфильтрован по номеру.',
+                                            function() {
+                                                tester.button('Группы').click();
+
+                                                tester.softphone.expectToHaveTextContent(
+                                                    'Сотрудники Группы ' +
+                                                    'Отдел дистрибуции 29 8 1 /1'
+                                                );
+                                            });
+                                            it('Сотрудники фильтруются по номеру.', function() {
+                                                tester.softphone.expectToHaveTextContent(
+                                                    'Сотрудники Группы ' +
+
+                                                    'Божилова Йовка 29 6 ' +
+                                                    'Господинова Николина 29 5'
+                                                );
+                                            });
+                                        });
                                         it(
-                                            'Соединение разрывается. Кнопка звонка ' +
-                                            'заблокирована.',
+                                            'Ввожу значение в поле поиска. Ничего не ' +
+                                            'найдено. Отображено сообщение о том, что ничего ' +
+                                            'не найдено.',
                                         function() {
-                                            tester.disconnectEventsWebSocket();
-
-                                            tester.slavesNotification().
-                                                twoChannels().
-                                                registered().
-                                                webRTCServerConnected().
-                                                microphoneAccessGranted().
-                                                userDataFetched().
-                                                incoming().
-                                                confirmed().
-                                                expectToBeSent();
-
-                                            tester.employeeRow('Отдел дистрибуции').
-                                                expectToBeDisabled();
-                                        });
-                                        it('Отображена таблица групп.', function() {
-                                            tester.employeeRow('Отдел дистрибуции').
-                                                expectToBeEnabled();
+                                            tester.softphone.input.fill('йцукен');
 
                                             tester.softphone.expectToHaveTextContent(
                                                 'Сотрудники Группы ' +
-
-                                                'Отдел дистрибуции 298 1 /1 ' +
-                                                'Отдел по работе с ключевыми клиентами ' +
-                                                    '726 0 ' +
-                                                '/1 Отдел региональных продаж 828 2 /2'
+                                                'Сотрудник не найден'
                                             );
                                         });
-                                    });
-                                    describe('Ввожу значение в поле поиска.', function() {
-                                        beforeEach(function() {
-                                            tester.softphone.input.fill('ова');
-                                        });
-
                                         it(
-                                            'Нажимаю на иконку очищения поля. Отображены ' +
-                                            'все сотрудники.',
+                                            'Нажимаю на строку в таблице сотрудника.',
                                         function() {
-                                            tester.softphone.input.clearIcon.click();
+                                            tester.employeeRow('Господинова Николина').click();
 
+                                            tester.dtmf('#').expectToBeSent();
+                                            spendTime(600);
+                                            tester.dtmf('2').expectToBeSent();
+                                            spendTime(600);
+                                            tester.dtmf('9').expectToBeSent();
+                                            spendTime(600);
+                                            tester.dtmf('5').expectToBeSent();
+                                            spendTime(600);
+
+                                            tester.slavesNotification().
+                                                additional().
+                                                visible().
+                                                transfered().
+                                                dtmf('#295').
+                                                outCallEvent().include().
+                                                expectToBeSent();
+
+                                            tester.transferButton.click();
+                                            tester.dtmf('#').expectToBeSent();
+
+                                            tester.slavesNotification().
+                                                additional().
+                                                visible().
+                                                outCallEvent().include().
+                                                notTransfered().
+                                                dtmf('#295#').
+                                                expectToBeSent();
+                                        });
+                                        it('Отображена таблица сотрудников.', function() {
                                             tester.softphone.expectToHaveTextContent(
                                                 'Сотрудники Группы ' +
 
@@ -259,268 +354,204 @@ tests.addTest(options => {
                                                 'Шалева Дора 8258'
                                             );
 
-                                            tester.softphone.input.expectToHaveValue('');
-                                        });
-                                        it('Отображены найденные сотрудники.', function() {
-                                            tester.softphone.expectToHaveTextContent(
-                                                'Сотрудники Группы ' +
-
-                                                'Божил ова Йовка 296 ' +
-                                                'Господин ова Николина 295'
-                                            );
-                                        });
-                                    });
-                                    describe('Ввожу номер в поле поиска.', function() {
-                                        beforeEach(function() {
-                                            tester.softphone.input.fill('29');
-                                        });
-
-                                        it(
-                                            'Открываю вкладку "Группы". Список групп ' +
-                                            'отфильтрован по номеру.',
-                                        function() {
-                                            tester.button('Группы').click();
-
-                                            tester.softphone.expectToHaveTextContent(
-                                                'Сотрудники Группы ' +
-                                                'Отдел дистрибуции 29 8 1 /1'
-                                            );
-                                        });
-                                        it('Сотрудники фильтруются по номеру.', function() {
-                                            tester.softphone.expectToHaveTextContent(
-                                                'Сотрудники Группы ' +
-
-                                                'Божилова Йовка 29 6 ' +
-                                                'Господинова Николина 29 5'
-                                            );
+                                            tester.employeeRow('Божилова Йовка').transferIcon.
+                                                expectToBeVisible();
+                                            tester.employeeRow('Божилова Йовка').
+                                                expectToBeDisabled();
+                                            tester.employeeRow('Шалева Дора').
+                                                expectToBeEnabled();
                                         });
                                     });
                                     it(
-                                        'Ввожу значение в поле поиска. Ничего не ' +
-                                        'найдено. Отображено сообщение о том, что ничего ' +
-                                        'не найдено.',
+                                        'Один из номеров включает в себя другой. Ввожу один ' +
+                                        'из номеров в поле поиска.',
                                     function() {
-                                        tester.softphone.input.fill('йцукен');
+                                        usersRequest.anotherShortPhone().receiveResponse();
 
-                                        tester.softphone.expectToHaveTextContent(
-                                            'Сотрудники Группы ' +
-                                            'Сотрудник не найден'
-                                        );
-                                    });
-                                    it(
-                                        'Нажимаю на строку в таблице сотрудника.',
-                                    function() {
-                                        tester.employeeRow('Господинова Николина').click();
+                                        tester.softphone.input.fill('296');
 
-                                        tester.dtmf('#').expectToBeSent();
-                                        spendTime(600);
-                                        tester.dtmf('2').expectToBeSent();
-                                        spendTime(600);
-                                        tester.dtmf('9').expectToBeSent();
-                                        spendTime(600);
-                                        tester.dtmf('5').expectToBeSent();
-                                        spendTime(600);
-
-                                        tester.slavesNotification().
-                                            additional().
-                                            visible().
-                                            transfered().
-                                            dtmf('#295').
-                                            outCallEvent().include().
-                                            expectToBeSent();
-
-                                        tester.transferButton.click();
-                                        tester.dtmf('#').expectToBeSent();
-
-                                        tester.slavesNotification().
-                                            additional().
-                                            visible().
-                                            outCallEvent().include().
-                                            notTransfered().
-                                            dtmf('#295#').
-                                            expectToBeSent();
-                                    });
-                                    it('Отображена таблица сотрудников.', function() {
                                         tester.softphone.expectToHaveTextContent(
                                             'Сотрудники Группы ' +
 
                                             'Божилова Йовка 296 ' +
-                                            'Господинова Николина 295 ' +
-                                            'Шалева Дора 8258'
+                                            'Господинова Николина 296 3'
                                         );
-
-                                        tester.employeeRow('Божилова Йовка').transferIcon.
-                                            expectToBeVisible();
-                                        tester.employeeRow('Божилова Йовка').
-                                            expectToBeDisabled();
-                                        tester.employeeRow('Шалева Дора').
-                                            expectToBeEnabled();
                                     });
                                 });
-                                it(
-                                    'Один из номеров включает в себя другой. Ввожу один ' +
-                                    'из номеров в поле поиска.',
-                                function() {
-                                    usersRequest.anotherShortPhone().receiveResponse();
-
-                                    tester.softphone.input.fill('296');
-
-                                    tester.softphone.expectToHaveTextContent(
-                                        'Сотрудники Группы ' +
-
-                                        'Божилова Йовка 296 ' +
-                                        'Господинова Николина 296 3'
-                                    );
+                                it('Сотрудников много.', function() {
+                                    usersRequest.addMore().receiveResponse();
+                                    usersInGroupsRequest.addMore().receiveResponse();
                                 });
                             });
-                            it('Сотрудников много.', function() {
-                                usersRequest.addMore().receiveResponse();
-                                usersInGroupsRequest.addMore().receiveResponse();
+                            describe('Нажимаю на кнопку выключения микрофона.', function() {
+                                beforeEach(function() {
+                                    tester.microphoneButton.click();
+
+                                    tester.slavesNotification().
+                                        available().
+                                        twoChannels().
+                                        incoming().
+                                        confirmed().
+                                        muted().
+                                        expectToBeSent();
+                                });
+
+                                it(
+                                    'Собеседник повесил трубку. Поступил входящий звонок. ' +
+                                    'Микрофон включен.',
+                                function() {
+                                    incomingCall.receiveBye();
+
+                                    tester.slavesNotification().
+                                        available().
+                                        twoChannels().
+                                        ended().
+                                        expectToBeSent();
+
+                                    incomingCall = tester.incomingCall().receive();
+
+                                    tester.slavesNotification().
+                                        available().
+                                        twoChannels().
+                                        incoming().
+                                        progress().
+                                        expectToBeSent();
+
+                                    tester.numaRequest().receiveResponse();
+
+                                    tester.outCallEvent().receive();
+                                    tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                                    tester.callStartingButton.click();
+
+                                    tester.secondConnection.connectWebRTC();
+                                    tester.secondConnection.callTrackHandler();
+
+                                    tester.allowMediaInput();
+                                    tester.secondConnection.addCandidate();
+
+                                    incomingCall.expectOkToBeSent().receiveResponse();
+
+                                    tester.slavesNotification().
+                                        available().
+                                        twoChannels().
+                                        incoming().
+                                        confirmed().
+                                        expectToBeSent();
+
+                                    tester.microphoneButton.
+                                        expectNotToHaveClass('clct-call-option--pressed');
+                                        
+                                    tester.secondConnection.expectNotToBeMute();
+                                });
+                                it('Микрофон выключен.', function() {
+                                    tester.firstConnection.expectToBeMute();
+
+                                    tester.microphoneButton.
+                                        expectToHaveClass('clct-call-option--pressed');
+                                });
+                            });
+                            describe('Убираю фокус с окна. ', function() {
+                                beforeEach(function() {
+                                    setFocus(false);
+                                });
+
+                                it(
+                                    'Фокусирую окно. Нажимаю на кнопку диалпада. ' +
+                                    'Отправляется DTMF. Звучит тон.',
+                                function() {
+                                    setFocus(true);
+
+                                    utils.pressKey('7');
+                                    tester.dtmf('7').expectToBeSent();
+
+                                    tester.slavesNotification().
+                                        additional().
+                                        visible().
+                                        outCallEvent().include().
+                                        dtmf('7').
+                                        expectToBeSent();
+
+                                    tester.expectToneSevenToPlay();
+                                });
+                                it(
+                                    'Нажимаю на кнопку диалпада. DTMF не отправляется.',
+                                function() {
+                                    utils.pressKey('7');
+                                });
+                            });
+                            describe('Нажимаю на кнопку удержания.', function() {
+                                beforeEach(function() {
+                                    tester.holdButton.click();
+                                    
+                                    tester.slavesNotification().
+                                        available().
+                                        twoChannels().
+                                        incoming().
+                                        confirmed().
+                                        holded().
+                                        expectToBeSent();
+
+                                    audioDecodingTester.accomplishAudioDecoding();
+                                });
+
+                                it(
+                                    'Нажимаю на кнопку удержания. Разговор продолжается.',
+                                function() {
+                                    tester.holdButton.click();
+
+                                    tester.slavesNotification().
+                                        available().
+                                        twoChannels().
+                                        incoming().
+                                        confirmed().
+                                        expectToBeSent();
+
+                                    tester.firstConnection.expectRemoteStreamToPlay();
+                                });
+                                it('Звонок удерживается.', function() {
+                                    tester.firstConnection.expectHoldMusicToPlay();
+                                    tester.expectNoSoundToPlay();
+                                });
+                            });
+                            it('Отображено направление и номер.', function() {
+                                tester.microphoneButton.
+                                    expectNotToHaveClass('clct-call-option--pressed');
+
+                                tester.firstConnection.expectSinkIdToEqual('default');
+                                tester.firstConnection.expectInputDeviceIdToEqual('default');
+                                tester.firstConnection.expectNotToBeMute();
+
+                                tester.incomingIcon.expectToBeVisible();
+                                tester.softphone.expectTextContentToHaveSubstring(
+                                    'Шалева Дора +7 (916) 123-45-67 00:00'
+                                );
                             });
                         });
-                        describe('Нажимаю на кнопку выключения микрофона.', function() {
+                        describe('Сервер отклонил принятие звонка.', function() {
                             beforeEach(function() {
-                                tester.microphoneButton.click();
-
-                                tester.slavesNotification().
-                                    available().
-                                    twoChannels().
-                                    incoming().
-                                    confirmed().
-                                    muted().
-                                    expectToBeSent();
+                                incomingCall = incomingCall.
+                                    receiveCancel().
+                                    expectOkToBeSent();
                             });
+                            
+                            it('Проходит некоторое время. Звонок завершается.', function() {
+                                spendTime(32000);
 
-                            it(
-                                'Собеседник повесил трубку. Поступил входящий звонок. ' +
-                                'Микрофон включен.',
-                            function() {
-                                incomingCall.receiveBye();
+                                tester.expectPingToBeSent();
+                                tester.receivePong();
+
+                                incomingCall.expectByeToBeSent();
 
                                 tester.slavesNotification().
                                     available().
                                     twoChannels().
                                     ended().
                                     expectToBeSent();
-
-                                incomingCall = tester.incomingCall().receive();
-
-                                tester.slavesNotification().
-                                    available().
-                                    twoChannels().
-                                    incoming().
-                                    progress().
-                                    expectToBeSent();
-
-                                tester.numaRequest().receiveResponse();
-
-                                tester.outCallEvent().receive();
-                                tester.outCallEvent().slavesNotification().expectToBeSent();
-
-                                tester.callStartingButton.click();
-
-                                tester.secondConnection.connectWebRTC();
-                                tester.secondConnection.callTrackHandler();
-
-                                tester.allowMediaInput();
-                                tester.secondConnection.addCandidate();
-
-                                incomingCall.expectOkToBeSent().receiveResponse();
-
-                                tester.slavesNotification().
-                                    available().
-                                    twoChannels().
-                                    incoming().
-                                    confirmed().
-                                    expectToBeSent();
-
-                                tester.microphoneButton.
-                                    expectNotToHaveClass('clct-call-option--pressed');
-                                    
-                                tester.secondConnection.expectNotToBeMute();
                             });
-                            it('Микрофон выключен.', function() {
-                                tester.firstConnection.expectToBeMute();
-
-                                tester.microphoneButton.
-                                    expectToHaveClass('clct-call-option--pressed');
+                            it('Кнопка принятия звонка видима.', function() {
+                                tester.callStartingButton.expectToBeVisible();
                             });
-                        });
-                        describe('Убираю фокус с окна. ', function() {
-                            beforeEach(function() {
-                                setFocus(false);
-                            });
-
-                            it(
-                                'Фокусирую окно. Нажимаю на кнопку диалпада. ' +
-                                'Отправляется DTMF. Звучит тон.',
-                            function() {
-                                setFocus(true);
-
-                                utils.pressKey('7');
-                                tester.dtmf('7').expectToBeSent();
-
-                                tester.slavesNotification().
-                                    additional().
-                                    visible().
-                                    outCallEvent().include().
-                                    dtmf('7').
-                                    expectToBeSent();
-
-                                tester.expectToneSevenToPlay();
-                            });
-                            it(
-                                'Нажимаю на кнопку диалпада. DTMF не отправляется.',
-                            function() {
-                                utils.pressKey('7');
-                            });
-                        });
-                        describe('Нажимаю на кнопку удержания.', function() {
-                            beforeEach(function() {
-                                tester.holdButton.click();
-                                
-                                tester.slavesNotification().
-                                    available().
-                                    twoChannels().
-                                    incoming().
-                                    confirmed().
-                                    holded().
-                                    expectToBeSent();
-
-                                audioDecodingTester.accomplishAudioDecoding();
-                            });
-
-                            it(
-                                'Нажимаю на кнопку удержания. Разговор продолжается.',
-                            function() {
-                                tester.holdButton.click();
-
-                                tester.slavesNotification().
-                                    available().
-                                    twoChannels().
-                                    incoming().
-                                    confirmed().
-                                    expectToBeSent();
-
-                                tester.firstConnection.expectRemoteStreamToPlay();
-                            });
-                            it('Звонок удерживается.', function() {
-                                tester.firstConnection.expectHoldMusicToPlay();
-                                tester.expectNoSoundToPlay();
-                            });
-                        });
-                        it('Отображено направление и номер.', function() {
-                            tester.microphoneButton.
-                                expectNotToHaveClass('clct-call-option--pressed');
-
-                            tester.firstConnection.expectSinkIdToEqual('default');
-                            tester.firstConnection.expectInputDeviceIdToEqual('default');
-                            tester.firstConnection.expectNotToBeMute();
-
-                            tester.incomingIcon.expectToBeVisible();
-                            tester.softphone.expectTextContentToHaveSubstring(
-                                'Шалева Дора +7 (916) 123-45-67 00:00'
-                            );
                         });
                     });
                     describe(
@@ -702,6 +733,19 @@ tests.addTest(options => {
                                 'Макавеева'
                             );
                         });
+                    });
+                    it('Имя контакта неизвестно. Отображено имя сотрудника, певедшего звонок.', function() {
+                        outCallEvent.noName().receive();
+
+                        tester.outCallEvent().
+                            isTransfer().
+                            noName().
+                            slavesNotification().
+                            expectToBeSent();
+
+                        tester.softphone.expectTextContentToHaveSubstring(
+                            '7 (916) 123-45-67 Трансфер от Бисерка Макавеева'
+                        );
                     });
                     it(
                         'Автоответ включен. Звонок не принимается автоматически.',

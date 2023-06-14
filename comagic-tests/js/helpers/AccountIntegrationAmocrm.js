@@ -4,6 +4,7 @@ tests.requireClass('Comagic.account.integration.amocrm.store.AdditionalFields');
 tests.requireClass('Comagic.account.integration.amocrm.store.ResponsibleUsers');
 tests.requireClass('Comagic.account.integration.amocrm.store.Multifunnels');
 tests.requireClass('Comagic.account.integration.amocrm.controller.Page');
+tests.requireClass('Comagic.account.integration.common.UserSyncInfoBlock');
 
 function AccountIntegrationAmocrm(args) {
     var requestsManager = args.requestsManager,
@@ -32,12 +33,84 @@ function AccountIntegrationAmocrm(args) {
         controller.destroy();
     };
 
+    this.syncEmployeesRequest = function () {
+        let queryParams = {
+            ext_id: '30690958',
+        };
+
+        let response = {
+            success: true,
+            data: {
+                user_sync_time: '2023-06-09.1234',
+                user_sync_state: 'ok',
+                user_sync_error: null,
+            },
+        };
+
+        function addResponseModifiers (me) {
+            me.noTime = function () {
+                response.data.user_sync_time = null;
+                return me;
+            };
+            
+            me.sync = () => {
+                response.data.user_sync_state = 'sync';
+                return me;
+            };
+
+            me.failure = () => {
+                response.success = false;
+                response.data.user_sync_state = 'error';
+                return me;
+            };
+
+            me.errorMessage = () => {
+                me.failure();
+                response.data.user_sync_error = '{"mnemonic":"some_error","message":"Некая ошибка произошла"}';
+                return me;
+            };
+
+            return me;
+        }
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                let request = requestsManager.recentRequest().
+                    expectToHavePath('/account/integration/amocrm/sync_employees/').
+                    expectQueryToContain(queryParams);
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith(response);
+                    },
+                });
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
+            },
+        });
+    };
+
     this.requestAmocrmDataSave = function () {
         var bodyParams = {
             id: 2987943
         };
 
+        var data = getAmocrmData();
+
         return {
+            notActive: function() {
+                bodyParams.is_active = false;
+
+                data.is_active = false;
+                data.is_process_chat = false;
+                data.is_only_first_chat = false;
+                data.is_chat_integration_enabled = false;
+                data.is_chat_integration_scenario_created = false;
+
+                return this;
+            },
             offlineMessageTemplatesChanged: function () {
                 bodyParams.offline_message_contact_name_template =
                     'Новый контакт {{visitor_contact_info}} по заявке с сайта CoMagic';
@@ -119,7 +192,7 @@ function AccountIntegrationAmocrm(args) {
                     expectBodyToContain(bodyParams).
                     respondSuccessfullyWith({
                         success: true,
-                        data: true
+                        data,
                     });
             }
         };
@@ -984,6 +1057,7 @@ function AccountIntegrationAmocrm(args) {
     function getAmocrmData () {
         return {
             id: 2987943,
+            ext_id: 30690958,
             sale_amount_field_source: 'some_source',
             sale_amount_field_code: 'some_code',
             is_retrieve_success_lead: true,
@@ -1011,9 +1085,10 @@ function AccountIntegrationAmocrm(args) {
             offline_message_tags: ['Тэг5', 'Тэг6'],
             success_chat_tags: ['Тэг7', 'Тэг8'],
             lost_chat_tags: ['Тэг9', 'Тэг10'],
-            sync_time: '2018-12-02T12:43:54.124824',
-            sync_state: 'ok',
-            sync_error: null,
+
+            user_sync_time: '2018-12-02T12:43:54.124824',
+            user_sync_state: 'ok',
+            user_sync_error: null,
 
             first_in_call_act: 'lead',
             first_out_call_act: 'lead',
@@ -1027,6 +1102,9 @@ function AccountIntegrationAmocrm(args) {
             is_process_out_call: true,
             is_process_secondary_out_call: true,
             is_process_chat: true,
+            is_only_first_chat: false,
+            is_chat_integration_enabled: false,
+            is_chat_integration_scenario_created: false,
             is_process_offline_message: true,
 
             secondary_call_interval: 72,
@@ -1059,79 +1137,120 @@ function AccountIntegrationAmocrm(args) {
     this.requestAmocrmData = function () {
         var data = getAmocrmData();
 
-        return {
-            noChatTemplate: function () {
+        function addResponseModifiers (me) {
+            me.allChatSettingsEnabled = function () {
+                data.is_process_chat = true;
+                data.is_only_first_chat = true;
+                data.is_chat_integration_enabled = true;
+                data.is_chat_integration_scenario_created = true;
+
+                return me;
+            };
+
+            me.noChatTemplate = function () {
                 data.chat_contact_name_template = null;
                 data.chat_lead_name_template = null;
                 data.chat_task_name_template = null;
 
-                return this;
-            },
-            noOfflineMessageTemplate: function () {
+                return me;
+            };
+
+            me.noOfflineMessageTemplate = function () {
                 data.offline_message_contact_name_template = null;
                 data.offline_message_lead_name_template = null;
                 data.offline_message_task_name_template = null;
 
-                return this;
-            },
-            setIsAnywaySendTalkRecords: function () {
+                return me;
+            };
+
+            me.setIsAnywaySendTalkRecords = function () {
                 data.is_anyway_send_talk_records = true;
-                return this;
-            },
-            setSaleCategories: function () {
+                return me;
+            };
+
+            me.setSaleCategories = function () {
                 data.sale_category_user_field_value_ids = ['666', '495300', '495301'];
-                return this;
-            },
-            setLossReasons: function () {
+                return me;
+            };
+
+            me.setLossReasons = function () {
                 data.loss_reason_user_field_value_ids = ['495299', '495302'];
-                return this;
-            },
-            setOfflineActContact: function () {
+                return me;
+            };
+
+            me.setOfflineActContact = function () {
                 data.offline_message_act = 'contact';
-                return this;
-            },
-            setOfflineActUnsorted: function () {
+                return me;
+            };
+
+            me.setOfflineActUnsorted = function () {
                 data.offline_message_act = 'unsorted';
-                return this;
-            },
-            setChatActContact: function () {
+                return me;
+            };
+
+            me.setChatActContact = function () {
                 data.chat_act = 'contact';
-                return this;
-            },
-            setChatActUnsorted: function () {
+                return me;
+            };
+
+            me.setChatActUnsorted = function () {
                 data.chat_act = 'unsorted';
-                return this;
-            },
-            setFirstActManual: function () {
+                return me;
+            };
+
+            me.setFirstActManual = function () {
                 data.first_call_act = 'manual';
-                return this;
-            },
-            setUpdateContact: function () {
+                return me;
+            };
+
+            me.setUpdateContact = function () {
                 data.has_update_contact_on_call_finished_timeout = true;
-                return this;
-            },
-            set15MinutesContactUpdateTimout: function () {
+                return me;
+            };
+
+            me.set15MinutesContactUpdateTimout = function () {
                 data.update_contact_on_call_finished_timeout = 15;
-                return this;
-            },
-            setForwardingToResponsibleForContact: function () {
+                return me;
+            };
+
+            me.setForwardingToResponsibleForContact = function () {
                 data.responsible_manager_source = 'contact';
-                return this;
-            },
-            setForwardingToResponsibleForDeal: function () {
+                return me;
+            };
+
+            me.setForwardingToResponsibleForDeal = function () {
                 data.responsible_manager_source = 'lead';
-                return this;
+                return me;
+            };
+            
+            return me;
+        }
+
+        return addResponseModifiers({
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
+                    expectToHavePath('/account/integration/amocrm/read/');
+
+                return addResponseModifiers({
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith({
+                            success: true,
+                            data: data,
+                        });
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
             },
             send: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('/account/integration/amocrm/read/').
-                    respondSuccessfullyWith({
-                        success: true,
-                        data: data
-                    });
+                this.receiveResponse();
             }
-        };
+        });
     };
+
+    this.amocrmDataRequest = this.requestAmocrmData;
+
     this.requestAmocrmStatus = function () {
         var data = {
             success: true,
@@ -1335,6 +1454,19 @@ function AccountIntegrationAmocrm(args) {
             }
         };
 
+        tester.checkbox = {
+            withBoxLabel: function (expectedLabel) {
+                return testersFactory.createCheckboxTester(utils.getComponentByDomElement(
+                    utils.descendantOf(getDomElement()).
+                        matchesSelector('.x-form-cb-label').
+                        textEquals(expectedLabel).
+                        find().
+                        closest('.x-container').
+                        querySelector('.x-form-type-checkbox')
+                ), expectedLabel)
+            }
+        };
+
         var disabledClassName = 'x-item-disabled';
 
         tester.expectToBeEnabled = function () {
@@ -1375,6 +1507,30 @@ function AccountIntegrationAmocrm(args) {
 
     addTesters(this, function () {
         return document.body;
+    });
+
+    this.body = testersFactory.createDomElementTester(function () {
+        return document.body;
+    });
+
+    this.userSyncStatusTextOk = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.user-sync-status-text-ok');
+    });
+
+    this.userSyncStatusTextError = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.user-sync-status-text-error');
+    });
+
+    this.userSyncErrorIcon = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.cm-grid-cell-warning-icon');
+    });
+
+    this.userSyncWarningIcon = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.user-no-telephony-warning-icon img');
+    });
+
+    this.messageBox = testersFactory.createDomElementTester(function () {
+        return document.querySelector('.x-window');
     });
 
     this.label = function (expectedLabel) {

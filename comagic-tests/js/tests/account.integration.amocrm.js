@@ -1,7 +1,6 @@
 tests.addTest(function(args) {
     var tester,
-        requestsManager = args.requestsManager,
-        testersFactory = args.testersFactory,
+        requestsManager = args.requestsManager, testersFactory = args.testersFactory,
         wait = args.wait,
         utils = args.utils,
         windowOpener = args.windowOpener;
@@ -9,6 +8,8 @@ tests.addTest(function(args) {
     describe(
         'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM".',
     function() {
+        let amocrmDataRequest;
+
         beforeEach(function() {
             if (tester) {
                 tester.destroy();
@@ -21,18 +22,112 @@ tests.addTest(function(args) {
 
             tester.actionIndex();
             tester.requestSalesFunnelComponentAvailability().send();
+            amocrmDataRequest = tester.amocrmDataRequest().expectToBeSent();
         });
         
-        describe('Настройки получены.', function() {
+        xdescribe('Настройки чатов включены.', function() {
             beforeEach(function() {
-                tester.requestAmocrmData().send();
+                amocrmDataRequest.allChatSettingsEnabled().receiveResponse();
                 tester.requestTariffs().send();
                 tester.requestAmocrmStatus().send();
                 wait(10);
             });
 
-            /*
-            describe('Открываю вкладку "Мультиворонки".', function() {
+            describe(
+                'Снимаю отметку с свитчбокса "Интеграция". Нажимаю на кнопку "Сохранить". Отправлен запрос ' +
+                'обновления интеграции.',
+            function() {
+                beforeEach(function() {
+                    tester.switchButton('Интеграция').click();
+                    wait(10);
+
+                    tester.button('Сохранить').click();
+
+                    tester.amocrmSavingRequest().notActive().receiveResponse();
+                    tester.requestAmocrmStatus().send();
+                });
+
+                describe('Открываю вкладку "Чаты и заявки".', function() {
+                    beforeEach(function() {
+                        tester.tabPanel.tab('Чаты и заявки').click();
+                        wait(10);
+
+                        tester.entityNameTemplateNsParamsRequest().receiveResponse();
+                    });
+
+                    it('Открываю вкладку "Доступ к данным". Окно подтверждения не отображено.', function() {
+                        tester.tabPanel.tab('Доступ к данным').click();
+                        wait(10);
+
+                        tester.messageBox.expectToBeHiddenOrNotExist();
+                    });
+                    it('Чекбоксы настроек чатов неотмечены.', function() {
+                        tester.form.
+                            checkbox().
+                            withBoxLabel('Передавать чаты в amoCRM').
+                            expectNotToBeChecked();
+
+                        tester.form.
+                            checkbox().
+                            withBoxLabel('Вести переписку в amoCRM').
+                            expectNotToBeChecked();
+
+                        tester.form.
+                            checkbox().
+                            withBoxLabel('Автоматическое прикрепление сценария').
+                            expectNotToBeChecked();
+
+                        tester.container.
+                            withLabel('Работа с чатами').
+                            checkbox.
+                            withBoxLabel('Только для первичных обращений').
+                            expectNotToBeChecked();
+                    });
+                });
+                it('Свитчбокс "Интеграция" неотмечен.', function() {
+                    tester.switchButton('Интеграция').expectAttributeToHaveValue('data-checked', 'false');
+                });
+            });
+            it('Открываю вкладку "Чаты и заявки". Отмечены чекбоксы настроек чатов.', function() {
+                tester.tabPanel.tab('Чаты и заявки').click();
+                wait(10);
+
+                tester.entityNameTemplateNsParamsRequest().receiveResponse();
+
+                tester.form.
+                    checkbox().
+                    withBoxLabel('Передавать чаты в amoCRM').
+                    expectToBeChecked();
+
+                tester.form.
+                    checkbox().
+                    withBoxLabel('Вести переписку в amoCRM').
+                    expectToBeChecked();
+
+                tester.form.
+                    checkbox().
+                    withBoxLabel('Автоматическое прикрепление сценария').
+                    expectToBeChecked();
+
+                tester.container.
+                    withLabel('Работа с чатами').
+                    checkbox.
+                    withBoxLabel('Только для первичных обращений').
+                    expectToBeChecked();
+            });
+            it('Свитчбокс "Интеграция" отмечен.', function() {
+                tester.switchButton('Интеграция').expectAttributeToHaveValue('data-checked', 'true');
+            });
+        });
+        describe('Настройки получены.', function() {
+            beforeEach(function() {
+                amocrmDataRequest.receiveResponse();
+                tester.requestTariffs().send();
+                tester.requestAmocrmStatus().send();
+                wait(10);
+            });
+
+            xdescribe('Открываю вкладку "Мультиворонки".', function() {
                 beforeEach(function() {
                     tester.tabPanel.tab('Мультиворонки').click();
                     wait(10);
@@ -181,8 +276,7 @@ tests.addTest(function(args) {
                     tester.form.combobox().withValue('Некая воронка').expectToBeVisible();
                 });
             });
-            */
-            describe('Открываю вкладку "Чаты и заявки".', function() {
+            xdescribe('Открываю вкладку "Чаты и заявки".', function() {
                 beforeEach(function() {
                     tester.tabPanel.tab('Чаты и заявки').click();
                     wait(10);
@@ -382,13 +476,74 @@ tests.addTest(function(args) {
                         );
                 });
             });
+            describe('Нажимаю на кнопку "Синхронизировать".', function() {
+                let syncEmployeesRequest;
+
+                beforeEach(function() {
+                    tester.button('Синхронизировать').click();
+                    syncEmployeesRequest = tester.syncEmployeesRequest().expectToBeSent();
+                });
+
+                it(
+                    'Синхронизация производится. Отображена подсказка о том, что синхронизация производится.',
+                function() {
+                    syncEmployeesRequest.sync().receiveResponse();
+
+                    tester.userSyncStatusTextOk.expectToBeHiddenOrNotExist()
+                    tester.userSyncStatusTextError.expectToBeHiddenOrNotExist();
+                    tester.userSyncErrorIcon.expectToBeHiddenOrNotExist();
+
+                    tester.userSyncWarningIcon.expectAttributeToHaveValue(
+                        'data-qtip',
+                        'Производится синхронизация'
+                    );
+                });
+                it('Синхронизация прошла успешно. Отображено сообщение об успешной синхронизации.', function() {
+                    syncEmployeesRequest.receiveResponse();
+
+                    tester.body.expectTextContentToHaveSubstring('2023-06-09');
+                    tester.userSyncStatusTextOk.expectToBeVisible()
+                    tester.userSyncStatusTextError.expectToBeHiddenOrNotExist();
+                    tester.userSyncWarningIcon.expectToBeHiddenOrNotExist();
+                    tester.userSyncErrorIcon.expectToBeHiddenOrNotExist();
+                });
+                it(
+                    'Синхронизация не произведена. Отображено сообщение о том, что синхронизация не производилась.',
+                function() {
+                    syncEmployeesRequest.noTime().receiveResponse();
+
+                    tester.userSyncWarningIcon.expectAttributeToHaveValue(
+                        'data-qtip',
+                        'Синхронизация не производилась'
+                    );
+                });
+                it('Произошла ошибка синхронизации с сообщением об ошибке.', function() {
+                    syncEmployeesRequest.errorMessage().receiveResponse();
+
+                    tester.userSyncStatusTextOk.expectToBeHiddenOrNotExist()
+                    tester.userSyncStatusTextError.expectToHaveTextContent('Ошибка синхронизации');
+                    tester.userSyncErrorIcon.expectAttributeToHaveValue('data-qtip', 'Некая ошибка произошла');
+                });
+                it('Произошла ошибка синхронизации.', function() {
+                    syncEmployeesRequest.failure().receiveResponse();
+
+                    tester.userSyncStatusTextOk.expectToBeHiddenOrNotExist()
+                    tester.userSyncStatusTextError.expectToHaveTextContent('Ошибка синхронизации');
+                });
+            });
+            it('Отображено время синхронизации.', function() {
+                tester.body.expectTextContentToHaveSubstring('2018-12-02T12:43:54');
+
+                tester.userSyncStatusTextOk.expectToBeVisible()
+                tester.userSyncStatusTextError.expectToBeHiddenOrNotExist();
+            });
         });
-        /*
+        return;
         describe(
             'Тип переадресации на ответственного сотрудника не определен. Открываю вкладку "Телефония".',
         function() {
             beforeEach(function() {
-                tester.requestAmocrmData().send();
+                amocrmDataRequest.receiveResponse();
                 tester.requestTariffs().send();
                 tester.requestAmocrmStatus().send();
                 wait(10);
@@ -497,7 +652,7 @@ tests.addTest(function(args) {
             '"Телефония". Нельзя использовать неразобранное.',
         function() {
             beforeEach(function() {
-                tester.requestAmocrmData().send();
+                amocrmDataRequest.receiveResponse();
                 tester.requestTariffs().send();
                 tester.requestAmocrmStatus().send();
                 wait(10);
@@ -546,7 +701,7 @@ tests.addTest(function(args) {
             '"Телефония".',
         function() {
             beforeEach(function() {
-                tester.requestAmocrmData().setUpdateContact().set15MinutesContactUpdateTimout().send();
+                amocrmDataRequest.setUpdateContact().set15MinutesContactUpdateTimout().receiveResponse();
                 tester.requestTariffs().send();
                 tester.requestAmocrmStatus().send();
                 wait(10);
@@ -574,9 +729,8 @@ tests.addTest(function(args) {
                 tester.updateContactOnCallFinishedTimeoutCombobox().expectToHaveValue('15 мин');
             });
         });
-        */
         it('Шаблоны названий чатов и заявок не определены. Открываю вкладку "Чаты и заявки".', function() {
-            tester.requestAmocrmData().noChatTemplate().noOfflineMessageTemplate().send();
+            amocrmDataRequest.noChatTemplate().noOfflineMessageTemplate().receiveResponse();
             tester.requestTariffs().send();
             tester.requestAmocrmStatus().send();
             wait(10);
@@ -640,7 +794,6 @@ tests.addTest(function(args) {
                     'Некий шаблон чата для задачи'
                 );
         });
-        /*
         it('Ввожу адрес портала. Нажимаю на кнопку "Сохранить". Настройки сохранены.', function() {
             tester.requestAmocrmData().send();
             tester.requestTariffs().send();
@@ -661,7 +814,7 @@ tests.addTest(function(args) {
             'Открываю вкладку "Телефония". Можно использовать неразобранное. Опция "Использовать функциональность ' +
             '"Неразобранное"" доступна.',
         function() {
-            tester.requestAmocrmData().send();
+            amocrmDataRequest.receiveResponse();
             tester.requestTariffs().send();
             tester.requestAmocrmStatus().setUnsortedEnabled().send();
             wait(10);
@@ -674,7 +827,7 @@ tests.addTest(function(args) {
             '"Телефония". В выпадающем списке "После завершения звонка обновлять ответственного сотрудника через" ' +
             'выбрана опция "0 мин".',
         function() {
-            tester.requestAmocrmData().set15MinutesContactUpdateTimout().send();
+            amocrmDataRequest.set15MinutesContactUpdateTimout().receiveResponse();
             tester.requestTariffs().send();
             tester.requestAmocrmStatus().send();
             wait(10);
@@ -688,7 +841,7 @@ tests.addTest(function(args) {
             'Установлена переадресация на ответственного сотрудника из контакта. Открываю вкладку "Телефония". ' +
             'Отмечена радиокнопка "Из контакта".',
         function() {
-            tester.requestAmocrmData().setForwardingToResponsibleForContact().send();
+            amocrmDataRequest.setForwardingToResponsibleForContact().receiveResponse();
             tester.requestTariffs().send();
             tester.requestAmocrmStatus().send();
             wait(10);
@@ -703,7 +856,7 @@ tests.addTest(function(args) {
             'Установлена переадресация на ответственного сотрудника из сделки. Открываю вкладку "Телефония". ' +
             'Отмечена радиокнопка "Из сделки".',
         function() {
-            tester.requestAmocrmData().setForwardingToResponsibleForDeal().send();
+            amocrmDataRequest.setForwardingToResponsibleForDeal().receiveResponse();
             tester.requestTariffs().send();
             tester.requestAmocrmStatus().send();
             wait(10);
@@ -714,9 +867,8 @@ tests.addTest(function(args) {
             tester.form.radiofield().withBoxLabel('Из контакта').expectNotToBeChecked();
             tester.form.radiofield().withBoxLabel('Из сделки').expectToBeChecked();
         });
-        */
     });
-    /*
+    return;
     describe(
         'Расширенная интеграция доступна. Открываю раздел "Аккаунт/Интеграция/Настройка интеграции с amoCRM". ' +
         'Открыта вкладка "Доступ к данным".',
@@ -971,5 +1123,4 @@ tests.addTest(function(args) {
         tester.form.combobox().withFieldLabel('Из какого поля передавать причину отказа').
             expectToHaveValue('Первое поле для категорий и причин, Четвертое поле для категорий и причин');
     });
-    */
 });

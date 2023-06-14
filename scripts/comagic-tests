@@ -25,12 +25,15 @@ if [ $(uname | grep Darwin | wc -l) -eq 0 ]
 then
     dockerArguments="$dockerArguments --mount type=bind,source=/etc/passwd,target=/etc/passwd"
     dockerArguments="$dockerArguments --mount type=bind,source=/etc/group,target=/etc/group"
-    entrypointArguments="$entrypointArguments -u $USER"
+    dockerArguments="$dockerArguments --mount type=bind,source=$HOME/.ssh/id_ed25519,target=/root/.ssh/id_ed25519"
+    entrypointArguments="$entrypointArguments --owner $USER"
+else
+    dockerArguments="$dockerArguments --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa"
 fi
+
 
 docker run -it --rm \
     -v $HOME/gitlab.uis.dev/comagic_web:/usr/local/src/comagic_web \
     -v $HOME/workspace/utils/comagic-tests:/usr/local/src/utils/comagic-tests \
-    --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa \
     $dockerArguments $port \
     comagic-tests $entrypointArguments -a $action

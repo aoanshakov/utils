@@ -9407,6 +9407,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            secondEarlier() {
+                queryParams.from_start_time = '2019-12-19T12:10:06.000+03:00'
+                return this;
+            },
+
             anotherRangeStartingTime() {
                 queryParams.from_start_time = '2019-12-19T12:10:08.000+03:00'
                 return this;

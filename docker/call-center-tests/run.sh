@@ -30,6 +30,9 @@ do
     then
         action=$2
         shift
+    elif [ "$1" = "--no-cache" ]
+    then
+        noCache="--no-cache"
     fi
 
     shift

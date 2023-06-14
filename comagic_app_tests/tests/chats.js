@@ -1415,9 +1415,7 @@ tests.addTest(options => {
                     });
                     it('Открываю раздел контактов. Соединение с вебсокетом чатов разрывается.', function() {
                         tester.leftMenu.button('Контакты').click();
-
                         tester.contactsRequest().differentNames().receiveResponse();
-                        tester.chatsWebSocket.finishDisconnecting();
 
                         tester.contactList.item('Бележкова Грета Ервиновна').expectToBeVisible();
                     });

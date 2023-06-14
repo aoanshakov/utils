@@ -44,7 +44,7 @@ class DictParam(object):
         return self.node.values[self.index]
 
 
-def get_ast_value(value):
+def get_ast_value(value, name):
     value_type = type(value)
 
     if value_type is str:
@@ -53,8 +53,19 @@ def get_ast_value(value):
         return ast.Num(n=value)
     elif value_type is bool or value is None:
         return ast.NameConstant(value=value)
+    elif value_type is list:
+        keys = []
+        values = []
+
+        for item in value:
+            if type(item) is dict:
+                for index in item:
+                    keys.append(ast.Str(s=index))
+                    values.append(ast.Str(s=item[index]))
+
+        return ast.Tuple(elts=[ast.Dict(keys=keys, values=values)], ctx=ast.Load())
     else:
-        raise Exception('Type ' + str(value_type) + ' is not supported')
+        raise Exception('Type ' + str(value_type) + ' of parameter ' + name + ' is not supported')
 
 
 def each_assign_node(parent, callback):
@@ -81,7 +92,7 @@ def override_param(param, new_values):
                 new_values=value
             )
         else:
-            param.set_value(get_ast_value(value))
+            param.set_value(get_ast_value(value, name))
 
 
 def override_params(traverser, parent, new_values):
