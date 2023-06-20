@@ -25,7 +25,7 @@ tests.addTest(function(args) {
             amocrmDataRequest = tester.amocrmDataRequest().expectToBeSent();
         });
         
-        xdescribe('Настройки чатов включены.', function() {
+        describe('Настройки чатов включены.', function() {
             beforeEach(function() {
                 amocrmDataRequest.allChatSettingsEnabled().receiveResponse();
                 tester.requestTariffs().send();
@@ -61,6 +61,23 @@ tests.addTest(function(args) {
 
                         tester.messageBox.expectToBeHiddenOrNotExist();
                     });
+                    it(
+                        'Отмечаю чекбоксы настроек чатов. Нажимаю на кнопку "Сохранить". Запрос сохранения не ' +
+                        'отправляется.',
+                    function() {
+                        tester.form.
+                            checkbox().
+                            withBoxLabel('Передавать чаты в amoCRM').
+                            click();
+
+                        tester.form.
+                            checkbox().
+                            withBoxLabel('Вести переписку в amoCRM').
+                            click();
+
+                        wait(10);
+                        tester.button('Сохранить').click();
+                    });
                     it('Чекбоксы настроек чатов неотмечены.', function() {
                         tester.form.
                             checkbox().
@@ -88,37 +105,82 @@ tests.addTest(function(args) {
                     tester.switchButton('Интеграция').expectAttributeToHaveValue('data-checked', 'false');
                 });
             });
-            it('Открываю вкладку "Чаты и заявки". Отмечены чекбоксы настроек чатов.', function() {
-                tester.tabPanel.tab('Чаты и заявки').click();
-                wait(10);
+            describe('Открываю вкладку "Чаты и заявки".', function() {
+                beforeEach(function() {
+                    tester.tabPanel.tab('Чаты и заявки').click();
+                    wait(10);
 
-                tester.entityNameTemplateNsParamsRequest().receiveResponse();
+                    tester.entityNameTemplateNsParamsRequest().receiveResponse();
+                });
 
-                tester.form.
-                    checkbox().
-                    withBoxLabel('Передавать чаты в amoCRM').
-                    expectToBeChecked();
+                it(
+                    'Снимаю отметку с чекбокса. Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения настроек.',
+                function() {
+                    tester.form.
+                        checkbox().
+                        withBoxLabel('Передавать чаты в amoCRM').
+                        click();
 
-                tester.form.
-                    checkbox().
-                    withBoxLabel('Вести переписку в amoCRM').
-                    expectToBeChecked();
+                    wait(10);
 
-                tester.form.
-                    checkbox().
-                    withBoxLabel('Автоматическое прикрепление сценария').
-                    expectToBeChecked();
+                    tester.button('Сохранить').click();
+                    tester.amocrmSavingRequest().receiveResponse();
+                });
+                it('Отмечены чекбоксы настроек чатов.', function() {
+                    tester.form.
+                        checkbox().
+                        withBoxLabel('Передавать чаты в amoCRM').
+                        expectToBeChecked();
 
-                tester.container.
-                    withLabel('Работа с чатами').
-                    checkbox.
-                    withBoxLabel('Только для первичных обращений').
-                    expectToBeChecked();
+                    tester.form.
+                        checkbox().
+                        withBoxLabel('Вести переписку в amoCRM').
+                        expectToBeChecked();
+
+                    tester.form.
+                        checkbox().
+                        withBoxLabel('Автоматическое прикрепление сценария').
+                        expectToBeChecked();
+
+                    tester.container.
+                        withLabel('Работа с чатами').
+                        checkbox.
+                        withBoxLabel('Только для первичных обращений').
+                        expectToBeChecked();
+                });
             });
             it('Свитчбокс "Интеграция" отмечен.', function() {
                 tester.switchButton('Интеграция').expectAttributeToHaveValue('data-checked', 'true');
             });
         });
+        it(
+            'Интеграция выключена. Отмечаю чекбоксы настроек чатов. Нажимаю на кнопку "Сохранить". Запрос сохранения ' +
+            'не отправляется.',
+        function() {
+            amocrmDataRequest.notActive().receiveResponse();
+            tester.requestTariffs().send();
+            tester.requestAmocrmStatus().send();
+            wait(10);
+
+            tester.tabPanel.tab('Чаты и заявки').click();
+            wait(10);
+
+            tester.entityNameTemplateNsParamsRequest().receiveResponse();
+
+            tester.form.
+                checkbox().
+                withBoxLabel('Передавать чаты в amoCRM').
+                click();
+
+            tester.form.
+                checkbox().
+                withBoxLabel('Вести переписку в amoCRM').
+                click();
+
+            wait(10);
+            tester.button('Сохранить').click();
+        });
+        return;
         describe('Настройки получены.', function() {
             beforeEach(function() {
                 amocrmDataRequest.receiveResponse();
@@ -127,7 +189,7 @@ tests.addTest(function(args) {
                 wait(10);
             });
 
-            xdescribe('Открываю вкладку "Мультиворонки".', function() {
+            describe('Открываю вкладку "Мультиворонки".', function() {
                 beforeEach(function() {
                     tester.tabPanel.tab('Мультиворонки').click();
                     wait(10);
@@ -276,7 +338,7 @@ tests.addTest(function(args) {
                     tester.form.combobox().withValue('Некая воронка').expectToBeVisible();
                 });
             });
-            xdescribe('Открываю вкладку "Чаты и заявки".', function() {
+            describe('Открываю вкладку "Чаты и заявки".', function() {
                 beforeEach(function() {
                     tester.tabPanel.tab('Чаты и заявки').click();
                     wait(10);
@@ -538,7 +600,6 @@ tests.addTest(function(args) {
                 tester.userSyncStatusTextError.expectToBeHiddenOrNotExist();
             });
         });
-        return;
         describe(
             'Тип переадресации на ответственного сотрудника не определен. Открываю вкладку "Телефония".',
         function() {

@@ -1465,6 +1465,11 @@ define(function () {
                     return me;
                 };
 
+                me.seventhPhone = function () {
+                    numa = '79161234567g';
+                    return me;
+                };
+
                 me.anotherPhoneNumber = me.anotherPhone = me.anotherNumber;
 
                 me.longName = function () {
@@ -3867,13 +3872,6 @@ define(function () {
                     phoneNumber = '74950230625';
                     return this;
                 },
-                sixthPhone: function () {
-                    return this.setNumberFromCallsGrid();
-                },
-                fourthPhone: function () {
-                    phoneNumber = '74999951240';
-                    return this;
-                },
                 setAnotherNumber: function () {
                     phoneNumber = '79161234569';
                     return this;
@@ -3884,8 +3882,19 @@ define(function () {
                 anotherPhone: function () {
                     return  this.setAnotherNumber();
                 },
+                fourthPhone: function () {
+                    phoneNumber = '74999951240';
+                    return this;
+                },
                 fifthPhoneNumber: function () {
                     phoneNumber = '79162729533';
+                    return this;
+                },
+                sixthPhone: function () {
+                    return this.setNumberFromCallsGrid();
+                },
+                seventhPhone: function () {
+                    phoneNumber = '79161234567g';
                     return this;
                 },
                 expectInviteMessageBodyToEqual: function (expectedBody) {
@@ -6687,6 +6696,11 @@ define(function () {
                     sixthPhoneNumber: function () {
                         updateChannel(channel);
                         phoneNumbers[channel] = '79162729533';
+                        return this;
+                    },
+                    seventhPhone: function () {
+                        updateChannel(channel);
+                        phoneNumbers[channel] = '79161234567g';
                         return this;
                     },
                     fifthPhoneNumber: function () {

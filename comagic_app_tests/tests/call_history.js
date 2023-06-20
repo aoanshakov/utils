@@ -1053,8 +1053,10 @@ tests.addTest(options => {
                                                 '16 мая 2021 11:41 ' +
                                                 'Сотирова Атанаска ' +
                                                 '+7 (495) 023-06-27 ' +
-                                                '00:00:22 ' +
+                                                '00:00:22'
+                                            );
 
+                                            tester.table.pagingPanel.expectToHaveTextContent(
                                                 '1 2 Всего записей 15 Страница 10'
                                             );
                                         });
@@ -1365,8 +1367,10 @@ tests.addTest(options => {
                                             '14 дек. 2019 10:59 ' +
                                             'Сотирова Атанаска ' +
                                             '+7 (495) 023-06-27 ' +
-                                            '00:00:22 ' +
+                                            '00:00:22'
+                                        );
 
+                                        tester.table.pagingPanel.expectToHaveTextContent(
                                             '1 Всего записей 15 Страница 25'
                                         );
                                     });
@@ -1510,8 +1514,10 @@ tests.addTest(options => {
                                             '15 дек. 2019 17:25 ' +
                                             'Сотирова Атанаска ' +
                                             '+7 (495) 023-06-27 ' +
-                                            '00:00:22 ' +
+                                            '00:00:22'
+                                        );
 
+                                        tester.table.pagingPanel.expectToHaveTextContent(
                                             '1 2 Всего записей 15 Страница 10'
                                         );
                                     });
@@ -1592,8 +1598,10 @@ tests.addTest(options => {
                                         '16 мая 2021 11:41 ' +
                                         'Сотирова Атанаска ' +
                                         '+7 (495) 023-06-27 ' +
-                                        '00:00:22 ' +
+                                        '00:00:22'
+                                    );
 
+                                    tester.table.pagingPanel.expectToHaveTextContent(
                                         '1 2 Всего записей 15 Страница 10'
                                     );
                                 });

@@ -131,7 +131,7 @@ tests.addTest(options => {
                 visible().
                 expectToBeSent();
 
-            tester.phoneField.fill('79161234567');
+            tester.phoneField.fill('79161234567g');
         });
 
         describe('SIP-регистрация завершена.', function() {
@@ -669,6 +669,7 @@ tests.addTest(options => {
         });
         it('Кнопка вызова заблокирована.', function() {
             tester.callStartingButton.expectToHaveAttribute('disabled');
+            tester.phoneField.expectToHaveValue('79161234567');
         });
     });
 });

@@ -972,7 +972,11 @@ tests.addTest(options => {
                                             'Нажимаю на кнопку аккаунта в меню. Отображена всплывающая панель.',
                                         function() {
                                             tester.leftMenu.userName.click();
-                                            tester.statusesList.expectTextContentToHaveSubstring('Ганева Стефка');
+
+                                            tester.statusesList.expectTextContentToHaveSubstring(
+                                                'Ганева Стефка ' +
+                                                'Внутренний номер: 9119'
+                                            );
                                         });
                                     });
                                     describe('Зафиксирую ширину окна. Нажимаю на кнопку максимизации.', function() {
@@ -1239,6 +1243,8 @@ tests.addTest(options => {
                                         });
                                         it('Отображены статусы.', function() {
                                             tester.statusesList.item('Не беспокоить').expectToBeSelected();
+                                            tester.statusesList.item('Неизвестно').expectNotToExist();
+
                                             tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                                         });
                                     });
@@ -1477,35 +1483,10 @@ tests.addTest(options => {
                                     });
                                     describe('Открываю список номеров.', function() {
                                         beforeEach(function() {
-                                            windowSize.setHeight(212);
-
                                             tester.select.arrow.click();
                                             tester.numberCapacityRequest().receiveResponse();
                                         });
 
-                                        it(
-                                            'Закрываю список. Растягиваю окно. Открываю список. Список меняет ' +
-                                            'положение и размер.',
-                                        function() {
-                                            tester.select.arrow.click();
-                                            windowSize.setHeight(568);
-
-                                            tester.select.arrow.click();
-                                            tester.numberCapacityRequest().receiveResponse();
-
-                                            tester.select.popup.expectToHaveTopOffset(96);
-                                            tester.select.popup.expectToHaveHeight(331);
-
-                                            tester.button('Отменить').expectNotToExist();
-                                        });
-                                        it('Растягиваю окно. Список меняет положение и размер.', function() {
-                                            windowSize.setHeight(568);
-
-                                            tester.select.popup.expectToHaveTopOffset(96);
-                                            tester.select.popup.expectToHaveHeight(331);
-
-                                            tester.button('Отменить').expectNotToExist();
-                                        });
                                         it('Нажимаю на кнопку сворачивания списка.', function() {
                                             tester.button('Отменить').click();
                                             tester.select.popup.expectNotToExist();
@@ -1531,6 +1512,36 @@ tests.addTest(options => {
                                         });
                                         it('Отображено сообщение о получении обновления.', function() {
                                             tester.body.expectTextContentToHaveSubstring('Получено обновление');
+                                        });
+                                    });
+                                    describe('Нажимаю на кнопку развернутости.', function() {
+                                        beforeEach(function() {
+                                            tester.collapsednessToggleButton.click();
+
+                                            getPackage('electron').ipcRenderer.
+                                                recentlySentMessage().
+                                                expectToBeSentToChannel('resize').
+                                                expectToBeSentWithArguments({
+                                                    width: 340,
+                                                    height: 568
+                                                });
+
+                                        });
+                                        
+                                        it('Открываю список номеров. Кнопка "Отменить" скрыта.', function() {
+                                            tester.select.arrow.click();
+                                            tester.numberCapacityRequest().receiveResponse();
+
+                                            tester.select.popup.expectToHaveTopOffset(96);
+                                            tester.select.popup.expectToHaveHeight(331);
+
+                                            tester.button('Отменить').expectNotToExist();
+                                        });
+                                        it('Софтфон развернут.', function() {
+                                            tester.maximizednessButton.expectToBeUnmaximized();
+                                            tester.collapsednessToggleButton.expectToBeExpanded();
+
+                                            tester.dialpadButton(1).expectToBeVisible();
                                         });
                                     });
                                     it(
@@ -1785,22 +1796,6 @@ tests.addTest(options => {
 
                                         tester.statusesList.item('Не беспокоить').expectToBeSelected();
                                         tester.body.expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
-                                    });
-                                    it('Нажимаю на кнопку развернутости. Софтфон развернут.', function() {
-                                        tester.collapsednessToggleButton.click();
-
-                                        getPackage('electron').ipcRenderer.
-                                            recentlySentMessage().
-                                            expectToBeSentToChannel('resize').
-                                            expectToBeSentWithArguments({
-                                                width: 340,
-                                                height: 568
-                                            });
-
-                                        tester.maximizednessButton.expectToBeUnmaximized();
-                                        tester.collapsednessToggleButton.expectToBeExpanded();
-
-                                        tester.dialpadButton(1).expectToBeVisible();
                                     });
                                     it(
                                         'Помещаю курсор над иконкой аккаунта. Список статусов не открывается.',
@@ -2704,19 +2699,130 @@ tests.addTest(options => {
                         tester.chatList.expectToBeVisible();
                     });
                 });
-                it('Чаты недоступны. Отображена форма аутентификации.', function() {
-                    accountRequest.receiveResponse();
-                    tester.userLogoutRequest().receiveResponse();
+                describe('Чаты недоступны.', function() {
+                    beforeEach(function() {
+                        accountRequest.receiveResponse();
+                        tester.userLogoutRequest().receiveResponse();
 
-                    getPackage('electron').ipcRenderer.
-                        recentlySentMessage().
-                        expectToBeSentToChannel('resize').
-                        expectToBeSentWithArguments({
-                            width: 300,
-                            height: 350
+                        getPackage('electron').ipcRenderer.
+                            recentlySentMessage().
+                            expectToBeSentToChannel('resize').
+                            expectToBeSentWithArguments({
+                                width: 300,
+                                height: 350
+                            });
+                    });
+
+                    describe('Вхожу РМО.', function() {
+                        let loginRequest;
+
+                        beforeEach(function() {
+                            tester.input.withFieldLabel('Логин').fill('botusharova');
+                            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                            tester.button('Войти').click();
+                            loginRequest = tester.loginRequest().expectToBeSent();
                         });
 
-                    tester.button('Войти').expectToBeVisible();
+                        it('Пароль правильный. Выхожу из РМО. Сообщение об ошибке не отображено.', function() {
+                            loginRequest.receiveResponse();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('resize').
+                                expectToBeSentWithArguments({
+                                    width: 340,
+                                    height: 212
+                                });
+
+                            tester.accountRequest().
+                                softphoneUnavailable().
+                                operatorWorkplaceAvailable().
+                                receiveResponse();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('maximize');
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('resize').
+                                expectToBeSentWithArguments({
+                                    width: 1150,
+                                    height: 630,
+                                });
+
+                            tester.chatChannelListRequest().receiveResponse();
+                            tester.statusListRequest().receiveResponse();
+                            tester.listRequest().receiveResponse();
+                            tester.siteListRequest().receiveResponse();
+                            tester.messageTemplateListRequest().receiveResponse();
+
+                            tester.chatSettingsRequest().receiveResponse();
+
+                            tester.accountRequest().
+                                forChats().
+                                softphoneUnavailable().
+                                operatorWorkplaceAvailable().
+                                receiveResponse();
+
+                            tester.accountRequest().
+                                forChats().
+                                softphoneUnavailable().
+                                operatorWorkplaceAvailable().
+                                receiveResponse();
+
+                            tester.accountRequest().
+                                forChats().
+                                softphoneUnavailable().
+                                operatorWorkplaceAvailable().
+                                receiveResponse();
+
+                            tester.chatsWebSocket.connect();
+                            tester.chatsInitMessage().expectToBeSent();
+
+                            tester.offlineMessageCountersRequest().receiveResponse();
+                            tester.chatChannelListRequest().receiveResponse();
+                            tester.siteListRequest().receiveResponse();
+                            tester.markListRequest().receiveResponse();
+                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                            tester.offlineMessageListRequest().processing().receiveResponse();
+                            tester.offlineMessageListRequest().processed().receiveResponse();
+
+                            tester.countersRequest().receiveResponse();
+
+                            tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+                                
+                            tester.leftMenu.userName.click();
+                            tester.statusesList.item('Выход').click();
+
+                            tester.userLogoutRequest().receiveResponse();
+
+                            getPackage('electron').ipcRenderer.
+                                recentlySentMessage().
+                                expectToBeSentToChannel('resize').
+                                expectToBeSentWithArguments({
+                                    width: 300,
+                                    height: 350
+                                });
+
+                            tester.body.expectTextContentNotToHaveSubstring('Нет доступа ни к чатам, ни к софтфону');
+                        });
+                        it(
+                            'Пароль неправильный. Отображено сообщение о том, что введен неправильный пароль.',
+                        function() {
+                            loginRequest.failure().receiveResponse();
+                            tester.body.expectTextContentToHaveSubstring('Login or password is wrong');
+                        });
+                    });
+                    it('Отображена форма аутентификации. Отображено сообщение об отсутствии доступа.', function() {
+                        tester.button('Войти').expectToBeVisible();
+                        tester.body.expectTextContentToHaveSubstring('Нет доступа ни к чатам, ни к софтфону');
+                    });
                 });
             });
             it('Пользователь является менеджером.', function() {

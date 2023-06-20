@@ -3446,6 +3446,47 @@ tests.addTest(options => {
                     'Невозможно перейти в чат, посетитель участвует в чате с другим оператором'
                 );
             });
+            it('Софтфон недоступен. Открываю контакт. Нажимаю на номер телефона. Звонок не совершается.', function() {
+                accountRequest.softphoneUnavailable().receiveResponse();
+
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                tester.reportGroupsRequest().receiveResponse();
+                tester.reportsListRequest().receiveResponse();
+                tester.reportTypesRequest().receiveResponse();
+
+                tester.accountRequest().forChats().receiveResponse();
+
+                tester.button('Контакты').click();
+                contactsRequest = tester.contactsRequest().expectToBeSent();
+                contactsRequest.differentNames().receiveResponse();
+                tester.contactList.item('Бележкова Грета Ервиновна').click();
+
+                const requests = ajax.inAnyOrder();
+
+                const contactCommunicationsRequest = tester.contactCommunicationsRequest().
+                    secondEarlier().
+                    expectToBeSent(requests);
+
+                const contactRequest = tester.contactRequest().expectToBeSent(requests);
+                const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                usersRequest.receiveResponse();
+                contactRequest.receiveResponse();
+                contactCommunicationsRequest.receiveResponse();
+
+                tester.contactBar.
+                    section('Телефоны').
+                    option('79162729533').
+                    click();
+
+                tester.contactBar.
+                    section('Телефоны').
+                    anchor('79162729533').
+                    expectNotToExist();
+            });
         });
         describe('Редактирование контактов недоступно. Открываю раздел контактов. Нажимаю на имя.', function() {
             beforeEach(function() {

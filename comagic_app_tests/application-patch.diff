@@ -529,10 +529,10 @@ index abb1f850..04e3e65b 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index a6556971..3e2fcfcb 100644
+index 7211ae30..8c2214a1 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -191,7 +191,7 @@ export const RootStore = types
+@@ -192,7 +192,7 @@ export const RootStore = types
                  }
              );
  
@@ -541,7 +541,7 @@ index a6556971..3e2fcfcb 100644
                  response => {
                      logRequest({response});
  
-@@ -252,6 +252,8 @@ export const RootStore = types
+@@ -253,6 +253,8 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -550,7 +550,7 @@ index a6556971..3e2fcfcb 100644
              let isMaximizedCurrently = false;
              removeSubscriptions();
  
-@@ -342,7 +344,8 @@ export type DependencyInjection = {
+@@ -348,7 +350,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -561,7 +561,7 @@ index a6556971..3e2fcfcb 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index bffb6a93..08552ce9 100644
+index ab155dba..1493e86d 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -92,7 +92,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -573,7 +573,7 @@ index bffb6a93..08552ce9 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -187,6 +187,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -188,6 +188,8 @@ export const AuthStore = Loader.named('AuthStore')
          });
  
          const afterCreate = () => {

@@ -535,8 +535,10 @@ define(() => function ({
 
             Object.defineProperty(tester, 'pagingPanel', {
                 get: () => {
-                    const getPagingPanel = () => utils.element(getTable()).querySelector('.ui-pagination'),
-                        tester = testersFactory.createDomElementTester(getPagingPanel);
+                    const getPagingPanel = () => utils.element(getTable().closest('.ui-table-container')).
+                        querySelector('.ui-pagination');
+
+                    const tester = testersFactory.createDomElementTester(getPagingPanel);
 
                     tester.pageButton = text => (() => {
                         const getLi = () => utils.
@@ -801,6 +803,18 @@ define(() => function ({
             tester = testersFactory.createDomElementTester(getDomElement);
 
         return addTesters(tester, getDomElement);
+    })();
+
+    me.chatTransferButton = (() => {
+        const button = testersFactory.createDomElementTester('.cm-chats--transfer-button'),
+            click = button.click.bind(button);
+
+        button.click = () => {
+            click();
+            spendTime(0)
+        };
+
+        return button;
     })();
 
     me.tooltip = (() => {
@@ -3390,6 +3404,32 @@ define(() => function ({
         });
     };
 
+    me.employeesRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/employees').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.visitorCardRequest = () => {
         const params = {
             visitor_id: 16479303
@@ -4111,6 +4151,11 @@ define(() => function ({
                             id: 20817,
                             full_name: 'Чакърова Райна Илковна',
                             status_id: 1,
+                            photo_link: null
+                        }, {
+                            id: 20818,
+                            full_name: 'Костова Марвуда Любенова',
+                            status_id: 5,
                             photo_link: null
                         }]
                     });
@@ -11343,12 +11388,27 @@ define(() => function ({
             result: jwtToken 
         };
 
-        return {
-            anotherAuthorizationToken() {
+        const addResponseModifiers = me => {
+            me.anotherAuthorizationToken = () => {
                 response.result = anotherJwtToken;
-                return this;
-            },
+                return me;
+            };
 
+            me.failure = () => {
+                response.result = null;
+
+                response.error = {
+                    code: '-32001',
+                    message: 'Login or password is wrong',
+                };
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectPathToContain('$REACT_APP_AUTH_URL').
@@ -11362,7 +11422,7 @@ define(() => function ({
                         }
                     });
 
-                return {
+                return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith(response);
 
@@ -11372,13 +11432,13 @@ define(() => function ({
                         spendTime(0);
                         spendTime(0);
                     }
-                };
+                });
             },
 
             receiveResponse() {
                 return this.expectToBeSent().receiveResponse();
             }
-        };
+        });
     };
 
     me.extendMasterNotification((notification, data) => ((notification.revive = () =>
@@ -12169,13 +12229,20 @@ define(() => function ({
         return addTesters(tester, getDomElement);
     })();
 
+    me.transferPanel = (() => {
+        const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.cm-chats--transfer-panel')),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
+
     me.statusesList = (() => {
-        const selector = '.ui-account-popup',
+        const selector = '.ui-account-popup, .cm-chats--account-popup',
             tester = testersFactory.createDomElementTester(selector);
 
         tester.item = text => {
             const domElement = utils.descendantOf(document.querySelector(selector)).
-                matchesSelector('.ui-account-popup--item').
+                matchesSelector('.ui-account-popup--item, .cm-chats--account-popup--item').
                 textEquals(text).
                 find();
 
@@ -12191,7 +12258,7 @@ define(() => function ({
                 expectToBeVisible();
 
                 if ((
-                    domElement.closest('.ui-account-popup') || new JsTester_NoElement()
+                    domElement.closest(selector) || new JsTester_NoElement()
                 ).parentNode.style.visibility == 'hidden') {
                     throw new Error('Выпадающий список статусов должен быть видимым.');
                 }

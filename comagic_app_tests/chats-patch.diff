@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 9a971f9..a3a5008 100644
+index 129c5a2..a3a5008 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,8 +22,6 @@
@@ -23,7 +23,7 @@ index 9a971f9..a3a5008 100644
      "formik": "^2.2.9",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
--    "magic-ui": "^2.23.0",
+-    "magic-ui": "^2.28.5",
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
@@ -36,7 +36,7 @@ index 9a971f9..a3a5008 100644
      "uuid": "^8.3.2",
      "yup": "^0.32.9"
 diff --git a/src/App.tsx b/src/App.tsx
-index 0f9176a..6d8a414 100644
+index c650a6f..4e495df 100644
 --- a/src/App.tsx
 +++ b/src/App.tsx
 @@ -9,7 +9,7 @@ import './App.less';
@@ -48,7 +48,7 @@ index 0f9176a..6d8a414 100644
          websocketStore,
          chatListStore,
          chatChannelsStore,
-@@ -51,11 +51,11 @@ const App: React.FC = observer(() => {
+@@ -52,11 +52,11 @@ const App: React.FC = observer(() => {
          };
      });
  

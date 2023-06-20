@@ -1138,6 +1138,18 @@ function AccountIntegrationAmocrm(args) {
         var data = getAmocrmData();
 
         function addResponseModifiers (me) {
+            me.notActive = function() {
+                data.is_active = false;
+
+                data.is_active = false;
+                data.is_process_chat = false;
+                data.is_only_first_chat = false;
+                data.is_chat_integration_enabled = false;
+                data.is_chat_integration_scenario_created = false;
+
+                return me;
+            };
+
             me.allChatSettingsEnabled = function () {
                 data.is_process_chat = true;
                 data.is_only_first_chat = true;

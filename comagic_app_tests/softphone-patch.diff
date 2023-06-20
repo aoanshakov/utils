@@ -34,10 +34,10 @@ index fbb558a..7d3deb1 100644
      "string-hash": "^1.1.3",
      "uuid": "^8.3.2",
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 8b0c236..7b196cb 100644
+index 4689c94..e1919fa 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -806,4 +806,5 @@ export type RootInstance = Instance<typeof RootStore> & {
+@@ -814,4 +814,5 @@ export type RootInstance = Instance<typeof RootStore> & {
  
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

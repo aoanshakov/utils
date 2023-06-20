@@ -741,6 +741,31 @@ tests.addTest(options => {
                                                 expectToBeVisible();
                                         });
                                     });
+                                    describe('Нажимаю на кнопку перевода чата.', function() {
+                                        beforeEach(function() {
+                                            tester.chatTransferButton.click();
+                                            tester.transferPanel.select.click();
+                                        });
+
+                                        it('Выбераю доступного оператора. Оператор выбран.', function() {
+                                            tester.select.
+                                                option('Чакърова Райна Илковна').
+                                                click();
+
+                                            tester.transferPanel.
+                                                select.
+                                                expectToHaveTextContent('Чакърова Райна Илковна');
+                                        });
+                                        it('Выбераю недоступного оператора. Оператор не выбран.', function() {
+                                            tester.select.
+                                                option('Костова Марвуда Любенова').
+                                                click();
+
+                                            tester.transferPanel.
+                                                select.
+                                                expectToHaveTextContent('Костова Марвуда Любенова');
+                                        });
+                                    });
                                     it('У посетителя нет E-Mail.', function() {
                                         visitorCardRequest.noEmail().receiveResponse();
                                         tester.usersRequest().forContacts().receiveResponse();
@@ -1413,7 +1438,7 @@ tests.addTest(options => {
                             '12:10'
                         );
                     });
-                    it('Открываю раздел контактов. Соединение с вебсокетом чатов разрывается.', function() {
+                    it('Открываю раздел контактов. Соединение с вебсокетом чатов не разрывается.', function() {
                         tester.leftMenu.button('Контакты').click();
                         tester.contactsRequest().differentNames().receiveResponse();
 

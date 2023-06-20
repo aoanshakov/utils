@@ -473,8 +473,10 @@ tests.addTest(options => {
                 expectToBeSent();
 
             statusesRequest.receiveResponse();
+            tester.button('Статистика').click();
 
-            tester.button('Статистика').expectToBeVisible();
+            tester.statsRequest().receiveResponse();
+            tester.body.expectTextContentToHaveSubstring('Удаленный 00:00:00');
         });
         it('Статистика по звонкам недоступна. Пункт меню скрыт.', function() {
             accountRequest.callStatsFeatureFlagDisabled().receiveResponse();
