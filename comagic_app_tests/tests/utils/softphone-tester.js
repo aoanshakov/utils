@@ -343,11 +343,29 @@ define(function () {
                 return getter;
             })();
 
+            me.alert = (() => {
+                const getDomElement = () => utils.element(getRootElement()).querySelector('.ui-alert'),
+                    tester = testersFactory.createDomElementTester(getDomElement);
+
+                tester.closeButton = testersFactory.createDomElementTester(() =>
+                    utils.element(getDomElement()).querySelector('.ui-alert-close-icon svg'));
+
+                const click = tester.closeButton.click.bind(tester.closeButton);
+                tester.closeButton.click = () => {
+                    click();
+                    spendTime(0);
+                    spendTime(500);
+                };
+
+                return tester;
+            })();
+
             me.closeButton = (() => {
                 const tester = testersFactory.createDomElementTester(
                     () => utils.element(getRootElement()).querySelector(
                         '.cmg-miscrophone-unavailability-message-close, ' +
                         '.cmg-connecting-message-close, ' +
+                        '.ui-alert-close-icon svg, ' +
                         '.ui-audio-player__close, ' +
                         '.ui-notification-close-x'
                     ) 

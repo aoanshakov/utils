@@ -1604,13 +1604,17 @@ define(() => function ({
     });
 
     me.chatsWebSocket = (() => {
-        const getWebSocket = index => webSockets.getSocket('$REACT_APP_WS_URL', index);
+        let index = 0;
+        const getWebSocket = () => webSockets.getSocket('$REACT_APP_WS_URL', index);
 
         return {
-            finishDisconnecting: () => getWebSocket(0).finishDisconnecting(),
-            connect: () => getWebSocket(0).connect(),
-            expectSentMessageToContain: message => getWebSocket(0).expectSentMessageToContain(message),
-            receive: message => getWebSocket(0).receiveMessage(message)
+            finishDisconnecting: () => {
+                getWebSocket().finishDisconnecting();
+                index ++;
+            },
+            connect: () => getWebSocket().connect(),
+            expectSentMessageToContain: message => getWebSocket().expectSentMessageToContain(message),
+            receive: message => getWebSocket().receiveMessage(message)
         };
     })();
 
@@ -1624,16 +1628,25 @@ define(() => function ({
         }))
     });
 
-    me.chatsInitMessage = () => ({
-        expectToBeSent: () => me.chatsWebSocket.expectSentMessageToContain({
-            method: 'init',
-            params: {
-                access_token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                access_type: 'jwt',
-                employee_id: 20816
-            }
-        })
-    });
+    me.chatsInitMessage = () => {
+        let access_token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+
+        return {
+            anotherAuthorizationToken() {
+                access_token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+
+            expectToBeSent: () => me.chatsWebSocket.expectSentMessageToContain({
+                method: 'init',
+                params: {
+                    access_token,
+                    access_type: 'jwt',
+                    employee_id: 20816
+                }
+            })
+        };
+    };
 
     me.transferCreatingMessage = () => {
         const params = {
@@ -3484,7 +3497,14 @@ define(() => function ({
             visitor_id: 16479303
         };
 
-        const addResponseModifiers = me => me;
+        const addResponseModifiers = me => {
+            me.anotherChat = () => {
+                params.chat_id = 2718935;
+                return me;
+            };
+
+            return me;
+        };
 
         return addResponseModifiers({
             expectToBeSent(requests) {
@@ -3821,6 +3841,17 @@ define(() => function ({
                 return this;
             },
 
+            afterSingleChat() {
+                params.scroll_from_date = '2022-01-19T11:20:09.867+03:00';
+
+                getData = () => getAdditionalData({
+                    count: 0,
+                    skipCount: 0
+                });
+
+                return this;
+            },
+
             secondPage() {
                 params.scroll_from_date = '2022-01-12T02:49:15.168+03:00';
                 
@@ -4062,6 +4093,15 @@ define(() => function ({
                 data.active_with_unread_count = 3;
                 data.active_chat_count = 4;
                 data.closed_chat_count = 2;
+
+                return me;
+            };
+
+            me.noMessages = () => {
+                data.new_chat_count = 1;
+                data.active_chat_count = 0;
+                data.active_with_unread_count = 0;
+                data.closed_chat_count = 0;
 
                 return me;
             };
@@ -12112,6 +12152,9 @@ define(() => function ({
 
         const click = clickAreaTester.click.bind(clickAreaTester),
             scrollIntoView = tester.scrollIntoView.bind(tester);
+
+        tester.expectToBeSelected = () => tester.expectToHaveClass('cm-chats--chats-list-item__selected');
+        tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-chats--chats-list-item__selected');
 
         tester.click = click;
 

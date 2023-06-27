@@ -322,7 +322,7 @@ index 0ccc4cb1..4bbd97a5 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 4df5d762..52335b09 100644
+index 96cca532..191f6519 100644
 --- a/package.json
 +++ b/package.json
 @@ -67,12 +67,17 @@
@@ -350,7 +350,7 @@ index 4df5d762..52335b09 100644
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
--    "magic-ui": "0.0.0-int1",
+-    "magic-ui": "0.0.0-int2",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
@@ -358,7 +358,7 @@ index 4df5d762..52335b09 100644
 @@ -94,6 +99,11 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
-     "react-router-dom": "^6.4.0",
+     "react-router-dom": "6.9.0",
 +    "simplebar-react": "^2.4.1",
 +    "softphone": "./misc/softphone",
 +    "uis-softphone": "./misc/softphone/misc/sip_lib",
@@ -529,10 +529,10 @@ index abb1f850..04e3e65b 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 7211ae30..8c2214a1 100644
+index 7ef3701e..1d6fc6d4 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -192,7 +192,7 @@ export const RootStore = types
+@@ -193,7 +193,7 @@ export const RootStore = types
                  }
              );
  
@@ -541,7 +541,7 @@ index 7211ae30..8c2214a1 100644
                  response => {
                      logRequest({response});
  
-@@ -253,6 +253,8 @@ export const RootStore = types
+@@ -254,6 +254,8 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -550,7 +550,7 @@ index 7211ae30..8c2214a1 100644
              let isMaximizedCurrently = false;
              removeSubscriptions();
  
-@@ -348,7 +350,8 @@ export type DependencyInjection = {
+@@ -356,7 +358,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

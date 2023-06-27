@@ -2116,6 +2116,72 @@ tests.addTest(options => {
                         tester.button('Сохранить').expectNotToHaveAttribute('disabled');
                     });
                 });
+                describe('Открываю раздел истории звонков.', function() {
+                    beforeEach(function() {
+                        tester.connectEventsWebSocket();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            enabled().
+                            softphoneServerConnected().
+                            expectToBeSent();
+
+                        tester.connectSIPWebSocket();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            webRTCServerConnected().
+                            softphoneServerConnected().
+                            expectToBeSent();
+
+                        notificationTester.grantPermission();
+
+                        const authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                        const registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                        tester.allowMediaInput();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            expectToBeSent();
+
+                        registrationRequest.receiveResponse();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            registered().
+                            expectToBeSent();
+
+                        authenticatedUserRequest.receiveResponse();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            expectToBeSent();
+
+                        tester.button('История звонков').click();
+                    });
+
+                    it('Получены права. Отправлен запрос звонков.', function() {
+                        permissionsRequest.receiveResponse();
+
+                        tester.callsRequest().
+                            fromFirstWeekDay().
+                            firstPage().
+                            receiveResponse();
+
+                        tester.marksRequest().receiveResponse();
+                    });
+                    it('Запрос звонков не был отправлен.', function() {
+                        ajax.expectNoRequestsToBeSent();
+                    });
+                });
                 it(
                     'Статистика по всем звонкам недоступна. Открываю раздел "История звонков". Вкладки "Все" и ' +
                     '"Необработанные" заблокированы.',

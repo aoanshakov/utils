@@ -2248,6 +2248,7 @@ function JsTester_NotificationMessage (args) {
         assertIsClosed = args.assertIsClosed,
         assertIsOpen = args.assertIsOpen,
         debug = args.debug,
+        spendTime = args.spendTime,
         callStack = debug.getCallStack();
 
     this.expectToBeOpened = assertIsOpen;
@@ -2255,6 +2256,8 @@ function JsTester_NotificationMessage (args) {
 
     this.click = function () {
         handleClick();
+        spendTime(0);
+
         return this;
     };
 
@@ -2314,7 +2317,8 @@ function JsTester_NotificationMock (args) {
         notificationPermissionRequests = args.notificationPermissionRequests,
         notifications = args.notifications,
         notificationClickHandler = args.notificationClickHandler,
-        debug = args.debug;
+        debug = args.debug,
+        spendTime = args.spendTime;
 
     var constructor = function (title, options) {
         function throwShoudBeOpen () {
@@ -2334,7 +2338,8 @@ function JsTester_NotificationMock (args) {
             notificationClickHandler: notificationClickHandler.createValueCaller(this),
             debug: debug,
             title: title,
-            options: options
+            options: options,
+            spendTime,
         }));
 
         var onclick = function () {},
@@ -2399,7 +2404,8 @@ function JsTester_NotificationReplacer (args) {
         notificationPermissionRequests = args.notificationPermissionRequests,
         notifications = args.notifications,
         debug = args.debug,
-        notificationClickHandler = args.notificationClickHandler;
+        notificationClickHandler = args.notificationClickHandler,
+        spendTime = args.spendTime;
 
     this.replaceByFake = function () {
         notificationPermission.set('default');
@@ -2412,7 +2418,8 @@ function JsTester_NotificationReplacer (args) {
             notificationPermissionRequests: notificationPermissionRequests,
             notificationPermissionGetter: notificationPermission.get,
             notifications: notifications,
-            debug: debug
+            debug: debug,
+            spendTime,
         });
     };
     this.restoreReal = function () {
@@ -7869,6 +7876,7 @@ function JsTester_Tests (factory) {
             notificationPermissionSetter: notificationPermission.set
         }),
         notificationReplacer = new JsTester_NotificationReplacer({
+            spendTime,
             debug: debug,
             notificationClickHandler: notificationClickHandler,
             notifications: notifications,

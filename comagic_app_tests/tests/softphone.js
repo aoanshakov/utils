@@ -202,7 +202,7 @@ tests.addTest(options => {
                                                                 'Нажимаю на кнопку закрытия сообщения.',
                                                             function() {
                                                                 beforeEach(function() {
-                                                                    tester.closeButton.click();
+                                                                    tester.alert.closeButton.click();
                                                                 });
 
                                                                 it(
@@ -231,14 +231,11 @@ tests.addTest(options => {
                                                                         userDataFetched().
                                                                         expectToBeSent();
 
-                                                                    tester.softphone.
+                                                                    tester.alert.
                                                                         expectTextContentToHaveSubstring('Разрыв сети');
                                                                 });
                                                                 it('Сообщение скрыто.', function() {
-                                                                    tester.softphone.
-                                                                        expectTextContentNotToHaveSubstring(
-                                                                            'Разрыв сети'
-                                                                        );
+                                                                    tester.alert.expectNotToExist();
                                                                 });
                                                             });
                                                             it(
