@@ -1,3 +1,36 @@
+diff --git a/package.json b/package.json
+index 556f090..691ceb7 100644
+--- a/package.json
++++ b/package.json
+@@ -57,9 +57,6 @@
+   },
+   "dependencies": {
+     "@babel/runtime": "^7.13.9",
+-    "@comagic/core": "^0.7.0",
+-    "@comagic/softphone-core": "2.0.1",
+-    "@comagic/softphone-widget": "2.0.8",
+     "async-mutex": "^0.3.2",
+     "axios": "^0.24.0",
+     "classnames": "^2.2.6",
+@@ -71,18 +68,13 @@
+     "filesize": "^8.0.3",
+     "formik": "^2.2.9",
+     "janus-gateway": "1.1.4",
+-    "magic-ui": "0.0.0-int1",
+     "mobx": "^6.1.8",
+     "mobx-react-lite": "^3.2.0",
+     "mobx-state-tree": "^5.0.1",
+     "moment": "2.29.1",
+     "nanoid": "^3.2.0",
+-    "react": "^18.2.0",
+     "react-csv": "^2.0.3",
+-    "react-dom": "^18.2.0",
+-    "react-intl": "6.3.2",
+     "react-redux": "^7.0.0",
+-    "react-router-dom": "6.9.0",
+     "redux": "^4.0.0",
+     "redux-thunk": "^2.3.0",
+     "short-uuid": "^4.2.0",
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
 index b6ca744..66e84a3 100644
 --- a/src/models/RootStore.ts
