@@ -418,6 +418,18 @@ define(function () {
                 return tester;
             })();
 
+            me.checkbox = (() => {
+                const tester = testersFactory.createDomElementTester(
+                    () => rootTester.querySelector('.ui-checkbox')
+                );
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(0));
+
+                return tester;
+
+            })() ;
+
             me.select = (getSelectField => {
                 const createTester = (filter = () => true) => {
                     const tester = testersFactory.createDomElementTester(() => getSelectField(filter)),

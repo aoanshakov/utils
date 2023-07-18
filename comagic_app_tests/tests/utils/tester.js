@@ -18,7 +18,9 @@ define(() => function ({
     let history,
         eventBus,
         chatsRootStore,
-        notification;
+        notification,
+        Modal;
+
     const mainTester = me;
 
     const jwtToken = {
@@ -60,7 +62,8 @@ define(() => function ({
     window.application.run({
         setReactDOM: value => (me.ReactDOM = value),
         setEventBus: eventBus => {
-            const events = {};
+            const events = {},
+                ignoredEvents = {};
 
             eventBus.subscribe = (eventName, callback) => {
                 const callbacks = events[eventName] || (events[eventName] = new Set());
@@ -112,23 +115,33 @@ define(() => function ({
                     }
                 };
 
-                stack.add(event);
+                !ignoredEvents[actualEventName] && stack.add(event);
                 broadcast(actualEventName, ...args);
             };
 
             me.eventBus = {
                 broadcast,
                 nextEvent: () => stack.pop(),
+                ignoreEvent: eventName => (ignoredEvents[eventName] = true),
                 assumeSomeMessageMayBeSent: () => stack.removeAll()
             };
+
+            me.eventBus.ignoreEvent('log');
         },
         setHistory: value => (history = value),
         setChatsRootStore: value => (chatsRootStore = value),
         setNotification: value => (notification = value),
+        setModal: value => (Modal = value),
         appName
     });
 
     notification?.destroyAll();
+    Modal?.destroyAll();
+
+    Array.prototype.forEach.call(
+        document.querySelectorAll('.ui-modal'),
+        modal => modal.parentNode.getAttribute('data-key') && modal.parentNode.remove()
+    );
 
     me.history = (() => {
         return {
@@ -199,6 +212,17 @@ define(() => function ({
 
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
+
+        me.labelHelp = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => getRootElement().querySelector('.ui-label-help')
+            );
+
+            const putMouseOver = tester.putMouseOver.bind(tester);
+            tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+            return tester;
+        })();
 
         me.plusButton = (() => {
             const tester = testersFactory.createDomElementTester(
@@ -760,7 +784,7 @@ define(() => function ({
                         }
                     };
 
-                    return tester;
+                    return addTesters(tester, () => option);
                 };
 
                 tester.expectToBeDisabled = () => selectTester.expectToHaveClass('ui-select-disabled');
@@ -833,6 +857,18 @@ define(() => function ({
         const getModalWindow = () => utils.querySelector('.clct-modal, .ui-modal'),
             windowTester = addTesters(testersFactory.createDomElementTester(getModalWindow), getModalWindow);
 
+        const windowContentTester = testersFactory.createDomElementTester(
+            () => getModalWindow().querySelector('.ui-modal-content') 
+        );
+
+        windowTester.expectToHaveWidth = windowContentTester.expectToHaveWidth.bind(windowContentTester);
+
+        windowTester.finishHiding = () => {
+            spendTime(0);
+            windowTester.endTransition('transform');
+            spendTime(0);
+        };
+
         windowTester.closeButton = (() => {
             const tester = testersFactory.createDomElementTester(() =>
                 utils.element(getModalWindow()).querySelector('.ui-modal-close-x'));
@@ -842,9 +878,7 @@ define(() => function ({
             tester.click = () => {
                 click();
                 spendTime(0);
-                spendTime(0);
-                windowTester.endTransition('transform');
-                spendTime(0);
+                windowTester.finishHiding();
             };
 
             return tester;
@@ -11639,10 +11673,10 @@ define(() => function ({
     me.forceUpdate = () => utils.pressKey('k');
     me.body = testersFactory.createDomElementTester('body');
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
-    me.incomingIcon = testersFactory.createDomElementTester('.cmg-incoming-direction-icon');
-    me.outgoingIcon = testersFactory.createDomElementTester('.cmg-outgoing-direction-icon');
-    me.directionIcon = testersFactory.createDomElementTester('.cmg-direction-icon');
-    me.transferIncomingIcon = testersFactory.createDomElementTester('.transfer_incoming_successful_svg__cmg-direction-icon');
+    me.incomingIcon = testersFactory.createDomElementTester('.ui-direction-icon-incoming');
+    me.outgoingIcon = testersFactory.createDomElementTester('.ui-direction-icon-outgoing');
+    me.directionIcon = testersFactory.createDomElementTester('.ui-direction-icon');
+    me.transferIncomingIcon = testersFactory.createDomElementTester('.ui-direction-icon-transfer');
 
     me.productsButton = testersFactory.
         createDomElementTester('.src-components-main-menu-products-styles-module__icon-container');
@@ -11694,7 +11728,7 @@ define(() => function ({
                         getMessageElement(filter).querySelectorAll('svg'),
 
                         domElement => {
-                            return ((domElement.getAttribute('class') || '') + '').includes('cmg-direction-icon');
+                            return ((domElement.getAttribute('class') || '') + '').includes('ui-direction-icon');
                         }
                     );
 

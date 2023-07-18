@@ -361,32 +361,32 @@ tests.addTest(options => {
                                                             tester.callsHistoryRow.
                                                                 withText('Гяурова Марийка').
                                                                 direction.
-                                                                expectNotToHaveClass('cmg-direction-icon-failed');
+                                                                expectNotToHaveClass('ui-direction-icon-failed');
 
                                                             tester.callsHistoryRow.
                                                                 withText('Гяурова Марийка').
                                                                 direction.
-                                                                expectToHaveClass('cmg-incoming-direction-icon');
+                                                                expectToHaveClass('ui-direction-icon-incoming');
 
                                                             tester.callsHistoryRow.
                                                                 withText('Гяурова Марийка').
                                                                 direction.
-                                                                expectNotToHaveClass('cmg-direction-icon-transfer');
+                                                                expectNotToHaveClass('ui-direction-icon-transfer');
 
                                                             tester.callsHistoryRow.
                                                                 withText('Манова Тома').
                                                                 direction.
-                                                                expectNotToHaveClass('cmg-direction-icon-failed');
+                                                                expectNotToHaveClass('ui-direction-icon-failed');
 
                                                             tester.callsHistoryRow.
                                                                 withText('Манова Тома').
                                                                 direction.
-                                                                expectToHaveClass('cmg-outgoing-direction-icon');
+                                                                expectToHaveClass('ui-direction-icon-outgoing');
 
                                                             tester.callsHistoryRow.
                                                                 withText('Манова Тома').
                                                                 direction.
-                                                                expectNotToHaveClass('cmg-direction-icon-transfer');
+                                                                expectNotToHaveClass('ui-direction-icon-transfer');
 
                                                             tester.softphone.expectToBeExpanded();
                                                         });
@@ -452,17 +452,17 @@ tests.addTest(options => {
                                                         tester.callsHistoryRow.
                                                             withText('Гяурова Марийка').
                                                             direction.
-                                                            expectNotToHaveClass('cmg-direction-icon-failed');
+                                                            expectNotToHaveClass('ui-direction-icon-failed');
 
                                                         tester.callsHistoryRow.
                                                             withText('Гяурова Марийка').
                                                             direction.
-                                                            expectToHaveClass('cmg-incoming-direction-icon');
+                                                            expectToHaveClass('ui-direction-icon-incoming');
 
                                                         tester.callsHistoryRow.
                                                             withText('Гяурова Марийка').
                                                             direction.
-                                                            expectToHaveClass('cmg-direction-icon-transfer');
+                                                            expectToHaveClass('ui-direction-icon-transfer');
                                                     });
                                                 });
                                                 describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {

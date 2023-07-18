@@ -187,101 +187,112 @@ tests.addTest(options => {
 
             tester.input.withFieldLabel('Логин').fill('botusharova');
             tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
-
-            tester.button('Войти').click();
-
-            tester.loginRequest().receiveResponse();
-            tester.accountRequest().receiveResponse();
-
-            const requests = ajax.inAnyOrder();
-
-            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-                ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
-                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
-
-            requests.expectToBeSent();
-
-            ticketsContactsRequest.receiveResponse();
-            reportsListRequest.noData().receiveResponse();
-            reportTypesRequest.receiveResponse();
-            secondAccountRequest.receiveResponse();
-            reportGroupsRequest.receiveResponse();
-
-            tester.masterInfoMessage().receive();
-            tester.slavesNotification().additional().expectToBeSent();
-            tester.slavesNotification().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-
-            tester.notificationChannel().tellIsLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-
-            authCheckRequest.receiveResponse();
-            tester.talkOptionsRequest().receiveResponse();
-            tester.permissionsRequest().receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
-            tester.settingsRequest().receiveResponse();
-
-            notificationTester.grantPermission();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
-                expectToBeSent();
-
-            tester.connectEventsWebSocket();
-
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
-                softphoneServerConnected().
-                expectToBeSent();
-
-            tester.connectSIPWebSocket();
-
-            tester.slavesNotification().
-                twoChannels().
-                webRTCServerConnected().
-                softphoneServerConnected().
-                expectToBeSent();
-
-            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-            registrationRequest = tester.registrationRequest().expectToBeSent();
-
-            tester.allowMediaInput();
-
-            tester.slavesNotification().
-                twoChannels().
-                softphoneServerConnected().
-                webRTCServerConnected().
-                microphoneAccessGranted().
-                expectToBeSent();
-
-            authenticatedUserRequest.receiveResponse();
-
-            tester.slavesNotification().
-                twoChannels().
-                softphoneServerConnected().
-                webRTCServerConnected().
-                microphoneAccessGranted().
-                userDataFetched().
-                expectToBeSent();
-
-            registrationRequest.receiveResponse();
-
-            tester.slavesNotification().
-                twoChannels().
-                available().
-                expectToBeSent();
-
-            statusesRequest.receiveResponse();
         });
 
-        it('Кнопка софтфона видима.', function() {
-            tester.button('Софтфон').expectToBeVisible();
+        describe('Нажимаю на кнопку входа.', function() {
+            beforeEach(function() {
+                tester.button('Войти').click();
+
+                tester.loginRequest().receiveResponse();
+                tester.accountRequest().receiveResponse();
+
+                const requests = ajax.inAnyOrder();
+
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                ticketsContactsRequest.receiveResponse();
+                reportsListRequest.noData().receiveResponse();
+                reportTypesRequest.receiveResponse();
+                secondAccountRequest.receiveResponse();
+                reportGroupsRequest.receiveResponse();
+
+                tester.masterInfoMessage().receive();
+                tester.slavesNotification().additional().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+                statusesRequest = tester.statusesRequest().expectToBeSent();
+                tester.settingsRequest().receiveResponse();
+
+                notificationTester.grantPermission();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    expectToBeSent();
+
+                tester.connectEventsWebSocket();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    softphoneServerConnected().
+                    expectToBeSent();
+
+                tester.connectSIPWebSocket();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    webRTCServerConnected().
+                    softphoneServerConnected().
+                    expectToBeSent();
+
+                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                tester.allowMediaInput();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    expectToBeSent();
+
+                authenticatedUserRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    userDataFetched().
+                    expectToBeSent();
+
+                registrationRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    expectToBeSent();
+
+                statusesRequest.receiveResponse();
+            });
+
+            it('Кнопка софтфона видима.', function() {
+                tester.button('Софтфон').expectToBeVisible();
+            });
+        });
+        it(
+            'Помещаую курсор над иконкой подсказки. Отображено сообщение о том, что пароль не сохранится в ' +
+            'приложении.',
+        function() {
+            tester.labelHelp.putMouseOver();
+            tester.tooltip.expectToHaveTextContent('Пароль не сохранится в браузере');
         });
     });
     it('Ранее софтфон был развернут. Софтфон развернут.', function() {

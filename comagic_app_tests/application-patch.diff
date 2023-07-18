@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0ccc4cb1..4bbd97a5 100644
+index b966defa..a36437c1 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -448,7 +448,7 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index abb1f850..04e3e65b 100644
+index abb1f850..e0ed2323 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,18 @@
@@ -462,7 +462,7 @@ index abb1f850..04e3e65b 100644
  import { createRoot } from 'react-dom/client';
  import { IntlProvider } from 'react-intl';
  import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
-+import { notification } from 'magic-ui';
++import { notification, Modal } from 'magic-ui';
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
@@ -472,7 +472,7 @@ index abb1f850..04e3e65b 100644
  
  import history from '@/history';
  
-@@ -79,7 +84,52 @@ const Root: React.FC = observer(props => {
+@@ -79,7 +84,54 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -492,6 +492,7 @@ index abb1f850..04e3e65b 100644
 +        setHistory = () => null,
 +        setChatsRootStore = () => null,
 +        setNotification = () => null,
++        setModal = () => null,
 +        appName = ''
 +    }) {
 +        const Unit = units[appName];
@@ -505,6 +506,7 @@ index abb1f850..04e3e65b 100644
 +            createContactsRootStore();
 +            setHistory(history);
 +            setNotification(notification);
++            setModal(Modal);
 +        }
 +         
 +        this.exit();
@@ -529,10 +531,10 @@ index abb1f850..04e3e65b 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 7ef3701e..1d6fc6d4 100644
+index 0fa9b7f4..f21b77d7 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -193,7 +193,7 @@ export const RootStore = types
+@@ -199,7 +199,7 @@ export const RootStore = types
                  }
              );
  
@@ -541,7 +543,7 @@ index 7ef3701e..1d6fc6d4 100644
                  response => {
                      logRequest({response});
  
-@@ -254,6 +254,8 @@ export const RootStore = types
+@@ -282,6 +282,8 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -550,7 +552,7 @@ index 7ef3701e..1d6fc6d4 100644
              let isMaximizedCurrently = false;
              removeSubscriptions();
  
-@@ -356,7 +358,8 @@ export type DependencyInjection = {
+@@ -388,7 +390,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -561,19 +563,19 @@ index 7ef3701e..1d6fc6d4 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index ab155dba..1493e86d 100644
+index 36901238..4c43c0ea 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -92,7 +92,7 @@ const removeToken = (skipLocalStorage = false) => {
- 
+@@ -93,7 +93,7 @@ const removeToken = (skipLocalStorage = false) => {
  export const AuthStore = Loader.named('AuthStore')
      .props({
+         dontKeepMeSignedIn: types.optional(types.boolean, false),
 -        isAuthorized: types.optional(types.boolean, Boolean(getToken())),
 +        isAuthorized: types.optional(types.boolean, false),
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -188,6 +188,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -191,6 +191,8 @@ export const AuthStore = Loader.named('AuthStore')
          });
  
          const afterCreate = () => {

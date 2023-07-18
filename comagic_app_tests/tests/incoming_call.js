@@ -715,11 +715,11 @@ tests.addTest(options => {
                                 expectToBeSent();
 
                             tester.directionIcon.expectToHaveAllOfClasses([
-                                'cmg-incoming-direction-icon',
-                                'cmg-direction-icon-transfer'
+                                'ui-direction-icon-incoming',
+                                'ui-direction-icon-transfer'
                             ]);
 
-                            tester.directionIcon.expectNotToHaveClass('cmg-direction-icon-failed');
+                            tester.directionIcon.expectNotToHaveClass('ui-direction-icon-failed');
 
                             tester.softphone.
                                 expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67 00:00');

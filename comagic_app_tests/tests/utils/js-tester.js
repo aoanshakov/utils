@@ -3920,10 +3920,6 @@ function JsTester_Utils ({debug, windowSize, spendTime}) {
         spendTime(0);
     };
 
-    this.querySelector = function (selector) {
-        return document.querySelector(selector) || new JsTester_NoElement();
-    };
-
     this.maybeDecodeArrayBuffer = function (data) {
         if (data instanceof ArrayBuffer) {
             data = (new TextDecoder()).decode(new Uint8Array(data));
@@ -4799,7 +4795,7 @@ function JsTester_Request (request, utils, callStack) {
         if (method != expectedValue) {
             throw new Error(
                 'Запрос должен быть отправлен методом "' + expectedValue + '", тогда как он был отправлен методом "' +
-                method + '".'
+                method + '". ' + this.getDescription()
             );
         }
 

@@ -1008,15 +1008,15 @@ tests.addTest(options => {
                                             message.
                                             atTime('12:14').
                                             directionIcon.
-                                            expectToHaveClass('cmg-incoming-direction-icon');
+                                            expectToHaveClass('ui-direction-icon-incoming');
 
                                         tester.chatHistory.
                                             message.
                                             atTime('12:14').
                                             directionIcon.
                                             expectToHaveNoneOfClasses([
-                                                'cmg-direction-icon-failed',
-                                                'cmg-direction-icon-transfer'
+                                                'ui-direction-icon-failed',
+                                                'ui-direction-icon-transfer'
                                             ]);
 
                                         tester.chatHistory.message.atTime('12:15').notSystem.expectSourceToBeOperator();
@@ -1222,15 +1222,15 @@ tests.addTest(options => {
                                                 atTime('12:14').
                                                 directionIcon.
                                                 expectToHaveAllOfClasses([
-                                                    'cmg-incoming-direction-icon',
-                                                    'cmg-direction-icon-failed',
+                                                    'ui-direction-icon-incoming',
+                                                    'ui-direction-icon-failed',
                                                 ]);
 
                                             tester.chatHistory.
                                                 message.
                                                 atTime('12:14').
                                                 directionIcon.
-                                                expectNotToHaveClass('cmg-direction-icon-transfer');
+                                                expectNotToHaveClass('ui-direction-icon-transfer');
 
                                             tester.chatHistory.message.atTime('12:14').expectToHaveTextContent(
                                                 '12:14 ' +

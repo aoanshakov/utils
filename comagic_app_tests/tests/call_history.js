@@ -1440,30 +1440,30 @@ tests.addTest(options => {
                                             row.first.
                                             column.first.
                                             svg.
-                                            expectToHaveClass('cmg-incoming-direction-icon');
+                                            expectToHaveClass('ui-direction-icon-incoming');
 
                                         tester.table.
                                             row.first.
                                             column.first.
                                             svg.
                                             expectToHaveNoneOfClasses([
-                                                'cmg-direction-icon-failed',
-                                                'cmg-direction-icon-transfer',
+                                                'ui-direction-icon-failed',
+                                                'ui-direction-icon-transfer',
                                             ]);
 
                                         tester.table.
                                             row.atIndex(1).
                                             column.first.
                                             svg.
-                                            expectToHaveClass('cmg-outgoing-direction-icon');
+                                            expectToHaveClass('ui-direction-icon-outgoing');
 
                                         tester.table.
                                             row.atIndex(1).
                                             column.first.
                                             svg.
                                             expectToHaveNoneOfClasses([
-                                                'cmg-direction-icon-failed',
-                                                'cmg-direction-icon-transfer',
+                                                'ui-direction-icon-failed',
+                                                'ui-direction-icon-transfer',
                                             ]);
 
                                         tester.table.pagingPanel.pageButton('1').expectToBePressed();
@@ -1531,39 +1531,39 @@ tests.addTest(options => {
                                         callsRequest.isFailed().receiveResponse();
 
                                         tester.table.row.first.column.first.svg.expectToHaveAllOfClasses([
-                                            'cmg-direction-icon-transfer',
-                                            'cmg-incoming-direction-icon',
+                                            'ui-direction-icon-transfer',
+                                            'ui-direction-icon-incoming',
                                         ]);
 
                                         tester.table.row.first.column.first.svg.
-                                            expectToHaveClass('cmg-direction-icon-failed');
+                                            expectToHaveClass('ui-direction-icon-failed');
 
                                         tester.table.row.atIndex(1).column.first.svg.expectToHaveAllOfClasses([
-                                            'cmg-direction-icon-transfer',
-                                            'cmg-outgoing-direction-icon',
+                                            'ui-direction-icon-transfer',
+                                            'ui-direction-icon-outgoing',
                                         ]);
 
                                         tester.table.row.atIndex(1).column.first.svg.
-                                            expectToHaveClass('cmg-direction-icon-failed');
+                                            expectToHaveClass('ui-direction-icon-failed');
                                     });
                                     it('Звонки трансфера отличаются от обычных.', function() {
                                         callsRequest.receiveResponse();
 
                                         tester.table.row.first.column.first.svg.expectToHaveAllOfClasses([
-                                            'cmg-direction-icon-transfer',
-                                            'cmg-incoming-direction-icon',
+                                            'ui-direction-icon-transfer',
+                                            'ui-direction-icon-incoming',
                                         ]);
 
                                         tester.table.row.first.column.first.svg.
-                                            expectNotToHaveClass('cmg-direction-icon-failed');
+                                            expectNotToHaveClass('ui-direction-icon-failed');
 
                                         tester.table.row.atIndex(1).column.first.svg.expectToHaveAllOfClasses([
-                                            'cmg-direction-icon-transfer',
-                                            'cmg-outgoing-direction-icon',
+                                            'ui-direction-icon-transfer',
+                                            'ui-direction-icon-outgoing',
                                         ]);
 
                                         tester.table.row.atIndex(1).column.first.svg.
-                                            expectNotToHaveClass('cmg-direction-icon-failed');
+                                            expectNotToHaveClass('ui-direction-icon-failed');
                                     });
                                 });
                                 it(
