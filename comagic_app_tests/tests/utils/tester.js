@@ -426,9 +426,6 @@ define(() => function ({
             return tester;
         })();
 
-        me.textarea = testersFactory.createTextFieldTester(() =>
-            utils.element(getRootElement()).querySelector('textarea'));
-
         const getSvg = selector => {
             const tester = testersFactory.createAnchorTester(() =>
                 utils.element(getRootElement()).querySelector(selector));
@@ -970,6 +967,53 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse() {
                         respond(request);
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.ticketCreatingRequest = () => {
+        const bodyParams = {
+            context: 'Что-то нехорошее произошло',
+            is_new_email: 'true',
+            is_new_phone: 'true',
+            is_new_contact: 'true',
+            phone: '79161234567',
+            email: 'valcheva@gmail.com',
+            contact: 'Валчева Албена Станимир',
+        };
+
+        const addResponseModifiers = me => {
+            me.logAttached = () => {
+                bodyParams.files = {
+                    name: 'logs.txt'
+                };
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHaveMethod('POST').
+                    expectBodyToContain(bodyParams).
+                    expectToHavePath('$REACT_APP_INFOPIN_BACKEND_HOST/tickets');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            data: true,
+                        });
+
                         Promise.runAll(false, true);
                         spendTime(0)
                     }

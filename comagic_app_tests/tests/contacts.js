@@ -966,12 +966,6 @@ tests.addTest(options => {
                                             channelSearch().
                                             receiveResponse();
 
-                                        tester.select.
-                                            option('WhatsApp 79283810988').
-                                            click();
-
-                                        tester.button('Перейти в чат').click();
-
                                         tester.notificationWindow.expectToHaveTextContent(
                                             'Невозможно перейти в чат, отсутствуют права на "Чаты и заявки"'
                                         );
@@ -3131,42 +3125,58 @@ tests.addTest(options => {
                     function() {
                         chatChannelSearchRequest.noChat().receiveResponse();
 
-                        tester.searchResultsRequest().
+                        const requests = ajax.inAnyOrder();
+
+                        const newChatListRequest = tester.chatListRequest().expectToBeSent(requests),
+                            activeChatListRequest = tester.chatListRequest().active().expectToBeSent(requests),
+                            closedChatListRequest = tester.chatListRequest().closed().expectToBeSent(requests);
+
+                        const chatListRequest = tester.chatListRequest().
+                            isOtherEmployeesAppeals().
+                            active().
+                            expectToBeSent(requests);
+
+                        const searchResultsRequest = tester.searchResultsRequest().
                             onlyWhatsAppOut().
                             channelSearch().
-                            receiveResponse();
+                            expectToBeSent(requests);
 
-                        tester.select.
-                            option('WhatsApp 79283810988').
-                            click();
+                        const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+                            statusListRequest = tester.statusListRequest().expectToBeSent(requests),
+                            listRequest = tester.listRequest().expectToBeSent(requests),
+                            siteListRequest = tester.siteListRequest().expectToBeSent(requests),
+                            messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests),
+                            chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
 
-                        tester.button('Начать чат').click();
-
-                        tester.chatListRequest().receiveResponse();
-                        tester.chatListRequest().active().receiveResponse();
-                        tester.chatListRequest().closed().receiveResponse();
-                        tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
-
-                        tester.chatChannelListRequest().receiveResponse();
-                        tester.statusListRequest().receiveResponse();
-                        tester.listRequest().receiveResponse();
-                        tester.siteListRequest().receiveResponse();
-                        tester.messageTemplateListRequest().receiveResponse();
-                        tester.chatSettingsRequest().receiveResponse();
-
-                        tester.accountRequest().
+                        const accountRequest = tester.accountRequest().
                             forChats().
                             operatorWorkplaceAvailable().
-                            receiveResponse();
+                            expectToBeSent(requests);
+
+                        const secondAccountRequest = tester.accountRequest().
+                            forChats().
+                            operatorWorkplaceAvailable().
+                            expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+
+                        newChatListRequest.receiveResponse();
+                        activeChatListRequest.receiveResponse();
+                        closedChatListRequest.receiveResponse();
+                        chatListRequest.receiveResponse();
+                        searchResultsRequest.receiveResponse();
+                        chatChannelListRequest.receiveResponse();
+                        statusListRequest.receiveResponse();
+                        listRequest.receiveResponse();
+                        siteListRequest.receiveResponse();
+                        messageTemplateListRequest.receiveResponse();
+                        chatSettingsRequest.receiveResponse();
+                        accountRequest.receiveResponse();
+                        secondAccountRequest.receiveResponse();
 
                         tester.chatsWebSocket.connect();
                         tester.chatsInitMessage().expectToBeSent();
                         
-                        tester.accountRequest().
-                            forChats().
-                            operatorWorkplaceAvailable().
-                            receiveResponse();
-
                         tester.chatStartingRequest().receiveResponse();
 
                         tester.offlineMessageCountersRequest().receiveResponse();
@@ -3211,42 +3221,58 @@ tests.addTest(options => {
                     function() {
                         chatChannelSearchRequest.receiveResponse();
 
-                        tester.searchResultsRequest().
+                        const requests = ajax.inAnyOrder();
+
+                        const newChatListRequest = tester.chatListRequest().expectToBeSent(requests),
+                            activeChatListRequest = tester.chatListRequest().active().expectToBeSent(requests),
+                            closedChatListRequest = tester.chatListRequest().closed().expectToBeSent(requests);
+
+                        const chatListRequest = tester.chatListRequest().
+                            isOtherEmployeesAppeals().
+                            active().
+                            expectToBeSent(requests);
+
+                        const searchResultsRequest = tester.searchResultsRequest().
                             onlyWhatsAppOut().
                             channelSearch().
-                            receiveResponse();
+                            expectToBeSent(requests);
 
-                        tester.select.
-                            option('WhatsApp 79283810988').
-                            click();
+                        const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+                            statusListRequest = tester.statusListRequest().expectToBeSent(requests),
+                            listRequest = tester.listRequest().expectToBeSent(requests),
+                            siteListRequest = tester.siteListRequest().expectToBeSent(requests),
+                            messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests),
+                            chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
 
-                        tester.button('Перейти в чат').click();
-
-                        tester.chatListRequest().receiveResponse();
-                        tester.chatListRequest().active().receiveResponse();
-                        tester.chatListRequest().closed().receiveResponse();
-                        tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
-
-                        tester.chatChannelListRequest().receiveResponse();
-                        tester.statusListRequest().receiveResponse();
-                        tester.listRequest().receiveResponse();
-                        tester.siteListRequest().receiveResponse();
-                        tester.messageTemplateListRequest().receiveResponse();
-                        tester.chatSettingsRequest().receiveResponse();
-
-                        tester.accountRequest().
+                        const accountRequest = tester.accountRequest().
                             forChats().
                             operatorWorkplaceAvailable().
-                            receiveResponse();
+                            expectToBeSent(requests);
+
+                        const secondAccountRequest = tester.accountRequest().
+                            forChats().
+                            operatorWorkplaceAvailable().
+                            expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+
+                        newChatListRequest.receiveResponse();
+                        activeChatListRequest.receiveResponse();
+                        closedChatListRequest.receiveResponse();
+                        chatListRequest.receiveResponse();
+                        searchResultsRequest.receiveResponse();
+                        chatChannelListRequest.receiveResponse();
+                        statusListRequest.receiveResponse();
+                        listRequest.receiveResponse();
+                        siteListRequest.receiveResponse();
+                        messageTemplateListRequest.receiveResponse();
+                        chatSettingsRequest.receiveResponse();
+                        accountRequest.receiveResponse();
+                        secondAccountRequest.receiveResponse();
 
                         tester.chatsWebSocket.connect();
                         tester.chatsInitMessage().expectToBeSent();
                         
-                        tester.accountRequest().
-                            forChats().
-                            operatorWorkplaceAvailable().
-                            receiveResponse();
-
                         tester.chatListRequest().thirdChat().receiveResponse();
 
                         tester.offlineMessageCountersRequest().
@@ -3451,6 +3477,7 @@ tests.addTest(options => {
 
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
+                tester.ticketsContactsRequest().receiveResponse();
                 tester.reportGroupsRequest().receiveResponse();
                 tester.reportsListRequest().receiveResponse();
                 tester.reportTypesRequest().receiveResponse();

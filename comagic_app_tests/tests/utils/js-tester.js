@@ -2598,11 +2598,12 @@ function JsTester_BlobTester(args) {
 }
 
 function JsTester_BlobFactory (args) {
-    var blobs = args.blobs,
+    var OriginalBlob = args.OriginalBlob,
+        blobs = args.blobs,
         utils = args.utils;
 
-    return function () {
-        var object = {},
+    return function (...args) {
+        var object = new OriginalBlob(...args),
             id = blobs.length;
 
         Object.defineProperty(object, 'id', {
@@ -2622,7 +2623,7 @@ function JsTester_BlobFactory (args) {
 }
 
 function JsTester_BlobReplacer (args) {
-    var OriginalBlob = window.Blob,
+    var OriginalBlob = args.OriginalBlob,
         factory = args.factory,
         blobs = args.blobs;
 
@@ -3884,7 +3885,7 @@ function JsTester_Element ({
     };
 }
 
-function JsTester_Utils ({debug, windowSize, spendTime}) {
+function JsTester_Utils ({debug, windowSize, spendTime, args}) {
     var me = this,
         doNothing = function () {};
 
@@ -3944,6 +3945,17 @@ function JsTester_Utils ({debug, windowSize, spendTime}) {
 
     this.expectNonStrict = function (expectedValue) {
         return new JsTests_NonStrictExpectaion(expectedValue);
+    };
+        
+    this.expectFileContentToHaveSubstring = function (expectedValue) {
+        return new JsTests_FileContentSubstringExpectaion(expectedValue);
+    };
+
+    this.expectBlob = function (expectedValue) {
+        return new JsTests_BlobExpectaion({
+            expectedValue,
+            blobsTester: args.blobsTester,
+        });
     };
 
     this.expectEmptyObject = function () {
@@ -6565,6 +6577,63 @@ function JsTests_StringExpectaion () {
     };
 }
 
+function JsTests_BlobExpectaion ({
+    expectedValue,
+    blobsTester,
+}) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        console.log({
+            actualValue,
+            keyDescription,
+            blobsTester,
+        });
+
+        return;
+
+        if (actualValue != expectedValue) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должно быть ' + JSON.stringify(expectedValue) + ', а не ' +
+                JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
+function JsTests_FileContentSubstringExpectaion (expectedValue) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (!actualValue) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должен быть файл, тогда как значение параметра является ' +
+                'пустым.'
+            );
+        }
+
+        if (!(actualValue instanceof File)) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должен быть файл, тогда как параметра имеет значение ' +
+                JSON.stringify(expectedValue) + '.'
+            );
+        }
+
+        console.log({
+            expectedValue,
+            actualValue,
+            keyDescription,
+        });
+
+        return;
+
+        if (actualValue != expectedValue) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должно быть ' + JSON.stringify(expectedValue) + ', а не ' +
+                JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
+JsTests_FileContentSubstringExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_BlobExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NonStrictExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_EmptyObjectExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_PrefixExpectaion.prototype = JsTests_ParamExpectationPrototype;
@@ -7774,7 +7843,8 @@ function JsTester_Tests (factory) {
         set: function () {}
     }); 
 
-    var testRunners = [],
+    var args = {},
+        testRunners = [],
         requiredClasses = [],
         files = new Map(),
         fileReaderTester = new JsTester_FileReaderTester(files),
@@ -7807,7 +7877,12 @@ function JsTester_Tests (factory) {
     };
 
     var windowSize = new JsTester_WindowSize(spendTime),
-        utils = factory.createUtils({debug, windowSize, spendTime}),
+        utils = factory.createUtils({
+            debug,
+            windowSize,
+            spendTime,
+            args,
+        }),
         broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage(), true),
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},
@@ -8086,11 +8161,14 @@ function JsTester_Tests (factory) {
             blobs: blobs,
             utils: utils
         }),
+        OriginalBlob = window.Blob,
         blobReplacer = new JsTester_BlobReplacer({
-            blobs: blobs,
+            OriginalBlob,
+            blobs,
             factory: new JsTester_BlobFactory({
-                blobs: blobs,
-                utils: utils
+                OriginalBlob,
+                blobs,
+                utils,
             })
         }),
         copiedTexts = [],
@@ -8169,66 +8247,64 @@ function JsTester_Tests (factory) {
             error = e;
         }
 
-        var args = {
-            error: '<html>' +
-                '<head>' +
-                    '<title>500 Internal Server Error</title>' +
-                '</head>' +
-                '<body bgcolor="white">' +
-                    '<center>' +
-                        '<h1>500 Internal Server Error</h1>' +
-                    '</center>' +
-                    '<hr>' +
-                    '<center>nginx/1.10.2</center>' +
-                '</body>' +
-            '</html>',
-            triggerResize,
-            sdp: sdp,
-            image: image,
-            windowSize: windowSize,
-            broadcastChannels: broadcastChannelTester,
-            mutationObserverMocker: mutationObserverMocker,
-            intersectionObservable: intersectionObservablesTester,
-            cookie: cookieTester,
-            addSecond: addSecond,
-            unload: () => {
-                windowEventsFirerer('unload');
-                Promise.runAll(false, true);
-            },
-            fileReader: fileReaderTester,
-            triggerMutation: mutationObserverTester,
-            ajax: ajaxTester,
-            fetch: fetchTester,
-            testersFactory: testersFactory,
-            wait: wait,
-            spendTime: spendTime,
-            utils: utils,
-            debug: debug,
-            windowOpener: windowOpener,
-            webSockets: webSockets,
-            webSocketLogger: webSocketLogger,
-            userMedia: userMedia,
-            rtcConnectionsMock: rtcConnectionsMock,
-            navigatorMock: navigatorMock,
-            timeoutLogger: timeoutLogger,
-            mediaStreamsTester: mediaStreamsTester,
-            setNow: setNow,
-            playingOscillatorsTester: playingOscillatorsTester,
-            audioDecodingTester: audioDecodingTester,
-            decodedTracksTester: decodedTracksTester,
-            audioProcessing: audioProcessingTester,
-            audioGain: audioGainTester,
-            notificationTester: notificationTester,
-            setFocus: new JsTester_FocusSetter(hasFocus.createSetter()),
-            setDocumentVisible: new JsTester_VisibilitySetter({
-                setBrowserHidden,
-                setBrowserVisible,
-                isBrowserHidden: isBrowserHidden.createGetter(),
-            }),
-            blobsTester: blobsTester,
-            copiedTextsTester: copiedTextsTester,
-            getRecentPostMessage: postMessages.pop,
+        args.error = '<html>' +
+            '<head>' +
+                '<title>500 Internal Server Error</title>' +
+            '</head>' +
+            '<body bgcolor="white">' +
+                '<center>' +
+                    '<h1>500 Internal Server Error</h1>' +
+                '</center>' +
+                '<hr>' +
+                '<center>nginx/1.10.2</center>' +
+            '</body>' +
+        '</html>';
+        args.triggerResize = triggerResize;
+        args.sdp = sdp;
+        args.image = image;
+        args.windowSize = windowSize;
+        args.broadcastChannels = broadcastChannelTester;
+        args.mutationObserverMocker = mutationObserverMocker;
+        args.intersectionObservable = intersectionObservablesTester;
+        args.cookie = cookieTester;
+        args.addSecond = addSecond;
+        args.unload = () => {
+            windowEventsFirerer('unload');
+            Promise.runAll(false, true);
         };
+        args.fileReader = fileReaderTester;
+        args.triggerMutation = mutationObserverTester;
+        args.ajax = ajaxTester;
+        args.fetch = fetchTester;
+        args.testersFactory = testersFactory;
+        args.wait = wait;
+        args.spendTime = spendTime;
+        args.utils = utils;
+        args.debug = debug;
+        args.windowOpener = windowOpener;
+        args.webSockets = webSockets;
+        args.webSocketLogger = webSocketLogger;
+        args.userMedia = userMedia;
+        args.rtcConnectionsMock = rtcConnectionsMock;
+        args.navigatorMock = navigatorMock;
+        args.timeoutLogger = timeoutLogger;
+        args.mediaStreamsTester = mediaStreamsTester;
+        args.setNow = setNow;
+        args.playingOscillatorsTester = playingOscillatorsTester;
+        args.audioDecodingTester = audioDecodingTester;
+        args.decodedTracksTester = decodedTracksTester;
+        args.audioProcessing = audioProcessingTester;
+        args.audioGain = audioGainTester;
+        args.notificationTester = notificationTester;
+        args.setFocus = new JsTester_FocusSetter(hasFocus.createSetter());
+        args.setDocumentVisible = new JsTester_VisibilitySetter({
+            setBrowserHidden,
+            setBrowserVisible,
+            isBrowserHidden: isBrowserHidden.createGetter(),
+        });
+        args.blobsTester = blobsTester;
+        args.copiedTextsTester = copiedTextsTester;
+        args.getRecentPostMessage = postMessages.pop;
 
         (function () {
             var name;

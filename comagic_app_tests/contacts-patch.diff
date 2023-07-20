@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index bf18e75..7f9afaf 100644
+index 39cbf63..8505506 100644
 --- a/package.json
 +++ b/package.json
 @@ -26,8 +26,6 @@
@@ -11,13 +11,13 @@ index bf18e75..7f9afaf 100644
      "@types/react-window": "^1.8.5",
      "@types/yup": "^0.29.14",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
-@@ -66,22 +64,14 @@
+@@ -67,22 +65,14 @@
      "webpack-merge": "^5.8.0"
    },
    "dependencies": {
 -    "@comagic/core": "^0.7.0",
 -    "@comagic/softphone-core": "2.0.1",
--    "@comagic/softphone-widget": "2.0.4",
+-    "@comagic/softphone-widget": "2.0.9",
      "axios": "^0.24.0",
      "classnames": "^2.3.1",
      "formik": "^2.2.9",
@@ -30,7 +30,7 @@ index bf18e75..7f9afaf 100644
 -    "react": "^18.2.0",
 -    "react-dom": "^18.2.0",
 -    "react-intl": "6.3.2",
--    "react-router-dom": "6.4.4",
+-    "react-router-dom": "6.9.0",
      "string-hash": "^1.1.3",
      "yup": "^0.32.11"
    }

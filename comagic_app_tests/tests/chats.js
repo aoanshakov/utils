@@ -67,7 +67,8 @@ tests.addTest(options => {
 
                 const requests = ajax.inAnyOrder();
 
-                const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                    reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
                     reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
 
@@ -80,6 +81,7 @@ tests.addTest(options => {
 
                 requests.expectToBeSent();
 
+                ticketsContactsRequest.receiveResponse();
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
@@ -1177,19 +1179,6 @@ tests.addTest(options => {
                                         noChat().
                                         receiveResponse();
 
-                                    tester.searchResultsRequest().
-                                        onlyWhatsAppOut().
-                                        channelSearch().
-                                        receiveResponse();
-
-                                    tester.select.
-                                        option('WhatsApp 79283810988').
-                                        click();
-
-                                    tester.whatsAppChannelSelect.
-                                        button('Начать чат').
-                                        click();
-
                                     tester.chatListRequest().
                                         forCurrentEmployee().
                                         secondPage().
@@ -1211,6 +1200,11 @@ tests.addTest(options => {
                                         active().
                                         forCurrentEmployee().
                                         isOtherEmployeesAppeals().
+                                        receiveResponse();
+
+                                    tester.searchResultsRequest().
+                                        onlyWhatsAppOut().
+                                        channelSearch().
                                         receiveResponse();
 
                                     tester.chatStartingRequest().receiveResponse();
@@ -1242,40 +1236,32 @@ tests.addTest(options => {
                                         noChat().
                                         receiveResponse();
 
+                                    tester.chatListRequest().
+                                        forCurrentEmployee().
+                                        secondPage().
+                                        receiveResponse();
+
+                                    tester.chatListRequest().
+                                        forCurrentEmployee().
+                                        active().
+                                        secondPage().
+                                        receiveResponse();
+
+                                    tester.chatListRequest().
+                                        forCurrentEmployee().
+                                        closed().
+                                        secondPage().
+                                        receiveResponse();
+
+                                    tester.chatListRequest().
+                                        forCurrentEmployee().
+                                        isOtherEmployeesAppeals().
+                                        active().
+                                        receiveResponse();
+
                                     tester.searchResultsRequest().
                                         onlyWhatsAppOut().
                                         noSearchString().
-                                        receiveResponse();
-
-                                    tester.select.
-                                        option('WhatsApp 79283810988').
-                                        click();
-
-                                    tester.whatsAppChannelSelect.
-                                        button('Начать чат').
-                                        click();
-
-                                    tester.chatListRequest().
-                                        forCurrentEmployee().
-                                        secondPage().
-                                        receiveResponse();
-
-                                    tester.chatListRequest().
-                                        active().
-                                        forCurrentEmployee().
-                                        secondPage().
-                                        receiveResponse();
-
-                                    tester.chatListRequest().
-                                        closed().
-                                        forCurrentEmployee().
-                                        secondPage().
-                                        receiveResponse();
-
-                                    tester.chatListRequest().
-                                        active().
-                                        forCurrentEmployee().
-                                        isOtherEmployeesAppeals().
                                         receiveResponse();
 
                                     tester.chatStartingRequest().noPhone().receiveResponse();
@@ -1448,6 +1434,21 @@ tests.addTest(options => {
                         tester.chatList.spinWrapper.scrollIntoView();
                         tester.chatListRequest().forCurrentEmployee().secondPage().expectToBeSent();
                     });
+                    it(
+                        'Нажимаю на кнопку "Поддержка". Открыто окно формы для ввода сообщения в ' +
+                        'техническую поддержку.',
+                    function() {
+                        tester.button('Поддержка').click();
+                        spendTime(10);
+
+                        tester.input.withPlaceholder('Фамилия Имя Отчество').fill('Валчева Албена Станимир');
+                        tester.input.withPlaceholder('7').fill('79161234567');
+                        tester.input.withPlaceholder('example@example.com').fill('valcheva@gmail.com');
+                        tester.textarea.withPlaceholder('Опишите проблему').fill('Что-то нехорошее произошло');
+
+                        tester.button('Отправить').click();
+                        tester.ticketCreatingRequest().receiveResponse();
+                    });
                     it('Отображен список чатов.', function() {
                         tester.body.expectTextContentToHaveSubstring(
                             'Помакова Бисерка Драгановна 21 янв 2022 ' +
@@ -1550,7 +1551,8 @@ tests.addTest(options => {
 
                 const requests = ajax.inAnyOrder();
 
-                const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                    reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
                     reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
 
@@ -1564,6 +1566,7 @@ tests.addTest(options => {
 
                 requests.expectToBeSent();
 
+                ticketsContactsRequest.receiveResponse();
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
@@ -1751,7 +1754,8 @@ tests.addTest(options => {
 
                 const requests = ajax.inAnyOrder();
 
-                const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                    reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
                     reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
 
@@ -1765,6 +1769,7 @@ tests.addTest(options => {
 
                 requests.expectToBeSent();
 
+                ticketsContactsRequest.receiveResponse();
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();

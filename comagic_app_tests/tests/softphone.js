@@ -518,6 +518,7 @@ tests.addTest(options => {
 
                                                         tester.reportsListRequest().receiveResponse();
                                                         tester.reportTypesRequest().receiveResponse();
+                                                        tester.ticketsContactsRequest().receiveResponse();
 
                                                         tester.softphone.expectNotToExist();
                                                         tester.button('Софтфон').expectNotToExist();
@@ -1812,6 +1813,30 @@ tests.addTest(options => {
                                             tester.masterNotification().toggleWidgetVisiblity().receive();
                                             tester.callStartingButton.expectToBeVisible();
                                             tester.slavesNotification().additional().visible().expectToBeSent();
+                                        });
+                                        it(
+                                            'Нажимаю на кнопку "Поддержка". Открыто окно формы для ввода сообщения в ' +
+                                            'техническую поддержку.',
+                                        function() {
+                                            tester.button('Поддержка').click();
+                                            spendTime(10);
+
+                                            tester.input.withPlaceholder('Фамилия Имя Отчество').
+                                                fill('Валчева Албена Станимир');
+
+                                            tester.input.withPlaceholder('7').fill('79161234567');
+
+                                            tester.input.withPlaceholder('example@example.com').
+                                                fill('valcheva@gmail.com');
+
+                                            tester.textarea.withPlaceholder('Опишите проблему').
+                                                fill('Что-то нехорошее произошло');
+
+                                            tester.button('Отправить').click();
+
+                                            tester.ticketCreatingRequest().
+                                                logAttached().
+                                                receiveResponse();
                                         });
                                         it(
                                             'Отображен пункт меню. Софтфон скрыт. Отображается статус сотрудника.',
@@ -4082,6 +4107,7 @@ tests.addTest(options => {
                 accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
+                tester.ticketsContactsRequest().receiveResponse(),
                 tester.reportGroupsRequest().receiveResponse();
                 tester.reportsListRequest().receiveResponse();
                 tester.reportTypesRequest().receiveResponse();
@@ -4469,6 +4495,7 @@ tests.addTest(options => {
             spendTime(1000);
             tester.notificationChannel().tellIsLeader().expectToBeSent();
 
+            tester.ticketsContactsRequest().receiveResponse(),
             tester.reportGroupsRequest().receiveResponse();
             tester.reportsListRequest().receiveResponse();
             tester.reportTypesRequest().receiveResponse();
@@ -4481,6 +4508,7 @@ tests.addTest(options => {
             accountRequest.softphoneUnavailable().receiveResponse();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
+            tester.ticketsContactsRequest().receiveResponse(),
             tester.reportGroupsRequest().receiveResponse();
             tester.reportsListRequest().receiveResponse();
             tester.reportTypesRequest().receiveResponse();

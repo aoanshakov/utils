@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index b966defa..a36437c1 100644
+index b966defa..de5e3a3c 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -156,7 +156,14 @@ index b966defa..a36437c1 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -329,6 +398,7 @@ module.exports = {
+@@ -323,12 +392,13 @@ module.exports = {
+                 },
+             },
+             {
+-                test: /\.(woff|woff2)$/,
++                test: /\.(woff|woff2|otf)$/,
+                 loader: 'file-loader',
+                 options: fontsOptions,
              },
              {
                  test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -281,7 +288,7 @@ index b966defa..a36437c1 100644
 +                    requestPath = request.request,
 +                    splitted = requestPath.split('/');
 +
-+                if (requestPath.indexOf('magic-ui/lib') === 0) {
++                if (['@comagic/ui', 'magic-ui'].some(path => requestPath.indexOf(`${path}/lib`) === 0)) {
 +                    splitted[1] = 'src';
 +                } else if (['~magic-ui/lib/styles.css', '~@comagic/core/lib/styles.css'].includes(requestPath)) {
 +                    splitted.splice(0, splitted.length);
@@ -322,10 +329,10 @@ index b966defa..a36437c1 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 96cca532..191f6519 100644
+index 7c6e21e9..486b2630 100644
 --- a/package.json
 +++ b/package.json
-@@ -67,12 +67,17 @@
+@@ -67,12 +67,18 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -335,6 +342,7 @@ index 96cca532..191f6519 100644
 +    "@comagic/core": "./misc/core",
 +    "@comagic/softphone-widget": "./misc/softphone/misc/sip_lib",
 +    "@comagic/softphone-core": "./misc/softphone/misc/sip_lib/uis_webrtc",
++    "@comagic/ui": "./misc/ui",
 +    "@sentry/react": "^6.19.4",
 +    "@sentry/tracing": "^6.19.4",
 +    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
@@ -346,16 +354,16 @@ index 96cca532..191f6519 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -84,7 +89,7 @@
+@@ -84,7 +90,7 @@
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
--    "magic-ui": "0.0.0-int2",
+-    "magic-ui": "0.0.0-int1",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -94,6 +99,11 @@
+@@ -94,6 +100,11 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "6.9.0",

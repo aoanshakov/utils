@@ -137,6 +137,33 @@ define(function () {
             const rootTester = utils.element(getRootElement);
 
             {
+                const augmentTester = tester => {
+                    const fill = tester.fill.bind(tester);
+
+                    tester.fill = value => {
+                        fill(value);
+
+                        spendTime(0);
+                        spendTime(0);
+                    };
+
+                    return tester;
+                };
+
+                me.textarea = augmentTester(testersFactory.createTextFieldTester(
+                    () => utils.element(getRootElement()).querySelector('textarea')
+                ));
+
+                me.textarea.withPlaceholder = placeholder => augmentTester(testersFactory.createTextFieldTester(
+                    () => Array.prototype.slice.call(
+                        utils.element(getRootElement()).querySelectorAll('textarea'), 0
+                    ).find(
+                        textarea => textarea.placeholder == placeholder
+                    ) || new JsTester_NoElement()
+                ));
+            }
+
+            {
                 const getInputs = () => Array.prototype.slice.call(
                     (getRootElement() || new JsTester_NoElement()).querySelectorAll('input[type=text]'), 0
                 );
@@ -828,8 +855,6 @@ define(function () {
         this.body = testersFactory.createDomElementTester(function () {
             return document.body;
         });
-
-        this.textarea = testersFactory.createTextAreaTester('textarea');
 
         this.callButton = testersFactory.createDomElementTester(function () {
             return document.querySelector('#cmg-top-buttons .cmg-call-button-start');
