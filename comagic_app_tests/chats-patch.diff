@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 710e891..bb6b623 100644
+index 9c0d1c9..bb6b623 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,8 +22,6 @@
@@ -23,7 +23,7 @@ index 710e891..bb6b623 100644
      "formik": "^2.2.9",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
--    "magic-ui": "0.0.0-int2",
+-    "magic-ui": "0.0.0-int1",
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
@@ -62,11 +62,111 @@ index 303fdf9..0db72b0 100644
  });
  
  export default App;
+diff --git a/src/components/chats/chat-panel/styles.less b/src/components/chats/chat-panel/styles.less
+index 41ad6c1..14dfe79 100644
+--- a/src/components/chats/chat-panel/styles.less
++++ b/src/components/chats/chat-panel/styles.less
+@@ -196,7 +196,7 @@
+           }
+         }
+ 
+-        .ui-button {
++        .ui-button, .cmgui-button {
+           grid-column: 3;
+           grid-row: 1 / 3;
+         }
+@@ -209,7 +209,7 @@
+       align-items: center;
+       min-height: 42px;
+ 
+-      .ui-textarea {
++      .ui-textarea, .cmgui-textarea {
+         box-shadow: none;
+         border: none;
+         background: white;
+@@ -979,15 +979,15 @@
+ 
+ .@{p}audio-download-popup {
+ 
+-  .ui-popover-arrow {
++  .ui-popover-arrow, .cmgui-popover-arrow {
+     display: none;
+   }
+ 
+-  .ui-popover-content {
++  .ui-popover-content, .cmgui-popover-content {
+     transform: translateY(8px);
+   }
+ 
+-  .ui-popover-inner {
++  .ui-popover-inner, .cmgui-popover-inner {
+     position: relative;
+     left: 10px;
+     top: 9px;
+@@ -1000,7 +1000,7 @@
+       background-color: @surfaces-highlight;
+     }
+ 
+-    .ui-button-ghost {
++    .ui-button-ghost, .cmgui-button-ghost {
+       color: @fonts-primary;
+     }
+   }
+@@ -1010,18 +1010,18 @@
+   width: 100%;
+   height: 100%;
+ 
+-  .ui-modal-content {
++  .ui-modal-content, .cmgui-modal-content {
+     background: none;
+     box-shadow: none;
+     padding: 0;
+     height: 100%;
+     border: none;
+ 
+-    .ui-modal-header {
++    .ui-modal-header, .cmgui-modal-header {
+       display: none;
+     }
+ 
+-    .ui-modal-main {
++    .ui-modal-main, .cmgui-modal-main {
+       margin: 0;
+       width: 100%;
+       height: 100%;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index eaff607..19528fa 100644
+index eaff607..26d3da2 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -135,7 +135,8 @@ export const RootStore = types
+@@ -22,6 +22,9 @@ import OperatorSettingsStore from '@models/operator-settings';
+ import { eventBus } from '@comagic/core';
+ import ContactsIntegraionStore from '@models/contacts-integration/ContactsIntegraionStore';
+ 
++import { httpRest } from '@/httpRest';
++import { httpRpc } from '@/httpRpc';
++
+ export const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
+ export const REFRESH_TOKEN_EXPIRED = 'refresh_token_expired';
+ export const ACCESS_TOKEN_INVALID = 'access_token_invalid';
+@@ -129,13 +132,25 @@ export const RootStore = types
+             void init();
+         };
+ 
+-        return { afterCreate, resetStore, resetAfterError, init };
++        return {
++            afterCreate,
++            resetStore,
++            resetAfterError,
++            init,
++
++            rest: () => {
++            },
++
++            rpc: () => {
++            },
++        };
+     });
+ 
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

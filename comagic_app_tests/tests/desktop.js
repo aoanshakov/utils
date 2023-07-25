@@ -157,24 +157,24 @@ tests.addTest(options => {
                                 tester.chatsWebSocket.connect();
                                 tester.chatsInitMessage().expectToBeSent();
 
+                                countersRequest = tester.countersRequest().expectToBeSent();
                                 offlineMessageCountersRequest = tester.offlineMessageCountersRequest().expectToBeSent();
                                 tester.chatChannelListRequest().receiveResponse();
                                 tester.siteListRequest().receiveResponse();
                                 tester.markListRequest().receiveResponse();
-                                tester.chatChannelTypeListRequest().receiveResponse();
-
-                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                tester.offlineMessageListRequest().processing().receiveResponse();
-                                tester.offlineMessageListRequest().processed().receiveResponse();
                                     
-                                countersRequest = tester.countersRequest().expectToBeSent();
-
                                 newChatListRequest = tester.chatListRequest().forCurrentEmployee().
                                     expectToBeSent();
                                 activeChatListRequest = tester.chatListRequest().forCurrentEmployee().active().
                                     expectToBeSent();
                                 closedChatListRequest = tester.chatListRequest().forCurrentEmployee().closed().
                                     expectToBeSent();
+
+                                tester.chatChannelTypeListRequest().receiveResponse();
+
+                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                tester.offlineMessageListRequest().processing().receiveResponse();
+                                tester.offlineMessageListRequest().processed().receiveResponse();
                             });
 
                             describe('Нет непрочитанных заявок.', function() {
@@ -278,17 +278,12 @@ tests.addTest(options => {
                                                         operatorWorkplaceAvailable().
                                                         receiveResponse();
 
+                                                    tester.countersRequest().receiveResponse();
+
                                                     tester.offlineMessageCountersRequest().receiveResponse();
                                                     tester.chatChannelListRequest().receiveResponse();
                                                     tester.siteListRequest().receiveResponse();
                                                     tester.markListRequest().receiveResponse();
-                                                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                    tester.countersRequest().receiveResponse();
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
@@ -306,6 +301,12 @@ tests.addTest(options => {
                                                         secondPage().
                                                         closed().
                                                         receiveResponse();
+
+                                                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                    tester.offlineMessageListRequest().processing().receiveResponse();
+                                                    tester.offlineMessageListRequest().processed().receiveResponse();
 
                                                     tester.button('Автозапуск приложения').expectToBeVisible();
                                                     tester.dialpadButton(1).expectToBeVisible();
@@ -601,17 +602,12 @@ tests.addTest(options => {
                                                     accountRequest.receiveResponse();
                                                     secondAccountRequest.receiveResponse();
 
+                                                    tester.countersRequest().receiveResponse();
+
                                                     tester.offlineMessageCountersRequest().receiveResponse();
                                                     tester.chatChannelListRequest().receiveResponse();
                                                     tester.siteListRequest().receiveResponse();
                                                     tester.markListRequest().receiveResponse();
-                                                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                    tester.countersRequest().receiveResponse();
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
@@ -629,11 +625,22 @@ tests.addTest(options => {
                                                         secondPage().
                                                         closed().
                                                         receiveResponse();
+
+                                                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                    tester.offlineMessageListRequest().processing().receiveResponse();
+                                                    tester.offlineMessageListRequest().processed().receiveResponse();
                                                 });
 
                                                 describe('Открываю раздел чатов.', function() {
                                                     beforeEach(function() {
                                                         tester.button('Чаты').click();
+
+                                                        tester.accountRequest().
+                                                            operatorWorkplaceAvailable().
+                                                            forChats().
+                                                            receiveResponse();
 
                                                         tester.chatSettingsRequest().receiveResponse();
                                                         tester.chatChannelListRequest().receiveResponse();
@@ -641,11 +648,6 @@ tests.addTest(options => {
                                                         tester.listRequest().receiveResponse();
                                                         tester.siteListRequest().receiveResponse();
                                                         tester.messageTemplateListRequest().receiveResponse();
-
-                                                        tester.accountRequest().
-                                                            operatorWorkplaceAvailable().
-                                                            forChats().
-                                                            receiveResponse();
                                                     });
 
                                                     it('Выбираю чат. Чат открыт.', function() {
@@ -935,25 +937,12 @@ tests.addTest(options => {
                                                             anotherAuthorizationToken().
                                                             expectToBeSent();
 
+                                                        tester.countersRequest().receiveResponse();
+
                                                         tester.offlineMessageCountersRequest().receiveResponse();
                                                         tester.chatChannelListRequest().receiveResponse();
                                                         tester.siteListRequest().receiveResponse();
                                                         tester.markListRequest().receiveResponse();
-                                                        tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                        tester.offlineMessageListRequest().
-                                                            notProcessed().
-                                                            receiveResponse();
-
-                                                        tester.offlineMessageListRequest().
-                                                            processing().
-                                                            receiveResponse();
-
-                                                        tester.offlineMessageListRequest().
-                                                            processed().
-                                                            receiveResponse();
-
-                                                        tester.countersRequest().receiveResponse();
 
                                                         tester.chatListRequest().
                                                             forCurrentEmployee().
@@ -970,6 +959,20 @@ tests.addTest(options => {
                                                             forCurrentEmployee().
                                                             closed().
                                                             thirdPage().
+                                                            receiveResponse();
+
+                                                        tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                        tester.offlineMessageListRequest().
+                                                            notProcessed().
+                                                            receiveResponse();
+
+                                                        tester.offlineMessageListRequest().
+                                                            processing().
+                                                            receiveResponse();
+
+                                                        tester.offlineMessageListRequest().
+                                                            processed().
                                                             receiveResponse();
 
                                                         authCheckRequest.receiveResponse();
@@ -1124,17 +1127,12 @@ tests.addTest(options => {
                                                     accountRequest.receiveResponse();
                                                     secondAccountRequest.receiveResponse();
 
+                                                    tester.countersRequest().receiveResponse();
+
                                                     tester.offlineMessageCountersRequest().receiveResponse();
                                                     tester.chatChannelListRequest().receiveResponse();
                                                     tester.siteListRequest().receiveResponse();
                                                     tester.markListRequest().receiveResponse();
-                                                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                    tester.countersRequest().receiveResponse();
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
@@ -1152,6 +1150,12 @@ tests.addTest(options => {
                                                         secondPage().
                                                         closed().
                                                         receiveResponse();
+
+                                                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                    tester.offlineMessageListRequest().processing().receiveResponse();
+                                                    tester.offlineMessageListRequest().processed().receiveResponse();
                                                 });
 
                                                 describe('Скрываю софтфон.', function() {
@@ -1219,20 +1223,21 @@ tests.addTest(options => {
                                                     });
                                                     it('Спиннер скрыт.', function() {
                                                         getPackage('electron-log').expectToContain([
-                                                            'Ajax request',
-                                                            'URL "https://$REACT_APP_SOFTPHONE_BACKEND_HOST' +
-                                                                '/sup/api/v1/users/me/calls"',
                                                             'Time consumed 1000 ms',
-                                                            'Method "get"',
-                                                            'Parameters ' + JSON.stringify({
+
+                                                            'GET https://$REACT_APP_SOFTPHONE_BACKEND_HOST' +
+                                                                '/sup/api/v1/users/me/calls',
+
+                                                            JSON.stringify({
                                                                 limit: 100,
                                                                 to: '2019-12-19T23:59:59.999+03:00',
                                                                 from: '2019-10-19T00:00:00.000+03:00',
                                                                 is_strict_date_till:  0,
                                                                 search:  ''
                                                             }),
-                                                            'Response {"data":[{"cdr_type":"forward_call",'//...}]}
-                                                        ].join("\n"));
+
+                                                            '{"data":[{"cdr_type":"forward_call",'//...}]}
+                                                        ].join("\n\n"));
 
                                                         tester.spin.expectNotToExist();
                                                     });
@@ -1242,12 +1247,12 @@ tests.addTest(options => {
                                                     tester.spin.expectNotToExist();
 
                                                     getPackage('electron-log').expectToContain([
-                                                        'Ajax request',
-                                                        'URL "https://$REACT_APP_SOFTPHONE_BACKEND_HOST' +
-                                                            '/sup/api/v1/users/me/calls"',
-                                                        'Time consumed 1000 ms',
-                                                        'Method "get"',
-                                                        'Parameters ' + JSON.stringify({
+                                                        'Failed; Time consumed 1000 ms',
+
+                                                        'GET https://$REACT_APP_SOFTPHONE_BACKEND_HOST' +
+                                                            '/sup/api/v1/users/me/calls',
+
+                                                        JSON.stringify({
                                                             limit: 100,
                                                             to: '2019-12-19T23:59:59.999+03:00',
                                                             from: '2019-10-19T00:00:00.000+03:00',
@@ -1255,8 +1260,8 @@ tests.addTest(options => {
                                                             search:  ''
                                                         }),
 
-                                                        'Error "500 Internal Server Error Server got itself in trouble"'
-                                                    ].join("\n"));
+                                                        '500 Internal Server Error Server got itself in trouble'
+                                                    ].join("\n\n"));
                                                 });
                                                 it('Отображен спиннер.', function() {
                                                     tester.spin.expectToBeVisible();
@@ -1353,17 +1358,12 @@ tests.addTest(options => {
                                                     accountRequest.receiveResponse();
                                                     authCheckRequest.receiveResponse();
 
+                                                    tester.countersRequest().receiveResponse();
+
                                                     tester.offlineMessageCountersRequest().receiveResponse();
                                                     tester.chatChannelListRequest().receiveResponse();
                                                     tester.siteListRequest().receiveResponse();
                                                     tester.markListRequest().receiveResponse();
-                                                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                    tester.countersRequest().receiveResponse();
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
@@ -1381,6 +1381,12 @@ tests.addTest(options => {
                                                         secondPage().
                                                         closed().
                                                         receiveResponse();
+
+                                                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                    tester.offlineMessageListRequest().processing().receiveResponse();
+                                                    tester.offlineMessageListRequest().processed().receiveResponse();
 
                                                     tester.talkOptionsRequest().receiveResponse();
 
@@ -1526,17 +1532,12 @@ tests.addTest(options => {
                                                     accountRequest.receiveResponse();
                                                     authCheckRequest.receiveResponse();
 
+                                                    tester.countersRequest().receiveResponse();
+
                                                     tester.offlineMessageCountersRequest().receiveResponse();
                                                     tester.chatChannelListRequest().receiveResponse();
                                                     tester.siteListRequest().receiveResponse();
                                                     tester.markListRequest().receiveResponse();
-                                                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                    tester.countersRequest().receiveResponse();
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
@@ -1554,6 +1555,12 @@ tests.addTest(options => {
                                                         secondPage().
                                                         closed().
                                                         receiveResponse();
+
+                                                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                    tester.offlineMessageListRequest().processing().receiveResponse();
+                                                    tester.offlineMessageListRequest().processed().receiveResponse();
 
                                                     tester.talkOptionsRequest().receiveResponse();
 
@@ -1678,17 +1685,12 @@ tests.addTest(options => {
                                                     statsRequest.receiveResponse();
                                                     accountRequest.operatorWorkplaceAvailable().receiveResponse();
 
+                                                    tester.countersRequest().receiveResponse();
+
                                                     tester.offlineMessageCountersRequest().receiveResponse();
                                                     tester.chatChannelListRequest().receiveResponse();
                                                     tester.siteListRequest().receiveResponse();
                                                     tester.markListRequest().receiveResponse();
-                                                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                    tester.countersRequest().receiveResponse();
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
@@ -1706,6 +1708,12 @@ tests.addTest(options => {
                                                         secondPage().
                                                         closed().
                                                         receiveResponse();
+
+                                                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                    tester.offlineMessageListRequest().processing().receiveResponse();
+                                                    tester.offlineMessageListRequest().processed().receiveResponse();
                                                 });
                                                 it('Нажимаю на кнопку диалпада. Обновлен размер.', function() {
                                                     tester.dialpadVisibilityButton.click();
@@ -1889,17 +1897,12 @@ tests.addTest(options => {
                                                 accountRequest.receiveResponse();
                                                 authCheckRequest.receiveResponse();
 
+                                                tester.countersRequest().receiveResponse();
+
                                                 tester.offlineMessageCountersRequest().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
                                                 tester.siteListRequest().receiveResponse();
                                                 tester.markListRequest().receiveResponse();
-                                                tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                tester.offlineMessageListRequest().processing().receiveResponse();
-                                                tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                tester.countersRequest().receiveResponse();
 
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
@@ -1917,6 +1920,12 @@ tests.addTest(options => {
                                                     secondPage().
                                                     closed().
                                                     receiveResponse();
+
+                                                tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                tester.offlineMessageListRequest().processing().receiveResponse();
+                                                tester.offlineMessageListRequest().processed().receiveResponse();
 
                                                 tester.talkOptionsRequest().receiveResponse();
 
@@ -1985,17 +1994,12 @@ tests.addTest(options => {
                                                 accountRequest.receiveResponse();
                                                 secondAccountRequest.receiveResponse();
 
+                                                tester.countersRequest().receiveResponse();
+
                                                 tester.offlineMessageCountersRequest().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
                                                 tester.siteListRequest().receiveResponse();
                                                 tester.markListRequest().receiveResponse();
-                                                tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                tester.offlineMessageListRequest().processing().receiveResponse();
-                                                tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                tester.countersRequest().receiveResponse();
 
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
@@ -2013,6 +2017,12 @@ tests.addTest(options => {
                                                     secondPage().
                                                     closed().
                                                     receiveResponse();
+
+                                                tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                tester.offlineMessageListRequest().processing().receiveResponse();
+                                                tester.offlineMessageListRequest().processed().receiveResponse();
 
                                                 tester.maximizednessButton.expectToBeMaximized();
                                                 tester.dialpadButton(1).expectToBeVisible();
@@ -2076,18 +2086,13 @@ tests.addTest(options => {
                                                 secondAccountRequest.receiveResponse();
                                                 thirdAccountRequest.receiveResponse();
 
+                                                tester.countersRequest().receiveResponse();
+
                                                 tester.offlineMessageCountersRequest().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
                                                 tester.siteListRequest().receiveResponse();
                                                 tester.markListRequest().receiveResponse();
-                                                tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                tester.offlineMessageListRequest().processing().receiveResponse();
-                                                tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                tester.countersRequest().receiveResponse();
-
+                                                    
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
                                                     secondPage().
@@ -2104,6 +2109,12 @@ tests.addTest(options => {
                                                     secondPage().
                                                     closed().
                                                     receiveResponse();
+
+                                                tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                tester.offlineMessageListRequest().processing().receiveResponse();
+                                                tester.offlineMessageListRequest().processed().receiveResponse();
 
                                                 tester.chatsButton.expectToBePressed();
                                             });
@@ -2160,7 +2171,78 @@ tests.addTest(options => {
                                                 tester.alert.expectNotToExist();
 
                                                 getPackage('electron-log').expectToContain('State changed');
-                                                getPackage('electron-log').expectToContain('$REACT_APP_AUTH_URL');
+
+                                                getPackage('electron-log').
+                                                    expectToContain('POST $REACT_APP_AUTH_URL?method=login');
+
+                                                getPackage('electron-log').expectToContain(
+                                                    '"login":"botusharova",' +
+                                                    '"password":"***",' +
+                                                    '"project":"comagic"'
+                                                );
+
+                                                getPackage('electron-log').expectToContain(
+                                                    '"jwt":"XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0",' +
+                                                    '"refresh":"2982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2"'
+                                                );
+
+                                                getPackage('electron-log').expectToContain(
+                                                    'GET https://$REACT_APP_SOFTPHONE_BACKEND_HOST/sup/api/v1/users/me'
+                                                );
+
+                                                getPackage('electron-log').expectToContain(
+                                                    '"first_name":"Стефка",' +
+                                                    '"id":20816'
+                                                );
+
+                                                getPackage('electron-log').
+                                                    expectToContain('GET $REACT_APP_BASE_URL/chat/channel/list');
+
+                                                getPackage('electron-log').expectToContain(
+                                                    '"id":101,' +
+                                                    '"is_removed":false,' +
+                                                    '"name":"mrDDosT",' +
+                                                    '"status":"active",' +
+                                                    '"status_reason":"omni_request",' +
+                                                    '"type":"telegram"'
+                                                );
+
+                                                getPackage('electron-log').
+                                                    expectToContain('POST $REACT_APP_BASE_URL?method=get_counters');
+
+                                                getPackage('electron-log').expectToContain(
+                                                    '"jsonrpc":"2.0",' +
+                                                    '"id":"number",' +
+                                                    '"method":"get_counters",' +
+                                                    '"params":{}'
+                                                );
+
+                                                getPackage('electron-log').expectToContain(
+                                                    '"new_chat_count":75,' +
+                                                    '"active_chat_count":75,' +
+                                                    '"active_with_unread_count":75,' +
+                                                    '"closed_chat_count":75'
+                                                );
+
+                                                getPackage('electron-log').expectToContain(
+                                                    'wss://$REACT_APP_SOFTPHONE_BACKEND_HOST/sup/ws/' +
+                                                        'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0 opened'
+                                                );
+
+                                                getPackage('electron-log').expectToContain(
+                                                    ' wss://webrtc.uiscom.ru message sent:' +
+                                                     "\n\n" +
+                                                    'REGISTER sip:voip.uiscom.ru SIP/2.0'
+                                                );
+
+                                                getPackage('electron-log').
+                                                    expectToContain('$REACT_APP_WS_URL message sent:');
+
+                                                getPackage('electron-log').expectToContain(
+                                                    '"access_token":"XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0",' +
+                                                    '"access_type":"jwt",' +
+                                                    '"employee_id":20816,'
+                                                );
 
                                                 if (localStorage.getItem('isLarge') === 'true') {
                                                     throw new Error(
@@ -2224,17 +2306,12 @@ tests.addTest(options => {
                                                 accountRequest.receiveResponse();
                                                 secondAccountRequest.receiveResponse();
 
+                                                tester.countersRequest().receiveResponse();
+
                                                 tester.offlineMessageCountersRequest().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
                                                 tester.siteListRequest().receiveResponse();
                                                 tester.markListRequest().receiveResponse();
-                                                tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                tester.offlineMessageListRequest().processing().receiveResponse();
-                                                tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                tester.countersRequest().receiveResponse();
 
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
@@ -2252,6 +2329,12 @@ tests.addTest(options => {
                                                     secondPage().
                                                     closed().
                                                     receiveResponse();
+
+                                                tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                tester.offlineMessageListRequest().processing().receiveResponse();
+                                                tester.offlineMessageListRequest().processed().receiveResponse();
 
                                                 tester.callsHistoryButton.indicator.expectToBeVisible();
                                             });
@@ -2302,15 +2385,23 @@ tests.addTest(options => {
                                                 recentlySentMessage().
                                                 expectToBeSentToChannel('maximize');
 
-                                            tester.chatSettingsRequest().receiveResponse();
-                                            tester.chatChannelListRequest().receiveResponse();
-                                            tester.statusListRequest().receiveResponse();
-                                            tester.listRequest().receiveResponse();
-                                            tester.siteListRequest().receiveResponse();
-                                            tester.messageTemplateListRequest().receiveResponse();
-
                                             const requests = ajax.inAnyOrder();
-                                            
+
+                                            const chatSettingsRequest = tester.chatSettingsRequest().
+                                                expectToBeSent(requests);
+
+                                            const chatChannelListRequest = tester.chatChannelListRequest().
+                                                expectToBeSent(requests);
+
+                                            const statusListRequest = tester.statusListRequest().
+                                                expectToBeSent(requests);
+
+                                            const listRequest = tester.listRequest().expectToBeSent(requests),
+                                                siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+
+                                            const messageTemplateListRequest = tester.messageTemplateListRequest().
+                                                expectToBeSent(requests);
+
                                             const accountRequest = tester.accountRequest().
                                                 operatorWorkplaceAvailable().
                                                 forChats().
@@ -2326,22 +2417,25 @@ tests.addTest(options => {
                                                 expectToBeSent(requests);
 
                                             requests.expectToBeSent();
-                                                
+
+                                            chatSettingsRequest.receiveResponse();
+                                            chatChannelListRequest.receiveResponse();
+                                            statusListRequest.receiveResponse();
+                                            listRequest.receiveResponse();
+                                            siteListRequest.receiveResponse();
+                                            messageTemplateListRequest.receiveResponse();
                                             accountRequest.receiveResponse();
                                             secondAccountRequest.receiveResponse();
                                             thirdAccountRequest.receiveResponse();
+
+                                            tester.countersRequest().
+                                                noActiveChats().
+                                                receiveResponse();
 
                                             tester.offlineMessageCountersRequest().newMessage().receiveResponse();
                                             tester.chatChannelListRequest().receiveResponse();
                                             tester.siteListRequest().receiveResponse();
                                             tester.markListRequest().receiveResponse();
-                                            tester.chatChannelTypeListRequest().receiveResponse();
-
-                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                            tester.offlineMessageListRequest().processing().receiveResponse();
-                                            tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                            tester.countersRequest().noActiveChats().receiveResponse();
 
                                             tester.chatListRequest().
                                                 forCurrentEmployee().
@@ -2360,6 +2454,12 @@ tests.addTest(options => {
                                                 anyScrollFromDate().
                                                 closed().
                                                 receiveResponse();
+
+                                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                            tester.offlineMessageListRequest().processing().receiveResponse();
+                                            tester.offlineMessageListRequest().processed().receiveResponse();
                                         });
 
                                         it(
@@ -2424,19 +2524,14 @@ tests.addTest(options => {
                                             secondAccountRequest.receiveResponse();
                                             thirdAccountRequest.receiveResponse();
                                             
+                                            tester.countersRequest().
+                                                noActiveChatsWithUnreadMessages().
+                                                receiveResponse();
+
                                             tester.offlineMessageCountersRequest().receiveResponse();
                                             tester.chatChannelListRequest().receiveResponse();
                                             tester.siteListRequest().receiveResponse();
                                             tester.markListRequest().receiveResponse();
-                                            tester.chatChannelTypeListRequest().receiveResponse();
-
-                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                            tester.offlineMessageListRequest().processing().receiveResponse();
-                                            tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                            tester.countersRequest().
-                                                noActiveChatsWithUnreadMessages().
-                                                receiveResponse();
 
                                             tester.chatListRequest().
                                                 forCurrentEmployee().
@@ -2455,6 +2550,12 @@ tests.addTest(options => {
                                                 anyScrollFromDate().
                                                 closed().
                                                 receiveResponse();
+
+                                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                            tester.offlineMessageListRequest().processing().receiveResponse();
+                                            tester.offlineMessageListRequest().processed().receiveResponse();
 
                                             tester.button('Новые 75').expectToBePressed();
                                             tester.button('В работе').expectNotToBePressed();
@@ -2488,14 +2589,22 @@ tests.addTest(options => {
                                                 recentlySentMessage().
                                                 expectToBeSentToChannel('maximize');
 
-                                            tester.chatSettingsRequest().receiveResponse();
-                                            tester.chatChannelListRequest().receiveResponse();
-                                            tester.statusListRequest().receiveResponse();
-                                            tester.listRequest().receiveResponse();
-                                            tester.siteListRequest().receiveResponse();
-                                            tester.messageTemplateListRequest().receiveResponse();
-
                                             const requests = ajax.inAnyOrder();
+
+                                            const chatSettingsRequest = tester.chatSettingsRequest().
+                                                expectToBeSent(requests);
+
+                                            const chatChannelListRequest = tester.chatChannelListRequest().
+                                                expectToBeSent(requests);
+
+                                            const statusListRequest = tester.statusListRequest().
+                                                expectToBeSent(requests);
+
+                                            const listRequest = tester.listRequest().expectToBeSent(requests),
+                                                siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+
+                                            const messageTemplateListRequest = tester.messageTemplateListRequest().
+                                                expectToBeSent(requests);
 
                                             const accountRequest = tester.accountRequest().
                                                 operatorWorkplaceAvailable().
@@ -2513,23 +2622,24 @@ tests.addTest(options => {
 
                                             requests.expectToBeSent();
 
+                                            chatSettingsRequest.receiveResponse();
+                                            chatChannelListRequest.receiveResponse();
+                                            statusListRequest.receiveResponse();
+                                            listRequest.receiveResponse();
+                                            siteListRequest.receiveResponse();
+                                            messageTemplateListRequest.receiveResponse();
                                             accountRequest.receiveResponse();
                                             chatAccountRequest.receiveResponse();
                                             secondChatAccountRequest.receiveResponse();
+
+                                            tester.countersRequest().
+                                                noNewChatsWithUnreadMessages().
+                                                receiveResponse();
 
                                             tester.offlineMessageCountersRequest().newMessage().receiveResponse();
                                             tester.chatChannelListRequest().receiveResponse();
                                             tester.siteListRequest().receiveResponse();
                                             tester.markListRequest().receiveResponse();
-                                            tester.chatChannelTypeListRequest().receiveResponse();
-
-                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                            tester.offlineMessageListRequest().processing().receiveResponse();
-                                            tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                            tester.countersRequest().
-                                                noNewChatsWithUnreadMessages().
-                                                receiveResponse();
 
                                             tester.chatListRequest().
                                                 forCurrentEmployee().
@@ -2549,6 +2659,12 @@ tests.addTest(options => {
                                                 count(0).
                                                 closed().
                                                 receiveResponse();
+
+                                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                            tester.offlineMessageListRequest().processing().receiveResponse();
+                                            tester.offlineMessageListRequest().processed().receiveResponse();
                                         });
 
                                         it('Получено новое сообщение. Открыта вкладка "В работе".', function() {
@@ -2597,14 +2713,24 @@ tests.addTest(options => {
                                                     recentlySentMessage().
                                                     expectToBeSentToChannel('maximize');
 
-                                                tester.chatSettingsRequest().receiveResponse();
-                                                tester.chatChannelListRequest().receiveResponse();
-                                                tester.statusListRequest().receiveResponse();
-                                                tester.listRequest().receiveResponse();
-                                                tester.siteListRequest().receiveResponse();
-                                                tester.messageTemplateListRequest().receiveResponse();
-
                                                 const requests = ajax.inAnyOrder();
+
+                                                const chatSettingsRequest = tester.chatSettingsRequest().
+                                                    expectToBeSent(requests);
+
+                                                const chatChannelListRequest = tester.chatChannelListRequest().
+                                                    expectToBeSent(requests);
+
+                                                const statusListRequest = tester.statusListRequest().
+                                                    expectToBeSent(requests);
+
+                                                const listRequest = tester.listRequest().expectToBeSent(requests);
+
+                                                const siteListRequest = tester.siteListRequest().
+                                                    expectToBeSent(requests);
+
+                                                const messageTemplateListRequest = tester.messageTemplateListRequest().
+                                                    expectToBeSent(requests);
 
                                                 const accountRequest = tester.accountRequest().
                                                     operatorWorkplaceAvailable().
@@ -2622,23 +2748,24 @@ tests.addTest(options => {
 
                                                 requests.expectToBeSent();
 
+                                                chatSettingsRequest.receiveResponse();
+                                                chatChannelListRequest.receiveResponse();
+                                                statusListRequest.receiveResponse();
+                                                listRequest.receiveResponse();
+                                                siteListRequest.receiveResponse();
+                                                messageTemplateListRequest.receiveResponse();
                                                 accountRequest.receiveResponse();
                                                 chatAccountRequest.receiveResponse();
                                                 secondChatAccountRequest.receiveResponse();
+
+                                                tester.countersRequest().
+                                                    noNewChatsWithUnreadMessages().
+                                                    receiveResponse();
 
                                                 tester.offlineMessageCountersRequest().newMessage().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
                                                 tester.siteListRequest().receiveResponse();
                                                 tester.markListRequest().receiveResponse();
-                                                tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                tester.offlineMessageListRequest().processing().receiveResponse();
-                                                tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                tester.countersRequest().
-                                                    noNewChatsWithUnreadMessages().
-                                                    receiveResponse();
 
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
@@ -2658,6 +2785,12 @@ tests.addTest(options => {
                                                     closed().
                                                     count(0).
                                                     receiveResponse();
+
+                                                tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                tester.offlineMessageListRequest().processing().receiveResponse();
+                                                tester.offlineMessageListRequest().processed().receiveResponse();
 
                                                 setFocus(false);
                                                 tester.newMessage().receive();
@@ -2841,20 +2974,14 @@ tests.addTest(options => {
                                                     accountRequest.receiveResponse();
                                                     secondAccountRequest.receiveResponse();
 
-                                                    tester.offlineMessageCountersRequest().receiveResponse();
-
-                                                    tester.chatChannelListRequest().receiveResponse();
-                                                    tester.siteListRequest().receiveResponse();
-                                                    tester.markListRequest().receiveResponse();
-                                                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
                                                     tester.countersRequest().
                                                         noNewChatsWithUnreadMessages().
                                                         receiveResponse();
+
+                                                    tester.offlineMessageCountersRequest().receiveResponse();
+                                                    tester.chatChannelListRequest().receiveResponse();
+                                                    tester.siteListRequest().receiveResponse();
+                                                    tester.markListRequest().receiveResponse();
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
@@ -2876,18 +3003,18 @@ tests.addTest(options => {
                                                         count(0).
                                                         receiveResponse();
 
+                                                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                    tester.offlineMessageListRequest().processing().receiveResponse();
+                                                    tester.offlineMessageListRequest().processed().receiveResponse();
+
                                                     spendTime(200);
                                                     spendTime(0);
                                                     spendTime(0);
                                                     spendTime(0);
 
                                                     tester.employeesRequest().receiveResponse();
-                                                    tester.chatSettingsRequest().receiveResponse();
-                                                    tester.chatChannelListRequest().receiveResponse();
-                                                    tester.statusListRequest().receiveResponse();
-                                                    tester.listRequest().receiveResponse();
-                                                    tester.siteListRequest().receiveResponse();
-                                                    tester.messageTemplateListRequest().receiveResponse();
 
                                                     tester.changeMessageStatusRequest().
                                                         read().
@@ -2908,6 +3035,13 @@ tests.addTest(options => {
                                                         forChats().
                                                         operatorWorkplaceAvailable().
                                                         receiveResponse();
+
+                                                    tester.chatSettingsRequest().receiveResponse();
+                                                    tester.chatChannelListRequest().receiveResponse();
+                                                    tester.statusListRequest().receiveResponse();
+                                                    tester.listRequest().receiveResponse();
+                                                    tester.siteListRequest().receiveResponse();
+                                                    tester.messageTemplateListRequest().receiveResponse();
                                                 });
 
                                                 it('Открываю вкладку "В работе". Открытый чат отмечен.', function() {
@@ -2992,18 +3126,13 @@ tests.addTest(options => {
                                             accountRequest.receiveResponse();
                                             secondAccountRequest.receiveResponse();
 
+                                            tester.countersRequest().noUnreadMessages().receiveResponse();
+
                                             tester.offlineMessageCountersRequest().receiveResponse();
                                             tester.chatChannelListRequest().receiveResponse();
                                             tester.siteListRequest().receiveResponse();
                                             tester.markListRequest().receiveResponse();
-                                            tester.chatChannelTypeListRequest().receiveResponse();
-
-                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                            tester.offlineMessageListRequest().processing().receiveResponse();
-                                            tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                            tester.countersRequest().noUnreadMessages().receiveResponse();
-
+                                                
                                             tester.chatListRequest().
                                                 forCurrentEmployee().
                                                 anyScrollFromDate().
@@ -3021,7 +3150,18 @@ tests.addTest(options => {
                                                 closed().
                                                 receiveResponse();
 
+                                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                            tester.offlineMessageListRequest().processing().receiveResponse();
+                                            tester.offlineMessageListRequest().processed().receiveResponse();
+
                                             tester.button('Заявки').click();
+
+                                            tester.accountRequest().
+                                                operatorWorkplaceAvailable().
+                                                forChats().
+                                                receiveResponse();
 
                                             tester.chatSettingsRequest().receiveResponse();
                                             tester.chatChannelListRequest().receiveResponse();
@@ -3029,11 +3169,6 @@ tests.addTest(options => {
                                             tester.listRequest().receiveResponse();
                                             tester.siteListRequest().receiveResponse();
                                             tester.messageTemplateListRequest().receiveResponse();
-
-                                            tester.accountRequest().
-                                                operatorWorkplaceAvailable().
-                                                forChats().
-                                                receiveResponse(requests);
 
                                             tester.button('В работе').click();
 
@@ -3108,17 +3243,12 @@ tests.addTest(options => {
                                     accountRequest.receiveResponse();
                                     secondAccountRequest.receiveResponse();
 
+                                    tester.countersRequest().noUnreadMessages().receiveResponse();
+
                                     tester.offlineMessageCountersRequest().newMessage().receiveResponse();
                                     tester.chatChannelListRequest().receiveResponse();
                                     tester.siteListRequest().receiveResponse();
                                     tester.markListRequest().receiveResponse();
-                                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                    tester.countersRequest().noUnreadMessages().receiveResponse();
 
                                     tester.chatListRequest().
                                         forCurrentEmployee().
@@ -3137,6 +3267,11 @@ tests.addTest(options => {
                                         closed().
                                         receiveResponse();
 
+                                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                    tester.offlineMessageListRequest().processing().receiveResponse();
+                                    tester.offlineMessageListRequest().processed().receiveResponse();
 
                                     tester.button('Заявки').expectToBeVisible();
                                 });
@@ -3192,17 +3327,12 @@ tests.addTest(options => {
                                     secondAccountRequest.receiveResponse();
                                     thirdAccountRequest.receiveResponse();
 
+                                    tester.countersRequest().noUnreadMessages().receiveResponse();
+
                                     tester.offlineMessageCountersRequest().newMessage().receiveResponse();
                                     tester.chatChannelListRequest().receiveResponse();
                                     tester.siteListRequest().receiveResponse();
                                     tester.markListRequest().receiveResponse();
-                                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                    tester.countersRequest().noUnreadMessages().receiveResponse();
 
                                     tester.chatListRequest().
                                         forCurrentEmployee().
@@ -3220,6 +3350,12 @@ tests.addTest(options => {
                                         anyScrollFromDate().
                                         closed().
                                         receiveResponse();
+
+                                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                    tester.offlineMessageListRequest().processing().receiveResponse();
+                                    tester.offlineMessageListRequest().processed().receiveResponse();
 
                                     tester.button('Заявки').expectToBePressed();
                                     tester.button('Чаты').expectNotToBePressed();
@@ -3301,21 +3437,22 @@ tests.addTest(options => {
                             tester.chatsWebSocket.connect();
                             tester.chatsInitMessage().expectToBeSent();
 
+                            tester.countersRequest().receiveResponse();
+
                             tester.offlineMessageCountersRequest().receiveResponse();
                             tester.chatChannelListRequest().receiveResponse();
                             tester.siteListRequest().receiveResponse();
                             tester.markListRequest().receiveResponse();
+
+                            tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
                             tester.chatChannelTypeListRequest().receiveResponse();
 
                             tester.offlineMessageListRequest().notProcessed().receiveResponse();
                             tester.offlineMessageListRequest().processing().receiveResponse();
                             tester.offlineMessageListRequest().processed().receiveResponse();
-
-                            tester.countersRequest().receiveResponse();
-
-                            tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
                         });
 
                         it('Нажимаю на кнопку контактов в верхнем тулбаре. Ничего не происходит..', function() {
@@ -3365,6 +3502,12 @@ tests.addTest(options => {
                                     operatorWorkplaceAvailable().
                                     expectToBeSent(requests);
 
+                                secondAccountRequest = tester.accountRequest().
+                                    forChats().
+                                    softphoneUnavailable().
+                                    operatorWorkplaceAvailable().
+                                    expectToBeSent(requests);
+
                                 const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
                                 const statusListRequest = tester.statusListRequest().expectToBeSent(requests);
                                 const listRequest = tester.listRequest().expectToBeSent(requests);
@@ -3376,6 +3519,7 @@ tests.addTest(options => {
                                 requests.expectToBeSent();
 
                                 accountRequest.receiveResponse()
+                                secondAccountRequest.receiveResponse();
                                 chatChannelListRequest.receiveResponse();
                                 statusListRequest.receiveResponse();
                                 listRequest.receiveResponse();
@@ -3383,27 +3527,22 @@ tests.addTest(options => {
                                 messageTemplateListRequest.receiveResponse();
                                 chatSettingsRequest.receiveResponse();
 
-                                tester.accountRequest().
-                                    forChats().
-                                    softphoneUnavailable().
-                                    operatorWorkplaceAvailable().
-                                    receiveResponse();
+                                tester.countersRequest().receiveResponse();
 
                                 tester.offlineMessageCountersRequest().receiveResponse();
                                 tester.chatChannelListRequest().receiveResponse();
                                 tester.siteListRequest().receiveResponse();
                                 tester.markListRequest().receiveResponse();
+
+                                tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                                tester.chatListRequest().forCurrentEmployee().count(0).active().receiveResponse();
+                                tester.chatListRequest().forCurrentEmployee().count(0).closed().receiveResponse();
+
                                 tester.chatChannelTypeListRequest().receiveResponse();
 
                                 tester.offlineMessageListRequest().notProcessed().receiveResponse();
                                 tester.offlineMessageListRequest().processing().receiveResponse();
                                 tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                tester.countersRequest().receiveResponse();
-
-                                tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                                tester.chatListRequest().forCurrentEmployee().count(0).active().receiveResponse();
-                                tester.chatListRequest().forCurrentEmployee().count(0).closed().receiveResponse();
                             });
 
                             describe('Нажимаю на кнопку аккаунта.', function() {
@@ -3457,25 +3596,7 @@ tests.addTest(options => {
                                             operatorWorkplaceAvailable().
                                             receiveResponse();
 
-                                        tester.chatSettingsRequest().receiveResponse();
-                                        tester.chatChannelListRequest().receiveResponse();
-                                        tester.statusListRequest().receiveResponse();
-                                        tester.listRequest().receiveResponse();
-                                        tester.siteListRequest().receiveResponse();
-                                        tester.messageTemplateListRequest().receiveResponse();
-
-                                        tester.accountRequest().
-                                            forChats().
-                                            softphoneUnavailable().
-                                            operatorWorkplaceAvailable().
-                                            receiveResponse();
-
-                                        tester.accountRequest().
-                                            forChats().
-                                            softphoneUnavailable().
-                                            operatorWorkplaceAvailable().
-                                            receiveResponse();
-
+                                        //
                                         tester.accountRequest().
                                             forChats().
                                             softphoneUnavailable().
@@ -3485,21 +3606,35 @@ tests.addTest(options => {
                                         tester.chatsWebSocket.connect();
                                         tester.chatsInitMessage().expectToBeSent();
 
+                                        tester.accountRequest().
+                                            forChats().
+                                            softphoneUnavailable().
+                                            operatorWorkplaceAvailable().
+                                            receiveResponse();
+
+                                        tester.accountRequest().
+                                            forChats().
+                                            softphoneUnavailable().
+                                            operatorWorkplaceAvailable().
+                                            receiveResponse();
+
+                                        tester.chatSettingsRequest().receiveResponse();
+                                        tester.chatChannelListRequest().receiveResponse();
+                                        tester.statusListRequest().receiveResponse();
+                                        tester.listRequest().receiveResponse();
+                                        tester.siteListRequest().receiveResponse();
+                                        tester.messageTemplateListRequest().receiveResponse();
+
                                         chatListRequest = tester.chatListRequest().
                                             forCurrentEmployee().
                                             expectToBeSent();
+
+                                        tester.countersRequest().receiveResponse();
 
                                         tester.offlineMessageCountersRequest().receiveResponse();
                                         tester.chatChannelListRequest().receiveResponse();
                                         tester.siteListRequest().receiveResponse();
                                         tester.markListRequest().receiveResponse();
-                                        tester.chatChannelTypeListRequest().receiveResponse();
-
-                                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                        tester.offlineMessageListRequest().processing().receiveResponse();
-                                        tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                        tester.countersRequest().receiveResponse();
 
                                         secondChatListRequest = tester.chatListRequest().
                                             forCurrentEmployee().
@@ -3516,6 +3651,12 @@ tests.addTest(options => {
                                             count(0).
                                             closed().
                                             receiveResponse();
+
+                                        tester.chatChannelTypeListRequest().receiveResponse();
+
+                                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                        tester.offlineMessageListRequest().processing().receiveResponse();
+                                        tester.offlineMessageListRequest().processed().receiveResponse();
                                     });
 
                                     it('Есть только один новый чат.', function() {
@@ -3694,21 +3835,22 @@ tests.addTest(options => {
                                     tester.chatsWebSocket.connect();
                                     tester.chatsInitMessage().expectToBeSent();
 
+                                    tester.countersRequest().receiveResponse();
+
                                     tester.offlineMessageCountersRequest().receiveResponse();
                                     tester.chatChannelListRequest().receiveResponse();
                                     tester.siteListRequest().receiveResponse();
                                     tester.markListRequest().receiveResponse();
+
+                                    tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                                    tester.chatListRequest().forCurrentEmployee().count(0).active().receiveResponse();
+                                    tester.chatListRequest().forCurrentEmployee().count(0).closed().receiveResponse();
+
                                     tester.chatChannelTypeListRequest().receiveResponse();
 
                                     tester.offlineMessageListRequest().notProcessed().receiveResponse();
                                     tester.offlineMessageListRequest().processing().receiveResponse();
                                     tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                    tester.countersRequest().receiveResponse();
-
-                                    tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                                    tester.chatListRequest().forCurrentEmployee().count(0).active().receiveResponse();
-                                    tester.chatListRequest().forCurrentEmployee().count(0).closed().receiveResponse();
 
                                     authCheckRequest.receiveResponse();
                                     tester.talkOptionsRequest().receiveResponse();
@@ -3831,26 +3973,6 @@ tests.addTest(options => {
                                             height: 630,
                                         });
 
-                                    tester.chatChannelListRequest().receiveResponse();
-                                    tester.statusListRequest().receiveResponse();
-                                    tester.listRequest().receiveResponse();
-                                    tester.siteListRequest().receiveResponse();
-                                    tester.messageTemplateListRequest().receiveResponse();
-
-                                    tester.chatSettingsRequest().receiveResponse();
-
-                                    tester.accountRequest().
-                                        forChats().
-                                        softphoneUnavailable().
-                                        operatorWorkplaceAvailable().
-                                        receiveResponse();
-
-                                    tester.accountRequest().
-                                        forChats().
-                                        softphoneUnavailable().
-                                        operatorWorkplaceAvailable().
-                                        receiveResponse();
-
                                     tester.accountRequest().
                                         forChats().
                                         softphoneUnavailable().
@@ -3860,21 +3982,40 @@ tests.addTest(options => {
                                     tester.chatsWebSocket.connect();
                                     tester.chatsInitMessage().expectToBeSent();
 
+                                    tester.accountRequest().
+                                        forChats().
+                                        softphoneUnavailable().
+                                        operatorWorkplaceAvailable().
+                                        receiveResponse();
+
+                                    tester.chatChannelListRequest().receiveResponse();
+                                    tester.statusListRequest().receiveResponse();
+                                    tester.listRequest().receiveResponse();
+                                    tester.siteListRequest().receiveResponse();
+                                    tester.messageTemplateListRequest().receiveResponse();
+
+                                    tester.accountRequest().
+                                        forChats().
+                                        softphoneUnavailable().
+                                        operatorWorkplaceAvailable().
+                                        receiveResponse();
+
+                                    tester.chatSettingsRequest().receiveResponse();
+                                    tester.countersRequest().receiveResponse();
                                     tester.offlineMessageCountersRequest().receiveResponse();
                                     tester.chatChannelListRequest().receiveResponse();
                                     tester.siteListRequest().receiveResponse();
                                     tester.markListRequest().receiveResponse();
+
+                                    tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                                    tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
                                     tester.chatChannelTypeListRequest().receiveResponse();
 
                                     tester.offlineMessageListRequest().notProcessed().receiveResponse();
                                     tester.offlineMessageListRequest().processing().receiveResponse();
                                     tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                    tester.countersRequest().receiveResponse();
-
-                                    tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                                    tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                                    tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
                                         
                                     tester.leftMenu.userName.click();
                                     tester.statusesList.item('Выход').click();
@@ -3954,21 +4095,22 @@ tests.addTest(options => {
                             tester.chatsWebSocket.connect();
                             tester.chatsInitMessage().expectToBeSent();
 
+                            tester.countersRequest().receiveResponse();
+
                             tester.offlineMessageCountersRequest().receiveResponse();
                             tester.chatChannelListRequest().receiveResponse();
                             tester.siteListRequest().receiveResponse();
                             tester.markListRequest().receiveResponse();
+
+                            tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
                             tester.chatChannelTypeListRequest().receiveResponse();
 
                             tester.offlineMessageListRequest().notProcessed().receiveResponse();
                             tester.offlineMessageListRequest().processing().receiveResponse();
                             tester.offlineMessageListRequest().processed().receiveResponse();
-
-                            tester.countersRequest().receiveResponse();
-
-                            tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
                         });
 
                         it('Разворачиваю приложение. Открываю список статусов.', function() {
@@ -4008,17 +4150,12 @@ tests.addTest(options => {
                             accountRequest.receiveResponse();
                             secondAccountRequest.receiveResponse();
 
+                            tester.countersRequest().receiveResponse();
+
                             tester.offlineMessageCountersRequest().receiveResponse();
                             tester.chatChannelListRequest().receiveResponse();
                             tester.siteListRequest().receiveResponse();
                             tester.markListRequest().receiveResponse();
-                            tester.chatChannelTypeListRequest().receiveResponse();
-
-                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                            tester.offlineMessageListRequest().processing().receiveResponse();
-                            tester.offlineMessageListRequest().processed().receiveResponse();
-
-                            tester.countersRequest().receiveResponse();
 
                             tester.chatListRequest().
                                 forCurrentEmployee().
@@ -4036,6 +4173,12 @@ tests.addTest(options => {
                                 secondPage().
                                 closed().
                                 receiveResponse();
+
+                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                            tester.offlineMessageListRequest().processing().receiveResponse();
+                            tester.offlineMessageListRequest().processed().receiveResponse();
 
                             tester.leftMenu.userName.click();
 
@@ -4097,21 +4240,22 @@ tests.addTest(options => {
                         tester.chatsWebSocket.connect();
                         tester.chatsInitMessage().expectToBeSent();
 
+                        tester.countersRequest().receiveResponse();
+
                         tester.offlineMessageCountersRequest().receiveResponse();
                         tester.chatChannelListRequest().receiveResponse();
                         tester.siteListRequest().receiveResponse();
                         tester.markListRequest().receiveResponse();
+
+                        tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                        tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                        tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
                         tester.chatChannelTypeListRequest().receiveResponse();
 
                         tester.offlineMessageListRequest().notProcessed().receiveResponse();
                         tester.offlineMessageListRequest().processing().receiveResponse();
                         tester.offlineMessageListRequest().processed().receiveResponse();
-
-                        tester.countersRequest().receiveResponse();
-
-                        tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                        tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                        tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                         tester.callsHistoryButton.expectToBeEnabled();
                     });
@@ -4172,17 +4316,12 @@ tests.addTest(options => {
                         tester.chatsWebSocket.connect();
                         tester.chatsInitMessage().expectToBeSent();
 
+                        countersRequest = tester.countersRequest().expectToBeSent();
+
                         offlineMessageCountersRequest = tester.offlineMessageCountersRequest().expectToBeSent();
                         tester.chatChannelListRequest().receiveResponse();
                         tester.siteListRequest().receiveResponse();
                         tester.markListRequest().receiveResponse();
-                        tester.chatChannelTypeListRequest().receiveResponse();
-
-                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                        tester.offlineMessageListRequest().processing().receiveResponse();
-                        tester.offlineMessageListRequest().processed().receiveResponse();
-                            
-                        countersRequest = tester.countersRequest().expectToBeSent();
 
                         newChatListRequest = tester.chatListRequest().forCurrentEmployee().
                             expectToBeSent();
@@ -4191,6 +4330,12 @@ tests.addTest(options => {
                         closedChatListRequest = tester.chatListRequest().forCurrentEmployee().closed().
                             expectToBeSent();
 
+                        tester.chatChannelTypeListRequest().receiveResponse();
+
+                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                        tester.offlineMessageListRequest().processing().receiveResponse();
+                        tester.offlineMessageListRequest().processed().receiveResponse();
+                            
                         offlineMessageCountersRequest.receiveResponse();
                         countersRequest.receiveResponse();
 
@@ -4423,21 +4568,22 @@ tests.addTest(options => {
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
 
+                tester.countersRequest().receiveResponse();
+
                 tester.offlineMessageCountersRequest().receiveResponse();
                 tester.chatChannelListRequest().receiveResponse();
                 tester.siteListRequest().receiveResponse();
                 tester.markListRequest().receiveResponse();
+
+                tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
                 tester.chatChannelTypeListRequest().receiveResponse();
 
                 tester.offlineMessageListRequest().notProcessed().receiveResponse();
                 tester.offlineMessageListRequest().processing().receiveResponse();
                 tester.offlineMessageListRequest().processed().receiveResponse();
-
-                tester.countersRequest().receiveResponse();
-
-                tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
             });
 
             describe('Нажимаю на кнопку максимизации.', function() {
@@ -4476,17 +4622,12 @@ tests.addTest(options => {
                     accountRequest.receiveResponse();
                     secondAccountRequest.receiveResponse();
 
+                    tester.countersRequest().receiveResponse();
+
                     tester.offlineMessageCountersRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
                     tester.markListRequest().receiveResponse();
-                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                    tester.offlineMessageListRequest().processing().receiveResponse();
-                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                    tester.countersRequest().receiveResponse();
 
                     tester.chatListRequest().
                         forCurrentEmployee().
@@ -4504,6 +4645,12 @@ tests.addTest(options => {
                         secondPage().
                         closed().
                         receiveResponse();
+
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
                 });
 
                 it('Нажимаю на кнопку видимости. Поступил входящий звонок. Софтфон видим.', function() {
@@ -4582,17 +4729,12 @@ tests.addTest(options => {
                     secondAccountRequest.receiveResponse();
                     contactsRequest.receiveResponse();
 
+                    tester.countersRequest().receiveResponse();
+
                     tester.offlineMessageCountersRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
                     tester.markListRequest().receiveResponse();
-                    tester.chatChannelTypeListRequest().receiveResponse();
-
-                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                    tester.offlineMessageListRequest().processing().receiveResponse();
-                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                    tester.countersRequest().receiveResponse();
 
                     tester.chatListRequest().
                         forCurrentEmployee().
@@ -4610,6 +4752,12 @@ tests.addTest(options => {
                         secondPage().
                         closed().
                         receiveResponse();
+
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
                 });
 
                 it('Скрываю софтфон. Открываю контакт.', function() {
@@ -4827,21 +4975,22 @@ tests.addTest(options => {
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
 
+                tester.countersRequest().receiveResponse();
+
                 tester.offlineMessageCountersRequest().receiveResponse();
                 tester.chatChannelListRequest().receiveResponse();
                 tester.siteListRequest().receiveResponse();
                 tester.markListRequest().receiveResponse();
+
+                tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
                 tester.chatChannelTypeListRequest().receiveResponse();
 
                 tester.offlineMessageListRequest().notProcessed().receiveResponse();
                 tester.offlineMessageListRequest().processing().receiveResponse();
                 tester.offlineMessageListRequest().processed().receiveResponse();
-
-                tester.countersRequest().receiveResponse();
-
-                tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
             });
 
             it('Поступил входящий звонок. Отправлено сообщение о необходимости поднять окно софтфона.', function() {
@@ -4966,21 +5115,22 @@ tests.addTest(options => {
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
 
+                tester.countersRequest().receiveResponse();
+
                 tester.offlineMessageCountersRequest().receiveResponse();
                 tester.chatChannelListRequest().receiveResponse();
                 tester.siteListRequest().receiveResponse();
                 tester.markListRequest().receiveResponse();
+
+                tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
                 tester.chatChannelTypeListRequest().receiveResponse();
 
                 tester.offlineMessageListRequest().notProcessed().receiveResponse();
                 tester.offlineMessageListRequest().processing().receiveResponse();
                 tester.offlineMessageListRequest().processed().receiveResponse();
-
-                tester.countersRequest().receiveResponse();
-
-                tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
             });
 
             it('Нажимаю на кнопку максимизации. Поступил входящий звонок. Звонок завершен. Софтфон видим.', function() {
@@ -5018,17 +5168,12 @@ tests.addTest(options => {
                 accountRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
 
+                tester.countersRequest().receiveResponse();
+
                 tester.offlineMessageCountersRequest().receiveResponse();
                 tester.chatChannelListRequest().receiveResponse();
                 tester.siteListRequest().receiveResponse();
                 tester.markListRequest().receiveResponse();
-                tester.chatChannelTypeListRequest().receiveResponse();
-
-                tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                tester.offlineMessageListRequest().processing().receiveResponse();
-                tester.offlineMessageListRequest().processed().receiveResponse();
-
-                tester.countersRequest().receiveResponse();
 
                 tester.chatListRequest().
                     forCurrentEmployee().
@@ -5046,6 +5191,12 @@ tests.addTest(options => {
                     secondPage().
                     closed().
                     receiveResponse();
+
+                tester.chatChannelTypeListRequest().receiveResponse();
+
+                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                tester.offlineMessageListRequest().processing().receiveResponse();
+                tester.offlineMessageListRequest().processed().receiveResponse();
 
                 const incomingCall = tester.incomingCall().receive();
                 tester.numaRequest().receiveResponse();
@@ -5211,21 +5362,22 @@ tests.addTest(options => {
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
 
+                tester.countersRequest().receiveResponse();
+
                 tester.offlineMessageCountersRequest().receiveResponse();
                 tester.chatChannelListRequest().receiveResponse();
                 tester.siteListRequest().receiveResponse();
                 tester.markListRequest().receiveResponse();
+
+                tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
                 tester.chatChannelTypeListRequest().receiveResponse();
 
                 tester.offlineMessageListRequest().notProcessed().receiveResponse();
                 tester.offlineMessageListRequest().processing().receiveResponse();
                 tester.offlineMessageListRequest().processed().receiveResponse();
-
-                tester.countersRequest().receiveResponse();
-
-                tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
             });
 
             it(
@@ -5351,21 +5503,22 @@ tests.addTest(options => {
             tester.chatsWebSocket.connect();
             tester.chatsInitMessage().expectToBeSent();
 
+            tester.countersRequest().receiveResponse();
+
             tester.offlineMessageCountersRequest().receiveResponse();
             tester.chatChannelListRequest().receiveResponse();
             tester.siteListRequest().receiveResponse();
             tester.markListRequest().receiveResponse();
+
+            tester.chatListRequest().forCurrentEmployee().receiveResponse();
+            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
             tester.chatChannelTypeListRequest().receiveResponse();
 
             tester.offlineMessageListRequest().notProcessed().receiveResponse();
             tester.offlineMessageListRequest().processing().receiveResponse();
             tester.offlineMessageListRequest().processed().receiveResponse();
-
-            tester.countersRequest().receiveResponse();
-
-            tester.chatListRequest().forCurrentEmployee().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
@@ -5458,21 +5611,22 @@ tests.addTest(options => {
             tester.chatsWebSocket.connect();
             tester.chatsInitMessage().expectToBeSent();
 
+            tester.countersRequest().receiveResponse();
+
             tester.offlineMessageCountersRequest().receiveResponse();
             tester.chatChannelListRequest().receiveResponse();
             tester.siteListRequest().receiveResponse();
             tester.markListRequest().receiveResponse();
+
+            tester.chatListRequest().forCurrentEmployee().receiveResponse();
+            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
             tester.chatChannelTypeListRequest().receiveResponse();
 
             tester.offlineMessageListRequest().notProcessed().receiveResponse();
             tester.offlineMessageListRequest().processing().receiveResponse();
             tester.offlineMessageListRequest().processed().receiveResponse();
-
-            tester.countersRequest().receiveResponse();
-
-            tester.chatListRequest().forCurrentEmployee().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
             tester.phoneField.expectToHaveValue('Введите номер');
         });
@@ -5552,21 +5706,22 @@ tests.addTest(options => {
             tester.chatsWebSocket.connect();
             tester.chatsInitMessage().expectToBeSent();
 
+            tester.countersRequest().receiveResponse();
+
             tester.offlineMessageCountersRequest().receiveResponse();
             tester.chatChannelListRequest().receiveResponse();
             tester.siteListRequest().receiveResponse();
             tester.markListRequest().receiveResponse();
+
+            tester.chatListRequest().forCurrentEmployee().receiveResponse();
+            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
             tester.chatChannelTypeListRequest().receiveResponse();
 
             tester.offlineMessageListRequest().notProcessed().receiveResponse();
             tester.offlineMessageListRequest().processing().receiveResponse();
             tester.offlineMessageListRequest().processed().receiveResponse();
-
-            tester.countersRequest().receiveResponse();
-
-            tester.chatListRequest().forCurrentEmployee().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
             tester.dialpadButton(1).expectToBeVisible();
         });

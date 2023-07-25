@@ -1355,6 +1355,86 @@ tests.addTest(options => {
                                                         tester.softphone.expectToBeExpanded();
                                                     });
                                                 });
+                                                describe(
+                                                    'Прошло некоторое время. Сервер событий не отвечает.',
+                                                function() {
+                                                    beforeEach(function() {
+                                                        spendTime(5000);
+                                                        tester.expectPingToBeSent();
+                                                        spendTime(1000);
+                                                        tester.receivePong();
+
+                                                        spendTime(5000);
+                                                        tester.expectPingToBeSent();
+                                                        spendTime(2000);
+                                                        spendTime(0);
+
+                                                        tester.slavesNotification().
+                                                            twoChannels().
+                                                            registered().
+                                                            webRTCServerConnected().
+                                                            microphoneAccessGranted().
+                                                            userDataFetched().
+                                                            expectToBeSent();
+                                                    });
+
+                                                    it(
+                                                        'Получен понг. Нажимаю на кнопку с жуком. Скачивается лог. В ' +
+                                                        'логе отсутствует пинг-понг.',
+                                                    function() {
+                                                        tester.receivePong();
+
+                                                        tester.slavesNotification().
+                                                            twoChannels().
+                                                            available().
+                                                            expectToBeSent();
+
+                                                        tester.slavesNotification().
+                                                            twoChannels().
+                                                            available().
+                                                            expectToBeSent();
+
+                                                        tester.authenticatedUserRequest().receiveResponse();
+                                                        tester.bugButton.click();
+
+                                                        tester.anchor.withFileName('20191219.121007.000.log.txt').
+                                                            expectHrefToBeBlobWithoutSubstring(
+                                                                'message sent:' +
+                                                                "\n\n" +
+                                                                '{"type":"ping","data":"ping"}'
+                                                            );
+
+                                                        tester.anchor.withFileName('20191219.121007.000.log.txt').
+                                                            expectHrefToBeBlobWithoutSubstring(
+                                                                'message received:' +
+                                                                "\n\n" +
+                                                                '{"type":"ping","data":"pong"}'
+                                                            );
+
+                                                        tester.anchor.withFileName('20191219.121007.000.log.txt').
+                                                            expectHrefToBeBlobWithSubstring('Pong received');
+                                                    });
+                                                    it(
+                                                        'Нажимаю на кнопку с жуком. Скачивается лог. В логе ' +
+                                                        'присутствует сообщение о том, что понг не был получен ' +
+                                                        'вовремя.',
+                                                    function() {
+                                                        tester.bugButton.click();
+
+                                                        tester.anchor.withFileName('20191219.121007.000.log.txt').
+                                                            expectHrefToBeBlobWithSubstring(
+                                                                'Pong was not received in time'
+                                                            );
+
+                                                        tester.anchor.withFileName('20191219.121007.000.log.txt').
+                                                            expectHrefToBeBlobWithoutSubstring('Pong received');
+                                                    });
+                                                    it('Отображено сообщение об установке соединения.', function() {
+                                                        tester.softphone.expectToHaveTextContent(
+                                                            'Устанавливается соединение...'
+                                                        );
+                                                    });
+                                                });
                                                 it(
                                                     'Софтфон открыт в другом окне. Отображено сообщение о том, что ' +
                                                     'софтфон открыт в другом окне.',
@@ -1377,27 +1457,6 @@ tests.addTest(options => {
 
                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                         'Софтфон открыт в другом окне'
-                                                    );
-                                                });
-                                                it(
-                                                    'Прошло некоторое время. Сервер событий не отвечает. Отображено ' +
-                                                    'сообщение об установке соединения.',
-                                                function() {
-                                                    spendTime(5000);
-                                                    tester.expectPingToBeSent();
-                                                    spendTime(2000);
-                                                    spendTime(0);
-
-                                                    tester.slavesNotification().
-                                                        twoChannels().
-                                                        registered().
-                                                        webRTCServerConnected().
-                                                        microphoneAccessGranted().
-                                                        userDataFetched().
-                                                        expectToBeSent();
-
-                                                    tester.softphone.expectToHaveTextContent(
-                                                        'Устанавливается соединение...'
                                                     );
                                                 });
                                                 it(
@@ -1751,9 +1810,11 @@ tests.addTest(options => {
                                                 it('Нажимаю на кнопку с жуком. Скачивается лог.', function() {
                                                     tester.bugButton.click();
 
-                                                    windowOpener.expectTextToContain(
-                                                        'URL "https://$REACT_APP_SOFTPHONE_BACKEND_HOST/sup/auth/check"'
-                                                    );
+                                                    tester.anchor.withFileName('20191219.121007.000.log.txt').
+                                                        expectHrefToBeBlobWithSubstring(
+                                                            'GET https://$REACT_APP_SOFTPHONE_BACKEND_HOST' +
+                                                            '/sup/auth/check'
+                                                        );
                                                 });
                                                 it('Отображен софтфон.', function() {
                                                     if (localStorage.getItem('isSoftphoneHigh') != 'false') {
@@ -1837,6 +1898,12 @@ tests.addTest(options => {
                                             tester.ticketCreatingRequest().
                                                 logAttached().
                                                 receiveResponse();
+
+                                            blobsTester.some(blob => blob.expectToHaveSubstring(
+                                                ' wss://webrtc.uiscom.ru message sent:' +
+                                                 "\n\n" +
+                                                'REGISTER sip:voip.uiscom.ru SIP/2.0'
+                                            ));
                                         });
                                         it(
                                             'Отображен пункт меню. Софтфон скрыт. Отображается статус сотрудника.',

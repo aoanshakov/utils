@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index b966defa..de5e3a3c 100644
+index b966defa..b03a7376 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -26,7 +26,7 @@ index b966defa..de5e3a3c 100644
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
-+const subModules = ['chats', 'analytics/frontend'];
++const subModules = ['chats'];
  
  const lessLoader = {
      loader: 'less-loader',
@@ -329,7 +329,7 @@ index b966defa..de5e3a3c 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 7c6e21e9..486b2630 100644
+index 10af087c..171a458f 100644
 --- a/package.json
 +++ b/package.json
 @@ -67,12 +67,18 @@
@@ -354,7 +354,7 @@ index 7c6e21e9..486b2630 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -84,7 +90,7 @@
+@@ -85,7 +91,7 @@
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
@@ -363,7 +363,7 @@ index 7c6e21e9..486b2630 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -94,6 +100,11 @@
+@@ -95,6 +101,11 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "6.9.0",
@@ -539,28 +539,289 @@ index abb1f850..e0ed2323 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 0fa9b7f4..f21b77d7 100644
+index 0fa9b7f4..7c5c16d2 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -199,7 +199,7 @@ export const RootStore = types
+@@ -5,6 +5,8 @@ import React from 'react';
+ import moment from 'moment';
+ import * as fileSaver from 'file-saver';
+ 
++import Logger, { LoggerStrategy } from '@comagic/logger';
++
+ import { AuthStore, getToken } from '@models/auth/AuthStore';
+ import { MenuStore } from '@models/menu/MenuStore';
+ import { RootReportStore } from '@models/reports/RootReportStore';
+@@ -12,9 +14,11 @@ import { RootReportStore } from '@models/reports/RootReportStore';
+ import { GOD_MODE } from '@/config';
+ import { httpRpc, httpRpcAuth } from '@/rpc';
+ import { HttpRpc } from '@/rpc/httpRpc';
++import { url as authUrl } from '@/rpc/httpRpcAuth';
+ import { isSoftphoneAvailable, getWorkplaceAvailability } from '@/utils';
+ import { getProject } from '@/i18n';
+ 
++const loginUrl = `${authUrl}?method=login`;
+ const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
+ const ACCESS_TOKEN_INVALID = 'access_token_invalid';
+ const IP_NOT_WHITELISTED = 'ip_not_whitelisted';
+@@ -50,6 +54,55 @@ window.addEventListener('error', function(event) {
+     return false;
+ });
+ 
++export class DesktopLoggerStrategy {
++    #rootStore = null;
++
++    constructor(rootStore) {
++        this.#rootStore = rootStore;
++
++        getIpcRender().on('logs_collected', (event, data, index) => rootStore.handleLogsCollected(
++            data as BlobPart,
++            index,
++        ));
++    }
++
++    getLogs() {
++        return new Promise(resolve => this.#rootStore.collectLogs(resolve));
++    }
++
++    log(...messages) {
++        log(...messages);
++    }
++}
++
++const filterPassword = messages => {
++    [0, 1].forEach(index => {
++        if (messages?.[index] != `POST ${loginUrl}`) {
++            return;
++        }
++
++        index ++;
++
++        const params = (message => {
++            if (typeof message == 'object') {
++                return message;
++            }
++
++            try {
++                return JSON.parse(message);
++            } catch (e) {
++                console.error(e);
++                return {};
++            }
++        })(messages[index]);
++
++        params?.params?.password = '***';
++        messages[index] = params;
++    });
++
++    return messages;
++};
++
+ export const RootStore = types
+     .model('RootStore', {
+         credentials: types.optional(types.array(types.model({
+@@ -78,21 +131,17 @@ export const RootStore = types
+         return { setIsIpDisallowed };
+     })
+     .actions(self => {
++        let callbacks = [];
+         let initialState: RootInstanceSnapshotOut;
+         let requestsToRefresh: RequestToRefresh[] = [];
+         let isRefreshRequesting = false;
+-        let subscriptionRemovers: Array<() => void> = [];
+ 
+         const setSoftphoneVisiblity = value => (self.isSoftphoneVisible = value),
+-            toggleSoftphoneVisiblity = () => setSoftphoneVisiblity(!self.isSoftphoneVisible);
++            toggleSoftphoneVisiblity = () => setSoftphoneVisiblity(!self.isSoftphoneVisible),
++            loggerStrategy = window.rootConfig?.appName ? new DesktopLoggerStrategy(self) : new LoggerStrategy(),
++            logger = new Logger(loggerStrategy);
+ 
+-        const subscribe: (eventName: string, callback: CallableFunction) => void = (...args) =>
+-            subscriptionRemovers.push(eventBus.subscribe(...args));
+-
+-        const removeSubscriptions = () => {
+-            subscriptionRemovers.forEach(removeSubscription => removeSubscription());
+-            subscriptionRemovers = [];
+-        };
++        logger.filter(filterPassword);
+ 
+         const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
+             const auth = getToken();
+@@ -136,32 +185,6 @@ export const RootStore = types
+             });
+         };
+ 
+-        const logRequest = ({
+-            response: r,
+-            isError
+-        }) => {
+-            if (!r) {
+-                return;
+-            }
+-
+-            const {
+-                data: response,
+-                config: {
+-                    data,
+-                    url,
+-                    method
+-                }
+-            } = r;
+-
+-            log([
+-                'Ajax request',
+-                `URL "${url}"`,
+-                `Method "${method}"`,
+-                `Parameters ${typeof data == 'object' ? JSON.stringify(data) : data}`,
+-                `${isError ? 'Error' : 'Response'} ${JSON.stringify(response)}`
+-            ].join("\n"));
+-        };
+-
+         const setHttpRequestsDefault = () => {
+             axios.defaults.headers.post['Accept'] = 'application/json';
+             axios.defaults.headers.post['Content-Type'] = 'application/json';
+@@ -199,10 +222,8 @@ export const RootStore = types
                  }
              );
  
 -            axios.interceptors.response.use(
-+            window.axiosInterceptors = axios.interceptors.response.use(
++            window.axiosInterceptors = [axios.interceptors.response.use(
                  response => {
-                     logRequest({response});
+-                    logRequest({response});
+-
+                     if (response.data.error) {
+                         const {
+                             config,
+@@ -220,9 +241,7 @@ export const RootStore = types
+                             self.setIsIpDisallowed(true);
+                         }
+                     } else {
+-                        if (response.config.url == `${
+-                            process.env.REACT_APP_AUTH_URL || '$REACT_APP_AUTH_URL'
+-                        }?method=login` && !self.authStore.dontKeepMeSignedIn) {
++                        if (response.config.url == loginUrl && !self.authStore.dontKeepMeSignedIn) {
+                             const params = (params => {
+                                 if (!params) {
+                                     return {};
+@@ -246,11 +265,6 @@ export const RootStore = types
+                     return response;
+                 },
+                 error => {
+-                    logRequest({
+-                        response: error.response,
+-                        isError: true
+-                    });
+-
+                     if (error?.response?.status === 401) {
+                         const errorMnemonic = error.response.data.split(' ').slice(-1)[0];
+                         if (errorMnemonic === ACCESS_TOKEN_EXPIRED) {
+@@ -265,25 +279,28 @@ export const RootStore = types
  
-@@ -282,6 +282,8 @@ export const RootStore = types
+                     return Promise.reject(error);
+                 }
+-            );
++            ), logger.applyToAxios(axios)];
+         };
+ 
+-        const downloadLog = () => {
++        const collectLogs = callback => {
++            const index = callbacks.length;
+             self.isLogDownloading = true;
+-            getIpcRender().send('collect_logs');
++
++            callbacks.push(callback);
++            getIpcRender().send('collect_logs', index);
+         };
+ 
+-        const handleLogsCollected = data => {
++        const handleLogsCollected = (data, index) => {
+             self.isLogDownloading = false;
+-
+-            fileSaver.saveAs(new Blob([data], {
+-                type: 'application/zip'
+-            }), `Softphone.${moment().format('YYYYMMDD.HHmmss.SSS')}.log.zip`)
++            (callbacks(index) || (() => null))(data);
          };
  
          const afterCreate = () => {
-+            window.axiosInterceptors !== undefined && axios.interceptors.response.eject(window.axiosInterceptors);
++            window.axiosInterceptors !== undefined && window.axiosInterceptors.forEach(
++                interceptor => axios.interceptors.response.eject(interceptor)
++            );
 +
              let isMaximizedCurrently = false;
-             removeSubscriptions();
+-            removeSubscriptions();
  
-@@ -388,7 +390,8 @@ export type DependencyInjection = {
+             const maximizednessChangeHandler = (isMaximized: boolean) => {
+                 self.setMaximized(isMaximized);
+@@ -295,27 +312,27 @@ export const RootStore = types
+             setHttpRequestsDefault();
+ 
+             getIpcRender().send('opened');
+-            subscribe('set_auth_error', value => self.setAuthError(value));
++            eventBus.subscribe('set_auth_error', value => self.setAuthError(value));
+ 
+-            subscribe('call_start', (toTopOnCall: string) => {
++            eventBus.subscribe('call_start', (toTopOnCall: string) => {
+                 getIpcRender().send('call-start', toTopOnCall);
+                 toTopOnCall && self.setSoftphoneVisiblity(true);
+             });
+ 
+-            subscribe('call_end', (closeOnCallEnd: string) => {
++            eventBus.subscribe('call_end', (closeOnCallEnd: string) => {
+                 getIpcRender().send('call-end', closeOnCallEnd);
+                 closeOnCallEnd && self.setSoftphoneVisiblity(false);
+             });
+ 
+-            subscribe('log', log);
+-            subscribe('collect_logs', () => self.downloadLog());
+-            subscribe('maximize', () => maximizednessChangeHandler(true));
+-            subscribe('unmaximize', () => maximizednessChangeHandler(false));
+-            subscribe('resize', size => getIpcRender().send('resize', size));
+-            subscribe('startminimizechange', value => getIpcRender().send('startminimizechange', value));
+-            subscribe('autolauncherchange', value => getIpcRender().send('autolauncherchange', value));
++            eventBus.subscribe('collect_logs', callback => loggerStrategy.getLogs().then(callback));
++            eventBus.subscribe('log', (...messages) => loggerStrategy.log(...messages));
++            eventBus.subscribe('maximize', () => maximizednessChangeHandler(true));
++            eventBus.subscribe('unmaximize', () => maximizednessChangeHandler(false));
++            eventBus.subscribe('resize', size => getIpcRender().send('resize', size));
++            eventBus.subscribe('startminimizechange', value => getIpcRender().send('startminimizechange', value));
++            eventBus.subscribe('autolauncherchange', value => getIpcRender().send('autolauncherchange', value));
+ 
+-            subscribe('app_ready', () => {
++            eventBus.subscribe('app_ready', () => {
+                 getIpcRender().on('checkautolauncher', (event, data) =>
+                     eventBus.broadcast('checkautolauncher', (data as { isStartApp: boolean }).isStartApp));
+ 
+@@ -331,8 +348,6 @@ export const RootStore = types
+             });
+ 
+             initialState = getSnapshot(self);
+-
+-            getIpcRender().on('logs_collected', (event, data) => self.handleLogsCollected(data as BlobPart));
+             getIpcRender().on('credentials', (event, data) => self.setCredentials(data));
+         };
+ 
+@@ -360,11 +375,6 @@ export const RootStore = types
+             getIpcRender().send('quit-and-install');
+         };
+ 
+-        self.fileLogger = {
+-            downloadLog: () => self.downloadLog(),
+-            log
+-        };
+-
+         return {
+             afterCreate,
+             resetStore,
+@@ -374,7 +384,7 @@ export const RootStore = types
+             setCredentials,
+             setMaximized,
+             setAuthError,
+-            downloadLog,
++            collectLogs,
+             handleLogsCollected,
+             toggleSoftphoneVisiblity,
+             setSoftphoneVisiblity,
+@@ -388,7 +398,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

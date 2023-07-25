@@ -2583,6 +2583,19 @@ function JsTester_BlobTester(args) {
         return this;
     };
 
+    this.expectNotToHaveSubstring = function (expectedSubstring) {
+        var actualContent = getActualContent();
+
+        if (actualContent.includes(expectedSubstring)) {
+            throw new Error(
+                'Блоб не должен содержать такую подстроку:' + "\n\n" + expectedSubstring + "\n\n" + 'Однако он имеет ' +
+                'такое содержание ' + "\n\n" + actualContent + "\n\n"
+            );
+        }
+
+        return this;
+    };
+
     this.expectToHaveContent = function (expectedContent) {
         var actualContent = getActualContent();
 
@@ -2652,6 +2665,26 @@ function JsTester_BlobsTester (args) {
         }
 
         return blobs[id];
+    };
+    this.some = function (callback) {
+        if (!blobs.length) {
+            throw new Error('Должен существовать хотя бы один блоб');
+        }
+
+        const errors = [];
+
+        blobs.forEach(blob => {
+            try {
+                callback(blob);
+            } catch (e) {
+                errors.push(e);
+            }
+        });
+
+        if (errors.length == blobs.length) {
+            errors.forEach(error => console.error(error));
+            throw new Error('Ни один блоб не удовлетворяет ожиданиям');
+        }
     };
 }
 
@@ -3947,7 +3980,7 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
         return new JsTests_NonStrictExpectaion(expectedValue);
     };
         
-    this.expectFileContentToHaveSubstring = function (expectedValue) {
+    this.expectFileToHaveSubstring = function (expectedValue) {
         return new JsTests_FileContentSubstringExpectaion(expectedValue);
     };
 
@@ -5547,6 +5580,11 @@ function JsTester_Anchor (
 
     this.expectHrefToBeBlobWithSubstring = function (expectedSubstring) {
         getBlob().expectToHaveSubstring(expectedSubstring);
+        return this;
+    };
+
+    this.expectHrefToBeBlobWithoutSubstring = function (expectedSubstring) {
+        getBlob().expectNotToHaveSubstring(expectedSubstring);
         return this;
     };
 
@@ -7234,11 +7272,18 @@ function JsTester_WebSocketFactory ({
                 });
             }
 
+            Object.defineProperty(this, 'url', {
+                set: function () {},
+                get: function () {
+                    return url;
+                },
+            });
+
             Object.defineProperty(this, 'readyState', {
                 set: function () {},
                 get: function () {
                     return mockCore.getReadyState();
-                }
+                },
             });
 
             defineHandler('onopen');

@@ -627,6 +627,19 @@ tests.addTest(options => {
 
                 tester.masterInfoMessage().applyLeader().expectToBeSent();
             });
+            it('Нажимаю на кнопку с жуком. Скачивается лог.', function() {
+                tester.bugButton.click();
+
+                tester.anchor.withFileName('20191219.121006.000.log.txt').
+                    expectHrefToBeBlobWithSubstring(
+                        'Broadcast message sent: {"type":"notify_master","data":{"action":"tab_opened","visible":true}}'
+                    );
+
+                tester.anchor.withFileName('20191219.121006.000.log.txt').
+                    expectHrefToBeBlobWithSubstring(
+                        'Broadcast message received: {"type":"notify_slaves","data":{"type":"webrtc_state_updating"'//}}
+                    );
+            });
             it('Попытка восстановления соединения не совершается.', function() {
                 tester.expectNoWebsocketConnecting();
 

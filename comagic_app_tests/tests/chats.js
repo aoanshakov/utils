@@ -65,7 +65,7 @@ tests.addTest(options => {
                 spendTime(1000);
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
 
-                const requests = ajax.inAnyOrder();
+                let requests = ajax.inAnyOrder();
 
                 const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
@@ -87,43 +87,55 @@ tests.addTest(options => {
                 secondAccountRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
-                tester.chatChannelListRequest().receiveResponse();
-                tester.statusListRequest().receiveResponse();
-                tester.listRequest().receiveResponse();
-                tester.siteListRequest().receiveResponse();
-                tester.messageTemplateListRequest().receiveResponse();
+                requests = ajax.inAnyOrder();
+
+                const thirdAccountRequest = tester.accountRequest().
+                    forChats().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    expectToBeSent(requests);
 
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
-                tester.chatSettingsRequest().receiveResponse();
-                
-                tester.accountRequest().
-                    forChats().
-                    softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    receiveResponse();
+
+                const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
+                    statusListRequest = tester.statusListRequest().expectToBeSent(requests),
+                    listRequest = tester.listRequest().expectToBeSent(requests),
+                    siteListRequest = tester.siteListRequest().expectToBeSent(requests),
+                    messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                thirdAccountRequest.receiveResponse();
+                chatChannelListRequest.receiveResponse();
+                statusListRequest.receiveResponse();
+                listRequest.receiveResponse();
+                siteListRequest.receiveResponse();
+                messageTemplateListRequest.receiveResponse();
 
                 tester.accountRequest().
                     forChats().
                     softphoneFeatureFlagDisabled().
                     operatorWorkplaceAvailable().
                     receiveResponse();
-                
+
+                tester.chatSettingsRequest().receiveResponse();
+                countersRequest = tester.countersRequest().expectToBeSent();
+
                 tester.offlineMessageCountersRequest().receiveResponse();
                 tester.chatChannelListRequest().receiveResponse();
                 tester.siteListRequest().receiveResponse();
                 tester.markListRequest().receiveResponse();
+
+                chatListRequest = tester.chatListRequest().forCurrentEmployee().expectToBeSent();
+                secondChatListRequest = tester.chatListRequest().forCurrentEmployee().active().expectToBeSent();
+                thirdChatListRequest = tester.chatListRequest().forCurrentEmployee().closed().expectToBeSent();
+
                 tester.chatChannelTypeListRequest().receiveResponse();
 
                 tester.offlineMessageListRequest().notProcessed().receiveResponse();
                 tester.offlineMessageListRequest().processing().receiveResponse();
                 tester.offlineMessageListRequest().processed().receiveResponse();
-
-                countersRequest = tester.countersRequest().expectToBeSent();
-
-                chatListRequest = tester.chatListRequest().forCurrentEmployee().expectToBeSent();
-                secondChatListRequest = tester.chatListRequest().forCurrentEmployee().active().expectToBeSent();
-                thirdChatListRequest = tester.chatListRequest().forCurrentEmployee().closed().expectToBeSent();
             });
 
             describe('Много непрочитанных сообщений.', function() {
@@ -228,8 +240,8 @@ tests.addTest(options => {
                                                     click();
 
                                                 tester.contactsRequest().phoneSearching().noData().receiveResponse();
-                                                tester.chatPhoneUpdatingRequest().receiveResponse();
                                                 tester.visitorCardUpdatingRequest().anotherPhone().receiveResponse();
+                                                tester.chatPhoneUpdatingRequest().receiveResponse();
                                             });
                                             it(
                                                 'Нажимаю на кнопку удаления телефона. Отправлен запрос обновления ' +
@@ -1580,37 +1592,39 @@ tests.addTest(options => {
 
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
+
+                tester.accountRequest().
+                    forChats().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    telegramContactChannelFeatureFlagDisabled().
+                    receiveResponse();
+
+                tester.accountRequest().
+                    forChats().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    telegramContactChannelFeatureFlagDisabled().
+                    receiveResponse();
+
                 tester.chatSettingsRequest().receiveResponse();
-
-                tester.accountRequest().
-                    forChats().
-                    softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    telegramContactChannelFeatureFlagDisabled().
-                    receiveResponse();
-
-                tester.accountRequest().
-                    forChats().
-                    softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    telegramContactChannelFeatureFlagDisabled().
-                    receiveResponse();
+                tester.countersRequest().receiveResponse();
 
                 tester.offlineMessageCountersRequest().receiveResponse();
                 tester.chatChannelListRequest().receiveResponse();
                 tester.siteListRequest().receiveResponse();
                 tester.markListRequest().receiveResponse();
+
+                tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
                 tester.chatChannelTypeListRequest().receiveResponse();
 
                 tester.offlineMessageListRequest().notProcessed().receiveResponse();
                 tester.offlineMessageListRequest().processing().receiveResponse();
                 tester.offlineMessageListRequest().processed().receiveResponse();
 
-                tester.countersRequest().receiveResponse();
-
-                tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
                 tester.input.fill('Сообщение #75');
 
                 tester.input.pressEnter();
@@ -1783,37 +1797,39 @@ tests.addTest(options => {
 
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
+
+                tester.accountRequest().
+                    forChats().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    tagsUpdatingUnavailable().
+                    receiveResponse();
+
+                tester.accountRequest().
+                    forChats().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    tagsUpdatingUnavailable().
+                    receiveResponse();
+
                 tester.chatSettingsRequest().receiveResponse();
 
-                tester.accountRequest().
-                    forChats().
-                    softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    tagsUpdatingUnavailable().
-                    receiveResponse();
-
-                tester.accountRequest().
-                    forChats().
-                    softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    tagsUpdatingUnavailable().
-                    receiveResponse();
+                tester.countersRequest().receiveResponse();
 
                 tester.offlineMessageCountersRequest().receiveResponse();
                 tester.chatChannelListRequest().receiveResponse();
                 tester.siteListRequest().receiveResponse();
                 tester.markListRequest().receiveResponse();
+
+                tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
                 tester.chatChannelTypeListRequest().receiveResponse();
 
                 tester.offlineMessageListRequest().notProcessed().receiveResponse();
                 tester.offlineMessageListRequest().processing().receiveResponse();
                 tester.offlineMessageListRequest().processed().receiveResponse();
-
-                tester.countersRequest().receiveResponse();
-
-                tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
             });
 
             it('Открываю чат. Раскрываю панель "Заметки". Опции тегов заблокированы.', function() {

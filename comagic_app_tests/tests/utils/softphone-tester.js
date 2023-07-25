@@ -177,7 +177,7 @@ define(function () {
                         input = tester.input.bind(tester),
                         click = tester.click.bind(tester),
                         pressEnter = tester.pressEnter.bind(tester),
-                        getUiInput = () => (getInput() || new JsTester_NoElement()).closest('.ui-input'),
+                        getUiInput = () => (getInput() || new JsTester_NoElement()).closest('.ui-input, .cmgui-input'),
                         uiInputTester = testersFactory.createDomElementTester(getUiInput);
 
                     tester.clear = () => (clear(), spendTime(0), spendTime(0));
@@ -186,12 +186,19 @@ define(function () {
                     tester.input = value => (input(value), spendTime(0), tester); 
                     tester.pressEnter = () => (pressEnter(), spendTime(0), tester);
 
-                    tester.expectNotToHaveError = () => uiInputTester.expectNotToHaveClass('ui-input-error');
-                    tester.expectToHaveError = () => uiInputTester.expectToHaveClass('ui-input-error');
+                    tester.expectNotToHaveError = () => uiInputTester.expectToHaveNoneOfClasses([
+                        'ui-input-error',
+                        'cmgui-input-error'
+                    ]);
+
+                    tester.expectToHaveError = () => uiInputTester.expectToHaveAnyOfClasses([
+                        'ui-input-error',
+                        'cmgui-input-error'
+                    ]);
 
                     tester.clearIcon = (() => {
                         const tester = testersFactory.createDomElementTester(
-                            () => getUiInput().querySelector('.ui-input-suffix-close')
+                            () => getUiInput().querySelector('.ui-input-suffix-close, .cmgui-input-suffix-close')
                         );
 
                         const click = tester.click.bind(tester);
@@ -213,11 +220,11 @@ define(function () {
                 me.input.withFieldLabel = label => {
                     const labelEl = utils.descendantOf(getRootElement()).
                         textEquals(label).
-                        matchesSelector('.ui-label-content-field-label').
+                        matchesSelector('.ui-label-content-field-label, .cmgui-label-content-field-label').
                         find();
 
                     const row = labelEl.closest('.ant-row'),
-                        input = (row || labelEl.closest('.ui-label')).querySelector('input');
+                        input = (row || labelEl.closest('.ui-label, .cmgui-label')).querySelector('input');
 
                     return addMethods(() => input);
                 };
@@ -225,7 +232,11 @@ define(function () {
 
             me.slider = (() => {
                 const tester = testersFactory.createDomElementTester(() =>
-                    (getRootElement() || new JsTester_NoElement()).querySelector('.ant-slider-track, .ui-slider-rail'))
+                    (getRootElement() || new JsTester_NoElement()).querySelector(
+                        '.ant-slider-track, ' +
+                        '.ui-slider-rail, ' +
+                        '.cmgui-slider-rail'
+                    ))
 
                 const click = tester.click.bind(tester);
                 tester.click = (...args) => (click(...args), spendTime(100), spendTime(0));
@@ -237,9 +248,11 @@ define(function () {
                 'button, ' +
                 '.cm-contacts-contact-bar-section-header-subtitle, ' +
                 '.ui-pagination-btns-pages__item, ' +
+                '.cmgui-pagination-btns-pages__item, ' +
                 '.clct-button, ' +
                 '.clct-c-button, ' +
                 '.ui-radio-content, ' +
+                '.cmgui-radio-content, ' +
                 '.cmg-switch-label, ' +
                 '.misc-core-src-component-styles-module__label, ' +
                 '.misc-core-src-components-menu-styles-module__label, ' +
@@ -258,14 +271,15 @@ define(function () {
                 domElement = domElement.querySelector('a') || domElement;
 
                 const fieldTester = testersFactory.createDomElementTester(() => {
-                    const radioWrapper = domElement.closest('.ui-radio-wrapper') || new JsTester_NoElement();
+                    const radioWrapper = domElement.closest('.ui-radio-wrapper, .cmgui-radio-wrapper') ||
+                        new JsTester_NoElement();
 
                     if (!utils.isNonExisting(radioWrapper)) {
                         return radioWrapper;
                     }
 
                     return (domElement.closest('.cmg-switch-wrapper') || new JsTester_NoElement()).
-                        querySelector('.ui-switch');
+                        querySelector('.ui-switch, .cmgui-switch');
                 });
 
                 const tester = testersFactory.createDomElementTester(domElement),
@@ -288,14 +302,27 @@ define(function () {
                     spendTime(0);
                 };
 
-                const checkedClass = isSwitch ? 'ui-switch-checked' : 'ui-radio-wrapper-checked',
-                    disabledClass = isSwitch ? 'ui-switch-disabled' : 'ui-button-disabled';
+                const checkedClasses = isSwitch ? [
+                    'ui-switch-checked',
+                    'cmgui-switch-checked',
+                ] : [
+                    'ui-radio-wrapper-checked',
+                    'cmgui-radio-wrapper-checked',
+                ];
+                const disabledClasses = isSwitch ? [
+                    'ui-switch-disabled',
+                    'cmgui-switch-disabled',
+                ] : [
+                    'ui-button-disabled',
+                    'cmgui-button-disabled',
+                ];
 
                 const menuItemSelectedClass = [
                     'src-components-main-menu-nav-item-styles-module__item-selected',
                     'misc-core-src-component-styles-module__item-selected', 
                     'active',
-                    'ui-tab-active'
+                    'ui-tab-active',
+                    'cmgui-tab-active',
                 ];
 
 
@@ -303,7 +330,8 @@ define(function () {
                     '.src-components-main-menu-nav-item-styles-module__item, ' +
                     '.misc-core-src-component-styles-module__item, ' +
                     '.cm-chats--left-menu--item, ' +
-                    '.ui-tab'
+                    '.ui-tab, ' +
+                    '.cmgui-tab'
                 );
 
                 const pressednessTester = testersFactory.createDomElementTester(getPressableElement);
@@ -315,15 +343,15 @@ define(function () {
 
                 tester.expectToBePressed = () => pressednessTester.expectToHaveAnyOfClasses(menuItemSelectedClass);
                 tester.expectNotToBePressed = () => pressednessTester.expectToHaveNoneOfClasses(menuItemSelectedClass);
-                tester.expectToBeChecked = () => fieldTester.expectToHaveClass(checkedClass);
-                tester.expectNotToBeChecked = () => fieldTester.expectNotToHaveClass(checkedClass);
+                tester.expectToBeChecked = () => fieldTester.expectToHaveAnyOfClasses(checkedClasses);
+                tester.expectNotToBeChecked = () => fieldTester.expectToHaveNoneOfClasses(checkedClasses);
 
                 tester.expectToBeEnabled = () => isSwitch ?
-                    fieldTester.expectNotToHaveClass(disabledClass) :
+                    fieldTester.expectToHaveNoneOfClasses(disabledClasses) :
                     tester.expectNotToHaveAttribute('disabled');
 
                 tester.expectToBeDisabled = () => isSwitch ?
-                    fieldTester.expectToHaveClass(disabledClass) :
+                    fieldTester.expectToHaveAnyOfClasses(disabledClasses) :
                     tester.expectToHaveAttribute('disabled');
                 
                 return tester;
@@ -335,18 +363,18 @@ define(function () {
             me.button.first = me.button.atIndex(0);
 
             me.switchButton = (() => {
-                const switchButtonSelector = '.ui-switch';
+                const switchButtonSelector = '.ui-switch, .cmgui-switch';
 
                 const createTester = (getButton) => {
-                    const checkedClass = 'ui-switch-checked',
-                        disabledClass = 'ui-switch-disabled',
+                    const checkedClasses = ['ui-switch-checked', 'cmgui-switch-checked'],
+                        disabledClasses = ['ui-switch-disabled', 'cmgui-switch-disabled'],
                         tester = testersFactory.createDomElementTester(getButton);
 
-                    tester.expectToBeDisabled = () => tester.expectToHaveClass(disabledClass)
-                    tester.expectToBeEnabled = () => tester.expectNotToHaveClass(disabledClass)
+                    tester.expectToBeDisabled = () => tester.expectToHaveAnyOfClasses(disabledClasses)
+                    tester.expectToBeEnabled = () => tester.expectToHaveNoneOfClasses(disabledClasses)
 
-                    tester.expectToBeChecked = () => tester.expectToHaveClass(checkedClass);
-                    tester.expectNotToBeChecked = () => tester.expectNotToHaveClass(checkedClass);
+                    tester.expectToBeChecked = () => tester.expectToHaveAnyOfClasses(checkedClasses);
+                    tester.expectNotToBeChecked = () => tester.expectToHaveNoneOfClasses(checkedClasses);
 
                     tester.expectToBeSelected = tester.expectToBeChecked;
                     tester.expectNotToBeSelected = tester.expectNotToBeChecked;
@@ -371,11 +399,14 @@ define(function () {
             })();
 
             me.alert = (() => {
-                const getDomElement = () => utils.element(getRootElement()).querySelector('.ui-alert'),
+                const getDomElement = () => utils.element(getRootElement()).querySelector('.ui-alert, .cmgui-alert'),
                     tester = testersFactory.createDomElementTester(getDomElement);
 
                 tester.closeButton = testersFactory.createDomElementTester(() =>
-                    utils.element(getDomElement()).querySelector('.ui-alert-close-icon svg'));
+                    utils.element(getDomElement()).querySelector(
+                        '.ui-alert-close-icon svg, ' +
+                        '.cmgui-alert-close-icon svg'
+                    ));
 
                 const click = tester.closeButton.click.bind(tester.closeButton);
                 tester.closeButton.click = () => {
@@ -393,8 +424,11 @@ define(function () {
                         '.cmg-miscrophone-unavailability-message-close, ' +
                         '.cmg-connecting-message-close, ' +
                         '.ui-alert-close-icon svg, ' +
+                        '.cmgui-alert-close-icon svg, ' +
                         '.ui-audio-player__close, ' +
-                        '.ui-notification-close-x'
+                        '.cmgui-audio-player__close, ' +
+                        '.ui-notification-close-x, ' +
+                        '.cmgui-notification-close-x'
                     ) 
                 );
 
@@ -407,18 +441,30 @@ define(function () {
             me.radioButton = text => {
                 const tester = testersFactory.createDomElementTester(utils.descendantOf(getRootElement()).
                     textEquals(text).
-                    matchesSelector('.ui-radio-wrapper, .cm-radio-button, .clct-radio-button').
+                    matchesSelector('.ui-radio-wrapper, .cmgui-radio-wrapper, .cm-radio-button, .clct-radio-button').
                     find());
 
                 const click = tester.click.bind(tester);
                 tester.click = () => (click(), spendTime(0), spendTime(0));
 
-                const selectedClasses = ['ui-radio-wrapper-checked', 'clct-radio-button--selected'];
+                const selectedClasses = [
+                    'ui-radio-wrapper-checked',
+                    'cmgui-radio-wrapper-checked',
+                    'clct-radio-button--selected',
+                ];
 
                 tester.expectToBeSelected = () => tester.expectToHaveAnyOfClasses(selectedClasses);
                 tester.expectNotToBeSelected = () => tester.expectToHaveNoneOfClasses(selectedClasses);
-                tester.expectToBeDisabled = () => tester.expectToHaveClass('ui-radio-wrapper-disabled');
-                tester.expectToBeEnabled = () => tester.expectNotToHaveClass('ui-radio-wrapper-disabled');
+
+                tester.expectToBeDisabled = () => tester.expectToHaveAnyOfClasses([
+                    'ui-radio-wrapper-disabled',
+                    'cmgui-radio-wrapper-disabled',
+                ]);
+
+                tester.expectToBeEnabled = () => tester.expectToHaveNoneOfClasses([
+                    'ui-radio-wrapper-disabled',
+                    'cmgui-radio-wrapper-disabled',
+                ]);
 
                 return tester;
             };
@@ -447,7 +493,7 @@ define(function () {
 
             me.checkbox = (() => {
                 const tester = testersFactory.createDomElementTester(
-                    () => rootTester.querySelector('.ui-checkbox')
+                    () => rootTester.querySelector('.ui-checkbox, .cmgui-checkbox')
                 );
 
                 const click = tester.click.bind(tester);
@@ -463,7 +509,7 @@ define(function () {
                         click = tester.click.bind(tester);
 
                     const selectTester = testersFactory.createDomElementTester(() =>
-                        getSelectField(filter).closest('.ui-select'));
+                        getSelectField(filter).closest('.ui-select, .cmgui-select'));
 
                     tester.click = () => (click(), spendTime(0), spendTime(0));
 
@@ -473,7 +519,9 @@ define(function () {
                         tester.click = () => (click(), spendTime(0), spendTime(0));
                         return tester;
                     })(testersFactory.createDomElementTester(
-                        () => getSelectField(filter).closest('.ui-select-container').querySelector('.ui-icon svg')
+                        () => getSelectField(filter).closest(
+                            '.ui-select-container, .cmgui-select-container'
+                        ).querySelector('.ui-icon svg, .cmgui-icon svg')
                     ));
 
                     !tester.popup && (tester.popup = Object.defineProperty(tester, 'popup', {
@@ -482,6 +530,7 @@ define(function () {
                             const getDomElement = () => (
                                 utils.getVisibleSilently(document.querySelectorAll(
                                     '.ui-select-popup, ' +
+                                    '.cmgui-select-popup, ' +
                                     '.cm-chats--tags-editor'
                                 )) || new JsTester_NoElement()
                             ).closest('div');
@@ -514,24 +563,27 @@ define(function () {
                     
                     tester.option = text => {
                         const option = utils.descendantOfBody().
-                            matchesSelector('.ui-list-option, .cm-chats--tags-option').
+                            matchesSelector('.ui-list-option, .cmgui-list-option, .cm-chats--tags-option').
                             textEquals(text).
                             find();
 
                         const tester = testersFactory.createDomElementTester(option),
                             click = tester.click.bind(tester),
-                            checkbox = option.querySelector('.ui-checkbox');
+                            checkbox = option.querySelector('.ui-checkbox, .cmgui-checkbox');
 
                         tester.click = () => (click(), Promise.runAll(false, true), spendTime(0), spendTime(0), tester);
 
-                        const disabledClassName = 'ui-list-option-disabled';
+                        const disabledClassNames = ['ui-list-option-disabled', 'cmgui-list-option-disabled'];
 
-                        tester.expectToBeDisabled = () => tester.expectToHaveClass(disabledClassName);
-                        tester.expectToBeEnabled = () => tester.expectNotToHaveClass(disabledClassName);
+                        tester.expectToBeDisabled = () => tester.expectToHaveAnyOfClasses(disabledClassNames);
+                        tester.expectToBeEnabled = () => tester.expectToHaveNoneOfClasses(disabledClassNames);
 
                         tester.expectToBeSelected = logEnabled => {
                             if (utils.isNonExisting(checkbox)) {
-                                tester.expectToHaveClass('ui-list-option-selected');
+                                tester.expectToHaveAnyOfClasses([
+                                    'ui-list-option-selected',
+                                    'cmgui-list-option-selected'
+                                ]);
                             } else {
                                 if (!checkbox.classList.contains('ui-checkbox-checked')) {
                                     throw new Error(`Опиция "${text}" должна быть отмечена.`);
@@ -541,7 +593,10 @@ define(function () {
 
                         tester.expectNotToBeSelected = () => {
                             if (utils.isNonExisting(checkbox)) {
-                                tester.expectNotToHaveClass('ui-list-option-selected');
+                                tester.expectToHaveNoneOfClasses([
+                                    'ui-list-option-selected',
+                                    'cmgui-list-option-selected'
+                                ]);
                             } else {
                                 if (checkbox.classList.contains('ui-checkbox-checked')) {
                                     throw new Error(`Опиция "${text}" не должна быть отмечена.`);
@@ -552,8 +607,15 @@ define(function () {
                         return tester;
                     };
 
-                    tester.expectToBeDisabled = () => selectTester.expectToHaveClass('ui-select-disabled');
-                    tester.expectToBeEnabled = () => selectTester.expectNotToHaveClass('ui-select-disabled');
+                    tester.expectToBeDisabled = () => selectTester.expectToHaveAnyOfClasses([
+                        'ui-select-disabled',
+                        'cmgui-select-disabled',
+                    ]);
+
+                    tester.expectToBeEnabled = () => selectTester.expectToHaveNoneOfClasses([
+                        'ui-select-disabled',
+                        'cmgui-select-disabled',
+                    ]);
 
                     return tester;
                 };
@@ -562,17 +624,21 @@ define(function () {
 
                 tester.atIndex = expectedIndex => createTester((select, index) => index === expectedIndex);
                 tester.first = tester.atIndex(0)
-                tester.withValue = expectedValue => createTester(select => utils.getTextContent(select) == expectedValue);
+
+                tester.withValue = expectedValue =>
+                    createTester(select => utils.getTextContent(select) == expectedValue);
 
                 tester.withPlaceholder = expectedPlaceholder => createTester(select => utils.getTextContent(
-                    select.querySelector('.ui-select-placeholder') ||
+                    select.querySelector('.ui-select-placeholder, .cmgui-select-placeholder') ||
                     new JsTester_NoElement()
                 ) == expectedPlaceholder);
 
                 return tester;
             })((filter = () => true) => [
             '.ui-select-field',
-            '.ui-select'
+            '.cmgui-select-field',
+            '.ui-select',
+            '.cmgui-select'
         ].reduce((domElement, selector) => domElement || utils.getVisibleSilently(
             Array.prototype.slice.call(
                 (
@@ -601,7 +667,11 @@ define(function () {
         this.fieldRow = text => (() => {
             const labelEl = utils.descendantOfBody().
                 textEquals(text).
-                matchesSelector('.ui-label-content-field-label, .clct-settings-field-label').
+                matchesSelector(
+                    '.ui-label-content-field-label, ' +
+                    '.cmgui-label-content-field-label, ' +
+                    '.clct-settings-field-label'
+                ).
                 find();
 
             const row = labelEl.closest('.ant-row, .clct-settings-field-row'),
@@ -1015,7 +1085,12 @@ define(function () {
 
         this.getCallsGridItem = getCallsGridItem;
 
-        this.spinner = testersFactory.createDomElementTester('.clct-spinner, .ant-spin, .ui-spin-icon');
+        this.spinner = testersFactory.createDomElementTester(
+            '.clct-spinner, ' +
+            '.ant-spin, ' +
+            '.ui-spin-icon, ' +
+            '.cmgui-spin-icon'
+        );
 
         this.callsGridItemNameContainer = function (name) {
             function createTester (index) {

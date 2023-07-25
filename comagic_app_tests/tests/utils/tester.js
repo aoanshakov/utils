@@ -139,8 +139,13 @@ define(() => function ({
     Modal?.destroyAll();
 
     Array.prototype.forEach.call(
-        document.querySelectorAll('.ui-modal'),
+        document.querySelectorAll('.ui-modal, .cmgui-modal'),
         modal => modal.parentNode.getAttribute('data-key') && modal.parentNode.remove()
+    );
+
+    Array.prototype.forEach.call(
+        document.querySelectorAll('a'),
+        domElement => domElement.getAttribute('data-role') == 'file-saver' && domElement.remove()
     );
 
     me.history = (() => {
@@ -199,10 +204,18 @@ define(() => function ({
     );
 
     const getSpinWrappers = (getRootElement = () => document.body) => utils.element(getRootElement()).
-        querySelectorAll('.ui-infinite-scroll-spin-wrapper, .chats-list-spin-wrapper');
+        querySelectorAll(
+            '.ui-infinite-scroll-spin-wrapper, ' +
+            '.cmgui-infinite-scroll-spin-wrapper, ' +
+            '.chats-list-spin-wrapper'
+        );
 
     const getSpinWrapper = (getRootElement = () => document.body) => utils.element(getRootElement()).
-        querySelector('.ui-infinite-scroll-spin-wrapper, .cm-chats--chats-list-spin-wrapper');
+        querySelector(
+            '.ui-infinite-scroll-spin-wrapper, ' +
+            '.cmgui-infinite-scroll-spin-wrapper, ' +
+            '.cm-chats--chats-list-spin-wrapper'
+        );
 
     const getContactListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-contacts-list-wrapper')),
         getChatListSpinWrapper = () => getSpinWrapper(() => utils.querySelector('.cm-chats--chats-list'));
@@ -215,7 +228,7 @@ define(() => function ({
 
         me.labelHelp = (() => {
             const tester = testersFactory.createDomElementTester(
-                () => getRootElement().querySelector('.ui-label-help')
+                () => getRootElement().querySelector('.ui-label-help, .cmgui-label-help')
             );
 
             const putMouseOver = tester.putMouseOver.bind(tester);
@@ -248,7 +261,10 @@ define(() => function ({
             set: () => null,
             get: () => {
                 const getDomElement = () => {
-                    const tagEditor = utils.element(getRootElement()).querySelector('.ui-tag-editor');
+                    const tagEditor = utils.element(getRootElement()).querySelector(
+                        '.ui-tag-editor, ' +
+                        '.cmgui-tag-editor'
+                    );
 
                     return utils.isNonExisting(tagEditor) ?
                         utils.element(getRootElement()).querySelector('.cm-chats--additional-info-panel-tags-edit') :
@@ -275,6 +291,7 @@ define(() => function ({
                 tester.display = testersFactory.createDomElementTester(
                     () => utils.element(getDomElement()).querySelector(
                         '.ui-tag-editor-display, ' +
+                        '.cmgui-tag-editor-display, ' +
                         '.cm-chats--additional-info-panel-tags-container'
                     )
                 );
@@ -287,7 +304,7 @@ define(() => function ({
                 tester.button = (() => {
                     const tester = testersFactory.createDomElementTester(
                         () => utils.element(getDomElement()).
-                            querySelector('.ui-icon')
+                            querySelector('.ui-icon, .cmgui-icon')
                     );
 
                     const click = tester.click.bind(tester);
@@ -345,7 +362,7 @@ define(() => function ({
 
         me.dropdownTrigger = (() => {
             const tester = testersFactory.createDomElementTester(() => utils.element(getRootElement()).
-                querySelector('.ui-dropdown-trigger'));
+                querySelector('.ui-dropdown-trigger, .cmgui-dropdown-trigger'));
 
             const click = tester.click.bind(tester);
             tester.click = () => (click(), spendTime(0), spendTime(0));
@@ -384,11 +401,15 @@ define(() => function ({
 
             return softphoneTester.createBottomButtonTester(tester);
         })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector(
-            '.cm-user-only-account--username, .ui-account, .cm-chats--account'
+            '.cm-user-only-account--username, .ui-account, .cmgui-account, .cm-chats--account'
         )));
 
         (() => {
-            const selector = '.ui-spin-icon-default, .clct-spinner, .cm-chats--loading-icon';
+            const selector =
+                '.ui-spin-icon-default, ' +
+                '.cmgui-spin-icon-default, ' +
+                '.clct-spinner, ' +
+                '.cm-chats--loading-icon';
 
             const getSpin = () => utils.element(getRootElement()).
                 querySelector(selector);
@@ -410,6 +431,10 @@ define(() => function ({
 
             return tester;
         })();
+
+        me.anchor.withFileName = fileName => testersFactory.createAnchorTester(
+            () => getRootElement().querySelector('a[download="' + fileName + '"]')
+        );
 
         (() => {
             const tester = testersFactory.createAnchorTester(() => utils.element(getRootElement()).querySelector('a'));
@@ -501,13 +526,17 @@ define(() => function ({
         me.svg = getSvg('svg');
 
         me.table = (() => {
-            const getTable = () => utils.element(getRootElement()).querySelector('.ant-table, .ui-table'),
+            const getTable = () => utils.element(getRootElement()).querySelector('.ant-table, .ui-table, .cmgui-table'),
                 tester = testersFactory.createDomElementTester(getTable);
 
             const getHeaderColumnIndex = text => {
                 let i;
-                const columns = document.querySelectorAll('.ant-table-thead th, .ui-table-header-cell-th'),
-                    {length} = columns;
+                const columns = document.querySelectorAll(
+                    '.ant-table-thead th, ' +
+                    '.ui-table-header-cell-th, ' +
+                    '.cmgui-table-header-cell-th'
+                );
+                const {length} = columns;
 
                 for (i = 0; i < length; i ++) {
                     const column = columns[i];
@@ -523,7 +552,11 @@ define(() => function ({
             tester.row = {
                 atIndex: index => {
                     const getRow = () => (
-                        getRootElement().querySelectorAll('.ant-table-row, .ui-table-body-row') || []
+                        getRootElement().querySelectorAll(
+                            '.ant-table-row, ' +
+                            '.ui-table-body-row, ' +
+                            '.cmgui-table-body-row'
+                        ) || []
                     )[index] || new JsTester_NoElement();
 
                     const tester = testersFactory.createDomElementTester(getRow);
@@ -556,15 +589,23 @@ define(() => function ({
 
             Object.defineProperty(tester, 'pagingPanel', {
                 get: () => {
-                    const getPagingPanel = () => utils.element(getTable().closest('.ui-table-container')).
-                        querySelector('.ui-pagination');
+                    const getPagingPanel = () => utils.element(getTable().closest(
+                        '.ui-table-container, ' +
+                        '.cmgui-table-container'
+                    )).querySelector(
+                        '.ui-pagination, ' +
+                        '.cmgui-pagination'
+                    );
 
                     const tester = testersFactory.createDomElementTester(getPagingPanel);
 
                     tester.pageButton = text => (() => {
                         const getLi = () => utils.
                             descendantOf(getPagingPanel()).
-                            matchesSelector('.ui-pagination-btns-pages__item').
+                            matchesSelector(
+                                '.ui-pagination-btns-pages__item, ' +
+                                '.cmgui-pagination-btns-pages__item'
+                            ).
                             textEquals(text).
                             find();
 
@@ -577,9 +618,16 @@ define(() => function ({
                         tester.click = () => (click(), Promise.runAll(false, true));
 
                         tester.expectToBePressed = () => tester.
-                            expectToHaveClass('ui-pagination-btns-pages__item--active');
+                            expectToHaveAnyOfClasses([
+                                'ui-pagination-btns-pages__item--active',
+                                'cmgui-pagination-btns-pages__item--active',
+                            ]);
+
                         tester.expectNotToBePressed = () => tester.
-                            expectNotToHaveClass('ui-pagination-btns-pages__item--active');
+                            expectToHaveNoneOfClasses([
+                                'ui-pagination-btns-pages__item--active',
+                                'cmgui-pagination-btns-pages__item--active',
+                            ]);
 
                         return tester;
                     })();
@@ -594,27 +642,49 @@ define(() => function ({
         const rootTester = utils.element(getRootElement);
         
         me.calendarField = (() => {
-            const getPopup = () => utils.querySelector('.cm-calendar, .ui-date-range-picker-popover'),
-                popupTester = testersFactory.createDomElementTester(getPopup),
-                getPicker = () => rootTester.querySelector('.ui-date-range-picker, .cm-calendar__field'),
-                tester = testersFactory.createDomElementTester(getPicker),
+            const getPopup = () => utils.querySelector(
+                '.cm-calendar, ' +
+                '.ui-date-range-picker-popover, ' +
+                '.cmgui-date-range-picker-popover'
+            );
+
+            const popupTester = testersFactory.createDomElementTester(getPopup);
+
+            const getPicker = () => rootTester.querySelector(
+                '.ui-date-range-picker, ' +
+                '.cmgui-date-range-picker, ' +
+                '.cm-calendar__field'
+            );
+
+            const tester = testersFactory.createDomElementTester(getPicker),
                 click = tester.click.bind(tester),
                 inputTester = testersFactory.createTextFieldTester(() => getPicker().querySelector('input'));
 
             const getMonthPanel = index => {
                 const getMonthPanel = () => 
-                    getPopup().querySelectorAll('.cm-calendar__months__item, .ui-date-range-picker-month')[index] ||
-                    new JsTester_NoElement();
+                    getPopup().querySelectorAll(
+                        '.cm-calendar__months__item, ' +
+                        '.ui-date-range-picker-month, ' +
+                        '.cmgui-date-range-picker-month'
+                    )[index] || new JsTester_NoElement();
 
                 const monthPanelTester = testersFactory.createDomElementTester(getMonthPanel);
 
                 monthPanelTester.title = testersFactory.createDomElementTester(() =>
-                    getMonthPanel().querySelector('.cm-calendar__months__item__title, .ui-date-range-picker-header'));
+                    getMonthPanel().querySelector(
+                        '.cm-calendar__months__item__title, ' +
+                        '.ui-date-range-picker-header, ' +
+                        '.cmgui-date-range-picker-header'
+                    ));
 
                 monthPanelTester.day = day => {
                     const tester = testersFactory.createDomElementTester(() => utils.
                         descendantOf(getMonthPanel()).
-                        matchesSelector('.cm-calendar__days__item__text, .ui-date-range-picker-cell-container').
+                        matchesSelector(
+                            '.cm-calendar__days__item__text, ' +
+                            '.ui-date-range-picker-cell-container, ' +
+                            '.cmgui-date-range-picker-cell-container'
+                        ).
                         textEquals(day + '').
                         find());
 
@@ -633,7 +703,10 @@ define(() => function ({
 
             popupTester.leftButton = (() => {
                 const tester = testersFactory.createDomElementTester(
-                    () => getPopup().querySelector('.ui-date-range-picker-header-nav-icon-left')
+                    () => getPopup().querySelector(
+                        '.ui-date-range-picker-header-nav-icon-left, ' +
+                        '.cmgui-date-range-picker-header-nav-icon-left'
+                    )
                 );
 
                 const click = tester.click.bind(tester);
@@ -642,7 +715,10 @@ define(() => function ({
                 return tester;
             })();
             popupTester.rightButton = testersFactory.createDomElementTester(() =>
-                getPopup().querySelector('.ui-date-range-picker-header-nav-icon-right'));
+                getPopup().querySelector(
+                    '.ui-date-range-picker-header-nav-icon-right, ' +
+                    '.cmgui-date-range-picker-header-nav-icon-right'
+                ));
 
             tester.expectToHaveValue = inputTester.expectToHaveValue.bind(inputTester);
             tester.click = () => (click(), spendTime(0), spendTime(0));
@@ -658,8 +734,12 @@ define(() => function ({
 
         !me.audioPlayer && Object.defineProperty(me, 'audioPlayer', {
             get: () => {
-                const getPlayer = () => utils.element(getRootElement()).querySelector('.ui-audio-player'),
-                    tester = testersFactory.createDomElementTester(getPlayer);
+                const getPlayer = () => utils.element(getRootElement()).querySelector(
+                    '.ui-audio-player, ' +
+                    '.cmgui-audio-player'
+                );
+
+                const tester = testersFactory.createDomElementTester(getPlayer);
 
                 addTesters(tester, getPlayer);
 
@@ -703,7 +783,7 @@ define(() => function ({
                     click = tester.click.bind(tester);
 
                 const selectTester = testersFactory.createDomElementTester(() =>
-                    getSelectField(filter).closest('.ui-select'));
+                    getSelectField(filter).closest('.ui-select, .cmgui-select'));
 
                 tester.click = () => (click(), spendTime(0), spendTime(0));
 
@@ -713,7 +793,10 @@ define(() => function ({
                     tester.click = () => (click(), spendTime(0), spendTime(0));
                     return tester;
                 })(testersFactory.createDomElementTester(
-                    () => getSelectField(filter).closest('.ui-select-container').querySelector('.ui-icon svg')
+                    () => getSelectField(filter).closest(
+                        '.ui-select-container, ' +
+                        '.cmgui-select-container'
+                    ).querySelector('.ui-icon svg, .cmgui-icon svg')
                 ));
 
                 !tester.popup && (tester.popup = Object.defineProperty(tester, 'popup', {
@@ -722,6 +805,7 @@ define(() => function ({
                         const getDomElement = () => (
                             utils.getVisibleSilently(document.querySelectorAll(
                                 '.ui-select-popup, ' +
+                                '.cmgui-select-popup, ' +
                                 '.cm-chats--tags-editor'
                             )) || new JsTester_NoElement()
                         ).closest('div');
@@ -754,20 +838,27 @@ define(() => function ({
                 
                 tester.option = text => {
                     const option = utils.descendantOfBody().
-                        matchesSelector('.ui-list-option, .cm-chats--tags-option').
+                        matchesSelector(
+                            '.ui-list-option, ' +
+                            '.cmgui-list-option, ' +
+                            '.cm-chats--tags-option'
+                        ).
                         textEquals(text).
                         find();
 
                     const tester = testersFactory.createDomElementTester(option),
                         click = tester.click.bind(tester),
-                        checkbox = option.querySelector('.ui-checkbox');
+                        checkbox = option.querySelector('.ui-checkbox, .cmgui-checkbox');
 
                     tester.click = () => (click(), Promise.runAll(false, true), spendTime(0), spendTime(0), tester);
 
-                    const disabledClassName = 'ui-list-option-disabled';
+                    const disabledClassNames = [
+                        'ui-list-option-disabled',
+                        'cmgui-list-option-disabled',
+                    ];
 
-                    tester.expectToBeDisabled = () => tester.expectToHaveClass(disabledClassName);
-                    tester.expectToBeEnabled = () => tester.expectNotToHaveClass(disabledClassName);
+                    tester.expectToBeDisabled = () => tester.expectToHaveAnyOfClasses(disabledClassNames);
+                    tester.expectToBeEnabled = () => tester.expectToHaveNoneOfClasses(disabledClassNames);
 
                     tester.expectToBeSelected = logEnabled => {
                         if (!checkbox.classList.contains('ui-checkbox-checked')) {
@@ -784,8 +875,15 @@ define(() => function ({
                     return addTesters(tester, () => option);
                 };
 
-                tester.expectToBeDisabled = () => selectTester.expectToHaveClass('ui-select-disabled');
-                tester.expectToBeEnabled = () => selectTester.expectNotToHaveClass('ui-select-disabled');
+                tester.expectToBeDisabled = () => selectTester.expectToHaveAnyOfClasses([
+                    'ui-select-disabled',
+                    'cmgui-select-disabled',
+                ]);
+
+                tester.expectToBeEnabled = () => selectTester.expectToHaveNoneOfClasses([
+                    'ui-select-disabled',
+                    'cmgui-select-disabled',
+                ]);
 
                 return tester;
             };
@@ -797,14 +895,19 @@ define(() => function ({
             tester.withValue = expectedValue => createTester(select => utils.getTextContent(select) == expectedValue);
 
             tester.withPlaceholder = expectedPlaceholder => createTester(select => utils.getTextContent(
-                select.querySelector('.ui-select-placeholder') ||
+                select.querySelector(
+                    '.ui-select-placeholder, ' +
+                    '.cmgui-select-placeholder'
+                ) ||
                 new JsTester_NoElement()
             ) == expectedPlaceholder);
 
             return tester;
         })((filter = () => true) => [
             '.ui-select-field',
-            '.ui-select'
+            '.cmgui-select-field',
+            '.ui-select',
+            '.cmgui-select',
         ].reduce((domElement, selector) => domElement || utils.getVisibleSilently(
             Array.prototype.slice.call(
                 (
@@ -839,7 +942,7 @@ define(() => function ({
     })();
 
     me.tooltip = (() => {
-        const getDomElement = () => utils.querySelector('.ui-tooltip-inner'),
+        const getDomElement = () => utils.querySelector('.ui-tooltip-inner, .cmgui-tooltip-inner'),
             tester = testersFactory.createDomElementTester(getDomElement);
 
         return addTesters(tester, getDomElement);
@@ -851,11 +954,11 @@ define(() => function ({
         find().closest('.cmg-softphone--call-stats-status-duration'));
 
     me.modalWindow = (() => {
-        const getModalWindow = () => utils.querySelector('.clct-modal, .ui-modal'),
+        const getModalWindow = () => utils.querySelector('.clct-modal, .ui-modal, .cmgui-modal'),
             windowTester = addTesters(testersFactory.createDomElementTester(getModalWindow), getModalWindow);
 
         const windowContentTester = testersFactory.createDomElementTester(
-            () => getModalWindow().querySelector('.ui-modal-content') 
+            () => getModalWindow().querySelector('.ui-modal-content, .cmgui-modal-content') 
         );
 
         windowTester.expectToHaveWidth = windowContentTester.expectToHaveWidth.bind(windowContentTester);
@@ -868,7 +971,7 @@ define(() => function ({
 
         windowTester.closeButton = (() => {
             const tester = testersFactory.createDomElementTester(() =>
-                utils.element(getModalWindow()).querySelector('.ui-modal-close-x'));
+                utils.element(getModalWindow()).querySelector('.ui-modal-close-x, .cmgui-modal-close-x'));
 
             const click = tester.click.bind(tester);
 
@@ -992,7 +1095,7 @@ define(() => function ({
         const addResponseModifiers = me => {
             me.logAttached = () => {
                 bodyParams.files = {
-                    name: 'logs.txt'
+                    name: '20191219.121007.000.log.txt'
                 };
 
                 return me;
@@ -2210,7 +2313,7 @@ define(() => function ({
 
                 spendTime(0);
 
-                utils.isVisible(utils.querySelector('.clct-modal, .ui-modal')) &&
+                utils.isVisible(utils.querySelector('.clct-modal, .ui-modal, .cmgui-modal')) &&
                     mainTester.modalWindow.endTransition('transform');
 
                 spendTime(0);
@@ -8868,7 +8971,7 @@ define(() => function ({
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
                     expectToHaveMethod('DELETE');
 
-                utils.isVisible(utils.querySelector('.clct-modal, .ui-modal')) &&
+                utils.isVisible(utils.querySelector('.clct-modal, .ui-modal, .cmgui-modal')) &&
                     mainTester.modalWindow.endTransition('transform');
 
                 return addResponseModifiers({
@@ -11717,10 +11820,26 @@ define(() => function ({
     me.forceUpdate = () => utils.pressKey('k');
     me.body = testersFactory.createDomElementTester('body');
     me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
-    me.incomingIcon = testersFactory.createDomElementTester('.ui-direction-icon-incoming');
-    me.outgoingIcon = testersFactory.createDomElementTester('.ui-direction-icon-outgoing');
-    me.directionIcon = testersFactory.createDomElementTester('.ui-direction-icon');
-    me.transferIncomingIcon = testersFactory.createDomElementTester('.ui-direction-icon-transfer');
+
+    me.incomingIcon = testersFactory.createDomElementTester(
+        '.ui-direction-icon-incoming, ' +
+        '.cmgui-direction-icon-incoming'
+    );
+
+    me.outgoingIcon = testersFactory.createDomElementTester(
+        '.ui-direction-icon-outgoing, ' +
+        '.cmgui-direction-icon-outgoing'
+    );
+
+    me.directionIcon = testersFactory.createDomElementTester(
+        '.ui-direction-icon, ' +
+        '.cmgui-direction-icon'
+    );
+
+    me.transferIncomingIcon = testersFactory.createDomElementTester(
+        '.ui-direction-icon-transfer, ' +
+        '.cmgui-direction-icon-transfer'
+    );
 
     me.productsButton = testersFactory.
         createDomElementTester('.src-components-main-menu-products-styles-module__icon-container');
@@ -12152,7 +12271,7 @@ define(() => function ({
     })();
 
     me.notificationWindow = (() => {
-        const getDomElement = () => utils.querySelector('.ui-notification'),
+        const getDomElement = () => utils.querySelector('.ui-notification, .cmgui-notification'),
             tester = testersFactory.createDomElementTester(getDomElement);
 
         return addTesters(tester, getDomElement);
@@ -12308,8 +12427,12 @@ define(() => function ({
     })();
 
     {
-        const tester = testersFactory.createDomElementTester('.ui-select-popup-header .ui-icon'),
-            click = tester.click.bind(tester);
+        const tester = testersFactory.createDomElementTester(
+            '.ui-select-popup-header .ui-icon, ' +
+            '.cmgui-select-popup-header .cmgui-icon'
+        );
+
+        const click = tester.click.bind(tester);
 
         tester.click = () => (click(), spendTime(0));
         me.arrowNextToSearchField = tester;
@@ -12344,7 +12467,7 @@ define(() => function ({
     })();
 
     me.popover = (() => {
-        const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover')),
+        const getDomElement = () => utils.getVisibleSilently(document.querySelectorAll('.ui-popover, .cmgui-popover')),
             tester = testersFactory.createDomElementTester(getDomElement);
 
         return addTesters(tester, getDomElement);
@@ -12358,18 +12481,22 @@ define(() => function ({
     })();
 
     me.statusesList = (() => {
-        const selector = '.ui-account-popup, .cm-chats--account-popup',
+        const selector = '.ui-account-popup, .cmgui-account-popup, .cm-chats--account-popup',
             tester = testersFactory.createDomElementTester(selector);
 
         tester.item = text => {
             const domElement = utils.descendantOf(document.querySelector(selector)).
-                matchesSelector('.ui-account-popup--item, .cm-chats--account-popup--item').
+                matchesSelector(
+                    '.ui-account-popup--item, ' +
+                    '.cmgui-account-popup--item, ' +
+                    '.cm-chats--account-popup--item'
+                ).
                 textEquals(text).
                 find();
 
             const tester = testersFactory.createDomElementTester(domElement),
                 click = tester.click.bind(tester),
-                isSelected = () => !!domElement.querySelectorAll('.ui-icon')[1];
+                isSelected = () => !!domElement.querySelectorAll('.ui-icon, .cmgui-icon')[1];
 
             tester.click = () => (click(), spendTime(0), spendTime(0));
 
@@ -12410,12 +12537,12 @@ define(() => function ({
     me.logoutButton = (() => {
         const tester = testersFactory.createDomElementTester(() => {
             let domElement = utils.descendantOfBody().
-                matchesSelector('.ui-popup-content span').
+                matchesSelector('.ui-popup-content span, .cmgui-popup-content span').
                 textEquals('Выход').
                 find();
 
             domElement instanceof JsTester_NoElement && (domElement = utils.descendantOfBody().
-                matchesSelector('.ui-account-popup--item').
+                matchesSelector('.ui-account-popup--item, .cmgui-account-popup--item').
                 textEquals('Выход').
                 find());
 
