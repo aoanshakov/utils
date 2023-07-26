@@ -135,38 +135,10 @@ index 41ad6c1..14dfe79 100644
        width: 100%;
        height: 100%;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index eaff607..26d3da2 100644
+index eaff607..19528fa 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -22,6 +22,9 @@ import OperatorSettingsStore from '@models/operator-settings';
- import { eventBus } from '@comagic/core';
- import ContactsIntegraionStore from '@models/contacts-integration/ContactsIntegraionStore';
- 
-+import { httpRest } from '@/httpRest';
-+import { httpRpc } from '@/httpRpc';
-+
- export const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
- export const REFRESH_TOKEN_EXPIRED = 'refresh_token_expired';
- export const ACCESS_TOKEN_INVALID = 'access_token_invalid';
-@@ -129,13 +132,25 @@ export const RootStore = types
-             void init();
-         };
- 
--        return { afterCreate, resetStore, resetAfterError, init };
-+        return {
-+            afterCreate,
-+            resetStore,
-+            resetAfterError,
-+            init,
-+
-+            rest: () => {
-+            },
-+
-+            rpc: () => {
-+            },
-+        };
-     });
- 
+@@ -135,7 +135,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

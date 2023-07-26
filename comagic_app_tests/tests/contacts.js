@@ -2205,6 +2205,25 @@ tests.addTest(options => {
                                 tester.input.withPlaceholder('Фамилия (Обязательное поле)').expectToHaveError();
                             });
                         });
+                        it('Открываю софтфон. Нажимаю на кнопку с жуком. Скачивается лог. ', function() {
+                            tester.button('Софтфон').click();
+
+                            tester.slavesNotification().
+                                additional().
+                                visible().
+                                expectToBeSent();
+
+                            tester.bugButton.click();
+
+                            tester.anchor.withFileName('20191219.121007.000.log.txt').
+                                expectHrefToBeBlobWithSubstring(
+                                    'GET $REACT_APP_BASE_URL/contacts' + 
+                                    "\n\n" +
+                                    '{"limit":100,"search":null,"scroll_direction":"forward"}' +
+                                    "\n\n" +
+                                    '{"data":[{"first_name":"Берислава",'//}]}
+                                );
+                        });
                         it('Имена сгруппированы по первым буквам.', function() {
                             tester.contactBar.section('ФИО').expectNotToExist();
 
@@ -3213,6 +3232,34 @@ tests.addTest(options => {
 
                         tester.usersRequest().forContacts().receiveResponse();
                         tester.usersRequest().forContacts().receiveResponse();
+
+                        tester.button('Софтфон').click();
+
+                        tester.slavesNotification().
+                            additional().
+                            visible().
+                            expectToBeSent();
+
+                        tester.bugButton.click();
+
+                        tester.anchor.withFileName('20191219.121007.000.log.txt').
+                            expectHrefToBeBlobWithSubstring(
+                                'POST $REACT_APP_CHAT_BASE_URL?method=get_search_results' +
+                                "\n\n" +
+
+                                JSON.stringify({
+                                    jsonrpc: '2.0',
+                                    id: 'number',
+                                    method: 'get_search_results',
+                                    params: {
+                                        search_string: '79283810988',
+                                        is_only_whatsapp_out: true,
+                                    },
+                                }) +
+
+                                "\n\n" +
+                                '{"result":{"data":{"found_list":[{"chat_channel_id":101,'//
+                            );
                     });
                     it(
                         'Есть доступный чат. Выбираю канал. Нажимаю на кнопку перехода в чат. Открыт раздел чатов.',
