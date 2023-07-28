@@ -1128,6 +1128,41 @@ define(() => function ({
         });
     };
 
+    me.feedbackCreatingRequest = () => {
+        const bodyParams = {
+            comment: 'Что-то нехорошее произошло',
+            rating: '0',
+            files: {
+                name: '20191219.121007.000.log.zip',
+            },
+        };
+
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHaveMethod('POST').
+                    expectBodyToContain(bodyParams).
+                    expectToHavePath('https://$REACT_APP_SOFTPHONE_BACKEND_HOST/sup/api/v1/feedback');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            data: true,
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.centrifugoAuthTokenRequest = () => {
         const addResponseModifiers = me => me;
 
@@ -1959,6 +1994,10 @@ define(() => function ({
         return {
             noVisitorName() {
                 params.offline_message.visitor_name = null;
+                return this;
+            },
+            noName() {
+                params.offline_message.name = '';
                 return this;
             },
             receive: () => {

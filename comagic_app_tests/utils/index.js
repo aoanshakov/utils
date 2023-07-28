@@ -18,6 +18,8 @@ const {
     corePatch,
     magicUiPatch,
     magicUiLibPatch,
+    logger,
+    loggerPatch,
     huskyPatch,
     softphonePatch,
     analyticsPatch,
@@ -192,6 +194,16 @@ const overriding = [{
     test: {
         overridenFiles: magicUiOverridenFiles,
         applicationPatch: magicUiPatch
+    }
+}, {
+    application: logger,
+    dev: {
+        overridenFiles: packageJson,
+        applicationPatch: loggerPatch
+    },
+    test: {
+        overridenFiles: packageJson,
+        applicationPatch: loggerPatch
     }
 }, {
     application: core,

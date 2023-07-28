@@ -657,32 +657,11 @@ tests.addTest(options => {
                                                         tester.searchResultsRequest().receiveResponse();
 
                                                         tester.chatList.item('Сообщение #75').click();
-                                                        tester.chatListRequest().thirdChat().receiveResponse();
 
-                                                        tester.acceptChatRequest().receiveResponse();
+                                                        tester.chatListRequest().thirdChat().receiveResponse();
                                                         tester.visitorCardRequest().receiveResponse();
                                                         tester.messageListRequest().receiveResponse();
-
                                                         tester.usersRequest().forContacts().receiveResponse();
-                                                        tester.usersRequest().forContacts().receiveResponse();
-
-                                                        tester.changeMessageStatusRequest().
-                                                            anotherChat().
-                                                            anotherMessage().
-                                                            read().
-                                                            receiveResponse();
-
-                                                        tester.changeMessageStatusRequest().
-                                                            anotherChat().
-                                                            anotherMessage().
-                                                            read().
-                                                            receiveResponse();
-
-                                                        tester.changeMessageStatusRequest().
-                                                            anotherChat().
-                                                            anotherMessage().
-                                                            read().
-                                                            receiveResponse();
                                                     });
                                                     it('Сворачиваю софтофон.', function() {
                                                         tester.maximizednessButton.click();
@@ -2632,6 +2611,13 @@ tests.addTest(options => {
                                             chatAccountRequest.receiveResponse();
                                             secondChatAccountRequest.receiveResponse();
 
+                                            tester.chatListRequest().
+                                                forCurrentEmployee().
+                                                anyScrollFromDate().
+                                                count(0).
+                                                closed().
+                                                receiveResponse();
+
                                             tester.countersRequest().
                                                 noNewChatsWithUnreadMessages().
                                                 receiveResponse();
@@ -2758,6 +2744,20 @@ tests.addTest(options => {
                                                 chatAccountRequest.receiveResponse();
                                                 secondChatAccountRequest.receiveResponse();
 
+                                                tester.chatListRequest().
+                                                    forCurrentEmployee().
+                                                    anyScrollFromDate().
+                                                    active().
+                                                    count(0).
+                                                    receiveResponse();
+
+                                                tester.chatListRequest().
+                                                    forCurrentEmployee().
+                                                    anyScrollFromDate().
+                                                    closed().
+                                                    count(0).
+                                                    receiveResponse();
+
                                                 tester.countersRequest().
                                                     noNewChatsWithUnreadMessages().
                                                     receiveResponse();
@@ -2806,75 +2806,40 @@ tests.addTest(options => {
                                                     recentNotification();
                                             });
 
-                                            describe('Нажимаю на уведомление.', function() {
-                                                beforeEach(function() {
-                                                    notification.click();
+                                            it(
+                                                'Нажимаю на уведомление. Открыт чат с новым сообщением. Открытый чат ' +
+                                                'отмечен.',
+                                            function() {
+                                                notification.click();
 
-                                                    getPackage('electron').ipcRenderer.
-                                                        recentlySentMessage().
-                                                        expectToBeSentToChannel('show');
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('show');
 
-                                                    tester.employeesRequest().receiveResponse();
+                                                tester.visitorCardRequest().receiveResponse();
+                                                tester.messageListRequest().receiveResponse();
+                                                tester.employeesRequest().receiveResponse();
+                                                tester.employeesRequest().receiveResponse();
 
-                                                    tester.acceptChatRequest().
-                                                        anotherChat().
-                                                        receiveResponse();
+                                                tester.chatList.item('Привет').expectToBeSelected();
+                                                tester.chatList.item('Здравствуй').expectNotToBeSelected();
 
-                                                    tester.visitorCardRequest().receiveResponse();
+                                                tester.body.expectTextContentToHaveSubstring(
+                                                    '10 февраля 2020 ' +
+                                                    
+                                                    'Привет ' +
+                                                    '12:13 Ответить ' +
 
-                                                    tester.changeMessageStatusRequest().
-                                                        read().
-                                                        receiveResponse();
+                                                    'Здравствуйте ' +
+                                                    '12:12'
+                                                );
 
-                                                    tester.messageListRequest().receiveResponse();
+                                                tester.body.expectTextContentToHaveSubstring(
+                                                    'Посетитель ' +
 
-                                                    tester.changeMessageStatusRequest().
-                                                        read().
-                                                        receiveResponse();
-
-                                                    tester.changeMessageStatusRequest().
-                                                        read().
-                                                        receiveResponse();
-
-                                                    tester.changeMessageStatusRequest().
-                                                        read().
-                                                        receiveResponse();
-
-                                                    tester.employeesRequest().receiveResponse();
-
-                                                    tester.changeMessageStatusRequest().
-                                                        read().
-                                                        anotherMessage().
-                                                        receiveResponse();
-                                                });
-                                                
-                                                it('Открываю вкладку "В работе". Открытый чат отмечен.', function() {
-                                                    tester.button('В работе 75').click();
-
-                                                    tester.chatList.item('Привет').expectToBeSelected();
-                                                    tester.chatList.item('Здравствуй').expectNotToExist();
-                                                });
-                                                it('Открыт чат с новым сообщением.', function() {
-                                                    tester.chatList.item('Привет').expectNotToExist();
-                                                    tester.chatList.item('Здравствуй').expectNotToBeSelected();
-
-                                                    tester.body.expectTextContentToHaveSubstring(
-                                                        '10 февраля 2020 ' +
-                                                        
-                                                        'Привет ' +
-                                                        '12:13 Ответить ' +
-
-                                                        'Здравствуйте ' +
-                                                        '12:12'
-                                                    );
-
-                                                    tester.body.expectTextContentToHaveSubstring(
-                                                        'Посетитель ' +
-
-                                                        'ФИО ' +
-                                                        'Помакова Бисерка Драгановна'
-                                                    );
-                                                });
+                                                    'ФИО ' +
+                                                    'Помакова Бисерка Драгановна'
+                                                );
                                             });
                                             it('Отображено уведомление.', function() {
                                                 notification.
@@ -2922,155 +2887,121 @@ tests.addTest(options => {
                                                     recentNotification();
                                             });
 
-                                            describe('Нажимаю на уведомление.', function() {
-                                                beforeEach(function() {
-                                                    notification.click();
+                                            it('Нажимаю на уведомление. Открыт чат с новым сообщением.', function() {
+                                                notification.click();
 
-                                                    getPackage('electron').ipcRenderer.
-                                                        recentlySentMessage().
-                                                        expectToBeSentToChannel('show');
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('show');
 
-                                                    getPackage('electron').ipcRenderer.
-                                                        receiveMessage('maximize');
+                                                getPackage('electron').ipcRenderer.
+                                                    receiveMessage('maximize');
 
-                                                    getPackage('electron').ipcRenderer.
-                                                        recentlySentMessage().
-                                                        expectToBeSentToChannel('resize').
-                                                        expectToBeSentWithArguments({
-                                                            width: 340,
-                                                            height: 568
-                                                        });
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('resize').
+                                                    expectToBeSentWithArguments({
+                                                        width: 340,
+                                                        height: 568
+                                                    });
 
-                                                    getPackage('electron').ipcRenderer.
-                                                        recentlySentMessage().
-                                                        expectToBeSentToChannel('maximize');
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('maximize');
 
-                                                    tester.acceptChatRequest().
-                                                        anotherChat().
-                                                        receiveResponse();
+                                                tester.visitorCardRequest().receiveResponse();
+                                                tester.messageListRequest().receiveResponse();
+                                                tester.statsRequest().receiveResponse();
 
-                                                    tester.visitorCardRequest().receiveResponse();
+                                                const requests = ajax.inAnyOrder();
 
-                                                    tester.changeMessageStatusRequest().
-                                                        read().
-                                                        receiveResponse();
+                                                const accountRequest = tester.accountRequest().
+                                                    operatorWorkplaceAvailable().
+                                                    expectToBeSent(requests);
 
-                                                    tester.messageListRequest().receiveResponse();
-                                                    tester.statsRequest().receiveResponse();
+                                                const secondAccountRequest = tester.accountRequest().
+                                                    forChats().
+                                                    operatorWorkplaceAvailable().
+                                                    expectToBeSent(requests);
 
-                                                    const requests = ajax.inAnyOrder();
+                                                requests.expectToBeSent();
 
-                                                    const accountRequest = tester.accountRequest().
-                                                        operatorWorkplaceAvailable().
-                                                        expectToBeSent(requests);
+                                                accountRequest.receiveResponse();
+                                                secondAccountRequest.receiveResponse();
 
-                                                    const secondAccountRequest = tester.accountRequest().
-                                                        forChats().
-                                                        operatorWorkplaceAvailable().
-                                                        expectToBeSent(requests);
+                                                tester.countersRequest().
+                                                    noNewChatsWithUnreadMessages().
+                                                    receiveResponse();
 
-                                                    requests.expectToBeSent();
+                                                tester.offlineMessageCountersRequest().receiveResponse();
+                                                tester.chatChannelListRequest().receiveResponse();
+                                                tester.siteListRequest().receiveResponse();
+                                                tester.markListRequest().receiveResponse();
 
-                                                    accountRequest.receiveResponse();
-                                                    secondAccountRequest.receiveResponse();
+                                                tester.chatListRequest().
+                                                    forCurrentEmployee().
+                                                    anyScrollFromDate().
+                                                    count(0).
+                                                    receiveResponse();
 
-                                                    tester.countersRequest().
-                                                        noNewChatsWithUnreadMessages().
-                                                        receiveResponse();
+                                                tester.chatListRequest().
+                                                    forCurrentEmployee().
+                                                    anyScrollFromDate().
+                                                    active().
+                                                    count(0).
+                                                    receiveResponse();
 
-                                                    tester.offlineMessageCountersRequest().receiveResponse();
-                                                    tester.chatChannelListRequest().receiveResponse();
-                                                    tester.siteListRequest().receiveResponse();
-                                                    tester.markListRequest().receiveResponse();
+                                                tester.chatListRequest().
+                                                    forCurrentEmployee().
+                                                    anyScrollFromDate().
+                                                    closed().
+                                                    count(0).
+                                                    receiveResponse();
 
-                                                    tester.chatListRequest().
-                                                        forCurrentEmployee().
-                                                        anyScrollFromDate().
-                                                        count(0).
-                                                        receiveResponse();
+                                                tester.chatChannelTypeListRequest().receiveResponse();
 
-                                                    tester.chatListRequest().
-                                                        forCurrentEmployee().
-                                                        anyScrollFromDate().
-                                                        active().
-                                                        count(0).
-                                                        receiveResponse();
+                                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                                tester.offlineMessageListRequest().processing().receiveResponse();
+                                                tester.offlineMessageListRequest().processed().receiveResponse();
 
-                                                    tester.chatListRequest().
-                                                        forCurrentEmployee().
-                                                        anyScrollFromDate().
-                                                        closed().
-                                                        count(0).
-                                                        receiveResponse();
+                                                spendTime(200);
+                                                spendTime(0);
+                                                spendTime(0);
+                                                spendTime(0);
 
-                                                    tester.chatChannelTypeListRequest().receiveResponse();
+                                                tester.employeesRequest().receiveResponse();
 
-                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                                    tester.offlineMessageListRequest().processed().receiveResponse();
+                                                tester.accountRequest().
+                                                    forChats().
+                                                    operatorWorkplaceAvailable().
+                                                    receiveResponse();
 
-                                                    spendTime(200);
-                                                    spendTime(0);
-                                                    spendTime(0);
-                                                    spendTime(0);
+                                                tester.chatSettingsRequest().receiveResponse();
+                                                tester.chatChannelListRequest().receiveResponse();
+                                                tester.statusListRequest().receiveResponse();
+                                                tester.listRequest().receiveResponse();
+                                                tester.siteListRequest().receiveResponse();
+                                                tester.messageTemplateListRequest().receiveResponse();
 
-                                                    tester.employeesRequest().receiveResponse();
+                                                tester.chatList.item('Привет').expectToBeSelected();
+                                                tester.chatList.item('Здравствуй').expectNotToBeSelected();
 
-                                                    tester.changeMessageStatusRequest().
-                                                        read().
-                                                        anotherMessage().
-                                                        receiveResponse();
+                                                tester.body.expectTextContentToHaveSubstring(
+                                                    '10 февраля 2020 ' +
+                                                    
+                                                    'Привет ' +
+                                                    '12:13 Ответить ' +
 
-                                                    tester.changeMessageStatusRequest().
-                                                        read().
-                                                        anotherMessage().
-                                                        receiveResponse();
+                                                    'Здравствуйте ' +
+                                                    '12:12'
+                                                );
 
-                                                    tester.changeMessageStatusRequest().
-                                                        read().
-                                                        anotherMessage().
-                                                        receiveResponse();
+                                                tester.body.expectTextContentToHaveSubstring(
+                                                    'Посетитель ' +
 
-                                                    tester.accountRequest().
-                                                        forChats().
-                                                        operatorWorkplaceAvailable().
-                                                        receiveResponse();
-
-                                                    tester.chatSettingsRequest().receiveResponse();
-                                                    tester.chatChannelListRequest().receiveResponse();
-                                                    tester.statusListRequest().receiveResponse();
-                                                    tester.listRequest().receiveResponse();
-                                                    tester.siteListRequest().receiveResponse();
-                                                    tester.messageTemplateListRequest().receiveResponse();
-                                                });
-
-                                                it('Открываю вкладку "В работе". Открытый чат отмечен.', function() {
-                                                    tester.button('В работе 75').click();
-
-                                                    tester.chatList.item('Привет').expectToBeSelected();
-                                                    tester.chatList.item('Здравствуй').expectNotToExist();
-                                                });
-                                                it('Открыт чат с новым сообщением.', function() {
-                                                    tester.chatList.item('Привет').expectNotToExist();
-                                                    tester.chatList.item('Здравствуй').expectNotToBeSelected();
-
-                                                    tester.body.expectTextContentToHaveSubstring(
-                                                        '10 февраля 2020 ' +
-                                                        
-                                                        'Привет ' +
-                                                        '12:13 Ответить ' +
-
-                                                        'Здравствуйте ' +
-                                                        '12:12'
-                                                    );
-
-                                                    tester.body.expectTextContentToHaveSubstring(
-                                                        'Посетитель ' +
-
-                                                        'ФИО ' +
-                                                        'Помакова Бисерка Драгановна'
-                                                    );
-                                                });
+                                                    'ФИО ' +
+                                                    'Помакова Бисерка Драгановна'
+                                                );
                                             });
                                             it('Отображено уведомление.', function() {
                                                 notification.
@@ -3662,16 +3593,6 @@ tests.addTest(options => {
                                     it('Есть только один новый чат.', function() {
                                         chatListRequest.count(1).receiveResponse();
                                         secondChatListRequest.count(1).receiveResponse();
-
-                                        tester.chatListRequest().
-                                            forCurrentEmployee().
-                                            afterSingleChat().
-                                            expectToBeSent();
-
-                                        tester.chatListRequest().
-                                            forCurrentEmployee().
-                                            afterSingleChat().
-                                            expectToBeSent();
 
                                         tester.chatList.item('Сообщение #1').expectToBeVisible();
                                         tester.chatList.item('Сообщение #2').expectNotToExist();
@@ -4866,6 +4787,41 @@ tests.addTest(options => {
                         });
                 });
 
+                describe(
+                    'Открываю вкладку "Помощь". Ввожу значение в поле описания, нажимаю на кнопку "Отправить".',
+                function() {
+                    beforeEach(function() {
+                        tester.button('Помощь').click();
+
+                        tester.textarea.
+                            withPlaceholder('Опишите проблему').
+                            fill('Что-то нехорошее произошло');
+
+                        tester.button('Отправить').click();
+
+                        getPackage('electron').ipcRenderer.
+                            recentlySentMessage().
+                            expectToBeSentToChannel('collect_logs').
+                            expectToBeSentWithArguments(0);
+                    });
+
+                    it('Архив логов получен.', function() {
+                        getPackage('electron').ipcRenderer.receiveMessage(
+                            'logs_collected',
+                            'GET https://$REACT_APP_SOFTPHONE_BACKEND_HOST/sup/auth/check',
+                            0,
+                        );
+
+                        tester.feedbackCreatingRequest().receiveResponse();
+
+                        blobsTester.some(blob => blob.expectToHaveSubstring(
+                            'GET https://$REACT_APP_SOFTPHONE_BACKEND_HOST/sup/auth/check'
+                        ));
+                    });
+                    it('Данные формы помощи не были отправлены.', function() {
+                        ajax.expectNoRequestsToBeSent();
+                    });
+                });
                 it('Снимаю отметку со свитчбокса "Скрывать после звонка". Отметка снята.', function() {
                     tester.button('Скрывать после звонка').click();
 
@@ -4874,10 +4830,6 @@ tests.addTest(options => {
                     }
 
                     tester.button('Скрывать после звонка').expectNotToBeChecked();
-                });
-                it('Открываю вкладку "Помощь". Отображена форма обратной связи.', function() {
-                    tester.button('Помощь').click();
-                    tester.button('Отправить').expectToBeVisible();
                 });
                 it('Свитчбоксы "Открывать во время звонка" и "Скрывать после звонка" отмечены.', function() {
                     tester.button('Открывать во время звонка').expectToBeChecked();

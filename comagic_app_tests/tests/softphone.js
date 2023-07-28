@@ -1869,13 +1869,6 @@ tests.addTest(options => {
                                             });
                                         });
                                         it(
-                                            'От ведомой вкладки пришел запрос отображения софтфона. Софтфон отображен.',
-                                        function() {
-                                            tester.masterNotification().toggleWidgetVisiblity().receive();
-                                            tester.callStartingButton.expectToBeVisible();
-                                            tester.slavesNotification().additional().visible().expectToBeSent();
-                                        });
-                                        it(
                                             'Нажимаю на кнопку "Поддержка". Открыто окно формы для ввода сообщения в ' +
                                             'техническую поддержку.',
                                         function() {
@@ -1904,6 +1897,13 @@ tests.addTest(options => {
                                                  "\n\n" +
                                                 'REGISTER sip:voip.uiscom.ru SIP/2.0'
                                             ));
+                                        });
+                                        it(
+                                            'От ведомой вкладки пришел запрос отображения софтфона. Софтфон отображен.',
+                                        function() {
+                                            tester.masterNotification().toggleWidgetVisiblity().receive();
+                                            tester.callStartingButton.expectToBeVisible();
+                                            tester.slavesNotification().additional().visible().expectToBeSent();
                                         });
                                         it(
                                             'Отображен пункт меню. Софтфон скрыт. Отображается статус сотрудника.',

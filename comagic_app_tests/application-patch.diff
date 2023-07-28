@@ -456,10 +456,10 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index abb1f850..e0ed2323 100644
+index abb1f850..a66f1117 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,13 +1,18 @@
+@@ -1,13 +1,19 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
@@ -471,6 +471,7 @@ index abb1f850..e0ed2323 100644
  import { IntlProvider } from 'react-intl';
  import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 +import { notification, Modal } from 'magic-ui';
++import { createIcon } from '@/utils';
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
@@ -480,17 +481,36 @@ index abb1f850..e0ed2323 100644
  
  import history from '@/history';
  
-@@ -79,7 +84,54 @@ const Root: React.FC = observer(props => {
+@@ -79,7 +85,73 @@ const Root: React.FC = observer(props => {
      );
  });
  
 -const container = document.getElementById('root');
 -const root = createRoot(container);
-+const TestBody = ({children}) => <div className="cm-test-body">{children}</div>,
-+    Window = ({children}) => <div className="cm-test-window">{children}</div>;
++const TestBody = ({children}) => <div className="cm-test-body">{children}</div>;
  
 -root.render(<Root {...(window.rootConfig || {})}/>);
-+const units = {};
++const Icon = () => {
++    useEffect(() => {
++        (async function () {
++            //const os = 'mac';
++            const os = 'windows';
++
++            const src = await createIcon(os)(5),
++                img = document.createElement('img');
++
++            img.style.width = img.style.height = os == 'mac' ? '50px' : '25px';
++            img.src = src;
++            document.body.appendChild(img);
++        })();
++    }, []);
++    return <></>;
++};
++
++const units = {
++    icon: Icon,
++};
++
 +let root;
 +
 +window.application = {
@@ -539,7 +559,7 @@ index abb1f850..e0ed2323 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 0c6afd83..7c5c16d2 100644
+index 23f45856..11fc827a 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -222,7 +222,7 @@ export const RootStore = types

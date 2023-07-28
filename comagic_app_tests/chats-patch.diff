@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 9c0d1c9..bb6b623 100644
+index e8e07ea..e9f7401 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,8 +22,6 @@
@@ -11,16 +11,17 @@ index 9c0d1c9..bb6b623 100644
      "@types/react-window": "^1.8.5",
      "@types/uuid": "^8.3.1",
      "@types/yup": "^0.29.11",
-@@ -57,7 +55,6 @@
+@@ -57,8 +55,6 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "^1.1.1",
+-    "@comagic/logger": "^1.0.2",
      "async-mutex": "^0.3.2",
      "axios": "^0.21.1",
      "classnames": "^2.2.6",
-@@ -68,15 +65,10 @@
-     "formik": "^2.2.9",
+@@ -70,15 +66,10 @@
+     "history": "^5.3.0",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
 -    "magic-ui": "0.0.0-int1",
@@ -63,7 +64,7 @@ index 303fdf9..0db72b0 100644
  
  export default App;
 diff --git a/src/components/chats/chat-panel/styles.less b/src/components/chats/chat-panel/styles.less
-index 41ad6c1..14dfe79 100644
+index 9dfa539..b4d98a4 100644
 --- a/src/components/chats/chat-panel/styles.less
 +++ b/src/components/chats/chat-panel/styles.less
 @@ -196,7 +196,7 @@
@@ -84,7 +85,7 @@ index 41ad6c1..14dfe79 100644
          box-shadow: none;
          border: none;
          background: white;
-@@ -979,15 +979,15 @@
+@@ -984,15 +984,15 @@
  
  .@{p}audio-download-popup {
  
@@ -103,7 +104,7 @@ index 41ad6c1..14dfe79 100644
      position: relative;
      left: 10px;
      top: 9px;
-@@ -1000,7 +1000,7 @@
+@@ -1005,7 +1005,7 @@
        background-color: @surfaces-highlight;
      }
  
@@ -112,7 +113,7 @@ index 41ad6c1..14dfe79 100644
        color: @fonts-primary;
      }
    }
-@@ -1010,18 +1010,18 @@
+@@ -1015,18 +1015,18 @@
    width: 100%;
    height: 100%;
  
@@ -149,19 +150,16 @@ index eaff607..19528fa 100644
  if (process.env.NODE_ENV === 'development') {
      window.chatsRootStore = rootStore;
 diff --git a/src/models/account/AccountStore.ts b/src/models/account/AccountStore.ts
-index 3a0a43c..c77c997 100644
+index e4d6837..578a942 100644
 --- a/src/models/account/AccountStore.ts
 +++ b/src/models/account/AccountStore.ts
-@@ -1,6 +1,7 @@
+@@ -1,4 +1,4 @@
 -import { flow, Instance, getParent, types, cast } from 'mobx-state-tree';
 +import { flow, Instance, getParent, types, cast, getSnapshot } from 'mobx-state-tree';
  import { httpRpc, DataApiResponseResult } from '@/httpRpc';
  import { intl } from '@/i18n';
-+import { RootStore } from '@/models/RootStore';
- 
- const PermissionUnit = types.model('PermissionUnit', {
-     is_delete: types.optional(types.boolean, false),
-@@ -55,12 +56,18 @@ export const AccountStore = types
+ import { RootStore } from '@models/RootStore';
+@@ -56,12 +56,18 @@ export const AccountStore = types
      })
      .views(self => ({
          getOtherEmployeeChatsAccess() {

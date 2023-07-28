@@ -21,17 +21,14 @@ tests.addTest(options => {
         setDocumentVisible
     } = options;
 
-    describe('Софтфон не должен отображаться поверх окон при входящем.', function() {
-        let tester;
+    it('Отображаю иконку.', function() {
+        Promise.uninstall();
+        Promise.runAll = () => null;
+        Promise.clear = () => null;
 
-        beforeEach(function() {
-            tester = new Tester({
-                ...options,
-                appName: 'fiber'
-            });
-        });
-
-        it('', function() {
-        });
+        new Tester({
+            ...options,
+            appName: 'icon',
+        })
     });
 });

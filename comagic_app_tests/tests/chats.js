@@ -174,7 +174,6 @@ tests.addTest(options => {
 
                                 beforeEach(function() {
                                     chatListRequest.noVisitorName().extIdSpecified().receiveResponse();
-                                    tester.acceptChatRequest().receiveResponse();
                                     visitorCardRequest = tester.visitorCardRequest().expectToBeSent();
                                     messageListRequest = tester.messageListRequest().expectToBeSent();
                                 });
@@ -189,25 +188,6 @@ tests.addTest(options => {
                                             messageListRequest.receiveResponse();
 
                                             tester.usersRequest().forContacts().receiveResponse();
-                                            tester.usersRequest().forContacts().receiveResponse();
-
-                                            tester.changeMessageStatusRequest().
-                                                anotherChat().
-                                                anotherMessage().
-                                                read().
-                                                receiveResponse();
-
-                                            tester.changeMessageStatusRequest().
-                                                anotherChat().
-                                                anotherMessage().
-                                                read().
-                                                receiveResponse();
-
-                                            tester.changeMessageStatusRequest().
-                                                anotherChat().
-                                                anotherMessage().
-                                                read().
-                                                receiveResponse();
                                         });
 
                                         describe('Открываю меню телефона.', function() {
@@ -387,7 +367,7 @@ tests.addTest(options => {
                                                     putMouseOver();
 
                                                 tester.tooltip.
-                                                    expectToHaveTextContent('Нереализованная сделка, Продажа');
+                                                    expectToHaveTextContent('Продажа, Нереализованная сделка');
                                             });
                                         });
                                         it(
@@ -509,27 +489,7 @@ tests.addTest(options => {
 
                                         beforeEach(function() {
                                             messageListRequest.firstPage().receiveResponse();
-
                                             tester.usersRequest().forContacts().receiveResponse();
-                                            tester.usersRequest().forContacts().receiveResponse();
-
-                                            tester.changeMessageStatusRequest().
-                                                anotherChat().
-                                                thirdMessage().
-                                                read().
-                                                receiveResponse();
-
-                                            tester.changeMessageStatusRequest().
-                                                anotherChat().
-                                                thirdMessage().
-                                                read().
-                                                receiveResponse();
-
-                                            tester.changeMessageStatusRequest().
-                                                anotherChat().
-                                                thirdMessage().
-                                                read().
-                                                receiveResponse();
                                         });
 
                                         describe(
@@ -637,27 +597,7 @@ tests.addTest(options => {
                                         'пользователь.',
                                     function() {
                                         messageListRequest.reply().receiveResponse();
-
                                         tester.usersRequest().forContacts().receiveResponse();
-                                        tester.usersRequest().forContacts().receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
 
                                         tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
                                             'Помакова Бисерка Драгановна ' +
@@ -667,27 +607,7 @@ tests.addTest(options => {
                                     });
                                     it('В чате присутсвует сообщение с аудио-вложением. Отображен плеер.', function() {
                                         messageListRequest.audioAttachment().receiveResponse();
-
                                         tester.usersRequest().forContacts().receiveResponse();
-                                        tester.usersRequest().forContacts().receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
 
                                         tester.chatHistory.message.atTime('12:12').
                                             expectToHaveTextContent(
@@ -704,24 +624,6 @@ tests.addTest(options => {
                                     beforeEach(function() {
                                         messageListRequest.receiveResponse();
                                         tester.usersRequest().forContacts().receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
                                     });
 
                                     describe('У посетителя есть два телефона.', function() {
@@ -730,6 +632,31 @@ tests.addTest(options => {
                                             tester.usersRequest().forContacts().receiveResponse();
                                         });
 
+                                        describe('Нажимаю на кнопку перевода чата.', function() {
+                                            beforeEach(function() {
+                                                tester.chatTransferButton.click();
+                                                tester.transferPanel.select.click();
+                                            });
+
+                                            it('Выбераю доступного оператора. Оператор выбран.', function() {
+                                                tester.select.
+                                                    option('Чакърова Райна Илковна').
+                                                    click();
+
+                                                tester.transferPanel.
+                                                    select.
+                                                    expectToHaveTextContent('Чакърова Райна Илковна');
+                                            });
+                                            it('Выбераю недоступного оператора. Оператор не выбран.', function() {
+                                                tester.select.
+                                                    option('Костова Марвуда Любенова').
+                                                    click();
+
+                                                tester.transferPanel.
+                                                    select.
+                                                    expectToHaveTextContent('Костова Марвуда Любенова');
+                                            });
+                                        });
                                         it('Редактирование первого телефона недоступно.', function() {
                                             tester.contactBar.
                                                 section('Телефоны').
@@ -754,30 +681,9 @@ tests.addTest(options => {
                                                 toolsIcon.
                                                 expectToBeVisible();
                                         });
-                                    });
-                                    describe('Нажимаю на кнопку перевода чата.', function() {
-                                        beforeEach(function() {
-                                            tester.chatTransferButton.click();
-                                            tester.transferPanel.select.click();
-                                        });
-
-                                        it('Выбераю доступного оператора. Оператор выбран.', function() {
-                                            tester.select.
-                                                option('Чакърова Райна Илковна').
-                                                click();
-
-                                            tester.transferPanel.
-                                                select.
-                                                expectToHaveTextContent('Чакърова Райна Илковна');
-                                        });
-                                        it('Выбераю недоступного оператора. Оператор не выбран.', function() {
-                                            tester.select.
-                                                option('Костова Марвуда Любенова').
-                                                click();
-
-                                            tester.transferPanel.
-                                                select.
-                                                expectToHaveTextContent('Костова Марвуда Любенова');
+                                        it('Нажимаю на кнопку принятия чата. Чат принят.', function() {
+                                            tester.button('Принять обращение в работу').click();
+                                            tester.acceptChatRequest().receiveResponse();
                                         });
                                     });
                                     it('У посетителя нет E-Mail.', function() {
@@ -803,25 +709,6 @@ tests.addTest(options => {
                                     visitorCardRequest.receiveResponse();
 
                                     tester.usersRequest().forContacts().receiveResponse();
-
-                                    tester.changeMessageStatusRequest().
-                                        anotherChat().
-                                        anotherMessage().
-                                        read().
-                                        receiveResponse();
-
-                                    tester.changeMessageStatusRequest().
-                                        anotherChat().
-                                        anotherMessage().
-                                        read().
-                                        receiveResponse();
-
-                                    tester.changeMessageStatusRequest().
-                                        anotherChat().
-                                        anotherMessage().
-                                        read().
-                                        receiveResponse();
-
                                     tester.usersRequest().forContacts().receiveResponse();
 
                                     tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
@@ -840,30 +727,9 @@ tests.addTest(options => {
                                     beforeEach(function() {
                                         chatListRequest.extIdSpecified().receiveResponse();
 
-                                        tester.acceptChatRequest().receiveResponse();
                                         tester.visitorCardRequest().addSecondPhoneNumber().receiveResponse();
                                         tester.messageListRequest().receiveResponse();
-
                                         tester.usersRequest().forContacts().receiveResponse();
-                                        tester.usersRequest().forContacts().receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
-
-                                        tester.changeMessageStatusRequest().
-                                            anotherChat().
-                                            anotherMessage().
-                                            read().
-                                            receiveResponse();
                                     });
 
                                     it('Нажимаю на кнопку "Создать контакт".', function() {
@@ -888,30 +754,10 @@ tests.addTest(options => {
                                 it('Не определен ext_id. Отображен канал WhatsApp.', function() {
                                     chatListRequest.receiveResponse();
 
-                                    tester.acceptChatRequest().receiveResponse();
                                     tester.visitorCardRequest().addSecondPhoneNumber().receiveResponse();
                                     tester.messageListRequest().receiveResponse();
 
                                     tester.usersRequest().forContacts().receiveResponse();
-                                    tester.usersRequest().forContacts().receiveResponse();
-
-                                    tester.changeMessageStatusRequest().
-                                        anotherChat().
-                                        anotherMessage().
-                                        read().
-                                        receiveResponse();
-
-                                    tester.changeMessageStatusRequest().
-                                        anotherChat().
-                                        anotherMessage().
-                                        read().
-                                        receiveResponse();
-
-                                    tester.changeMessageStatusRequest().
-                                        anotherChat().
-                                        anotherMessage().
-                                        read().
-                                        receiveResponse();
 
                                     tester.contactBar.
                                         section('Каналы связи').
@@ -924,30 +770,10 @@ tests.addTest(options => {
                                 beforeEach(function() {
                                     chatListRequest.phoneAutoFilled().receiveResponse();
 
-                                    tester.acceptChatRequest().receiveResponse();
                                     tester.visitorCardRequest().addSecondPhoneNumber().receiveResponse();
                                     tester.messageListRequest().receiveResponse();
 
                                     tester.usersRequest().forContacts().receiveResponse();
-                                    tester.usersRequest().forContacts().receiveResponse();
-
-                                    tester.changeMessageStatusRequest().
-                                        anotherChat().
-                                        anotherMessage().
-                                        read().
-                                        receiveResponse();
-
-                                    tester.changeMessageStatusRequest().
-                                        anotherChat().
-                                        anotherMessage().
-                                        read().
-                                        receiveResponse();
-
-                                    tester.changeMessageStatusRequest().
-                                        anotherChat().
-                                        anotherMessage().
-                                        read().
-                                        receiveResponse();
                                 });
 
                                 it('Редактирование первого телефона недоступно.', function() {
@@ -988,30 +814,12 @@ tests.addTest(options => {
 
                             it('Определен ext_id. Текущий канал связи выделен.', function() {
                                 chatListRequest.extIdSpecified().receiveResponse();
-                                tester.acceptChatRequest().receiveResponse();
+
                                 tester.visitorCardRequest().receiveResponse();
                                 tester.messageListRequest().receiveResponse();
 
                                 tester.usersRequest().forContacts().receiveResponse();
                                 tester.contactRequest().addTelegram().addFourthTelegram().receiveResponse();
-
-                                tester.changeMessageStatusRequest().
-                                    anotherChat().
-                                    anotherMessage().
-                                    read().
-                                    receiveResponse();
-
-                                tester.changeMessageStatusRequest().
-                                    anotherChat().
-                                    anotherMessage().
-                                    read().
-                                    receiveResponse();
-
-                                tester.changeMessageStatusRequest().
-                                    anotherChat().
-                                    anotherMessage().
-                                    read().
-                                    receiveResponse();
 
                                 tester.contactBar.
                                     section('Каналы связи').
@@ -1053,30 +861,12 @@ tests.addTest(options => {
                             });
                             it('Определен телефон. Текущий канал связи выделен.', function() {
                                 chatListRequest.phoneSpecified().receiveResponse();
-                                tester.acceptChatRequest().receiveResponse();
+
                                 tester.visitorCardRequest().receiveResponse();
                                 tester.messageListRequest().receiveResponse();
 
                                 tester.usersRequest().forContacts().receiveResponse();
                                 tester.contactRequest().addTelegram().addFourthTelegram().receiveResponse();
-
-                                tester.changeMessageStatusRequest().
-                                    anotherChat().
-                                    anotherMessage().
-                                    read().
-                                    receiveResponse();
-
-                                tester.changeMessageStatusRequest().
-                                    anotherChat().
-                                    anotherMessage().
-                                    read().
-                                    receiveResponse();
-
-                                tester.changeMessageStatusRequest().
-                                    anotherChat().
-                                    anotherMessage().
-                                    read().
-                                    receiveResponse();
 
                                 tester.contactBar.
                                     section('Каналы связи').
@@ -1118,30 +908,12 @@ tests.addTest(options => {
                             });
                             it('Определен контекст. Текущий канал связи выделен.', function() {
                                 chatListRequest.receiveResponse();
-                                tester.acceptChatRequest().receiveResponse();
+
                                 tester.visitorCardRequest().receiveResponse();
                                 tester.messageListRequest().receiveResponse();
 
                                 tester.usersRequest().forContacts().receiveResponse();
                                 tester.contactRequest().addFourthTelegram().receiveResponse();
-
-                                tester.changeMessageStatusRequest().
-                                    anotherChat().
-                                    anotherMessage().
-                                    read().
-                                    receiveResponse();
-
-                                tester.changeMessageStatusRequest().
-                                    anotherChat().
-                                    anotherMessage().
-                                    read().
-                                    receiveResponse();
-
-                                tester.changeMessageStatusRequest().
-                                    anotherChat().
-                                    anotherMessage().
-                                    read().
-                                    receiveResponse();
 
                                 tester.contactBar.title.expectToHaveTextContent('Контакт');
                                 tester.contactBar.title.deleteButton.expectNotToExist();
@@ -1221,11 +993,7 @@ tests.addTest(options => {
 
                                     tester.chatStartingRequest().receiveResponse();
                                     tester.chatListRequest().thirdChat().receiveResponse();
-
-                                    tester.acceptChatRequest().receiveResponse();
                                     tester.visitorCardRequest().receiveResponse();
-
-                                    tester.usersRequest().forContacts().receiveResponse();
                                     tester.usersRequest().forContacts().receiveResponse();
                                 });
                                 it('Отображена кнопка "Начать чат".', function() {
@@ -1278,11 +1046,7 @@ tests.addTest(options => {
 
                                     tester.chatStartingRequest().noPhone().receiveResponse();
                                     tester.chatListRequest().thirdChat().receiveResponse();
-
-                                    tester.acceptChatRequest().receiveResponse();
                                     tester.visitorCardRequest().receiveResponse();
-
-                                    tester.usersRequest().forContacts().receiveResponse();
                                     tester.usersRequest().forContacts().receiveResponse();
                                 });
                                 it('Отображена кнопка "Начать чат".', function() {
@@ -1380,14 +1144,14 @@ tests.addTest(options => {
                                             display.
                                             putMouseOver();
 
-                                        tester.tooltip.expectToHaveTextContent('Нереализованная сделка, Продажа');
+                                        tester.tooltip.expectToHaveTextContent('Продажа, Нереализованная сделка');
                                     });
                                 });
                                 it('Отображена заявка.', function() {
                                     tester.chatHistory.message.atTime('11:17').expectToHaveTextContent(
                                         'Заявка ' +
 
-                                        'Имя: Помакова Бисерка Драгановна ' +
+                                        'Имя клиента: Помакова Бисерка Драгановна ' +
                                         'Телефон: 74951523643 ' +
                                         'Email: tomova@gmail.com ' +
 
@@ -1397,14 +1161,14 @@ tests.addTest(options => {
                             });
                             it('Оторажено количество непросмотренных заявок.', function() {
                                 tester.notificationSection.expectToHaveTextContent(
-                                    'РН ' +
-                                    'Рангелова Невена Цветковна ' +
+                                    'ТД ' +
+                                    'Томова Денка Райчовна ' +
                                     'Заявка с сайта'
                                 );
                             });
                         });
                         it('Имя посетителя неуказано. Оторажено количество непросмотренных заявок.', function() {
-                            newOfflineMessage.noVisitorName().receive();
+                            newOfflineMessage.noName().receive();
                             notificationTester.grantPermission();
                             tester.offlineMessageCountersRequest().newMessage().receiveResponse();
 
@@ -1428,10 +1192,10 @@ tests.addTest(options => {
                         tester.chatHistory.message.atTime('12:10').expectToHaveTextContent(
                             'Заявка ' +
 
-                            'Я хочу о чем-то заявить. ' +
-                            'Имя: Помакова Бисерка Драгановна ' +
+                            'Имя клиента: Помакова Бисерка Драгановна ' +
                             'Телефон: 79161212122 ' +
                             'Email: msjdasj@mail.com ' +
+                            'Комментарий клиента: Я хочу о чем-то заявить. ' +
 
                             '12:10'
                         );
@@ -1472,8 +1236,6 @@ tests.addTest(options => {
                 });
                 it('Не удалось получить данные чатов. Перехожу на вкладку "В работе".', function() {
                     chatListRequest.failed().receiveResponse();
-                    tester.chatListRequest().forCurrentEmployee().expectToBeSent();
-
                     secondChatListRequest.failed().receiveResponse();
                     thirdChatListRequest.failed().receiveResponse();
 
@@ -1482,6 +1244,11 @@ tests.addTest(options => {
 
                     tester.chatListRequest().
                         active().
+                        forCurrentEmployee().
+                        expectToBeSent();
+
+                    tester.chatListRequest().
+                        closed().
                         forCurrentEmployee().
                         expectToBeSent();
                 });
@@ -1642,31 +1409,9 @@ tests.addTest(options => {
             describe('Получен чат Telegram.', function() {
                 beforeEach(function() {
                     chatListRequest.receiveResponse();
-
-                    tester.acceptChatRequest().receiveResponse();
                     tester.visitorCardRequest().receiveResponse();
                     tester.messageListRequest().receiveResponse();
-
                     tester.usersRequest().forContacts().receiveResponse();
-                    tester.usersRequest().forContacts().receiveResponse();
-
-                    tester.changeMessageStatusRequest().
-                        anotherChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
-
-                    tester.changeMessageStatusRequest().
-                        anotherChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
-
-                    tester.changeMessageStatusRequest().
-                        anotherChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
                 });
 
                 it('Нажимаю на кнопку "Создать контакт".', function() {
@@ -1703,31 +1448,9 @@ tests.addTest(options => {
             describe('Получен чат WhatsApp.', function() {
                 beforeEach(function() {
                     chatListRequest.whatsapp().receiveResponse();
-
-                    tester.acceptChatRequest().receiveResponse();
                     tester.visitorCardRequest().receiveResponse();
                     tester.messageListRequest().receiveResponse();
-
                     tester.usersRequest().forContacts().receiveResponse();
-                    tester.usersRequest().forContacts().receiveResponse();
-
-                    tester.changeMessageStatusRequest().
-                        anotherChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
-
-                    tester.changeMessageStatusRequest().
-                        anotherChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
-
-                    tester.changeMessageStatusRequest().
-                        anotherChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
                 });
 
                 it('Нажимаю на кнопку "Создать контакт".', function() {
@@ -1813,7 +1536,6 @@ tests.addTest(options => {
                     receiveResponse();
 
                 tester.chatSettingsRequest().receiveResponse();
-
                 tester.countersRequest().receiveResponse();
 
                 tester.offlineMessageCountersRequest().receiveResponse();
@@ -1841,30 +1563,9 @@ tests.addTest(options => {
                 tester.chatListItem('Сообщение #75').click();
                 
                 tester.chatListRequest().thirdChat().receiveResponse();
-                tester.acceptChatRequest().receiveResponse();
                 tester.visitorCardRequest().receiveResponse();
                 tester.messageListRequest().receiveResponse();
-
                 tester.usersRequest().forContacts().receiveResponse();
-                tester.usersRequest().forContacts().receiveResponse();
-
-                tester.changeMessageStatusRequest().
-                anotherChat().
-                anotherMessage().
-                read().
-                receiveResponse();
-
-                tester.changeMessageStatusRequest().
-                anotherChat().
-                anotherMessage().
-                read().
-                receiveResponse();
-
-                tester.changeMessageStatusRequest().
-                anotherChat().
-                anotherMessage().
-                read().
-                receiveResponse();
 
                 tester.collapsablePanel('Заметки').title.click();
 
@@ -1873,7 +1574,11 @@ tests.addTest(options => {
                     row('Тэги').
                     tagField.
                     button.
-                    expectNotToExist();
+                    click();
+
+                tester.select.
+                    option('Продажа').
+                    expectToBeDisabled();
             });
             it('Открываю заявку. Раскрываю панель "Заметки". Опции тегов заблокированы.', function() {
                 tester.leftMenu.button('Заявки').click();
@@ -1890,7 +1595,11 @@ tests.addTest(options => {
                     row('Тэги').
                     tagField.
                     button.
-                    expectNotToExist();
+                    click();
+
+                tester.select.
+                    option('Продажа').
+                    expectToBeDisabled();
             });
         });
     });
