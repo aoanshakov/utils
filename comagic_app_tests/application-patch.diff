@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index b966defa..b03a7376 100644
+index 54d57668..036753a8 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -13,7 +13,7 @@ index b966defa..b03a7376 100644
  
  const { ModuleFederationPlugin } = webpack.container;
  const pkgJson = require('../package.json');
-@@ -17,6 +18,8 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+@@ -18,6 +19,8 @@ const BUILD_PLATFORM = process.env.BUILD_PLATFORM || 'windows';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
@@ -22,7 +22,7 @@ index b966defa..b03a7376 100644
  const publicDir = path.resolve(appDirectory, 'public');
  const buildDir = path.resolve(appDirectory, 'build');
  const dotenv = path.resolve(appDirectory, '.env');
-@@ -24,9 +27,20 @@ const isProductionMode = NODE_ENV !== 'development';
+@@ -25,9 +28,20 @@ const isProductionMode = NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
@@ -43,7 +43,7 @@ index b966defa..b03a7376 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -103,10 +117,11 @@ const webpackDefinePlugin = () => {
+@@ -104,10 +118,11 @@ const webpackDefinePlugin = () => {
      return opts;
  };
  
@@ -56,7 +56,7 @@ index b966defa..b03a7376 100644
          },
          {
              loader: 'css-loader',
-@@ -210,7 +225,7 @@ const plugins = () => {
+@@ -214,7 +229,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -65,7 +65,7 @@ index b966defa..b03a7376 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -252,6 +267,11 @@ const plugins = () => {
+@@ -256,6 +271,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -77,7 +77,7 @@ index b966defa..b03a7376 100644
      ];
  
      if (isProductionMode) {
-@@ -275,6 +295,17 @@ const plugins = () => {
+@@ -279,6 +299,17 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -95,7 +95,7 @@ index b966defa..b03a7376 100644
  module.exports = {
      entry: './src/index.tsx',
      target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
-@@ -296,6 +327,21 @@ module.exports = {
+@@ -300,6 +331,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -117,7 +117,7 @@ index b966defa..b03a7376 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -303,7 +349,7 @@ module.exports = {
+@@ -307,7 +353,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -126,7 +126,7 @@ index b966defa..b03a7376 100644
              },
              {
                  test: /\.css$/,
-@@ -314,6 +360,29 @@ module.exports = {
+@@ -318,6 +364,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -156,7 +156,7 @@ index b966defa..b03a7376 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -323,12 +392,13 @@ module.exports = {
+@@ -327,12 +396,13 @@ module.exports = {
                  },
              },
              {
@@ -171,7 +171,7 @@ index b966defa..b03a7376 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -344,17 +414,152 @@ module.exports = {
+@@ -348,17 +418,152 @@ module.exports = {
                      },
                  ],
              },
@@ -329,14 +329,15 @@ index b966defa..b03a7376 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 10af087c..171a458f 100644
+index 16944c78..171a458f 100644
 --- a/package.json
 +++ b/package.json
-@@ -67,12 +67,18 @@
+@@ -67,13 +67,18 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
 -    "@comagic/core": "1.5.0",
+-    "@comagic/logger": "^1.0.4",
 -    "@sentry/react": "^6.17.6",
 -    "@sentry/tracing": "^6.17.6",
 +    "@comagic/core": "./misc/core",
@@ -354,7 +355,7 @@ index 10af087c..171a458f 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -85,7 +91,7 @@
+@@ -86,7 +91,7 @@
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
@@ -363,7 +364,7 @@ index 10af087c..171a458f 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -95,6 +101,11 @@
+@@ -96,6 +101,11 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "6.9.0",
@@ -456,7 +457,7 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index abb1f850..a66f1117 100644
+index abb1f850..b91eca7f 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,19 @@
@@ -471,7 +472,7 @@ index abb1f850..a66f1117 100644
  import { IntlProvider } from 'react-intl';
  import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 +import { notification, Modal } from 'magic-ui';
-+import { createIcon } from '@/utils';
++import { createIconFactory } from '@/utils';
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
@@ -496,10 +497,10 @@ index abb1f850..a66f1117 100644
 +            //const os = 'mac';
 +            const os = 'windows';
 +
-+            const src = await createIcon(os)(5),
++            const src = await createIconFactory(os)(4),
 +                img = document.createElement('img');
 +
-+            img.style.width = img.style.height = os == 'mac' ? '50px' : '25px';
++            img.style.width = img.style.height = os == 'mac' ? '50px' : '16px';
 +            img.src = src;
 +            document.body.appendChild(img);
 +        })();
@@ -559,10 +560,18 @@ index abb1f850..a66f1117 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 23f45856..11fc827a 100644
+index 6cfeafd2..18cbc546 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -222,7 +222,7 @@ export const RootStore = types
+@@ -151,7 +151,6 @@ export const RootStore = types
+         const logger = new Logger(loggerStrategy);
+ 
+         logger.filter(filterPassword);
+-        logger.applyToAxios(axios);
+ 
+         const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
+             const auth = getToken();
+@@ -232,7 +231,7 @@ export const RootStore = types
                  }
              );
  
@@ -571,7 +580,16 @@ index 23f45856..11fc827a 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -296,6 +296,10 @@ export const RootStore = types
+@@ -289,7 +288,7 @@ export const RootStore = types
+ 
+                     return Promise.reject(error);
+                 }
+-            );
++            ), logger.applyToAxios(axios)];
+         };
+ 
+         const collectLogs = callback => {
+@@ -306,6 +305,10 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -581,8 +599,8 @@ index 23f45856..11fc827a 100644
 +
              let isMaximizedCurrently = false;
  
-             const maximizednessChangeHandler = (isMaximized: boolean) => {
-@@ -394,7 +398,8 @@ export type DependencyInjection = {
+             const counters = {
+@@ -438,7 +441,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -653,3 +671,16 @@ index 3442fbf5..41a232d5 100644
  window.getElectronCookiesManager = resetElectronCookiesManager;
  const prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
  
+diff --git a/src/utils/createIcon.ts b/src/utils/createIcon.ts
+index 3bdacdbd..7e417560 100644
+--- a/src/utils/createIcon.ts
++++ b/src/utils/createIcon.ts
+@@ -39,6 +39,8 @@ const icons = {
+ };
+ 
+ export default (os = 'windows') => counter => {
++    return new Promise(resolve => resolve([os, counter].join(', ')));
++
+     const {
+         url,
+         iconSize,

@@ -107,7 +107,8 @@ const overridenFiles = [
     'package.json',
     'src/models/RootStore.ts',
     'src/models/auth/AuthStore.ts',
-    'src/rpc/httpRpc.ts'
+    'src/rpc/httpRpc.ts',
+    'src/utils/createIcon.ts',
 ].join(' ');
 
 actions['install-publisher'] = [`cd ${publisherDir} && npm install --verbose`];
