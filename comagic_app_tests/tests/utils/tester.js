@@ -127,6 +127,8 @@ define(() => function ({
             };
 
             me.eventBus.ignoreEvent('log');
+            me.eventBus.ignoreEvent('set_chats_and_offline_messages_count');
+            me.eventBus.ignoreEvent('set_lost_call_count');
         },
         setHistory: value => (history = value),
         setChatsRootStore: value => (chatsRootStore = value),

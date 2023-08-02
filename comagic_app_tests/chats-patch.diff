@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index e8e07ea..e9f7401 100644
+index 9182158..b7f78e2 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,8 +22,6 @@
@@ -37,21 +37,20 @@ index e8e07ea..e9f7401 100644
      "uuid": "^8.3.2",
      "yup": "^0.32.9"
 diff --git a/src/App.tsx b/src/App.tsx
-index 303fdf9..0db72b0 100644
+index 069025a..fca5671 100644
 --- a/src/App.tsx
 +++ b/src/App.tsx
-@@ -9,7 +9,7 @@ import './App.less';
+@@ -9,6 +9,7 @@ import './App.less';
  
  const App: React.FC = observer(() => {
      const {
--        authStore: { updateAuthState },
-+        authStore: { updateAuthState, isAuthorized },
++        authStore: { isAuthorized },
          websocketStore,
          chatListStore,
          chatChannelsStore,
-@@ -34,11 +34,11 @@ const App: React.FC = observer(() => {
- 
-     useMountEffect(() => void updateAuthState());
+@@ -31,11 +32,11 @@ const App: React.FC = observer(() => {
+         })();
+     });
  
 -    return (
 +    return [false, true].some(value => value === isAuthorized) ? (
@@ -136,10 +135,10 @@ index 9dfa539..b4d98a4 100644
        width: 100%;
        height: 100%;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index ae74235..8627e12 100644
+index 64fb29b..dfedd58 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -144,7 +144,8 @@ export const RootStore = types
+@@ -150,7 +150,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -183,14 +182,14 @@ index e4d6837..578a942 100644
      }))
      .actions(self => {
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 933fdb3..8e6f31d 100644
+index c7e79a2..37ed1fd 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -26,7 +26,7 @@ const AUTH_KEY: string = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_C
+@@ -37,7 +37,7 @@ const addEventListener = (() => {
  
  export const AuthStore = types
      .model('AuthStore', {
--        isAuthorized: types.optional(types.boolean, Boolean(false)),
+-        isAuthorized: types.optional(types.boolean, false),
 +        isAuthorized: types.maybe(types.boolean),
          windowId: types.optional(types.string, generateTraceId('local')),
      })

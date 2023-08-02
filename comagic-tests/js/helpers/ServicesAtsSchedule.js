@@ -1,48 +1,78 @@
-tests.requireClass('Comagic.services.ats.scenario.store.Records');
-tests.requireClass('Comagic.services.ats.scenario.controller.Page');
+tests.requireClass('Comagic.services.ats.schedule.store.Records');
+tests.requireClass('Comagic.services.ats.schedule.controller.Page');
 
-function ServicesAtsScenario(args) {
+function ServicesAtsSchedule(args) {
     var requestsManager = args.requestsManager,
         testersFactory = args.testersFactory,
         utils = args.utils,
-        controller = Comagic.getApplication().getController('Comagic.services.ats.scenario.controller.Page');
+        wait = args.wait,
+        controller = Comagic.getApplication().getController('Comagic.services.ats.schedule.controller.Page');
 
     this.grid = testersFactory.createGridTester(function () {
         return Comagic.getApplication().findComponent('grid');
     });
 
-    this.scenarioRemovingAvailabilityRequest = function () {
+    function addTesters (me, getAscendant) {
+        me.button = function (text) {
+            return testersFactory.createDomElementTester(function () {
+                return utils.descendantOf(getAscendant()).matchesSelector('.x-btn-inner').textEquals(text).find();
+            });
+        };
+
+        return me;
+    }
+
+    addTesters(this, function () {
+        return document.body;
+    });
+
+    {
+        const getWindow = utils.makeDomElementGetter('.x-window');
+        this.win = addTesters(testersFactory.createDomElementTester(getWindow), getWindow);
+    }
+
+    this.scheduleRemovingRequest = function () {
+        var response = {
+            success: true,
+            data: true,
+        };
+
+        function addMethods (me) {
+            return me;
+        }
+
+        return addMethods({
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
+                    expectToHavePath('/services/ats__schedule/records/delete/').
+                    expectBodyToContain({
+                        id: 4586729,
+                    });
+
+                return addMethods({
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith(response);
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    this.scheduleRemovingAvailabilityRequest = function () {
         var response = {
             success: true,
             data: {
                 is_removal_available: true,
-                scenario_usage: {
-                    default_scenario_site_list: [{
-                        name: 'somedomain.com',
-                    }, {
-                        name: 'otherdomain.com',
-                    }],
-                    sitephone_site_list: [{
-                        name: 'thirddomain.com',
-                    }, {
-                        name: 'fourthdomain.com',
-                    }],
-                    lead_scenario_list: [{
-                        name: 'Некий генератор',
-                    }, {
-                        name: 'Другой генератор',
-                    }],
-                    number_capacity_list: [{
-                        name: '74951234567',
-                    }, {
-                        name: '74951234568',
-                    }],
-                    group_list: [{
-                        name: 'Некая группа',
-                    }, {
-                        name: 'Другая группа',
-                    }],
-                }
+                schedule_usage: [{
+                    id: 2183,
+                    name: 'Некий график',
+                }, {
+                    id: 2319,
+                    name: 'Другой график',
+                }]
             },
         };
 
@@ -58,11 +88,12 @@ function ServicesAtsScenario(args) {
         return addMethods({
             expectToBeSent: function () {
                 var request = requestsManager.recentRequest().
-                    expectToHavePath('/services/ats__scenario/try_to_remove_scenario/428598/');
+                    expectToHavePath('/services/ats__schedule/try_to_remove_schedule/4586729/');
 
                 return addMethods({
                     receiveResponse: function () {
                         request.respondSuccessfullyWith(response);
+                        wait();
                     }
                 });
             },
@@ -72,31 +103,14 @@ function ServicesAtsScenario(args) {
         });
     };
 
-    this.scenariosRequest = function () {
+    this.schedulesRequest = function () {
         var response = {
             success: true,
             data: [{
-                id: 428598,
-                name: 'Некий сценарий',
-                last_change_dt: '2018-10-22 12:47:03',
-                cdr_processed_cnt: 34,
-                used_in_nc: ['Тут', 'Там'],
-                used_in_ac: [{
-                    campaign_id: 50283,
-                    campaign_name: 'Некая кампания',
-                    number_pool_id: 864827,
-                    number_pool_name: 'Некий пул номеров',
-                    site_id: 74729,
-                    site_domain_name: 'somedomain.com'
-                }],
-                used_in_site: [{
-                    campaign_id: 50284,
-                    campaign_name: 'Другая кампания',
-                    number_pool_id: 864828,
-                    number_pool_name: 'Другой пул номеров',
-                    site_id: 74729,
-                    site_domain_name: 'otherdomain.com'
-                }]
+                id: 4586729,
+                name: 'Некий график активности',
+                status: 'график не активен',
+                entities_using_schedule: '',
             }],
         };
 
@@ -107,7 +121,7 @@ function ServicesAtsScenario(args) {
         return addMethods({
             expectToBeSent: function () {
                 var request = requestsManager.recentRequest().
-                    expectToHavePath('/services/ats__scenario/records/read/');
+                    expectToHavePath('/services/ats__schedule/records/read/');
 
                 return addMethods({
                     receiveResponse: function () {

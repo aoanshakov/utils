@@ -1,12 +1,12 @@
 diff --git a/package.json b/package.json
-index 77f6127..e993052 100644
+index 029d394..e993052 100644
 --- a/package.json
 +++ b/package.json
 @@ -23,7 +23,6 @@
    },
    "homepage": "https://gitlab.uis.dev/web/sip_lib",
    "peerDependencies": {
--    "@comagic/softphone-core": "2.0.1",
+-    "@comagic/softphone-core": "0.0.0-int0",
      "axios": "^0.24.0"
    },
    "dependencies": {

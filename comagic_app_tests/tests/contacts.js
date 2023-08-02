@@ -1020,10 +1020,10 @@ tests.addTest(options => {
 
                                             'Заявка ' +
 
-                                            'Я хочу о чем-то заявить. ' +
-                                            'Имя: Помакова Бисерка Драгановна ' +
+                                            'Имя клиента: Помакова Бисерка Драгановна ' +
                                             'Телефон: 79161212122 ' +
                                             'Email: msjdasj@mail.com ' +
+                                            'Комментарий клиента: Я хочу о чем-то заявить. ' +
 
                                             '12:10 ' +
 
@@ -1109,10 +1109,10 @@ tests.addTest(options => {
 
                                                 'Заявка ' +
 
-                                                'Я хочу о чем-то заявить. ' +
-                                                'Имя: Помакова Бисерка Драгановна ' +
+                                                'Имя клиента: Помакова Бисерка Драгановна ' +
                                                 'Телефон: 79161212122 ' +
                                                 'Email: msjdasj@mail.com ' +
+                                                'Комментарий клиента: Я хочу о чем-то заявить. ' +
 
                                                 '12:10 ' +
 
@@ -1283,10 +1283,10 @@ tests.addTest(options => {
                                     tester.chatHistory.message.atTime('12:10').expectToHaveTextContent(
                                         'Заявка ' +
 
-                                        'Я хочу о чем-то заявить. ' +
-                                        'Имя: Помакова Бисерка Драгановна ' +
+                                        'Имя клиента: Помакова Бисерка Драгановна ' +
                                         'Телефон: 79161212122 ' +
                                         'Email: msjdasj@mail.com ' +
+                                        'Комментарий клиента: Я хочу о чем-то заявить. ' +
 
                                         '12:10'
                                     );
@@ -3032,13 +3032,6 @@ tests.addTest(options => {
                             expectToBeSent();
                     });
 
-                    it('Чат закрыт. Отображено сообщение о невозможности перейти в чат.', function() {
-                        contactChatRequest.closed().receiveResponse();
-
-                        tester.notificationWindow.expectToHaveTextContent(
-                            'Невозможно перейти в чат, посетитель участвует в чате с другим оператором'
-                        );
-                    });
                     it('Чат активен. Открыт раздел чатов.', function() {
                         contactChatRequest.receiveResponse();
                         tester.chatListRequest().receiveResponse();
@@ -3055,18 +3048,30 @@ tests.addTest(options => {
                         tester.chatsWebSocket.connect();
                         tester.chatsInitMessage().expectToBeSent();
 
-                        tester.chatChannelListRequest().receiveResponse();
-                        tester.statusListRequest().receiveResponse();
-                        tester.listRequest().receiveResponse();
-                        tester.siteListRequest().receiveResponse();
-                        tester.messageTemplateListRequest().receiveResponse();
+                        const requests = ajax.inAnyOrder();
 
-                        tester.accountRequest().
+                        const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
+                        const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+                        const statusListRequest = tester.statusListRequest().expectToBeSent(requests);
+                        const listRequest = tester.listRequest().expectToBeSent(requests);
+                        const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+                        const messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
+
+                        const accountRequest = tester.accountRequest().
                             forChats().
                             operatorWorkplaceAvailable().
-                            receiveResponse();
+                            expectToBeSent(requests);
 
-                        tester.chatSettingsRequest().receiveResponse();
+                        requests.expectToBeSent();
+
+                        chatSettingsRequest.receiveResponse();
+                        chatChannelListRequest.receiveResponse();
+                        statusListRequest.receiveResponse();
+                        listRequest.receiveResponse();
+                        siteListRequest.receiveResponse();
+                        messageTemplateListRequest.receiveResponse();
+                        accountRequest.receiveResponse();
+
                         tester.chatListRequest().thirdChat().receiveResponse();
                         tester.countersRequest().receiveResponse();
                         tester.offlineMessageCountersRequest().receiveResponse();
@@ -3098,29 +3103,21 @@ tests.addTest(options => {
                         tester.offlineMessageListRequest().processed().receiveResponse();
 
                         tester.messageListRequest().receiveResponse();
-                        tester.acceptChatRequest().receiveResponse();
                         tester.visitorCardRequest().receiveResponse();
-
                         tester.usersRequest().forContacts().receiveResponse();
-
-                        tester.changeMessageStatusRequest().
-                            anotherChat().
-                            anotherMessage().
-                            read().
-                            receiveResponse();
-
-                        tester.changeMessageStatusRequest().
-                            anotherChat().
-                            anotherMessage().
-                            read().
-                            receiveResponse();
-                        
                         tester.usersRequest().forContacts().receiveResponse();
 
                         tester.contactBar.
                             section('Каналы связи').
                             content.
                             expectToHaveTextContent('Помакова Бисерка Драгановна');
+                    });
+                    it('Чат закрыт. Отображено сообщение о невозможности перейти в чат.', function() {
+                        contactChatRequest.closed().receiveResponse();
+
+                        tester.notificationWindow.expectToHaveTextContent(
+                            'Невозможно перейти в чат, посетитель участвует в чате с другим оператором'
+                        );
                     });
                 });
                 describe('Нажимаю на номер WhatsApp.', function() {
@@ -3226,11 +3223,7 @@ tests.addTest(options => {
                         tester.offlineMessageListRequest().processed().receiveResponse();
 
                         tester.chatListRequest().thirdChat().receiveResponse();
-
-                        tester.acceptChatRequest().receiveResponse();
                         tester.visitorCardRequest().receiveResponse();
-
-                        tester.usersRequest().forContacts().receiveResponse();
                         tester.usersRequest().forContacts().receiveResponse();
 
                         tester.button('Софтфон').click();
@@ -3258,7 +3251,7 @@ tests.addTest(options => {
                                 }) +
 
                                 "\n\n" +
-                                '{"result":{"data":{"found_list":[{"chat_channel_id":101,'//
+                                '{"result":{"data":{"found_list":[{"chat_channel_id":101,'//}}}}
                             );
                     });
                     it(
@@ -3359,23 +3352,8 @@ tests.addTest(options => {
                             receiveResponse();
 
                         tester.messageListRequest().receiveResponse();
-                        tester.acceptChatRequest().receiveResponse();
                         tester.visitorCardRequest().receiveResponse();
-
                         tester.usersRequest().forContacts().receiveResponse();
-
-                        tester.changeMessageStatusRequest().
-                            anotherChat().
-                            anotherMessage().
-                            read().
-                            receiveResponse();
-
-                        tester.changeMessageStatusRequest().
-                            anotherChat().
-                            anotherMessage().
-                            read().
-                            receiveResponse();
-                        
                         tester.usersRequest().forContacts().receiveResponse();
 
                         tester.contactBar.
@@ -3526,7 +3504,14 @@ tests.addTest(options => {
                 tester.reportsListRequest().receiveResponse();
                 tester.reportTypesRequest().receiveResponse();
 
-                tester.accountRequest().forChats().receiveResponse();
+                tester.accountRequest().
+                    operatorWorkplaceAvailable().
+                    softphoneUnavailable().
+                    forChats().
+                    receiveResponse();
+
+                tester.chatsWebSocket.connect();
+                tester.chatsInitMessage().expectToBeSent();
 
                 tester.button('Контакты').click();
                 contactsRequest = tester.contactsRequest().expectToBeSent();

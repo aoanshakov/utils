@@ -1,6 +1,7 @@
 tests.addTest(options => {
     const {
         utils,
+        setFocus,
         Tester,
         spendTime,
         windowOpener,
@@ -87,6 +88,9 @@ tests.addTest(options => {
                 secondAccountRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
+                tester.chatsWebSocket.connect();
+                tester.chatsInitMessage().expectToBeSent();
+
                 requests = ajax.inAnyOrder();
 
                 const thirdAccountRequest = tester.accountRequest().
@@ -95,14 +99,19 @@ tests.addTest(options => {
                     operatorWorkplaceAvailable().
                     expectToBeSent(requests);
 
-                tester.chatsWebSocket.connect();
-                tester.chatsInitMessage().expectToBeSent();
-
                 const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
                     statusListRequest = tester.statusListRequest().expectToBeSent(requests),
                     listRequest = tester.listRequest().expectToBeSent(requests),
                     siteListRequest = tester.siteListRequest().expectToBeSent(requests),
                     messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
+
+                const fourthAccountRequest = tester.accountRequest().
+                    forChats().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    expectToBeSent(requests);
+
+                const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
@@ -112,14 +121,9 @@ tests.addTest(options => {
                 listRequest.receiveResponse();
                 siteListRequest.receiveResponse();
                 messageTemplateListRequest.receiveResponse();
+                fourthAccountRequest.receiveResponse();
+                chatSettingsRequest.receiveResponse();
 
-                tester.accountRequest().
-                    forChats().
-                    softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    receiveResponse();
-
-                tester.chatSettingsRequest().receiveResponse();
                 countersRequest = tester.countersRequest().expectToBeSent();
 
                 tester.offlineMessageCountersRequest().receiveResponse();
@@ -186,7 +190,6 @@ tests.addTest(options => {
                                     describe('Сообщений немного.', function() {
                                         beforeEach(function() {
                                             messageListRequest.receiveResponse();
-
                                             tester.usersRequest().forContacts().receiveResponse();
                                         });
 
@@ -426,6 +429,20 @@ tests.addTest(options => {
                                                 section('Персональный менеджер').
                                                 select.
                                                 expectNotToExist();
+                                        });
+                                        it(
+                                            'Скрываю приложение. Приходит трансфер от другого сотрудника. Отображено ' +
+                                            'уведомление.',
+                                        function() {
+                                            setFocus(false);
+                                            tester.transferCreatingMessage().receive();
+
+                                            notificationTester.
+                                                grantPermission().
+                                                recentNotification().
+                                                expectToHaveTitle('Входящий трансфер чата').
+                                                expectToHaveBody('Върбанова Илиана Милановна').
+                                                expectToBeOpened();
                                         });
                                         it('Отображены сообщения чата.', function() {
                                             tester.contactBar.title.expectToHaveTextContent('Посетитель');
@@ -1351,12 +1368,6 @@ tests.addTest(options => {
                 secondAccountRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
-                tester.chatChannelListRequest().receiveResponse();
-                tester.statusListRequest().receiveResponse();
-                tester.listRequest().receiveResponse();
-                tester.siteListRequest().receiveResponse();
-                tester.messageTemplateListRequest().receiveResponse();
-
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
 
@@ -1367,14 +1378,34 @@ tests.addTest(options => {
                     telegramContactChannelFeatureFlagDisabled().
                     receiveResponse();
 
-                tester.accountRequest().
-                    forChats().
-                    softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    telegramContactChannelFeatureFlagDisabled().
-                    receiveResponse();
+                {
+                    const requests = ajax.inAnyOrder();
 
-                tester.chatSettingsRequest().receiveResponse();
+                    const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
+                    const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+                    const statusListRequest = tester.statusListRequest().expectToBeSent(requests);
+                    const listRequest = tester.listRequest().expectToBeSent(requests);
+                    const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+                    const messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
+
+                    const accountRequest = tester.accountRequest().
+                        forChats().
+                        softphoneFeatureFlagDisabled().
+                        operatorWorkplaceAvailable().
+                        telegramContactChannelFeatureFlagDisabled().
+                        expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    chatSettingsRequest.receiveResponse();
+                    chatChannelListRequest.receiveResponse();
+                    statusListRequest.receiveResponse();
+                    listRequest.receiveResponse();
+                    siteListRequest.receiveResponse();
+                    messageTemplateListRequest.receiveResponse();
+                    accountRequest.receiveResponse();
+                }
+
                 tester.countersRequest().receiveResponse();
 
                 tester.offlineMessageCountersRequest().receiveResponse();
@@ -1512,12 +1543,6 @@ tests.addTest(options => {
                 secondAccountRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
-                tester.chatChannelListRequest().receiveResponse();
-                tester.statusListRequest().receiveResponse();
-                tester.listRequest().receiveResponse();
-                tester.siteListRequest().receiveResponse();
-                tester.messageTemplateListRequest().receiveResponse();
-
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
 
@@ -1527,15 +1552,35 @@ tests.addTest(options => {
                     operatorWorkplaceAvailable().
                     tagsUpdatingUnavailable().
                     receiveResponse();
+                    
+                {
+                    const requests = ajax.inAnyOrder();
 
-                tester.accountRequest().
-                    forChats().
-                    softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    tagsUpdatingUnavailable().
-                    receiveResponse();
+                    const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
+                    const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+                    const statusListRequest = tester.statusListRequest().expectToBeSent(requests);
+                    const listRequest = tester.listRequest().expectToBeSent(requests);
+                    const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+                    const messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
 
-                tester.chatSettingsRequest().receiveResponse();
+                    const accountRequest = tester.accountRequest().
+                        forChats().
+                        softphoneFeatureFlagDisabled().
+                        operatorWorkplaceAvailable().
+                        tagsUpdatingUnavailable().
+                        expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    chatSettingsRequest.receiveResponse();
+                    chatChannelListRequest.receiveResponse();
+                    statusListRequest.receiveResponse();
+                    listRequest.receiveResponse();
+                    siteListRequest.receiveResponse();
+                    messageTemplateListRequest.receiveResponse();
+                    accountRequest.receiveResponse();
+                }
+
                 tester.countersRequest().receiveResponse();
 
                 tester.offlineMessageCountersRequest().receiveResponse();

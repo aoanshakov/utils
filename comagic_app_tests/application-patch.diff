@@ -377,10 +377,20 @@ index 16944c78..171a458f 100644
      "yup": "^0.28.1"
    },
 diff --git a/public/index.html b/public/index.html
-index a82eebad..59a999e3 100644
+index a82eebad..98306245 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -23,7 +23,29 @@
+@@ -5,7 +5,8 @@
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+     <title>Loading...</title>
+-    <link rel="icon" href="">
++    <link rel="icon" href="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js">
++    <link rel="stylesheet" href="/tests/css/style.css">
+     <% if (htmlWebpackPlugin.options.env.production) { %>
+     <!-- Google Tag Manager -->
+     <script>(function(w, d, s, l, i) {
+@@ -23,7 +24,29 @@
      })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
      <!-- End Google Tag Manager -->
      <% } %>
@@ -411,7 +421,7 @@ index a82eebad..59a999e3 100644
  </head>
  <body class="cm-body">
      <% if (htmlWebpackPlugin.options.env.production) { %>
-@@ -35,5 +57,6 @@
+@@ -35,5 +58,6 @@
      <% } %>
      <noscript>You need to enable JavaScript to run this app.</noscript>
      <div id="root"></div>
@@ -457,7 +467,7 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index abb1f850..b91eca7f 100644
+index abb1f850..45c41d80 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,19 @@
@@ -472,7 +482,7 @@ index abb1f850..b91eca7f 100644
  import { IntlProvider } from 'react-intl';
  import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 +import { notification, Modal } from 'magic-ui';
-+import { createIconFactory } from '@/utils';
++import createIconFactory from '@/utils/createIcon';
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
@@ -482,7 +492,7 @@ index abb1f850..b91eca7f 100644
  
  import history from '@/history';
  
-@@ -79,7 +85,73 @@ const Root: React.FC = observer(props => {
+@@ -79,7 +85,99 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -491,17 +501,43 @@ index abb1f850..b91eca7f 100644
 +const TestBody = ({children}) => <div className="cm-test-body">{children}</div>;
  
 -root.render(<Root {...(window.rootConfig || {})}/>);
++const platforms = {
++    mac: {
++        height: 88,
++        callback: () => {
++            const img = document.createElement('img');
++
++            img.src = '/tests/img/osx-icon.png'
++            img.className = 'cmg-osx-icon-screenshot';
++
++            document.body.appendChild(img);
++        },
++    },
++    windows: {
++        height: 16,
++        callback: () => {},
++    },
++};
++
 +const Icon = () => {
 +    useEffect(() => {
 +        (async function () {
-+            //const os = 'mac';
 +            const os = 'windows';
++
++            const {
++                height,
++                callback,
++            } = platforms[os];
 +
 +            const src = await createIconFactory(os)(4),
 +                img = document.createElement('img');
 +
-+            img.style.width = img.style.height = os == 'mac' ? '50px' : '16px';
++            callback();
++
++            img.style.width = img.style.height = `${height}px`;
 +            img.src = src;
++            img.className = `cmg-app-${os}-icon`;
++
 +            document.body.appendChild(img);
 +        })();
 +    }, []);
@@ -560,10 +596,10 @@ index abb1f850..b91eca7f 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 6cfeafd2..18cbc546 100644
+index d5e90998..68fe7c72 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -151,7 +151,6 @@ export const RootStore = types
+@@ -162,7 +162,6 @@ export const RootStore = types
          const logger = new Logger(loggerStrategy);
  
          logger.filter(filterPassword);
@@ -571,7 +607,7 @@ index 6cfeafd2..18cbc546 100644
  
          const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
              const auth = getToken();
-@@ -232,7 +231,7 @@ export const RootStore = types
+@@ -243,7 +242,7 @@ export const RootStore = types
                  }
              );
  
@@ -580,7 +616,7 @@ index 6cfeafd2..18cbc546 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -289,7 +288,7 @@ export const RootStore = types
+@@ -300,7 +299,7 @@ export const RootStore = types
  
                      return Promise.reject(error);
                  }
@@ -589,7 +625,7 @@ index 6cfeafd2..18cbc546 100644
          };
  
          const collectLogs = callback => {
-@@ -306,6 +305,10 @@ export const RootStore = types
+@@ -317,6 +316,10 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -597,10 +633,10 @@ index 6cfeafd2..18cbc546 100644
 +                interceptor => axios.interceptors.response.eject(interceptor)
 +            );
 +
-             let isMaximizedCurrently = false;
- 
-             const counters = {
-@@ -438,7 +441,8 @@ export type DependencyInjection = {
+             let isMaximizedCurrently = false,
+                 isVisible,
+                 counter = 0;
+@@ -459,7 +462,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -671,16 +707,18 @@ index 3442fbf5..41a232d5 100644
  window.getElectronCookiesManager = resetElectronCookiesManager;
  const prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
  
-diff --git a/src/utils/createIcon.ts b/src/utils/createIcon.ts
-index 3bdacdbd..7e417560 100644
---- a/src/utils/createIcon.ts
-+++ b/src/utils/createIcon.ts
-@@ -39,6 +39,8 @@ const icons = {
- };
- 
- export default (os = 'windows') => counter => {
-+    return new Promise(resolve => resolve([os, counter].join(', ')));
+diff --git a/src/utils/index.ts b/src/utils/index.ts
+index 67cd0fbf..3d827b26 100644
+--- a/src/utils/index.ts
++++ b/src/utils/index.ts
+@@ -7,6 +7,8 @@ export { default as setAxiosGlobalInterceptors } from './setAxiosGlobalIntercept
+ export { default as getWorkplaceAvailability } from './getWorkplaceAvailability';
+ export { default as isSoftphoneAvailable } from './isSoftphoneAvailable';
+ export { default as isManager } from './isManager';
+-export { default as createIconFactory } from './createIcon';
+-import createIconFactory from './createIcon';
 +
-     const {
-         url,
-         iconSize,
++export const createIconFactory = (os = 'windows') => counter =>
++    new Promise(resolve => resolve([os, counter].join(', ')));
++
+ export const createIcon = createIconFactory(window.rootConfig?.platform == 'mac' ? 'mac' : 'windows');

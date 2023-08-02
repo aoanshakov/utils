@@ -62,9 +62,17 @@
             "helpers/AccountIntegrationBitrix24.js",
             "tests/account.integration.bitrix24.js"
         ],
+        "services.ats.scenario.edit": [
+            "helpers/ServicesAtsScenarioEditPage.js",
+            "tests/services.ats.scenario.edit.js"
+        ],
         "services.ats.scenario": [
             "helpers/ServicesAtsScenario.js",
             "tests/services.ats.scenario.js"
+        ],
+        "services.ats.schedule": [
+            "helpers/ServicesAtsSchedule.js",
+            "tests/services.ats.schedule.js"
         ],
         "services.ats.hook": [
             "helpers/ServicesAtsHook.js",

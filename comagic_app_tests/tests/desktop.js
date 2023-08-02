@@ -188,7 +188,7 @@ tests.addTest(options => {
 
                                         getPackage('electron').ipcRenderer.
                                             recentlySentMessage().
-                                            expectToBeSentToChannel('set-tray-icon').
+                                            expectToBeSentToChannel('set-icon').
                                             expectToBeSentWithArguments('windows, 150');
 
                                         newChatListRequest.receiveResponse();
@@ -847,6 +847,11 @@ tests.addTest(options => {
 
                                                         getPackage('electron').ipcRenderer.
                                                             recentlySentMessage().
+                                                            expectToBeSentToChannel('set-icon').
+                                                            expectToBeSentWithArguments('windows, 0');
+
+                                                        getPackage('electron').ipcRenderer.
+                                                            recentlySentMessage().
                                                             expectToBeSentToChannel('resize').
                                                             expectToBeSentWithArguments({
                                                                 width: 300,
@@ -923,6 +928,11 @@ tests.addTest(options => {
 
                                                         tester.countersRequest().receiveResponse();
 
+                                                        getPackage('electron').ipcRenderer.
+                                                            recentlySentMessage().
+                                                            expectToBeSentToChannel('set-icon').
+                                                            expectToBeSentWithArguments('windows, 150');
+
                                                         tester.offlineMessageCountersRequest().receiveResponse();
                                                         tester.chatChannelListRequest().receiveResponse();
                                                         tester.siteListRequest().receiveResponse();
@@ -930,19 +940,16 @@ tests.addTest(options => {
 
                                                         tester.chatListRequest().
                                                             forCurrentEmployee().
-                                                            thirdPage().
                                                             receiveResponse();
 
                                                         tester.chatListRequest().
                                                             forCurrentEmployee().
                                                             active().
-                                                            thirdPage().
                                                             receiveResponse();
 
                                                         tester.chatListRequest().
                                                             forCurrentEmployee().
                                                             closed().
-                                                            thirdPage().
                                                             receiveResponse();
 
                                                         tester.chatChannelTypeListRequest().receiveResponse();
@@ -1257,10 +1264,17 @@ tests.addTest(options => {
                                                 });
 
                                                 it(
-                                                    'Нажимаю на кнопку "Выход". Вхожу в софтфон заново. Удалось войти.',
+                                                    'Нажимаю на кнопку "Выход". Вхожу в софтфон заново. Удалось ' +
+                                                    'войти. Скрываю приложение. Приходит трансфер от другого ' +
+                                                    'сотрудника. Отображено уведомление.',
                                                 function() {
                                                     tester.statusesList.item('Выход').click();
                                                     tester.userLogoutRequest().receiveResponse();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 0');
                                                     
                                                     getPackage('electron').ipcRenderer.
                                                         recentlySentMessage().
@@ -1344,6 +1358,11 @@ tests.addTest(options => {
 
                                                     tester.countersRequest().receiveResponse();
 
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 150');
+
                                                     tester.offlineMessageCountersRequest().receiveResponse();
                                                     tester.chatChannelListRequest().receiveResponse();
                                                     tester.siteListRequest().receiveResponse();
@@ -1351,18 +1370,15 @@ tests.addTest(options => {
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
-                                                        secondPage().
                                                         receiveResponse();
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
-                                                        secondPage().
                                                         active().
                                                         receiveResponse();
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
-                                                        secondPage().
                                                         closed().
                                                         receiveResponse();
 
@@ -1397,6 +1413,16 @@ tests.addTest(options => {
 
                                                     tester.authenticatedUserRequest().receiveResponse();
                                                     tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                                                    setFocus(false);
+                                                    tester.transferCreatingMessage().receive();
+
+                                                    notificationTester.
+                                                        grantPermission().
+                                                        recentNotification().
+                                                        expectToHaveTitle('Входящий трансфер чата').
+                                                        expectToHaveBody('Върбанова Илиана Милановна').
+                                                        expectToBeOpened();
                                                 });
                                                 it('Выбираю статус. Список статусов скрыт.', function() {
                                                     tester.statusesList.item('Нет на месте').click();
@@ -1449,6 +1475,11 @@ tests.addTest(options => {
                                                         desktopSoftphone().
                                                         expired().
                                                         receiveResponse();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 0');
 
                                                     getPackage('electron').ipcRenderer.
                                                         recentlySentMessage().
@@ -1518,6 +1549,11 @@ tests.addTest(options => {
 
                                                     tester.countersRequest().receiveResponse();
 
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 150');
+
                                                     tester.offlineMessageCountersRequest().receiveResponse();
                                                     tester.chatChannelListRequest().receiveResponse();
                                                     tester.siteListRequest().receiveResponse();
@@ -1525,18 +1561,15 @@ tests.addTest(options => {
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
-                                                        secondPage().
                                                         receiveResponse();
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
-                                                        secondPage().
                                                         active().
                                                         receiveResponse();
 
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
-                                                        secondPage().
                                                         closed().
                                                         receiveResponse();
 
@@ -1816,6 +1849,11 @@ tests.addTest(options => {
 
                                                 getPackage('electron').ipcRenderer.
                                                     recentlySentMessage().
+                                                    expectToBeSentToChannel('set-icon').
+                                                    expectToBeSentWithArguments('windows, 0');
+
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
                                                     expectToBeSentToChannel('resize').
                                                     expectToBeSentWithArguments({
                                                         width: 300,
@@ -1883,6 +1921,11 @@ tests.addTest(options => {
 
                                                 tester.countersRequest().receiveResponse();
 
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('set-icon').
+                                                    expectToBeSentWithArguments('windows, 150');
+
                                                 tester.offlineMessageCountersRequest().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
                                                 tester.siteListRequest().receiveResponse();
@@ -1890,18 +1933,15 @@ tests.addTest(options => {
 
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
-                                                    secondPage().
                                                     receiveResponse();
 
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
-                                                    secondPage().
                                                     active().
                                                     receiveResponse();
 
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
-                                                    secondPage().
                                                     closed().
                                                     receiveResponse();
 
@@ -2133,6 +2173,20 @@ tests.addTest(options => {
                                                 utils.pressKey('7');
                                                 tester.phoneField.expectToBeFocused();
                                             });
+                                            it(
+                                                'Скрываю приложение. Приходит трансфер от другого сотрудника. ' +
+                                                'Отображено уведомление.',
+                                            function() {
+                                                setFocus(false);
+                                                tester.transferCreatingMessage().receive();
+
+                                                notificationTester.
+                                                    grantPermission().
+                                                    recentNotification().
+                                                    expectToHaveTitle('Входящий трансфер чата').
+                                                    expectToHaveBody('Върбанова Илиана Милановна').
+                                                    expectToBeOpened();
+                                            });
                                             it('Отображен сотфтон.', function() {
                                                 tester.phoneField.expectNotToBeFocused();
 
@@ -2256,10 +2310,245 @@ tests.addTest(options => {
 
                                                 getPackage('electron').ipcRenderer.
                                                     recentlySentMessage().
-                                                    expectToBeSentToChannel('set-tray-icon').
+                                                    expectToBeSentToChannel('set-icon').
                                                     expectToBeSentWithArguments('windows, 151');
                                             });
 
+                                            describe('Выхожу из софтфона. Каунтер сбрасывается.', function() {
+                                                beforeEach(function() {
+                                                    tester.userName.click();
+                                                    tester.statusesList.item('Выход').click();
+
+                                                    tester.userLogoutRequest().receiveResponse();
+
+                                                    tester.chatsWebSocket.finishDisconnecting();
+                                                    tester.eventsWebSocket.finishDisconnecting();
+                                                    tester.authLogoutRequest().receiveResponse();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        expired().
+                                                        receiveResponse();
+
+                                                    spendTime(2000);
+                                                    tester.webrtcWebsocket.finishDisconnecting();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 0');
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 150');
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('resize').
+                                                        expectToBeSentWithArguments({
+                                                            width: 300,
+                                                            height: 350
+                                                        });
+
+                                                    tester.input.withFieldLabel('Логин').fill('botusharova');
+                                                    tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                                                    tester.button('Войти').click();
+
+                                                    tester.loginRequest().
+                                                        receiveResponse();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('resize').
+                                                        expectToBeSentWithArguments({
+                                                            width: 340,
+                                                            height: 212
+                                                        });
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('login').
+                                                        expectToBeSentWithArguments({
+                                                            login: 'botusharova',
+                                                            password: '8Gls8h31agwLf5k',
+                                                            project: 'comagic',
+                                                        });
+
+                                                    tester.accountRequest().
+                                                        operatorWorkplaceAvailable().
+                                                        receiveResponse();
+
+                                                    tester.accountRequest().
+                                                        forChats().
+                                                        operatorWorkplaceAvailable().
+                                                        receiveResponse();
+
+                                                    tester.chatsWebSocket.connect();
+                                                    tester.chatsInitMessage().expectToBeSent();
+
+                                                    const requests = ajax.inAnyOrder();
+
+                                                    accountRequest = tester.accountRequest().
+                                                        operatorWorkplaceAvailable().
+                                                        expectToBeSent(requests);
+
+                                                    const authCheckRequest = tester.authCheckRequest().
+                                                        expectToBeSent(requests);
+
+                                                    requests.expectToBeSent();
+                                                    accountRequest.receiveResponse();
+
+                                                    tester.countersRequest().
+                                                        noNewChatsWithUnreadMessages().
+                                                        receiveResponse();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 75');
+
+                                                    tester.offlineMessageCountersRequest().receiveResponse();
+                                                    tester.chatChannelListRequest().receiveResponse();
+                                                    tester.siteListRequest().receiveResponse();
+                                                    tester.markListRequest().receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        forCurrentEmployee().
+                                                        count(0).
+                                                        receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        forCurrentEmployee().
+                                                        active().
+                                                        receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        forCurrentEmployee().
+                                                        count(0).
+                                                        closed().
+                                                        receiveResponse();
+
+                                                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                    tester.offlineMessageListRequest().
+                                                        notProcessed().
+                                                        receiveResponse();
+
+                                                    tester.offlineMessageListRequest().
+                                                        processing().
+                                                        receiveResponse();
+
+                                                    tester.offlineMessageListRequest().
+                                                        processed().
+                                                        receiveResponse();
+
+                                                    authCheckRequest.receiveResponse();
+                                                    tester.talkOptionsRequest().receiveResponse();
+                                                    tester.permissionsRequest().receiveResponse();
+                                                    tester.statusesRequest().receiveResponse();
+                                                    tester.settingsRequest().receiveResponse();
+
+                                                    tester.connectEventsWebSocket(1);
+                                                    tester.connectSIPWebSocket(1);
+
+                                                    tester.authenticatedUserRequest().receiveResponse();
+                                                    tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                                                    tester.allowMediaInput();
+                                                });
+
+                                                it(
+                                                    'Поступило новое сообщение. Каунтер в иконке поменялся.',
+                                                function() {
+                                                    tester.newMessage().receive();
+                                                    notificationTester.grantPermission();
+
+                                                    tester.chatListRequest().chat().receiveResponse();
+                                                    tester.countersRequest().receiveResponse();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 150');
+                                                });
+                                                it(
+                                                    'Поступил входящий звонок. Звонок отклонен. Каунтер в иконке ' +
+                                                    'поменялся.',
+                                                function() {
+                                                    const incomingCall = tester.incomingCall().receive();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('call-start').
+                                                        expectToBeSentWithArguments(false);
+
+                                                    tester.numaRequest().receiveResponse();
+                                                    tester.outCallEvent().activeLeads().receive();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('resize').
+                                                        expectToBeSentWithArguments({
+                                                            width: 340,
+                                                            height: 568
+                                                        });
+
+                                                    incomingCall.receiveCancel();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('call-end').
+                                                        expectToBeSentWithArguments(true);
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('resize').
+                                                        expectToBeSentWithArguments({
+                                                            width: 340,
+                                                            height: 212
+                                                        });
+
+                                                    tester.callSessionFinish().receive();
+                                                    tester.lostCallSessionEvent().receive();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 76');
+                                                });
+                                            });
+                                            describe('Скрываю приложение. Открываю историю звонков.', function() {
+                                                beforeEach(function() {
+                                                    setDocumentVisible(false);
+
+                                                    tester.callsHistoryButton.click();
+                                                    tester.callsRequest().receiveResponse();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('resize').
+                                                        expectToBeSentWithArguments({
+                                                            width: 340,
+                                                            height: 568
+                                                        });
+                                                });
+
+                                                it('Разворачиваюл приложение. Каунтер сбрасывается.', function() {
+                                                    setDocumentVisible(true);
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 150');
+                                                });
+                                                it('Каунтер не сбрасывается.', function() {
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectNotToBeSent();
+                                                });
+                                            });
                                             it('Нажимаю на кнопку максимизации.', function() {
                                                 tester.maximizednessButton.click();
 
@@ -2328,6 +2617,71 @@ tests.addTest(options => {
                                                 tester.callsHistoryButton.indicator.expectToBeVisible();
                                             });
                                             it(
+                                                'Поступил входящий звонок. Скрываю приложение. Звонок отклонен. ' +
+                                                'Каунтер в иконке поменялся.',
+                                            function() {
+                                                const incomingCall = tester.incomingCall().receive();
+
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('call-start').
+                                                    expectToBeSentWithArguments(false);
+
+                                                tester.numaRequest().receiveResponse();
+                                                tester.outCallEvent().activeLeads().receive();
+
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('resize').
+                                                    expectToBeSentWithArguments({
+                                                        width: 340,
+                                                        height: 568
+                                                    });
+
+                                                setDocumentVisible(false);
+                                                incomingCall.receiveCancel();
+
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('call-end').
+                                                    expectToBeSentWithArguments(true);
+
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('resize').
+                                                    expectToBeSentWithArguments({
+                                                        width: 340,
+                                                        height: 212
+                                                    });
+
+                                                tester.callSessionFinish().receive();
+                                                tester.lostCallSessionEvent().receive();
+
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('set-icon').
+                                                    expectToBeSentWithArguments('windows, 152');
+
+                                                setDocumentVisible(true);
+                                            });
+                                            it('Открываю историю звонков. Каунтер сбрасывается', function() {
+                                                tester.callsHistoryButton.click();
+                                                tester.callsRequest().receiveResponse();
+
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('set-icon').
+                                                    expectToBeSentWithArguments('windows, 150');
+
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('resize').
+                                                    expectToBeSentWithArguments({
+                                                        width: 340,
+                                                        height: 568
+                                                    });
+                                            });
+                                            it(
                                                 'Рядом с кнопкой истории звонков в нижнем тулбаре софтфона ' +
                                                 'отображена красная точка.',
                                             function() {
@@ -2358,7 +2712,7 @@ tests.addTest(options => {
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
-                                                expectToBeSentToChannel('set-tray-icon').
+                                                expectToBeSentToChannel('set-icon').
                                                 expectToBeSentWithArguments('windows, 75');
 
                                             newChatListRequest.receiveResponse();
@@ -2430,7 +2784,7 @@ tests.addTest(options => {
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
-                                                expectToBeSentToChannel('set-tray-icon').
+                                                expectToBeSentToChannel('set-icon').
                                                 expectToBeSentWithArguments('windows, 76');
 
                                             tester.chatChannelListRequest().receiveResponse();
@@ -2532,7 +2886,7 @@ tests.addTest(options => {
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
-                                                expectToBeSentToChannel('set-tray-icon').
+                                                expectToBeSentToChannel('set-icon').
                                                 expectToBeSentWithArguments('windows, 75');
 
                                             tester.chatChannelListRequest().receiveResponse();
@@ -2579,7 +2933,7 @@ tests.addTest(options => {
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
-                                                expectToBeSentToChannel('set-tray-icon').
+                                                expectToBeSentToChannel('set-icon').
                                                 expectToBeSentWithArguments('windows, 75');
 
                                             newChatListRequest.count(0).receiveResponse();
@@ -2658,7 +3012,7 @@ tests.addTest(options => {
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
-                                                expectToBeSentToChannel('set-tray-icon').
+                                                expectToBeSentToChannel('set-icon').
                                                 expectToBeSentWithArguments('windows, 76');
 
                                             tester.chatChannelListRequest().receiveResponse();
@@ -2700,7 +3054,7 @@ tests.addTest(options => {
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
-                                                expectToBeSentToChannel('set-tray-icon').
+                                                expectToBeSentToChannel('set-icon').
                                                 expectToBeSentWithArguments('windows, 151');
 
                                             tester.button('Новые 75').expectNotToBePressed();
@@ -2721,7 +3075,7 @@ tests.addTest(options => {
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
-                                                expectToBeSentToChannel('set-tray-icon').
+                                                expectToBeSentToChannel('set-icon').
                                                 expectToBeSentWithArguments('windows, 75');
 
                                             newChatListRequest.receiveResponse();
@@ -2814,7 +3168,7 @@ tests.addTest(options => {
 
                                                 getPackage('electron').ipcRenderer.
                                                     recentlySentMessage().
-                                                    expectToBeSentToChannel('set-tray-icon').
+                                                    expectToBeSentToChannel('set-icon').
                                                     expectToBeSentWithArguments('windows, 76');
 
                                                 tester.chatChannelListRequest().receiveResponse();
@@ -2857,7 +3211,7 @@ tests.addTest(options => {
 
                                                 getPackage('electron').ipcRenderer.
                                                     recentlySentMessage().
-                                                    expectToBeSentToChannel('set-tray-icon').
+                                                    expectToBeSentToChannel('set-icon').
                                                     expectToBeSentWithArguments('windows, 151');
 
                                                 notification = notificationTester.
@@ -2943,7 +3297,7 @@ tests.addTest(options => {
 
                                                 getPackage('electron').ipcRenderer.
                                                     recentlySentMessage().
-                                                    expectToBeSentToChannel('set-tray-icon').
+                                                    expectToBeSentToChannel('set-icon').
                                                     expectToBeSentWithArguments('windows, 150');
 
                                                 notification = notificationTester.
@@ -2999,7 +3353,7 @@ tests.addTest(options => {
 
                                                 getPackage('electron').ipcRenderer.
                                                     recentlySentMessage().
-                                                    expectToBeSentToChannel('set-tray-icon').
+                                                    expectToBeSentToChannel('set-icon').
                                                     expectToBeSentWithArguments('windows, 75');
 
                                                 tester.offlineMessageCountersRequest().receiveResponse();
@@ -3179,7 +3533,7 @@ tests.addTest(options => {
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
-                                                expectToBeSentToChannel('set-tray-icon').
+                                                expectToBeSentToChannel('set-icon').
                                                 expectToBeSentWithArguments('windows, 1');
 
                                             tester.chatsButton.click();
@@ -3196,7 +3550,7 @@ tests.addTest(options => {
 
                                             getPackage('electron').ipcRenderer.
                                                 recentlySentMessage().
-                                                expectToBeSentToChannel('set-tray-icon').
+                                                expectToBeSentToChannel('set-icon').
                                                 expectToBeSentWithArguments('windows, 150');
                                         });
                                         it('Индикатор непрочитанных сообщений скрыт.', function() {
@@ -3218,7 +3572,7 @@ tests.addTest(options => {
 
                                         getPackage('electron').ipcRenderer.
                                             recentlySentMessage().
-                                            expectToBeSentToChannel('set-tray-icon').
+                                            expectToBeSentToChannel('set-icon').
                                             expectToBeSentWithArguments('windows, 1');
 
                                         newChatListRequest.noUnreadMessages().count(0).receiveResponse();
@@ -3391,7 +3745,7 @@ tests.addTest(options => {
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
-                                        expectToBeSentToChannel('set-tray-icon').
+                                        expectToBeSentToChannel('set-icon').
                                         expectToBeSentWithArguments('windows, 8');
 
                                     newChatListRequest.
@@ -3447,7 +3801,7 @@ tests.addTest(options => {
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
-                                        expectToBeSentToChannel('set-tray-icon').
+                                        expectToBeSentToChannel('set-icon').
                                         expectToBeSentWithArguments('windows, 9');
 
                                     tester.newMessage().receive();
@@ -3463,7 +3817,7 @@ tests.addTest(options => {
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
-                                        expectToBeSentToChannel('set-tray-icon').
+                                        expectToBeSentToChannel('set-icon').
                                         expectToBeSentWithArguments('windows, 10');
                                 });
                             });
@@ -3544,7 +3898,7 @@ tests.addTest(options => {
 
                             getPackage('electron').ipcRenderer.
                                 recentlySentMessage().
-                                expectToBeSentToChannel('set-tray-icon').
+                                expectToBeSentToChannel('set-icon').
                                 expectToBeSentWithArguments('windows, 150');
 
                             tester.offlineMessageCountersRequest().receiveResponse();
@@ -3639,7 +3993,7 @@ tests.addTest(options => {
 
                                 getPackage('electron').ipcRenderer.
                                     recentlySentMessage().
-                                    expectToBeSentToChannel('set-tray-icon').
+                                    expectToBeSentToChannel('set-icon').
                                     expectToBeSentWithArguments('windows, 150');
 
                                 tester.offlineMessageCountersRequest().receiveResponse();
@@ -3664,12 +4018,16 @@ tests.addTest(options => {
                                 });
 
                                 describe('Нажимаю на кнопку выхода. Вхожу заново.', function() {
-                                    let chatListRequest,
-                                        secondChatListRequest;
+                                    let chatListRequest;
 
                                     beforeEach(function() {
                                         tester.statusesList.item('Выход').click();
                                         tester.userLogoutRequest().receiveResponse();
+
+                                        getPackage('electron').ipcRenderer.
+                                            recentlySentMessage().
+                                            expectToBeSentToChannel('set-icon').
+                                            expectToBeSentWithArguments('windows, 0');
 
                                         getPackage('electron').ipcRenderer.
                                             recentlySentMessage().
@@ -3709,7 +4067,6 @@ tests.addTest(options => {
                                             operatorWorkplaceAvailable().
                                             receiveResponse();
 
-                                        //
                                         tester.accountRequest().
                                             forChats().
                                             softphoneUnavailable().
@@ -3738,18 +4095,19 @@ tests.addTest(options => {
                                         tester.siteListRequest().receiveResponse();
                                         tester.messageTemplateListRequest().receiveResponse();
 
-                                        chatListRequest = tester.chatListRequest().
-                                            forCurrentEmployee().
-                                            expectToBeSent();
-
                                         tester.countersRequest().receiveResponse();
+
+                                        getPackage('electron').ipcRenderer.
+                                            recentlySentMessage().
+                                            expectToBeSentToChannel('set-icon').
+                                            expectToBeSentWithArguments('windows, 150');
 
                                         tester.offlineMessageCountersRequest().receiveResponse();
                                         tester.chatChannelListRequest().receiveResponse();
                                         tester.siteListRequest().receiveResponse();
                                         tester.markListRequest().receiveResponse();
 
-                                        secondChatListRequest = tester.chatListRequest().
+                                        chatListRequest = tester.chatListRequest().
                                             forCurrentEmployee().
                                             expectToBeSent();
 
@@ -3774,14 +4132,12 @@ tests.addTest(options => {
 
                                     it('Есть только один новый чат.', function() {
                                         chatListRequest.count(1).receiveResponse();
-                                        secondChatListRequest.count(1).receiveResponse();
 
                                         tester.chatList.item('Сообщение #1').expectToBeVisible();
                                         tester.chatList.item('Сообщение #2').expectNotToExist();
                                     });
                                     it('Есть много новых чатов.', function() {
                                         chatListRequest.receiveResponse();
-                                        secondChatListRequest.receiveResponse();
 
                                         setFocus(false);
                                         tester.newMessage().receive();
@@ -3874,6 +4230,11 @@ tests.addTest(options => {
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
+                                        expectToBeSentToChannel('set-icon').
+                                        expectToBeSentWithArguments('windows, 0');
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
                                         expectToBeSentToChannel('resize').
                                         expectToBeSentWithArguments({
                                             width: 300,
@@ -3939,6 +4300,11 @@ tests.addTest(options => {
                                     tester.chatsInitMessage().expectToBeSent();
 
                                     tester.countersRequest().receiveResponse();
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
+                                        expectToBeSentToChannel('set-icon').
+                                        expectToBeSentWithArguments('windows, 150');
 
                                     tester.offlineMessageCountersRequest().receiveResponse();
                                     tester.chatChannelListRequest().receiveResponse();
@@ -4091,24 +4457,47 @@ tests.addTest(options => {
                                         operatorWorkplaceAvailable().
                                         receiveResponse();
 
-                                    tester.chatChannelListRequest().receiveResponse();
-                                    tester.statusListRequest().receiveResponse();
-                                    tester.listRequest().receiveResponse();
-                                    tester.siteListRequest().receiveResponse();
-                                    tester.messageTemplateListRequest().receiveResponse();
+                                    const requests = ajax.inAnyOrder();
 
-                                    tester.accountRequest().
+                                    const chatSettingsRequest = tester.chatSettingsRequest().
+                                        expectToBeSent(requests);
+
+                                    const chatChannelListRequest = tester.chatChannelListRequest().
+                                        expectToBeSent(requests);
+
+                                    const statusListRequest = tester.statusListRequest().
+                                        expectToBeSent(requests);
+
+                                    const listRequest = tester.listRequest().
+                                        expectToBeSent(requests);
+
+                                    const siteListRequest = tester.siteListRequest().
+                                        expectToBeSent(requests);
+
+                                    const messageTemplateListRequest = tester.messageTemplateListRequest().
+                                        expectToBeSent(requests);
+
+                                    const accountRequest = tester.accountRequest().
                                         forChats().
                                         softphoneUnavailable().
                                         operatorWorkplaceAvailable().
-                                        receiveResponse();
+                                        expectToBeSent(requests);
 
-                                    tester.chatSettingsRequest().receiveResponse();
+                                    requests.expectToBeSent();
+
+                                    chatSettingsRequest.receiveResponse();
+                                    chatChannelListRequest.receiveResponse();
+                                    statusListRequest.receiveResponse();
+                                    listRequest.receiveResponse();
+                                    siteListRequest.receiveResponse();
+                                    messageTemplateListRequest.receiveResponse();
+                                    accountRequest.receiveResponse();
+
                                     tester.countersRequest().receiveResponse();
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
-                                        expectToBeSentToChannel('set-tray-icon').
+                                        expectToBeSentToChannel('set-icon').
                                         expectToBeSentWithArguments('windows, 150');
 
                                     tester.offlineMessageCountersRequest().receiveResponse();
@@ -4131,6 +4520,11 @@ tests.addTest(options => {
 
                                     tester.userLogoutRequest().receiveResponse();
                                     tester.chatsWebSocket.finishDisconnecting();
+
+                                    getPackage('electron').ipcRenderer.
+                                        recentlySentMessage().
+                                        expectToBeSentToChannel('set-icon').
+                                        expectToBeSentWithArguments('windows, 0');
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
@@ -4208,7 +4602,7 @@ tests.addTest(options => {
 
                             getPackage('electron').ipcRenderer.
                                 recentlySentMessage().
-                                expectToBeSentToChannel('set-tray-icon').
+                                expectToBeSentToChannel('set-icon').
                                 expectToBeSentWithArguments('windows, 150');
 
                             tester.offlineMessageCountersRequest().receiveResponse();
@@ -4358,7 +4752,7 @@ tests.addTest(options => {
 
                         getPackage('electron').ipcRenderer.
                             recentlySentMessage().
-                            expectToBeSentToChannel('set-tray-icon').
+                            expectToBeSentToChannel('set-icon').
                             expectToBeSentWithArguments('windows, 150');
 
                         tester.offlineMessageCountersRequest().receiveResponse();
@@ -4460,7 +4854,7 @@ tests.addTest(options => {
 
                         getPackage('electron').ipcRenderer.
                             recentlySentMessage().
-                            expectToBeSentToChannel('set-tray-icon').
+                            expectToBeSentToChannel('set-icon').
                             expectToBeSentWithArguments('windows, 150');
 
                         newChatListRequest.receiveResponse();
@@ -4696,7 +5090,7 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('set-tray-icon').
+                    expectToBeSentToChannel('set-icon').
                     expectToBeSentWithArguments('windows, 150');
 
                 tester.offlineMessageCountersRequest().receiveResponse();
@@ -5139,7 +5533,7 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('set-tray-icon').
+                    expectToBeSentToChannel('set-icon').
                     expectToBeSentWithArguments('windows, 150');
 
                 tester.offlineMessageCountersRequest().receiveResponse();
@@ -5284,7 +5678,7 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('set-tray-icon').
+                    expectToBeSentToChannel('set-icon').
                     expectToBeSentWithArguments('windows, 150');
 
                 tester.offlineMessageCountersRequest().receiveResponse();
@@ -5536,7 +5930,7 @@ tests.addTest(options => {
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('set-tray-icon').
+                    expectToBeSentToChannel('set-icon').
                     expectToBeSentWithArguments('windows, 150');
 
                 tester.offlineMessageCountersRequest().receiveResponse();
@@ -5682,7 +6076,7 @@ tests.addTest(options => {
 
             getPackage('electron').ipcRenderer.
                 recentlySentMessage().
-                expectToBeSentToChannel('set-tray-icon').
+                expectToBeSentToChannel('set-icon').
                 expectToBeSentWithArguments('windows, 150');
 
             tester.offlineMessageCountersRequest().receiveResponse();
@@ -5795,7 +6189,7 @@ tests.addTest(options => {
 
             getPackage('electron').ipcRenderer.
                 recentlySentMessage().
-                expectToBeSentToChannel('set-tray-icon').
+                expectToBeSentToChannel('set-icon').
                 expectToBeSentWithArguments('windows, 150');
 
             tester.offlineMessageCountersRequest().receiveResponse();
@@ -5895,7 +6289,7 @@ tests.addTest(options => {
 
             getPackage('electron').ipcRenderer.
                 recentlySentMessage().
-                expectToBeSentToChannel('set-tray-icon').
+                expectToBeSentToChannel('set-icon').
                 expectToBeSentWithArguments('windows, 150');
 
             tester.offlineMessageCountersRequest().receiveResponse();

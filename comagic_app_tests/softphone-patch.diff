@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 73f5234..691ceb7 100644
+index d0c4a75..691ceb7 100644
 --- a/package.json
 +++ b/package.json
 @@ -57,10 +57,6 @@
@@ -9,7 +9,7 @@ index 73f5234..691ceb7 100644
 -    "@comagic/core": "^0.7.0",
 -    "@comagic/softphone-core": "0.0.0-int0",
 -    "@comagic/softphone-widget": "0.0.0-int0",
--    "@comagic/logger": "^1.0.0",
+-    "@comagic/logger": "^1.0.3",
      "async-mutex": "^0.3.2",
      "axios": "^0.24.0",
      "classnames": "^2.2.6",
@@ -33,10 +33,10 @@ index 73f5234..691ceb7 100644
      "redux-thunk": "^2.3.0",
      "short-uuid": "^4.2.0",
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 74c7c15..daec64e 100644
+index 975b2d4..3e1b5c1 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -774,4 +774,5 @@ export type RootInstance = Instance<typeof RootStore> & {
+@@ -768,4 +768,5 @@ export type RootInstance = Instance<typeof RootStore> & {
  
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
