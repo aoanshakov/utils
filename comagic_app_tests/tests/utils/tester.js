@@ -2227,20 +2227,56 @@ define(() => function ({
         })
     });
 
-    me.chatsWebSocket = (() => {
-        let index = 0;
-        const getWebSocket = () => webSockets.getSocket('$REACT_APP_WS_URL', index);
+    const createWebSocketTester = (() => {
+        let index = -1;
 
-        return {
-            finishDisconnecting: () => {
-                getWebSocket().finishDisconnecting();
-                index ++;
-            },
-            connect: () => getWebSocket().connect(),
-            expectSentMessageToContain: message => getWebSocket().expectSentMessageToContain(message),
-            receive: message => getWebSocket().receiveMessage(message)
+        return () => {
+            const getWebSocket = () => webSockets.getSocket('$REACT_APP_WS_URL', index);
+
+            return {
+                finishDisconnecting: () => {
+                    getWebSocket().finishDisconnecting();
+                },
+                connect: () => {
+                    index ++;
+                    getWebSocket().connect();
+                },
+                expectSentMessageToContain: message => getWebSocket().expectSentMessageToContain(message),
+                receive: message => getWebSocket().receiveMessage(message)
+            };
         };
     })();
+
+    const createWebSocketTesterCreator = () => {
+        const throwError = () => {
+            throw new Error('Вебсокет должен быть подключен.');
+        };
+
+        const tester = {
+            finishDisconnecting: throwError,
+            expectSentMessageToContain: throwError,
+            receive: throwError,
+
+            connect: () => {
+                const value = createWebSocketTester();
+
+                tester.finishDisconnecting = value.finishDisconnecting;
+                tester.expectSentMessageToContain = value.expectSentMessageToContain;
+                tester.receive = value.receive;
+
+                value.connect();
+
+                tester.connect = () => {
+                    throw new Error('Вебсокет не должен быть подключен.');
+                };
+            },
+        };
+
+        return tester;
+    };
+
+    me.chatsWebSocket = createWebSocketTesterCreator();
+    me.employeesWebSocket = createWebSocketTesterCreator();
 
     me.chatsEmployeeChangeMessage = () => ({
         receive: () => me.chatsWebSocket.receive(JSON.stringify({
@@ -2251,6 +2287,22 @@ define(() => function ({
             }
         }))
     });
+
+    me.employeesInitMessage = () => {
+        let jwt = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+
+        return {
+            anotherAuthorizationToken() {
+                jwt = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+
+            expectToBeSent: () => me.employeesWebSocket.expectSentMessageToContain({
+                name: 'init',
+                params: { jwt }
+            })
+        };
+    };
 
     me.chatsInitMessage = () => {
         let access_token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';

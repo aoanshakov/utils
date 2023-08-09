@@ -148,6 +148,9 @@ tests.addTest(options => {
 
                                 secondAccountRequest.receiveResponse();
                                 
+                                tester.employeesWebSocket.connect();
+                                tester.employeesInitMessage().expectToBeSent();
+
                                 tester.chatsWebSocket.connect();
                                 tester.chatsInitMessage().expectToBeSent();
 
