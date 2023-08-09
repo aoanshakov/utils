@@ -158,6 +158,9 @@ Ext.application({
             }
 
             Comagic.Permission = this.Permission = {
+                isSipUriAllowed: function () {
+                    return true;
+                },
                 isRolands: function () {
                     return false;
                 },

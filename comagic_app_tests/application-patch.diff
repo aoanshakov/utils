@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 54d57668..036753a8 100644
+index 54d57668..38754c42 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -171,7 +171,7 @@ index 54d57668..036753a8 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -348,17 +418,152 @@ module.exports = {
+@@ -348,17 +418,153 @@ module.exports = {
                      },
                  ],
              },
@@ -275,7 +275,8 @@ index 54d57668..036753a8 100644
 +            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`,
 +            'marketplace/Auth': `${miscDirectory}/Stub.js`,
-+            'marketplace/Root': `${miscDirectory}/Stub.js`
++            'marketplace/Root': `${miscDirectory}/Stub.js`,
++            'employees/getStore': 'employees/src/utils/getStore',
          },
 +
 +        plugins: [{
@@ -297,7 +298,7 @@ index 54d57668..036753a8 100644
 +                    const {
 +                        directory,
 +                        aliases
-+                    } = subModules.concat(['softphone', 'contacts']).map(module => {
++                    } = subModules.concat(['softphone', 'contacts', 'employees']).map(module => {
 +                        const directory = `${miscDirectory}/${module}`;
 +
 +                        return {
@@ -329,10 +330,10 @@ index 54d57668..036753a8 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 16944c78..171a458f 100644
+index 16944c78..2bccd698 100644
 --- a/package.json
 +++ b/package.json
-@@ -67,13 +67,18 @@
+@@ -67,13 +67,20 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -344,6 +345,8 @@ index 16944c78..171a458f 100644
 +    "@comagic/softphone-widget": "./misc/softphone/misc/sip_lib",
 +    "@comagic/softphone-core": "./misc/softphone/misc/sip_lib/uis_webrtc",
 +    "@comagic/ui": "./misc/ui",
++    "@comagic/logger": "./misc/logger",
++    "@comagic/broadcast-channel": "./misc/broadcast-channel",
 +    "@sentry/react": "^6.19.4",
 +    "@sentry/tracing": "^6.19.4",
 +    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
@@ -355,7 +358,13 @@ index 16944c78..171a458f 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -86,7 +91,7 @@
+@@ -81,12 +88,13 @@
+     "electron-notarize": "1.2.2",
+     "electron-store": "^6.0.1",
+     "electron-updater": "^5.0.3",
++    "employees": "./misc/employees",
+     "file-saver": "^2.0.5",
+     "form-data": "^4.0.0",
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
@@ -364,7 +373,7 @@ index 16944c78..171a458f 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -96,6 +101,11 @@
+@@ -96,6 +104,11 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "6.9.0",
@@ -467,10 +476,10 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index abb1f850..45c41d80 100644
+index abb1f850..a5a22f34 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,13 +1,19 @@
+@@ -1,13 +1,18 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
@@ -486,13 +495,20 @@ index abb1f850..45c41d80 100644
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
-+import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
 +import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
 +import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
  
  import history from '@/history';
  
-@@ -79,7 +85,99 @@ const Root: React.FC = observer(props => {
+@@ -64,6 +69,7 @@ const Root: React.FC = observer(props => {
+             <CoreProvider
+                 isHostApp
+                 isGodMode={isGodMode}
++                rootStore={rootStore}
+                 accountStore={accountStore}
+                 locale={locale}
+                 history={history}
+@@ -79,7 +85,98 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -567,7 +583,6 @@ index abb1f850..45c41d80 100644
 +            setEventBus(eventBus);
 +            createRootStore();
 +            setChatsRootStore(createChatsRootStore());
-+            createSoftphoneRootStore();
 +            createContactsRootStore();
 +            setHistory(history);
 +            setNotification(notification);
@@ -596,10 +611,10 @@ index abb1f850..45c41d80 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d5e90998..68fe7c72 100644
+index 6cfeafd2..18cbc546 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -162,7 +162,6 @@ export const RootStore = types
+@@ -151,7 +151,6 @@ export const RootStore = types
          const logger = new Logger(loggerStrategy);
  
          logger.filter(filterPassword);
@@ -607,7 +622,7 @@ index d5e90998..68fe7c72 100644
  
          const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
              const auth = getToken();
-@@ -243,7 +242,7 @@ export const RootStore = types
+@@ -232,7 +231,7 @@ export const RootStore = types
                  }
              );
  
@@ -616,7 +631,7 @@ index d5e90998..68fe7c72 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -300,7 +299,7 @@ export const RootStore = types
+@@ -289,7 +288,7 @@ export const RootStore = types
  
                      return Promise.reject(error);
                  }
@@ -625,7 +640,7 @@ index d5e90998..68fe7c72 100644
          };
  
          const collectLogs = callback => {
-@@ -317,6 +316,10 @@ export const RootStore = types
+@@ -306,6 +305,10 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -633,10 +648,10 @@ index d5e90998..68fe7c72 100644
 +                interceptor => axios.interceptors.response.eject(interceptor)
 +            );
 +
-             let isMaximizedCurrently = false,
-                 isVisible,
-                 counter = 0;
-@@ -459,7 +462,8 @@ export type DependencyInjection = {
+             let isMaximizedCurrently = false;
+ 
+             const counters = {
+@@ -438,7 +441,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -647,10 +662,10 @@ index d5e90998..68fe7c72 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 36901238..4c43c0ea 100644
+index 36901238..621fc755 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -93,7 +93,7 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -93,10 +93,15 @@ const removeToken = (skipLocalStorage = false) => {
  export const AuthStore = Loader.named('AuthStore')
      .props({
          dontKeepMeSignedIn: types.optional(types.boolean, false),
@@ -659,7 +674,15 @@ index 36901238..4c43c0ea 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -191,6 +191,8 @@ export const AuthStore = Loader.named('AuthStore')
++    .views(self => ({
++        get token(): Auth {
++            return getToken();
++        },
++    }))
+     .actions(self => {
+         const { httpRpcAuth } = getEnv(self);
+         const { authStore, accountStore, notificationStore, resetStore } = getRoot<typeof RootStore>(self);
+@@ -191,6 +196,8 @@ export const AuthStore = Loader.named('AuthStore')
          });
  
          const afterCreate = () => {

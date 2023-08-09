@@ -106,6 +106,10 @@
             "helpers/ServicesAtsStaff.js",
             "tests/services.ats.staff.js"
         ],
+        "services.ats.staff.edit": [
+            "helpers/ServicesAtsStaffContactEditPage.js",
+            "tests/services.ats.staff.edit.js"
+        ],
         "services.autocalls.autobackcall": [
             "helpers/ServicesAutocallsAutobackcall.js",
             "tests/services.autocalls.autobackcall.js"

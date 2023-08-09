@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index d0c4a75..691ceb7 100644
+index 2cb4ed3..691ceb7 100644
 --- a/package.json
 +++ b/package.json
 @@ -57,10 +57,6 @@
@@ -7,8 +7,8 @@ index d0c4a75..691ceb7 100644
    "dependencies": {
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "^0.7.0",
--    "@comagic/softphone-core": "0.0.0-int0",
--    "@comagic/softphone-widget": "0.0.0-int0",
+-    "@comagic/softphone-core": "^2.0.2",
+-    "@comagic/softphone-widget": "^2.0.13",
 -    "@comagic/logger": "^1.0.3",
      "async-mutex": "^0.3.2",
      "axios": "^0.24.0",
@@ -33,13 +33,254 @@ index d0c4a75..691ceb7 100644
      "redux-thunk": "^2.3.0",
      "short-uuid": "^4.2.0",
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 975b2d4..3e1b5c1 100644
+index 975b2d4..8a7b829 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -768,4 +768,5 @@ export type RootInstance = Instance<typeof RootStore> & {
+@@ -19,6 +19,7 @@ import {
+     getRoot,
+     addMiddleware,
+     cast,
++    getEnv,
+ } from 'mobx-state-tree';
+ 
+ import {
+@@ -39,7 +40,7 @@ import {
+     mapTo,
+ } from '@comagic/softphone-widget';
+ 
+-import { Session } from '@comagic/softphone-core';
++import { Session, EmployeesAPI as BasicEmployeesAPI } from '@comagic/softphone-core';
+ import { getResponse } from '@comagic/softphone-core/src/utils';
+ import { eventBus } from '@comagic/core';
+ import { AccountStoreInstance } from '@comagic/core/lib/models/account/account.d';
+@@ -89,6 +90,41 @@ type HostAuthStore = {
+     isUserLogoutProceeding: boolean;
+ };
+ 
++class EmployeesAPI {
++    #employeesAPI = null;
++    #employeesStore = null;
++
++    constructor({
++        employeesStore,
++        ...args
++    }) {
++        this.#employeesAPI = new BasicEmployeesAPI(args);
++        this.#employeesStore = employeesStore;
++    }
++
++    getStatuses() {
++        return this.#employeesStore.getStatuses();
++    }
++
++    setStatus(status) {
++        return this.#employeesStore.setStatus(status);
++    }
++
++    onEntityChange(entityName, callback) {
++        entityName == 'employee' && this.#employeesAPI.onEntityChange(entityName, callback);
++        this.#employeesStore.onEntityChange(entityName, callback);
++    }
++
++    getEmployee(id) {
++        return this.#employeesStore.getEmployee(id).
++            then(employee => this.#employeesAPI.getEmployee(id).
++            then(softphoneEmployee => ({
++                ...employee,
++                ...softphoneEmployee,
++            })));
++    }
++}
++
+ export const RootStore = types
+     .model('RootStore', {
+         account: types.optional(AccountModel, {}),
+@@ -100,7 +136,6 @@ export const RootStore = types
+         locale: types.optional(types.string, 'en'),
+         isSoftphoneAvailable: types.optional(types.boolean, false),
+         isLarge: types.optional(types.boolean, false),
+-        authStore: types.optional(AuthStore, {}),
+         feedbackDesktopStore: types.optional(FeedbackDesktopStore, {}),
+         feedbackWebStore: types.optional(FeedbackWebStore, {}),
+         promperStore: types.optional(PromperStore, {}),
+@@ -115,12 +150,21 @@ export const RootStore = types
+         let initialState: RootInstanceSnapshotOut,
+             hasError = false,
+             doRequest = (args: unknown): Promise<unknown> => Promise.reject(),
+-            setMounted = (): void => null,
+-            authStore: HostAuthStore,
+             isAuthorized = false,
+             isInChatsMode = false,
+             handleAccountFetched = (args: unknown): void => null;
+ 
++        const {
++            hostRootStore,
++            hostRootStore: { authStore },
++            employeesAPIFactory: createEmployeesAPI,
++        } = getEnv(self);
++
++        if (!hostRootStore) {
++            throw new Error('Host root store is empty');
++        }
++
++        self.hostRootStore = hostRootStore;
+         const isSingleApp = isElectron();
+ 
+         self.logger = new Logger({
+@@ -164,9 +208,9 @@ export const RootStore = types
+                     return;
+                 }
+ 
+-                self.authStore.getToken()?.jwt && authStore
++                authStore.token?.jwt && authStore
+                     ? authStore.fetchLogoutUser()
+-                    : self.authStore.doShellLogout();
++                    : authStore.logout();
+             };
+ 
+             const urlEndsWith = (response: AxiosResponse | AxiosError, substring: string) =>
+@@ -192,6 +236,7 @@ export const RootStore = types
+                 debugMode: localStorage.getItem('debugMode') == '1',
+                 getPhoneNumber: () => '',
+                 createFocusednessGetter: isSingleApp ? createFocusednessGetter : createDefaultFocusednessGetter,
++                createEmployeesAPI,
+                 processAxios: axios => {
+                     axios.defaults.headers['X-Auth-Type'] = 'jwt';
+ 
+@@ -229,7 +274,7 @@ export const RootStore = types
+                                             delete error.config.headers.Authorization;
+ 
+                                             requests.push(() => resolve(axios(error.config)));
+-                                            void self.authStore.doShellRefreshToken();
++                                            void authStore.fetchRefresh();
+                                         });
+                                     case 'invalid_token':
+                                         logout();
+@@ -261,12 +306,11 @@ export const RootStore = types
+             const { authorize } = (() => {
+                 const { updateState, authorize } = (() => {
+                     const state = {
+-                        mounted: false,
+                         accessGranted: false,
+                         token: '',
+                     };
+ 
+-                    const isSoftphoneAvailable = () => !!(state.accessGranted && state.mounted && state.token);
++                    const isSoftphoneAvailable = () => !!(state.accessGranted && state.token);
+ 
+                     const authorize = () =>
+                         isSoftphoneAvailable() && coreStore.authenticate({ token: state.token }, false);
+@@ -323,7 +367,7 @@ export const RootStore = types
+                 })();
+ 
+                 const getTokenParams = () => ({
+-                    token: (token => (token ? `${token}` : ''))(self.authStore.getToken()?.jwt),
++                    token: (token => (token ? `${token}` : ''))(authStore.token?.jwt),
+                 });
+ 
+                 handleAccountFetched = ({
+@@ -338,7 +382,6 @@ export const RootStore = types
+                             process.env.REACT_APP_NEW_SOFTPHONE_BACKEND_HOST || '$REACT_APP_NEW_SOFTPHONE_BACKEND_HOST'
+                         );
+ 
+-                    authStore = args.authStore;
+                     const accessGranted = getSoftphoneAvailability(accountStore),
+                         account = getSnapshot(accountStore.account);
+                     (self as RootInstance).setAccount(account);
+@@ -378,6 +421,11 @@ export const RootStore = types
+                         areVirtualNumberGroupsEnabled
+                     );
+                 };
++                
++                autorun(
++                    () => hostRootStore.accountStore?.account?.app_id && setTimeout(() =>
++                        self.handleAccountFetched(hostRootStore), 0)
++                ),
+ 
+                 window.addEventListener('tokenChange', () => updateState(getTokenParams()));
+ 
+@@ -386,16 +434,11 @@ export const RootStore = types
+ 
+                     updateState({
+                         token: '',
+-                        mounted: false,
+                         accessGranted: false,
+                     });
+                 });
+ 
+-                setMounted = () =>
+-                    updateState({
+-                        ...getTokenParams(),
+-                        mounted: true,
+-                    });
++                updateState(getTokenParams());
+ 
+                 eventBus.subscribe(
+                     'checkautolauncher',
+@@ -724,10 +767,6 @@ export const RootStore = types
+                 return doRequest(args) as Promise<Type>;
+             },
+ 
+-            setMounted() {
+-                setMounted();
+-            },
+-
+             handleAccountFetched(args: unknown) {
+                 handleAccountFetched(args);
+             },
+@@ -768,4 +807,54 @@ export type RootInstance = Instance<typeof RootStore> & {
  
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
 -export const rootStore = RootStore.create({});
-+export let rootStore;
-+export const createRootStore = () => (rootStore = RootStore.create({}));
++
++let rootStore;
++
++const cache = process.env.TEST == 'true' ? {
++    getValue: () => window.softphoneStore,
++    setValue: value => (window.softphoneStore = value),
++} : {
++    getValue: () => rootStore,
++    setValue: value => (rootStore = value),
++};
++
++const createEmployeesAPI = args => new BasicEmployeesAPI(args);
++
++const createEmployeesAPIFactory = employeesStore => args => new EmployeesAPI({
++    employeesStore,
++    ...args
++});
++
++export const getRootStore = hostRootStore => {
++    const rootStore = cache.getValue();
++
++    if (rootStore) {
++        if (rootStore.hostRootStore !== hostRootStore) {
++            throw new Error('Host root store inexplicably changed');
++        }
++
++        return Promise.resolve(rootStore);
++    }
++
++    return new Promise(resolve => {
++        const createRootStore = employeesAPIFactory => {
++            const rootStore = RootStore.create({}, {
++                hostRootStore,
++                employeesAPIFactory,
++            });
++
++            cache.setValue(rootStore);
++            resolve(rootStore);
++        };
++
++        import('employees/getStore').
++            then(exported => {
++                const rootStore = exported.default(hostRootStore);
++                createRootStore(createEmployeesAPIFactory(rootStore.employeesStore));
++            }).
++            catch(e => {
++                console.error(e);
++                createRootStore(createEmployeesAPI);
++            });
++    });
++};

@@ -16,6 +16,7 @@ const src = '/usr/local/src',
     publisherDir = `${tests}/publisher`,
     softphone = `${misc}/softphone`,
     contacts = `${misc}/contacts`,
+    employees = `${misc}/employees`,
     chats = `${misc}/chats`;
 
 module.exports = {
@@ -49,6 +50,7 @@ module.exports = {
     applicationPatch: `${tests}/application-patch.diff`,
     devApplicationPatch: `${tests}/dev-application-patch.diff`,
     chatsPatch: `${tests}/chats-patch.diff`,
+    employeesPatch: `${tests}/employees-patch.diff`,
     corePatch: `${tests}/core-patch.diff`,
     magicUiPatch: `${tests}/magic-ui-patch.diff`,
     loggerPatch: `${tests}/logger-patch.diff`,
@@ -64,6 +66,7 @@ module.exports = {
     magicUi: `${misc}/magic_ui`,
     logger: `${misc}/logger`,
     chats,
+    employees,
     chatsMagicUi: `${chats}/magic_ui`,
     softphone,
     softphoneMagicUi: `${softphone}/magic_ui`,

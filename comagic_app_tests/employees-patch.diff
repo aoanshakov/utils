@@ -1,27 +1,69 @@
-diff --git a/package.json b/package.json
-index c187d47..ff266d7 100644
---- a/package.json
-+++ b/package.json
-@@ -52,7 +52,7 @@
-   },
-   "dependencies": {
-     "@babel/runtime": "^7.13.9",
--    "antd": "^4.13.0",
-+    "antd": "^3.26.7",
-     "axios": "^0.21.1",
-     "classnames": "^2.2.6",
-     "dotenv": "^8.2.0",
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3736462..6f99b4c 100644
+index a0ce94b..4591e73 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -75,7 +75,8 @@ export type DependencyInjection = {
- export type RootInstance = Instance<typeof RootStore>;
+@@ -1,4 +1,4 @@
+-import { Instance, applySnapshot, getSnapshot, types } from 'mobx-state-tree';
++import { Instance, applySnapshot, getSnapshot, getEnv, types } from 'mobx-state-tree';
+ import React from 'react';
+ import { AxiosRequestConfig } from 'axios';
+ 
+@@ -13,7 +13,6 @@ export const ACCESS_TOKEN_INVALID = 'access_token_invalid';
+ export const RootStore = types
+     .model('RootStore', {
+         websocketStore: types.optional(WebsocketStore, {}),
+-        authStore: types.optional(AuthStore, {}),
+         employeesStore: types.optional(EmployeesStore, {}),
+         locale: types.optional(types.string, 'en'),
+     })
+@@ -21,6 +20,8 @@ export const RootStore = types
+         formatMessage: (key: string): string => getIntlMessages(self.locale)[key] || key,
+     }))
+     .actions(self => {
++        let initialState;
++
+         const afterCreate = () => {
+             initialState = getSnapshot(self);
+         };
+@@ -33,6 +34,8 @@ export const RootStore = types
+             applySnapshot(self, initialState);
+         };
+ 
++        self.hostRootStore = getEnv(self).hostRootStore;
++
+         return {
+             afterCreate,
+             resetStore,
+@@ -44,11 +47,26 @@ export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
--export const rootStore = RootStore.create({}, { httpRpc });
-+export let rootStore;
-+export const createRootStore = () => (rootStore = RootStore.create({}, { httpRpc }));
  
- if (process.env.NODE_ENV === 'development') {
-     window.rootStore = rootStore;
+-export let rootStore: RootInstance;
+-export const createRootStore = () => (rootStore = RootStore.create({}));
++let rootStore;
++
++const cache = process.env.TEST == 'true' ? {
++    getValue: () => window.employeesStore,
++    setValue: value => (window.employeesStore = value),
++} : {
++    getValue: () => rootStore,
++    setValue: value => (rootStore = value),
++};
++
++export const getRootStore = hostRootStore => {
++    const rootStore = cache.getValue();
+ 
+-createRootStore();
++    if (rootStore) {
++        if (rootStore.hostRootStore !== hostRootStore) {
++            throw new Error('Host root store inexplicably changed');
++        }
++    } else {
++        cache.setValue(RootStore.create({}, { hostRootStore }));
++    }
+ 
+-if (process.env.NODE_ENV === 'development') {
+-    window.employeesRootStore = rootStore;
+-}
++    return cache.getValue(rootStore);
++};

@@ -49,9 +49,11 @@ define(() => function ({
 
     window.resetElectronCookiesManager?.();
 
-    window.rootConfig = {appName};
-    window.crossTabCommunicatorCache = {};
-    window.softphoneCrossTabCommunicatorCache = {};
+    window.rootConfig = { appName };
+    window.broadcastChannelCache = {};
+    window.employeesStore = null;
+    window.softphoneStore = null;
+    window.softphoneBroadcastChannelCache = {};
 
     me.getUserAgent = softphoneType => 'UIS Softphone ' + softphoneType;
 
@@ -179,6 +181,15 @@ define(() => function ({
     me.callStatsButton = me.createBottomButtonTester('.cmg-call-stats-button');
     me.chatsButton = me.createBottomButtonTester('.cmg-chats-button');
     me.callsHistoryButton = me.createBottomButtonTester('.cmg-calls-history-button');
+
+    me.chatMessageSendingButton = (() => {
+        const tester = testersFactory.createDomElementTester('.cm-chats--chat-panel-footer-toolbar-send-button');
+
+        tester.expectToBeDisabled = () => tester.expectToHaveAttribute('disabled');
+        tester.expectToBeEnabled = () => tester.expectNotToHaveAttribute('disabled');
+
+        return tester;
+    })();
 
     const intersection = new Map();
 
@@ -1323,6 +1334,51 @@ define(() => function ({
         });
     };
 
+    me.messageAddingRequest = () => {
+        const params = {
+            chat_id: 7189362,
+            chat_channel_id: null,
+            visitor_id: 16479303,
+            message: {
+                text: 'Мне тревожно, успокой меня',
+                type: 'operator',
+                reply_to_id: null,
+                context: null,
+                resource: null,
+            },
+        };
+
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectBodyToContain({
+                        method: 'add_message',
+                        params
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                                result: {
+                                    data: true,
+                                }
+                            });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatStartingRequest = () => {
         const params = {
             channel_id: 216395,
@@ -1354,6 +1410,41 @@ define(() => function ({
                                 params
                             }).respondSuccessfullyWith({
                                 result: {data}
+                            });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.chatClosingRequest = () => {
+        const params = {
+            chat_id: 7189362,
+            visitor_id: 16479303,
+        };
+
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                return addResponseModifiers({
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectToHaveMethod('POST').
+                            expectPathToContain('$REACT_APP_BASE_URL').
+                            expectBodyToContain({
+                                method: 'close_chat',
+                                params
+                            }).respondSuccessfullyWith({
+                                result: {
+                                    data: true,
+                                }
                             });
 
                         Promise.runAll(false, true);
@@ -1578,6 +1669,289 @@ define(() => function ({
         });
     };
 
+    me.employeeRequest = () => ({
+        expectToBeSent() {
+            const request = ajax.recentRequest().
+                expectToHaveMethod('GET').
+                expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                        data: {
+                            id: 20816,
+                            first_name: 'string',
+                            last_name: 'string',
+                            position_id: 0,
+                            status_id: 1
+                        },
+
+                    });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.employeeUpdatingRequest = () => ({
+        receiveResponse() {
+            ajax.recentRequest().
+                expectToHaveMethod('PATCH').
+                expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816').
+                expectBodyToContain({
+                    status_id: 2,
+                }).
+                respondSuccessfullyWith({
+                    data: {},
+
+                });
+
+            Promise.runAll(false, true);
+            spendTime(0)
+        }
+    });
+
+    me.employeeStatusesRequest = () => {
+        const data = [{
+            id: 1,
+            is_worktime: true,
+            mnemonic: 'available',
+            name: 'Доступен',
+            is_select_allowed: true,
+            description: 'все вызовы',
+            color: '#48b882',
+            icon: 'tick',
+            is_auto_out_calls_ready: true,
+            is_removed: false,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
+            in_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            in_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            allowed_phone_protocols: [
+                'SIP'
+            ],
+        }, {
+            id: 2,
+            is_worktime: true,
+            mnemonic: 'break',
+            name: 'Перерыв',
+            is_select_allowed: true,
+            description: 'временное отключение',
+            color: '#1179ad',
+            icon: 'pause',
+            is_auto_out_calls_ready: true,
+            is_removed: false,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
+            in_external_allowed_call_directions: [],
+            in_internal_allowed_call_directions: [],
+            out_external_allowed_call_directions: [],
+            out_internal_allowed_call_directions: [],
+            allowed_phone_protocols: [
+                'SIP'
+            ],
+        }, {
+            id: 3,
+            is_worktime: true,
+            mnemonic: 'do_not_disturb',
+            name: 'Не беспокоить',
+            is_select_allowed: true,
+            icon: 'minus',
+            description: 'только исходящие',
+            color: '#cc5d35',
+            is_auto_out_calls_ready: true,
+            is_removed: false,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
+            in_external_allowed_call_directions: [],
+            in_internal_allowed_call_directions: [],
+            out_external_allowed_call_directions: [],
+            out_internal_allowed_call_directions: []
+        }, {
+            id: 4,
+            is_worktime: true,
+            mnemonic: 'not_at_workplace',
+            name: 'Нет на месте',
+            is_select_allowed: true,
+            description: 'все вызовы на мобильном',
+            color: '#ebb03b',
+            icon: 'time',
+            is_auto_out_calls_ready: true,
+            is_removed: false,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
+            in_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            in_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            allowed_phone_protocols: [
+                'SIP'
+            ]
+        }, {
+            id: 5,
+            is_worktime: false,
+            mnemonic: 'not_at_work',
+            name: 'Нет на работе',
+            is_select_allowed: true,
+            description: 'полное отключение',
+            color: '#99acb7',
+            icon: 'cross',
+            is_auto_out_calls_ready: true,
+            is_removed: false,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
+            in_external_allowed_call_directions: [],
+            in_internal_allowed_call_directions: [],
+            out_external_allowed_call_directions: [],
+            out_internal_allowed_call_directions: []
+        }, {
+            id: 6,
+            is_worktime: false,
+            mnemonic: 'unknown',
+            name: 'Неизвестно',
+            is_select_allowed: false,
+            icon: 'unknown',
+            color: null,
+            is_auto_out_calls_ready: true,
+            is_removed: false,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
+            in_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            in_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            allowed_phone_protocols: [
+                'SIP'
+            ]
+        }];
+
+        const addResponseModifiers = me => {
+            me.unableToTransferChat = () => {
+                data[0].is_able_to_transfer_chat = false;
+                return me;
+            };
+
+            me.unableToAcceptChat = () => {
+                data[0].is_able_to_accept_chat = false;
+                return me;
+            };
+
+            me.unableToCloseChatOfflineMessage = () => {
+                data[0].is_able_to_close_chat_offline_message = false;
+                return me;
+            };
+
+            me.unableToSendChatMessages = () => {
+                data[0].is_able_to_send_chat_messages = false;
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/api/v1/statuses').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({ data });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.operatorStatusUpdateRequest = () => ({
         receiveResponse() {
             ajax.recentRequest().
@@ -1651,6 +2025,38 @@ define(() => function ({
                 this.expectToBeSent().receiveResponse();
             }
         }
+    };
+
+    me.offlineMessageDeletingRequest = () => {
+        const addResponseModifiers = me => me;
+
+        const bodyParams = {
+            offline_message_id: 178076
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/offline_message').
+                    expectToHaveMethod('DELETE').
+                    expectBodyToContain(bodyParams);
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: true 
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
     };
 
     me.offlineMessageAcceptingRequest = () => {
@@ -1892,10 +2298,14 @@ define(() => function ({
         };
 
         return {
-            receive: () => me.chatsWebSocket.receive(JSON.stringify({
-                method: 'create_transfer',
-                params 
-            }))
+            receive: () => {
+                me.chatsWebSocket.receive(JSON.stringify({
+                    method: 'create_transfer',
+                    params 
+                }));
+
+                spendTime(0);
+            } 
         };
     };
 
@@ -4433,165 +4843,239 @@ define(() => function ({
         }
     });
 
-    me.statusListRequest = () => ({
-        expectToBeSent(requests) {
-            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/status/list').
-                expectToHaveMethod('GET');
+    me.statusListRequest = () => {
+        const data = [{
+            id: 1,
+            is_worktime: true,
+            mnemonic: 'available',
+            name: 'Доступен',
+            is_select_allowed: true,
+            description: 'все вызовы',
+            color: '#48b882',
+            icon_mnemonic: 'tick',
+            is_auto_out_calls_ready: true,
+            is_deleted: false,
 
-            return {
-                receiveResponse() {
-                    request.respondSuccessfullyWith({
-                        data: [{
-                            id: 1,
-                            is_worktime: true,
-                            mnemonic: 'available',
-                            name: 'Доступен',
-                            is_select_allowed: true,
-                            description: 'все вызовы',
-                            color: '#48b882',
-                            icon_mnemonic: 'tick',
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            in_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            allowed_phone_protocols: [
-                                'SIP'
-                            ],
-                        }, {
-                            id: 2,
-                            is_worktime: true,
-                            mnemonic: 'break',
-                            name: 'Перерыв',
-                            is_select_allowed: true,
-                            description: 'временное отключение',
-                            color: '#1179ad',
-                            icon_mnemonic: 'pause',
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [],
-                            in_internal_allowed_call_directions: [],
-                            out_external_allowed_call_directions: [],
-                            out_internal_allowed_call_directions: [],
-                            allowed_phone_protocols: [
-                                'SIP'
-                            ],
-                        }, {
-                            id: 3,
-                            is_worktime: true,
-                            mnemonic: 'do_not_disturb',
-                            name: 'Не беспокоить',
-                            is_select_allowed: true,
-                            icon_mnemonic: 'minus',
-                            description: 'только исходящие',
-                            color: '#cc5d35',
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [],
-                            in_internal_allowed_call_directions: [],
-                            out_external_allowed_call_directions: [],
-                            out_internal_allowed_call_directions: []
-                        }, {
-                            id: 4,
-                            is_worktime: true,
-                            mnemonic: 'not_at_workplace',
-                            name: 'Нет на месте',
-                            is_select_allowed: true,
-                            description: 'все вызовы на мобильном',
-                            color: '#ebb03b',
-                            icon_mnemonic: 'time',
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            in_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            allowed_phone_protocols: [
-                                'SIP'
-                            ]
-                        }, {
-                            id: 5,
-                            is_worktime: false,
-                            mnemonic: 'not_at_work',
-                            name: 'Нет на работе',
-                            is_select_allowed: true,
-                            description: 'полное отключение',
-                            color: '#99acb7',
-                            icon_mnemonic: 'cross',
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [],
-                            in_internal_allowed_call_directions: [],
-                            out_external_allowed_call_directions: [],
-                            out_internal_allowed_call_directions: []
-                        }, {
-                            id: 6,
-                            is_worktime: false,
-                            mnemonic: 'unknown',
-                            name: 'Неизвестно',
-                            is_select_allowed: false,
-                            icon_mnemonic: 'unknown',
-                            color: null,
-                            is_auto_out_calls_ready: true,
-                            is_deleted: false,
-                            in_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            in_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_external_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            out_internal_allowed_call_directions: [
-                                'in',
-                                'out'
-                            ],
-                            allowed_phone_protocols: [
-                                'SIP'
-                            ]
-                        }]
-                    });
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                }
+            in_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            in_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            allowed_phone_protocols: [
+                'SIP'
+            ],
+        }, {
+            id: 2,
+            is_worktime: true,
+            mnemonic: 'break',
+            name: 'Перерыв',
+            is_select_allowed: true,
+            description: 'временное отключение',
+            color: '#1179ad',
+            icon_mnemonic: 'pause',
+            is_auto_out_calls_ready: true,
+            is_deleted: false,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
+            in_external_allowed_call_directions: [],
+            in_internal_allowed_call_directions: [],
+            out_external_allowed_call_directions: [],
+            out_internal_allowed_call_directions: [],
+            allowed_phone_protocols: [
+                'SIP'
+            ],
+        }, {
+            id: 3,
+            is_worktime: true,
+            mnemonic: 'do_not_disturb',
+            name: 'Не беспокоить',
+            is_select_allowed: true,
+            icon_mnemonic: 'minus',
+            description: 'только исходящие',
+            color: '#cc5d35',
+            is_auto_out_calls_ready: true,
+            is_deleted: false,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
+            in_external_allowed_call_directions: [],
+            in_internal_allowed_call_directions: [],
+            out_external_allowed_call_directions: [],
+            out_internal_allowed_call_directions: []
+        }, {
+            id: 4,
+            is_worktime: true,
+            mnemonic: 'not_at_workplace',
+            name: 'Нет на месте',
+            is_select_allowed: true,
+            description: 'все вызовы на мобильном',
+            color: '#ebb03b',
+            icon_mnemonic: 'time',
+            is_auto_out_calls_ready: true,
+            is_deleted: false,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
+            in_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            in_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            allowed_phone_protocols: [
+                'SIP'
+            ]
+        }, {
+            id: 5,
+            is_worktime: false,
+            mnemonic: 'not_at_work',
+            name: 'Нет на работе',
+            is_select_allowed: true,
+            description: 'полное отключение',
+            color: '#99acb7',
+            icon_mnemonic: 'cross',
+            is_auto_out_calls_ready: true,
+            is_deleted: false,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
+            in_external_allowed_call_directions: [],
+            in_internal_allowed_call_directions: [],
+            out_external_allowed_call_directions: [],
+            out_internal_allowed_call_directions: []
+        }, {
+            id: 6,
+            is_worktime: false,
+            mnemonic: 'unknown',
+            name: 'Неизвестно',
+            is_select_allowed: false,
+            icon_mnemonic: 'unknown',
+            color: null,
+            is_auto_out_calls_ready: true,
+            is_deleted: false,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
+            in_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            in_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            allowed_phone_protocols: [
+                'SIP'
+            ]
+        }];
+
+        const addResponseModifiers = me => {
+            me.unableToTransferChat = () => {
+                data[0].is_able_to_transfer_chat = false;
+                return me;
             };
-        },
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        }
-    });
+            me.unableToAcceptChat = () => {
+                data[0].is_able_to_accept_chat = false;
+                return me;
+            };
+
+            me.unableToCloseChatOfflineMessage = () => {
+                data[0].is_able_to_close_chat_offline_message = false;
+                return me;
+            };
+
+            me.unableToSendChatMessages = () => {
+                data[0].is_able_to_send_chat_messages = false;
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/status/list').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({ data });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.configRequest = () => {
         let host = '.';

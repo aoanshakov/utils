@@ -1,530 +1,407 @@
-tests.requireClass('Comagic.services.ats.staff.store.ContactRecord');
-tests.requireClass('Comagic.services.ats.staff.controller.ContactEditPage');
+tests.requireClass('Comagic.services.ats.staff.store.StatusRecords');
+tests.requireClass('Comagic.services.ats.staff.controller.StatusList');
+tests.requireClass('Comagic.services.ats.staff.controller.Page');
 
-function ServicesAtsStaff(requestsManager, testersFactory, utils) {
-    ServicesAtsStaff.makeOverrides = function () {
-        Ext.define('Comagic.test.services.ats.staff.view.ContactEditPage', {
-            override: 'Comagic.services.ats.staff.view.ContactEditPage',
-            autoScroll: true
-        });
-
-        ServicesAtsStaff.makeOverrides = Ext.emptyFn;
-    };
-
-    ServicesAtsStaff.makeOverrides();
-
-    var controller = Comagic.getApplication().getController('Comagic.services.ats.staff.controller.ContactEditPage');
+function ServicesAtsStaff({ requestsManager, testersFactory, utils, wait }) {
+    var controller = Comagic.getApplication().getController('Comagic.services.ats.staff.controller.Page');
 
     this.actionIndex = function (data) {
         controller.init();
+
+        Comagic.getApplication().enableActionRunning();
+
         controller.actionIndex({
             siteId: 1234
         }, data);
-    };
 
-    this.setFeatureUnavailable = function () {
-        Comagic.getApplication().setFeatureUnavailable('hidden_numbers');
-    };
-
-    this.employeeUserAddingRequest = function () {
-        return {
-            receiveResponse: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('/services/ats__staff/add_employee_user/').
-                    expectToHaveMethod('POST').
-                    expectBodyToContain({
-                        id: 104561,
-                        data: {
-                            login: 'chenkova',
-                            password: 'Qwerty123'
-                        }
-                    }).
-                    respondSuccessfullyWith({
-                        data: [],
-                        success: true
-                    });
-            }
-        };
-    };
-
-    this.softphoneLoginValidationRequest = function () {
-        return {
-            receiveResponse: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('/services/ats__staff/validate_softphone_login/').
-                    expectToHaveMethod('POST').
-                    expectBodyToContain({
-                        login: ['chenkova']
-                    }).
-                    respondSuccessfullyWith({
-                        data: [],
-                        success: true
-                    });
-            }
-        };
-    };
-
-    this.employeeUserRequest = function () {
-        return {
-            receiveResponse: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('/services/ats__staff/get_employee_user/').
-                    respondSuccessfullyWith({
-                        success: true,
-                        data: {
-                            limit: {
-                                real_value: 1,
-                                max_value: 50,
-                                is_max_limit_reached: false,
-                                top_value: 4,
-                                user_charge_diff: 0,
-                                is_limit_reached: false
-                            },
-                            user_data: null
-                        }
-                    });
-            }
-        };
-    };
-
-    this.sipLimitsRequest = function () {
-        return {
-            receiveResponse: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('services/ats__sip/read/sip_limits/').
-                    respondSuccessfullyWith({
-                        user_charge_diff: 0,
-                        success: true,
-                        is_limit_reached: true,
-                        real_value: 47,
-                        max_value: 100,
-                        is_max_limit_reached: false,
-                        top_value: 47
-                    });
-            }
-        };
-    };
-
-    function getEmployeeData (callback) {
-        var data = {
-            coach: [],
-            employee: [{
-                in_external_allowed_call_directions: ['in', 'out'],
-                in_internal_allowed_call_directions: ['in'],
-                out_internal_allowed_call_directions: ['out'],
-                out_external_allowed_call_directions: [],
-                allowed_in_call_types: [
-                    'external',
-                    'internal'
-                ],
-                allowed_out_call_types: [
-                    'external',
-                    'internal'
-                ],
-                app_id: 4735,
-                avatar_height: null,
-                avatar_key: null,
-                avatar_link: null,
-                avatar_offset_left: null,
-                avatar_offset_top: null,
-                avatar_source_key: null,
-                avatar_source_link: null,
-                avatar_width: null,
-                boss_id: null,
-                categories: [],
-                consultant_operator_display_name: null,
-                email: 'v.chenkova@gmail.com',
-                employee_linked_to_user: 'Веселина Ченкова',
-                first_name: 'Виселина',
-                goals: [],
-                has_password: false,
-                has_sip: false,
-                id: 104561,
-                is_all_sites_access: true,
-                is_auto_status_enabled: false,
-                is_consultant_chat: false,
-                is_consultant_invite: false,
-                is_consultant_offline_message: false,
-                is_consultant_operator: false,
-                is_consultant_operator_active: false,
-                is_need_out_call_rating: false,
-                last_name: 'Ченкова',
-                login: '',
-                not_at_work_interval: '01:00:00',
-                operator_status: null,
-                password: null,
-                patronymic: 'Добриновна',
-                position_id: null,
-                position_name: null,
-                record_talk_direction: 'all',
-                schedule_id: null,
-                sites: []
-            }],
-            phone: [{
-                app_id: 4735,
-                channels_count: 1,
-                forwarding_timeout: 60,
-                id: 230006,
-                phone: '060091',
-                protocol: 'PSTN',
-                type: 'work'
-            }],
-            phone_in_employee: [{
-                channels_count: 53,
-                employee_id: 637279,
-                forwarding_timeout: 60,
-                id: 784188,
-                is_active: true,
-                phone: '1234',
-                phone_id: 985720,
-                priority: 1,
-                protocol: 'PSTN',
-                schedule_id: null
-            }],
-            short_phone: [],
-            sites_in_employee: [],
-        };
-
-        (callback || function () {})(data);
-
-        return data;
-    }
-
-    this.employeeChangeRequest = function () {
-        var modifyEmployee = function () {};
-
-        return {
-            isOtherOutgoingCallsAutoAnswerEnabled: function () {
-                modifyEmployee = function (employee) {
-                    employee.is_out_calls_auto_answer_enabled = true;
-                };
-
-                return this;
-            },
-            isClickToCallAutoAnswerEnabled: function () {
-                modifyEmployee = function (employee) {
-                    employee.is_click_to_call_auto_answer_enabled = true;
-                };
-
-                return this;
-            },
-            isNeedHideNumbers: function () {
-                modifyEmployee = function (employee) {
-                    employee.is_need_hide_numbers = true;
-                };
-
-                return this;
-            },
-            receiveResponse: function () {
-                var body = {
-                    employee: {
-                        create: [],
-                        update: [{
-                            first_name: 'Веселина'
-                        }],
-                        destroy: []
-                    },
-                    sites_in_employee: {
-                        create: [],
-                        update: [],
-                        destroy: []
-                    },
-                    coach: {
-                        create: [],
-                        update: [],
-                        destroy: []
-                    },
-                    phone_in_employee: {
-                        create: [],
-                        update: [],
-                        destroy: []
-                    },
-                    phone: {
-                        create: [],
-                        update: [],
-                        destroy: []
-                    },
-                    short_phone: {
-                        create: [],
-                        update: [],
-                        destroy: []
-                    }
-                };
-
-                modifyEmployee(body.employee.update[0]);
-
-                requestsManager.recentRequest().
-                    expectToHavePath('/services/ats__staff/employee/change/').
-                    expectToHaveMethod('POST').
-                    expectBodyToContain(body).
-                    respondSuccessfullyWith({
-                        success: true,
-                        data: getEmployeeData(function (data) {
-                            data.employee[0].first_name = 'Веселина';
-                            modifyEmployee(data.employee[0]);
-                        })
-                    });
-            }
-        };
-    };
-
-    this.employeesRequest = function () {
-        return {
-            receiveResponse: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('/services/ats__staff/employee/read/employee/104561/').
-                    respondSuccessfullyWith({
-                        success: true,
-                        data: getEmployeeData(),
-                        metadata: [{
-                            fields: [
-                                'consultant_operator_display_name',
-                                'last_name',
-                                'avatar_height',
-                                'position_id',
-                                'avatar_offset_left',
-                                'app_id',
-                                'sites',
-                                'patronymic',
-                                'schedule_id',
-                                'has_password',
-                                'position_name',
-                                'is_consultant_operator',
-                                'boss_id',
-                                'record_talk_direction',
-                                {
-                                    name: 'id',
-                                    primary_key: true
-                                },
-                                'is_all_sites_access',
-                                'first_name',
-                                'password',
-                                'avatar_link',
-                                'call_center_role',
-                                'out_internal_allowed_call_directions',
-                                'is_out_calls_auto_answer_enabled',
-                                'is_click_to_call_auto_answer_enabled',
-                                'is_need_hide_numbers',
-                                'is_need_out_call_rating',
-                                'avatar_source_link',
-                                'is_consultant_invite',
-                                'email',
-                                'avatar_offset_top',
-                                'out_external_allowed_call_directions',
-                                'email_for_user_info',
-                                'operator_status',
-                                'is_consultant_operator_active',
-                                'goals',
-                                'is_auto_status_enabled',
-                                'avatar_key',
-                                'manager_group_ids',
-                                'categories',
-                                'buy_another_call_center_role',
-                                'not_at_work_interval',
-                                'avatar_width',
-                                'in_internal_allowed_call_directions',
-                                'is_consultant_offline_message',
-                                'avatar_source_key',
-                                'has_sip',
-                                'in_external_allowed_call_directions',
-                                'login',
-                                'is_consultant_chat',
-                                'employee_linked_to_user',
-                                'manager_employee_ids'
-                            ],
-                            belongs_to: [],
-                            name: 'employee',
-                            has_many: [{
-                                table: 'sites_in_employee',
-                                foreign_key: 'employee_id'
-                            }, {
-                                table: 'coach',
-                                foreign_key: 'employee_id'
-                            }, {
-                                table: 'phone_in_employee',
-                                foreign_key: 'employee_id'
-                            }, {
-                                table: 'short_phone',
-                                foreign_key: 'employee_id'
-                            }]
-                        }, {
-                            fields: [
-                                'employee_id',
-                                'site_id',
-                                {
-                                    name: 'id',
-                                    primary_key: true
-                                }
-                            ],
-                            belongs_to: [{
-                                table: 'employee',
-                                foreign_key: 'employee_id'
-                            }],
-                            name: 'sites_in_employee',
-                            has_many: []
-                        }, {
-                            fields: [
-                                'employee_id',
-                                'is_called_always',
-                                {
-                                    name: 'id',
-                                    primary_key: true
-                                },
-                                'coach_employee_id'
-                            ],
-                            belongs_to: [{
-                                table: 'employee',
-                                foreign_key: 'employee_id'
-                            }],
-                            name: 'coach',
-                            has_many: []
-                        }, {
-                            fields: [
-                                'channels_count',
-                                'employee_id',
-                                'protocol',
-                                'forwarding_timeout',
-                                'phone_id',
-                                'is_trunk_multi',
-                                'is_active',
-                                'priority',
-                                'phone',
-                                'schedule_id',
-                                {
-                                    name: 'id',
-                                    primary_key: true
-                                },
-                                'sip_trunk_destination_number'
-                            ],
-                            belongs_to: [{
-                                table: 'employee',
-                                foreign_key: 'employee_id'
-                            }, {
-                                table: 'phone',
-                                foreign_key: 'phone_id'
-                            }],
-                            name: 'phone_in_employee',
-                            has_many: []
-                        }, {
-                            fields: [
-                                'channels_count',
-                                'protocol',
-                                'forwarding_timeout',
-                                'app_id',
-                                'phone',
-                                'type',
-                                {
-                                    name: 'id',
-                                    primary_key: true
-                                }
-                            ],
-                            belongs_to: [],
-                            name: 'phone',
-                            has_many: [{
-                                table: 'phone_in_employee',
-                                foreign_key: 'phone_id'
-                            }]
-                        }, {
-                            fields: [
-                                'employee_id',
-                                'app_id',
-                                'is_queue',
-                                'phone',
-                                'is_voice_mail',
-                                {
-                                    name: 'id',
-                                    primary_key: true
-                                }
-                            ],
-                            belongs_to: [{
-                                table: 'employee',
-                                foreign_key: 'employee_id'
-                            }],
-                            name: 'short_phone',
-                            has_many: []
-                        }]
-                    });
-            }
-        };
-    };
-
-    this.batchReloadRequest = function () {
-        return {
-            receiveResponse: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('/directory/batch_reload/').
-                    expectToHaveMethod('POST').
-                    respondSuccessfullyWith({
-                        success: true,
-                        data: {
-                            'comagic:staff:employee_for_call_recording': [],
-                            'comagic:staff:phones_in_employee': [],
-                            'comagic:staff:employees_in_phone': [],
-                            'comagic:sip:sip_line': [],
-                            'comagic:staff:group': [],
-                            'comagic:staff:position': [],
-                            'comagic:_tree:employees': [],
-                            'billing:public:number_capacity': [],
-                            'comagic:public:call_type': [{
-                                id: 'external',
-                                name: 'Внешние'
-                            }, {
-                                id: 'internal',
-                                name: 'Внутренние'
-                            }],
-                            'comagic:staff:employee': [{
-                                aux_id: [],
-                                aux_id2: true,
-                                aux_id3: null,
-                                call_center_role: null,
-                                has_va: false,
-                                id: -1,
-                                is_active: false,
-                                is_consultant_call: false,
-                                is_consultant_chat: false,
-                                is_consultant_offline_message: false,
-                                is_manage_allowed: false,
-                                name: 'Не задан'
-                            }]
-                        }
-                    });
-            }
-        };
+        Comagic.getApplication().disableActionRunning();
     };
 
     this.destroy = function() {
         controller.destroy();
     };
 
-    this.tab = function (text) {
-        return testersFactory.createDomElementTester(
-            utils.descendantOfBody().matchesSelector('.x-tab-inner').textEquals(text).find()
-        );
-    };
+    this.floatingForm = (function () {
+        const form = testersFactory.createFormTester(function () {
+            return utils.getFloatingComponent();
+        });
 
-    function field (label, selector) {
-        return utils.descendantOfBody().
+        addTesters(form, utils.makeDomElementGetter('.x-window'));
+
+        const getFieldGetter = (text, isLogEnabled = false) => () => utils.descendantOf('.x-window').
             matchesSelector('.x-form-item-label-inner').
-            textEquals(label).
-            find().
-            closest('.x-field').
-            querySelector(selector);
-    }
+            textEquals(text).
+            find(isLogEnabled).
+            closest('.x-form-item');
 
-    this.switchbox = function (label) {
-        return testersFactory.createDomElementTester(field(label, 'a.x-form-switchbox'));
+        form.directionsField = function () {
+            return {
+                withFieldLabel: function (text) {
+                    const getFieldElement = getFieldGetter(text),
+                        tester = testersFactory.createDomElementTester(getFieldElement);
+
+                    const getDirections = function (columnIndex) {
+                        const getCellTester = function (iconIndex) {
+                            const tester = testersFactory.createCheckboxTester(
+                                () => (
+                                    (
+                                        utils.element(getFieldElement).
+                                            querySelectorAll('tr')[1] ||
+
+                                        new JsTester_NoElement()
+                                    ).querySelectorAll('td')[columnIndex] ||
+                                        new JsTester_NoElement()
+                                ).querySelectorAll('.x-form-checkbox')[iconIndex] ||
+                                    new JsTester_NoElement()
+                            );
+
+                            return tester;
+                        };
+
+                        return {
+                            incoming: function () {
+                                return getCellTester(0);
+                            },
+                            outgoing: function () {
+                                return getCellTester(1);
+                            },
+                        };
+                    };
+
+                    tester.internal = function () {
+                        return getDirections(0);
+                    };
+
+                    tester.external = function () {
+                        return getDirections(1);
+                    };
+
+                    return tester;
+                }
+            };
+        };
+
+        form.iconField = function () {
+            const addPopupTester = tester => {
+                tester.popup = () => {
+                    const getPopupElement = () => utils.querySelector(
+                        '.services-ats-staff-status-icon-selector-field-bound-list'
+                    );
+
+                    const tester = testersFactory.createDomElementTester(getPopupElement);
+
+                    tester.item = icon => {
+                        const tester = testersFactory.createDomElementTester(
+                            () => utils.element(getPopupElement).querySelector(`.combo-icon.${icon}`)
+                        );
+
+                        const click = tester.click.bind(tester);
+
+                        tester.click = () => {
+                            click();
+                            wait();
+
+                            return tester;
+                        };
+
+                        return tester;
+                    };
+
+                    return addTesters(tester, getPopupElement);
+                };
+
+                return tester;
+            };
+
+            const tester = {
+                withFieldLabel: function (text) {
+                    const getFieldElement = getFieldGetter(text);
+
+                    const tester = testersFactory.createDomElementTester(() => {
+                        return getFieldElement().querySelector('.services-ats-staff-status-icon-selector-field-sub');
+                    });
+
+                    tester.expectToHaveValue = icon =>
+                        testersFactory.createDomElementTester(getFieldElement).expectToHaveClass(icon);
+
+                    return addPopupTester(tester);
+                }
+            };
+
+            return addPopupTester(tester);
+        };
+
+        form.colorField = function () {
+            const addPopupTester = tester => {
+                tester.popup = () => {
+                    const getPopupElement = () => utils.querySelector('.x-color-picker').closest('.x-box-inner'),
+                        tester = testersFactory.createDomElementTester(getPopupElement)
+
+                    tester.item = color => testersFactory.createDomElementTester(
+                        () => utils.element(getPopupElement).
+                            querySelector(`.color-${(color || '').toUpperCase()}`)
+                    );
+
+                    return addTesters(tester, getPopupElement);
+                };
+
+                return tester;
+            };
+
+            const tester = {
+                withFieldLabel: function (text) {
+                    const getFieldElement = getFieldGetter(text); 
+
+                    const arrowTester = testersFactory.createDomElementTester(
+                        () => getFieldElement().querySelector('.x-form-trigger')
+                    );
+
+                    const tester = testersFactory.createDomElementTester(getFieldElement);
+                    tester.clickArrow = () => (arrowTester.click(), tester);
+
+                    tester.expectToHaveValue = function (expectedValue) {
+                        testersFactory.createDomElementTester(
+                            () => getFieldElement().querySelector('input')
+                        ).expectToHaveStyle('background-color', `#${expectedValue}`);
+                    };
+
+                    addPopupTester(tester);
+                    return tester;
+                }
+            };
+
+            return addPopupTester(tester);
+        };
+
+        return form;
+    })();
+
+    this.statusCreatingRequest = function () {
+        return  {
+            expectToBeSent: function () {
+                const request = requestsManager.recentRequest().
+                    expectToHavePath('/services/ats__staff/statuses/create/').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        allowed_phone_protocols: [
+                            'SIP',
+                            'SIP_TRUNK',
+                            'FMC',
+                            'SIP_URI',
+                            undefined,
+                        ],
+                        color: '#FF8F00',
+                        icon: 'bell',
+                        in_external_allowed_call_directions: [
+                            'in',
+                            'out',
+                            undefined,
+                        ],
+                        in_internal_allowed_call_directions: [
+                            'in',
+                            'out',
+                            undefined,
+                        ],
+                        is_auto_out_calls_ready: false,
+                        is_select_allowed: true,
+                        is_worktime: false,
+                        out_external_allowed_call_directions: [
+                            'in',
+                            'out',
+                            undefined,
+                        ],
+                        out_internal_allowed_call_directions: [
+                            'in',
+                            'out',
+                            undefined,
+                        ],
+                        is_use_availability_in_group: false,
+                        is_able_to_accept_chat_transfer: false,
+                        is_able_to_transfer_chat: true,
+                        is_able_to_accept_chat: false,
+                        is_able_to_close_chat_offline_message: true,
+                        is_able_in_forwarding_scenario: false,
+                        is_able_to_send_chat_messages: true,
+                        priority: 2,
+                        name: 'Колокольчик',
+                        description: 'Сотрудник звонит в колокольчик',
+                    });
+
+                return {
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith({
+                            success: true,
+                            data: true,
+                        });
+                    }
+                };
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        };
     };
 
-    this.form = testersFactory.createFormTester(function () {
-        return Comagic.getApplication().findComponent('services-ats-staff-contactrecordform');
+    this.statusesRequest = function () {
+        return {
+            expectToBeSent: function () {
+                return {
+                    receiveResponse: function () {
+                        requestsManager.recentRequest().
+                            expectToHavePath('/services/ats__staff/statuses/read/').
+                            expectToHaveMethod('GET').
+                            expectQueryToContain({
+                                site_id: '-1',
+                                page: '1',
+                                start: '0',
+                                limit: '25',
+                                sort: JSON.stringify([{
+                                    property:'name',
+                                    direction:'ASC',
+                                }]),
+                            }).
+                            respondSuccessfullyWith({
+                                success: true,
+                                total: 1,
+                                data: [{
+                                    id: 5829,
+                                    is_worktime: true,
+                                    name: 'Доступен',
+                                    mnemonic: 'available',
+                                    is_select_allowed: true,
+                                    is_removed: false,
+                                    description: 'все вызовы',
+                                    color: '#48b882',
+                                    icon: 'tick',
+                                    priority: 1,
+                                    in_external_allowed_call_directions: [
+                                        'in',
+                                        'out'
+                                    ],
+                                    in_internal_allowed_call_directions: [
+                                        'in',
+                                        'out'
+                                    ],
+                                    out_external_allowed_call_directions: [
+                                        'in',
+                                        'out'
+                                    ],
+                                    out_internal_allowed_call_directions: [
+                                        'in',
+                                        'out'
+                                    ],
+                                    allowed_phone_protocols: [
+                                        'SIP'
+                                    ],
+                                    is_auto_out_calls_ready: true,
+                                    is_use_availability_in_group: true,
+                                    is_able_to_accept_chat_transfer: false,
+                                    is_able_to_transfer_chat: true,
+                                    is_able_to_accept_chat: false,
+                                    is_able_to_close_chat_offline_message: true,
+                                    is_able_in_forwarding_scenario: false,
+                                    is_able_to_send_chat_messages: true,
+                                }]
+                            });
+                    }
+                };
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        };
+    };
+
+    this.staffStatusRequest = function () {
+        return {
+            receiveResponse: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/directory/comagic:staff:status/').
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: []
+                    });
+            }
+        };
+    };
+
+    this.batchReloadRequest = function () {
+        function addMethods (me) {
+            return me;
+        }
+
+        return addMethods({
+            expectToBeSent: function () {
+                return addMethods({
+                    receiveResponse: function () {
+                        requestsManager.recentRequest().
+                            expectToHavePath('/directory/batch_reload/').
+                            expectToHaveMethod('POST').
+                            respondSuccessfullyWith({
+                                success: true,
+                                data: {
+                                    'comagic:public:true_false': [{
+                                        id: false,
+                                        name: 'Нет',
+                                    }, {
+                                        id: true,
+                                        name: 'Да',
+                                    }],
+                                } 
+                            });
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    this.grid = testersFactory.createGridTester(function () {
+        const grid = Comagic.getApplication().findComponent(
+            'gridcolumn[text="Учитывать доступность в группах сотрудников"]'
+        ).up('grid');
+
+        return grid;
     });
 
-    this.button = function (text) {
-        return testersFactory.createDomElementTester(
-            utils.descendantOfBody().
-                matchesSelector('.x-btn-inner').
-                textEquals(text).
-                find()
-        );
-    };
+    function addTesters (me, getAscendant) {
+        me.menu = (function () {
+            const getMenuElement = () =>
+                utils.getVisibleSilently((getAscendant() || new JsTester_NoElement()).querySelectorAll('.x-menu')) || 
+                new JsTester_NoElement();
+
+            const tester = testersFactory.createDomElementTester(getMenuElement);
+
+            tester.item = function (text) {
+                const tester = testersFactory.createDomElementTester(function () {
+                    return utils.descendantOf(getMenuElement()).matchesSelector('.x-menu-item').textEquals(text).find();
+                });
+
+                const click = tester.click.bind(tester);
+
+                tester.click = () => {
+                    click();
+                    wait();
+                };
+
+                return tester;
+            };
+
+            return tester;
+        })();
+
+        me.button = function (text) {
+            return testersFactory.createDomElementTester(function () {
+                return utils.descendantOf(getAscendant()).matchesSelector('.x-btn-inner').textEquals(text).find();
+            });
+        };
+
+        return me;
+    }
+
+    addTesters(this, function () {
+        return document.body;
+    });
 }

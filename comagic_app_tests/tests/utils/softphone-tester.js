@@ -25,8 +25,8 @@ define(function () {
             webRtcUrlForGettingSocket = webRtcUrl,
             registrationTesterExtentor = function () {};
 
-        window.crossTabCommunicatorCache = {};
-        window.softphoneCrossTabCommunicatorCache = {};
+        window.broadcastChannelCache = {};
+        window.softphoneBroadcastChannelCache = {};
 
         var updateWebRtcUrlForGettingSocket = function (index) {
             return {

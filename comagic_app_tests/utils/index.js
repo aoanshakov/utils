@@ -1,4 +1,5 @@
 process.env.ENTRY_POINT = 'tests';
+process.env.TEST = 'true';
 
 const {Args, isOneOf, isTrue, isInteger} = require('./arguments'),
     fs = require('fs'),
@@ -15,6 +16,7 @@ const {
     applicationPatch,
     devApplicationPatch,
     chatsPatch,
+    employeesPatch,
     corePatch,
     magicUiPatch,
     magicUiLibPatch,
@@ -27,6 +29,7 @@ const {
     preCommitHook,
     core,
     chats,
+    employees,
     magicUi,
     chatsMagicUi,
     contactsMagicUi,
@@ -83,7 +86,9 @@ const cda = `cd ${application} &&`,
     coreOverridenFiles = packageJson,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
     contactsOverridenFiles = packageJson,
-    softphoneOverridenFiles = 'src/models/RootStore.ts package.json',
+    rootStoreAndPackageJsonFiles = 'src/models/RootStore.ts package.json',
+    softphoneOverridenFiles = rootStoreAndPackageJsonFiles,
+    employeesOverridenFiles = rootStoreAndPackageJsonFiles,
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
 
@@ -186,6 +191,16 @@ const overriding = [{
         overridenFiles: chatOverridenFiles,
         applicationPatch: chatsPatch
     }
+}, {
+    application: employees,
+    dev: {
+        overridenFiles: employeesOverridenFiles,
+        applicationPatch: employeesPatch,
+    },
+    test: {
+        overridenFiles: employeesOverridenFiles,
+        applicationPatch: employeesPatch,
+    },
 }, {
     application: magicUi,
     dev: {
