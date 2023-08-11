@@ -476,7 +476,7 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index abb1f850..a5a22f34 100644
+index 4693ca56..a5a22f34 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,18 @@
@@ -500,15 +500,7 @@ index abb1f850..a5a22f34 100644
  
  import history from '@/history';
  
-@@ -64,6 +69,7 @@ const Root: React.FC = observer(props => {
-             <CoreProvider
-                 isHostApp
-                 isGodMode={isGodMode}
-+                rootStore={rootStore}
-                 accountStore={accountStore}
-                 locale={locale}
-                 history={history}
-@@ -79,7 +85,98 @@ const Root: React.FC = observer(props => {
+@@ -80,7 +85,98 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -611,35 +603,10 @@ index abb1f850..a5a22f34 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 6cfeafd2..d55b0055 100644
+index ebd68228..d55b0055 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -108,6 +108,16 @@ const filterPassword = messages => {
-     return messages;
- };
- 
-+const addClickListener = (() => {
-+    let previousHandler;
-+
-+    return  handler => {
-+        previousHandler && document.body.removeEventListener('click', handler);
-+        previousHandler = handler;
-+        document.body.addEventListener('click', handler);
-+    };
-+})();
-+
- export const RootStore = types
-     .model('RootStore', {
-         credentials: types.optional(types.array(types.model({
-@@ -140,6 +150,7 @@ export const RootStore = types
-         let initialState: RootInstanceSnapshotOut;
-         let requestsToRefresh: RequestToRefresh[] = [];
-         let isRefreshRequesting = false;
-+        let clicked = false;
- 
-         const setSoftphoneVisiblity = value => (self.isSoftphoneVisible = value),
-             toggleSoftphoneVisiblity = () => setSoftphoneVisiblity(!self.isSoftphoneVisible);
-@@ -151,7 +162,6 @@ export const RootStore = types
+@@ -162,7 +162,6 @@ export const RootStore = types
          const logger = new Logger(loggerStrategy);
  
          logger.filter(filterPassword);
@@ -647,7 +614,7 @@ index 6cfeafd2..d55b0055 100644
  
          const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
              const auth = getToken();
-@@ -232,7 +242,7 @@ export const RootStore = types
+@@ -243,7 +242,7 @@ export const RootStore = types
                  }
              );
  
@@ -656,7 +623,7 @@ index 6cfeafd2..d55b0055 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -289,7 +299,7 @@ export const RootStore = types
+@@ -300,7 +299,7 @@ export const RootStore = types
  
                      return Promise.reject(error);
                  }
@@ -665,7 +632,7 @@ index 6cfeafd2..d55b0055 100644
          };
  
          const collectLogs = callback => {
-@@ -306,6 +316,10 @@ export const RootStore = types
+@@ -317,6 +316,10 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -676,39 +643,7 @@ index 6cfeafd2..d55b0055 100644
              let isMaximizedCurrently = false;
  
              const counters = {
-@@ -364,6 +378,9 @@ export const RootStore = types
-             eventBus.subscribe('startminimizechange', value => getIpcRender().send('startminimizechange', value));
-             eventBus.subscribe('autolauncherchange', value => getIpcRender().send('autolauncherchange', value));
- 
-+            getIpcRender().on('maximize', () => self.setMaximized(true));
-+            getIpcRender().on('unmaximize', () => self.setMaximized(false));
-+
-             eventBus.subscribe('set_lost_call_count', value => setCounter({
-                 lostCallsCount: value,
-             }));
-@@ -389,6 +406,8 @@ export const RootStore = types
- 
-             initialState = getSnapshot(self);
-             getIpcRender().on('credentials', (event, data) => self.setCredentials(data));
-+
-+            addClickListener(() => (clicked = true));
-         };
- 
-         const resetStore = () => {
-@@ -416,6 +435,12 @@ export const RootStore = types
-         };
- 
-         return {
-+            getClicked() {
-+                return clicked;
-+            },
-+            setNotClicked() {
-+                clicked = false;
-+            },
-             afterCreate,
-             resetStore,
-             deleteLogin,
-@@ -438,7 +463,8 @@ export type DependencyInjection = {
+@@ -460,7 +463,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -719,10 +654,10 @@ index 6cfeafd2..d55b0055 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 36901238..621fc755 100644
+index 7a10f46a..621fc755 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -93,10 +93,15 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -93,7 +93,7 @@ const removeToken = (skipLocalStorage = false) => {
  export const AuthStore = Loader.named('AuthStore')
      .props({
          dontKeepMeSignedIn: types.optional(types.boolean, false),
@@ -731,15 +666,7 @@ index 36901238..621fc755 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-+    .views(self => ({
-+        get token(): Auth {
-+            return getToken();
-+        },
-+    }))
-     .actions(self => {
-         const { httpRpcAuth } = getEnv(self);
-         const { authStore, accountStore, notificationStore, resetStore } = getRoot<typeof RootStore>(self);
-@@ -191,6 +196,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -196,6 +196,8 @@ export const AuthStore = Loader.named('AuthStore')
          });
  
          const afterCreate = () => {
