@@ -1,5 +1,22 @@
+diff --git a/package.json b/package.json
+index 89f855b..4eb78a3 100644
+--- a/package.json
++++ b/package.json
+@@ -67,12 +67,10 @@
+     "webpack-merge": "^5.8.0"
+   },
+   "dependencies": {
+-    "@comagic/core": "^0.7.0",
+     "axios": "^0.24.0",
+     "classnames": "^2.3.1",
+     "formik": "^2.2.9",
+     "history": "^5.3.0",
+-    "magic-ui": "0.0.0-int1",
+     "mobx": "^6.6.1",
+     "mobx-react-lite": "^3.4.0",
+     "mobx-state-tree": "^5.1.5",
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index a0ce94b..4591e73 100644
+index a0ce94b..af0f73e 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -1,4 +1,4 @@
@@ -42,7 +59,7 @@ index a0ce94b..4591e73 100644
 -export const createRootStore = () => (rootStore = RootStore.create({}));
 +let rootStore;
 +
-+const cache = process.env.TEST == 'true' ? {
++const cache = process.env.REACT_APP_TEST_MODE == 'true' ? {
 +    getValue: () => window.employeesStore,
 +    setValue: value => (window.employeesStore = value),
 +} : {

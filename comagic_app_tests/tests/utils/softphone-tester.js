@@ -2668,6 +2668,8 @@ define(function () {
         this.connectEventsWebSocket = function (index) {
             this.getEventsWebSocket(index).connect();
             Promise.runAll(false, true);
+            Promise.runAll(false, true);
+            spendTime(0);
         };
 
         this.expectBrowserIdToHaveKnownValue = function (browser_id) {

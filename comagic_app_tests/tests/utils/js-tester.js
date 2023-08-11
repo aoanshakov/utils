@@ -2167,35 +2167,37 @@ function JsTester_WindowEventsFirerer (windowEventsListeners) {
     return function (eventName) {
         var args = Array.prototype.slice.call(arguments, 1);
 
-        (windowEventsListeners.get(eventName) || []).forEach(function (eventListener) {
+        (windowEventsListeners.get(eventName) || []).forEach(function ([eventListener, useCapture]) {
             eventListener.apply(null, args);
         });
     };
 }
 
-function JsTester_WindowEventListenerAssigner (args) {
-    var windowEventsListeners = args.windowEventsListeners,
+function JsTester_EventListenerAssigner (args) {
+    var object = args.object,
+        eventsListeners = args.eventsListeners,
         realEventListenerAssigner = args.realEventListenerAssigner;
 
-    return function (eventName, eventListener) {
-        if (!windowEventsListeners.has(eventName)) {
-            windowEventsListeners.set(eventName, []);
+    return function (eventName, eventListener, useCapture) {
+        if (!eventsListeners.has(eventName)) {
+            eventsListeners.set(eventName, []);
         }
 
-        windowEventsListeners.get(eventName).push(eventListener);
-        realEventListenerAssigner.apply(window, arguments);
+        eventsListeners.get(eventName).push([eventListener, useCapture]);
+        realEventListenerAssigner.apply(object, arguments);
     };
 }
 
-function JsTester_WindowEventsReplacer (args) {
-    var windowEventsListeners = args.windowEventsListeners,
-        fakeWindowListenerAssigner = args.fakeWindowListenerAssigner,
+function JsTester_EventsReplacer (args) {
+    var object = args.object,
+        eventsListeners = args.eventsListeners,
+        fakeListenerAssigner = args.fakeListenerAssigner,
         realEventListenerAssigner = args.realEventListenerAssigner,
-        originalWindowEventsListeners = new Map();
+        originalEventsListeners = new Map();
 
     function setOriginal () {
-        windowEventsListeners.forEach(function (eventListeners, eventName) {
-            originalWindowEventsListeners.set(eventName, eventListeners.slice(0));
+        eventsListeners.forEach(function (eventListeners, eventName) {
+            originalEventsListeners.set(eventName, eventListeners.slice(0));
         });
 
         maybeSetOriginal = function () {};
@@ -2205,19 +2207,21 @@ function JsTester_WindowEventsReplacer (args) {
         this.replaceByFake();
     };
     this.replaceByFake = function () {
-        window.addEventListener = fakeWindowListenerAssigner;
+        object.addEventListener = fakeListenerAssigner;
     };
     this.restoreReal = function () {
-        window.addEventListener = realEventListenerAssigner;
+        object.addEventListener = realEventListenerAssigner;
 
-        windowEventsListeners.forEach(function (eventListeners, eventName) {
-            eventListeners.forEach(function (listener) {
-                window.removeEventListener(eventName, listener);
+        eventsListeners.forEach(function (eventListeners, eventName) {
+            eventListeners.forEach(function ([listener, useCapture]) {
+                object.removeEventListener(eventName, listener, useCapture);
             });
         });
 
-        originalWindowEventsListeners.forEach(function (eventListeners, eventName) {
-            windowEventsListeners.set(eventName, eventListeners.slice(0));
+        eventsListeners.clear();
+
+        originalEventsListeners.forEach(function (eventListeners, eventName) {
+            eventsListeners.set(eventName, eventListeners.slice(0));
         });
     };
 
@@ -8191,14 +8195,27 @@ function JsTester_Tests (factory) {
             originalNow: Date.now,
             getNow: getNow
         }),
+        documentEventsListeners = new Map(),
         windowEventsListeners = new Map(),
         windowEventsFirerer = new JsTester_WindowEventsFirerer(windowEventsListeners),
-        windowEventsReplacer = new JsTester_WindowEventsReplacer({
-            windowEventsListeners: windowEventsListeners,
+        windowEventsReplacer = new JsTester_EventsReplacer({
+            object: window,
+            eventsListeners: windowEventsListeners,
             realEventListenerAssigner: window.addEventListener,
-            fakeWindowListenerAssigner: new JsTester_WindowEventListenerAssigner({
-                windowEventsListeners: windowEventsListeners,
+            fakeListenerAssigner: new JsTester_EventListenerAssigner({
+                object: window,
+                eventsListeners: windowEventsListeners,
                 realEventListenerAssigner: window.addEventListener
+            })
+        }),
+        documentEventsReplacer = new JsTester_EventsReplacer({
+            object: document,
+            eventsListeners: documentEventsListeners,
+            realEventListenerAssigner: document.addEventListener,
+            fakeListenerAssigner: new JsTester_EventListenerAssigner({
+                object: document,
+                eventsListeners: documentEventsListeners,
+                realEventListenerAssigner: document.addEventListener
             })
         }),
         blobs = [],
@@ -8229,6 +8246,7 @@ function JsTester_Tests (factory) {
 
     audioReplacer.replaceByFake();
     windowEventsReplacer.replaceByFake();
+    documentEventsReplacer.replaceByFake();
     browserVisibilityReplacer.replaceByFake();
 
     window.MediaStream = function () {
@@ -8417,6 +8435,7 @@ function JsTester_Tests (factory) {
         playingOscillators.clear();
         mediaStreams.clear();
         windowEventsReplacer.prepareToTest();
+        documentEventsReplacer.prepareToTest();
         notificationReplacer.replaceByFake();
         audioContextReplacer.replaceByFake();
         cookie.set('');
@@ -8456,6 +8475,7 @@ function JsTester_Tests (factory) {
         Promise.clear();
         focusReplacer.restoreReal();
         windowEventsReplacer.restoreReal();
+        documentEventsReplacer.restoreReal();
         notificationReplacer.restoreReal();
         audioContextReplacer.restoreReal();
         checkRTCConnectionState(exceptions);

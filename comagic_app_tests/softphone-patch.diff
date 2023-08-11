@@ -33,7 +33,7 @@ index 2cb4ed3..691ceb7 100644
      "redux-thunk": "^2.3.0",
      "short-uuid": "^4.2.0",
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 975b2d4..8a7b829 100644
+index 975b2d4..a0c75cf 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -19,6 +19,7 @@ import {
@@ -53,7 +53,36 @@ index 975b2d4..8a7b829 100644
  import { getResponse } from '@comagic/softphone-core/src/utils';
  import { eventBus } from '@comagic/core';
  import { AccountStoreInstance } from '@comagic/core/lib/models/account/account.d';
-@@ -89,6 +90,41 @@ type HostAuthStore = {
+@@ -53,28 +54,6 @@ export const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
+ export const REFRESH_TOKEN_EXPIRED = 'refresh_token_expired';
+ export const ACCESS_TOKEN_INVALID = 'access_token_invalid';
+ 
+-const body = createObservable(document.body);
+-
+-const createFocusednessGetter = () => {
+-    let clicked = false;
+-
+-    body.removeEventListeners();
+-    body.addEventListener('click', () => (clicked = true));
+-
+-    return createDefaultFocusednessGetter({
+-        handleFocusChange: isFocused => !isFocused && (clicked = false),
+-        shouldConsiderFocused: () => clicked,
+-    });
+-};
+-
+-const AccountModel = types.model('Account', {
+-    call_center_role: types.optional(types.maybeNull(types.string), 'employee'),
+-    feature_flags: types.optional(types.array(types.string), []),
+-    project: types.maybeNull(types.string),
+-});
+-
+-type AccountSnapshot = SnapshotOut<typeof AccountModel>;
+-
+ type PrompterCall = {
+     call_session_id: number | string;
+     subscriber_number: string;
+@@ -89,9 +68,48 @@ type HostAuthStore = {
      isUserLogoutProceeding: boolean;
  };
  
@@ -82,9 +111,9 @@ index 975b2d4..8a7b829 100644
 +        this.#employeesStore.onEntityChange(entityName, callback);
 +    }
 +
-+    getEmployee(id) {
-+        return this.#employeesStore.getEmployee(id).
-+            then(employee => this.#employeesAPI.getEmployee(id).
++    getEmployee() {
++        return this.#employeesStore.getEmployee().
++            then(employee => this.#employeesAPI.getEmployee().
 +            then(softphoneEmployee => ({
 +                ...employee,
 +                ...softphoneEmployee,
@@ -92,10 +121,18 @@ index 975b2d4..8a7b829 100644
 +    }
 +}
 +
++const createFocusednessGetterFactory = hostRootStore => () => createDefaultFocusednessGetter({
++    handleFocusChange: isFocused => !isFocused && hostRootStore.setNotClicked(),
++    shouldConsiderFocused: () => hostRootStore.getClicked(),
++});
++
  export const RootStore = types
      .model('RootStore', {
-         account: types.optional(AccountModel, {}),
-@@ -100,7 +136,6 @@ export const RootStore = types
+-        account: types.optional(AccountModel, {}),
+         isStartApp: types.optional(types.boolean, false),
+         isStartMinimize: types.optional(types.boolean, false),
+         toTopOnCall: types.optional(types.boolean, false),
+@@ -100,7 +118,6 @@ export const RootStore = types
          locale: types.optional(types.string, 'en'),
          isSoftphoneAvailable: types.optional(types.boolean, false),
          isLarge: types.optional(types.boolean, false),
@@ -103,7 +140,13 @@ index 975b2d4..8a7b829 100644
          feedbackDesktopStore: types.optional(FeedbackDesktopStore, {}),
          feedbackWebStore: types.optional(FeedbackWebStore, {}),
          promperStore: types.optional(PromperStore, {}),
-@@ -115,12 +150,21 @@ export const RootStore = types
+@@ -109,18 +126,27 @@ export const RootStore = types
+     })
+     .views(self => ({
+         i18n: (key: string) => intlMessages(self.locale)[key],
+-        hasFeature: (key: string) => self.account.feature_flags.includes(key),
+     }))
+     .actions(self => {
          let initialState: RootInstanceSnapshotOut,
              hasError = false,
              doRequest = (args: unknown): Promise<unknown> => Promise.reject(),
@@ -115,19 +158,20 @@ index 975b2d4..8a7b829 100644
  
 +        const {
 +            hostRootStore,
-+            hostRootStore: { authStore },
 +            employeesAPIFactory: createEmployeesAPI,
 +        } = getEnv(self);
-+
++            
 +        if (!hostRootStore) {
 +            throw new Error('Host root store is empty');
 +        }
++
++        const { authStore, accountStore } = hostRootStore;
 +
 +        self.hostRootStore = hostRootStore;
          const isSingleApp = isElectron();
  
          self.logger = new Logger({
-@@ -164,9 +208,9 @@ export const RootStore = types
+@@ -164,9 +190,9 @@ export const RootStore = types
                      return;
                  }
  
@@ -139,15 +183,19 @@ index 975b2d4..8a7b829 100644
              };
  
              const urlEndsWith = (response: AxiosResponse | AxiosError, substring: string) =>
-@@ -192,6 +236,7 @@ export const RootStore = types
+@@ -191,7 +217,10 @@ export const RootStore = types
+                 logger: self.logger,
                  debugMode: localStorage.getItem('debugMode') == '1',
                  getPhoneNumber: () => '',
-                 createFocusednessGetter: isSingleApp ? createFocusednessGetter : createDefaultFocusednessGetter,
+-                createFocusednessGetter: isSingleApp ? createFocusednessGetter : createDefaultFocusednessGetter,
++                createFocusednessGetter: isSingleApp ?
++                    createFocusednessGetterFactory(hostRootStore) :
++                    createDefaultFocusednessGetter,
 +                createEmployeesAPI,
                  processAxios: axios => {
                      axios.defaults.headers['X-Auth-Type'] = 'jwt';
  
-@@ -229,7 +274,7 @@ export const RootStore = types
+@@ -229,7 +258,7 @@ export const RootStore = types
                                              delete error.config.headers.Authorization;
  
                                              requests.push(() => resolve(axios(error.config)));
@@ -156,7 +204,23 @@ index 975b2d4..8a7b829 100644
                                          });
                                      case 'invalid_token':
                                          logout();
-@@ -261,12 +306,11 @@ export const RootStore = types
+@@ -247,26 +276,25 @@ export const RootStore = types
+                 shouldNotificationBeStickedToBottom: isSingleApp,
+                 mayHideSoftphone: () => true,
+                 openUrl,
+-                isAbleToOpenContact: () => rootStore?.hasFeature('contacts'),
++                isAbleToOpenContact: () => accountStore.hasFeatureFlag('contacts'),
+                 openContact,
+                 position: {
+                     leftPadding: 90,
+                     topPadding: 65,
+                     bottomPadding: 5,
+                 },
+-                getAppProject: () => self.account.project,
++                getAppProject: () => accountStore.account.project,
+                 soundOverrides: {},
+             });
+ 
              const { authorize } = (() => {
                  const { updateState, authorize } = (() => {
                      const state = {
@@ -170,7 +234,7 @@ index 975b2d4..8a7b829 100644
  
                      const authorize = () =>
                          isSoftphoneAvailable() && coreStore.authenticate({ token: state.token }, false);
-@@ -323,7 +367,7 @@ export const RootStore = types
+@@ -323,7 +351,7 @@ export const RootStore = types
                  })();
  
                  const getTokenParams = () => ({
@@ -179,15 +243,18 @@ index 975b2d4..8a7b829 100644
                  });
  
                  handleAccountFetched = ({
-@@ -338,7 +382,6 @@ export const RootStore = types
+@@ -338,10 +366,8 @@ export const RootStore = types
                              process.env.REACT_APP_NEW_SOFTPHONE_BACKEND_HOST || '$REACT_APP_NEW_SOFTPHONE_BACKEND_HOST'
                          );
  
 -                    authStore = args.authStore;
                      const accessGranted = getSoftphoneAvailability(accountStore),
                          account = getSnapshot(accountStore.account);
-                     (self as RootInstance).setAccount(account);
-@@ -378,6 +421,11 @@ export const RootStore = types
+-                    (self as RootInstance).setAccount(account);
+ 
+                     accessGranted && accountFetchedHandlers.forEach(handler => handler(accountStore));
+                     updateState({ accessGranted });
+@@ -378,6 +404,11 @@ export const RootStore = types
                          areVirtualNumberGroupsEnabled
                      );
                  };
@@ -199,7 +266,7 @@ index 975b2d4..8a7b829 100644
  
                  window.addEventListener('tokenChange', () => updateState(getTokenParams()));
  
-@@ -386,16 +434,11 @@ export const RootStore = types
+@@ -386,16 +417,11 @@ export const RootStore = types
  
                      updateState({
                          token: '',
@@ -217,7 +284,50 @@ index 975b2d4..8a7b829 100644
  
                  eventBus.subscribe(
                      'checkautolauncher',
-@@ -724,10 +767,6 @@ export const RootStore = types
+@@ -410,7 +436,6 @@ export const RootStore = types
+                 eventBus.subscribe('unmaximize', () => (self as RootInstance).setLarge(false));
+ 
+                 eventBus.broadcast('app_ready');
+-                size.width && size.height && eventBus.broadcast('size', size);
+                 eventBus.broadcast(self.isLarge ? 'maximize' : 'unmaximize');
+ 
+                 return { authorize };
+@@ -429,7 +454,7 @@ export const RootStore = types
+ 
+                 error == 'appAlreadyOpened' && isMaster && authorize();
+ 
+-                const project = self.account?.project,
++                const project = accountStore.account?.project,
+                     forceBroadcast = project === 'rolands' && !isUseWidgetForCalls;
+ 
+                 if (self.promperStore.prompterSipLine) {
+@@ -585,7 +610,7 @@ export const RootStore = types
+                     settings: { is_use_widget_for_calls: isUseWidgetForCalls },
+                 } = (self as RootInstance).softphoneStore;
+ 
+-                const project = self.account?.project,
++                const project = accountStore.account?.project,
+                     dontShowWidget = project === 'rolands' && !isUseWidgetForCalls;
+ 
+                 sendCrossTabMessage({
+@@ -664,8 +689,6 @@ export const RootStore = types
+         const setLarge = (value: boolean) =>
+             value ? (self as RootInstance).setIsLarge() : (self as RootInstance).setNotLarge();
+ 
+-        const setAccount = (account: AccountSnapshot) => (self.account = cast(account || {}));
+-
+         const setLocale = (locale: string): void => {
+             moment.locale(locale);
+             self.locale = locale;
+@@ -709,7 +732,6 @@ export const RootStore = types
+             setToCloseOnCallEnd,
+             setToTopOnCall,
+             setSoftphoneAvailable,
+-            setAccount,
+             setNotLarge,
+             setIsLarge,
+             setLarge,
+@@ -724,10 +746,6 @@ export const RootStore = types
                  return doRequest(args) as Promise<Type>;
              },
  
@@ -228,7 +338,7 @@ index 975b2d4..8a7b829 100644
              handleAccountFetched(args: unknown) {
                  handleAccountFetched(args);
              },
-@@ -768,4 +807,54 @@ export type RootInstance = Instance<typeof RootStore> & {
+@@ -768,4 +786,61 @@ export type RootInstance = Instance<typeof RootStore> & {
  
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -236,7 +346,7 @@ index 975b2d4..8a7b829 100644
 +
 +let rootStore;
 +
-+const cache = process.env.TEST == 'true' ? {
++const cache = process.env.REACT_APP_TEST_MODE == 'true' ? {
 +    getValue: () => window.softphoneStore,
 +    setValue: value => (window.softphoneStore = value),
 +} : {
@@ -255,6 +365,10 @@ index 975b2d4..8a7b829 100644
 +    const rootStore = cache.getValue();
 +
 +    if (rootStore) {
++        if (rootStore instanceof Promise) {
++            return rootStore.then(() => getRootStore(hostRootStore));
++        }
++
 +        if (rootStore.hostRootStore !== hostRootStore) {
 +            throw new Error('Host root store inexplicably changed');
 +        }
@@ -262,7 +376,7 @@ index 975b2d4..8a7b829 100644
 +        return Promise.resolve(rootStore);
 +    }
 +
-+    return new Promise(resolve => {
++    const promise = new Promise(resolve => {
 +        const createRootStore = employeesAPIFactory => {
 +            const rootStore = RootStore.create({}, {
 +                hostRootStore,
@@ -283,4 +397,7 @@ index 975b2d4..8a7b829 100644
 +                createRootStore(createEmployeesAPI);
 +            });
 +    });
++
++    cache.setValue(promise);
++    return promise;
 +};

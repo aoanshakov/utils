@@ -1,5 +1,5 @@
 process.env.ENTRY_POINT = 'tests';
-process.env.TEST = 'true';
+process.env.REACT_APP_TEST_MODE = 'true';
 
 const {Args, isOneOf, isTrue, isInteger} = require('./arguments'),
     fs = require('fs'),

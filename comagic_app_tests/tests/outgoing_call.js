@@ -30,7 +30,7 @@ tests.addTest(options => {
             authenticatedUserRequest,
             registrationRequest,
             statsRequest,
-            statusesRequest;
+            employeeStatusesRequest;
 
         beforeEach(function() {
             setNow('2019-12-19T12:10:06');
@@ -65,17 +65,20 @@ tests.addTest(options => {
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
+            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent();
 
             notificationTester.grantPermission();
 
@@ -100,7 +103,9 @@ tests.addTest(options => {
                 softphoneServerConnected().
                 expectToBeSent();
 
+            tester.employeeRequest().receiveResponse();
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
             registrationRequest = tester.registrationRequest().expectToBeSent();
 
             tester.allowMediaInput();
@@ -122,7 +127,7 @@ tests.addTest(options => {
                 userDataFetched().
                 expectToBeSent();
 
-            statusesRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
 
             tester.button('Софтфон').click();
 

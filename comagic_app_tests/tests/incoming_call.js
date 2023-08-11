@@ -65,17 +65,20 @@ tests.addTest(options => {
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
-            tester.statusesRequest().receiveResponse();
             settingsRequest = tester.settingsRequest().expectToBeSent();
+            tester.employeeStatusesRequest().receiveResponse();
 
             notificationTester.grantPermission();
         });
@@ -105,7 +108,9 @@ tests.addTest(options => {
                     softphoneServerConnected().
                     expectToBeSent();
 
+                tester.employeeRequest().receiveResponse();
                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
                 registrationRequest = tester.registrationRequest().expectToBeSent();
 
                 tester.allowMediaInput();
@@ -1195,7 +1200,9 @@ tests.addTest(options => {
                         softphoneServerConnected().
                         expectToBeSent();
 
+                    tester.employeeRequest().receiveResponse();
                     authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
                     registrationRequest = tester.registrationRequest().expectToBeSent();
 
                     tester.allowMediaInput();
@@ -1337,6 +1344,8 @@ tests.addTest(options => {
                         disabled().
                         softphoneServerConnected().
                         expectToBeSent();
+
+                    tester.employeeRequest().receiveResponse();
 
                     tester.authenticatedUserRequest().
                         sipIsOffline().

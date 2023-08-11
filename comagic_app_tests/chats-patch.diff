@@ -135,9 +135,18 @@ index 9dfa539..b4d98a4 100644
        width: 100%;
        height: 100%;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 5ee12df..4b6d17e 100644
+index 5ee12df..bb84988 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
+@@ -60,7 +60,7 @@ export const RootStore = types
+                 statusesStore,
+             } = self;
+ 
+-            return statusesStore.getById(employeesStore.getById(employee_id).status_id);
++            return statusesStore.getById(employeesStore.getById(employee_id)?.status_id);
+         },
+     }))
+     .actions(self => {
 @@ -163,7 +163,8 @@ export const RootStore = types
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);

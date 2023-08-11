@@ -611,10 +611,35 @@ index abb1f850..a5a22f34 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 6cfeafd2..18cbc546 100644
+index 6cfeafd2..d55b0055 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -151,7 +151,6 @@ export const RootStore = types
+@@ -108,6 +108,16 @@ const filterPassword = messages => {
+     return messages;
+ };
+ 
++const addClickListener = (() => {
++    let previousHandler;
++
++    return  handler => {
++        previousHandler && document.body.removeEventListener('click', handler);
++        previousHandler = handler;
++        document.body.addEventListener('click', handler);
++    };
++})();
++
+ export const RootStore = types
+     .model('RootStore', {
+         credentials: types.optional(types.array(types.model({
+@@ -140,6 +150,7 @@ export const RootStore = types
+         let initialState: RootInstanceSnapshotOut;
+         let requestsToRefresh: RequestToRefresh[] = [];
+         let isRefreshRequesting = false;
++        let clicked = false;
+ 
+         const setSoftphoneVisiblity = value => (self.isSoftphoneVisible = value),
+             toggleSoftphoneVisiblity = () => setSoftphoneVisiblity(!self.isSoftphoneVisible);
+@@ -151,7 +162,6 @@ export const RootStore = types
          const logger = new Logger(loggerStrategy);
  
          logger.filter(filterPassword);
@@ -622,7 +647,7 @@ index 6cfeafd2..18cbc546 100644
  
          const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
              const auth = getToken();
-@@ -232,7 +231,7 @@ export const RootStore = types
+@@ -232,7 +242,7 @@ export const RootStore = types
                  }
              );
  
@@ -631,7 +656,7 @@ index 6cfeafd2..18cbc546 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -289,7 +288,7 @@ export const RootStore = types
+@@ -289,7 +299,7 @@ export const RootStore = types
  
                      return Promise.reject(error);
                  }
@@ -640,7 +665,7 @@ index 6cfeafd2..18cbc546 100644
          };
  
          const collectLogs = callback => {
-@@ -306,6 +305,10 @@ export const RootStore = types
+@@ -306,6 +316,10 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -651,7 +676,39 @@ index 6cfeafd2..18cbc546 100644
              let isMaximizedCurrently = false;
  
              const counters = {
-@@ -438,7 +441,8 @@ export type DependencyInjection = {
+@@ -364,6 +378,9 @@ export const RootStore = types
+             eventBus.subscribe('startminimizechange', value => getIpcRender().send('startminimizechange', value));
+             eventBus.subscribe('autolauncherchange', value => getIpcRender().send('autolauncherchange', value));
+ 
++            getIpcRender().on('maximize', () => self.setMaximized(true));
++            getIpcRender().on('unmaximize', () => self.setMaximized(false));
++
+             eventBus.subscribe('set_lost_call_count', value => setCounter({
+                 lostCallsCount: value,
+             }));
+@@ -389,6 +406,8 @@ export const RootStore = types
+ 
+             initialState = getSnapshot(self);
+             getIpcRender().on('credentials', (event, data) => self.setCredentials(data));
++
++            addClickListener(() => (clicked = true));
+         };
+ 
+         const resetStore = () => {
+@@ -416,6 +435,12 @@ export const RootStore = types
+         };
+ 
+         return {
++            getClicked() {
++                return clicked;
++            },
++            setNotClicked() {
++                clicked = false;
++            },
+             afterCreate,
+             resetStore,
+             deleteLogin,
+@@ -438,7 +463,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

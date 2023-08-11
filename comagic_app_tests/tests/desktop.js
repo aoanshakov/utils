@@ -99,9 +99,13 @@ tests.addTest(options => {
                         beforeEach(function() {
                             accountRequest.operatorWorkplaceAvailable().receiveResponse();
 
+                            tester.employeesWebSocket.connect();
+                            tester.employeesInitMessage().expectToBeSent();
+
                             const requests = ajax.inAnyOrder();
 
-                            authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+                            authCheckRequest = tester.authCheckRequest().
+                                expectToBeSent(requests);
 
                             secondAccountRequest = tester.accountRequest().
                                 operatorWorkplaceAvailable().
@@ -145,12 +149,8 @@ tests.addTest(options => {
                                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
                                 tester.registrationRequest().desktopSoftphone().receiveResponse();
-
                                 secondAccountRequest.receiveResponse();
                                 
-                                tester.employeesWebSocket.connect();
-                                tester.employeesInitMessage().expectToBeSent();
-
                                 tester.chatsWebSocket.connect();
                                 tester.chatsInitMessage().expectToBeSent();
 
@@ -203,7 +203,7 @@ tests.addTest(options => {
                                                 tester.allowMediaInput();
                                             });
 
-                                            xdescribe('Нажимаю на кнопку настроек.', function() {
+                                            describe('Нажимаю на кнопку настроек.', function() {
                                                 beforeEach(function() {
                                                     tester.settingsButton.click();
 
@@ -271,44 +271,84 @@ tests.addTest(options => {
                                                         recentlySentMessage().
                                                         expectToBeSentToChannel('maximize');
 
+                                                    const requests = ajax.inAnyOrder();
+
                                                     tester.accountRequest().
                                                         operatorWorkplaceAvailable().
                                                         forChats().
                                                         receiveResponse();
 
-                                                    tester.accountRequest().
-                                                        operatorWorkplaceAvailable().
-                                                        receiveResponse();
+                                                    const countersRequest = tester.countersRequest().
+                                                        expectToBeSent(requests);
 
-                                                    tester.countersRequest().receiveResponse();
+                                                    const offlineMessageCountersRequest = tester.
+                                                        offlineMessageCountersRequest().
+                                                        expectToBeSent(requests);
 
-                                                    tester.offlineMessageCountersRequest().receiveResponse();
-                                                    tester.chatChannelListRequest().receiveResponse();
-                                                    tester.siteListRequest().receiveResponse();
-                                                    tester.markListRequest().receiveResponse();
+                                                    const chatChannelListRequest = tester.chatChannelListRequest().
+                                                        expectToBeSent(requests);
 
-                                                    tester.chatListRequest().
+                                                    const siteListRequest = tester.siteListRequest().
+                                                        expectToBeSent(requests);
+
+                                                    const markListRequest = tester.markListRequest().
+                                                        expectToBeSent(requests);
+
+                                                    const newChatListRequest = tester.chatListRequest().
                                                         forCurrentEmployee().
                                                         secondPage().
-                                                        receiveResponse();
+                                                        expectToBeSent(requests);
 
-                                                    tester.chatListRequest().
+                                                    const activeChatListRequest = tester.chatListRequest().
                                                         forCurrentEmployee().
                                                         secondPage().
                                                         active().
-                                                        receiveResponse();
+                                                        expectToBeSent(requests);
 
-                                                    tester.chatListRequest().
+                                                    const closedChatListRequest = tester.chatListRequest().
                                                         forCurrentEmployee().
                                                         secondPage().
                                                         closed().
-                                                        receiveResponse();
+                                                        expectToBeSent(requests);
 
-                                                    tester.chatChannelTypeListRequest().receiveResponse();
+                                                    const chatChannelTypeListRequest =
+                                                        tester.chatChannelTypeListRequest().
+                                                        expectToBeSent(requests);
 
-                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                                    tester.offlineMessageListRequest().processed().receiveResponse();
+                                                    const notProcessedOfflineMessageListRequest = tester.
+                                                        offlineMessageListRequest().
+                                                        notProcessed().
+                                                        expectToBeSent(requests);
+
+                                                    const processingOfflineMessageListRequest = tester.
+                                                        offlineMessageListRequest().
+                                                        processing().
+                                                        expectToBeSent(requests);
+
+                                                    const processedOfflineMessageListRequest = tester.
+                                                        offlineMessageListRequest().
+                                                        processed().
+                                                        expectToBeSent(requests);
+
+                                                    const accountRequest = tester.accountRequest().
+                                                        operatorWorkplaceAvailable().
+                                                        expectToBeSent(requests);
+
+                                                    requests.expectToBeSent();
+
+                                                    countersRequest.receiveResponse();
+                                                    offlineMessageCountersRequest.receiveResponse();
+                                                    chatChannelListRequest.receiveResponse();
+                                                    siteListRequest.receiveResponse();
+                                                    markListRequest.receiveResponse();
+                                                    newChatListRequest.receiveResponse();
+                                                    activeChatListRequest.receiveResponse();
+                                                    closedChatListRequest.receiveResponse();
+                                                    chatChannelTypeListRequest.receiveResponse();
+                                                    notProcessedOfflineMessageListRequest.receiveResponse();
+                                                    processingOfflineMessageListRequest.receiveResponse();
+                                                    processedOfflineMessageListRequest.receiveResponse();
+                                                    accountRequest.receiveResponse();
 
                                                     tester.button('Автозапуск приложения').expectToBeVisible();
                                                     tester.dialpadButton(1).expectToBeVisible();
@@ -451,7 +491,7 @@ tests.addTest(options => {
                                                     tester.collapsednessToggleButton.expectToBeExpanded();
                                                 });
                                             });
-                                            xdescribe(
+                                            describe(
                                                 'Поступает входящий звонок от пользователя имеющего открытые сделки.',
                                             function() {
                                                 let incomingCall;
@@ -568,7 +608,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            xdescribe('Нажимаю на кнопку максимизации.', function() {
+                                            describe('Нажимаю на кнопку максимизации.', function() {
                                                 beforeEach(function() {
                                                     tester.maximizednessButton.click();
 
@@ -830,6 +870,7 @@ tests.addTest(options => {
 
                                                         tester.userLogoutRequest().receiveResponse();
 
+                                                        tester.employeesWebSocket.finishDisconnecting();
                                                         tester.chatsWebSocket.finishDisconnecting();
                                                         tester.eventsWebSocket.finishDisconnecting();
                                                         tester.authLogoutRequest().receiveResponse();
@@ -917,6 +958,12 @@ tests.addTest(options => {
                                                         requests.expectToBeSent();
                                                         thirdAccountRequest.receiveResponse();
 
+                                                        tester.employeesWebSocket.connect();
+
+                                                        tester.employeesInitMessage().
+                                                            anotherAuthorizationToken().
+                                                            expectToBeSent();
+
                                                         tester.chatsWebSocket.connect();
                                                         
                                                         tester.chatsInitMessage().
@@ -967,18 +1014,20 @@ tests.addTest(options => {
                                                         tester.talkOptionsRequest().receiveResponse();
                                                         tester.permissionsRequest().receiveResponse();
 
-                                                        tester.statusesRequest().
-                                                            createExpectation().
+                                                        tester.settingsRequest().
                                                             anotherAuthorizationToken().
-                                                            checkCompliance().
                                                             receiveResponse();
 
-                                                        tester.settingsRequest().
+                                                        tester.employeeStatusesRequest().
                                                             anotherAuthorizationToken().
                                                             receiveResponse();
 
                                                         tester.connectEventsWebSocket(1);
                                                         tester.connectSIPWebSocket(1);
+
+                                                        tester.employeeRequest().
+                                                            anotherAuthorizationToken().
+                                                            receiveResponse();
 
                                                         tester.authenticatedUserRequest().receiveResponse();
 
@@ -1076,7 +1125,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            xdescribe(
+                                            describe(
                                                 'Зафиксирую ширину окна. Нажимаю на кнопку максимизации.',
                                             function() {
                                                 beforeEach(function() {
@@ -1177,7 +1226,7 @@ tests.addTest(options => {
                                                     tester.button('Показать все статусы').expectToBeVisible();
                                                 });
                                             });
-                                            xdescribe('Открываю историю звонков.', function() {
+                                            describe('Открываю историю звонков.', function() {
                                                 let callsRequest;
 
                                                 beforeEach(function() {
@@ -1255,7 +1304,7 @@ tests.addTest(options => {
                                                     tester.spin.expectToBeVisible();
                                                 });
                                             });
-                                            xdescribe('Раскрываю список статусов.', function() {
+                                            describe('Раскрываю список статусов.', function() {
                                                 beforeEach(function() {
                                                     tester.userName.click();
                                                 });
@@ -1281,6 +1330,7 @@ tests.addTest(options => {
                                                             height: 350
                                                         });
 
+                                                    tester.employeesWebSocket.finishDisconnecting();
                                                     tester.chatsWebSocket.finishDisconnecting();
                                                     tester.eventsWebSocket.finishDisconnecting();
 
@@ -1330,6 +1380,12 @@ tests.addTest(options => {
                                                         operatorWorkplaceAvailable().
                                                         anotherAuthorizationToken().
                                                         receiveResponse();
+
+                                                    tester.employeesWebSocket.connect();
+
+                                                    tester.employeesInitMessage().
+                                                        anotherAuthorizationToken().
+                                                        expectToBeSent();
 
                                                     tester.chatsWebSocket.connect();
 
@@ -1392,13 +1448,11 @@ tests.addTest(options => {
                                                         allowNumberCapacityUpdate().
                                                         receiveResponse();
 
-                                                    tester.statusesRequest().
-                                                        createExpectation().
+                                                    tester.settingsRequest().
                                                         anotherAuthorizationToken().
-                                                        checkCompliance().
                                                         receiveResponse();
 
-                                                    tester.settingsRequest().
+                                                    tester.employeeStatusesRequest().
                                                         anotherAuthorizationToken().
                                                         receiveResponse();
 
@@ -1407,6 +1461,10 @@ tests.addTest(options => {
 
                                                     notificationTester.grantPermission();
                                                     tester.allowMediaInput();
+
+                                                    tester.employeeRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
 
                                                     tester.authenticatedUserRequest().receiveResponse();
                                                     tester.registrationRequest().desktopSoftphone().receiveResponse();
@@ -1423,7 +1481,7 @@ tests.addTest(options => {
                                                 });
                                                 it('Выбираю статус. Список статусов скрыт.', function() {
                                                     tester.statusesList.item('Нет на месте').click();
-                                                    tester.userStateUpdateRequest().receiveResponse();
+                                                    tester.employeeUpdatingRequest().receiveResponse();
 
                                                     tester.statusesList.expectNotToExist();
                                                 });
@@ -1437,7 +1495,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            xdescribe('Открываю таблицу сотрудников. Токен истек.', function() {
+                                            describe('Открываю таблицу сотрудников. Токен истек.', function() {
                                                 let refreshRequest;
 
                                                 beforeEach(function() {
@@ -1465,6 +1523,7 @@ tests.addTest(options => {
                                                     refreshRequest.invalidJwt().receiveResponse();
                                                     tester.userLogoutRequest().invalidJwt().receiveResponse();
 
+                                                    tester.employeesWebSocket.finishDisconnecting();
                                                     tester.chatsWebSocket.finishDisconnecting();
                                                     tester.eventsWebSocket.finishDisconnecting();
 
@@ -1527,6 +1586,9 @@ tests.addTest(options => {
                                                         operatorWorkplaceAvailable().
                                                         receiveResponse();
 
+                                                    tester.employeesWebSocket.connect();
+                                                    tester.employeesInitMessage().expectToBeSent();
+
                                                     tester.chatsWebSocket.connect();
                                                     tester.chatsInitMessage().expectToBeSent();
 
@@ -1583,11 +1645,11 @@ tests.addTest(options => {
                                                         allowNumberCapacityUpdate().
                                                         receiveResponse();
 
-                                                    tester.statusesRequest().receiveResponse();
-
                                                     tester.settingsRequest().
                                                         allowNumberCapacitySelect().
                                                         receiveResponse();
+
+                                                    tester.employeeStatusesRequest().receiveResponse();
 
                                                     tester.connectEventsWebSocket(1);
                                                     tester.connectSIPWebSocket(1);
@@ -1596,19 +1658,22 @@ tests.addTest(options => {
                                                     tester.allowMediaInput();
 
                                                     tester.numberCapacityRequest().receiveResponse();
+                                                    tester.employeeRequest().receiveResponse();
                                                     tester.authenticatedUserRequest().receiveResponse();
-                                                    tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        receiveResponse();
 
                                                     tester.userName.click();
-
                                                     tester.statusesList.item('Нет на месте').click();
 
-                                                    tester.userStateUpdateRequest().
+                                                    tester.employeeUpdatingRequest().
                                                         accessTokenExpired().
                                                         receiveResponse();
 
                                                     tester.refreshRequest().receiveResponse();
-                                                    tester.userStateUpdateRequest().receiveResponse();
+                                                    tester.employeeUpdatingRequest().receiveResponse();
                                                 });
                                                 it('Токен обновлен. Запросы переотправлены.', function() {
                                                     refreshRequest.receiveResponse();
@@ -1624,7 +1689,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            xdescribe(
+                                            describe(
                                                 'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий ' +
                                                 'звонок.',
                                             function() {
@@ -1746,7 +1811,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            xdescribe('Открываю список номеров.', function() {
+                                            describe('Открываю список номеров.', function() {
                                                 beforeEach(function() {
                                                     tester.select.arrow.click();
                                                     tester.numberCapacityRequest().receiveResponse();
@@ -1763,7 +1828,7 @@ tests.addTest(options => {
                                                     tester.input.withPlaceholder('Найти').expectToBeVisible();
                                                 });
                                             });
-                                            xdescribe('Получено обновление.', function() {
+                                            describe('Получено обновление.', function() {
                                                 beforeEach(function() {
                                                     getPackage('electron').ipcRenderer.
                                                         receiveMessage('update-downloaded');
@@ -1792,7 +1857,7 @@ tests.addTest(options => {
                                                         expectTextContentToHaveSubstring('Получено обновление');
                                                 });
                                             });
-                                            xdescribe('Нажимаю на кнопку развернутости.', function() {
+                                            describe('Нажимаю на кнопку развернутости.', function() {
                                                 beforeEach(function() {
                                                     tester.collapsednessToggleButton.click();
 
@@ -1822,7 +1887,7 @@ tests.addTest(options => {
                                                     tester.dialpadButton(1).expectToBeVisible();
                                                 });
                                             });
-                                            xit(
+                                            it(
                                                 'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на ' +
                                                 'кнопку "Выход". Вхожу в софтфон заново. Удалось войти. Софтфон ' +
                                                 'готов к работе.',
@@ -1842,6 +1907,8 @@ tests.addTest(options => {
                                                 tester.statusesList.item('Выход').click();
 
                                                 tester.userLogoutRequest().receiveResponse();
+
+                                                tester.employeesWebSocket.finishDisconnecting();
                                                 tester.chatsWebSocket.finishDisconnecting();
 
                                                 getPackage('electron').ipcRenderer.
@@ -1893,6 +1960,12 @@ tests.addTest(options => {
                                                     operatorWorkplaceAvailable().
                                                     anotherAuthorizationToken().
                                                     receiveResponse();
+
+                                                tester.employeesWebSocket.connect();
+
+                                                tester.employeesInitMessage().
+                                                    anotherAuthorizationToken().
+                                                    expectToBeSent();
 
                                                 tester.chatsWebSocket.connect();
 
@@ -1955,13 +2028,11 @@ tests.addTest(options => {
                                                     allowNumberCapacityUpdate().
                                                     receiveResponse();
 
-                                                tester.statusesRequest().
-                                                    createExpectation().
+                                                tester.settingsRequest().
                                                     anotherAuthorizationToken().
-                                                    checkCompliance().
                                                     receiveResponse();
 
-                                                tester.settingsRequest().
+                                                tester.employeeStatusesRequest().
                                                     anotherAuthorizationToken().
                                                     receiveResponse();
 
@@ -1971,14 +2042,19 @@ tests.addTest(options => {
                                                 notificationTester.grantPermission();
                                                 tester.allowMediaInput();
 
+                                                tester.employeeRequest().
+                                                    anotherAuthorizationToken().
+                                                    receiveResponse();
+
                                                 tester.authenticatedUserRequest().receiveResponse();
+
                                                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                                                 tester.phoneField.fill('79161234567');
                                                 tester.callStartingButton.expectNotToHaveAttribute('disabled');
                                                 tester.select.expectNotToExist();
                                             });
-                                            xit(
+                                            it(
                                                 'Сотрудник развернул софтфон. Софтфон открыт в большом размере.',
                                             function() {
                                                 getPackage('electron').ipcRenderer.receiveMessage('maximize');
@@ -2048,7 +2124,7 @@ tests.addTest(options => {
                                                 tester.maximizednessButton.expectToBeMaximized();
                                                 tester.dialpadButton(1).expectToBeVisible();
                                             });
-                                            xit(
+                                            it(
                                                 'Нажимаю на кнопку чатов в нижнем меню. Открыт раздел чатов.',
                                             function() {
                                                 tester.chatsButton.click();
@@ -2139,7 +2215,7 @@ tests.addTest(options => {
 
                                                 tester.chatsButton.expectToBePressed();
                                             });
-                                            xit(
+                                            it(
                                                 'Нажимаю на кнопку диалпада. Раскрываю список статусов. Отображены ' +
                                                 'статусы.',
                                             function() {
@@ -2160,13 +2236,13 @@ tests.addTest(options => {
                                                 tester.body.
                                                     expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
                                             });
-                                            xit(
+                                            it(
                                                 'Помещаю курсор над иконкой аккаунта. Список статусов не открывается.',
                                             function() {
                                                 tester.userName.putMouseOver();
                                                 tester.statusesList.item('Не беспокоить').expectNotToExist();
                                             });
-                                            xit('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
+                                            it('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
                                                 utils.pressKey('7');
                                                 tester.phoneField.expectToBeFocused();
                                             });
@@ -2273,7 +2349,6 @@ tests.addTest(options => {
                                                 }
                                             });
                                         });
-return;
                                         it('Доступ к микрофону отклонен.', function() {
                                             tester.disallowMediaInput();
 
@@ -2283,7 +2358,6 @@ return;
                                             );
                                         });
                                     });
-return;
                                     describe('Получен доступ к микрофону.', function() {
                                         beforeEach(function() {
                                             tester.allowMediaInput();
@@ -2307,7 +2381,9 @@ return;
                                                     tester.userLogoutRequest().receiveResponse();
 
                                                     tester.chatsWebSocket.finishDisconnecting();
+                                                    tester.employeesWebSocket.finishDisconnecting();
                                                     tester.eventsWebSocket.finishDisconnecting();
+
                                                     tester.authLogoutRequest().receiveResponse();
 
                                                     tester.registrationRequest().
@@ -2369,6 +2445,9 @@ return;
                                                         forChats().
                                                         operatorWorkplaceAvailable().
                                                         receiveResponse();
+
+                                                    tester.employeesWebSocket.connect();
+                                                    tester.employeesInitMessage().expectToBeSent();
 
                                                     tester.chatsWebSocket.connect();
                                                     tester.chatsInitMessage().expectToBeSent();
@@ -2432,15 +2511,16 @@ return;
                                                     authCheckRequest.receiveResponse();
                                                     tester.talkOptionsRequest().receiveResponse();
                                                     tester.permissionsRequest().receiveResponse();
-                                                    tester.statusesRequest().receiveResponse();
                                                     tester.settingsRequest().receiveResponse();
+                                                    tester.employeeStatusesRequest().receiveResponse();
 
                                                     tester.connectEventsWebSocket(1);
                                                     tester.connectSIPWebSocket(1);
 
+                                                    tester.employeeRequest().receiveResponse();
                                                     tester.authenticatedUserRequest().receiveResponse();
-                                                    tester.registrationRequest().desktopSoftphone().receiveResponse();
 
+                                                    tester.registrationRequest().desktopSoftphone().receiveResponse();
                                                     tester.allowMediaInput();
                                                 });
 
@@ -2779,7 +2859,6 @@ return;
                                         });
                                     });
                                 });
-return;
                                 describe('Получен доступ к микрофону.', function() {
                                     beforeEach(function() {
                                         tester.allowMediaInput();
@@ -3066,6 +3145,13 @@ return;
                                                 forChats().
                                                 expectToBeSent(requests);
 
+                                            const secondClosedChatListRequest = tester.chatListRequest().
+                                                forCurrentEmployee().
+                                                anyScrollFromDate().
+                                                count(0).
+                                                closed().
+                                                expectToBeSent(requests);
+
                                             requests.expectToBeSent();
 
                                             chatSettingsRequest.receiveResponse();
@@ -3077,13 +3163,7 @@ return;
                                             accountRequest.receiveResponse();
                                             chatAccountRequest.receiveResponse();
                                             secondChatAccountRequest.receiveResponse();
-
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                anyScrollFromDate().
-                                                count(0).
-                                                closed().
-                                                receiveResponse();
+                                            secondClosedChatListRequest.receiveResponse();
 
                                             tester.countersRequest().
                                                 noNewChatsWithUnreadMessages().
@@ -3184,6 +3264,16 @@ return;
 
                                                 const requests = ajax.inAnyOrder();
 
+                                                const chatAccountRequest = tester.accountRequest().
+                                                    operatorWorkplaceAvailable().
+                                                    forChats().
+                                                    expectToBeSent(requests);
+
+                                                const secondChatAccountRequest = tester.accountRequest().
+                                                    operatorWorkplaceAvailable().
+                                                    forChats().
+                                                    expectToBeSent(requests);
+
                                                 const chatSettingsRequest = tester.chatSettingsRequest().
                                                     expectToBeSent(requests);
 
@@ -3193,7 +3283,8 @@ return;
                                                 const statusListRequest = tester.statusListRequest().
                                                     expectToBeSent(requests);
 
-                                                const listRequest = tester.listRequest().expectToBeSent(requests);
+                                                const listRequest = tester.listRequest().
+                                                    expectToBeSent(requests);
 
                                                 const siteListRequest = tester.siteListRequest().
                                                     expectToBeSent(requests);
@@ -3201,18 +3292,22 @@ return;
                                                 const messageTemplateListRequest = tester.messageTemplateListRequest().
                                                     expectToBeSent(requests);
 
-                                                const accountRequest = tester.accountRequest().
-                                                    operatorWorkplaceAvailable().
-                                                    expectToBeSent(requests);
-                                                
-                                                const chatAccountRequest = tester.accountRequest().
-                                                    operatorWorkplaceAvailable().
-                                                    forChats().
+                                                const activeChatListRequest = tester.chatListRequest().
+                                                    forCurrentEmployee().
+                                                    anyScrollFromDate().
+                                                    active().
+                                                    count(0).
                                                     expectToBeSent(requests);
 
-                                                const secondChatAccountRequest = tester.accountRequest().
+                                                const closedChatListRequest = tester.chatListRequest().
+                                                    forCurrentEmployee().
+                                                    anyScrollFromDate().
+                                                    closed().
+                                                    count(0).
+                                                    expectToBeSent(requests);
+
+                                                const accountRequest = tester.accountRequest().
                                                     operatorWorkplaceAvailable().
-                                                    forChats().
                                                     expectToBeSent(requests);
 
                                                 requests.expectToBeSent();
@@ -3226,20 +3321,8 @@ return;
                                                 accountRequest.receiveResponse();
                                                 chatAccountRequest.receiveResponse();
                                                 secondChatAccountRequest.receiveResponse();
-
-                                                tester.chatListRequest().
-                                                    forCurrentEmployee().
-                                                    anyScrollFromDate().
-                                                    active().
-                                                    count(0).
-                                                    receiveResponse();
-
-                                                tester.chatListRequest().
-                                                    forCurrentEmployee().
-                                                    anyScrollFromDate().
-                                                    closed().
-                                                    count(0).
-                                                    receiveResponse();
+                                                activeChatListRequest.receiveResponse();
+                                                closedChatListRequest.receiveResponse();
 
                                                 tester.countersRequest().
                                                     noNewChatsWithUnreadMessages().
@@ -3410,9 +3493,11 @@ return;
 
                                                 tester.visitorCardRequest().receiveResponse();
                                                 tester.messageListRequest().receiveResponse();
-                                                tester.statsRequest().receiveResponse();
 
                                                 const requests = ajax.inAnyOrder();
+
+                                                const statsRequest = tester.statsRequest().
+                                                    expectToBeSent(requests);
 
                                                 const accountRequest = tester.accountRequest().
                                                     operatorWorkplaceAvailable().
@@ -3425,6 +3510,7 @@ return;
 
                                                 requests.expectToBeSent();
 
+                                                statsRequest.receiveResponse();
                                                 accountRequest.receiveResponse();
                                                 secondAccountRequest.receiveResponse();
 
@@ -3640,7 +3726,6 @@ return;
                                     });
                                 });
                             });
-return;
                             describe('Получены данные сотрудника и доступ к микрофону.', function() {
                                 beforeEach(function() {
                                     tester.allowMediaInput();
@@ -3904,7 +3989,6 @@ return;
                                 });
                             });
                         });
-return;
                         it('Не удалось авторизоваться в софтфоне.', function() {
                             authCheckRequest.invalidToken().receiveResponse();
 
@@ -3917,6 +4001,8 @@ return;
                             userLogoutRequest.receiveResponse();
                             authLogoutRequest.receiveResponse();
 
+                            tester.employeesWebSocket.finishDisconnecting();
+
                             getPackage('electron').ipcRenderer.
                                 recentlySentMessage().
                                 expectToBeSentToChannel('resize').
@@ -3928,7 +4014,6 @@ return;
                             tester.button('Войти').expectToBeVisible();
                         });
                     });
-return;
                     describe('Раздел контактов недоступен.', function() {
                         beforeEach(function() {
                             accountRequest.
@@ -3960,8 +4045,8 @@ return;
                                 allowNumberCapacityUpdate().
                                 receiveResponse();
 
-                            tester.statusesRequest().receiveResponse();
                             tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                            tester.employeeStatusesRequest().receiveResponse();
 
                             tester.connectEventsWebSocket();
                             tester.connectSIPWebSocket();
@@ -3970,10 +4055,14 @@ return;
                             tester.allowMediaInput();
 
                             tester.numberCapacityRequest().receiveResponse();
+                            tester.employeeRequest().receiveResponse();
                             tester.authenticatedUserRequest().receiveResponse();
                             tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                             secondAccountRequest.receiveResponse();
+
+                            tester.employeesWebSocket.connect();
+                            tester.employeesInitMessage().expectToBeSent();
 
                             tester.chatsWebSocket.connect();
                             tester.chatsInitMessage().expectToBeSent();
@@ -4036,6 +4125,9 @@ return;
                                     softphoneUnavailable().
                                     operatorWorkplaceAvailable().
                                     receiveResponse();
+
+                                tester.employeesWebSocket.connect();
+                                tester.employeesInitMessage().expectToBeSent();
 
                                 tester.chatsWebSocket.connect();
                                 tester.chatsInitMessage().expectToBeSent();
@@ -4122,6 +4214,7 @@ return;
                                             });
 
                                         tester.chatsWebSocket.finishDisconnecting();
+                                        tester.employeesWebSocket.finishDisconnecting();
 
                                         tester.input.withFieldLabel('Логин').fill('botusharova');
                                         tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -4156,6 +4249,9 @@ return;
                                             softphoneUnavailable().
                                             operatorWorkplaceAvailable().
                                             receiveResponse();
+
+                                        tester.employeesWebSocket.connect();
+                                        tester.employeesInitMessage().expectToBeSent();
 
                                         tester.chatsWebSocket.connect();
                                         tester.chatsInitMessage().expectToBeSent();
@@ -4326,6 +4422,7 @@ return;
                                         });
 
                                     tester.chatsWebSocket.finishDisconnecting();
+                                    tester.employeesWebSocket.finishDisconnecting();
 
                                     tester.input.withFieldLabel('Логин').fill('botusharova');
                                     tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -4380,6 +4477,9 @@ return;
                                     accountRequest.receiveResponse();
                                     secondAccountRequest.receiveResponse();
 
+                                    tester.employeesWebSocket.connect();
+                                    tester.employeesInitMessage().expectToBeSent();
+
                                     tester.chatsWebSocket.connect();
                                     tester.chatsInitMessage().expectToBeSent();
 
@@ -4413,8 +4513,8 @@ return;
                                         allowNumberCapacityUpdate().
                                         receiveResponse();
 
-                                    tester.statusesRequest().receiveResponse();
                                     tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                                    tester.employeeStatusesRequest().receiveResponse();
 
                                     tester.connectEventsWebSocket();
                                     tester.connectSIPWebSocket();
@@ -4423,6 +4523,7 @@ return;
                                     tester.allowMediaInput();
 
                                     tester.numberCapacityRequest().receiveResponse();
+                                    tester.employeeRequest().receiveResponse();
                                     tester.authenticatedUserRequest().receiveResponse();
                                     tester.registrationRequest().desktopSoftphone().receiveResponse();
 
@@ -4532,6 +4633,9 @@ return;
                                         operatorWorkplaceAvailable().
                                         receiveResponse();
 
+                                    tester.employeesWebSocket.connect();
+                                    tester.employeesInitMessage().expectToBeSent();
+
                                     tester.chatsWebSocket.connect();
                                     tester.chatsInitMessage().expectToBeSent();
 
@@ -4603,7 +4707,9 @@ return;
                                     tester.statusesList.item('Выход').click();
 
                                     tester.userLogoutRequest().receiveResponse();
+
                                     tester.chatsWebSocket.finishDisconnecting();
+                                    tester.employeesWebSocket.finishDisconnecting();
 
                                     getPackage('electron').ipcRenderer.
                                         recentlySentMessage().
@@ -4664,8 +4770,8 @@ return;
                                 allowNumberCapacityUpdate().
                                 receiveResponse();
 
-                            tester.statusesRequest().receiveResponse();
                             tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                            tester.employeeStatusesRequest().receiveResponse();
 
                             tester.connectEventsWebSocket();
                             tester.connectSIPWebSocket();
@@ -4674,10 +4780,14 @@ return;
                             tester.allowMediaInput();
 
                             tester.numberCapacityRequest().receiveResponse();
+                            tester.employeeRequest().receiveResponse();
                             tester.authenticatedUserRequest().receiveResponse();
                             tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                             secondAccountRequest.receiveResponse();
+
+                            tester.employeesWebSocket.connect();
+                            tester.employeesInitMessage().expectToBeSent();
 
                             tester.chatsWebSocket.connect();
                             tester.chatsInitMessage().expectToBeSent();
@@ -4814,8 +4924,8 @@ return;
                             allowNumberCapacityUpdate().
                             receiveResponse();
 
-                        tester.statusesRequest().receiveResponse();
                         tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                        tester.employeeStatusesRequest().receiveResponse();
 
                         tester.connectEventsWebSocket();
                         tester.connectSIPWebSocket();
@@ -4824,10 +4934,14 @@ return;
                         tester.allowMediaInput();
 
                         tester.numberCapacityRequest().receiveResponse();
+                        tester.employeeRequest().receiveResponse();
                         tester.authenticatedUserRequest().receiveResponse();
                         tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                         secondAccountRequest.receiveResponse();
+
+                        tester.employeesWebSocket.connect();
+                        tester.employeesInitMessage().expectToBeSent();
 
                         tester.chatsWebSocket.connect();
                         tester.chatsInitMessage().expectToBeSent();
@@ -4857,12 +4971,15 @@ return;
                         tester.callsHistoryButton.expectToBeEnabled();
                     });
                 });
-return;
                 it('Отмечаю чекбокс "Чужой компьютер". Нажимаю на кнопку входа. Логин не сохраняется.', function() {
                     tester.checkbox.click();
 
                     tester.button('Войти').click();
                     tester.loginRequest().receiveResponse();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('app-ready');
 
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
@@ -4897,20 +5014,24 @@ return;
                             allowNumberCapacityUpdate().
                             receiveResponse();
 
-                        tester.statusesRequest().receiveResponse();
                         tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                        tester.employeeStatusesRequest().receiveResponse();
 
                         tester.connectEventsWebSocket();
                         tester.connectSIPWebSocket();
 
                         notificationTester.grantPermission();
                         tester.numberCapacityRequest().receiveResponse();
+                        tester.employeeRequest().receiveResponse();
                         authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
                         tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                         secondAccountRequest.receiveResponse();
                         
+                        tester.employeesWebSocket.connect();
+                        tester.employeesInitMessage().expectToBeSent();
+
                         tester.chatsWebSocket.connect();
                         tester.chatsInitMessage().expectToBeSent();
 
@@ -4957,7 +5078,6 @@ return;
                     tester.tooltip.expectToHaveTextContent('Пароль не сохранится в приложении');
                 });
             });
-return;
             describe('Логины и пароли были сохранены. Нажимаю на поле логина. Выбираю логин из списка.', function() {
                 beforeEach(function() {
                     getPackage('electron').ipcRenderer.receiveMessage('credentials', [{
@@ -5051,10 +5171,6 @@ return;
                     getPackage('electron').ipcRenderer.
                         receiveMessage('maximize');
 
-                    getPackage('electron').ipcRenderer.
-                        recentlySentMessage().
-                        expectToBeSentToChannel('maximize');
-
                     tester.select.option('strashilova').svg.click();
                     tester.modalWindow.expectToHaveWidth(424);
                 });
@@ -5082,7 +5198,6 @@ return;
                 });
             });
         });
-return;
         describe(
             'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
         function() {
@@ -5094,18 +5209,6 @@ return;
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('resize').
-                    expectToBeSentWithArguments({
-                        width: 300,
-                        height: 350
-                    });
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
-                    expectToBeSentToChannel('app-ready');
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
                     expectToBeSentToChannel('opened');
 
                 tester.input.withFieldLabel('Логин').fill('botusharova');
@@ -5113,6 +5216,10 @@ return;
 
                 tester.button('Войти').click();
                 tester.loginRequest().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('app-ready');
                     
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
@@ -5155,8 +5262,8 @@ return;
                     allowNumberCapacityUpdate().
                     receiveResponse();
 
-                tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                tester.employeeStatusesRequest().receiveResponse();
 
                 tester.connectEventsWebSocket();
                 tester.connectSIPWebSocket();
@@ -5165,10 +5272,14 @@ return;
                 tester.allowMediaInput();
 
                 tester.numberCapacityRequest().receiveResponse();
+                tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 secondAccountRequest.receiveResponse();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
 
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
@@ -5537,18 +5648,6 @@ return;
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('resize').
-                    expectToBeSentWithArguments({
-                        width: 300,
-                        height: 350
-                    });
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
-                    expectToBeSentToChannel('app-ready');
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
                     expectToBeSentToChannel('opened');
 
                 tester.input.withFieldLabel('Логин').fill('botusharova');
@@ -5556,6 +5655,10 @@ return;
 
                 tester.button('Войти').click();
                 tester.loginRequest().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('app-ready');
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
@@ -5598,8 +5701,8 @@ return;
                     allowNumberCapacityUpdate().
                     receiveResponse();
 
-                tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                tester.employeeStatusesRequest().receiveResponse();
 
                 tester.connectEventsWebSocket();
                 tester.connectSIPWebSocket();
@@ -5608,10 +5711,14 @@ return;
                 tester.allowMediaInput();
 
                 tester.numberCapacityRequest().receiveResponse();
+                tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 secondAccountRequest.receiveResponse();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
 
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
@@ -5682,18 +5789,6 @@ return;
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('resize').
-                    expectToBeSentWithArguments({
-                        width: 300,
-                        height: 350
-                    });
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
-                    expectToBeSentToChannel('app-ready');
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
                     expectToBeSentToChannel('opened');
 
                 tester.input.withFieldLabel('Логин').fill('botusharova');
@@ -5701,6 +5796,10 @@ return;
 
                 tester.button('Войти').click();
                 tester.loginRequest().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('app-ready');
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
@@ -5743,8 +5842,8 @@ return;
                     allowNumberCapacityUpdate().
                     receiveResponse();
 
-                tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                tester.employeeStatusesRequest().receiveResponse();
 
                 tester.connectEventsWebSocket();
                 tester.connectSIPWebSocket();
@@ -5753,10 +5852,14 @@ return;
                 tester.allowMediaInput();
 
                 tester.numberCapacityRequest().receiveResponse();
+                tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 secondAccountRequest.receiveResponse();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
 
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
@@ -5932,18 +6035,6 @@ return;
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
-                    expectToBeSentToChannel('resize').
-                    expectToBeSentWithArguments({
-                        width: 300,
-                        height: 350
-                    });
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
-                    expectToBeSentToChannel('app-ready');
-
-                getPackage('electron').ipcRenderer.
-                    recentlySentMessage().
                     expectToBeSentToChannel('opened');
 
                 tester.input.withFieldLabel('Логин').fill('botusharova');
@@ -5951,6 +6042,10 @@ return;
 
                 tester.button('Войти').click();
                 tester.loginRequest().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('app-ready');
 
                 getPackage('electron').ipcRenderer.
                     recentlySentMessage().
@@ -5995,8 +6090,8 @@ return;
                     allowNumberCapacityUpdate().
                     receiveResponse();
 
-                tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                tester.employeeStatusesRequest().receiveResponse();
 
                 tester.connectEventsWebSocket();
                 tester.connectSIPWebSocket();
@@ -6005,10 +6100,14 @@ return;
                 tester.allowMediaInput();
 
                 tester.numberCapacityRequest().receiveResponse();
+                tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
                 tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                 secondAccountRequest.receiveResponse();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
 
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
@@ -6097,22 +6196,6 @@ return;
                 appName: 'softphone'
             });
 
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('resize').
-                expectToBeSentWithArguments({
-                    width: 340,
-                    height: 568
-                });
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('resize').
-                expectToBeSentWithArguments({
-                    width: 300,
-                    height: 350
-                });
-
             tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
 
             getPackage('electron').ipcRenderer.
@@ -6122,6 +6205,14 @@ return;
             getPackage('electron').ipcRenderer.
                 recentlySentMessage().
                 expectToBeSentToChannel('app-ready');
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('resize').
+                expectToBeSentWithArguments({
+                    width: 340,
+                    height: 568
+                });
 
             getPackage('electron').ipcRenderer.
                 recentlySentMessage().
@@ -6156,6 +6247,9 @@ return;
             secondAccountRequest.receiveResponse();
             thirdAccountRequest.receiveResponse();
 
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
+
             tester.chatsWebSocket.connect();
             tester.chatsInitMessage().expectToBeSent();
 
@@ -6184,8 +6278,8 @@ return;
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
-            tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
+            tester.employeeStatusesRequest().receiveResponse();
 
             tester.connectEventsWebSocket();
 
@@ -6194,6 +6288,8 @@ return;
 
             notificationTester.grantPermission();
             tester.allowMediaInput();
+
+            tester.employeeRequest().receiveResponse();
             tester.authenticatedUserRequest().receiveResponse();
 
             tester.dialpadButton(1).expectToBeVisible();
@@ -6208,23 +6304,15 @@ return;
 
             getPackage('electron').ipcRenderer.
                 recentlySentMessage().
+                expectToBeSentToChannel('app-ready');
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
                 expectToBeSentToChannel('resize').
                 expectToBeSentWithArguments({
                     width: 340,
                     height: 212
                 });
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('resize').
-                expectToBeSentWithArguments({
-                    width: 300,
-                    height: 350
-                });
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('app-ready');
 
             getPackage('electron').ipcRenderer.
                 recentlySentMessage().
@@ -6254,7 +6342,6 @@ return;
                 allowNumberCapacityUpdate().
                 receiveResponse();
 
-            tester.statusesRequest().receiveResponse();
             tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
             tester.connectEventsWebSocket();
@@ -6263,11 +6350,16 @@ return;
             notificationTester.grantPermission();
             tester.allowMediaInput();
 
+            tester.employeeStatusesRequest().receiveResponse();
             tester.numberCapacityRequest().receiveResponse();
+            tester.employeeRequest().receiveResponse();
             tester.authenticatedUserRequest().receiveResponse();
             tester.registrationRequest().desktopSoftphone().receiveResponse();
 
             secondAccountRequest.receiveResponse();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.chatsWebSocket.connect();
             tester.chatsInitMessage().expectToBeSent();
@@ -6305,6 +6397,11 @@ return;
                 appName: 'softphone'
             });
 
+            getPackage('electron').
+                ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('app-ready');
+
             getPackage('electron').ipcRenderer.
                 recentlySentMessage().
                 expectToBeSentToChannel('resize').
@@ -6312,19 +6409,6 @@ return;
                     width: 340,
                     height: 568
                 });
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('resize').
-                expectToBeSentWithArguments({
-                    width: 300,
-                    height: 350
-                });
-
-            getPackage('electron').
-                ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('app-ready');
 
             getPackage('electron').ipcRenderer.
                 recentlySentMessage().
@@ -6354,7 +6438,6 @@ return;
                 allowNumberCapacityUpdate().
                 receiveResponse();
 
-            tester.statusesRequest().receiveResponse();
             tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
             tester.connectEventsWebSocket();
@@ -6363,11 +6446,16 @@ return;
             notificationTester.grantPermission();
             tester.allowMediaInput();
 
+            tester.employeeStatusesRequest().receiveResponse();
             tester.numberCapacityRequest().receiveResponse();
+            tester.employeeRequest().receiveResponse();
             tester.authenticatedUserRequest().receiveResponse();
             tester.registrationRequest().desktopSoftphone().receiveResponse();
 
             secondAccountRequest.receiveResponse();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.chatsWebSocket.connect();
             tester.chatsInitMessage().expectToBeSent();

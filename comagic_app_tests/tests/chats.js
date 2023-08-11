@@ -62,10 +62,10 @@ tests.addTest(options => {
                 accountRequest.receiveResponse();
 
                 tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
+                tester.masterInfoMessage().receive();
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 let requests = ajax.inAnyOrder();
 
@@ -88,6 +88,9 @@ tests.addTest(options => {
                 reportTypesRequest.receiveResponse();
                 secondAccountRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
 
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
@@ -1516,10 +1519,13 @@ tests.addTest(options => {
                 accountRequest.telegramContactChannelFeatureFlagDisabled().receiveResponse();
 
                 tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
+                tester.masterInfoMessage().receive();
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
 
@@ -1691,10 +1697,13 @@ tests.addTest(options => {
                 accountRequest.tagsUpdatingUnavailable().receiveResponse();
 
                 tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                spendTime(1000);
+                tester.masterInfoMessage().receive();
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
 

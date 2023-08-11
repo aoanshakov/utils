@@ -1669,57 +1669,125 @@ define(() => function ({
         });
     };
 
-    me.employeeRequest = () => ({
-        expectToBeSent() {
-            const request = ajax.recentRequest().
-                expectToHaveMethod('GET').
-                expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816');
+    me.employeeRequest = () => {
+        const headers = {
+            Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
 
-            return {
-                receiveResponse() {
-                    request.respondSuccessfullyWith({
-                        data: {
-                            id: 20816,
-                            first_name: 'string',
-                            last_name: 'string',
-                            position_id: 0,
-                            status_id: 1
-                        },
+        const addResponseModifiers = me => {
+            me.anotherAuthorizationToken = () =>
+                ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), me);
 
-                    });
+            return me;
+        };
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                    spendTime(0)
-                }
-            };
-        },
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('GET').
+                    expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816').
+                    expectToHaveHeaders(headers);
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        }
-    });
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            data: {
+                                id: 20816,
+                                first_name: 'string',
+                                last_name: 'string',
+                                position_id: 0,
+                                status_id: 1
+                            },
+                        });
 
-    me.employeeUpdatingRequest = () => ({
-        receiveResponse() {
-            ajax.recentRequest().
-                expectToHaveMethod('PATCH').
-                expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816').
-                expectBodyToContain({
-                    status_id: 2,
-                }).
-                respondSuccessfullyWith({
-                    data: {},
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
 
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.employeeUpdatingRequest = () => {
+        let response = { data: true },
+            respond = request => request.respondSuccessfullyWith(response);
+
+        const addResponseModifiers = me => {
+            me.accessTokenExpired = () => {
+                respond = request => request.respond({
+                    status: 401,
+                    statusText: 'access_token_expired',
+                    responseText: ''
                 });
 
-            Promise.runAll(false, true);
-            spendTime(0)
-        }
-    });
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('PATCH').
+                    expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816').
+                    expectBodyToContain({
+                        status_id: 4,
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        respond(request);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.employeeStatusesRequest = () => {
         const data = [{
+            id: 7,
+            is_worktime: false,
+            mnemonic: 'removed',
+            name: 'Удаленный',
+            is_select_allowed: false,
+            icon: 'heart',
+            color: '#000',
+            priority: 8,
+            is_removed: true,
+            in_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            in_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_external_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            out_internal_allowed_call_directions: [
+                'in',
+                'out'
+            ],
+            allowed_phone_protocols: [
+                'SIP'
+            ]
+        }, {
             id: 1,
             is_worktime: true,
             mnemonic: 'available',
@@ -1906,7 +1974,672 @@ define(() => function ({
             ]
         }];
 
+        const headers = {
+            Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
         const addResponseModifiers = me => {
+            me.many = () => {
+                data.push({
+                    id: 8,
+                    is_worktime: false,
+                    mnemonic: 'asterisk',
+                    name: 'Звёздочка',
+                    is_select_allowed: false,
+                    icon: 'asterisk',
+                    color: '#317f43',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 11,
+                    is_worktime: false,
+                    mnemonic: 'bell',
+                    name: 'Колокольчик',
+                    is_select_allowed: false,
+                    icon: 'bell',
+                    color: '#8fcd75',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 12,
+                    is_worktime: false,
+                    mnemonic: 'bottom_left_arrow',
+                    name: 'Стрелочка',
+                    is_select_allowed: false,
+                    icon: 'bottom_left_arrow',
+                    color: '#9d24d2',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 14,
+                    is_worktime: false,
+                    mnemonic: 'dice',
+                    name: 'Кости',
+                    is_select_allowed: false,
+                    icon: 'dice',
+                    color: '#9a3979',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 16,
+                    is_worktime: false,
+                    mnemonic: 'ellipsis',
+                    name: 'Многоточие',
+                    is_select_allowed: false,
+                    icon: 'ellipsis',
+                    color: '#29f8a9',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 17,
+                    is_worktime: false,
+                    mnemonic: 'exclamation',
+                    name: 'Восклицание',
+                    is_select_allowed: false,
+                    icon: 'exclamation',
+                    color: '#d6aa82',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 18,
+                    is_worktime: false,
+                    mnemonic: 'fast_forward',
+                    name: 'Перемотка',
+                    is_select_allowed: false,
+                    icon: 'fast_forward',
+                    color: '#4a75ff',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 19,
+                    is_worktime: false,
+                    mnemonic: 'find',
+                    name: 'Найти',
+                    is_select_allowed: false,
+                    icon: 'find',
+                    color: '#ff9ec5',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 20,
+                    is_worktime: false,
+                    mnemonic: 'funnel',
+                    name: 'Воронка',
+                    is_select_allowed: false,
+                    icon: 'funnel',
+                    color: '#dac778',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 21,
+                    is_worktime: false,
+                    mnemonic: 'half_moon',
+                    name: 'Луна',
+                    is_select_allowed: false,
+                    icon: 'half_moon',
+                    color: '#285b47',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 22,
+                    is_worktime: false,
+                    mnemonic: 'handset',
+                    name: 'Поднял',
+                    is_select_allowed: false,
+                    icon: 'handset',
+                    color: '#6c9297',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 23,
+                    is_worktime: false,
+                    mnemonic: 'hangup',
+                    name: 'Повесил',
+                    is_select_allowed: false,
+                    icon: 'hangup',
+                    color: '#fd1c30',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 24,
+                    is_worktime: false,
+                    mnemonic: 'info',
+                    name: 'Информация',
+                    is_select_allowed: false,
+                    icon: 'info',
+                    color: '#65674d',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 25,
+                    is_worktime: false,
+                    mnemonic: 'lightning',
+                    name: 'Молния',
+                    is_select_allowed: false,
+                    icon: 'lightning',
+                    color: '#a39034',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 26,
+                    is_worktime: false,
+                    mnemonic: 'list',
+                    name: 'Список',
+                    is_select_allowed: false,
+                    icon: 'list',
+                    color: '#02b852',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 27,
+                    is_worktime: false,
+                    mnemonic: 'pen',
+                    name: 'Ручка',
+                    is_select_allowed: false,
+                    icon: 'pen',
+                    color: '#a547a7',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 28,
+                    is_worktime: false,
+                    mnemonic: 'play',
+                    name: 'Проигрывание',
+                    is_select_allowed: false,
+                    icon: 'play',
+                    color: '#29fb98',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 29,
+                    is_worktime: false,
+                    mnemonic: 'question',
+                    name: 'Вопрос',
+                    is_select_allowed: false,
+                    icon: 'question',
+                    color: '#11aaf1',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 30,
+                    is_worktime: false,
+                    mnemonic: 'rays',
+                    name: 'Лучи',
+                    is_select_allowed: false,
+                    icon: 'rays',
+                    color: '#8734bf',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 31,
+                    is_worktime: false,
+                    mnemonic: 'star',
+                    name: 'Звезда',
+                    is_select_allowed: false,
+                    icon: 'star',
+                    color: '#06c9aa',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 32,
+                    is_worktime: false,
+                    mnemonic: 'target',
+                    name: 'Цель',
+                    is_select_allowed: false,
+                    icon: 'target',
+                    color: '#80130c',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                }, {
+                    id: 10,
+                    is_worktime: false,
+                    mnemonic: 'auto_out_call',
+                    name: 'Исходящий обзвон',
+                    is_select_allowed: false,
+                    icon: 'auto_out_call',
+                    color: '#1e2460',
+                    priority: 7,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    allowed_phone_protocols: [
+                        'SIP'
+                    ]
+                });
+
+                return me;
+            };
+
+            me.noNotAtWorkplace = () => {
+                const index = data.findIndex(({mnemonic}) => mnemonic == 'not_at_workplace');
+                index != -1 && data.splice(index, 1);
+
+                return me;
+            };
+
+            me.includesAutoCall = () => {
+                data.push({
+                    color: '#e03c00',
+                    icon: 'top_right_arrow',
+                    description: 'только исходящий обзвон',
+                    is_worktime: true,
+                    id: 20482,
+                    mnemonic: 'auto_out_call',
+                    in_external_allowed_call_directions: [],
+                    in_internal_allowed_call_directions: [],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    name: 'Исходящий обзвон',
+                    is_select_allowed: true,
+                    priority: 6
+                });
+
+                return me;
+            };
+
+            me.addAutoCall = me.includesAutoCall;
+
+            me.anotherAuthorizationToken = () =>
+                ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), me);
+
             me.unableToTransferChat = () => {
                 data[0].is_able_to_transfer_chat = false;
                 return me;
@@ -1934,13 +2667,15 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL/api/v1/statuses').
-                    expectToHaveMethod('GET');
+                    expectToHaveMethod('GET').
+                    expectToHaveHeaders(headers);
 
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith({ data });
 
                         Promise.runAll(false, true);
+                        spendTime(0)
                         spendTime(0)
                     }
                 });
@@ -2228,17 +2963,26 @@ define(() => function ({
     });
 
     const createWebSocketTester = (() => {
-        let index = -1;
+        let lastIndex = -1;
 
         return () => {
-            const getWebSocket = () => webSockets.getSocket('$REACT_APP_WS_URL', index);
+            let index;
+
+            const getWebSocket = () => {
+                if (index === undefined) {
+                    throw new Error('Индекс не указан.');
+                }
+
+                return webSockets.getSocket('$REACT_APP_WS_URL', index);
+            };
 
             return {
                 finishDisconnecting: () => {
                     getWebSocket().finishDisconnecting();
                 },
                 connect: () => {
-                    index ++;
+                    lastIndex ++;
+                    index = lastIndex;
                     getWebSocket().connect();
                 },
                 expectSentMessageToContain: message => getWebSocket().expectSentMessageToContain(message),
@@ -2252,15 +2996,21 @@ define(() => function ({
             throw new Error('Вебсокет должен быть подключен.');
         };
 
-        const tester = {
-            finishDisconnecting: throwError,
-            expectSentMessageToContain: throwError,
-            receive: throwError,
+        const tester = {};
 
-            connect: () => {
+        const applyMethods = () => {
+            tester.finishDisconnecting = throwError;
+            tester.expectSentMessageToContain = throwError;
+            tester.receive = throwError;
+
+            tester.connect = () => {
                 const value = createWebSocketTester();
 
-                tester.finishDisconnecting = value.finishDisconnecting;
+                tester.finishDisconnecting = () => {
+                    value.finishDisconnecting();
+                    applyMethods();
+                };
+
                 tester.expectSentMessageToContain = value.expectSentMessageToContain;
                 tester.receive = value.receive;
 
@@ -2269,9 +3019,10 @@ define(() => function ({
                 tester.connect = () => {
                     throw new Error('Вебсокет не должен быть подключен.');
                 };
-            },
+            };
         };
 
+        applyMethods();
         return tester;
     };
 
@@ -2302,6 +3053,125 @@ define(() => function ({
                 params: { jwt }
             })
         };
+    };
+
+    me.statusChangedEvent = () => {
+        const params = {
+            name: 'status',
+            action: 'insert',
+            data: [{
+                id: 848593,
+                data: [{
+                    id: 848593,
+                    icon: 'funnel',
+                    name: 'Воронка',
+                    color: '#ff8f00',
+                    comment: null,
+                    mnemonic: null,
+                    priority: 18,
+                    is_removed: false,
+                    description: '',
+                    is_worktime: true,
+                    is_different: true,
+                    is_select_allowed: true,
+                    allowed_phone_protocols: [
+                        'PSTN',
+                        'SIP',
+                        'SIP_TRUNK',
+                        'FMC'
+                    ],
+                    is_auto_out_calls_ready: true,
+                    is_use_availability_in_group: true,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ]
+                }],
+                app_id: 4735
+            }]
+        };
+
+        const createMessage = () => ({
+            type: 'event',
+            id: 'e24bcc05529d4ae19674bd4163f0b6a7',
+            name: 'entity_changed',
+            params
+        });
+
+        return {
+            updateRemoved() {
+                params.action = 'update';
+
+                params.data = [{
+                    id: 7,
+                    data: [{
+                        id: 7,
+                        name: 'Ненужный'
+                    }]
+                }];
+
+                return this;
+            },
+
+            update() {
+                params.action = 'update';
+
+                params.data = [{
+                    id: 2,
+                    data: [{
+                        id: 2,
+                        name: 'Пауза'
+                    }]
+                }];
+
+                return this;
+            },
+
+            remove() {
+                params.action = 'delete';
+
+                params.data = [{
+                    id: 2,
+                    data: [{
+                        id: 2,
+                        is_removed: true
+                    }]
+                }];
+
+                return this;
+            },
+
+            slavesNotification: function () {
+                return {
+                    expectToBeSent: function () {
+                        me.recentCrosstabMessage().expectToContain({
+                            type: 'message',
+                            data: {
+                                type: 'employees_websocket_message',
+                                data: createMessage(),
+                            }
+                        });
+                    }
+                };
+            },
+
+            receive: () => {
+                me.employeesWebSocket.receive(createMessage());
+                spendTime(0);
+            }
+        }
     };
 
     me.chatsInitMessage = () => {
