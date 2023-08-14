@@ -1,7 +1,8 @@
 function EasystartBitrix(args) {
     var requestsManager = args.requestsManager,
         testersFactory = args.testersFactory,
-        utils = args.utils;
+        utils = args.utils
+        wait = args.wait;
 
     var me = this;
 
@@ -18,7 +19,8 @@ function EasystartBitrix(args) {
 
     easyStartApplicationState = {
         data: {
-            ext_id: 2
+            ext_id: 2,
+            domain: 'chigrakov.bitrix24.ru'
         },
         success: true,
         partner: 'bitrix',
@@ -32,6 +34,7 @@ function EasystartBitrix(args) {
             partner: 'bitrix'
         };
     };
+
     this.comagicWebAuthRequest = function () {
         return {
             expectToBeSent: function () {
@@ -58,6 +61,7 @@ function EasystartBitrix(args) {
                     },
                     receiveResponse: function () {
                         request.respondSuccessfullyWith(response);
+                        wait();
                     }
                 };
             },
@@ -67,18 +71,42 @@ function EasystartBitrix(args) {
         };
     };
     this.callCenterAuthRequest = function () {
-        return {
-            receiveResponse: function () {
-                requestsManager.recentRequest().
-                    expectToHavePath('/easystart/bitrix/call_center_auth/').
-                    respondSuccessfullyWith({
-                        success: true,
-                        result: {
-                            token: 'XhaIfhS93shg'
-                        }
-                    });
+        var response = {
+            success: true,
+            result: {
+                token: 'XhaIfhS93shg'
             }
         };
+
+        function addResponseModifiers (me) {
+            me.failed = function () {
+                response = {
+                    error: 'Error 401',
+                    success: false
+                };
+
+                return me;
+            };
+
+            return me;
+        }
+
+        return addResponseModifiers({
+            expectToBeSent: function () {
+                var request = requestsManager.recentRequest().
+                    expectToHavePath('/easystart/bitrix/call_center_auth/');
+
+                return addResponseModifiers({
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith(response);
+                        wait();
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
     };
     this.requestOrderCallback = function () {
         return {
@@ -1026,6 +1054,8 @@ function EasystartBitrix(args) {
         return me.settingsStep('Тестовый звонок').down('button[text="Заказать тестовый звонок"]');
     });
 
+    this.callCenterOpeningPanel = testersFactory.createDomElementTester('.easystart-call-center-opening-panel');
+
     this.authForm = (function () {
         function getForm () {
             return EasyStart.getApplication().findComponent('#authForm');
@@ -1040,9 +1070,12 @@ function EasystartBitrix(args) {
         return tester;
     })();
 
-    this.redirectionAuthForm = testersFactory.createDomElementTester(function () {
+    function getRedirectionAuthForm () {
         return document.querySelector('.easystart-comagic-web-auth');
-    });
+    }
+
+    (getRedirectionAuthForm() || {remove: function () {}}).remove();
+    this.redirectionAuthForm = testersFactory.createDomElementTester(getRedirectionAuthForm);
 
     this.floatingForm = testersFactory.createFormTester(function () {
         return utils.getFloatingComponent();
@@ -1225,13 +1258,19 @@ function EasystartBitrix(args) {
 
     this.installFinishCallStack = null;
 
-    window.BX24 = (function () {
-        var size = {
-            scrollWidth: 635,
-            scrollHeight: 724
+    (function () {
+        var size;
+
+        this.resetWindowSize = function () {
+            size = {
+                scrollWidth: 635,
+                scrollHeight: 724
+            };
         };
 
-        return {
+        this.resetWindowSize();
+        
+        window.BX24 = {
             init: function (callback) {
                 callback();
             },
@@ -1253,7 +1292,10 @@ function EasystartBitrix(args) {
                                     NAME: 'Марк',
                                     SECOND_NAME: 'Брониславович',
                                     LAST_NAME: 'Чиграков',
-                                    EMAIL: 'chigrakov@example.com'
+                                    EMAIL: 'chigrakov@example.com',
+                                    PERSONAL_PHONE: '',
+                                    PERSONAL_MOBILE: '+7 (495) 123-45-68',
+                                    WORK_PHONE: ''
                                 };
                             }
                         });
@@ -1278,5 +1320,5 @@ function EasystartBitrix(args) {
                 me.expectWindowToBeReloaded = Ext.emptyFn;
             }
         };
-    })();
+    }.bind(this))();
 }

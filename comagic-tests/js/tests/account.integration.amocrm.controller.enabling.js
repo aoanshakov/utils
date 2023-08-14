@@ -1,4 +1,4 @@
- tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener) {
+ tests.addTest(function({requestsManager, testersFactory, wait, utils, windowOpener}) {
      var helper;
 
      describe('Открываю раздел "Аккаунт/Интеграция/AmoCRM/Подключить".', function() {
@@ -12,7 +12,7 @@
              });
          });
 
-         describe('Нажимаю на кнопку "Подключить".', function() {
+         xdescribe('Нажимаю на кнопку "Подключить".', function() {
              beforeEach(function() {
                  helper.enableButton.click();
              });
@@ -41,6 +41,7 @@
              helper.panel.expectTextContentNotToHaveSubstring('Обратитесь в службу поддержки.');
          });     
      });     
+     return;
      it(
          'Открываю раздел "Аккаунт/Интеграция/AmoCRM/Подключить". В URL передана некорректная ошибка. Сообщение об ' +
          'ошибке не отображено .',

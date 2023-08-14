@@ -34,8 +34,11 @@ then
     patch -p1 -R < /home/requirements.txt.diff
 fi
 
+source ~/.bashrc
+
 if [ ! -d $comagicWebDir/node_modules ]
 then
+    cd $comagicWebDir
     npm install
     rm package-lock.json
 fi

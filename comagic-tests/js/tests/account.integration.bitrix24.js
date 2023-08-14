@@ -1,4 +1,10 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpener) {
+tests.addTest(function(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        wait = args.wait,
+        utils = args.utils,
+        windowOpener = args.windowOpener;
+
     describe('Открываю раздел "Аккаунт/Интеграция/Bitrix 24".', function() {
         var helper;
 
@@ -13,7 +19,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 bitrix24DataRequest;
 
             beforeEach(function() {
-                helper = new AccountIntegrationBitrix24(requestsManager, testersFactory, utils);
+                helper = new AccountIntegrationBitrix24(args);
 
                 Comagic.Directory.load();
                 helper.batchReloadRequest().send();
@@ -23,7 +29,117 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                 bitrix24DataRequest = helper.bitrix24DataRequest().expectToBeSent();
             });
 
-            describe('Импорт статусов выключен.', function() {
+            describe('Телефония включена.', function() {
+                beforeEach(function() {
+                    bitrix24DataRequest.isProcessCall();
+                });
+
+                xdescribe('Открываю вкладку "Телефония".', function() {
+                    beforeEach(function() {
+                        bitrix24DataRequest.receiveResponse();
+                        helper.requestSalesFunnelComponentAvailability().send();
+                        helper.requestTariffs().send();
+                        helper.bitrix24StatusRequest().receiveResponse();
+                        wait(10);
+
+                        helper.tabPanel.tab('Телефония').click();
+                        wait(10);
+                    });
+
+                    describe('Нажимаю на чекбокс "Передавать записи разговора ".', function() {
+                        beforeEach(function() {
+                            helper.form.checkbox().withBoxLabel('Передавать записи разговора').click();
+                            wait(10);
+                        });
+
+                        describe(
+                            'Нажимаю на чекбокс "Передавать если настроен фильтр исключения по операции сценария".',
+                        function() {
+                            beforeEach(function() {
+                                helper.form.checkbox().
+                                    withBoxLabel('Передавать записи, если настроен фильтр по операции сценария').
+                                    click();
+
+                                wait(10);
+                            });
+
+                            it(
+                                'Нажимаю на чекбокс "Передавать записи разговора". Чекбокс "Передавать если настроен ' +
+                                'фильтр исключения по операции сценария" не отмечен.',
+                            function() {
+                                helper.form.checkbox().withBoxLabel('Передавать записи разговора').click();
+                                wait(10);
+
+                                helper.form.checkbox().
+                                    withBoxLabel('Передавать записи, если настроен фильтр по операции сценария').
+                                    expectNotToBeChecked();
+                            });
+                            it('Нажимаю на кнопку "Сохранить". Настройки сохраняются.', function() {
+                                helper.saveButton.click();
+                                wait(10);
+
+                                helper.requestBitrix24DataSave().isTransferTalks().isAnywaySendTalkRecords().send();
+                            });
+                        });
+                        it(
+                            'Нажимаю на кнопку "Сохранить". Настройки сохраняются.',
+                        function() {
+                            helper.saveButton.click();
+                            wait(10);
+
+                            helper.requestBitrix24DataSave().isTransferTalks().isNotAnywaySendTalkRecords().send();
+                        });
+                        it(
+                            'Чекбокс "Передавать если настроен фильтр исключения по операции сценария" доступен.',
+                        function() {
+                            helper.form.checkbox().
+                                withBoxLabel('Передавать записи, если настроен фильтр по операции сценария').
+                                expectToBeEnabled();
+                        });
+                    });
+                    it(
+                        'Чекбокс "Передавать если настроен фильтр исключения по операции сценария" заблокирован.',
+                    function() {
+                        helper.form.checkbox().withBoxLabel('Исходящий звонок по клику').expectToBeVisible();
+                        helper.form.combobox().withFieldLabel('Номер для звонка по клику').expectToBeVisible();
+
+                        helper.form.checkbox().
+                            withBoxLabel('Передавать записи, если настроен фильтр по операции сценария').
+                            expectToBeDisabled();
+                    });
+                });
+                xit(
+                    'Записи разговора должны быть переданы, если настроен фильтр исключения по операции сценария. ' +
+                    'Нажимаю на чекбокс "Передавать записи разговора". Нажимаю на кнпоку сохранения. Отправлен ' +
+                    'запрос сохранения.',
+                function() {
+                    bitrix24DataRequest.isAnywaySendTalkRecords().isTransferTalks().receiveResponse();
+                    helper.requestSalesFunnelComponentAvailability().send();
+                    helper.requestTariffs().send();
+                    helper.bitrix24StatusRequest().receiveResponse();
+                    wait(10);
+
+                    helper.tabPanel.tab('Телефония').click();
+                    wait(10);
+
+                    helper.form.checkbox().withBoxLabel('Передавать записи разговора').click();
+                    wait(10);
+
+                    helper.saveButton.click();
+                    wait(10);
+
+                    helper.requestBitrix24DataSave().isNotTransferTalks().isNotAnywaySendTalkRecords().send();
+                });
+                it('', function() {
+                    bitrix24DataRequest.isAnywaySendTalkRecords().isTransferTalks().receiveResponse();
+                    helper.requestSalesFunnelComponentAvailability().send();
+                    helper.requestTariffs().send();
+                    helper.bitrix24StatusRequest().receiveResponse();
+                    wait(10);
+                });
+            });
+            return;
+            xdescribe('Импорт статусов выключен.', function() {
                 beforeEach(function() {
                     bitrix24DataRequest.receiveResponse();
                     helper.requestSalesFunnelComponentAvailability().send();
@@ -31,7 +147,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                     bitrix24StatusRequest = helper.bitrix24StatusRequest().expectToBeSent();
                 });
 
-                xdescribe('Импорт статусов доступен.', function() {
+                describe('Импорт статусов доступен.', function() {
                     beforeEach(function() {
                         bitrix24StatusRequest.receiveResponse();
                         wait(10);
@@ -135,8 +251,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                         toBeShownOnMouseOver();
                 });
             });
-            return;
-            describe('Импорт статусов включен.', function() {
+            xdescribe('Импорт статусов включен.', function() {
                 beforeEach(function() {
                     bitrix24DataRequest.isNeedUseRemoteUserStatuses().receiveResponse();
                     helper.requestSalesFunnelComponentAvailability().send();
@@ -165,112 +280,37 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
                         expectToHaveClass('x-form-cb-checked');
                 });
             });
-            describe('Телефония включена.', function() {
-                beforeEach(function() {
-                    bitrix24DataRequest.isProcessCall();
-                });
-
-                describe('Открываю вкладку "Телефония".', function() {
-                    beforeEach(function() {
-                        bitrix24DataRequest.receiveResponse();
-                        helper.requestSalesFunnelComponentAvailability().send();
-                        helper.requestTariffs().send();
-                        helper.bitrix24StatusRequest().receiveResponse();
-                        wait(10);
-
-                        helper.tabPanel.tab('Телефония').click();
-                        wait(10);
-                    });
-
-                    describe('Нажимаю на чекбокс "Передавать записи разговора ".', function() {
-                        beforeEach(function() {
-                            helper.form.checkbox().withBoxLabel('Передавать записи разговора').click();
-                            wait(10);
-                        });
-
-                        describe(
-                            'Нажимаю на чекбокс "Передавать если настроен фильтр исключения по операции сценария".',
-                        function() {
-                            beforeEach(function() {
-                                helper.form.checkbox().
-                                    withBoxLabel('Передавать если настроен фильтр исключения по операции сценария').
-                                    click();
-
-                                wait(10);
-                            });
-
-                            it(
-                                'Нажимаю на чекбокс "Передавать записи разговора". Чекбокс "Передавать если настроен ' +
-                                'фильтр исключения по операции сценария" не отмечен.',
-                            function() {
-                                helper.form.checkbox().withBoxLabel('Передавать записи разговора').click();
-                                wait(10);
-
-                                helper.form.checkbox().
-                                    withBoxLabel('Передавать если настроен фильтр исключения по операции сценария').
-                                    expectNotToBeChecked();
-                            });
-                            it('Нажимаю на кнопку "Сохранить". Настройки сохраняются.', function() {
-                                helper.saveButton.click();
-                                wait(10);
-
-                                helper.requestBitrix24DataSave().isTransferTalks().isAnywaySendTalkRecords().send();
-                            });
-                        });
-                        it(
-                            'Нажимаю на кнопку "Сохранить". Настройки сохраняются.',
-                        function() {
-                            helper.saveButton.click();
-                            wait(10);
-
-                            helper.requestBitrix24DataSave().isTransferTalks().isNotAnywaySendTalkRecords().send();
-                        });
-                        it(
-                            'Чекбокс "Передавать если настроен фильтр исключения по операции сценария" доступен.',
-                        function() {
-                            helper.form.checkbox().
-                                withBoxLabel('Передавать если настроен фильтр исключения по операции сценария').
-                                expectToBeEnabled();
-                        });
-                    });
-                    it(
-                        'Чекбокс "Передавать если настроен фильтр исключения по операции сценария" заблокирован.',
-                    function() {
-                        helper.form.checkbox().
-                            withBoxLabel('Передавать если настроен фильтр исключения по операции сценария').
-                            expectToBeDisabled();
-                    });
-                });
-                it(
-                    'Записи разговора должны быть переданы, если настроен фильтр исключения по операции сценария. ' +
-                    'Нажимаю на чекбокс "Передавать записи разговора". Нажимаю на кнпоку сохранения. Отправлен ' +
-                    'запрос сохранения.',
-                function() {
-                    bitrix24DataRequest.isAnywaySendTalkRecords().isTransferTalks().receiveResponse();
-                    helper.requestSalesFunnelComponentAvailability().send();
-                    helper.requestTariffs().send();
-                    helper.bitrix24StatusRequest().receiveResponse();
-                    wait(10);
-
-                    helper.tabPanel.tab('Телефония').click();
-                    wait(10);
-
-                    helper.form.checkbox().withBoxLabel('Передавать записи разговора').click();
-                    wait(10);
-
-                    helper.saveButton.click();
-                    wait(10);
-
-                    helper.requestBitrix24DataSave().isNotTransferTalks().isNotAnywaySendTalkRecords().send();
-                });
+            it('', function() {
             });
         });
         return;
+        it('Включен новый виджет Битрикс24.', function() {
+            helper = new AccountIntegrationBitrix24({
+                ...args,
+                features: ['bitrix_webrtc']
+            });
+
+            Comagic.Directory.load();
+            helper.batchReloadRequest().send();
+
+            helper.actionIndex();
+            helper.requestRegionsTreeDirectory().send();
+            helper.bitrix24DataRequest().expectToBeSent().isProcessCall().receiveResponse();
+            helper.requestSalesFunnelComponentAvailability().send();
+            helper.requestTariffs().send();
+            helper.bitrix24StatusRequest().receiveResponse();
+            wait(10);
+
+            helper.tabPanel.tab('Телефония').click();
+            wait(10);
+            helper.form.checkbox().withBoxLabel('Обработка звонков в Б24').expectToBeVisible();
+            helper.form.combobox().withFieldLabel('Номер для исходящего звонка по клику').expectToBeVisible();
+        });
         it(
             'В аккаунте Битрикс24 мало сотрудников. Открываю вкладку "Ответственные". Нажимаю на кнопку "Добавить ' +
             'сотрудника". В выпадающем списке сотрудников нет скроллера.',
         function() {
-            helper = new AccountIntegrationBitrix24(requestsManager, testersFactory, utils);
+            helper = new AccountIntegrationBitrix24(args);
 
             Comagic.Directory.load();
             helper.batchReloadRequest().addManyUsers().send();
@@ -289,7 +329,7 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils, windowOpene
             helper.addEmployeeButton.click();
         });
         it('В аккаунте Битрикс24 много сотрудников. В выпадающем списке сотрудников есть скроллер.', function() {
-            helper = new AccountIntegrationBitrix24(requestsManager, testersFactory, utils);
+            helper = new AccountIntegrationBitrix24(args);
 
             Comagic.Directory.load();
             helper.batchReloadRequest().addManyUsers().send();

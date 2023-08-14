@@ -1,15 +1,34 @@
 define(() => {
+    let stores 
+
+    const resetStores = () => {
+        if (!stores) {
+            return false;
+        }
+
+        stores.appStore.isAuthenticated = false;
+        stores.appStore.directory = {};
+        stores.appStore.user = null;
+        stores.featureFlagsStore.initParams();
+        stores.eventsStore.initParams();
+
+        return true;
+    };
+
     return function (options) {
         const testersFactory = options.testersFactory,
             utils = options.utils,
             ajax = options.ajax,
             userMedia = options.userMedia,
             spendTime = options.spendTime,
-            {app, path, stores} = options.runApplication(options);
+            resetIsDone = resetStores();
 
-        stores.featureFlagsStore.initParams();
-        stores.eventsStore.initParams();
-        stores.appStore.directory = {};
+        result = options.runApplication(options);
+
+        const {app, path} = result;
+        stores = result.stores;
+
+        !resetIsDone && resetStores();
 
         function Checkbox (element) {
             var checkbox = testersFactory.createDomElementTester(element);
@@ -30,6 +49,78 @@ define(() => {
                 find().
                 closest('div');
 
+            me.select = () => {
+                const createTester = (getSelect, description = '') => {
+                    const tester = testersFactory.createDomElementTester(getSelect);
+
+                    tester.expectToHaveValue = expectedValue => {
+                        const actualValue = utils.getTextContent(getSelect().querySelector(
+                            '.ant-select-selection-selected-value, ' +
+                            '.ant-select-selection__rendered ul'
+                        ));
+
+                        if (actualValue != expectedValue) {
+                            throw new Error(
+                                `Выпадающий список${description} должен иметь значение ` +
+                                `"${expectedValue}", а не "${actualValue}".`
+                            );
+                        }
+                    };
+
+                    tester.arrowIcon = () => testersFactory.createDomElementTester(
+                        getSelect().querySelector('.ant-select-arrow-icon')
+                    );
+                    
+                    addErrorIcon(tester, getSelect);
+
+                    return tester;
+                };
+
+                const tester = createTester(() => getRoot().querySelector('.ant-select') || new JsTester_NoElement());
+
+                tester.option = text => testersFactory.createDomElementTester(
+                    utils.descendantOfBody().
+                        matchesSelector('.ant-select-dropdown-menu-item').
+                        textEquals(text).
+                        find()
+                );
+
+                tester.withPlaceholder = placeholder => createTester(
+                    () => utils.descendantOf(getRoot()).
+                        matchesSelector('.ant-select-selection__placeholder').
+                        textEquals(placeholder).
+                        maybeInvisible().
+                        find().
+                        closest('.ant-select') || new JsTester_NoElement(),
+
+                    ` с плейсхолдером "${placeholder}"`
+                );
+
+                return tester;
+            };
+
+            me.textfield = () => {
+                const tester = testersFactory.createTextFieldTester(() =>
+                    (getRoot() || new JsTester_NoElement()).querySelector('input'));
+
+                tester.withPlaceholder = placeholder => {
+                    const getDomElement = () => getRoot().querySelector('input[placeholder="' + placeholder + '"]'),
+                        tester = testersFactory.createTextFieldTester(getDomElement());
+
+                    addErrorIcon(tester, getDomElement);
+                    return tester;
+                };
+
+                return tester;
+            };
+
+            me.tab = text => testersFactory.createDomElementTester(
+                utils.descendantOf(getRoot()).
+                    matchesSelector('.ant-tabs-tab').
+                    textEquals(text).
+                    find()
+            );
+
             me.anchor = text => testersFactory.createAnchorTester(
                 utils.descendantOf(getRoot()).
                     matchesSelector('a').
@@ -37,9 +128,35 @@ define(() => {
                     find()
             );
 
-            me.button = text => testersFactory.createDomElementTester(
-                utils.descendantOf(getRoot()).matchesSelector('.ant-btn, .pagination-item-link').textEquals(text).find()
-            );
+            me.button = text => {
+                const tester = testersFactory.createDomElementTester(
+                    utils.getVisibleSilently(
+                        utils.descendantOf(getRoot()).
+                            matchesSelector('.ant-btn, .pagination-item-link').
+                            textEquals(text).
+                            findAll()
+                    )
+                );
+                
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), Promise.runAll(false, true));
+
+                return tester;
+            };
+
+            me.checkbox = () => {
+                const tester = new Checkbox(getRoot().querySelector('.ant-checkbox-input'));
+
+                tester.withLabel = label => new Checkbox(
+                    utils.descendantOf(getRoot()).
+                        matchesSelector('.comagic-checkbox').
+                        textEquals(label).
+                        find().
+                        querySelector('.ant-checkbox-input')
+                );
+
+                return tester;
+            };
 
             {
                 const getTester = getRoot => {
@@ -95,20 +212,6 @@ define(() => {
                 return tester;
             },
             
-            checkbox() {
-                return {
-                    withLabel(label) {
-                        return new Checkbox(
-                            utils.descendantOfBody().
-                                matchesSelector('.comagic-checkbox').
-                                textEquals(label).
-                                find().
-                                querySelector('.ant-checkbox-input')
-                        );
-                    }
-                };
-            },
-
             calendar() {
                 const applyDatePicker = (me, getElement) => {
                     me.cell = content => {
@@ -199,119 +302,167 @@ define(() => {
             notification: testersFactory.createDomElementTester(() => document.querySelector('.ant-notification')),
 
             table() {
-                return {
-                    header() {
-                        return {
-                            checkbox: () =>
-                                new Checkbox(document.querySelector('.ant-table-header-column .ant-checkbox-input')),
+                const tester = testersFactory.createDomElementTester('.softphone-settings-form');
+                
+                tester.header = () => {
+                    return {
+                        checkbox: () =>
+                            new Checkbox(document.querySelector('.ant-table-header-column .ant-checkbox-input')),
 
-                            withContent(content) {
-                                const header = utils.descendantOfBody().matchesSelector('.ant-table-header-column').
-                                    textEquals(content).find();
+                        withContent(content) {
+                            const header = utils.descendantOfBody().matchesSelector('.ant-table-header-column').
+                                textEquals(content).find();
 
-                                const headerTester = testersFactory.createDomElementTester(header),
-                                    sortIconTester = testersFactory.
-                                        createDomElementTester(header.querySelector('.table-header-column-sort img'));
+                            const headerTester = testersFactory.createDomElementTester(header),
+                                sortIconTester = testersFactory.
+                                    createDomElementTester(header.querySelector('.table-header-column-sort img'));
 
-                                sortIconTester.expectToBeArrowUp = () => sortIconTester.expectAttributeToHaveValue(
-                                    'src',
+                            sortIconTester.expectToBeArrowUp = () => sortIconTester.expectAttributeToHaveValue(
+                                'src',
 
-                                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAKCAMAAABR24SMAAAAAXNSR0IArs' +
-                                    '4c6QAAAARnQU1BAACxjwv8YQUAAAMAUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-                                    'AAAAAAAAAAAAAAAAAAALMw9IgAAAEAdFJOU/////////////////////////////////////////////' +
-                                    '////////////////////////////////////////////////////////////////////////////////' +
-                                    '////////////////////////////////////////////////////////////////////////////////' +
-                                    '////////////////////////////////////////////////////////////////////////////////' +
-                                    '///////////////////////////////////////////////////////wBT9wclAAAACXBIWXMAAA7DAA' +
-                                    'AOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQBwYWludC5uZXQgNC4wLjEzNANbegAAACJJREFUGFdj+A8EcI' +
-                                    'KBAUyCGSAmA4QBZEJpEEBWRwTr/38AiVkxz9dAKNcAAAAASUVORK5CYII='
-                                );
-
-                                sortIconTester.expectToBeArrowDown = () => sortIconTester.expectAttributeToHaveValue(
-                                    'src',
-
-                                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAKCAYAAABmBXS+AAAACX' +
-                                    'BIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAA4SURBVH' +
-                                    'gBvZAxCgAgDANz/v/PEQehasVO3pSWI5SiFYfMDE0FPkvjOFckPUQIg28lbMv0TxlHYwddtQ' +
-                                    'YM1RfzWgAAAABJRU5ErkJggg=='
-                                );
-
-                                headerTester.sortIcon = () => sortIconTester;
-                                return headerTester;
-                            }
-                        };
-                    },
-                    cell() {
-                        return {
-                            withContent(content) {
-                                return {
-                                    row() {
-                                        const getRow = () => utils.descendantOfBody().
-                                            matchesSelector('.ant-table-row > td').
-                                            textEquals(content).
-                                            find().
-                                            closest('.ant-table-row');
-
-                                        return createTesters(getRow, {
-                                            actionsMenu: () => testersFactory.createDomElementTester(
-                                                getRow().querySelector('.ant-dropdown-trigger')
-                                            ),
-
-                                            querySelector: selector => testersFactory.createDomElementTester(
-                                                getRow().querySelector(selector)
-                                            ),
-
-                                            checkbox: () => new Checkbox(
-                                                getRow().querySelector('.ant-checkbox-input')
-                                            )
-                                        });
-                                    }
-                                };
-                            }
-                        };
-                    },
-                    paging: () => ({
-                        page: page => {
-                            const liTester = testersFactory.createDomElementTester(
-                                utils.descendantOfBody().matchesSelector('.pagination-item').textEquals(page).find()
+                                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAKCAMAAABR24SMAAAAAXNSR0IArs' +
+                                '4c6QAAAARnQU1BAACxjwv8YQUAAAMAUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                                'AAAAAAAAAAAAAAAAAAALMw9IgAAAEAdFJOU/////////////////////////////////////////////' +
+                                '////////////////////////////////////////////////////////////////////////////////' +
+                                '////////////////////////////////////////////////////////////////////////////////' +
+                                '////////////////////////////////////////////////////////////////////////////////' +
+                                '///////////////////////////////////////////////////////wBT9wclAAAACXBIWXMAAA7DAA' +
+                                'AOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQBwYWludC5uZXQgNC4wLjEzNANbegAAACJJREFUGFdj+A8EcI' +
+                                'KBAUyCGSAmA4QBZEJpEEBWRwTr/38AiVkxz9dAKNcAAAAASUVORK5CYII='
                             );
 
-                            const aTester = testersFactory.createDomElementTester(
-                                utils.descendantOfBody().matchesSelector('.pagination-item a').textEquals(page).find()
+                            sortIconTester.expectToBeArrowDown = () => sortIconTester.expectAttributeToHaveValue(
+                                'src',
+
+                                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAKCAYAAABmBXS+AAAACX' +
+                                'BIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAA4SURBVH' +
+                                'gBvZAxCgAgDANz/v/PEQehasVO3pSWI5SiFYfMDE0FPkvjOFckPUQIg28lbMv0TxlHYwddtQ' +
+                                'YM1RfzWgAAAABJRU5ErkJggg=='
                             );
 
-                            liTester.click = () => aTester.click();
-
-                            liTester.expectToBeChecked = () => liTester.expectToHaveClass('pagination-item-active');
-
-                            liTester.expectNotToBeChecked = () =>
-                                liTester.expectNotToHaveClass('pagination-item-active');
-
-                            return liTester;
+                            headerTester.sortIcon = () => sortIconTester;
+                            return headerTester;
                         }
-                    })
+                    };
                 };
+
+                tester.cell = () => {
+                    return {
+                        withContent(content) {
+                            return {
+                                row() {
+                                    const cellSelector = '.ant-table-row > td, .softphone-settings-form td';
+
+                                    const getRow = () => utils.descendantOfBody().
+                                        matchesSelector(cellSelector).
+                                        textEquals(content).
+                                        find().
+                                        closest('.ant-table-row, tr');
+
+                                    return createTesters(getRow, {
+                                        actionsMenu: () => {
+                                            const tester = testersFactory.createDomElementTester(
+                                                getRow().querySelector('.ant-dropdown-trigger')
+                                            );
+
+                                            const click = tester.click.bind(tester);
+
+                                            tester.click = () => (click(), Promise.runAll(false, true));
+                                            return tester;
+                                        },
+
+                                        querySelector: selector => testersFactory.createDomElementTester(
+                                            getRow().querySelector(selector)
+                                        ),
+
+                                        checkbox: () => new Checkbox(
+                                            getRow().querySelector('.ant-checkbox-input')
+                                        ),
+
+                                        column: () => ({
+                                            withHeader: text => {
+                                                const headers = document.querySelectorAll(
+                                                    '.softphone-settings-form th'
+                                                );
+
+                                                const index = Array.prototype.findIndex.call(
+                                                    headers,
+                                                    header => utils.getTextContent(header) == text
+                                                );
+
+                                                if (index == -1) {
+                                                    return createTesters(
+                                                        () => new JsTester_NoElement(),
+
+                                                        testersFactory.createDomElementTester(
+                                                            () => new JsTester_NoElement()
+                                                        ),
+                                                    );
+                                                }
+
+                                                const getCell = () =>
+                                                    getRow().querySelectorAll(cellSelector)[index];
+
+                                                return createTesters(
+                                                    getCell,
+                                                    testersFactory.createDomElementTester(getCell)
+                                                );
+                                            }
+                                        })
+                                    });
+                                }
+                            };
+                        }
+                    };
+                };
+
+                tester.paging = () => ({
+                    page: page => {
+                        const liTester = testersFactory.createDomElementTester(
+                            utils.descendantOfBody().matchesSelector('.pagination-item').textEquals(page).find()
+                        );
+
+                        const aTester = testersFactory.createDomElementTester(
+                            utils.descendantOfBody().matchesSelector('.pagination-item a').textEquals(page).find()
+                        );
+
+                        liTester.click = () => aTester.click();
+
+                        liTester.expectToBeChecked = () => liTester.expectToHaveClass('pagination-item-active');
+
+                        liTester.expectNotToBeChecked = () =>
+                            liTester.expectNotToHaveClass('pagination-item-active');
+
+                        return liTester;
+                    }
+                });
+
+                return createTesters(() => document.querySelector('.softphone-settings-form'), tester);
             },
 
             menuitem(text) {
-                var menuitem = utils.descendantOfBody().
+                const menuitem = utils.descendantOfBody().
                     matchesSelector('.ant-menu-item, .ant-dropdown-menu-item').
                     textEquals(text).
                     find();
 
-                return testersFactory.createAnchorTester(menuitem.querySelector('a') || menuitem);
+                const tester = testersFactory.createAnchorTester(menuitem.querySelector('a') || menuitem),
+                    click = tester.click.bind(tester);
+
+                tester.click = () => (click(), Promise.runAll(false, true));
+                return tester;
             },
 
             root: testersFactory.createDomElementTester(() => document.querySelector('#root')),
@@ -319,61 +470,6 @@ define(() => {
                 const getPage = () => document.querySelector('.page');
                 return createTesters(getPage, testersFactory.createDomElementTester(getPage));
             })(),
-
-            textfield() {
-                return {
-                    withPlaceholder: placeholder => {
-                        const getDomElement = () => document.querySelector('input[placeholder="' + placeholder + '"]'),
-                            tester = testersFactory.createTextFieldTester(getDomElement());
-
-                        addErrorIcon(tester, getDomElement);
-                        return tester;
-                    }
-                };
-            },
-
-            select() {
-                return {
-                    option: text => testersFactory.createDomElementTester(
-                        utils.descendantOfBody().
-                            matchesSelector('.ant-select-dropdown-menu-item').
-                            textEquals(text).
-                            find()
-                    ),
-                    withPlaceholder: placeholder => {
-                        const getSelect = () => utils.descendantOfBody().
-                            matchesSelector('.ant-select-selection__placeholder').
-                            textEquals(placeholder).
-                            maybeInvisible().
-                            find().
-                            closest('.ant-select') || new JsTester_NoElement();
-
-                        const tester = testersFactory.createDomElementTester(getSelect);
-
-                        tester.expectToHaveValue = expectedValue => {
-                            const actualValue = utils.getTextContent(getSelect().querySelector(
-                                '.ant-select-selection-selected-value, ' +
-                                '.ant-select-selection__rendered ul'
-                            ));
-
-                            if (actualValue != expectedValue) {
-                                throw new Error(
-                                    `Выпадающий список с плейсхолдером "${placeholder}" должен иметь значение ` +
-                                    `"${expectedValue}", а не "${actualValue}".`
-                                );
-                            }
-                        };
-
-                        tester.arrowIcon = () => testersFactory.createDomElementTester(
-                            getSelect().querySelector('.ant-select-arrow-icon')
-                        );
-                        
-                        addErrorIcon(tester, getSelect);
-
-                        return tester;
-                    }
-                };
-            },
 
             forceUpdate() {
                 app.forceUpdate();
@@ -388,8 +484,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'login.user',
                                 params: {
                                     login: 's.karamanova',
@@ -399,7 +493,8 @@ define(() => {
                             respondSuccessfullyWith({
                                 result: {
                                     data: {
-                                        access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
+                                        jwt: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
+                                        refresh: 'd33fe9b5808d4ca592bb70a2f33271cc'
                                     }
                                 }
                             });
@@ -415,68 +510,91 @@ define(() => {
                 const addPermission = (name, value) =>
                     permissions[name] ? permissions[name].push(value) : permissions[name] = [value];
 
-                return {
-                    allowWriteApps() {
+                const addResponseModifiers = me => {
+                    me.allowReadSoftphoneSettings = () => {
+                        addPermission('softphone_settings', 'r');
+                        return me;
+                    };
+
+                    me.allowReadManagementAppsLoginToApp = () => {
+                        addPermission('apps_management_apps_login_to_app', 'r');
+                        return me;
+                    };
+
+                    me.allowReadStatisticsRevisionHistory = () => {
+                        addPermission('statistics_revision_history', 'r');
+                        return me;
+                    };
+
+                    me.allowWriteApps = () => {
                         addPermission('apps_management_apps', 'w');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowReadApps() {
+                    me.allowReadApps = () => {
                         addPermission('apps_management_apps', 'r');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowReadCrmIntegration() {
+                    me.allowReadCrmIntegration = () => {
                         addPermission('apps_management_crm_integration', 'r');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowReadUsers() {
+                    me.allowReadUsers = () => {
                         addPermission('app_users', 'r');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowReadEventResending() {
+                    me.allowReadEventResending = () => {
                         addPermission('apps_management_resend_crm_events', 'r');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowWriteEventResending() {
+                    me.allowWriteEventResending = () => {
                         addPermission('apps_management_resend_crm_events', 'w');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowReadFeatureFlags() {
+                    me.allowReadFeatureFlags = () => {
                         addPermission('feature_flags', 'r');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    allowWriteFeatureFlags() {
+                    me.allowWriteFeatureFlags = () => {
                         addPermission('feature_flags', 'w');
-                        return this;
-                    },
+                        return me;
+                    };
 
-                    receiveResponse() {
-                        ajax.recentRequest().
+                    return me;
+                };
+
+                return addResponseModifiers({
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
-                                method: 'get.user',
-                                params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
-                                }
-                            }).
-                            respondSuccessfullyWith({
-                                result: {
-                                    data: {permissions}
-                                }
+                                method: 'get.user'
                             });
 
-                        Promise.runAll();
+                        return addResponseModifiers({
+                            receiveResponse() {
+                                request.respondSuccessfullyWith({
+                                    result: {
+                                        data: {permissions}
+                                    }
+                                });
+
+                                Promise.runAll();
+                            }
+                        });
+                    },
+
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
                     }
-                };
+                });
             },
 
             usersRequest() {
@@ -486,11 +604,8 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.apps_users',
                                 params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                                     app_id: '4735',
                                     limit: '50',
                                     offset: '0',
@@ -532,7 +647,6 @@ define(() => {
                     numa: '79162937183',
                     date_from: '2020-07-26 00:00:00',
                     date_till: '2020-08-17 13:21:55',
-                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                     is_show_not_sent: 'false',
                     is_show_in_process: 'true',
                     is_show_undelivered: 'true',
@@ -649,8 +763,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.amocrm_events',
                                 params
                             });
@@ -780,8 +892,7 @@ define(() => {
             amocrmEventsResendingRequest() {
                 const params = {
                     app_id: '4735',
-                    partner: 'amocrm',
-                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
+                    partner: 'amocrm'
                 };
 
                 return {
@@ -800,8 +911,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'send.amocrm_events',
                                 params
                             });
@@ -863,11 +972,8 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.directories',
                                 params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                                     keys: keys 
                                 }
                             }).respondSuccessfullyWith({
@@ -886,11 +992,8 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.integrations',
                                 params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                                     limit: 50,
                                     offset: 0,
                                     sort: null,
@@ -945,7 +1048,6 @@ define(() => {
                 let processing = [];
 
                 const params = {
-                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                     limit: 50,
                     offset: 0,
                     sort: [{
@@ -990,6 +1092,11 @@ define(() => {
                         return this;
                     },
 
+                    singleApp() {
+                        itemsCount = 1;
+                        return this;
+                    },
+
                     receiveResponse() {
                         const data = [];
                         processing.forEach(process => process());
@@ -1017,8 +1124,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.apps',
                                 params
                             }).respondSuccessfullyWith({
@@ -1035,6 +1140,264 @@ define(() => {
                 };
             },
 
+            callCenterSystemSettingsDeleteRequest() {
+                const params = {
+                    app_id: 386524,
+                    widget_type: 'call_center',
+                };
+
+                return {
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                method: 'delete.call_center_system_settings',
+                                params
+                            }).respondSuccessfullyWith({
+                                result: {
+                                    data: true,
+                                } 
+                            });
+
+                        Promise.runAll(false, true);
+                    }
+                };
+            },
+
+            appUpdatingRequest() {
+                const params = {
+                    app_id: 386524,
+                    customer_id: 94286,
+                    softphone_settings: [{
+                        widget_type: 'call_center',
+                        ice_servers: 'stun:stun.uiscom.ru:19304',
+                        sip_host: 'voip.uiscom.ru',
+                        webrtc_urls: 'wss://rtu-1-webrtc.uiscom.ru,wss://rtu-2-webrtc.uiscom.ru',
+                        rtu_sip_host: undefined,
+                        registrar_sip_host: undefined,
+                        rtu_webrtc_urls: undefined,
+                        registrar_webrtc_urls: undefined,
+                        is_use_tls: false,
+                        engine: 'rtu_webrtc',
+                    }]
+                };
+
+                return {
+                    tls() {
+                        params.softphone_settings[0].is_use_tls = true;
+                        return this;
+                    },
+
+                    engineUndefined() {
+                        delete(params.softphone_settings[0].engine);
+                        return this;
+                    },
+
+                    isUseTlsUndefined() {
+                        delete(params.softphone_settings[0].is_use_tls);
+                        return this;
+                    },
+
+                    rtuSipHostSpecified() {
+                        params.softphone_settings[0].rtu_sip_host = 'rtu.uiscom.ru';
+                        return this;
+                    },
+
+                    registrarSipHostSpecified() {
+                        params.softphone_settings[0].registrar_sip_host = 'registrar.uiscom.ru';
+                        return this;
+                    },
+
+                    janus() {
+                        params.softphone_settings[0].engine = 'janus_webrtc';
+                        return this;
+                    },
+
+                    webrtcUrlsAreArray() {
+                        params.softphone_settings[0].webrtc_urls = [
+                            'wss://rtu-1-webrtc.uiscom.ru',
+                            'wss://rtu-2-webrtc.uiscom.ru',
+                        ];
+
+                        return this;
+                    },
+
+                    rtuWebrtcUrlsSpecified() {
+                        params.softphone_settings[0].rtu_webrtc_urls = 
+                            'wss://rtu-3-webrtc.uiscom.ru,' +
+                            'wss://rtu-4-webrtc.uiscom.ru';
+
+                        return this;
+                    },
+
+                    registrarWebrtcUrlsSpecified() {
+                        params.softphone_settings[0].registrar_webrtc_urls = 
+                            'wss://registrar-1-webrtc.uiscom.ru,' +
+                            'wss://registrar-2-webrtc.uiscom.ru';
+
+                        return this;
+                    },
+
+                    nullWebrtcUrls() {
+                        params.softphone_settings[0].webrtc_urls = null;
+                        return this;
+                    },
+
+                    noWebrtcUrls() {
+                        params.softphone_settings[0].webrtc_urls = '';
+                        return this;
+                    },
+
+                    noRtuWebrtcUrls() {
+                        params.softphone_settings[0].rtu_webrtc_urls = '';
+                        return this;
+                    },
+
+                    noRegistrarWebrtcUrls() {
+                        params.softphone_settings[0].registrar_webrtc_urls = '';
+                        return this;
+                    },
+
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                method: 'update.app',
+                                params
+                            }).respondSuccessfullyWith({
+                                result: {
+                                    data: true
+                                } 
+                            });
+
+                        Promise.runAll();
+                    }
+                };
+            },
+
+            appRequest() {
+                const result = {
+                    data: {
+                        app: {
+                            tp_id: 27104,
+                            tariff_plan: 'Некий тариф',
+                            is_softphone_login_enabled: false,
+                            app_name: 'ООО "Трупоглазые жабы"',
+                            total_items_from_nodes: 2984,
+                            app_user_login: 'admin@corpseeydtoads.com',
+                            employee_full_name: 'Барова Елена',
+                            app_user_name: 'Администратор',
+                            phone: '79162938296',
+                            app_id: 386524,
+                            customer_id: 94286,
+                            transit_dst_app_id: 660927,
+                            is_use_numb_as_numa: false,
+                            hide_return_commission: false,
+                            agent_id: 6812934,
+                            is_agent: false,
+                            is_share_tp: false,
+                            is_short_phone_shared_in_holding: false,
+                            rtu: 'wss://rtu-webrtc.uiscom.ru',
+                            is_uae_restriction_enabled: false
+                        },
+                        site: [{
+                            domain: 'https://somesite.com',
+                            banner_branding_text: 'Некий бренд',
+                            banner_branding_url: 'https://somesite.com/brand'
+                        }],
+                        dt_black_ip: [{
+                            id: 9174882,
+                            ip: '125.62.57.176'
+                        }],
+                        tp: [{
+                            id: 16369,
+                            name: 'Другой' 
+                        }],
+                        softphone_settings: [{
+                            widget_type: 'call_center',
+                            ice_servers: 'stun:stun.uiscom.ru:19303',
+                            sip_host: 'voip.uiscom.ru',
+                            is_use_tls: false,
+                            webrtc_urls:
+                                'wss://rtu-1-webrtc.uiscom.ru,' +
+                                'wss://rtu-2-webrtc.uiscom.ru',
+                            engine: 'rtu_webrtc',
+                        }]
+                    }
+                };
+
+                const addResponseModifiers = me => {
+                    me.engineUndefined = () => (delete(result.data.softphone_settings[0].engine), me);
+                    me.isUseTlsUndefined = () => (delete(result.data.softphone_settings[0].is_use_tls), me);
+
+                    me.rtuSipHostSpecified = () =>
+                        (result.data.softphone_settings[0].rtu_sip_host = 'rtu.uiscom.ru', me);
+
+                    me.registrarSipHostSpecified = () =>
+                        (result.data.softphone_settings[0].registrar_sip_host = 'registrar.uiscom.ru', me);
+
+                    me.rtuWebrtcUrlsAreString = () => (result.data.softphone_settings[0].rtu_webrtc_urls =
+                        'wss://rtu-3-webrtc.uiscom.ru,' +
+                        'wss://rtu-4-webrtc.uiscom.ru',
+                    me);
+
+                    me.registrarWebrtcUrlsAreString = () => (result.data.softphone_settings[0].registrar_webrtc_urls =
+                        'wss://registrar-1-webrtc.uiscom.ru,' +
+                        'wss://registrar-2-webrtc.uiscom.ru',
+                    me);
+
+                    me.webrtcUrlsAreArray = () => (result.data.softphone_settings[0].webrtc_urls = [
+                        'wss://rtu-1-webrtc.uiscom.ru',
+                        'wss://rtu-2-webrtc.uiscom.ru'
+                    ], me);
+
+                    me.rtuWebrtcUrlsAreArray = () => (result.data.softphone_settings[0].rtu_webrtc_urls = [
+                        'wss://rtu-3-webrtc.uiscom.ru',
+                        'wss://rtu-4-webrtc.uiscom.ru'
+                    ], me);
+
+                    me.registrarWebrtcUrlsAreArray = () => (result.data.softphone_settings[0].registrar_webrtc_urls = [
+                        'wss://registrar-1-webrtc.uiscom.ru',
+                        'wss://registrar-2-webrtc.uiscom.ru'
+                    ], me);
+
+                    me.noWebrtcUrls = () => (result.data.softphone_settings[0].webrtc_urls = null, me);
+                    me.noRtuWebrtcUrls = () => (result.data.softphone_settings[0].rtu_webrtc_urls = null, me);
+
+                    me.noRegistrarWebrtcUrls = () =>
+                        (result.data.softphone_settings[0].registrar_webrtc_urls = null, me);
+
+                    return me;
+                };
+
+                return addResponseModifiers({
+                    expectToBeSent() {
+                        const request = ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                method: 'get.app',
+                                params: {
+                                    app_id: '386524'
+                                }
+                            });
+
+                        return addResponseModifiers({
+                            receiveResponse() {
+                                request.respondSuccessfullyWith({result});
+                                Promise.runAll(false, true);
+                            }
+                        });
+                    },
+
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                });
+            },
+
             appUsersRequest() {
                 return {
                     receiveResponse() {
@@ -1042,11 +1405,8 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.app_users',
                                 params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                                     app_id: 386524
                                 }
                             }).respondSuccessfullyWith({
@@ -1172,8 +1532,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.feature_flags',
                                 params
                             });
@@ -1267,8 +1625,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'get.feature_flag',
                                 params
                             });
@@ -1289,7 +1645,6 @@ define(() => {
 
             featureFlagCreatingRequest() {
                 const params = {
-                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                     id: undefined,
                     name: 'Чаты в WhatsApp',
                     mnemonic: 'whatsapp_chats',
@@ -1333,8 +1688,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'create.feature_flag',
                                 params
                             });
@@ -1361,12 +1714,7 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
-                                method: 'get.feature_flag_namespaces',
-                                params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew'
-                                }
+                                method: 'get.feature_flag_namespaces'
                             }).respondSuccessfullyWith({
                                 result: '{comagic_web,db,amocrm}'
                             });
@@ -1378,7 +1726,6 @@ define(() => {
 
             featureFlagUpdatingRequest() {
                 const params = {
-                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                     id: 829592,
                     name: 'Чаты в WhatsApp',
                     mnemonic: 'whatsapp_chats',
@@ -1421,14 +1768,18 @@ define(() => {
                         return this;
                     },
 
+                    noExpireDate() {
+                        params.expire_date = null;
+                        return this;
+                    },
+
                     changeExpireDate() {
                         params.expire_date = '2020-08-29';
                         return this
                     },
 
                     switching() {
-                        Object.keys(params).filter(name => !['id', 'is_enabled', 'access_token'].includes(name)).
-                            forEach(name => (params[name] = undefined));
+                        params.app_ids = [4735, 29572];
                         return this;
                     },
 
@@ -1448,8 +1799,6 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'update.feature_flag',
                                 params
                             });
@@ -1476,11 +1825,8 @@ define(() => {
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
-                                jsonrpc: '2.0',
-                                id: 'number',
                                 method: 'delete.feature_flag',
                                 params: {
-                                    access_token: '2j4gds8911fdpu20310v1ldfaqwr0QPOeW1313nvpqew',
                                     id: 829592
                                 }
                             }).respondSuccessfullyWith({

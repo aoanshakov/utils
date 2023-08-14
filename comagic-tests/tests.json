@@ -62,9 +62,17 @@
             "helpers/AccountIntegrationBitrix24.js",
             "tests/account.integration.bitrix24.js"
         ],
+        "services.ats.scenario.edit": [
+            "helpers/ServicesAtsScenarioEditPage.js",
+            "tests/services.ats.scenario.edit.js"
+        ],
         "services.ats.scenario": [
             "helpers/ServicesAtsScenario.js",
             "tests/services.ats.scenario.js"
+        ],
+        "services.ats.schedule": [
+            "helpers/ServicesAtsSchedule.js",
+            "tests/services.ats.schedule.js"
         ],
         "services.ats.hook": [
             "helpers/ServicesAtsHook.js",
@@ -101,6 +109,14 @@
         "services.autocalls.autobackcall": [
             "helpers/ServicesAutocallsAutobackcall.js",
             "tests/services.autocalls.autobackcall.js"
+        ],
+        "services.ats.sip.edit": [
+            "helpers/ServicesAtsSipEditPage.js",
+            "tests/services.ats.sip.edit.js"
+        ],
+        "services.ats.sip": [
+            "helpers/ServicesAtsSip.js",
+            "tests/services.ats.sip.js"
         ]
     },
     "easystart": {

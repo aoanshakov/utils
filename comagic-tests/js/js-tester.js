@@ -193,124 +193,6 @@ function JsTester_PostMessageTester (postMessages) {
     };
 }
 
-function JsTester_Tests (factory) {
-    var testRunners = [],
-        requiredClasses = [],
-        responseFileNames = [],
-        timeout = new JsTester_Timeout('setTimeout', 'clearTimeout', JsTester_OneTimeDelayedTask),
-        interval = new JsTester_Timeout('setInterval', 'clearInterval', JsTester_DelayedTask),
-        storageMocker = new JsTester_StorageMocker(),
-        debug = factory.createDebugger(),
-        utils = factory.createUtils(debug),
-        requestsManager = new JsTester_RequestsManager(utils),
-        windowOpener = new JsTester_WindowOpener(utils),
-        testsExecutionBeginingHandlers = [],
-        postMessages = new JsTester_Queue(new JsTester_NoWindowMessage()),
-        postMessagesTester = new JsTester_PostMessageTester(postMessages),
-        fakeWindow = new JsTester_FakeWindow({
-            postMessages: postMessages,
-            debug: debug
-        }),
-        parentWindowReplacer = new JsTester_ParentWindowReplacer(fakeWindow);
-
-    var wait = function () {
-        if (arguments[0]) {
-            var repetitionsCount = arguments[0], i;
-
-            for (i = 0; i < repetitionsCount; i ++) {
-                wait();
-            }
-
-            return;
-        }
-
-        timeout.runCallbacks();
-        interval.runCallbacks();
-    };
-
-    this.exposeDebugUtils = function (variableName) {
-        window[variableName] = debug;
-    };
-    this.addTest = function (testRunner) {
-        testRunners.push(testRunner);
-    };
-    this.runTests = function (responses) {
-        var error,
-            testersFactory;
-
-        try {
-            testersFactory = factory.createTestersFactory(wait, utils);
-        } catch(e) {
-            error = e;
-        }
-
-        if (error) {
-            it('Подготавливаюсь к тестированию.', function() {
-                throw error;
-            });
-        }
-
-        testRunners.forEach(function (runTest) {
-            runTest(Object.assign({
-                requestsManager: requestsManager,
-                testersFactory: testersFactory,
-                wait: wait,
-                utils: utils,
-                windowOpener: windowOpener,
-                postMessagesTester: postMessagesTester,
-                debug: debug,
-                responses: responses
-            }, factory.createTestArguments()));
-        });
-    };
-    this.requireClass = function (className) {
-        requiredClasses.push(className);
-    };
-    this.requireResponse = function (responseFileName) {
-        responseFileNames.push(responseFileName);
-    };
-    this.getResponseFileNames = function () {
-        return responseFileNames;
-    };
-    this.runBeforeTestsExecution = function (handleBeginingOfTestsExecution) {
-        testsExecutionBeginingHandlers.push(handleBeginingOfTestsExecution);
-    };
-    this.handleBeginingOfTestsExecution = function () {
-        testsExecutionBeginingHandlers.forEach(function (handleBeginingOfTestsExecution) {
-            handleBeginingOfTestsExecution();
-        });
-    };
-    this.getRequiredClasses = function () {
-        return requiredClasses;
-    };
-    this.beforeEach = function () {
-        postMessages.removeAll();
-        requestsManager.createAjaxMock();
-        parentWindowReplacer.replaceByFake();
-        storageMocker.replaceByFake();
-        timeout.replaceByFake();
-        interval.replaceByFake();
-        windowOpener.replaceByFake();
-        factory.beforeEach();
-    };
-    this.afterEach = function () {
-        var errors = [];
-
-        postMessagesTester.expectNoMessageToBeSent(errors);
-        parentWindowReplacer.restoreReal();
-        requestsManager.destroyAjaxMock();
-        timeout.restoreReal();
-        interval.restoreReal();
-        storageMocker.restoreReal();
-        windowOpener.restoreReal();
-        factory.afterEach();
-
-        errors.forEach(function (error) {
-            throw error;
-        });
-    };
-}
-
 function JsTester_TestersFactory (wait, utils, factory) {
     var gender = factory.createGender(),
         female = gender.female,
@@ -322,11 +204,24 @@ function JsTester_TestersFactory (wait, utils, factory) {
             'ссылку с текстом "' + text + '"', 'ссылки с текстом "' + text + '"', factory);
     };
     this.createTextFieldTester = function (field, label) {
-        return new JsTester_InputElement((
-            field && field.inputEl ? field.inputEl.dom : null
-        ), field && field.el ? field.el.dom : null, wait, utils, this, neuter,
+        return new JsTester_InputElement(
+            (
+                typeof field == 'function' ? field : (
+                    field && field.inputEl ? field.inputEl.dom : null
+                )
+            ),
+            (
+                typeof field != 'function' && field && field.el ? field.el.dom : null
+            ),
+            wait,
+            utils,
+            this,
+            neuter,
             utils.fieldDescription('текстовое поле', label),
-            utils.fieldDescription('текстовое поле', label), utils.fieldDescription('текстового поля', label), factory);
+            utils.fieldDescription('текстовое поле', label),
+            utils.fieldDescription('текстового поля', label),
+            factory
+        );
     };
     this.createDomElementTester = function () {
         var getDomElement = utils.makeDomElementGetter(arguments[0]);
@@ -366,70 +261,6 @@ function JsTester_NoElement () {
             width: 0,
             height: 0
         };
-    };
-}
-
-function JsTester_DescendantFinder (ascendantElement, utils) {
-    var selector = '*';
-    ascendantElement = ascendantElement || new JsTester_NoElement();
-
-    var isDesiredText = function () {
-        throw new Error('Не указаны критерии поиска');
-    };
-
-    this.matchesSelector = function (value) {
-        selector = value;
-        return this;
-    };
-
-    this.textEquals = function (desiredTextContent) {
-        isDesiredText = function (actualTextContent) {
-            return actualTextContent == desiredTextContent;
-        };
-
-        return this;
-    };
-
-    this.textContains = function (desiredTextContent) {
-        isDesiredText = function (actualTextContent) {
-            return actualTextContent.indexOf(desiredTextContent) != -1;
-        };
-
-        return this;
-    };
-
-    this.findAll = function () {
-        var i,
-            descendants = ascendantElement.querySelectorAll(selector),
-            length = descendants.length,
-            descendant,
-            desiredDescendants = [];
-        
-        for (i = 0; i < length; i ++) {
-            descendant = descendants[i];
-
-            if (isDesiredText(utils.getTextContent(descendant))) {
-                desiredDescendants.push(descendant);
-            }
-        }
-
-        return desiredDescendants;
-    };
-
-    this.findAllVisible = function () {
-        return this.findAll().filter(function (domElement) {
-            return utils.isVisible(domElement);
-        });
-    };
-
-    this.find = function () {
-        var desiredDescendants = this.findAll();
-
-        if (desiredDescendants.length) {
-            return utils.getVisibleSilently(desiredDescendants) || new JsTester_NoElement();
-        }
-
-        return new JsTester_NoElement();
     };
 }
 
@@ -796,10 +627,13 @@ function JsTester_Utils (debug) {
 
         return results;
     };
-    function getVisible (domElements, handleError) {
-        var results = Array.prototype.filter.call(domElements, (function (domElement) {
+    this.getAllVisible = function (domElements) {
+        return Array.prototype.filter.call(domElements, (function (domElement) {
             return this.isVisible(domElement);
         }).bind(this));
+    };
+    function getVisible (domElements, handleError) {
+        var results = me.getAllVisible(domElements);
 
         if (results.length != 1) {
             handleError(results.length);
@@ -913,6 +747,49 @@ function JsTester_StorageMocker () {
     this.restoreReal = function () {
         currentLocalStorage = realLocalStorage;
         currentSessionStorage = realSessionStorage;
+    };
+}
+
+function JsTester_CommandExecutor (copiedTexts) {
+    return function (type) {
+        type == 'copy' && copiedTexts.push(window.getSelection().toString());
+    };
+}
+
+function JsTester_ExecCommandReplacer (copiedTexts) {
+    var execCommand = document.execCommand;
+
+    this.replaceByFake = function () {
+        copiedTexts.splice(0, copiedTexts.length);
+        document.execCommand = new JsTester_CommandExecutor(copiedTexts);
+    };
+
+    this.restoreReal = function () {
+        document.execCommand = execCommand;
+    };
+}
+
+function JsTester_CopiedText (text) {
+    return {
+        expectToEqual: function (expectedText) {
+            if (text != expectedText) {
+                throw new Error('Должен быть скопирован текст "' + expectedText + '", а не "' + text + '".');
+            }
+        }
+    };
+}
+
+function JsTester_CopiedTextsTester (copiedTexts) {
+    return {
+        last: function () {
+            var length = copiedTexts.length;
+
+            if (!length) {
+                throw new Error('Не один текст не был скопирован.');
+            }
+
+            return new JsTester_CopiedText(copiedTexts[length - 1]);
+        }
     };
 }
 
@@ -1177,17 +1054,19 @@ function JsTester_Anchor (
 }
 
 function JsTester_InputElement (
-    inputElement, componentElement, wait, utils, testersFactory, gender, nominativeDescription,
+    getDomElement, componentElement, wait, utils, testersFactory, gender, nominativeDescription,
     accusativeDescription, genetiveDescription, factory
 ) {
+    getDomElement = utils.makeDomElementGetter(getDomElement);
+
     var me = this;
 
     factory.admixDomElementTester(this, [
-        inputElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
+        getDomElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
         genetiveDescription, factory
     ]);
 
-    var componentElementTester = factory.createDomElementTester(
+    var componentElementTester = componentElement && factory.createDomElementTester(
         componentElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
         genetiveDescription
     );
@@ -1195,44 +1074,44 @@ function JsTester_InputElement (
     function input (value) {
         var length = value.length,
             i = 0,
-            oldValue = inputElement.value,
-            beforeCursor = oldValue.substr(0, inputElement.selectionStart),
-            afterCursor = oldValue.substr(inputElement.selectionEnd),
+            oldValue = getDomElement().value,
+            beforeCursor = oldValue.substr(0, getDomElement().selectionStart),
+            afterCursor = oldValue.substr(getDomElement().selectionEnd),
             cursorPosition = beforeCursor.length,
             inputedValue = '';
 
         var update = function () {
-            inputElement.value = beforeCursor + inputedValue + afterCursor;
-            inputElement.setSelectionRange(cursorPosition, cursorPosition);
+            getDomElement().value = beforeCursor + inputedValue + afterCursor;
+            getDomElement().setSelectionRange(cursorPosition, cursorPosition);
         };
 
         var CharacterAppender = function (character) {
             return function () {
                 inputedValue += character;
                 cursorPosition ++;
-                inputElement.value = beforeCursor + inputedValue + afterCursor;
-                inputElement.setSelectionRange(cursorPosition, cursorPosition);
+                getDomElement().value = beforeCursor + inputedValue + afterCursor;
+                getDomElement().setSelectionRange(cursorPosition, cursorPosition);
             };
         };
         
-        if (inputElement.readOnly) {
+        if (getDomElement().readOnly) {
             throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
                 ' для редактирования.');
         }
 
         for (i = 0; i < length; i ++) {
-            utils.pressKey(inputElement, value.charCodeAt(i), new CharacterAppender(value[i]));
+            utils.pressKey(getDomElement(), value.charCodeAt(i), new CharacterAppender(value[i]));
         }
     }
 
     function erase (updateBeforeCursor, updateAfterCursor, keyCode) {
-        var oldValue = inputElement.value,
-            selectionStart = inputElement.selectionStart,
-            selectionEnd = inputElement.selectionEnd,
+        var oldValue = getDomElement().value,
+            selectionStart = getDomElement().selectionStart,
+            selectionEnd = getDomElement().selectionEnd,
             beforeCursor = oldValue.substr(0, selectionStart),
             afterCursor = oldValue.substr(selectionEnd);
         
-        if (inputElement.readOnly) {
+        if (getDomElement().readOnly) {
             throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
                 ' для редактирования.');
         }
@@ -1242,11 +1121,11 @@ function JsTester_InputElement (
             afterCursor = updateAfterCursor(afterCursor);
         }
 
-        utils.pressSpecialKey(inputElement, keyCode, function () {
-            inputElement.value = beforeCursor + afterCursor;
+        utils.pressSpecialKey(getDomElement(), keyCode, function () {
+            getDomElement().value = beforeCursor + afterCursor;
         }, function () {
             var cursorPosition = beforeCursor.length;
-            inputElement.setSelectionRange(cursorPosition, cursorPosition);
+            getDomElement().setSelectionRange(cursorPosition, cursorPosition);
         });
     }
 
@@ -1260,7 +1139,7 @@ function JsTester_InputElement (
 
     function clear () {
         me.focus();
-        inputElement.setSelectionRange(0, inputElement.value.length);
+        getDomElement().setSelectionRange(0, getDomElement().value.length);
         pressDelete();
     }
 
@@ -1298,17 +1177,17 @@ function JsTester_InputElement (
     };
     this.expectAllContentToBeSelected = function () {
         this.expectSelectionStartToBeAt(0);
-        this.expectSelectionEndToBeAt(inputElement.value.length);
+        this.expectSelectionEndToBeAt(getDomElement().value.length);
     };
     this.expectCursorToBeAtEnd = function () {
-        this.expectCursorToBeAt(inputElement.value.length);
+        this.expectCursorToBeAt(getDomElement().value.length);
     };
     this.expectCursorToBeAt = function (expectedPostition) {
         this.expectSelectionStartToBeAt(expectedPostition);
         this.expectSelectionEndToBeAt(expectedPostition);
     };
     this.expectSelectionStartToBeAt = function (expectedPostition) {
-        var actualPosition = inputElement.selectionStart;
+        var actualPosition = getDomElement().selectionStart;
 
         if (expectedPostition != actualPosition) {
             throw new Error(
@@ -1318,7 +1197,7 @@ function JsTester_InputElement (
         }
     };
     this.expectSelectionEndToBeAt = function (expectedPostition) {
-        var actualPosition = inputElement.selectionEnd;
+        var actualPosition = getDomElement().selectionEnd;
 
         if (expectedPostition != actualPosition) {
             throw new Error(
@@ -1328,7 +1207,7 @@ function JsTester_InputElement (
         }
     };
     this.putCursorAtEnd = function () {
-        this.putCursorAt(inputElement.value.length);
+        this.putCursorAt(getDomElement().value.length);
     };
     this.putCursorAtBegining = function () {
         this.putCursorAt(0);
@@ -1337,15 +1216,15 @@ function JsTester_InputElement (
         this.select(position, position);
     };
     this.selectAll = function () {
-        this.select(0, inputElement.value.length);
+        this.select(0, getDomElement().value.length);
     };
     this.select = function (selectionStart, selectionEnd) {
         this.expectToBeEnabled();
         this.focus();
-        inputElement.setSelectionRange(selectionStart, selectionEnd);
+        getDomElement().setSelectionRange(selectionStart, selectionEnd);
     };
     this.expectToBeEnabled = function () {
-        componentElementTester.expectToBeEnabled();
+        componentElementTester && componentElementTester.expectToBeEnabled();
     };
     this.expectToBeDisabled = function () {
         componentElementTester.expectToBeDisabled();
@@ -1353,15 +1232,15 @@ function JsTester_InputElement (
     this.paste = function (value) {
         var length = value.length,
             i = 0,
-            oldValue = inputElement.value,
-            selectionStart = inputElement.selectionStart,
+            oldValue = getDomElement().value,
+            selectionStart = getDomElement().selectionStart,
             cursorPosition = selectionStart + length,
             beforeCursor = oldValue.substr(0, selectionStart),
-            afterCursor = oldValue.substr(inputElement.selectionEnd);
+            afterCursor = oldValue.substr(getDomElement().selectionEnd);
 
         var setValue = function () {
-            inputElement.value = beforeCursor + value + afterCursor;
-            inputElement.setSelectionRange(cursorPosition, cursorPosition);
+            getDomElement().value = beforeCursor + value + afterCursor;
+            getDomElement().setSelectionRange(cursorPosition, cursorPosition);
         };
 
         this.focus();
@@ -1376,7 +1255,7 @@ function JsTester_InputElement (
 
         event.clipboardData.setData('text', value);
 
-        inputElement.dispatchEvent(event);
+        getDomElement().dispatchEvent(event);
         setValue();
 
         wait();
@@ -1390,7 +1269,7 @@ function JsTester_InputElement (
     this.fill = function (value) {
         this.expectToBeEnabled();
         clear();
-        inputElement.setSelectionRange(0, 0);
+        getDomElement().setSelectionRange(0, 0);
         input(value);
         wait();
     };
@@ -1401,7 +1280,7 @@ function JsTester_InputElement (
     };
     function getValue () {
         me.expectToBeVisible();
-        return inputElement.value ? (inputElement.value + '') : '';
+        return getDomElement().value ? (getDomElement().value + '') : '';
     }
     this.expectToHaveValue = function (expectedValue) {
         var actualValue = getValue();
@@ -1549,8 +1428,8 @@ function JsTester_DomElement (
         if (actualContent.indexOf(unexpectedSubstring) !== -1) {
             throw new Error(
                 utils.capitalize(getNominativeDescription()) + ' не ' + gender.should + ' содержать текст, ' +
-                'содержащий подстроку "' + unexpectedValue + '", тогда, как ' + gender.pronoun + ' содержит текст "' +
-                actualContent + '".'
+                'содержащий подстроку "' + unexpectedSubstring + '", тогда, как ' + gender.pronoun + ' содержит ' +
+                'текст "' + actualContent + '".'
             );
         }
     };
@@ -1662,6 +1541,23 @@ function JsTester_DomElement (
             );
         }
     };
+    this.click = function (x, y) {
+        this.mousedown(x, y);
+        this.mouseup(x, y);
+    };
+    this.mousedown = function (x, y) {
+        this.expectToBeVisible();
+        this.focus();
+
+        utils.dispatchMouseEvent(getDomElement(), 'mousedown', null, x, y);
+    };
+    this.mouseup = function (x, y) {
+        this.expectToBeVisible();
+        var domElement = getDomElement();
+
+        utils.dispatchMouseEvent(domElement, 'mouseup', null, x, y);
+        utils.dispatchMouseEvent(domElement, 'click', null, x, y);
+    };
     this.assumeHidden = function () {
         isAssumedHidden = true;
         return this;
@@ -1697,14 +1593,6 @@ function JsTester_DomElement (
     this.putMouseOver = function () {
         this.expectToBeVisible();
         utils.dispatchMouseEvent(getDomElement(), 'mouseover');
-    };
-    this.mousedown = function () {
-        this.focus();
-        utils.dispatchMouseEvent(getDomElement(), 'mousedown');
-    };
-    this.click = function () {
-        this.focus();
-        utils.dispatchMouseEvent(getDomElement(), 'click');
     };
     this.findAnchor = function (text) {
         var domElement;
@@ -2218,5 +2106,234 @@ function JsTester_Debugger () {
         } catch(e) {
             return getTrace(e);
         }
+    };
+}
+
+function JsTester_Tests (factory) {
+    var testRunners = [],
+        requiredClasses = [],
+        responseFileNames = [],
+        timeout = new JsTester_Timeout('setTimeout', 'clearTimeout', JsTester_OneTimeDelayedTask),
+        interval = new JsTester_Timeout('setInterval', 'clearInterval', JsTester_DelayedTask),
+        storageMocker = new JsTester_StorageMocker(),
+        debug = factory.createDebugger(),
+        utils = factory.createUtils(debug),
+        requestsManager = new JsTester_RequestsManager(utils),
+        windowOpener = new JsTester_WindowOpener(utils),
+        testsExecutionBeginingHandlers = [],
+        postMessages = new JsTester_Queue(new JsTester_NoWindowMessage()),
+        postMessagesTester = new JsTester_PostMessageTester(postMessages),
+        fakeWindow = new JsTester_FakeWindow({
+            postMessages: postMessages,
+            debug: debug
+        }),
+        parentWindowReplacer = new JsTester_ParentWindowReplacer(fakeWindow),
+        copiedTexts = [],
+        copiedTextsTester = new JsTester_CopiedTextsTester(copiedTexts),
+        execCommandReplacer = new JsTester_ExecCommandReplacer(copiedTexts);
+
+    var wait = function () {
+        if (arguments[0]) {
+            var repetitionsCount = arguments[0], i;
+
+            for (i = 0; i < repetitionsCount; i ++) {
+                wait();
+            }
+
+            return;
+        }
+
+        timeout.runCallbacks();
+        interval.runCallbacks();
+    };
+
+    this.exposeDebugUtils = function (variableName) {
+        window[variableName] = debug;
+    };
+    this.addTest = function (testRunner) {
+        testRunners.push(testRunner);
+    };
+    this.runTests = function (responses) {
+        var error,
+            testersFactory;
+
+        try {
+            testersFactory = factory.createTestersFactory(wait, utils);
+        } catch(e) {
+            error = e;
+        }
+
+        if (error) {
+            it('Подготавливаюсь к тестированию.', function() {
+                throw error;
+            });
+        }
+
+        testRunners.forEach(function (runTest) {
+            runTest(Object.assign({
+                requestsManager: requestsManager,
+                testersFactory: testersFactory,
+                wait: wait,
+                utils: utils,
+                windowOpener: windowOpener,
+                postMessagesTester: postMessagesTester,
+                debug: debug,
+                copiedTexts: copiedTextsTester,
+                responses: responses
+            }, factory.createTestArguments()));
+        });
+    };
+    this.requireClass = function (className) {
+        requiredClasses.push(className);
+    };
+    this.requireResponse = function (responseFileName) {
+        responseFileNames.push(responseFileName);
+    };
+    this.getResponseFileNames = function () {
+        return responseFileNames;
+    };
+    this.runBeforeTestsExecution = function (handleBeginingOfTestsExecution) {
+        testsExecutionBeginingHandlers.push(handleBeginingOfTestsExecution);
+    };
+    this.handleBeginingOfTestsExecution = function () {
+        testsExecutionBeginingHandlers.forEach(function (handleBeginingOfTestsExecution) {
+            handleBeginingOfTestsExecution();
+        });
+    };
+    this.getRequiredClasses = function () {
+        return requiredClasses;
+    };
+    this.beforeEach = function () {
+        postMessages.removeAll();
+        requestsManager.createAjaxMock();
+        parentWindowReplacer.replaceByFake();
+        execCommandReplacer.replaceByFake();
+        storageMocker.replaceByFake();
+        timeout.replaceByFake();
+        interval.replaceByFake();
+        windowOpener.replaceByFake();
+        factory.beforeEach();
+    };
+    this.afterEach = function () {
+        var errors = [];
+
+        postMessagesTester.expectNoMessageToBeSent(errors);
+        parentWindowReplacer.restoreReal();
+        requestsManager.destroyAjaxMock();
+        timeout.restoreReal();
+        interval.restoreReal();
+        execCommandReplacer.restoreReal();
+        storageMocker.restoreReal();
+        windowOpener.restoreReal();
+        factory.afterEach();
+
+        errors.forEach(function (error) {
+            throw error;
+        });
+    };
+}
+
+function JsTester_DescendantFinder (ascendantElement, utils) {
+    var selector = '*';
+    ascendantElement = ascendantElement || new JsTester_NoElement();
+
+    var isDesiredText = function () {
+        throw new Error('Не указаны критерии поиска');
+    };
+
+    this.matchesSelector = function (value) {
+        selector = value;
+        return this;
+    };
+
+    this.textEquals = function (desiredTextContent) {
+        isDesiredText = function (actualTextContent, comparisons) {
+            const result = actualTextContent == desiredTextContent;
+
+            (comparisons || []).push(
+                `Строка ${
+                    JSON.stringify(actualTextContent)
+                } должна быть равна строке ${
+                    JSON.stringify(desiredTextContent)
+                }. Условие ${result ? '' : 'не '}удовлетворено.`
+            );
+
+            return result;
+        };
+
+        return this;
+    };
+
+    this.textContains = function (desiredTextContent) {
+        isDesiredText = function (actualTextContent, comparisons) {
+            const result = actualTextContent.indexOf(desiredTextContent) != -1;
+
+            (comparisons || []).push(
+                `Строка ${
+                    JSON.stringify(actualTextContent)
+                } должна содержать строку ${
+                    JSON.stringify(desiredTextContent)
+                }. Условие ${result ? '' : 'не '}удовлетворено.`
+            );
+
+            return result;
+        };
+
+        return this;
+    };
+
+    this.findAll = function (logEnabled) {
+        if (!ascendantElement.querySelectorAll) {
+            throw new Error(`Объект ${ascendantElement} не является HTML-элементом.`);
+        }
+
+        var i,
+            descendants = ascendantElement.querySelectorAll(selector),
+            length = descendants.length,
+            descendant,
+            text,
+            desiredDescendants = [],
+            allDescendants = [],
+            comparisons = [];
+
+        for (i = 0; i < length; i ++) {
+            descendant = descendants[i];
+            text = utils.getTextContent(descendant);
+
+            logEnabled && allDescendants.push({
+                domElement: descendant,
+                text: text
+            });
+
+            if (isDesiredText(text, comparisons)) {
+                desiredDescendants.push(descendant);
+            }
+        }
+
+        logEnabled && console.log({
+            selector,
+            ascendantElement,
+            comparisons,
+            allDescendants,
+            desiredDescendants
+        });
+
+        return desiredDescendants;
+    };
+
+    this.findAllVisible = function () {
+        return this.findAll().filter(function (domElement) {
+            return utils.isVisible(domElement);
+        });
+    };
+
+    this.find = function (logEnabled) {
+        var desiredDescendants = this.findAll(logEnabled);
+
+        if (desiredDescendants.length) {
+            return utils.getVisibleSilently(desiredDescendants) || new JsTester_NoElement();
+        }
+
+        return new JsTester_NoElement();
     };
 }

@@ -3,7 +3,14 @@ document.addEventListener('DOMContentLoaded', function () {
         baseUrl: '/tests/utils'
     });
 
-    requirejs(['promise-mock', 'tester'], function (PromiseMock, Tester) {
+    requirejs(['promise-mock', 'tester', 'softphone-tester', 'sip', 'fake-require', 'sound-sources'], function (
+        PromiseMock,
+        Tester,
+        SoftphoneTester,
+        Sip,
+        FakeRequire,
+        soundSources
+    ) {
         describe('', function() {
             beforeEach(function() {
                 PromiseMock.install();
@@ -14,7 +21,44 @@ document.addEventListener('DOMContentLoaded', function () {
                 tests.afterEach();
             });
 
-            tests.runTests({Tester});
+            const WrappedTester = function (options) {
+                options.softphoneHost = options.softphoneHost || '$REACT_APP_SOFTPHONE_BACKEND_HOST';
+                options.softphoneTester = new SoftphoneTester(options);
+
+                return new Tester(options);
+            };
+
+            WrappedTester.createPackagesGetter = args => {
+                let packages;
+                const {FakeRequire, spendTime} = args;
+
+                beforeEach(function() {
+                    packages = new FakeRequire(args);
+                    packages.replaceByFake();
+                });
+
+                afterEach(function() {
+                    window.localStorage.removeItem('electronCookies');
+
+                    spendTime(0);
+                    spendTime(0);
+
+                    packages.electron.ipcRenderer.expectNoMessageToBeSent();
+                });
+
+                return packageName => packageName != 'replaceByFake' ? packages[packageName] : null;
+            };
+
+            try {
+                tests.runTests({
+                    Sip,
+                    FakeRequire: FakeRequire,
+                    soundSources,
+                    Tester: WrappedTester 
+                });
+            } catch (e) {
+                console.log(e);
+            }
         });
 
         jasmine.getEnv().execute();

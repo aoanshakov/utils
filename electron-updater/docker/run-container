@@ -1,0 +1,170 @@
+#!/bin/bash
+
+action="initialize"
+distDirectory=""
+farg=""
+isOsX=0
+dockerArguments=""
+entrypointArguments=""
+buildImage=0
+noCache=""
+imageTag="electron-updater"
+
+if [ $(uname | grep Darwin | wc -l) -eq 0 ]
+then
+    dockerArguments="$dockerArguments --mount type=bind,source=/etc/passwd,target=/etc/passwd"
+    dockerArguments="$dockerArguments --mount type=bind,source=/etc/group,target=/etc/group"
+    entrypointArguments="$entrypointArguments --owner $USER"
+    farg="-f"
+else
+    isOsX=1
+fi
+
+function getAbsolutePath {
+    currentDirectory=$(pwd)
+    cd $@
+    result=$(pwd)
+    echo $result
+    cd $currentDirectory
+}
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "--build-image" ]
+    then
+        buildImage=1
+    elif [ "$1" = "--action" ]
+    then
+        action=$2
+        shift
+    elif [ "$1" = "--no-cache" ]
+    then
+        noCache="--no-cache"
+    elif [ "$1" = "--port" ]
+    then
+        if [ -z "$2" ]
+        then
+            echo "Укажите номер порта, который будет соответстовать порту 80 в контейнере."
+            exit 1
+        fi
+
+        dockerArguments="$dockerArguments -p $2:80"
+        action="run-server"
+        shift
+    elif [ "$1" = "--dist-directory" ]
+    then
+        distDirectory=$2
+        shift
+    else
+        entrypointArguments="$entrypointArguments $1"
+    fi
+
+    shift
+done
+
+docker --version
+
+if [ $? -ne 0 ]
+then
+    echo "Установи докер"
+    exit 1
+fi
+
+currentFile=$0
+
+if [ -L $currentFile ]
+then
+    currentFile=$(readlink $farg $currentFile)
+    if [ $? -ne 0 ]
+    then
+        echo "Не удалось получить путь к скрипту"
+        exit 1
+    fi
+fi
+
+currentDirectory=$(dirname $currentFile)
+
+if [ $? -ne 0 ]
+then
+    echo "Не удалось получить текущую директорию"
+    exit 1
+fi
+
+if [ $buildImage -eq 1 ]
+then
+    docker build $noCache -t $imageTag $currentDirectory
+
+    if [ $? -ne 0 ]
+    then
+        echo "Не удалось собрать образ"
+        exit 1
+    fi
+
+    exit 0
+fi
+
+linesCount=$(docker images ${imageTag} | wc -l)
+if [ $? -ne 0 ]
+then
+    echo "Не удалось получить список образов"
+    exit 1
+fi
+
+if [ $linesCount -eq 1 ]
+then
+    docker build --no-cache -t $imageTag $currentDirectory
+
+    if [ $? -ne 0 ]
+    then
+        echo "Не удалось собрать образ"
+        exit 1
+    fi
+fi
+
+updaterDir="$currentDirectory/.."
+
+if [ $isOsX -eq 0 ]
+then
+    updaterDir=$(readlink -f $updaterDir)
+    if [ $? -ne 0 ]
+    then
+        echo "Не удалось получить директорию с приложением"
+        exit 1
+    fi
+else
+    updaterDir=$(getAbsolutePath $updaterDir)
+fi
+
+if [ -z "$distDirectory" ]
+then
+    if [ -n "$COMAGIC_DIST_DIRECTORY" ]
+    then
+        distDirectory=$COMAGIC_DIST_DIRECTORY
+    fi
+fi
+
+if [ -n "$distDirectory" ]
+then
+    if [ ! -d $distDirectory ]
+    then
+        echo "Директория $distDirectory не существует"
+        exit 1
+    fi
+
+    dockerArguments="$dockerArguments -v $distDirectory:/usr/local/src/dist"
+fi
+
+if [ -z "$distDirectory" ]
+then
+    echo "Путь к дистрибутивам не указан"
+    exit 1
+fi
+
+docker run -it --rm \
+    -v $updaterDir:/usr/local/src \
+    --mount type=bind,source=$HOME/.ssh/known_hosts,target=/root/.ssh/known_hosts \
+    --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa \
+    $dockerArguments \
+    $imageTag \
+    --action $action \
+    $entrypointArguments

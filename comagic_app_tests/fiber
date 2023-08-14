@@ -1,0 +1,11 @@
+ReactDOMHydrationRoot.prototype.render = ReactDOMRoot.prototype.render = function (children) {
+function updateContainer(element, container, parentComponent, callback) {
+function scheduleUpdateOnFiber(root, fiber, lane, eventTime) {                                 | root = enqueueUpdate(current$1, update, lane);
+function ensureRootIsScheduled(root, currentTime) {
+function performSyncWorkOnRoot(root) {                                                         | root.current.alternate
+function commitRoot(root, recoverableErrors, transitions) {                                    | root.finishedWork
+function commitRootImpl(root, recoverableErrors, transitions, renderPriorityLevel) {
+function commitMutationEffects(root, finishedWork, committedLanes) {
+function commitMutationEffectsOnFiber(finishedWork, root, lanes) {
+function commitReconciliationEffects(finishedWork) {
+function commitPlacement(finishedWork) {

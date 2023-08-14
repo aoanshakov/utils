@@ -1,0 +1,45 @@
+diff --git a/package.json b/package.json
+index d0c4a75..691ceb7 100644
+--- a/package.json
++++ b/package.json
+@@ -57,10 +57,6 @@
+   },
+   "dependencies": {
+     "@babel/runtime": "^7.13.9",
+-    "@comagic/core": "^0.7.0",
+-    "@comagic/softphone-core": "0.0.0-int0",
+-    "@comagic/softphone-widget": "0.0.0-int0",
+-    "@comagic/logger": "^1.0.3",
+     "async-mutex": "^0.3.2",
+     "axios": "^0.24.0",
+     "classnames": "^2.2.6",
+@@ -72,18 +68,13 @@
+     "filesize": "^8.0.3",
+     "formik": "^2.2.9",
+     "janus-gateway": "1.1.4",
+-    "magic-ui": "0.0.0-int1",
+     "mobx": "^6.1.8",
+     "mobx-react-lite": "^3.2.0",
+     "mobx-state-tree": "^5.0.1",
+     "moment": "2.29.1",
+     "nanoid": "^3.2.0",
+-    "react": "^18.2.0",
+     "react-csv": "^2.0.3",
+-    "react-dom": "^18.2.0",
+-    "react-intl": "6.3.2",
+     "react-redux": "^7.0.0",
+-    "react-router-dom": "6.9.0",
+     "redux": "^4.0.0",
+     "redux-thunk": "^2.3.0",
+     "short-uuid": "^4.2.0",
+diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
+index 975b2d4..3e1b5c1 100644
+--- a/src/models/RootStore.ts
++++ b/src/models/RootStore.ts
+@@ -768,4 +768,5 @@ export type RootInstance = Instance<typeof RootStore> & {
+ 
+ export const RootStoreContext = React.createContext<null | RootInstance>(null);
+ export const Provider = RootStoreContext.Provider;
+-export const rootStore = RootStore.create({});
++export let rootStore;
++export const createRootStore = () => (rootStore = RootStore.create({}));

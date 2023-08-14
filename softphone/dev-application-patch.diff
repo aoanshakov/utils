@@ -1,0 +1,27 @@
+diff --git a/config/webpack.config.js b/config/webpack.config.js
+index bdd8667..00a973c 100644
+--- a/config/webpack.config.js
++++ b/config/webpack.config.js
+@@ -284,8 +284,8 @@ module.exports = {
+         },
+     },
+     output: {
+-        filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',
+-        chunkFilename: isProductionMode ? 'static/js/[name].[contenthash:8].chunk.js' : 'static/js/[name].chunk.js',
++        filename: 'static/js/[name].[contenthash:8].js',
++        chunkFilename: 'static/js/[name].[contenthash:8].chunk.js',
+         path: path.resolve(appDirectory, 'build'),
+     },
+     plugins: plugins(),
+diff --git a/package.json b/package.json
+index c03e187..4e2d5a1 100644
+--- a/package.json
++++ b/package.json
+@@ -79,6 +79,6 @@
+     "short-uuid": "^4.2.0",
+     "uuid": "^8.3.2",
+     "yup": "^0.32.9",
+-    "uis-softphone": "0.0.124"
++    "uis-softphone": "./misc/sip_lib"
+   }
+ }

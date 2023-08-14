@@ -2,9 +2,7 @@ function JsTester_Factory () {
     this.createDebugger = function () {
         return new JsTester_Debugger();
     };
-    this.createUtils = function (debug) {
-        return new JsTester_Utils(debug);
-    };
+    this.createUtils = (...args) => new JsTester_Utils(...args);
     this.createDomElementTester = function (
         domElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
         genetiveDescription
@@ -104,38 +102,78 @@ function JsTester_UserMediaEventHandlersItem (options) {
     };
 }
 
-function JsTester_Queue (emptyValue) {
-    var emptyItem = new JsTester_EmptyQueueItem(emptyValue),
+function JsTester_QueueItemAppender () {
+    return function (args) {
+        var currentItem = args.currentItem,
+            newItem = args.newItem;
+
+        newItem.setOther(currentItem);
+        return newItem;
+    };
+}
+
+function JsTester_StackItemAppender () {
+    return function (args) {
+        var currentItem = args.currentItem,
+            lastItem = args.lastItem,
+            newItem = args.newItem,
+            emptyItem = args.emptyItem;
+
+        if (emptyItem == currentItem) {
+            currentItem = newItem;
+        }
+
+        newItem.setOther(emptyItem);
+        lastItem.setOther(newItem);
+        return currentItem;
+    };
+}
+
+function JsTester_Container (args) {
+    var emptyValue = args.emptyValue,
+        add = args.appender,
+        emptyItem = new JsTester_EmptyContainerItem(emptyValue),
+        currentItem,
         lastItem;
 
     this.forEach = function (callback) {
-        var currentItem = lastItem;
+        var item = currentItem;
 
-        while (currentItem != emptyItem) {
-            callback(currentItem.getValue());
-            currentItem = currentItem.getPrevious();
+        while (item != emptyItem) {
+            callback(item.getValue());
+            item = item.getOther();
         }
     };
     this.add = function (value) {
-        lastItem = new JsTester_QueueItem(lastItem, value);
+        const newItem = new JsTester_ContainerItem(value);
+
+        currentItem = add({
+            emptyItem: emptyItem,
+            newItem: newItem,
+            currentItem: currentItem,
+            lastItem: lastItem
+        });
+
+        lastItem = newItem;
     };
     this.pop = function () {
-        var value = lastItem.getValue();
-        lastItem = lastItem.getPrevious();
+        var value = currentItem.getValue();
+        currentItem = currentItem.getOther();
         return value;
     };
     this.isEmpty = function () {
-        return lastItem === emptyItem;
+        return currentItem === emptyItem;
     };
     this.removeAll = function () {
-        lastItem = emptyItem;
+        currentItem = lastItem = emptyItem;
     };
 
     this.removeAll();
 }
 
-function JsTester_EmptyQueueItem (emptyValue) {
-    this.getPrevious = function () {
+function JsTester_EmptyContainerItem (emptyValue) {
+    this.setOther = function () {};
+    this.getOther = function () {
         return this;
     };
     this.getValue = function () {
@@ -143,13 +181,33 @@ function JsTester_EmptyQueueItem (emptyValue) {
     };
 }
 
-function JsTester_QueueItem (previous, value) {
-    this.getPrevious = function () {
-        return previous;
+function JsTester_ContainerItem (value) {
+    var other;
+
+    this.setOther = function (value) {
+        other = value;
+    };
+    this.getOther = function () {
+        return other;
     };
     this.getValue = function () {
         return value;
     };
+}
+
+function JsTester_Queue (emptyValue, logEnabled) {
+    return new JsTester_Container({
+        logEnabled,
+        emptyValue,
+        appender: new JsTester_QueueItemAppender()
+    });
+}
+
+function JsTester_Stack (emptyValue) {
+    return new JsTester_Container({
+        emptyValue: emptyValue,
+        appender: new JsTester_StackItemAppender()
+    });
 }
 
 function JsTester_UserMediaEventHandlers (debug) {
@@ -200,7 +258,16 @@ function JsTester_UserMedia (args) {
         debug = args.debug,
         tracksCreationCallStacks = args.tracksCreationCallStacks,
         additionalDevices = args.additionalDevices,
-        mediaDevicesEventListeners = args.mediaDevicesEventListeners;
+        mediaDevicesEventListeners = args.mediaDevicesEventListeners,
+        spendTime = args.spendTime;
+
+    function handleDeviceChange () {
+        mediaDevicesEventListeners.get('devicechange') && mediaDevicesEventListeners.get('devicechange').
+            forEach(handleDeviceChange => handleDeviceChange());
+
+        Promise.runAll(false, true);
+        spendTime(0);
+    }
 
     this.plugInNewDevice = () => {
         additionalDevices.push({
@@ -209,8 +276,15 @@ function JsTester_UserMedia (args) {
             deviceId: 'tg4j0oz8g03ogjgo3q8uj0qo83j40toto8s4jql83otul34tu84tz8utoz4tl8z4'
         });
 
-        mediaDevicesEventListeners.get('devicechange') && mediaDevicesEventListeners.get('devicechange').
-            forEach(handleDeviceChange => handleDeviceChange());
+        handleDeviceChange();
+    };
+
+    this.unplugDevice = function () {
+        additionalDevices.splice(additionalDevices.findIndex(function (device) {
+            return device.deviceId == 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab';
+        }), 1);
+
+        handleDeviceChange();
     };
 
     this.expectToBeRequested = function () {
@@ -323,10 +397,6 @@ function JsTester_NavigatorMock (args) {
                 kind: 'audiooutput',
                 label: 'Встроенный динамик',
                 deviceId: '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943ab'
-            }, {
-                kind: 'audiooutput',
-                label: 'Колонка JBL',
-                deviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab'
             }].concat(additionalDevices));
         }
     };
@@ -342,11 +412,13 @@ function JsTester_NavigatorMock (args) {
 
     this.getUserMedia = getUserMedia;
     this.userAgent = navigator.userAgent;
+    this.vendor = navigator.vendor;
 }
 
 function JsTester_RTCConnectionSender (track) {
     this.replaceTrack = function (value) {
         track = value;
+        return Promise.resolve();
     };
 
     Object.defineProperty(this, 'track', {
@@ -372,6 +444,8 @@ function JsTester_AudioTrack (options) {
             deviceId: constraints.audio.deviceId.exact
         } : {};
     };
+
+    this.stop = function () {};
 
     Object.defineProperty(this, 'kind', {
         set: function () {},
@@ -418,7 +492,8 @@ function JsTester_MediaStreamWrapper (options) {
 }
 
 function JsTester_Variable () {
-    var value = false;
+    var value = arguments.length == 0 ? false : arguments[0],
+        isLogEnabled = arguments[1];
 
     this.createGetter = function () {
         return function () {
@@ -427,13 +502,16 @@ function JsTester_Variable () {
     };
     this.createSetter = function () {
         return function (newValue) {
+            const isChanged = newValue !== value;
             value = newValue;
+
+            return isChanged
         };
     };
 }
 
-function JsTester_RWVariable () {
-    var variable = new JsTester_Variable();
+function JsTester_RWVariable (value) {
+    var variable = new JsTester_Variable(value);
 
     this.get = variable.createGetter();
     this.set = variable.createSetter();
@@ -876,7 +954,7 @@ function JsTester_Storage () {
             keyToIndex[key] = index;
         }
 
-        values[key] = value;
+        values[key] = value + '';
     };
     this.getItem = function (key) {
         return values[key] || null;
@@ -939,6 +1017,71 @@ function JsTester_StorageMocker () {
     };
 }
 
+function JsTester_CommandExecutor (copiedTexts) {
+    return function (type) {
+        type == 'copy' && copiedTexts.push(window.getSelection().toString());
+    };
+}
+
+function JsTester_ExecCommandReplacer (copiedTexts) {
+    var execCommand = document.execCommand;
+
+    this.replaceByFake = function () {
+        copiedTexts.splice(0, copiedTexts.length);
+        document.execCommand = new JsTester_CommandExecutor(copiedTexts);
+    };
+
+    this.restoreReal = function () {
+        document.execCommand = execCommand;
+    };
+}
+
+function JsTester_CopiedText (text) {
+    return {
+        expectToEqual: function (expectedText) {
+            if (text != expectedText) {
+                throw new Error('Должен быть скопирован текст "' + expectedText + '", а не "' + text + '".');
+            }
+        }
+    };
+}
+
+function JsTester_CopiedTextsTester (copiedTexts) {
+    return {
+        getLast: function () {
+            var length = copiedTexts.length;
+
+            if (!length) {
+                throw new Error('Не один текст не был скопирован.');
+            }
+
+            return new JsTester_CopiedText(copiedTexts[length - 1]);
+        }
+    };
+}
+
+function JsTester_CookieTester (cookie) {
+    Object.defineProperty(document, 'cookie', {
+        get: function () {
+            return cookie.get();
+        },
+        set: function (value) {
+            cookie.set(value);
+        }
+    });
+
+    return {
+        expectToEqual: function (expectedValue) {
+            if (expectedValue != cookie.get()) {
+                throw new Error(
+                    'В куки должна быть такая строка "' + expectedValue + '", однако там сохранена такая строка "' +
+                    cookie.get() + '".'
+                );
+            }
+        }
+    };
+}
+
 function JsTester_RTCConnectionStateChecker (connections) {
     return function (exceptions) {
         var connection = connections.find(function (connection) {
@@ -966,7 +1109,14 @@ function JsTester_Audio (args) {
     };
 
     [
-        'play', 'stop', 'setCyclical', 'setVolume', 'setSinkId', 'addAudioEndListener', 'removeAudioEndListener'
+        'play',
+        'stop',
+        'setCyclical',
+        'setVolume',
+        'setMuted',
+        'setSinkId',
+        'addAudioEndListener',
+        'removeAudioEndListener'
     ].forEach(function (methodName) {
         mediaStreamProxy[methodName] = function () {
             if (!mediaStream) {
@@ -981,6 +1131,7 @@ function JsTester_Audio (args) {
     function applyOptions () {
         mediaStreamProxy.setCyclical(options.loop);
         mediaStreamProxy.setVolume(options.volume);
+        mediaStreamProxy.setMuted(options.muted);
         mediaStreamProxy.setSinkId(options.sinkId);
     }
 
@@ -1011,6 +1162,16 @@ function JsTester_Audio (args) {
         set: function (value) {
             options.volume = value;
             mediaStreamProxy.setVolume(options.volume);
+        }
+    });
+
+    Object.defineProperty(me, 'muted', {
+        get: function () {
+            return options.muted;
+        },
+        set: function (value) {
+            options.muted = value;
+            applyOptions();
         }
     });
 
@@ -1093,7 +1254,9 @@ function JsTester_Audio (args) {
 
     this.loop = false;
     this.volume = 1;
+    this.muted = false;
     this.setSinkId('default');
+    this.load = () => null;
 
     setSource(args.mediaStream);
 }
@@ -1149,7 +1312,7 @@ function JsTester_MediaStreamsPlayingExpectationFactory (mediaStreamTracks) {
     };
 }
 
-function JsTester_MediaStreamsTester (options) {
+function JsTester_MediaStreamsTester ({spendTime, ...options}) {
     var createMediaStreamsPlayingExpectaion = options.mediaStreamsPlayingExpectaionFactory,
         playingMediaStreams = options.playingMediaStreams,
         mediaStreams = options.mediaStreams,
@@ -1165,6 +1328,7 @@ function JsTester_MediaStreamsTester (options) {
 
     this.setIsAbleToPlayThough = function (mediaStream) {
         mediaStreams.setIsAbleToPlayThough(mediaStream);
+        spendTime(0);
     };
 
     this.expectNoStreamToPlay = function () {
@@ -1417,13 +1581,39 @@ function JsTester_BiquadFilter (debug) {
     this.connect = function () {};
 }
 
-function JsTester_Buffer () {
+function JsTester_TypedArray () {
+    var array = [];
+
+    this.set = function (items, start) {
+        array.splice.apply(array, [start, 0].concat(items));
+    };
+}
+
+function JsTester_Buffer (args) {
     Object.defineProperty(this, 'length', {
         get: function () {
             return 1;
         },
         set: function () {}
     }); 
+
+    Object.defineProperty(this, 'sampleRate', {
+        get: function () {
+            return 1;
+        },
+        set: function () {}
+    }); 
+
+    Object.defineProperty(this, 'numberOfChannels', {
+        get: function () {
+            return 1;
+        },
+        set: function () {}
+    }); 
+    
+    this.getChannelData = function (index) {
+        return new JsTester_TypedArray();
+    };
 }
 
 function JsTester_AudioNode () {
@@ -1461,7 +1651,8 @@ function JsTester_AudioContextMock (args) {
             }
         });
     }
-    this.createBuffer = function () {
+    this.createBuffer = function (arguments) {
+        return new JsTester_Buffer(Array.prototype.slice.call(arguments, 0));
     };
     this.createAnalyser = function () {
         return new JsTester_AudioNode();
@@ -1532,14 +1723,21 @@ function JsTester_AudioContextMock (args) {
     };
 }
 
-function JsTester_AudioDecodingTester (audioDecodingTasks, factory) {
+function JsTester_AudioDecodingTester ({
+    audioDecodingTasks,
+    factory,
+    spendTime
+}) {
     this.failToDecodeAudio = function () {
         audioDecodingTasks.pop().failure();
         Promise.runAll(false, true);
     };
     this.accomplishAudioDecoding = function () {
         audioDecodingTasks.pop().callback();
-        Promise.runAll(false, true);
+
+        spendTime(0);
+        spendTime(0);
+        spendTime(0);
     };
     this.expectAudioDecodingToHappen = function () {
         audioDecodingTasks.pop();
@@ -1576,7 +1774,11 @@ function JsTester_AudioContextFactory (args) {
         ));
     };
     this.createAudioDecodingTester = function () {
-        return new JsTester_AudioDecodingTester(audioDecodingTasks, this);
+        return new JsTester_AudioDecodingTester({
+            audioDecodingTasks,
+            spendTime: args.spendTime,
+            factory: this
+        });
     };
     this.createAudioContext = function () {
         return new JsTester_AudioContextMock(args);
@@ -1656,6 +1858,7 @@ function JsTester_MediaStreamPlayingState(options) {
         volume: 1,
         playing: false,
         disabled: true,
+        muted: false,
         disconnected: false,
         sourcesStopped: false
     };
@@ -1668,7 +1871,14 @@ function JsTester_MediaStreamPlayingState(options) {
         state[key] = value;
         var hasMediaStream = playingMediaStreams.has(mediaStream);
 
-        if (state.playing && !state.disabled && !state.disconnected && !state.sourcesStopped && state.volume) {
+        if (
+            state.playing &&
+            !state.disabled &&
+            !state.muted &&
+            !state.disconnected &&
+            !state.sourcesStopped &&
+            state.volume
+        ) {
             !hasMediaStream && playingMediaStreams.set(mediaStream, debug.getCallStack());
             maybeThrowIsNotPlaying = function () {};
         } else {
@@ -1720,6 +1930,9 @@ function JsTester_MediaStreamPlayingState(options) {
     this.setDisabled = function (value) {
         setState('disabled', value);
     };
+    this.setMuted = function (value) {
+        setState('muted', value);
+    };
     this.setSourceStopped = function (value) {
         setState('sourcesStopped', value);
     };
@@ -1737,6 +1950,7 @@ function JsTester_MediaStreamPlayingState(options) {
         setNotPlaying();
         this.setDisconnected(false);
         this.setDisabled(false);
+        this.setMuted(false);
         this.setSourceStopped(false);
     };
 
@@ -1827,7 +2041,8 @@ function JsTester_MediaStreams (options) {
         mediaStreams.set(mediaStream, {
             audioEndListeners: audioEndListeners,
             mediaStreamPlayingState: mediaStreamPlayingState,
-            volume: 1
+            volume: 1,
+            muted: false,
         });
     };
 
@@ -1850,7 +2065,13 @@ function JsTester_MediaStreams (options) {
         };
     }).bind(this));
 
-    ['finish', 'play', 'stop', 'setCyclical'].forEach((function (methodName) {
+    [
+        'finish',
+        'play',
+        'stop',
+        'setCyclical',
+        'setMuted',
+    ].forEach((function (methodName) {
         this[methodName] = function () {
             var args = Array.prototype.slice.call(arguments, 0),
                 mediaStream = args.shift(),
@@ -1988,7 +2209,12 @@ function JsTester_WindowEventsReplacer (args) {
     };
     this.restoreReal = function () {
         window.addEventListener = realEventListenerAssigner;
-        windowEventsListeners.clear();
+
+        windowEventsListeners.forEach(function (eventListeners, eventName) {
+            eventListeners.forEach(function (listener) {
+                window.removeEventListener(eventName, listener);
+            });
+        });
 
         originalWindowEventsListeners.forEach(function (eventListeners, eventName) {
             windowEventsListeners.set(eventName, eventListeners.slice(0));
@@ -2015,13 +2241,14 @@ function JsTester_NoNotificationMessage () {
 
 function JsTester_NotificationMessage (args) {
     var actualTitle = args.title,
-        actualOptions = args.options,
+        actualOptions = args.options || {},
         actualTag = actualOptions.tag,
         actualBody = actualOptions.body,
         handleClick = args.notificationClickHandler,
         assertIsClosed = args.assertIsClosed,
         assertIsOpen = args.assertIsOpen,
         debug = args.debug,
+        spendTime = args.spendTime,
         callStack = debug.getCallStack();
 
     this.expectToBeOpened = assertIsOpen;
@@ -2029,6 +2256,8 @@ function JsTester_NotificationMessage (args) {
 
     this.click = function () {
         handleClick();
+        spendTime(0);
+
         return this;
     };
 
@@ -2053,9 +2282,27 @@ function JsTester_NotificationMessage (args) {
 
         return this;
     };
+
     this.expectToExist = function () {};
+
     this.expectNotToExist = function (exceptions) {
-        var error = new Error("Ни одно уведомление не должно быть отображено.\n\n" + callStack + "\n\n\n\n");
+        var parts = [
+            ['заголовком', actualTitle],
+            ['тэгом', actualTag],
+            ['телом', actualBody]
+        ].filter(item => !!item[1]).map(item => item[0] + ' "' + item[1] + '"');
+
+        var description = '',
+            length = parts.length;
+
+        if (length) {
+            length > 1 && parts.splice(length - 1, 0, 'и');
+            description = 'Отображено уведомление с ' + parts.join(' ');
+        }
+
+        var error = new Error(
+            description + ". Ни одно уведомление не должно быть отображено.\n\n" + callStack + "\n\n\n\n"
+        );
 
         if (exceptions) {
             exceptions.push(error);
@@ -2070,7 +2317,8 @@ function JsTester_NotificationMock (args) {
         notificationPermissionRequests = args.notificationPermissionRequests,
         notifications = args.notifications,
         notificationClickHandler = args.notificationClickHandler,
-        debug = args.debug;
+        debug = args.debug,
+        spendTime = args.spendTime;
 
     var constructor = function (title, options) {
         function throwShoudBeOpen () {
@@ -2090,20 +2338,34 @@ function JsTester_NotificationMock (args) {
             notificationClickHandler: notificationClickHandler.createValueCaller(this),
             debug: debug,
             title: title,
-            options: options
+            options: options,
+            spendTime,
         }));
 
-        var onclick;
+        var onclick = function () {},
+            clickHandlers = [],
+            me = this;
+
+        notificationClickHandler.setValue(function () {
+            onclick.apply(me);
+
+            clickHandlers.forEach(function (handle) {
+                handle();
+            });
+        });
 
         Object.defineProperty(this, 'onclick', {
             get: function () {
                 return onclick;
             },
             set: function (value) {
-                onclick = value;
-                notificationClickHandler.setValue(onclick);
+                onclick = value || function () {};
             }
         }); 
+
+        this.addEventListener = function (eventName, handler) {
+            eventName == 'click' && clickHandlers.push(handler);
+        };
 
         this.close = function () {
             assertIsClosed.setValue(function () {});
@@ -2116,11 +2378,21 @@ function JsTester_NotificationMock (args) {
         set: function () {}
     }); 
 
-    constructor.requestPermission = function (callback) {
+    function addRequestPermissionCallback (callback) {
         notificationPermissionRequests.add({
             callback: callback,
             callStack: debug.getCallStack()
         });
+    }
+
+    constructor.requestPermission = function (callback) {
+        if (callback) {
+            addRequestPermissionCallback(callback);
+        } else {
+            return new Promise(function (resolve) {
+                addRequestPermissionCallback(resolve);
+            });
+        }
     };
 
     return constructor;
@@ -2132,7 +2404,8 @@ function JsTester_NotificationReplacer (args) {
         notificationPermissionRequests = args.notificationPermissionRequests,
         notifications = args.notifications,
         debug = args.debug,
-        notificationClickHandler = args.notificationClickHandler;
+        notificationClickHandler = args.notificationClickHandler,
+        spendTime = args.spendTime;
 
     this.replaceByFake = function () {
         notificationPermission.set('default');
@@ -2145,7 +2418,8 @@ function JsTester_NotificationReplacer (args) {
             notificationPermissionRequests: notificationPermissionRequests,
             notificationPermissionGetter: notificationPermission.get,
             notifications: notifications,
-            debug: debug
+            debug: debug,
+            spendTime,
         });
     };
     this.restoreReal = function () {
@@ -2165,10 +2439,12 @@ function JsTester_NotificationTester (args) {
 
     this.grantPermission = function () {
         update('granted');
+        Promise.runAll(false, true);
         return this;
     };
     this.denyPermission = function () {
         update('denied');
+        Promise.runAll(false, true);
         return this;
     };
     this.recentNotification = function () {
@@ -2197,13 +2473,21 @@ function JsTester_NotificationTester (args) {
     };
 }
 
-function JsTester_BrowserVisibilityReplacer (isBrowserHidden) {
-    var setBrowserHidden = isBrowserHidden.createSetter(),
-        getBrowserHiddennes = isBrowserHidden.createGetter();
+function JsTester_BrowserVisibilityReplacer ({
+    isBrowserHidden,
+    isBrowserVisible,
+}) {
+    var getBrowserHiddennes = isBrowserHidden.createGetter(),
+        getBrowserVisibility = isBrowserVisible.createGetter();
 
     this.replaceByFake = function () {
         Object.defineProperty(document, 'hidden', {
             get: getBrowserHiddennes,
+            set: function () {}
+        }); 
+
+        Object.defineProperty(document, 'visibilityState', {
+            get: getBrowserVisibility,
             set: function () {}
         }); 
     };
@@ -2227,7 +2511,7 @@ function JsTester_BlobTester(args) {
     var constructorArguments = args.constructorArguments,
         utils = args.utils,
         me = this;
-    
+
     function getActualContent () {
         var actualContent = '';
 
@@ -2242,10 +2526,48 @@ function JsTester_BlobTester(args) {
         return actualContent;
     }
 
+    this.expectToBeCreatedFromArray = function (expectedArray) {
+        var actualArray = (constructorArguments[0] || [])[0];
+
+        [
+            [expectedArray, 'Ожидаемое значение имеет некорректный тип.'],
+            [actualArray, 'Блоб должен быть создан на основе массива.']
+        ].forEach(function (args) {
+            var array = args[0],
+                message = args[1];
+
+            if (!array || !array.buffer || !(array.buffer instanceof ArrayBuffer)) {
+                throw new Error(message);
+            }
+        });
+
+        function serialize (array) {
+            return JSON.stringify(Object.values(array));
+        }
+
+        if (serialize(expectedArray) != serialize(actualArray)) {
+            throw new Error('Массив на основе которого был создан блоб не соответствует ожидаемому.');
+        }
+
+        return this;
+    };
+
+    this.expectToHaveType = function (expectedType) {
+        var actualType = constructorArguments[1] && constructorArguments[1].type;
+
+        if (actualType != expectedType) {
+            throw new Error('Блоб должен иметь тип "' + expectedType + '", однако он имеет тип "' + actualType + '".');
+        }
+
+        return this;
+    };
+
     this.expectToHaveSubstrings = function (expectedSubstrings) {
         expectedSubstrings.forEach(function (expectedSubstring) {
             me.expectToHaveSubstring(expectedSubstring);
         });
+
+        return this;
     };
 
     this.expectToHaveSubstring = function (expectedSubstring) {
@@ -2257,6 +2579,21 @@ function JsTester_BlobTester(args) {
                 'такое содержание ' + "\n\n" + actualContent + "\n\n"
             );
         }
+
+        return this;
+    };
+
+    this.expectNotToHaveSubstring = function (expectedSubstring) {
+        var actualContent = getActualContent();
+
+        if (actualContent.includes(expectedSubstring)) {
+            throw new Error(
+                'Блоб не должен содержать такую подстроку:' + "\n\n" + expectedSubstring + "\n\n" + 'Однако он имеет ' +
+                'такое содержание ' + "\n\n" + actualContent + "\n\n"
+            );
+        }
+
+        return this;
     };
 
     this.expectToHaveContent = function (expectedContent) {
@@ -2268,15 +2605,18 @@ function JsTester_BlobTester(args) {
                 'такое содержание ' + "\n\n" + actualContent + "\n\n"
             );
         }
+
+        return this;
     };
 }
 
 function JsTester_BlobFactory (args) {
-    var blobs = args.blobs,
+    var OriginalBlob = args.OriginalBlob,
+        blobs = args.blobs,
         utils = args.utils;
 
-    return function () {
-        var object = {},
+    return function (...args) {
+        var object = new OriginalBlob(...args),
             id = blobs.length;
 
         Object.defineProperty(object, 'id', {
@@ -2296,7 +2636,7 @@ function JsTester_BlobFactory (args) {
 }
 
 function JsTester_BlobReplacer (args) {
-    var OriginalBlob = window.Blob,
+    var OriginalBlob = args.OriginalBlob,
         factory = args.factory,
         blobs = args.blobs;
 
@@ -2326,47 +2666,24 @@ function JsTester_BlobsTester (args) {
 
         return blobs[id];
     };
-}
-
-function JsTester_CommandExecutor (copiedTexts) {
-    return function (type) {
-        type == 'copy' && copiedTexts.push(window.getSelection().toString());
-    };
-}
-
-function JsTester_ExecCommandReplacer (copiedTexts) {
-    var execCommand = document.execCommand;
-
-    this.replaceByFake = function () {
-        copiedTexts.splice(0, copiedTexts.length);
-        document.execCommand = new JsTester_CommandExecutor(copiedTexts);
-    };
-
-    this.restoreReal = function () {
-        document.execCommand = execCommand;
-    };
-}
-
-function JsTester_CopiedText (text) {
-    return {
-        expectToEqual: function (expectedText) {
-            if (text != expectedText) {
-                throw new Error('Должен быть скопирован текст "' + expectedText + '", а не "' + text + '".');
-            }
+    this.some = function (callback) {
+        if (!blobs.length) {
+            throw new Error('Должен существовать хотя бы один блоб');
         }
-    };
-}
 
-function JsTester_CopiedTextsTester (copiedTexts) {
-    return {
-        getLast: function () {
-            var length = copiedTexts.length;
+        const errors = [];
 
-            if (!length) {
-                throw new Error('Не один текст не был скопирован.');
+        blobs.forEach(blob => {
+            try {
+                callback(blob);
+            } catch (e) {
+                errors.push(e);
             }
+        });
 
-            return new JsTester_CopiedText(copiedTexts[length - 1]);
+        if (errors.length == blobs.length) {
+            errors.forEach(error => console.error(error));
+            throw new Error('Ни один блоб не удовлетворяет ожиданиям');
         }
     };
 }
@@ -2704,8 +3021,14 @@ function JsTester_AudioProcessingTester (args) {
 }
 
 function JsTester_DisableableFunction (fn) {
+    const originalFn = fn;
+
     this.disable = function () {
         fn = function () {};
+    };
+
+    this.enable = function () {
+        fn = originalFn;
     };
 
     this.createFunctionCaller = function () {
@@ -2731,7 +3054,7 @@ function JsTester_MutationObserver (args) {
             throw new Error('Элемент должен существовать.');
         }
 
-        if (!domElement.getClientRects) {
+        if (domElement != document && !(domElement instanceof Text) && !domElement.getClientRects) {
             throw new Error('Объект не является HTML-элементом.');
         }
 
@@ -2754,7 +3077,7 @@ function JsTester_MutationObserverTester (args) {
     var domElementToMutationCallback = args.domElementToMutationCallback,
         utils = args.utils;
 
-    return function (domElement, expectedConfig) {
+    return function (domElement, expectedConfig, mutations) {
         if (!domElementToMutationCallback.has(domElement)) {
             return;
         }
@@ -2767,7 +3090,7 @@ function JsTester_MutationObserverTester (args) {
 
             try {
                 utils.expectObjectToContain(actualConfig, expectedConfig);
-                callback();
+                callback(mutations || []);
             } catch (e) {}
         });
     };
@@ -2808,491 +3131,448 @@ function JsTester_MutationObserverMocker (factory) {
     };
 }
 
-function JsTester_Tests (factory) {
-    Object.defineProperty(window, 'MessageChannel', {
-        get: function () {
-            return undefined;
-        },
-        set: function () {}
-    }); 
+function JsTester_IntersectionObserver ({
+    callback,
+    intersectionObservations,
+    intersectionObservationHandlers
+}) {
+    this.observe = function (domElement) {
+        !intersectionObservations.has(domElement) && intersectionObservations.set(domElement, new Set());
+        intersectionObservations.get(domElement).add(callback);
 
-    ['requestAnimationFrame', 'requestIdleCallback', 'queueMicrotask'].forEach(methodName => {
-        Object.defineProperty(window, methodName, {
+        Promise.resolve().then(() => {
+            const uniqueHandlers = new Set();
+
+            intersectionObservationHandlers.forEach(
+                (handlers, getDomElement) =>
+                    domElement && getDomElement() == domElement &&
+                    handlers.forEach(handle => uniqueHandlers.add(handle))
+            );
+
+            uniqueHandlers.forEach(handle => handle(domElement));
+        });
+    };
+
+    this.unobserve = function (domElement) {
+        intersectionObservations.get(domElement)?.delete(callback);
+    };
+}
+
+function JsTester_IntersectionObserverFactory ({
+    intersectionObservations,
+    intersectionObservationHandlers
+}) {
+    return function (callback) {
+        return new JsTester_IntersectionObserver({
+            callback,
+            intersectionObservations,
+            intersectionObservationHandlers
+        });
+    };
+}
+
+function JsTester_IntersectionObserverMocker (FakeIntersectionObserver) {
+    var RealIntersectionObserver = window.IntersectionObserver;
+
+    this.replaceByFake = function () {
+        window.IntersectionObserver = FakeIntersectionObserver;
+    };
+
+    this.restoreReal = function () {
+        window.IntersectionObserver = RealIntersectionObserver;
+    };
+}
+
+function JsTester_IntersectionObservableTester ({
+    utils,
+    getDomElement,
+    intersectionObservations,
+    intersectionObservationHandlers
+}) {
+    getDomElement = utils.makeDomElementGetter(getDomElement);
+
+    this.onObserve = function (handler) {
+        !intersectionObservationHandlers.has(getDomElement) && intersectionObservationHandlers.set(getDomElement, []);
+        intersectionObservationHandlers.get(getDomElement).push(handler);
+    };
+    
+    this.runCallback = function (entries) {
+        (intersectionObservations.get(getDomElement()) || []).forEach(callback => callback(entries));
+    };
+}
+
+function JsTester_IntersectionObservablesTester ({
+    utils,
+    intersectionObservations,
+    intersectionObservationHandlers
+}) {
+    return function (getDomElement) {
+        return new JsTester_IntersectionObservableTester({
+            utils,
+            getDomElement,
+            intersectionObservations,
+            intersectionObservationHandlers
+        });
+    };
+}
+
+function JsTester_ZipArchive () {
+    return new Uint8Array([
+        80,75,3,4,10,0,0,0,0,0,173,56,49,84,7,161,234,221,2,0,0,0,2,0,0,0,1,0,28,0,97,85,84,9,0,3,54,21,229,97,54,21,
+        229,97,117,120,11,0,1,4,0,0,0,0,4,0,0,0,0,97,10,80,75,1,2,30,3,10,0,0,0,0,0,173,56,49,84,7,161,234,221,2,0,0,0,
+        2,0,0,0,1,0,24,0,0,0,0,0,1,0,0,0,164,129,0,0,0,0,97,85,84,5,0,3,54,21,229,97,117,120,11,0,1,4,0,0,0,0,4,0,0,0,0,
+        80,75,5,6,0,0,0,0,1,0,1,0,71,0,0,0,61,0,0,0,0,0
+    ]);
+}
+
+function JsTester_WindowSize (spendTime) {
+    var originalInnerHeight = window.innerHeight,
+        innerHeight = originalInnerHeight;
+
+    var redefineProperty = function () {
+        Object.defineProperty(window, 'innerHeight', {
             get: function () {
-                return function (callback) {
-                    return setTimeout(callback, 0);
-                };
+                return innerHeight;
             },
             set: function () {}
         });
+
+        redefineProperty = () => null;
+    };
+
+    this.getOriginalHeight = () => originalInnerHeight;
+
+    this.setHeight = function (value) {
+        redefineProperty();
+        innerHeight = value;
+        window.dispatchEvent(new Event('resize'));
+        spendTime(0);
+        spendTime(0);
+    };
+
+    this.reset = function () {
+        innerHeight = originalInnerHeight;
+    };
+}
+
+function JsTeste_Observable (args) {
+    var eventNames = args.eventNames,
+        handlers = args.handlers,
+        shortcutHandlers = args.shortcutHandlers,
+        me = args.me;
+
+    eventNames.forEach(function (eventName) {
+        var shortcutHandler;
+
+        shortcutHandlers[eventName] = function () {};
+        handlers[eventName] = new Map();
+
+        Object.defineProperty(me, 'on' + eventName, {
+            get: function () {
+                return shortcutHandler;
+            },
+            set: function (handler) {
+                shortcutHandlers[eventName] = shortcutHandler = handler;
+            }
+        }); 
+
+        me.addEventListener = function (eventName, handler) {
+            handlers[eventName].set(handler, handler);
+        };
+
+        me.removeEventListener = function (eventName, handler) {
+            handlers[eventName].delete(handler);
+        };
     });
 
-    Object.defineProperty(window, 'cancelAnimationFrame', {
-        get: function () {
-            return function (handle) {
-                clearTimeout(handle);
-            };
-        },
-        set: function () {}
-    }); 
+    return function (eventName) {
+        var args = Array.prototype.slice.call(arguments, 1);
 
-    var testRunners = [],
-        requiredClasses = [],
-        files = new Map(),
-        fileReaderTester = new JsTester_FileReaderTester(files),
-        fileReaderMocker = new JsTester_FileReaderMocker(files),
-        storageMocker = new JsTester_StorageMocker(),
-        timeoutLogger = new JsTester_Logger(),
-        debug = factory.createDebugger(),
-        timeout = new JsTester_Timeout(
-            'setTimeout',
-            'clearTimeout',
-            JsTester_OneTimeDelayedTask,
-            timeoutLogger,
-            debug
-        ),
-        interval = new JsTester_Timeout(
-            'setInterval',
-            'clearInterval',
-            JsTester_RepetitiveDelayedTask,
-            timeoutLogger,
-            debug
-        ),
-        utils = factory.createUtils(debug),
-        mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
-        mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
-        mutationObserverTester =  mutationObserverFactory.createTester(),
-        hasFocus = new JsTester_Variable(),
-        isBrowserHidden = new JsTester_Variable(),
-        setBrowserHidden = isBrowserHidden.createSetter(),
-        focusReplacer = new JsTester_FocusReplacer(hasFocus),
-        browserVisibilityReplacer = new JsTester_BrowserVisibilityReplacer(isBrowserHidden),
-        notifications = new JsTester_Queue(new JsTester_NoNotificationMessage()),
-        notificationPermissionRequests = new JsTester_Queue({
-            callback: function () {}
-        }),
-        notificationPermission = new JsTester_RWVariable();
-        notificationClickHandler = new JsTester_FunctionVariable(function () {}),
-        notificationTester = new JsTester_NotificationTester({
-            notifications: notifications,
-            notificationClickHandler: notificationClickHandler.createValueCaller(),
-            notificationPermissionRequests: notificationPermissionRequests,
-            notificationPermissionSetter: notificationPermission.set
-        }),
-        notificationReplacer = new JsTester_NotificationReplacer({
-            debug: debug,
-            notificationClickHandler: notificationClickHandler,
-            notifications: notifications,
-            notificationPermissionRequests: notificationPermissionRequests,
-            notificationPermission: notificationPermission
-        }),
-        ajaxTester = new JsTester_AjaxTester(utils, debug),
-        fetchTester = new JsTester_FetchTester(utils),
-        windowOpener = new JsTester_WindowOpener(utils),
-        webSocketLogger = new JsTester_Logger(),
-        webSocketFactory = new JsTester_WebSocketFactory(utils, webSocketLogger, debug),
-        webSockets = webSocketFactory.createCollection(),
-        webSocketReplacer = new JsTester_WebSocketReplacer(webSocketFactory),
-        userMediaEventHandlers = new JsTester_UserMediaEventHandlers(debug),
-        mediaDevicesUserMediaGetter = new JsTester_MediaDevicesUserMediaGetter(userMediaEventHandlers),
-        userMediaGetter = new JsTester_UserMediaGetter(userMediaEventHandlers),
-        additionalDevices = [],
-        mediaDevicesEventListeners = new Map(),
-        userDeviceHandling = new JsTester_EventHandling({
-            listeners: mediaDevicesEventListeners,
-            events: ['devicechange']
-        }),
-        navigatorMock = new JsTester_NavigatorMock({
-            userMediaGetter: userMediaGetter,
-            mediaDevicesUserMediaGetter: mediaDevicesUserMediaGetter,
-            additionalDevices: additionalDevices,
-            mediaDevicesEventListeners: mediaDevicesEventListeners,
-            userDeviceHandling: userDeviceHandling
-        }),
-        rtcConnectionStateChecker = new JsTester_FunctionVariable(function () {}),
-        rtcConnections = [],
-        tracksCreationCallStacks = new Map(),
-        playingMediaStreams = new Map(),
-        mediaStreamTracks = new Map(),
-        audioSources = new Map(),
-        mediaStreams = new JsTester_MediaStreams({
-            mediaStreamTracks: mediaStreamTracks,
-            playingMediaStreams: playingMediaStreams,
-            audioSources: audioSources,
-            debug: debug,
-            RealMediaStream: window.MediaStream
-        }),
-        userMedia = new JsTester_UserMedia({
-            additionalDevices: additionalDevices,
-            mediaDevicesEventListeners: mediaDevicesEventListeners,
-            tracksCreationCallStacks: tracksCreationCallStacks,
-            mediaStreams: mediaStreams,
-            eventHandlers: userMediaEventHandlers,
-            debug: debug
-        }),
-        sdp = [
-            'v=0',
-            'o=- 6845874344053138478 2 IN IP4 127.0.0.1',
-            's=-',
-            't=0 0',
-            'a=group:BUNDLE 0',
-            'a=msid-semantic: WMS 2c90093a-9b17-4821-aaf3-7b858065ff07',
-            'm=audio 9 UDP/TLS/RTP/SAVPF 111 103 104 9 0 8 106 105 13 110 112 113 126',
-            'c=IN IP4 0.0.0.0',
-            'a=rtcp:9 IN IP4 0.0.0.0',
-            'a=ice-ufrag:7MXY',
-            'a=ice-pwd:KAoEygUaHA9Mla0gjHYN9/tK',
-            'a=ice-options:trickle',
-            'a=fingerprint:sha-256 59:53:4D:AF:66:F5:F1:CE:3A:F7:93:13:5A:E6:07:19:1E:03:E9:22:A1:19:B2:49:6B:C7:37:86:90:21:2B:42',
-            'a=setup:actpass',
-            'a=mid:0',
-            'a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level',
-            'a=extmap:2 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
-            'a=extmap:3 urn:ietf:params:rtp-hdrext:sdes:mid',
-            'a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
-            'a=extmap:5 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
-            'a=sendrecv',
-            'a=msid:2c90093a-9b17-4821-aaf3-7b858065ff07 f807f562-5698-4b34-a298-bc3f780934c3',
-            'a=rtcp-mux',
-            'a=rtpmap:111 opus/48000/2',
-            'a=rtcp-fb:111 transport-cc',
-            'a=fmtp:111 minptime=10;useinbandfec=1',
-            'a=rtpmap:103 ISAC/16000',
-            'a=rtpmap:104 ISAC/32000',
-            'a=rtpmap:9 G722/8000',
-            'a=rtpmap:0 PCMU/8000',
-            'a=rtpmap:8 PCMA/8000',
-            'a=rtpmap:106 CN/32000',
-            'a=rtpmap:105 CN/16000',
-            'a=rtpmap:13 CN/8000',
-            'a=rtpmap:110 telephone-event/48000',
-            'a=rtpmap:112 telephone-event/32000',
-            'a=rtpmap:113 telephone-event/16000',
-            'a=rtpmap:126 telephone-event/8000',
-            'a=ssrc:3906726496 cname:bn9leCsdnF9+R5yv',
-            'a=ssrc:3906726496 msid:2c90093a-9b17-4821-aaf3-7b858065ff07 f807f562-5698-4b34-a298-bc3f780934c3',
-            'a=ssrc:3906726496 mslabel:2c90093a-9b17-4821-aaf3-7b858065ff07',
-            'a=ssrc:3906726496 label:f807f562-5698-4b34-a298-bc3f780934c3',
-            ''
-        ].join("\r\n"),
-        rtcPeerConnectionMocker = new JsTester_RTCPeerConnectionMocker({
-            sdp: sdp,
-            connections: rtcConnections,
-            rtcConnectionStateChecker: rtcConnectionStateChecker,
-            mediaStreams: mediaStreams,
-            tracksCreationCallStacks: tracksCreationCallStacks,
-            debug: debug
-        }),
-        rtcConnectionsMock = new JsTester_RTCPeerConnections({
-            tracksCreationCallStacks: tracksCreationCallStacks,
-            connections: rtcConnections,
-            stateChecker: rtcConnectionStateChecker,
-            mediaStreamTracks: mediaStreamTracks,
-            mediaStreams: mediaStreams
-        }),
-        testsExecutionBeginingHandlers = [],
-        checkRTCConnectionState = rtcConnectionStateChecker.createValueCaller(),
-        mediaStreamsTester = new JsTester_MediaStreamsTester({
-            mediaStreamsPlayingExpectaionFactory: new JsTester_MediaStreamsPlayingExpectationFactory(mediaStreamTracks),
-            playingMediaStreams: playingMediaStreams,
-            mediaStreams: mediaStreams
-        }),
-        playingOscillators = new Map(),
-        playingOscillatorsTester = new JsTester_PlayingOscillatorsTester(playingOscillators),
-        bufferToContent = new Map(),
-        destinationToSource = new Map(),
-        trackToDestination = new Map(),
-        destinationToGain = new Map(),
-        audioGainTester = new JsTester_AudioGainTester({
-            destinationToGain: destinationToGain,
-            trackToDestination: trackToDestination,
-            utils: utils
-        }),
-        audioProcessingTester = new JsTester_AudioProcessingTester({
-            trackToDestination: trackToDestination
-        }),
-        decodedTracksTester = new JsTester_DecodedTracksTester({
-            bufferToContent: bufferToContent,
-            destinationToSource: destinationToSource,
-            trackToDestination: trackToDestination
-        }),
-        mediaStreamSourceToMediaStream = new Map(),
-        audioNodesConnection = new JsTester_AudioNodesConnection({
-            destinationToSource: destinationToSource,
-            destinationToGain: destinationToGain,
-            mediaStreamSourceToMediaStream: mediaStreamSourceToMediaStream,
-            trackToDestination: trackToDestination
-        }),
-        audioContextFactory = new JsTester_AudioContextFactory({
-            mediaStreamSourceToMediaStream: mediaStreamSourceToMediaStream,
-            audioNodesConnection: audioNodesConnection,
-            mediaStreams: mediaStreams,
-            bufferToContent: bufferToContent,
-            destinationToSource: destinationToSource,
-            trackToDestination: trackToDestination,
-            playingOscillators: playingOscillators,
-            tracksCreationCallStacks: tracksCreationCallStacks,
-            debug: debug,
-            utils: utils
-        }),
-        audioDecodingTester = audioContextFactory.createAudioDecodingTester(),
-        audioContextReplacer = new JsTester_AudioContextReplacer(audioContextFactory),
-        audioReplacer = new JsTester_AudioReplacer({
-            mediaStreams: mediaStreams,
-            debug: debug
-        }),
-        nowValue = new JsTester_Variable(),
-        getNow = new JsTester_NowGetter({
-            originalNow: Date.now,
-            getNow: nowValue.createGetter()
-        }),
-        setNow = new JsTester_NowSetter(nowValue.createSetter()),
-        now = new JsTester_Now({
-            originalNow: Date.now,
-            getNow: getNow
-        }),
-        windowEventsListeners = new Map(),
-        windowEventsFirerer = new JsTester_WindowEventsFirerer(windowEventsListeners),
-        windowEventsReplacer = new JsTester_WindowEventsReplacer({
-            windowEventsListeners: windowEventsListeners,
-            realEventListenerAssigner: window.addEventListener,
-            fakeWindowListenerAssigner: new JsTester_WindowEventListenerAssigner({
-                windowEventsListeners: windowEventsListeners,
-                realEventListenerAssigner: window.addEventListener
-            })
-        }),
-        blobs = [],
-        blobsTester = new JsTester_BlobsTester({
-            blobs: blobs,
-            utils: utils
-        }),
-        blobReplacer = new JsTester_BlobReplacer({
-            blobs: blobs,
-            factory: new JsTester_BlobFactory({
-                blobs: blobs,
-                utils: utils
-            })
-        }),
-        copiedTexts = [],
-        copiedTextsTester = new JsTester_CopiedTextsTester(copiedTexts),
-        execCommandReplacer = new JsTester_ExecCommandReplacer(copiedTexts);
-
-    audioReplacer.replaceByFake();
-    windowEventsReplacer.replaceByFake();
-    browserVisibilityReplacer.replaceByFake();
-
-    window.MediaStream = function () {
-        var audioTracks;
-
-        if (arguments.length == 1) {
-            audioTracks = arguments[0];
-        }
-
-        if (audioTracks.length == 1) {
-            return new JsTester_MediaStreamWrapper({
-                mediaStream: mediaStreams.create(audioTracks),
-                audioTrack: audioTracks[0]
+        [handlers[eventName], [shortcutHandlers[eventName]]].forEach(function (handlers) {
+            handlers.forEach(function (handle) {
+                handle.apply(null, args);
             });
+        });
+    };
+}
+    
+function JsTester_NoBroadcastChannelMessage () {
+    this.expectNotToExist = function () {};
+
+    this.expectToHaveContent = function (expectedMessge) {
+        throw new Error(
+            'Должно быть отправлено сообщение с содержимым "' + expectedMessage + '", тогда, как ни одно ' +
+            'сообщение не было отправлено".'
+        );
+    };
+
+    this.expectToBeSentToChannel = function (expectedChannelName) {
+        throw new Error(
+            'Сообщение должно быть передано в канал "' + expectedChannelName + '", тогда, как ни одно ' +
+            'сообщение не было отправлено".'
+        );
+    };
+    
+    this.expectToContain = function (expectedContent) {
+        throw new Error(
+            'Должно быть отправлено сообщение с содержимым "' + JSON.stringify(expectedContent) + '", тогда, как ни ' +
+            'одно сообщение не было отправлено".'
+        );
+    };
+
+    this.getContent = function () {
+        throw new Error('Должно быть отправлено сообщение, тогда, как ни одно сообщение не было отправлено.');
+    };
+}
+
+function JsTester_BroadcastChannelMessage (args) {
+    var actualMessage = args.message,
+        actualChannelName = args.channelName,
+        utils = args.utils,
+        debug = args.debug,
+        callStack = debug.getCallStack();
+
+    this.expectToBeSentToChannel = function (expectedChannelName) {
+        if (actualChannelName != expectedChannelName) {
+            throw new Error(
+                'Сообщение должно быть передано в канал "' + expectedChannelName + '", тогда, как оно было передано ' +
+                'в канал "' + actualChannelName + '".'
+            );
         }
 
-        return mediaStreams.create.apply(mediaStreams, arguments);
+        return this;
+    };
+    
+    this.expectToHaveContent = function (expectedMessge) {
+        if (actualMessage != expectedMessage) {
+            throw new Error(
+                'Сообщение должно иметь содержимое "' + expectedMessage + '", а не "' + actualMessage + '".'
+            );
+        }
+
+        return this;
     };
 
-    window.moment = function () {
-        return {
-            format: function () {
-                return '05:32';
-            }
+    this.expectToContain = function (expectedContent) {
+        utils.expectObjectToContain(actualMessage, expectedContent);
+
+        return this;
+    };
+
+    this.getContent = function () {
+        return actualMessage;
+    };
+
+    this.expectNotToExist = function (exceptions) {
+        var exception = new Error(
+            'Ни одно сообщение не должно быть отправлено, тогда как было отправлено сообщение ' +
+                (typeof actualMessage == 'string' ? actualMessage : JSON.stringify(actualMessage)) +
+            '.' + "\n\n" + callStack
+        );
+
+        if (exceptions) {
+            exceptions.push(exception);
+        } else {
+            throw exception;
+        }
+    };
+}
+
+function JsTester_BroadcastChannelFactory (args) {
+    var broadcastChannelMessages = args.broadcastChannelMessages,
+        broadcastChannelMessageEventFirers = args.broadcastChannelMessageEventFirers,
+        handlers = args.handlers,
+        shortcutHandlers = args.shortcutHandlers,
+        utils = args.utils,
+        debug = args.debug;
+
+    return function (channelName) {
+        handlers[channelName] = {};
+        shortcutHandlers[channelName] = {};
+        channelHandlers = handlers[channelName];
+        shortcutChannelHandlers = shortcutHandlers[channelName];
+
+        this.postMessage = function (message) {
+            broadcastChannelMessages.add(new JsTester_BroadcastChannelMessage({
+                channelName: channelName,
+                message: message,
+                utils: utils,
+                debug: debug
+            }));
         };
+
+        this.close = function () {
+        };
+
+        broadcastChannelMessageEventFirers[channelName] = new JsTeste_Observable({
+            me: this,
+            eventNames: ['message'],
+            handlers: channelHandlers,
+            shortcutHandlers: shortcutChannelHandlers
+        });
+    };
+}
+
+function JsTester_BroadcastChannelTester (args) {
+    var fireEvent = args.eventFirer,
+        channelName = args.channelName,
+        broadcastChannelsToIgnore = args.broadcastChannelsToIgnore;
+
+    this.assumeSomeMessageMayBeSent = function () {
+        broadcastChannelsToIgnore.set(channelName);
     };
 
-    var wait = function () {
-        if (arguments[0]) {
-            var repetitionsCount = arguments[0], i;
+    this.expectToExist = function () {
+        if (!fireEvent) {
+            throw new Error('Канал "' + channelName + '" должен был быть создан.');
+        }
+    };
 
-            for (i = 0; i < repetitionsCount; i ++) {
-                wait();
-            }
+    this.expectNotToExist = function () {
+        if (fireEvent) {
+            throw new Error('Канал "' + channelName + '" не должен быть создан.');
+        }
+    };
 
+    this.receiveMessage = function (message) {
+        fireEvent('message', {
+            data: message
+        });
+    };
+}
+
+function JsTester_BroadcastChannelsTester (args) {
+    var broadcastChannelMessages = args.broadcastChannelMessages,
+        broadcastChannelMessageEventFirers = args.broadcastChannelMessageEventFirers,
+        broadcastChannelsToIgnore = args.broadcastChannelsToIgnore;
+
+    this.recentMessage = function () {
+        return broadcastChannelMessages.pop();
+    };
+
+    this.channel = function (channelName) {
+        return new JsTester_BroadcastChannelTester({
+            eventFirer: broadcastChannelMessageEventFirers[channelName],
+            channelName: channelName,
+            broadcastChannelsToIgnore: broadcastChannelsToIgnore
+        });
+    };
+}
+
+function JsTester_BroadcastChannelMocker (args) {
+    var RealBroadcastChannel = window.BroadcastChannel,
+        broadcastChannelMessages = args.broadcastChannelMessages,
+        broadcastChannelTester = args.broadcastChannelTester,
+        BroadcastChannel = args.BroadcastChannel,
+        handlers = args.handlers,
+        shortcutHandlers = args.shortcutHandlers,
+        broadcastChannelMessageEventFirers = args.broadcastChannelMessageEventFirers;
+
+    this.replaceByFake = function () {
+        broadcastChannelMessages.removeAll();
+
+        Object.keys(broadcastChannelMessageEventFirers).forEach(function (channelName) {
+            delete(broadcastChannelMessageEventFirers[channelName]);
+        });
+
+        Object.keys(shortcutHandlers).forEach(function (channelName) {
+            delete(shortcutHandlers[channelName]);
+        });
+
+        Object.keys(handlers).forEach(function (channelName) {
+            delete(handlers[channelName]);
+        });
+
+        window.BroadcastChannel = BroadcastChannel;
+    };
+
+    this.restoreReal = function () {
+        window.BroadcastChannel = RealBroadcastChannel;
+    };
+}
+
+function JsTester_VisibilitySetter ({
+    setFocus,
+    setBrowserHidden,
+    setBrowserVisible,
+    isBrowserHidden
+}) {
+    return function (newValue) {
+        newValue = !newValue;
+        const isChanged = newValue !== isBrowserHidden();
+
+        setBrowserHidden(newValue);
+        setBrowserVisible(!newValue);
+        
+        isChanged && document.dispatchEvent(new Event('visibilitychange'));
+        Promise.runAll(false, true);
+    };
+}
+
+function JsTester_FocusSetter (setFocus) {
+    return function (newValue) {
+        const isChanged = setFocus(newValue);
+        isChanged && window.dispatchEvent(new Event(newValue ? 'focus' : 'blur'));
+    }
+}
+
+function JsTester_ResizeObserverTrigger (resizeObservables) {
+    return domElement => resizeObservables.has(domElement) &&
+        resizeObservables.get(domElement).forEach(callback => callback([{
+            contentRect: domElement.getClientRects()
+        }]));
+}
+
+function JsTester_ResizeObserver ({
+    callback,
+    resizeObservables
+}) {
+    const domElements = new Set();
+
+    this.observe = domElement => {
+        if (!domElement) {
             return;
         }
 
-        timeout.runCallbacks();
-        interval.runCallbacks();
+        domElements.add(domElement);
+
+        !resizeObservables.has(domElement) && resizeObservables.set(domElement, new Set());
+        resizeObservables.get(domElement).add(callback);
     };
 
-    var spendTime = function (time) {
-        timeout.spendTime(time);
-        interval.spendTime(time);
-    };
-
-    this.exposeDebugUtils = function (variableName) {
-        window[variableName] = debug;
-    };
-    this.addTest = function (testRunner) {
-        testRunners.push(testRunner);
-    };
-    this.runTests = function (options) {
-        var testersFactory;
-        options = options || {};
-        
-        try {
-            testersFactory = factory.createTestersFactory({
-                wait: wait,
-                utils: utils,
-                blobsTester: blobsTester
-            });
-        } catch(e) {
-            error = e;
+    this.unobserve = domElement => {
+        if (!domElement) {
+            return;
         }
 
-        var args = {
-            error: '<html>' +
-                '<head>' +
-                    '<title>500 Internal Server Error</title>' +
-                '</head>' +
-                '<body bgcolor="white">' +
-                    '<center>' +
-                        '<h1>500 Internal Server Error</h1>' +
-                    '</center>' +
-                    '<hr>' +
-                    '<center>nginx/1.10.2</center>' +
-                '</body>' +
-            '</html>',
-            sdp: sdp,
-            fileReader: fileReaderTester,
-            triggerMutation: mutationObserverTester,
-            ajax: ajaxTester,
-            fetch: fetchTester,
-            testersFactory: testersFactory,
-            wait: wait,
-            spendTime: spendTime,
-            utils: utils,
-            windowOpener: windowOpener,
-            webSockets: webSockets,
-            webSocketLogger: webSocketLogger,
-            userMedia: userMedia,
-            rtcConnectionsMock: rtcConnectionsMock,
-            navigatorMock: navigatorMock,
-            timeoutLogger: timeoutLogger,
-            mediaStreamsTester: mediaStreamsTester,
-            setNow: setNow,
-            playingOscillatorsTester: playingOscillatorsTester,
-            windowEventsFirerer: windowEventsFirerer,
-            audioDecodingTester: audioDecodingTester,
-            decodedTracksTester: decodedTracksTester,
-            audioProcessing: audioProcessingTester,
-            audioGain: audioGainTester,
-            notificationTester: notificationTester,
-            setFocus: hasFocus.createSetter(),
-            setBrowserHidden: isBrowserHidden.createSetter(),
-            blobsTester: blobsTester,
-            copiedTextsTester: copiedTextsTester
-        };
+        resizeObservables.has(domElement) && resizeObservables.get(domElement).delete(callback);
+    };
 
-        (function () {
-            var name;
+    this.disconnect = () => {
+        domElements.forEach(domElement =>
+            resizeObservables.has(domElement) &&
+            resizeObservables.get(domElement).delete(callback));
 
-            for (name in options) {
-                args[name] = options[name];
-            }
-        })();
+        domElements.clear();
+    };
+}
 
-        this.handleBeginingOfTestsExecution(args);
-
-        mediaStreams.considerInitial();
-
-        testRunners.forEach(function (runTest) {
-            runTest.call(null, args);
+function JsTester_ResizeObserverFactory (resizeObservables) {
+    return function (callback) {
+        return new JsTester_ResizeObserver({
+            resizeObservables,
+            callback
         });
     };
-    this.requireClass = function (className) {
-        requiredClasses.push(className);
-    };
-    this.runBeforeTestsExecution = function (handleBeginingOfTestsExecution) {
-        testsExecutionBeginingHandlers.push(handleBeginingOfTestsExecution);
-    };
-    this.handleBeginingOfTestsExecution = function (args) {
-        testsExecutionBeginingHandlers.forEach(function (handleBeginingOfTestsExecution) {
-            handleBeginingOfTestsExecution.call(null, args);
-        });
-    };
-    this.getRequiredClasses = function () {
-        return requiredClasses;
-    };
-    this.beforeEach = function () {
-        window.URL.createObjectURL = function (object) {
-            return location.href + '#' + object.id;
-        };
+}
 
-        setNow(null);
+function JsTester_DownloadPreventer () {
+    const listener = event => event.target.tagName == 'A' &&
+        event.target.getAttribute('download') &&
+        event.preventDefault();
 
-        setBrowserHidden(false);
-        audioNodesConnection.reset();
-        additionalDevices.splice(0, additionalDevices.length);
-        userDeviceHandling.reset();
-        utils.enableScrollingIntoView();
-        mutationObserverMocker.replaceByFake();
-        fileReaderMocker.replaceByFake();
-        execCommandReplacer.replaceByFake();
-        blobReplacer.replaceByFake();
-        focusReplacer.replaceByFake();
-        bufferToContent.clear();
-        destinationToSource.clear();
-        trackToDestination.clear();
-        playingOscillators.clear();
-        mediaStreams.clear();
-        windowEventsReplacer.prepareToTest();
-        notificationReplacer.replaceByFake();
-        audioContextReplacer.replaceByFake();
-        storageMocker.replaceByFake();
-        rtcPeerConnectionMocker.replaceByFake();
-        webSocketReplacer.replaceByFake();
-        ajaxTester.replaceByFake();
-        fetchTester.replaceByFake();
-        timeout.replaceByFake();
-        interval.replaceByFake();
-        windowOpener.replaceByFake();
-        now.replaceByFake();
-    };
-    this.restoreRealDelayedTasks = function () {
-        timeout.restoreReal();
-        interval.restoreReal();
-        now.restoreReal();
-    };
-    this.afterEach = function () {
-        var exceptions = [];
-
-        this.restoreRealDelayedTasks();
-        mutationObserverMocker.restoreReal();
-        fileReaderTester.expectNoFileToBeLoading();
-        fileReaderMocker.restoreReal();
-        execCommandReplacer.restoreReal();
-        blobReplacer.restoreReal();
-        notificationTester.recentNotification().expectNotToExist(exceptions);
-        notificationTester.expectNotificationPermissionNotToBeRequested(exceptions);
-        Promise.clear();
-        focusReplacer.restoreReal();
-        windowEventsReplacer.restoreReal();
-        notificationReplacer.restoreReal();
-        audioContextReplacer.restoreReal();
-        checkRTCConnectionState(exceptions);
-        storageMocker.restoreReal();
-        rtcPeerConnectionMocker.restoreReal();
-        userMediaEventHandlers.assertNoUserMediaRequestLeftUnhandled(exceptions);
-        audioContextFactory.assertNoAudioDecodingHappens(exceptions);
-        audioContextFactory.reset();
-        ajaxTester.restoreReal(exceptions);
-        fetchTester.restoreReal(exceptions);
-        windowOpener.restoreReal();
-        webSockets.afterEach(exceptions);
-        webSockets.expectNoMessageToBeSent(exceptions);
-        webSocketReplacer.restoreReal();
-
-        exceptions.forEach(function (exception) {
-            throw exception;
-        });
-    };
+    this.prevent = () => document.body.addEventListener('click', listener);
+    this.resume = () => document.body.removeEventListener('click', listener);
 }
 
 function JsTester_FileField (
@@ -3332,7 +3612,7 @@ function JsTester_TextArea (
         this.expectToBeVisible();
 
         getDomElement().focus();
-        getDomElement().innerHTML = 'Привет.';
+        getDomElement().innerHTML = value;
         getDomElement().blur();
         getDomElement().dispatchEvent(new Event('change', {
             bubbles: true
@@ -3348,7 +3628,8 @@ function JsTester_TestersFactory (args) {
         gender = factory.createGender(),
         female = gender.female,
         neuter = gender.neuter,
-        male = gender.male;
+        male = gender.male,
+        spendTime = args.spendTime;
 
     this.createFileFieldTester = function () {
         var getDomElement = utils.makeDomElementGetter(arguments[0]);
@@ -3378,9 +3659,17 @@ function JsTester_TestersFactory (args) {
     this.createTextFieldTester = function (domElement, label) {
         var getDomElement = utils.makeDomElementGetter(domElement);
 
-        return new JsTester_InputElement(getDomElement, wait, utils, this, neuter,
+        return new JsTester_InputElement(
+            getDomElement,
+            wait,
+            utils,
+            this,
+            neuter,
             utils.fieldDescription('текстовое поле', label),
-            utils.fieldDescription('текстовое поле', label), utils.fieldDescription('текстового поля', label), factory);
+            utils.fieldDescription('текстовое поле', label),
+            utils.fieldDescription('текстового поля', label),
+            factory,
+        );
     };
     this.createTextAreaTester = function (getDomElement, label) {
         return new JsTester_TextArea(
@@ -3442,7 +3731,7 @@ function JsTester_QueryParams() {
             if (Array.isArray(oldValue)) {
                 oldValue.push(value);
             } else {
-                namespace[component] = [oldValue];
+                namespace[component] = [oldValue, value];
             }
         } else {
             namespace[component] = value;
@@ -3467,35 +3756,76 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
     };
 
     this.textEquals = function (desiredTextContent) {
-        isDesiredText = function (actualTextContent) {
-            return actualTextContent == desiredTextContent;
+        isDesiredText = function (actualTextContent, comparisons) {
+            const result = actualTextContent == desiredTextContent;
+
+            (comparisons || []).push(
+                `Строка ${
+                    JSON.stringify(actualTextContent)
+                } должна быть равна строке ${
+                    JSON.stringify(desiredTextContent)
+                }. Условие ${result ? '' : 'не '}удовлетворено.`
+            );
+
+            return result;
         };
 
         return this;
     };
 
     this.textContains = function (desiredTextContent) {
-        isDesiredText = function (actualTextContent) {
-            return actualTextContent.indexOf(desiredTextContent) != -1;
+        isDesiredText = function (actualTextContent, comparisons) {
+            const result = actualTextContent.indexOf(desiredTextContent) != -1;
+
+            (comparisons || []).push(
+                `Строка ${
+                    JSON.stringify(actualTextContent)
+                } должна содержать строку ${
+                    JSON.stringify(desiredTextContent)
+                }. Условие ${result ? '' : 'не '}удовлетворено.`
+            );
+
+            return result;
         };
 
         return this;
     };
 
     this.findAll = function (logEnabled) {
+        if (!ascendantElement.querySelectorAll) {
+            throw new Error(`Объект ${ascendantElement} не является HTML-элементом.`);
+        }
+
         var i,
             descendants = ascendantElement.querySelectorAll(selector),
             length = descendants.length,
             descendant,
-            desiredDescendants = [];
-        
+            text,
+            desiredDescendants = [],
+            allDescendants = [],
+            comparisons = [];
+
         for (i = 0; i < length; i ++) {
             descendant = descendants[i];
+            text = utils.getTextContent(descendant);
 
-            if (isDesiredText(utils.getTextContent(descendant))) {
+            logEnabled && allDescendants.push({
+                domElement: descendant,
+                text: text
+            });
+
+            if (isDesiredText(text, comparisons)) {
                 desiredDescendants.push(descendant);
             }
         }
+
+        logEnabled && console.log({
+            selector,
+            ascendantElement,
+            comparisons,
+            allDescendants,
+            desiredDescendants
+        });
 
         return desiredDescendants;
     };
@@ -3511,7 +3841,84 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
     };
 }
 
-function JsTester_Utils (debug) {
+function JsTester_TextExpectations (throwSubstringInclusionError) {
+    this.substringExpectation = function (args) {
+        var substring = args.substring,
+            isExpected = args.isExpected,
+            maybeNot = args.maybeNot,
+            actualContent = args.actualContent;
+        
+        var index = actualContent.indexOf(substring);
+
+        if (!isExpected(index !== -1)) {
+            throw throwSubstringInclusionError(args);
+        }
+
+        return index;
+    };
+
+    this.expectTextNotToHaveSubstring = function (args) {
+        args.maybeNot = 'не ';
+
+        args.isExpected = function (doesActualTextContainSubstring) {
+            return !doesActualTextContainSubstring;
+        };
+
+        this.substringExpectation(args);
+    };
+
+    this.getTextContentSubstringInclusionExpectationArguments = function (args) {
+        args = args || {};
+
+        args.maybeNot = '';
+        args.isExpected = function (doesActualTextContainSubstring) {
+            return doesActualTextContainSubstring;
+        };
+
+        return args;
+    };
+    
+    this.expectTextToHaveSubstringsConsideringOrder = function(actualContent, expectedSubstrings) {
+        expectedSubstrings.forEach(function (expectedSubstring) {
+            var index = this.substringExpectation(this.getTextContentSubstringInclusionExpectationArguments({
+                substring: expectedSubstring,
+                actualContent: actualContent
+            }));
+
+            actualContent = actualContent.substr(index + expectedSubstring.length);
+        }.bind(this));
+    };
+}
+
+function JsTester_Element ({
+    getElement,
+    utils
+}) {
+    var oldGetElement = getElement;
+    var getElement = utils.makeFunction(getElement);
+
+    function querySelectorAll (selector, logEnabled) {
+        const element = getElement(),
+            result = (getElement() || new JsTester_NoElement()).querySelectorAll(selector);
+
+        logEnabled && console.log({
+            element,
+            result
+        });
+
+        return result;
+    }
+    this.querySelector = function (selector, logEnabled) {
+        const elements = querySelectorAll(selector, logEnabled);
+        return utils.getVisibleSilently(querySelectorAll(selector)) || new JsTester_NoElement();
+    };
+
+    this.querySelectorAll = function (selector) {
+        return utils.getAllVisible(querySelectorAll(selector));
+    };
+}
+
+function JsTester_Utils ({debug, windowSize, spendTime, args}) {
     var me = this,
         doNothing = function () {};
 
@@ -3521,6 +3928,10 @@ function JsTester_Utils (debug) {
 
     this.toPercents = function (value) {
         return parseInt(value * 100, 0);
+    };
+
+    this.isNonExisting = function (value) {
+        return !value || value instanceof JsTester_NoElement;
     };
 
     this.pipe = function () {
@@ -3537,14 +3948,10 @@ function JsTester_Utils (debug) {
         };
     };
 
-    this.querySelector = function (selector) {
-        return document.querySelector(selector) || new JsTester_NoElement();
-    };
-
-    this.receiveWindowMessage = function (text) {
-        window.dispatchEvent(new MessageEvent('message', {
-            data: text
-        }));
+    this.receiveWindowMessage = function (args) {
+        window.dispatchEvent(new MessageEvent('message', args));
+        spendTime(0);
+        spendTime(0);
     };
 
     this.maybeDecodeArrayBuffer = function (data) {
@@ -3563,12 +3970,33 @@ function JsTester_Utils (debug) {
         maybeScrollIntoView = doNothing;
     };
 
+    this.getWindowHeight = () => windowSize.getOriginalHeight();
+
     this.scrollIntoView = function (domElement) {
         maybeScrollIntoView(domElement);
     };
 
+    this.expectNonStrict = function (expectedValue) {
+        return new JsTests_NonStrictExpectaion(expectedValue);
+    };
+        
+    this.expectFileToHaveSubstring = function (expectedValue) {
+        return new JsTests_FileContentSubstringExpectaion(expectedValue);
+    };
+
+    this.expectBlob = function (expectedValue) {
+        return new JsTests_BlobExpectaion({
+            expectedValue,
+            blobsTester: args.blobsTester,
+        });
+    };
+
     this.expectEmptyObject = function () {
         return new JsTests_EmptyObjectExpectaion();
+    };
+
+    this.expectNotToBeEmpty = function () {
+        return new JsTests_NotEmptyExpectaion();
     };
 
     this.expectToHavePrefix = function (expectedPrefix) {
@@ -3579,10 +4007,32 @@ function JsTester_Utils (debug) {
         return new JsTests_StringExpectaion();
     };
 
-    this.expectToInclude = function (expectedSubset) {
-        return new JsTests_SetInclusionExpectation(expectedSubset);
+    this.expectToHaveLength = function (expectedLength) {
+        return new JsTests_LengthExpectaion(expectedLength);
     };
 
+    this.expectToInclude = function (expectedSubset) {
+        return new JsTests_SetInclusionExpectation({
+            expectedSubset: expectedSubset,
+            utils: this,
+            description: 'включающий',
+            compliesExpectation: function (isIncluded) {
+                return !isIncluded;
+            }
+        });
+    };
+
+    this.expectToExclude = function (expectedSubset) {
+        return new JsTests_SetInclusionExpectation({
+            expectedSubset: expectedSubset,
+            utils: this,
+            description: 'исключающий',
+            compliesExpectation: function (isIncluded) {
+                return isIncluded;
+            }
+        });
+    };
+    
     this.createParamExpectation = function (expectation) {
         var Constructor = function () {
             this.maybeThrowError = expectation;
@@ -3601,7 +4051,7 @@ function JsTester_Utils (debug) {
             preventDefaultHandler();
         };
     };
-    function createKeyboardEvent (eventName, key, keyCode, preventDefaultHandler) {
+    function createKeyboardEvent (eventName, key, keyCode, preventDefaultHandler, code) {
         var keyboardEvent = document.createEvent('KeyboardEvent');
 
         me.addPreventDefaultHandler(keyboardEvent, preventDefaultHandler);
@@ -3610,6 +4060,13 @@ function JsTester_Utils (debug) {
             eventName, true, false, null, 0, false, 0, false, keyCode, 0);
         keyboardEvent.which = keyboardEvent.keyCode = keyCode;
         keyboardEvent.key = key;
+        code && (keyboardEvent.code = code);
+
+        Object.defineProperty(keyboardEvent, 'code', {
+            get: function () {
+                return code;
+            }
+        });     
 
         ['keyCode', 'which', 'charCode'].forEach(function (propertyName) {
             Object.defineProperty(keyboardEvent, propertyName, {
@@ -3660,7 +4117,7 @@ function JsTester_Utils (debug) {
         target.dispatchEvent(createKeyboardEvent(
             'keyup', key, keyCode, function () {}));
     };
-    this.pressSpecialKey = function (target, keyCode, handleKeyDown, handleKeyUp) {
+    this.pressSpecialKey = function (target, keyCode, handleKeyDown, handleKeyUp, code) {
         target = target || document;
 
         handleKeyDown = handleKeyDown || function() {};
@@ -3670,19 +4127,19 @@ function JsTester_Utils (debug) {
             function () {
                 handleKeyDown = function () {};
                 handleKeyUp = function () {};
-            }));
+            }, code));
 
         handleKeyDown();
 
-        target.dispatchEvent(createKeyboardEvent('keyup', '', keyCode, function () {}));
-
+        target.dispatchEvent(createKeyboardEvent('keyup', '', keyCode, function () {}, code));
         handleKeyUp();
     };
     this.pressEscape = function (target) {
         this.pressSpecialKey(target, 27);
+        spendTime(0);
     };
     this.pressEnter = function (target) {
-        this.pressSpecialKey(target, 13);
+        this.pressSpecialKey(target, 13, undefined, undefined, 'Enter');
     };
     this.pressRight = function (target, repetitions) {
         this.repeat(repetitions, function () {
@@ -3735,6 +4192,10 @@ function JsTester_Utils (debug) {
         return description + (label ? (' "' + label + '"') : '');
     };
     this.isVisible = function(domElement) {
+        if (!domElement) {
+            return false;
+        }
+
         return !!(domElement.offsetWidth || domElement.offsetHeight || domElement.getClientRects().length);
     };
     this.getVariablePresentation = function (object) {
@@ -3778,6 +4239,10 @@ function JsTester_Utils (debug) {
         return value.replace(/<[^<>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/[\s]+/g, ' ').trim();
     };
     function parseName (name) {
+        if (/^[^\[\]]+\[\]$/.test(name)) {
+            return [name.slice(0, -2)];
+        }
+
         var result = name.match(/^([^\[\]]+)(?:\[([^\[\]]+)\])+$/);
 
         if (!result) {
@@ -3924,6 +4389,24 @@ function JsTester_Utils (debug) {
         return (new JsTester_DescendantFinder(ascendantElement, this)).matchesSelector(selector || '*').
             textEquals(desiredTextContent).find();
     };
+    this.expectJSONObjectToContain = function (object, expectedContent) {
+        if (!object) {
+            throw new Error('Строка, которую необходимо разобрать как JSON не должна быть пустой.');
+        }
+
+        if (typeof object != 'string') {
+            throw new Error('Значение переданное для разбора в качестве JSON должно быть строковым.');
+        }
+
+        try {
+            object = JSON.parse(object);
+        } catch (e) {
+            throw new Error('Не удалось разобрать JSON.');
+        }
+
+
+        this.expectObjectToContain(object, expectedContent);
+    };
     this.expectObjectToContain = function (object, expectedContent) {
         if (typeof expectedContent != 'object') {
             if (typeof object == 'object') {
@@ -3941,9 +4424,7 @@ function JsTester_Utils (debug) {
         (new JsTester_ParamsContainingExpectation(object))(expectedContent);
     };
     function getVisible (domElements, handleError) {
-        var results = Array.prototype.filter.call(domElements, (function (domElement) {
-            return this.isVisible(domElement);
-        }).bind(this));
+        var results = me.getAllVisible(domElements);
 
         if (results.length != 1) {
             handleError(results.length);
@@ -3952,6 +4433,11 @@ function JsTester_Utils (debug) {
 
         return results[0];
     }
+    this.getAllVisible = function (domElements) {
+        return Array.prototype.filter.call(domElements, (function (domElement) {
+            return this.isVisible(domElement);
+        }).bind(this));
+    };
     this.getVisibleSilently = function (domElements) {
         return getVisible.call(this, domElements, function () {});
     };
@@ -4038,6 +4524,29 @@ function JsTester_Utils (debug) {
         return '?' + getComponents([], query).join('&');
     };
 
+    this.element = function (getElement) {
+        return new JsTester_Element({
+            getElement,
+            utils: this
+        });
+    };
+
+    var element = this.element(() => document.body);
+
+    this.querySelector = function (selector) {
+        return element.querySelector(selector);
+    };
+
+    this.isIntersecting = function (container, contained) {
+        const containerRect = container.getBoundingClientRect(),
+            containedRect = contained.getBoundingClientRect();
+
+        return !(
+            (containedRect.top < containerRect.top && containedRect.bottom < containerRect.top) ||
+            (containedRect.top > containerRect.bottom && containedRect.bottom > containerRect.bottom)
+        );
+    };
+
     this.enableScrollingIntoView();
 }
 
@@ -4048,9 +4557,27 @@ function JsTester_OpenedWindow (path, query) {
                 'URL имеет путь "' + path + '".');
         }
     };
+
     this.expectQueryToContain = function (params) {
         query.expectToContain(params);
     };
+
+    this.expectNoWindowToBeOpened = function () {
+        throw new Error(
+            'Окно не должно быть открыто, тогда как было открыто окно, URL которого имеет путь "' + path + '".'
+        );
+    };
+
+    this.expectTextToContain = function (expectedSubstring) {
+        const decoded = decodeURIComponent(path.substr(21));
+
+        if (!decoded.includes(expectedSubstring)) {
+            throw new Error(
+                'Должен быть открыт текстовый документ с подстрокой "' + expectedSubstring + '", тогда как текстовый ' +
+                'документ имеет такое содержание' + "\n\n" + decoded
+            );
+        }
+    }
 }
 
 function JsTester_NoWindowOpened (utils) {
@@ -4060,18 +4587,29 @@ function JsTester_NoWindowOpened (utils) {
     this.expectQueryToContain = function (params) {
         throw new Error('Должен быть открыт URL с параметрами' + utils.getVariablePresentation(params));
     };
+    this.expectTextToContain = function (expectedSubstring) {
+        throw new Error('Должен быть открыт текстовый документ с подстрокой "' + expectedSubstring + '"');
+    }
+    this.expectNoWindowToBeOpened = function () {};
 }
 
 function JsTester_WindowOpener (utils) {
     var open = window.open,
         actualWindow = new JsTester_NoWindowOpened(utils);
 
+    this.expectNoWindowToBeOpened = function () {
+        actualWindow.expectNoWindowToBeOpened();
+    };
     this.expectToHavePath = function (expectedValue) {
         actualWindow.expectToHavePath(expectedValue);
         return this;
     };
     this.expectQueryToContain = function (params) {
         actualWindow.expectQueryToContain(params);
+        return this;
+    };
+    this.expectTextToContain = function (expectedSubstring) {
+        actualWindow.expectTextToContain(expectedSubstring);
         return this;
     };
     this.replaceByFake = function () {
@@ -4226,6 +4764,14 @@ function JsTester_Request (request, utils, callStack) {
 
         return this;
     };
+    this.respondWithoutContent = function () {
+        request.respondWith({
+            status: 204,
+            responseText: ''
+        });
+
+        return this;
+    };
     this.respondSuccessfullyWith = function (responseObject) {
         request.respondWith({
             status: 200,
@@ -4234,15 +4780,14 @@ function JsTester_Request (request, utils, callStack) {
 
         return this;
     };
-    function respond (args) {
-        var responseObject = args.responseObject,
-            status = args.status;
-
+    function respond ({status, responseObject, ...args}) {
         request.respondWith({
             status: status,
-            responseText: typeof responseObject == 'string' ? responseObject : JSON.stringify(responseObject)
+            responseText: typeof responseObject == 'string' ? responseObject : JSON.stringify(responseObject),
+            ...args
         });
     }
+    this.respond = respond;
     this.respondUnsuccessfullyWith = function (responseObject) {
         respond({
             responseObject: responseObject,
@@ -4295,7 +4840,7 @@ function JsTester_Request (request, utils, callStack) {
         if (method != expectedValue) {
             throw new Error(
                 'Запрос должен быть отправлен методом "' + expectedValue + '", тогда как он был отправлен методом "' +
-                method + '".'
+                method + '". ' + this.getDescription()
             );
         }
 
@@ -4353,6 +4898,143 @@ function JsTester_PredictedRequest (assertions, utils) {
     defineWrapperMethod('expectQueryToContain');
 }
 
+function JsTester_SomeRequest (args) {
+    var calls = args.calls,
+        responder = args.responder;
+
+    [
+        'expectPathToMatch',
+        'expectPathToContain',
+        'expectToHavePath',
+        'expectToHaveMethod',
+        'expectToHaveHeaders',
+        'testBodyParam',
+        'testQueryParam',
+        'expectBodyToContain',
+        'expectQueryToContain'
+    ].forEach(function (methodName) {
+        this[methodName] = function () {
+            calls.push({
+                methodName: methodName,
+                args: Array.prototype.slice.call(arguments, 0)
+            });
+
+            return this;
+        };
+    }.bind(this));
+
+    [
+        'printCallStack',
+        'proceedUploading',
+        'respond',
+        'respondSuccessfullyWith',
+        'respondUnsuccessfullyWith',
+        'respondUnauthorizedWith'
+    ].forEach(function (methodName) {
+        this[methodName] = function () {
+            responder[methodName].apply(responder, arguments);
+        };
+    }.bind(this));
+}
+
+function JsTester_MaybeResponder () {
+    var responder;
+
+    [
+        'printCallStack',
+        'proceedUploading',
+        'respond',
+        'respondSuccessfullyWith',
+        'respondUnsuccessfullyWith',
+        'respondUnauthorizedWith'
+    ].forEach(function (methodName) {
+        this[methodName] = function () {
+            if (!responder) {
+                throw new Error('Запрос не найден.');
+            }
+
+            responder[methodName].apply(responder, arguments);
+            Promise.runAll(false, true);
+        };
+    }.bind(this));
+
+    this.setResponder = function (value) {
+        responder = value;
+    };
+}
+
+function JsTester_RequestInAnyOrder (requests) {
+    var testings = [],
+        recentRequests = [],
+        errors = [];
+
+    this.someRequest = function () {
+        var calls = [],
+            responder = new JsTester_MaybeResponder();
+
+        testings.push({
+            calls: calls,
+            responder: responder
+        });
+
+        recentRequests.push(requests.recentRequest());
+
+        return new JsTester_SomeRequest({
+            calls: calls,
+            responder: responder
+        });
+    };
+
+    function callMethods (me, calls) {
+        calls.forEach(function (a) {
+            var methodName = a.methodName,
+                args = a.args;
+
+            me[methodName].apply(me, args);
+        });
+    }
+
+    this.expectToBeSent = function () {
+        var failedTestings = [];
+
+        testings.forEach(function (args) {
+            var calls = args.calls,
+                responder = args.responder;
+
+            var index = recentRequests.findIndex(function (request) {
+                try {
+                    callMethods(request, calls);
+                } catch (e) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            if (index == -1) {
+                failedTestings.push(calls);
+            } else {
+                responder.setResponder(recentRequests[index]);
+                recentRequests.splice(index, 1);
+            }
+        });
+
+        if (failedTestings.length) {
+            failedTestings.forEach(function (calls) {
+                recentRequests.forEach(function (request) {
+                    try {
+                        callMethods(request, calls)
+                    } catch (e) {
+                        errors.push(e.message);
+                    }
+                });
+            });
+
+            throw new Error(errors.join("\n\n"));
+        }
+    };
+}
+
 function JsTester_RequestTester (args) {
     var requests,
         utils = args.utils,
@@ -4360,6 +5042,9 @@ function JsTester_RequestTester (args) {
         replaceByFake = args.replaceByFake,
         expectNoExceptionsToBeThrown = args.expectNoExceptionsToBeThrown;
 
+    this.inAnyOrder = function () {
+        return new JsTester_RequestInAnyOrder(requests);
+    };
     this.recentRequest = function () {
         return requests.recentRequest();
     };
@@ -4468,6 +5153,10 @@ function JsTester_FetchMock (args) {
         utils = args.utils;
 
     return function (url, options) {
+        options = options || {
+            method: 'GET'
+        };
+
         var method = options.method,
             body = options.body,
             resolver = new JsTester_FunctionVariable(function () {});
@@ -4665,12 +5354,13 @@ function JsTester_Requests (requests, utils) {
         indexOfRecentRequest = newIndexOfRecentRequest;
     };
     this.expectNoRequestsToBeSent = function () {
-        var recentRequest = getRecentRequest();
+        var recentRequest = getRecentRequest(),
+            callStack = callStacks[indexOfRecentRequest];
 
         if (recentRequest) {
             throw new Error(
                 'Был отправлен запрос, тогда как ни один запрос не должен был быть отправлен. ' +
-                createRequestTester(recentRequest).getDescription()
+                createRequestTester(recentRequest).getDescription() + "\n" + callStack
             );
         }
     };
@@ -4785,6 +5475,14 @@ function JsTester_UrlAttributeTester (args) {
         return tester;
     }
 
+    this.expectToHaveHash = function (expectedHash) {
+        const actualHash = parseUrl().hash;
+
+        if (actualHash != expectedHash) {
+            throw new Error(`Ожидается хэш "${expectedHash}", а не ${actualHash}`);
+        }
+    };
+
     this.expectToHavePath = function (expectedValue) {
         testPath({
             isComplyingExcpectation: function (actualPath) {
@@ -4871,40 +5569,61 @@ function JsTester_Anchor (
         return blobsTester.getAt(id);
     }
 
+    this.expectHrefToHaveHash = function (expectedHash) {
+        urlTester.expectToHaveHash(expectedHash);
+        return this;
+    };
+
     this.expectHrefToBeBlobWithSubstrings = function (expectedSubstrings) {
         getBlob().expectToHaveSubstrings(expectedSubstrings);
     };
 
     this.expectHrefToBeBlobWithSubstring = function (expectedSubstring) {
         getBlob().expectToHaveSubstring(expectedSubstring);
+        return this;
+    };
+
+    this.expectHrefToBeBlobWithoutSubstring = function (expectedSubstring) {
+        getBlob().expectNotToHaveSubstring(expectedSubstring);
+        return this;
     };
 
     this.expectHrefToBeBlobWithContent = function (expectedContent) {
         getBlob().expectToHaveContent(expectedContent);
+        return this;
     };
 
     this.expectHrefToHavePath = function (expectedValue) {
-        return urlTester.expectToHavePath(expectedValue);
+        urlTester.expectToHavePath(expectedValue);
+        return this;
     };
 
     this.expectHrefPathToContain = function (expectedSubstring) {
-        return urlTester.expectPathToContain(expectedSubstring);
+        urlTester.expectPathToContain(expectedSubstring);
+        return this;
     };
 
     this.expectHrefQueryToContain = function (params) {
-        return urlTester.expectQueryToContain(params);
+        urlTester.expectQueryToContain(params);
+        return this;
     };
 }
 
 function JsTester_InputElement (
     getDomElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
-    genetiveDescription, factory
+    genetiveDescription, factory, spendTime
 ) {
-    var me = this,
-        nativeValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    var me = this;
 
     function nativeSetValue (value) {
-        nativeValueSetter.call(getDomElement(), value);
+        Object.getOwnPropertyDescriptor(
+            (
+                getDomElement() instanceof HTMLInputElement ?
+                    HTMLInputElement :
+                    HTMLTextAreaElement
+            ).prototype,
+            'value'
+        ).set.call(getDomElement(), value);
     }
 
     factory.admixDomElementTester(this, [
@@ -4919,67 +5638,68 @@ function JsTester_InputElement (
     }
 
     function input (value) {
-        var length = value.length,
-            i = 0,
-            inputElement = getDomElement(),
-            oldValue = inputElement.value,
-            beforeCursor = oldValue.substr(0, inputElement.selectionStart),
-            afterCursor = oldValue.substr(inputElement.selectionEnd),
-            cursorPosition = beforeCursor.length,
-            inputedValue = '';
+        runAsText(domElement => {
+            var length = value.length,
+                i = 0,
+                oldValue = domElement.value,
+                beforeCursor = oldValue.substr(0, domElement.selectionStart),
+                afterCursor = oldValue.substr(domElement.selectionEnd),
+                cursorPosition = beforeCursor.length,
+                inputedValue = '';
 
-        var update = function () {
-            nativeSetValue(beforeCursor + inputedValue + afterCursor);
-            inputElement.setSelectionRange(cursorPosition, cursorPosition);
-        };
-
-        var CharacterAppender = function (character) {
-            return function () {
-                inputedValue += character;
-                cursorPosition ++;
+            var update = function () {
                 nativeSetValue(beforeCursor + inputedValue + afterCursor);
-                inputElement.setSelectionRange(cursorPosition, cursorPosition);
+                setSelectionRange(cursorPosition, cursorPosition);
             };
-        };
-        
-        if (inputElement.readOnly || inputElement.disabled) {
-            throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
-                ' для редактирования.');
-        }
 
-        for (i = 0; i < length; i ++) {
-            utils.pressKey(value[i], inputElement, new CharacterAppender(value[i]));
-        }
+            var CharacterAppender = function (character) {
+                return function () {
+                    inputedValue += character;
+                    cursorPosition ++;
+                    nativeSetValue(beforeCursor + inputedValue + afterCursor);
+                    setSelectionRange(cursorPosition, cursorPosition);
+                };
+            };
+            
+            if (domElement.readOnly || domElement.disabled) {
+                throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
+                    ' для редактирования.');
+            }
 
-        fireChange();
+            for (i = 0; i < length; i ++) {
+                utils.pressKey(value[i], domElement, new CharacterAppender(value[i]));
+            }
+
+            fireChange();
+        });
     }
 
     function erase (updateBeforeCursor, updateAfterCursor, keyCode) {
-        var inputElement = getDomElement(),
-            oldValue = inputElement.value,
-            selectionStart = inputElement.selectionStart,
-            selectionEnd = inputElement.selectionEnd,
-            beforeCursor = oldValue.substr(0, selectionStart),
-            afterCursor = oldValue.substr(selectionEnd);
-        
-        if (inputElement.readOnly || inputElement.disabled) {
-            throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
-                ' для редактирования.');
-        }
+        runAsText(domElement => {
+            var oldValue = domElement.value,
+                selectionStart = domElement.selectionStart,
+                selectionEnd = domElement.selectionEnd,
+                beforeCursor = oldValue.substr(0, selectionStart),
+                afterCursor = oldValue.substr(selectionEnd);
+            
+            if (domElement.readOnly || domElement.disabled) {
+                throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
+                    ' для редактирования.');
+            }
 
-        if (selectionStart == selectionEnd) {
-            beforeCursor = updateBeforeCursor(beforeCursor);
-            afterCursor = updateAfterCursor(afterCursor);
-        }
+            if (selectionStart == selectionEnd) {
+                beforeCursor = updateBeforeCursor(beforeCursor);
+                afterCursor = updateAfterCursor(afterCursor);
+            }
 
-        utils.pressSpecialKey(inputElement, keyCode, function () {
-            nativeSetValue(beforeCursor + afterCursor);
-        }, function () {
-            var cursorPosition = beforeCursor.length;
-            inputElement.setSelectionRange(cursorPosition, cursorPosition);
+            utils.pressSpecialKey(domElement, keyCode, function () {
+                nativeSetValue(beforeCursor + afterCursor);
+                fireChange();
+            }, function () {
+                var cursorPosition = beforeCursor.length;
+                setSelectionRange(cursorPosition, cursorPosition);
+            });
         });
-
-        fireChange();
     }
 
     function pressDelete () {
@@ -4990,10 +5710,31 @@ function JsTester_InputElement (
         }, 46);
     }
 
+    function runAsText (callback) {
+        me.expectToExist();
+
+        const domElement = getDomElement(),
+            type = domElement.type;
+
+        if (type == 'number') {
+            domElement.type = 'text';
+        }
+
+        callback(domElement);
+        domElement.type = type;
+    }
+
+    function setSelectionRange (...args) {
+        runAsText(domElement => domElement.setSelectionRange(...args));
+    }
+
     function clear () {
         me.click();
-        getDomElement().setSelectionRange(0, getDomElement().value.length);
-        pressDelete();
+
+        runAsText(domElement => {
+            setSelectionRange(0, domElement.value.length);
+            pressDelete();
+        });
     }
 
     function getErrorIcon () {
@@ -5021,7 +5762,6 @@ function JsTester_InputElement (
     };
     this.pressDelete = function () {
         this.click();
-
         pressDelete();
 
         return this;
@@ -5071,7 +5811,7 @@ function JsTester_InputElement (
     };
     this.select = function (selectionStart, selectionEnd) {
         this.click();
-        getDomElement().setSelectionRange(selectionStart, selectionEnd);
+        setSelectionRange(selectionStart, selectionEnd);
     };
     this.paste = function (value) {
         var length = value.length,
@@ -5085,7 +5825,7 @@ function JsTester_InputElement (
 
         var setValue = function () {
             nativeSetValue(beforeCursor + value + afterCursor);
-            inputElement.setSelectionRange(cursorPosition, cursorPosition);
+            setSelectionRange(cursorPosition, cursorPosition);
         };
 
         this.click();
@@ -5109,7 +5849,8 @@ function JsTester_InputElement (
     };
     this.fill = function (value) {
         clear();
-        getDomElement().setSelectionRange(0, 0);
+
+        setSelectionRange(0, 0);
         input(value);
     };
     this.clear = function () {
@@ -5142,10 +5883,45 @@ function JsTester_InputElement (
 }
 
 function JsTester_NoElement () {
-    this.classList = {
-        add: function () {
-            throw new Error('Элемент должен существовать');
+    Object.defineProperty(this, 'innerHTML', {
+        set: function () {},
+        get: function () {
+            return '';
         }
+    });
+
+    Object.defineProperty(this, 'parentNode', {
+        set: function () {},
+        get: function () {
+            return new JsTester_NoElement();
+        }
+    });
+
+    Object.defineProperty(this, 'style', {
+        set: function () {},
+        get: function () {
+            return {};
+        }
+    });
+
+    Object.defineProperty(this, 'classList', {
+        set: function () {},
+        get: function () {
+            return {
+                add: function () {
+                    throw new Error('Элемент должен существовать');
+                },
+                contains: function () {
+                    throw new Error('Элемент должен существовать');
+                }
+            };
+        }
+    });
+
+    this.addEventListener = () => null;
+
+    this.dispatchEvent = function () {
+        throw new Error('Элемент должен существовать');
     };
     this.closest = function () {
         return new JsTester_NoElement();
@@ -5209,6 +5985,26 @@ function JsTester_DomElement (
         return actualValue;
     }
 
+    this.scrollTo = function (top) {
+        var element = getDomElement(),
+            event = new Event('scroll');
+
+        event.target = element;
+        element.scrollTop = top;
+        element.dispatchEvent(event);
+    };
+    this.log = function () {
+        this.expectToExist();
+        console.log(getDomElement());
+    };
+    this.endTransition = function (propertyName) {
+        this.expectToExist();
+
+        getDomElement().dispatchEvent(new TransitionEvent('transitionend', {
+            bubbles: true,
+            propertyName
+        }));
+    };
     this.pressEscape = function () {
         this.expectToBeVisible();
         utils.pressEscape(getDomElement());
@@ -5273,9 +6069,11 @@ function JsTester_DomElement (
         if (actualValue != expectedValue) {
             throw new Error(
                 'Атрибут "' + attributeName + '" ' + getGenetiveDescription() + ' ' + gender.should +
-                ' иметь значение "' + expectedValue + '"'
+                ' иметь значение "' + expectedValue + '", а не "' + actualValue + '".'
             );
         }
+
+        return this;
     };
     this.expectToHaveAttribute = function (attributeName) {
         this.expectToBeVisible();
@@ -5292,6 +6090,34 @@ function JsTester_DomElement (
             throw new Error(utils.capitalize(getNominativeDescription()) + ' не ' + gender.should + ' иметь атрибут "' +
                 attributeName + '"');
         }
+    };
+    this.expectToHaveAnyOfClasses = classNames => {
+        this.expectToBeVisible();
+
+        if (!classNames.some(className => getDomElement().classList.contains(className))) {
+            var actualClassName = getDomElement().className;
+            classNames = '"' + classNames.join('", "') + '"';
+
+            throw new Error(
+                utils.capitalize(getNominativeDescription()) + ' ' + gender.should + ' иметь один из этих классов ' +
+                classNames + ', тогда, как ' + gender.pronoun + ' имеет классы "' + actualClassName + '".'
+            );
+        }
+    };
+    this.expectToHaveNoneOfClasses = classNames => {
+        this.expectToBeVisible();
+
+        classNames.forEach(className => {
+            if (getDomElement().classList.contains(className)) {
+                throw new Error(
+                    utils.capitalize(getNominativeDescription()) + ' не ' + gender.should + ' иметь класс "' +
+                    className + '".'
+                );
+            }
+        })
+    };
+    this.expectToHaveAllOfClasses = function (classNames) {
+        classNames.forEach(className => this.expectToHaveClass(className));
     };
     this.expectToHaveClass = function (className) {
         this.expectToBeVisible();
@@ -5331,37 +6157,16 @@ function JsTester_DomElement (
             ' содержит текст "' + actualContent + '".'
         );
     }
-    function substringExpectation (args) {
-        var substring = args.substring,
-            isExpected = args.isExpected,
-            maybeNot = args.maybeNot,
-            actualContent = args.actualContent;
-        
-        var index = actualContent.indexOf(substring);
 
-        if (!isExpected(index !== -1)) {
-            throw throwSubstringInclusionError(args);
-        }
+    var textExpectations = new JsTester_TextExpectations(throwSubstringInclusionError);
 
-        return index;
-    }
     function getActualTextContent () {
         me.expectToBeVisible();
         return utils.getTextContent(getDomElement());
     }
     function textContentSubstringExpectation (args) {
         args.actualContent = getActualTextContent();
-        substringExpectation(args);
-    }
-    function getTextContentSubstringInclusionExpectationArguments (args) {
-        args = args || {};
-
-        args.maybeNot = '';
-        args.isExpected = function (doesActualTextContainSubstring) {
-            return doesActualTextContainSubstring;
-        };
-
-        return args;
+        textExpectations.substringExpectation(args);
     }
     this.expectTextContentNotToHaveSubstrings = function () {
         Array.prototype.slice.call(arguments, 0).forEach(function (expectedSubstring) {
@@ -5369,16 +6174,10 @@ function JsTester_DomElement (
         });
     };
     this.expectTextContentToHaveSubstringsConsideringOrder = function () {
-        var actualContent = getActualTextContent();
-        
-        Array.prototype.slice.call(arguments, 0).forEach(function (expectedSubstring) {
-            var index = substringExpectation(getTextContentSubstringInclusionExpectationArguments({
-                substring: expectedSubstring,
-                actualContent: actualContent
-            }));
-
-            actualContent = actualContent.substr(index + expectedSubstring.length);
-        });
+        textExpectations.expectTextToHaveSubstringsConsideringOrder(
+            getActualTextContent(),
+            Array.prototype.slice.call(arguments, 0)
+        );
     };
     this.expectTextContentNotToHaveSubstringsConsideringOrder = function () {
         var actualContent = allActualContent = getActualTextContent(),
@@ -5387,10 +6186,12 @@ function JsTester_DomElement (
         
         try {
             args.forEach(function (expectedSubstring) {
-                var index = substringExpectation(getTextContentSubstringInclusionExpectationArguments({
-                    substring: expectedSubstring,
-                    actualContent: actualContent
-                }));
+                var index = textExpectations.substringExpectation(
+                    textExpectations.getTextContentSubstringInclusionExpectationArguments({
+                        substring: expectedSubstring,
+                        actualContent: actualContent
+                    })
+                );
 
                 actualContent = actualContent.substr(index + expectedSubstring.length);
             });
@@ -5405,17 +6206,14 @@ function JsTester_DomElement (
         });
     };
     this.expectTextContentToHaveSubstring = function (expectedSubstring) {
-        textContentSubstringExpectation(getTextContentSubstringInclusionExpectationArguments({
+        textContentSubstringExpectation(textExpectations.getTextContentSubstringInclusionExpectationArguments({
             substring: expectedSubstring
         }));
     };
     this.expectTextContentNotToHaveSubstring = function (expectedSubstring) {
-        textContentSubstringExpectation({
-            substring: expectedSubstring,
-            maybeNot: 'не ',
-            isExpected: function (doesActualTextContainSubstring) {
-                return !doesActualTextContainSubstring;
-            }
+        textExpectations.expectTextNotToHaveSubstring({
+            actualContent: getActualTextContent(),
+            substring: expectedSubstring
         });
     };
     this.expectToHaveTextContent = function (expectedContent) {
@@ -5429,6 +6227,8 @@ function JsTester_DomElement (
                 expectedContent + '", тогда, как ' + gender.pronoun + ' содержит текст "' + actualContent + '".'
             );
         }
+
+        return this;
     };
     this.expectToHaveContent = function (expectedContent) {
         this.expectToBeVisible();
@@ -5442,14 +6242,31 @@ function JsTester_DomElement (
             );
         }
     };
-    this.expectToBeVisible = function () {
-        this.expectToExist();
-
-        if (getDomElement().tagName.toLowerCase() == 'audio') {
-            return;
+    function isAudio () {
+        me.expectToExist();
+        return getDomElement().tagName.toLowerCase() == 'audio';
+    }
+    function scrollIntoView () {
+        if (isAudio()) {
+            return false;
         }
 
         utils.scrollIntoView(getDomElement());
+        return true;
+    };
+    this.scrollIntoView = function () {
+        scrollIntoView();
+    };
+    this.expectToBeVisible = function () {
+        if (isAudio()) {
+            return;
+        }
+
+        const domElement = getDomElement();
+
+        parseInt((domElement.getClientRects() || {}).y, 0) || 0;
+
+        scrollIntoView();
 
         if (!utils.isVisible(getDomElement())) {
             throw new Error(
@@ -5488,6 +6305,7 @@ function JsTester_DomElement (
         }
 
         if (!domElement.getClientRects) {
+            console.log(domElement);
             throw new Error('Объект не является HTML-элементом.');
         }
     };
@@ -5526,6 +6344,7 @@ function JsTester_DomElement (
     this.click = function (x, y) {
         this.mousedown(x, y);
         this.mouseup(x, y);
+        Promise.runAll(false, true);
     };
     this.putMouseOver = function () {
         this.expectToBeVisible();
@@ -5585,7 +6404,7 @@ function JsTester_DomElement (
     };
     this.findElement = function (selector) {
         return testersFactory.createDomElementTester(
-            (getDomElement() || new JsTester_NoElement()).querySelector(selector)
+            () => (getDomElement() || (new JsTester_NoElement())).querySelector(selector)
         );
     };
     this.findElementByTextContent = function (text) {
@@ -5594,16 +6413,42 @@ function JsTester_DomElement (
     this.closest = function (selector) {
         return testersFactory.createDomElementTester(getDomElement().closest(selector));
     };
+
+    Object.defineProperty(this.closest, 'anchor', {
+        set: function () {},
+        get: function () {
+            return testersFactory.createAnchorTester(() => {
+                return getDomElement().closest('a');
+            });
+        }
+    });
+
     function getBoundingClientRect () {
         me.expectToBeVisible();
         return getDomElement().getBoundingClientRect();
     }
+    this.expectToHaveTopOffset = function (expectedTopOffset) {
+        var actualTopOffset = getBoundingClientRect().y;
+
+        if (expectedTopOffset != actualTopOffset) {
+            throw new Error('Вертикальная позиция ' + getGenetiveDescription() + ' должна быть равна ' +
+                expectedTopOffset + ', а не ' + actualTopOffset);
+        }
+    };
     this.expectToHaveHeight = function (expectedHeight) {
         var actualHeight = getBoundingClientRect().height;
 
         if (expectedHeight != actualHeight) {
             throw new Error('Высота ' + getGenetiveDescription() + ' должна быть равна ' + expectedHeight + ', а не ' +
                 actualHeight);
+        }
+    };
+    this.expectHeightToBeMoreThan = function (expectedHeight) {
+        var actualHeight = getBoundingClientRect().height;
+
+        if (actualHeight <= expectedHeight) {
+            throw new Error('Высота ' + getGenetiveDescription() + ' должна быть больше ' + expectedHeight + ', ' +
+                'тогда как она равна ' + actualHeight);
         }
     };
     this.expectToHaveWidth = function (expectedWidth) {
@@ -5673,14 +6518,19 @@ function JsTests_StringExpectaion () {
             typeof actualValue != 'string'
         ) {
             throw new Error(
-                'Значением параметра ' + keyDescription + ' должна быть строка, однако значение параметра таково ' +
-                JSON.stringify(actualValue) + '.'
+                'Значением параметра ' + keyDescription + ' должна быть непустая строка, однако значение параметра ' +
+                'таково ' + JSON.stringify(actualValue) + '.'
             );
         }
     };
 }
 
-function JsTests_SetInclusionExpectation (expectedSubset) {
+function JsTests_SetInclusionExpectation (args) {
+    var expectedSubset = args.expectedSubset,
+        utils = args.utils,
+        compliesExpectation = args.compliesExpectation,
+        description = args.description;
+
     this.maybeThrowError = function (actualValue, keyDescription) {
         if (!Array.isArray(actualValue)) {
             throw new Error(
@@ -5694,10 +6544,18 @@ function JsTests_SetInclusionExpectation (expectedSubset) {
         }
 
         if (expectedSubset.some(function (item) {
-            return !actualValue.includes(item);
+            return compliesExpectation(typeof item == 'object' ? actualValue.some(function (actualValue) {
+                try {
+                    utils.expectObjectToContain(actualValue, item);
+                } catch (e) {
+                    return false;
+                }
+
+                return true;
+            }) : actualValue.includes(item));
         })) {
             throw new Error(
-                'Значением параметра ' + keyDescription + ' должнна быть массив, включающий такие элементы - ' +
+                'Значением параметра ' + keyDescription + ' должен быть массив, ' + description +' такие элементы - ' +
 
                 expectedSubset.map(function (item) {
                     return JSON.stringify(item);
@@ -5709,10 +6567,118 @@ function JsTests_SetInclusionExpectation (expectedSubset) {
     };
 }
 
+function JsTests_NonStrictExpectaion (expectedValue) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (actualValue != expectedValue) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должно быть ' + JSON.stringify(expectedValue) + ', а не ' +
+                JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
+function JsTests_NotEmptyExpectaion () {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (!actualValue) {
+            throw new Error('Значение параметра ' + keyDescription + ' не должно быть пустым.');
+        }
+    };
+}
+
+function JsTests_LengthExpectaion (expectedLength) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        (new JsTests_StringExpectaion()).maybeThrowError(actualValue, keyDescription);
+
+        var actualLength = actualValue.length;
+
+        if (actualLength != expectedLength) {
+            throw new Error(
+                'Длина параметра ' + keyDescription + ' должна быть равна ' + expectedLength + ', однако длиной ' +
+                'параметра является ' + actualLength + '.'
+            );
+        }
+    };
+}
+
+function JsTests_StringExpectaion () {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (
+            !actualValue ||
+            typeof actualValue != 'string'
+        ) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должна быть строка, однако значение параметра таково ' +
+                JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
+function JsTests_BlobExpectaion ({
+    expectedValue,
+    blobsTester,
+}) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        console.log({
+            actualValue,
+            keyDescription,
+            blobsTester,
+        });
+
+        return;
+
+        if (actualValue != expectedValue) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должно быть ' + JSON.stringify(expectedValue) + ', а не ' +
+                JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
+function JsTests_FileContentSubstringExpectaion (expectedValue) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (!actualValue) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должен быть файл, тогда как значение параметра является ' +
+                'пустым.'
+            );
+        }
+
+        if (!(actualValue instanceof File)) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должен быть файл, тогда как параметра имеет значение ' +
+                JSON.stringify(expectedValue) + '.'
+            );
+        }
+
+        console.log({
+            expectedValue,
+            actualValue,
+            keyDescription,
+        });
+
+        return;
+
+        if (actualValue != expectedValue) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должно быть ' + JSON.stringify(expectedValue) + ', а не ' +
+                JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
+JsTests_FileContentSubstringExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_BlobExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_NonStrictExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_EmptyObjectExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_PrefixExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_StringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_SetInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
+JsTests_NotEmptyExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_LengthExpectaion.prototype = JsTests_ParamExpectationPrototype;
 
 function JsTester_ParamsContainingExpectation (actualParams, paramsDescription) {
     paramsDescription = paramsDescription || '';
@@ -5941,6 +6907,8 @@ function JsTester_Timeout (
         clearer = window[clearerName],
         callbacksRunner = new JsTester_NoTimeoutCallbackRunner();
 
+    window[setterName + 'Actually'] = setter;
+
     this.runCallbacks = function () {
         callbacksRunner.runCallbacks();
     };
@@ -5963,6 +6931,7 @@ function JsTester_WebSocketMockCore (args) {
         constants = args.constants,
         logger = args.logger,
         debug = args.debug,
+        spendTime = args.spendTime,
         readyState = constants.CLOSED,
         messages = [],
         messageIndex = 0,
@@ -6138,9 +7107,13 @@ function JsTester_WebSocketMockCore (args) {
         assertIsDisconnecting();
         setNotDisconnecting();
         disconnect(createNormalDisconnectingEvent(code));
+        spendTime(0);
     };
     this.disconnect = function (code) {
         maybeDisconnect(code);
+        
+        spendTime(0);
+        spendTime(0);
     };
     this.disconnectAbnormally = function (code) {
         maybeDisconnectAbnormally(code);
@@ -6231,7 +7204,12 @@ function JsTester_WebSocketMockCore (args) {
     setNotDisconnecting();
 }
 
-function JsTester_WebSocketFactory (utils, logger, debug) {
+function JsTester_WebSocketFactory ({
+    utils,
+    logger,
+    debug,
+    spendTime,
+}) {
     var sockets = {},
         RealWebSocket = window.WebSocket,
         constants = {};
@@ -6263,12 +7241,13 @@ function JsTester_WebSocketFactory (utils, logger, debug) {
             lastIndex ++;
 
             var mockCore = new JsTester_WebSocketMockCore({
-                encoder: encoder,
-                url: url,
-                utils: utils,
-                constants: constants,
-                logger: logger,
-                debug: debug
+                encoder,
+                url,
+                utils,
+                constants,
+                logger,
+                debug,
+                spendTime,
             }), me = this;
             
             copyConstants(this);
@@ -6293,11 +7272,18 @@ function JsTester_WebSocketFactory (utils, logger, debug) {
                 });
             }
 
+            Object.defineProperty(this, 'url', {
+                set: function () {},
+                get: function () {
+                    return url;
+                },
+            });
+
             Object.defineProperty(this, 'readyState', {
                 set: function () {},
                 get: function () {
                     return mockCore.getReadyState();
-                }
+                },
             });
 
             defineHandler('onopen');
@@ -6456,6 +7442,7 @@ function JsTester_WebSocketTester (mockCore, callStack) {
     };
     this.connect = function () {
         mockCore.connect();
+        Promise.runAll(false, true);
         return this;
     };
     this.finishDisconnecting = function (code) {
@@ -6728,5 +7715,764 @@ function JsTester_Debugger () {
         } catch(e) {
             return getTrace(e);
         }
+    };
+}
+
+function JsTester_NoWindowMessage () {
+    this.getJSON = function () {
+        return {};
+    };
+
+    this.expectMessageToContain = function (expectedContent) {
+        throw new Error(
+            'Ни одно сообщение не было отправлено в родительское окно, однако должно быть отправлено JSON-сообщение ' +
+            'с таким содержимым ' + JSON.stringify(expectedContent) + '.'
+        );
+    };
+
+    this.expectTargetOriginToEqual = function (expectedTargetOrigin) {
+        throw new Error(
+            'Ни одно сообщение не было отправлено в родительское окно, однако сообщение должно быть отправлено в ' +
+            'окно с хостом "' + expectedTargetOrigin + '".'
+        );
+    };
+
+    this.expectMessageToEqual = function (expectedMessage) {
+        throw new Error(
+            'Ни одно сообщение не было отправлено в родительское окно, однако должно было быть отправлено ' +
+            'сообщение "' + expectedMessage + '".'
+        );
+    };
+
+    this.expectNotToExist = function () {};
+}
+
+function JsTester_WindowMessage (args) {
+    var actualMessage = args.actualMessage,
+        actualTargetOrigin = args.actualTargetOrigin,
+        debug = args.debug,
+        utils = args.utils,
+        callStack = debug.getCallStack();
+
+    this.getJSON = function () {
+        var data;
+
+        try {
+            data = JSON.parse(actualMessage);
+        } catch (e) {
+            data = {};
+        }
+
+        return data || {};
+    };
+
+    this.expectMessageToContain = function (expectedContent) {
+        utils.expectObjectToContain(this.getJSON(), expectedContent);
+        return this;
+    };
+
+    this.expectTargetOriginToEqual = function (expectedTargetOrigin) {
+        if (expectedTargetOrigin != actualTargetOrigin) {
+            throw new Error(
+                'Сообщение должно быть отправлено в окно с хостом "' + expectedTargetOrigin + '", тогда, как оно ' +
+                'было отправлено в окно с хостом "' + actualTargetOrigin + '".'
+            );
+        }
+
+        return this;
+    };
+
+    this.expectMessageToEqual = function (expectedMessage) {
+        if (actualMessage != expectedMessage) {
+            throw new Error(
+                'В родительское окно должно быть отправлено сообщение "' + expectedMessage + '", однако было ' +
+                'отправлено сообщение "' + actualMessage + '".' + "\n\n" + callStack
+            );
+        }
+
+        return this;
+    };
+
+    this.expectNotToExist = function (errors) {
+        var error = new Error(
+            'Ни одно сообщение не должно быть отправлено в родительское окно, однако было отправлено сообщение "' +
+            actualMessage + '".' + "\n\n" + callStack + "\n\n"
+        );
+
+        if (errors) {
+            errors.push(error);
+        } else {
+            throw error;
+        }
+    };
+}
+
+function JsTester_FakeWindow (args) {
+    var postMessages = args.postMessages,
+        debug = args.debug,
+        utils = args.utils;
+
+    this.focus = function () {};
+
+    this.postMessage = function (actualMessage, actualTargetOrigin) {
+        postMessages.add(new JsTester_WindowMessage({
+            actualMessage: actualMessage,
+            actualTargetOrigin: actualTargetOrigin,
+            debug: debug,
+            utils: utils
+        }));
+    };
+}
+
+function JsTester_ParentWindowReplacer (fakeWindow) {
+    var realParent = window.parent,
+        win = realParent;
+
+    Object.defineProperty(window, 'parent', {
+        get : function () {
+            return win;
+        }
+    });     
+
+    this.replaceByFake = function () {
+        win = fakeWindow;
+    };
+    this.restoreReal = function () {
+        win = realParent;
+    };
+}
+
+function JsTester_Tests (factory) {
+    Object.defineProperty(window, 'MessageChannel', {
+        get: function () {
+            return undefined;
+        },
+        set: function () {}
+    }); 
+
+    Object.defineProperty(window, 'performance', {
+        get: function () {
+            return {};
+        },
+        set: function () {}
+    });
+
+    ['requestAnimationFrame', 'requestIdleCallback', 'queueMicrotask'].forEach(methodName => {
+        Object.defineProperty(window, methodName, {
+            get: function () {
+                return function (callback) {
+                    return setTimeout(callback, 0);
+                };
+            },
+            set: function () {}
+        });
+    });
+
+    const resizeObservables = new Map(),
+        triggerResize = new JsTester_ResizeObserverTrigger(resizeObservables),
+        ResizeObserver = new JsTester_ResizeObserverFactory(resizeObservables);
+
+    Object.defineProperty(window, 'ResizeObserver', {
+        get: function () {
+            return ResizeObserver;
+        },
+        set: function () {}
+    });
+
+    Object.defineProperty(window, 'cancelAnimationFrame', {
+        get: function () {
+            return function (handle) {
+                clearTimeout(handle);
+            };
+        },
+        set: function () {}
+    }); 
+
+    var args = {},
+        testRunners = [],
+        requiredClasses = [],
+        files = new Map(),
+        fileReaderTester = new JsTester_FileReaderTester(files),
+        fileReaderMocker = new JsTester_FileReaderMocker(files),
+        cookie = new JsTester_RWVariable(''),
+        cookieTester = new JsTester_CookieTester(cookie),
+        storageMocker = new JsTester_StorageMocker(),
+        timeoutLogger = new JsTester_Logger(),
+        downloadPreventer = new JsTester_DownloadPreventer(),
+        debug = factory.createDebugger(),
+        timeout = new JsTester_Timeout(
+            'setTimeout',
+            'clearTimeout',
+            JsTester_OneTimeDelayedTask,
+            timeoutLogger,
+            debug
+        ),
+        interval = new JsTester_Timeout(
+            'setInterval',
+            'clearInterval',
+            JsTester_RepetitiveDelayedTask,
+            timeoutLogger,
+            debug
+        );
+
+    var spendTime = function (time) {
+        timeout.spendTime(time);
+        interval.spendTime(time);
+        Promise.runAll(false, true);
+    };
+
+    var windowSize = new JsTester_WindowSize(spendTime),
+        utils = factory.createUtils({
+            debug,
+            windowSize,
+            spendTime,
+            args,
+        }),
+        broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage(), true),
+        broadcastChannelHandlers = {},
+        broadcastChannelShortcutHandlers = {},
+        broadcastChannelMessageEventFirers = {},
+        broadcastChannelsToIgnore = new Set(),
+        BroadcastChannel = new JsTester_BroadcastChannelFactory({
+            debug: debug,
+            utils: utils,
+            handlers: broadcastChannelHandlers,
+            shortcutHandlers: broadcastChannelShortcutHandlers,
+            broadcastChannelMessages: broadcastChannelMessages,
+            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers
+        }),
+        broadcastChannelTester = new JsTester_BroadcastChannelsTester({
+            broadcastChannelMessages: broadcastChannelMessages,
+            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers,
+            broadcastChannelsToIgnore: broadcastChannelsToIgnore
+        }),
+        broadcastChannelMocker = new JsTester_BroadcastChannelMocker({
+            broadcastChannelMessageEventFirers: broadcastChannelMessageEventFirers,
+            broadcastChannelTester: broadcastChannelTester,
+            broadcastChannelMessages: broadcastChannelMessages,
+            BroadcastChannel: BroadcastChannel,
+            handlers: broadcastChannelHandlers,
+            shortcutHandlers: broadcastChannelShortcutHandlers
+        }),
+        intersectionObservations = new Map(),
+        intersectionObservationHandlers = new Map(),
+        FakeIntersectionObserver = new JsTester_IntersectionObserverFactory({
+            intersectionObservations,
+            intersectionObservationHandlers
+        }),
+        intersectionObservablesTester = new JsTester_IntersectionObservablesTester({
+            utils,
+            intersectionObservations,
+            intersectionObservationHandlers
+        }),
+        intersectionObserverMocker = new JsTester_IntersectionObserverMocker(FakeIntersectionObserver),
+        mutationObserverFactory = new JsTester_MutationObserverFactory(utils),
+        mutationObserverMocker = new JsTester_MutationObserverMocker(mutationObserverFactory),
+        mutationObserverTester =  mutationObserverFactory.createTester(),
+        hasFocus = new JsTester_Variable(),
+        isBrowserHidden = new JsTester_Variable(),
+        isBrowserVisible = new JsTester_Variable(true),
+        setBrowserHidden = isBrowserHidden.createSetter(),
+        setBrowserVisible = isBrowserVisible.createSetter(),
+        focusReplacer = new JsTester_FocusReplacer(hasFocus),
+        browserVisibilityReplacer = new JsTester_BrowserVisibilityReplacer({
+            isBrowserHidden,
+            isBrowserVisible
+        }),
+        notifications = new JsTester_Queue(new JsTester_NoNotificationMessage()),
+        notificationPermissionRequests = new JsTester_Queue({
+            callback: function () {}
+        }),
+        notificationPermission = new JsTester_RWVariable(),
+        notificationClickHandler = new JsTester_FunctionVariable(function () {}),
+        notificationTester = new JsTester_NotificationTester({
+            notifications: notifications,
+            notificationClickHandler: notificationClickHandler.createValueCaller(),
+            notificationPermissionRequests: notificationPermissionRequests,
+            notificationPermissionSetter: notificationPermission.set
+        }),
+        notificationReplacer = new JsTester_NotificationReplacer({
+            spendTime,
+            debug: debug,
+            notificationClickHandler: notificationClickHandler,
+            notifications: notifications,
+            notificationPermissionRequests: notificationPermissionRequests,
+            notificationPermission: notificationPermission
+        }),
+        ajaxTester = new JsTester_AjaxTester(utils, debug),
+        fetchTester = new JsTester_FetchTester(utils),
+        windowOpener = new JsTester_WindowOpener(utils),
+        webSocketLogger = new JsTester_Logger(),
+        webSocketFactory = new JsTester_WebSocketFactory({
+            utils,
+            logger: webSocketLogger,
+            debug,
+            spendTime,
+        }),
+        webSockets = webSocketFactory.createCollection(),
+        webSocketReplacer = new JsTester_WebSocketReplacer(webSocketFactory),
+        userMediaEventHandlers = new JsTester_UserMediaEventHandlers(debug),
+        mediaDevicesUserMediaGetter = new JsTester_MediaDevicesUserMediaGetter(userMediaEventHandlers),
+        userMediaGetter = new JsTester_UserMediaGetter(userMediaEventHandlers),
+        additionalDevices = [],
+        mediaDevicesEventListeners = new Map(),
+        userDeviceHandling = new JsTester_EventHandling({
+            listeners: mediaDevicesEventListeners,
+            events: ['devicechange']
+        }),
+        navigatorMock = new JsTester_NavigatorMock({
+            userMediaGetter: userMediaGetter,
+            mediaDevicesUserMediaGetter: mediaDevicesUserMediaGetter,
+            additionalDevices: additionalDevices,
+            mediaDevicesEventListeners: mediaDevicesEventListeners,
+            userDeviceHandling: userDeviceHandling
+        }),
+        rtcConnectionStateChecker = new JsTester_FunctionVariable(function () {}),
+        rtcConnections = [],
+        tracksCreationCallStacks = new Map(),
+        playingMediaStreams = new Map(),
+        mediaStreamTracks = new Map(),
+        audioSources = new Map(),
+        mediaStreams = new JsTester_MediaStreams({
+            mediaStreamTracks: mediaStreamTracks,
+            playingMediaStreams: playingMediaStreams,
+            audioSources: audioSources,
+            debug: debug,
+            RealMediaStream: window.MediaStream
+        }),
+        userMedia = new JsTester_UserMedia({
+            additionalDevices: additionalDevices,
+            mediaDevicesEventListeners: mediaDevicesEventListeners,
+            tracksCreationCallStacks: tracksCreationCallStacks,
+            mediaStreams: mediaStreams,
+            eventHandlers: userMediaEventHandlers,
+            spendTime: spendTime,
+            debug: debug
+        }),
+        sdp = [
+            'v=0',
+            'o=- 6845874344053138478 2 IN IP4 127.0.0.1',
+            's=-',
+            't=0 0',
+            'a=group:BUNDLE 0',
+            'a=msid-semantic: WMS 2c90093a-9b17-4821-aaf3-7b858065ff07',
+            'm=audio 9 UDP/TLS/RTP/SAVPF 111 103 104 9 0 8 106 105 13 110 112 113 126',
+            'c=IN IP4 0.0.0.0',
+            'a=rtcp:9 IN IP4 0.0.0.0',
+            'a=ice-ufrag:7MXY',
+            'a=ice-pwd:KAoEygUaHA9Mla0gjHYN9/tK',
+            'a=ice-options:trickle',
+            'a=fingerprint:sha-256 59:53:4D:AF:66:F5:F1:CE:3A:F7:93:13:5A:E6:07:19:1E:03:E9:22:A1:19:B2:49:6B:C7:37:86:90:21:2B:42',
+            'a=setup:actpass',
+            'a=mid:0',
+            'a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+            'a=extmap:2 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+            'a=extmap:3 urn:ietf:params:rtp-hdrext:sdes:mid',
+            'a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
+            'a=extmap:5 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
+            'a=sendrecv',
+            'a=msid:2c90093a-9b17-4821-aaf3-7b858065ff07 f807f562-5698-4b34-a298-bc3f780934c3',
+            'a=rtcp-mux',
+            'a=rtpmap:111 opus/48000/2',
+            'a=rtcp-fb:111 transport-cc',
+            'a=fmtp:111 minptime=10;useinbandfec=1',
+            'a=rtpmap:103 ISAC/16000',
+            'a=rtcp-fb:103 transport-cc',
+            'a=fmtp:103 minptime=10;useinbandfec=1',
+            'a=rtpmap:104 ISAC/32000',
+            'a=rtpmap:9 G722/8000',
+            'a=rtpmap:0 PCMU/8000',
+            'a=rtpmap:8 PCMA/8000',
+            'a=rtpmap:106 CN/32000',
+            'a=rtpmap:105 CN/16000',
+            'a=rtpmap:13 CN/8000',
+            'a=rtpmap:110 telephone-event/48000',
+            'a=rtpmap:112 telephone-event/32000',
+            'a=rtpmap:113 telephone-event/16000',
+            'a=rtpmap:126 telephone-event/8000',
+            'a=ssrc:3906726496 cname:bn9leCsdnF9+R5yv',
+            'a=ssrc:3906726496 msid:2c90093a-9b17-4821-aaf3-7b858065ff07 f807f562-5698-4b34-a298-bc3f780934c3',
+            'a=ssrc:3906726496 mslabel:2c90093a-9b17-4821-aaf3-7b858065ff07',
+            'a=ssrc:3906726496 label:f807f562-5698-4b34-a298-bc3f780934c3',
+            ''
+        ].join("\r\n"),
+        image = 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAA1dJREFUaEPtmWmoTVEYhp+LhGRI' +
+            'lAyJP6TwQxm6yZwh0iUlQwnhhpIfKKJEhFDGiB+mdJWMGW4yRqSUUFJCpMhc5qFXa9223dlnrz2ce86O78+pc9Z+v/c9a61vr+9dZWQ8' +
+            'yjLOn39SQEOgPvAu5dlrCnwFPkXBDZsB/d4bGAMMA9oDzUyC78B94BpQBZwHfjomrwMMAsYBfYEuQF3z7BvgCXAaOApcB34F4eYT0B9Y' +
+            'DfRyJHUXWAocCRk/FlhhSLtAS8Ai4GKuwbkEaHlsBma4oOcYo9mYBnzw/dYE2ANUxMTdAcwFvnmf9wvQOjwG9IuZxD52GxgKvDRftALO' +
+            'Ad0S4l4CRgHvLY5XgNbgcWB4wiT28RvAAPhT6S4APVPCPQWMBn4IzytgFbA4pSQWZiugDTsrZdyVwBKvgI6momj9pxm2eoRVu6g5v5gi' +
+            '8MgC7wMmRkUp8vi9wBQJaGw2W4MiE4qaXi+8lhKgl4lKXxajQgLWAQuyyB5YKwEHgAkZFbBfAvSCGZxRAdUScBjQ+SSLUSUBm4B5WWQP' +
+            'bJSASmBLRgVUSkAb4KnvWJEFPeo92tk38VXTWGSBuOUozuVWgKqQqlGWQh3iGe8h6yQwIiMKTpi+4K/jdFvT3+qzlEP7tQ/wTCT9x1x1' +
+            'TJcBtX+lGOrEyoE7llyuc7o6JzkCLUpMwVuzxOWC1ERQo9EDOKvjaomIeG1snZt+Pvk6pc6mMhV7T7wwBkHNsnGZATumA1ANdCrSTDw2' +
+            'B82HQfldetXWZia61rKIB4a8qk5guAjQw/J1tCe615KIe8AQ4HlYPlcBwmkOyJORV1rIuGU27CuXJFEECE8GgAzXgS7gMcZcAUZ6nbcw' +
+            'jKgChNfIGLiyDtMMuXeyDT9GAY0jQPgywA4mMGr9HHUOkzvyOQp5jY0rQM/KS90tcylqUt/4Q8Bkv+vsiplEgBWxHZjumtA3To7gVECX' +
+            'JbEiqQA7i+uB+REZbAPmRLjVyQmfhgALvBxY5ihijbl1cRwePCxNAcqy0FxL5SOWGvmkmziI5GxzRaV7AW/IapeFuSHx3+4BSHsGLPQk' +
+            'cx9Wz3whB2EmsCtN8oWaActxPLDTXJGKvMpl6lGoGbBE7QzELpNhigstICx/4t//C0j8FyYE+A2omn8yNA4wuwAAAABJRU5ErkJggg==',
+        rtcPeerConnectionMocker = new JsTester_RTCPeerConnectionMocker({
+            sdp: sdp,
+            connections: rtcConnections,
+            rtcConnectionStateChecker: rtcConnectionStateChecker,
+            mediaStreams: mediaStreams,
+            tracksCreationCallStacks: tracksCreationCallStacks,
+            debug: debug
+        }),
+        rtcConnectionsMock = new JsTester_RTCPeerConnections({
+            tracksCreationCallStacks: tracksCreationCallStacks,
+            connections: rtcConnections,
+            stateChecker: rtcConnectionStateChecker,
+            mediaStreamTracks: mediaStreamTracks,
+            mediaStreams: mediaStreams
+        }),
+        testsExecutionBeginingHandlers = [],
+        checkRTCConnectionState = rtcConnectionStateChecker.createValueCaller(),
+        mediaStreamsTester = new JsTester_MediaStreamsTester({
+            spendTime,
+            mediaStreamsPlayingExpectaionFactory: new JsTester_MediaStreamsPlayingExpectationFactory(mediaStreamTracks),
+            playingMediaStreams: playingMediaStreams,
+            mediaStreams: mediaStreams
+        }),
+        playingOscillators = new Map(),
+        playingOscillatorsTester = new JsTester_PlayingOscillatorsTester(playingOscillators),
+        bufferToContent = new Map(),
+        destinationToSource = new Map(),
+        trackToDestination = new Map(),
+        destinationToGain = new Map(),
+        audioGainTester = new JsTester_AudioGainTester({
+            destinationToGain: destinationToGain,
+            trackToDestination: trackToDestination,
+            utils: utils
+        }),
+        audioProcessingTester = new JsTester_AudioProcessingTester({
+            trackToDestination: trackToDestination
+        }),
+        decodedTracksTester = new JsTester_DecodedTracksTester({
+            bufferToContent: bufferToContent,
+            destinationToSource: destinationToSource,
+            trackToDestination: trackToDestination
+        }),
+        mediaStreamSourceToMediaStream = new Map(),
+        audioNodesConnection = new JsTester_AudioNodesConnection({
+            destinationToSource: destinationToSource,
+            destinationToGain: destinationToGain,
+            mediaStreamSourceToMediaStream: mediaStreamSourceToMediaStream,
+            trackToDestination: trackToDestination
+        }),
+        audioContextFactory = new JsTester_AudioContextFactory({
+            mediaStreamSourceToMediaStream,
+            audioNodesConnection,
+            mediaStreams,
+            bufferToContent,
+            destinationToSource,
+            trackToDestination,
+            playingOscillators,
+            tracksCreationCallStacks,
+            spendTime,
+            debug,
+            utils
+        }),
+        audioDecodingTester = audioContextFactory.createAudioDecodingTester(),
+        audioContextReplacer = new JsTester_AudioContextReplacer(audioContextFactory),
+        audioReplacer = new JsTester_AudioReplacer({
+            mediaStreams: mediaStreams,
+            debug: debug
+        }),
+        nowValue = new JsTester_Variable(),
+        getNow = new JsTester_NowGetter({
+            originalNow: Date.now,
+            getNow: nowValue.createGetter()
+        }),
+        setNow = new JsTester_NowSetter(nowValue.createSetter()),
+        addSecond = function () {
+            nowValue.createSetter()(nowValue.createGetter()() + 1000);
+            spendTime(1000);
+            spendTime(0);
+        },
+        now = new JsTester_Now({
+            originalNow: Date.now,
+            getNow: getNow
+        }),
+        windowEventsListeners = new Map(),
+        windowEventsFirerer = new JsTester_WindowEventsFirerer(windowEventsListeners),
+        windowEventsReplacer = new JsTester_WindowEventsReplacer({
+            windowEventsListeners: windowEventsListeners,
+            realEventListenerAssigner: window.addEventListener,
+            fakeWindowListenerAssigner: new JsTester_WindowEventListenerAssigner({
+                windowEventsListeners: windowEventsListeners,
+                realEventListenerAssigner: window.addEventListener
+            })
+        }),
+        blobs = [],
+        blobsTester = new JsTester_BlobsTester({
+            blobs: blobs,
+            utils: utils
+        }),
+        OriginalBlob = window.Blob,
+        blobReplacer = new JsTester_BlobReplacer({
+            OriginalBlob,
+            blobs,
+            factory: new JsTester_BlobFactory({
+                OriginalBlob,
+                blobs,
+                utils,
+            })
+        }),
+        copiedTexts = [],
+        copiedTextsTester = new JsTester_CopiedTextsTester(copiedTexts),
+        execCommandReplacer = new JsTester_ExecCommandReplacer(copiedTexts),
+        postMessages = new JsTester_Queue(new JsTester_NoWindowMessage()),
+        fakeWindow = new JsTester_FakeWindow({
+            postMessages: postMessages,
+            debug: debug,
+            utils: utils
+        }),
+        parentWindowReplacer = new JsTester_ParentWindowReplacer(fakeWindow);
+
+    audioReplacer.replaceByFake();
+    windowEventsReplacer.replaceByFake();
+    browserVisibilityReplacer.replaceByFake();
+
+    window.MediaStream = function () {
+        var audioTracks;
+
+        if (arguments.length == 1) {
+            audioTracks = arguments[0];
+        }
+
+        if (audioTracks.length == 1) {
+            return new JsTester_MediaStreamWrapper({
+                mediaStream: mediaStreams.create(audioTracks),
+                audioTrack: audioTracks[0]
+            });
+        }
+
+        return mediaStreams.create.apply(mediaStreams, arguments);
+    };
+
+    window.moment = function () {
+        return {
+            format: function () {
+                return '05:32';
+            }
+        };
+    };
+
+    var wait = function () {
+        if (arguments[0]) {
+            var repetitionsCount = arguments[0], i;
+
+            for (i = 0; i < repetitionsCount; i ++) {
+                wait();
+            }
+
+            return;
+        }
+
+        timeout.runCallbacks();
+        interval.runCallbacks();
+    };
+
+    this.exposeDebugUtils = function (variableName) {
+        window[variableName] = debug;
+    };
+    this.addTest = function (testRunner) {
+        testRunners.push(testRunner);
+    };
+    this.runTests = function (options) {
+        var testersFactory;
+        options = options || {};
+        
+        try {
+            testersFactory = factory.createTestersFactory({
+                wait: wait,
+                utils: utils,
+                blobsTester: blobsTester,
+                spendTime: spendTime
+            });
+        } catch(e) {
+            error = e;
+        }
+
+        args.error = '<html>' +
+            '<head>' +
+                '<title>500 Internal Server Error</title>' +
+            '</head>' +
+            '<body bgcolor="white">' +
+                '<center>' +
+                    '<h1>500 Internal Server Error</h1>' +
+                '</center>' +
+                '<hr>' +
+                '<center>nginx/1.10.2</center>' +
+            '</body>' +
+        '</html>';
+        args.triggerResize = triggerResize;
+        args.sdp = sdp;
+        args.image = image;
+        args.windowSize = windowSize;
+        args.broadcastChannels = broadcastChannelTester;
+        args.mutationObserverMocker = mutationObserverMocker;
+        args.intersectionObservable = intersectionObservablesTester;
+        args.cookie = cookieTester;
+        args.addSecond = addSecond;
+        args.unload = () => {
+            windowEventsFirerer('unload');
+            Promise.runAll(false, true);
+        };
+        args.fileReader = fileReaderTester;
+        args.triggerMutation = mutationObserverTester;
+        args.ajax = ajaxTester;
+        args.fetch = fetchTester;
+        args.testersFactory = testersFactory;
+        args.wait = wait;
+        args.spendTime = spendTime;
+        args.utils = utils;
+        args.debug = debug;
+        args.windowOpener = windowOpener;
+        args.webSockets = webSockets;
+        args.webSocketLogger = webSocketLogger;
+        args.userMedia = userMedia;
+        args.rtcConnectionsMock = rtcConnectionsMock;
+        args.navigatorMock = navigatorMock;
+        args.timeoutLogger = timeoutLogger;
+        args.mediaStreamsTester = mediaStreamsTester;
+        args.setNow = setNow;
+        args.playingOscillatorsTester = playingOscillatorsTester;
+        args.audioDecodingTester = audioDecodingTester;
+        args.decodedTracksTester = decodedTracksTester;
+        args.audioProcessing = audioProcessingTester;
+        args.audioGain = audioGainTester;
+        args.notificationTester = notificationTester;
+        args.setFocus = new JsTester_FocusSetter(hasFocus.createSetter());
+        args.setDocumentVisible = new JsTester_VisibilitySetter({
+            setBrowserHidden,
+            setBrowserVisible,
+            isBrowserHidden: isBrowserHidden.createGetter(),
+        });
+        args.blobsTester = blobsTester;
+        args.copiedTextsTester = copiedTextsTester;
+        args.getRecentPostMessage = postMessages.pop;
+
+        (function () {
+            var name;
+
+            for (name in options) {
+                args[name] = options[name];
+            }
+        })();
+
+        this.handleBeginingOfTestsExecution(args);
+
+        mediaStreams.considerInitial();
+
+        testRunners.forEach(function (runTest) {
+            runTest.call(null, args);
+        });
+    };
+    this.requireClass = function (className) {
+        requiredClasses.push(className);
+    };
+    this.runBeforeTestsExecution = function (handleBeginingOfTestsExecution) {
+        testsExecutionBeginingHandlers.push(handleBeginingOfTestsExecution);
+    };
+    this.handleBeginingOfTestsExecution = function (args) {
+        testsExecutionBeginingHandlers.forEach(function (handleBeginingOfTestsExecution) {
+            handleBeginingOfTestsExecution.call(null, args);
+        });
+    };
+    this.getRequiredClasses = function () {
+        return requiredClasses;
+    };
+    this.beforeEach = function () {
+        window.URL.createObjectURL = function (object) {
+            return location.href + '#' + (typeof object == 'string' ? object : object.id);
+        };
+
+        setNow(null);
+
+        resizeObservables.clear();
+        intersectionObservations.clear();
+        intersectionObservationHandlers.clear();
+        downloadPreventer.prevent();
+        setBrowserHidden(false);
+        setBrowserVisible(true);
+        audioNodesConnection.reset();
+        parentWindowReplacer.replaceByFake();
+        additionalDevices.splice(0, additionalDevices.length);
+        additionalDevices.push({
+            kind: 'audiooutput',
+            label: 'Колонка JBL',
+            deviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab'
+        });
+        userDeviceHandling.reset();
+        utils.enableScrollingIntoView();
+        broadcastChannelMocker.replaceByFake();
+        mutationObserverMocker.replaceByFake();
+        intersectionObserverMocker.replaceByFake();
+        fileReaderMocker.replaceByFake();
+        execCommandReplacer.replaceByFake();
+        blobReplacer.replaceByFake();
+        focusReplacer.replaceByFake();
+        bufferToContent.clear();
+        destinationToSource.clear();
+        trackToDestination.clear();
+        playingOscillators.clear();
+        mediaStreams.clear();
+        windowEventsReplacer.prepareToTest();
+        notificationReplacer.replaceByFake();
+        audioContextReplacer.replaceByFake();
+        cookie.set('');
+        storageMocker.replaceByFake();
+        rtcPeerConnectionMocker.replaceByFake();
+        webSocketReplacer.replaceByFake();
+        ajaxTester.replaceByFake();
+        fetchTester.replaceByFake();
+        timeout.replaceByFake();
+        interval.replaceByFake();
+        windowOpener.replaceByFake();
+        now.replaceByFake();
+    };
+    this.restoreRealDelayedTasks = function () {
+        timeout.restoreReal();
+        interval.restoreReal();
+        now.restoreReal();
+    };
+    this.afterEach = function () {
+        var exceptions = [];
+
+        this.restoreRealDelayedTasks();
+        downloadPreventer.resume();
+        broadcastChannelTester.recentMessage().expectNotToExist(exceptions);
+        windowSize.reset();
+        broadcastChannelMocker.restoreReal();
+        postMessages.pop().expectNotToExist(exceptions);
+        parentWindowReplacer.restoreReal();
+        mutationObserverMocker.restoreReal();
+        intersectionObserverMocker.restoreReal();
+        fileReaderTester.expectNoFileToBeLoading();
+        fileReaderMocker.restoreReal();
+        execCommandReplacer.restoreReal();
+        blobReplacer.restoreReal();
+        notificationTester.recentNotification().expectNotToExist(exceptions);
+        notificationTester.expectNotificationPermissionNotToBeRequested(exceptions);
+        Promise.clear();
+        focusReplacer.restoreReal();
+        windowEventsReplacer.restoreReal();
+        notificationReplacer.restoreReal();
+        audioContextReplacer.restoreReal();
+        checkRTCConnectionState(exceptions);
+        storageMocker.restoreReal();
+        rtcPeerConnectionMocker.restoreReal();
+        userMediaEventHandlers.assertNoUserMediaRequestLeftUnhandled(exceptions);
+        audioContextFactory.assertNoAudioDecodingHappens(exceptions);
+        audioContextFactory.reset();
+        ajaxTester.restoreReal(exceptions);
+        fetchTester.restoreReal(exceptions);
+        windowOpener.restoreReal();
+        webSockets.afterEach(exceptions);
+        webSockets.expectNoMessageToBeSent(exceptions);
+        webSocketReplacer.restoreReal();
+
+        exceptions.forEach(function (exception) {
+            throw exception;
+        });
     };
 }

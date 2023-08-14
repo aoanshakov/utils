@@ -1,0 +1,196 @@
+diff --git a/package.json b/package.json
+index 9182158..b7f78e2 100644
+--- a/package.json
++++ b/package.json
+@@ -22,8 +22,6 @@
+     "@types/dompurify": "^2.3.3",
+     "@types/htmlparser2": "^3.10.3",
+     "@types/node": "^14.14.37",
+-    "@types/react": "^18.0.21",
+-    "@types/react-dom": "^18.0.6",
+     "@types/react-window": "^1.8.5",
+     "@types/uuid": "^8.3.1",
+     "@types/yup": "^0.29.11",
+@@ -57,8 +55,6 @@
+   },
+   "dependencies": {
+     "@babel/runtime": "^7.13.9",
+-    "@comagic/core": "^1.1.1",
+-    "@comagic/logger": "^1.0.2",
+     "async-mutex": "^0.3.2",
+     "axios": "^0.21.1",
+     "classnames": "^2.2.6",
+@@ -70,15 +66,10 @@
+     "history": "^5.3.0",
+     "html-react-parser": "^3.0.1",
+     "madge": "^5.0.1",
+-    "magic-ui": "0.0.0-int1",
+     "mobx": "^6.6.1",
+     "mobx-react-lite": "^3.4.0",
+     "mobx-state-tree": "^5.1.6",
+     "moment": "^2.29.1",
+-    "react": "^18.2.0",
+-    "react-dom": "^18.2.0",
+-    "react-intl": "^6.1.1",
+-    "react-router-dom": "6.9.0",
+     "short-uuid": "^4.2.0",
+     "uuid": "^8.3.2",
+     "yup": "^0.32.9"
+diff --git a/src/App.tsx b/src/App.tsx
+index 069025a..fca5671 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -9,6 +9,7 @@ import './App.less';
+ 
+ const App: React.FC = observer(() => {
+     const {
++        authStore: { isAuthorized },
+         websocketStore,
+         chatListStore,
+         chatChannelsStore,
+@@ -31,11 +32,11 @@ const App: React.FC = observer(() => {
+         })();
+     });
+ 
+-    return (
++    return [false, true].some(value => value === isAuthorized) ? (
+         <div className="cm-app-module">
+             <AppRoute />
+         </div>
+-    );
++    ) : null;
+ });
+ 
+ export default App;
+diff --git a/src/components/chats/chat-panel/styles.less b/src/components/chats/chat-panel/styles.less
+index 9dfa539..b4d98a4 100644
+--- a/src/components/chats/chat-panel/styles.less
++++ b/src/components/chats/chat-panel/styles.less
+@@ -196,7 +196,7 @@
+           }
+         }
+ 
+-        .ui-button {
++        .ui-button, .cmgui-button {
+           grid-column: 3;
+           grid-row: 1 / 3;
+         }
+@@ -209,7 +209,7 @@
+       align-items: center;
+       min-height: 42px;
+ 
+-      .ui-textarea {
++      .ui-textarea, .cmgui-textarea {
+         box-shadow: none;
+         border: none;
+         background: white;
+@@ -984,15 +984,15 @@
+ 
+ .@{p}audio-download-popup {
+ 
+-  .ui-popover-arrow {
++  .ui-popover-arrow, .cmgui-popover-arrow {
+     display: none;
+   }
+ 
+-  .ui-popover-content {
++  .ui-popover-content, .cmgui-popover-content {
+     transform: translateY(8px);
+   }
+ 
+-  .ui-popover-inner {
++  .ui-popover-inner, .cmgui-popover-inner {
+     position: relative;
+     left: 10px;
+     top: 9px;
+@@ -1005,7 +1005,7 @@
+       background-color: @surfaces-highlight;
+     }
+ 
+-    .ui-button-ghost {
++    .ui-button-ghost, .cmgui-button-ghost {
+       color: @fonts-primary;
+     }
+   }
+@@ -1015,18 +1015,18 @@
+   width: 100%;
+   height: 100%;
+ 
+-  .ui-modal-content {
++  .ui-modal-content, .cmgui-modal-content {
+     background: none;
+     box-shadow: none;
+     padding: 0;
+     height: 100%;
+     border: none;
+ 
+-    .ui-modal-header {
++    .ui-modal-header, .cmgui-modal-header {
+       display: none;
+     }
+ 
+-    .ui-modal-main {
++    .ui-modal-main, .cmgui-modal-main {
+       margin: 0;
+       width: 100%;
+       height: 100%;
+diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
+index 64fb29b..dfedd58 100644
+--- a/src/models/RootStore.ts
++++ b/src/models/RootStore.ts
+@@ -150,7 +150,8 @@ export const RootStore = types
+ export type RootInstance = Instance<typeof RootStore>;
+ export const RootStoreContext = React.createContext<null | RootInstance>(null);
+ export const Provider = RootStoreContext.Provider;
+-export const rootStore = RootStore.create({});
++export let rootStore;
++export const createRootStore = () => (rootStore = RootStore.create({}));
+ 
+ if (process.env.NODE_ENV === 'development') {
+     window.chatsRootStore = rootStore;
+diff --git a/src/models/account/AccountStore.ts b/src/models/account/AccountStore.ts
+index e4d6837..578a942 100644
+--- a/src/models/account/AccountStore.ts
++++ b/src/models/account/AccountStore.ts
+@@ -1,4 +1,4 @@
+-import { flow, Instance, getParent, types, cast } from 'mobx-state-tree';
++import { flow, Instance, getParent, types, cast, getSnapshot } from 'mobx-state-tree';
+ import { httpRpc, DataApiResponseResult } from '@/httpRpc';
+ import { intl } from '@/i18n';
+ import { RootStore } from '@models/RootStore';
+@@ -56,12 +56,18 @@ export const AccountStore = types
+     })
+     .views(self => ({
+         getOtherEmployeeChatsAccess() {
+-            const permission = [...self.account.permissions].find(item => item[0] === 'other_employee_chats_access');
+-            return permission && permission[1] ? permission[1].is_select : false;
++            const permission = getSnapshot(self.account.permissions).other_employee_chats_access;
++            return permission?.is_select || false;
+         },
+         getTagsPermissions() {
+-            const tagsPermissions = [...self.account.permissions].find(item => item[0] === 'tag_management')[1];
+-            return tagsPermissions;
++            return (
++                getSnapshot(self.account.permissions).tag_management || {
++                    is_delete: false,
++                    is_insert: false,
++                    is_select: false,
++                    is_update: false,
++                }
++            );
+         },
+     }))
+     .actions(self => {
+diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
+index c7e79a2..37ed1fd 100644
+--- a/src/models/auth/AuthStore.ts
++++ b/src/models/auth/AuthStore.ts
+@@ -37,7 +37,7 @@ const addEventListener = (() => {
+ 
+ export const AuthStore = types
+     .model('AuthStore', {
+-        isAuthorized: types.optional(types.boolean, false),
++        isAuthorized: types.maybe(types.boolean),
+         windowId: types.optional(types.string, generateTraceId('local')),
+     })
+     .views(() => ({

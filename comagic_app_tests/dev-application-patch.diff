@@ -1,0 +1,172 @@
+diff --git a/.env b/.env
+index 2b7c7036..ec6fe4ef 100644
+--- a/.env
++++ b/.env
+@@ -1,13 +1,13 @@
+-REACT_APP_BASE_URL=https://dev-dataapi.uis.st/va0/front/v2.0
+-REACT_APP_AUTH_URL=https://dev-dataapi.uis.st/va0/auth/json_rpc
+-REACT_APP_DOWNLOAD_URL=https://dev-dataapi.uis.st/va0/download
+-REACT_APP_BASE_URL_FOR_E2E=https://dev-dataapi.uis.st/va0/front/v2.0
++REACT_APP_BASE_URL=https://dev-dataapi.uis.st/int0/front/v2.0
++REACT_APP_AUTH_URL=https://dev-dataapi.uis.st/int0/auth/json_rpc
++REACT_APP_DOWNLOAD_URL=https://dev-dataapi.uis.st/int0/download
++REACT_APP_BASE_URL_FOR_E2E=https://dev-dataapi.uis.st/int0/front/v2.0
+ REACT_APP_MARKETPLACE_URL=
+ REACT_APP_EMBED_CODE_URL=
+ REACT_APP_SITE_SETTINGS_SERVER_URL=
+ REACT_APP_ANALYTICS_SERVER_URL=
+ REACT_APP_COMAGIC_WEB_URL=https://va0.dev.uis.st
+ REACT_APP_PROJECT=
+-REACT_APP_MODULE_CHATS=
+-REACT_APP_LEADGEN_MODULE=
+-REACT_APP_MODULE_SOFTPHONE=https://softphone-va0-softphone.uis.st
++REACT_APP_MODULE_CHATS=https://localhost:8083
++REACT_APP_LEADGEN_MODULE=https://localhost:8084
++REACT_APP_MODULE_SOFTPHONE=https://localhost:8083
+diff --git a/config/webpack.config.js b/config/webpack.config.js
+index 1da43df0..d92229d0 100644
+--- a/config/webpack.config.js
++++ b/config/webpack.config.js
+@@ -8,6 +8,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+ const TerserPlugin = require('terser-webpack-plugin');
++const hash = require('string-hash');
+ 
+ const { ModuleFederationPlugin } = webpack.container;
+ const deps = require('../package.json').dependencies;
+@@ -16,20 +17,26 @@ const NODE_ENV = process.env.NODE_ENV || 'prod';
+ const REACT_APP = /^REACT_APP_/i;
+ 
+ const appDirectory = fs.realpathSync(process.cwd());
++const miscDirectory = `${appDirectory}/misc`;
+ const dotenv = path.resolve(appDirectory, '.env');
+ const themeLessFileName = path.resolve(appDirectory, 'theme', 'theme.less');
+ const isProductionMode = NODE_ENV !== 'development';
+ const webpackMode = isProductionMode ? 'production' : 'development';
+ const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
+ const isBundleAnalyzerPlugin = false;
++const subModules = ['chats', 'employees'];
+ 
+ const lessLoader = {
+     loader: 'less-loader',
+     options: {
+-        modifyVars: {
+-            'hack': `true; @import "${themeLessFileName}";`,
++        lessOptions: {
++            modifyVars: {
++                'hack': `true; @import "${themeLessFileName}"; ${
++                    subModules.map(module => `@import "${miscDirectory}/${module}/theme/theme.less"`).join('; ')
++                }`,
++            },
++            javascriptEnabled: true,
+         },
+-        javascriptEnabled: true,
+     },
+ };
+ 
+@@ -167,8 +174,8 @@ const plugins = () => {
+                 return shared;
+             }, {}),
+             remotes: {
+-                leadgen: `leadgen@${process.env.REACT_APP_LEADGEN_MODULE}/leadgen.js`,
+-                chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
++                //leadgen: `leadgen@${process.env.REACT_APP_LEADGEN_MODULE}/leadgen.js`,
++                //chats: `chats@${process.env.REACT_APP_MODULE_CHATS}/remoteEntry.js`,
+                 softphone: `softphone@${process.env.REACT_APP_MODULE_SOFTPHONE}/remoteEntry.js`,
+             },
+         }),
+@@ -181,6 +188,13 @@ const plugins = () => {
+     return pluginsList;
+ };
+ 
++const createAliases = appDirectory => ({
++    '@': path.resolve(appDirectory, './src'),
++    '@models': path.resolve(appDirectory, './src/models'),
++    '@lib': path.resolve(appDirectory, './src/components/lib'),
++    '@hooks': path.resolve(appDirectory, './src/hooks'),
++});
++
+ module.exports = {
+     entry: './src/index.tsx',
+     target: 'web',
+@@ -200,6 +214,21 @@ module.exports = {
+     module: {
+         rules: [
+             {
++                test: /\.js$/,
++                exclude: /node_modules/,
++                use: [{
++                    loader: 'babel-loader',
++                    options: {
++                        presets: ['@babel/preset-react', '@babel/preset-env'],
++                        comments: false,
++                        plugins: [
++                            '@babel/plugin-proposal-private-methods',
++                            '@babel/plugin-proposal-class-properties',
++                        ]
++                    }
++                }]
++            },
++            {
+                 test: /\.(ts|tsx)$/,
+                 use: {
+                     loader: 'ts-loader',
+@@ -270,12 +299,53 @@ module.exports = {
+     resolve: {
+         extensions: ['.tsx', '.ts', '.js'],
+         alias: {
+-            '@': path.resolve(appDirectory, './src'),
+-            '@models': path.resolve(appDirectory, './src/models'),
+-            '@lib': path.resolve(appDirectory, './src/components/lib'),
+-            '@hooks': path.resolve(appDirectory, './src/hooks'),
++            ...createAliases(appDirectory),
+             '@ant-design/icons/lib/dist$': path.resolve(appDirectory, './src/icons.ts'),
++            'employees/Root': 'employees/src/Root.tsx',
++            'leadgen/Root': `${miscDirectory}/Stub.js`,
++            'chats/Root': 'chats/src/Root.tsx',
++            'chats/Account': 'chats/src/components/account/index.tsx',
++            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
+         },
++        plugins: [{
++            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
++                request,
++                resolveContext,
++                callback
++            ) =>  {
++                const target = resolver.ensureHook('resolve'),
++                    splitted = request.request.split('/');
++
++                const {
++                    directory,
++                    aliases
++                } = subModules.concat(['softphone']).map(module => {
++                    const directory = `${miscDirectory}/${module}`;
++
++                    return {
++                        directory,
++                        aliases: createAliases(directory)
++                    };
++                }).find(({
++                    directory,
++                    aliases
++                }) => request.path.indexOf(directory) === 0 && Object.keys(aliases).some(
++                    alias => splitted[0] == alias
++                )) || {};
++
++                if (!directory) {
++                    callback();
++                    return;
++                }
++
++                splitted[0] = aliases[splitted[0]]
++
++                return resolver.doResolve(target, {
++                    ...request,
++                    request: splitted.join('/') 
++                }, null, resolveContext, callback);
++            })
++        }]
+     },
+     output: {
+         filename: isProductionMode ? 'static/js/[name].[contenthash:8].js' : 'static/js/bundle.js',

@@ -1893,6 +1893,40 @@ function JsTester_CopiedTextsTester (copiedTexts) {
 }
 
 function JsTester_Tests (factory) {
+    Object.defineProperty(window, 'ResizeObserver', {
+        get: function () {
+            return undefined;
+        },
+        set: function () {}
+    }); 
+
+    Object.defineProperty(window, 'MessageChannel', {
+        get: function () {
+            return undefined;
+        },
+        set: function () {}
+    }); 
+
+    ['requestAnimationFrame', 'requestIdleCallback', 'queueMicrotask'].forEach(methodName => {
+        Object.defineProperty(window, methodName, {
+            get: function () {
+                return function (callback) {
+                    return setTimeout(callback, 0);
+                };
+            },
+            set: function () {}
+        });
+    });
+
+    Object.defineProperty(window, 'cancelAnimationFrame', {
+        get: function () {
+            return function (handle) {
+                clearTimeout(handle);
+            };
+        },
+        set: function () {}
+    }); 
+
     var testRunners = [],
         requiredClasses = [],
         storageMocker = new JsTester_StorageMocker(),
@@ -2056,6 +2090,7 @@ function JsTester_Tests (factory) {
     var spendTime = function (time) {
         timeout.spendTime(time);
         interval.spendTime(time);
+        Promise.runAll(false, true);
     };
 
     this.exposeDebugUtils = function (variableName) {
@@ -2363,12 +2398,16 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
         throw new Error('Не указаны критерии поиска');
     };
 
+    var desiredTextContent;
+
     this.matchesSelector = function (value) {
         selector = value;
         return this;
     };
 
-    this.textEquals = function (desiredTextContent) {
+    this.textEquals = function (value) {
+        desiredTextContent = value;
+
         isDesiredText = function (actualTextContent) {
             return actualTextContent == desiredTextContent;
         };
@@ -2376,7 +2415,9 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
         return this;
     };
 
-    this.textContains = function (desiredTextContent) {
+    this.textContains = function (value) {
+        desiredTextContent = value;
+
         isDesiredText = function (actualTextContent) {
             return actualTextContent.indexOf(desiredTextContent) != -1;
         };
@@ -2398,7 +2439,7 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
         });
     };
 
-    this.findAll = function () {
+    this.findAll = function (logEnabled) {
         var i,
             descendants = ascendantElement.querySelectorAll(selector),
             length = descendants.length,
@@ -2413,11 +2454,18 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
             }
         }
 
+        logEnabled && console.log({
+            selector,
+            descendants,
+            desiredDescendants,
+            desiredTextContent
+        });
+
         return desiredDescendants;
     };
 
-    this.find = function () {
-        var desiredDescendants = this.findAll();
+    this.find = function (logEnabled) {
+        var desiredDescendants = this.findAll(logEnabled);
 
         if (desiredDescendants.length) {
             return chooseOne(desiredDescendants) || new JsTester_NoElement();
@@ -2644,7 +2692,15 @@ function JsTester_Utils (debug) {
         }
 
         if (typeof value != 'string') {
-            value = value.innerHTML;
+            if (value instanceof JsTester_NoElement) {
+                value = '';
+            } else {
+                if (!('innerHTML' in value)) {
+                    throw new Error('Не удается получить текстовое содержимое значения ' + value + '.');
+                }
+
+                value = value.innerHTML;
+            }
         }
 
         return value.replace(/<[^<>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/[\s]+/g, ' ').trim();
@@ -4173,7 +4229,7 @@ function JsTester_DomElement (
     this.expectToExist = function () {
         var domElement = getDomElement();
 
-        if (!domElement) {
+        if (domElement instanceof JsTester_NoElement || !domElement) {
             throw new Error(
                 utils.capitalize(getNominativeDescription()) + ' ' + gender.should + ' существовать.'
             );
@@ -4276,7 +4332,7 @@ function JsTester_DomElement (
         return testersFactory.createDomElementTester(utils.findElementByTextContent(getDomElement(), text));
     };
     this.closest = function (selector) {
-        return testersFactory.createDomElementTester(getDomElement().closest(selector));
+        return testersFactory.createDomElementTester((getDomElement() || (new JsTester_NoElement())).closest(selector));
     };
     function getBoundingClientRect () {
         me.expectToBeVisible();

@@ -4,19 +4,30 @@ const {Args, isOneOf} = require('./utils/arguments'),
     openAdminFrontendDir = `cd ${adminFrontend} &&`;
 
 const actions = {},
-    overridenFiles = 'src/history.js src/index.js src/index.js src/App.js public/index.html config-overrides.js';
+    addSafeDirectory = 'git config --global --add safe.directory /usr/local/src/admin_frontend';
+
+const overridenFiles =
+    'package.json ' +
+    'src/history.js ' +
+    'src/index.js ' +
+    'src/index.js ' +
+    'src/App.js ' +
+    'public/index.html ' +
+    'config-overrides.js';
 
 actions['create-patch'] = [
-    `${openAdminFrontendDir} git diff -- ${overridenFiles} > ${adminFrontendPatch}`
+    addSafeDirectory,
+    `${openAdminFrontendDir} git diff -- ${overridenFiles} > ${adminFrontendPatch}`,
 ];
 
 actions['restore-code'] = [
-    `${openAdminFrontendDir} git checkout ${overridenFiles}`
+    addSafeDirectory,
+    `${openAdminFrontendDir} git checkout ${overridenFiles}`,
 ];
 
 actions['modify-code'] = actions['restore-code'].concat([
     `${openAdminFrontendDir} patch -p1 < ${adminFrontendPatch}`,
-    `fix-permissions ${adminFrontend}`
+    `fix-permissions ${adminFrontend}`,
 ]);
 
 actions['run-server'] = actions['modify-code'].concat(['service nginx start', `${openAdminFrontendDir} npm start`]);

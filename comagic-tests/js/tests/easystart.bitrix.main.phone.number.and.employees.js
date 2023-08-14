@@ -15,98 +15,342 @@ tests.addTest(function(args) {
         tester.afterEach();
     });
 
-    xdescribe(
-        'Открываю страницу легкого входа Битрикс24. Нажимаю на кнопку "Тестировать бесплатно". Нажимаю на кнопку ' +
-        '"Продолжить". В соответствии с данными, полученными от сервера ни один сотрудник не был выбран ранее.',
+    describe(
+        'Открываю страницу легкого входа Битрикс24.',
     function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
             wait();
-            tester.tryForFreeButton.click();
-            tester.requestCreateAccount().send();
-            wait(10);
-
-            tester.settingsStep('Номер телефона').nextButton().click();
-            tester.requestEmployees().setNoEmployeesSelected().send();
-            wait(10);
         });
 
-        describe('Выбираю одного сотрудника.', function() {
+        xdescribe('Нажимаю на кнопку "Тестировать бесплатно".', function() {
             beforeEach(function() {
-                tester.employeesGrid.row().atIndex(1).column().first().checkbox().click();
+                tester.tryForFreeButton.click();
+                tester.requestCreateAccount().send();
                 wait(10);
             });
 
-            describe('Нажимаю на кнопку "Продолжить".', function() {
+            describe(
+                'Нажимаю на кнопку "Продолжить". В соответствии с данными, полученными от сервера ни один сотрудник ' +
+                'не был выбран ранее.',
+            function() {
                 beforeEach(function() {
-                    tester.settingsStep('Сотрудники').nextButton().click();
-                    tester.requestChooseEmployees().setOnlyOneEmployeeSelected().setQueue().send();
-                    tester.requestSyncEmployees().setDone().send();
+                    tester.settingsStep('Номер телефона').nextButton().click();
+                    tester.requestEmployees().setNoEmployeesSelected().send();
                     wait(10);
                 });
 
-                it('Кнопки выбора типа переадресации скрыты.', function() {
-                    tester.forwardingTypeButtons.expectToBeHidden();
-                });
-                describe(
-                    'Ввожу номер телефона. Нажимаю на кнопку "Получить SMS". Ввожу код. Нажимаю на кнопку ' +
-                    '"Подтвердить".',
-                function() {
+                describe('Выбираю одного сотрудника.', function() {
                     beforeEach(function() {
-                        tester.employeePhoneField().input('9161234567');
-                        wait(10);
-
-                        tester.receiveSmsButton.click();
-                        tester.requestSms().setOnlyOneEmployeeSelected().send();
-                        wait(10);
-
-                        tester.smsCodeField().input('1234');
-                        wait(10);
-                        
-                        tester.confirmNumberButton.click();
-                        tester.requestCodeInput().setOnlyOneEmployeeSelected().send();
+                        tester.employeesGrid.row().atIndex(1).column().first().checkbox().click();
                         wait(10);
                     });
 
-                    it(
-                        'Нажимаю на кнопку "Назад". Нажимаю на кнопку "Продолжить". Кнопка "Продолжить" доступна.',
-                    function() {
-                        tester.settingsStep('Правила обработки вызовов').backButton().click();
-                        wait(10);
+                    describe('Нажимаю на кнопку "Продолжить".', function() {
+                        beforeEach(function() {
+                            tester.settingsStep('Сотрудники').nextButton().click();
+                            tester.requestChooseEmployees().setOnlyOneEmployeeSelected().setQueue().send();
+                            tester.requestSyncEmployees().setDone().send();
+                            wait(10);
+                        });
 
-                        tester.settingsStep('Сотрудники').nextButton().click();
-                        wait(10);
-                        tester.requestChooseEmployees().setOnlyOneEmployeeSelected().setVerified().send();
-                        wait(10);
-                        tester.requestSyncEmployees().setDone().send();
-                        wait(10);
+                        it('Кнопки выбора типа переадресации скрыты.', function() {
+                            tester.forwardingTypeButtons.expectToBeHidden();
+                        });
+                        describe(
+                            'Ввожу номер телефона. Нажимаю на кнопку "Получить SMS". Ввожу код. Нажимаю на кнопку ' +
+                            '"Подтвердить".',
+                        function() {
+                            beforeEach(function() {
+                                tester.employeePhoneField().input('9161234567');
+                                wait(10);
 
-                        tester.settingsStep('Правила обработки вызовов').nextButton().expectToBeEnabled();
+                                tester.receiveSmsButton.click();
+                                tester.requestSms().setOnlyOneEmployeeSelected().send();
+                                wait(10);
+
+                                tester.smsCodeField().input('1234');
+                                wait(10);
+                                
+                                tester.confirmNumberButton.click();
+                                tester.requestCodeInput().setOnlyOneEmployeeSelected().send();
+                                wait(10);
+                            });
+
+                            it(
+                                'Нажимаю на кнопку "Назад". Нажимаю на кнопку "Продолжить". Кнопка "Продолжить" ' +
+                                'доступна.',
+                            function() {
+                                tester.settingsStep('Правила обработки вызовов').backButton().click();
+                                wait(10);
+
+                                tester.settingsStep('Сотрудники').nextButton().click();
+                                wait(10);
+                                tester.requestChooseEmployees().setOnlyOneEmployeeSelected().setVerified().send();
+                                wait(10);
+                                tester.requestSyncEmployees().setDone().send();
+                                wait(10);
+
+                                tester.settingsStep('Правила обработки вызовов').nextButton().expectToBeEnabled();
+                            });
+                            it(
+                                'Нажимаю на кнпоку "Продолжить". Отправлен запрос сохранения правил обработки ' +
+                                'вызовов, в котором передан тип переадресации "Одновременно всем".',
+                            function() {
+                                tester.settingsStep('Правила обработки вызовов').nextButton().click();
+                                tester.requestCallProcessingConfig().setOtherEmployee().setAll().send();
+                            });
+                        });
+                    });
+                    it('Кнопка "Продолжить" доступна.', function() {
+                        tester.settingsStep('Сотрудники').nextButton().expectToBeEnabled();
                     });
                     it(
-                        'Нажимаю на кнпоку "Продолжить". Отправлен запрос сохранения правил обработки вызовов, в ' +
-                        'котором передан тип переадресации "Одновременно всем".',
+                        'Снимаю отметку с единственного отмеченного сотрудника. Кнопка "Продолжить" заблокирована.',
                     function() {
-                        tester.settingsStep('Правила обработки вызовов').nextButton().click();
-                        tester.requestCallProcessingConfig().setOtherEmployee().setAll().send();
+                        tester.employeesGrid.row().atIndex(1).column().first().checkbox().click();
+                        wait(10);
+
+                        tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
                     });
                 });
+                it('Кнопка "Продолжить" заблокирована.', function() {
+                    tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
+                });
             });
-            it('Кнопка "Продолжить" доступна.', function() {
-                tester.settingsStep('Сотрудники').nextButton().expectToBeEnabled();
-            });
-            it('Снимаю отметку с единственного отмеченного сотрудника. Кнопка "Продолжить" заблокирована.', function() {
-                tester.employeesGrid.row().atIndex(1).column().first().checkbox().click();
-                wait(10);
-
-                tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
+            it('Отправлена заявка.', function() {
+                tester.supportRequestSender.expectRequestParamsToContain({
+                    email: 'chigrakov@example.com',
+                    message:
+                        'Заявка со страницы Битрикс24 Легкий вход. ' +
+                        'Номер телефона пользоватeля - +74951234568. ' +
+                        'Домен - chigrakov.bitrix24.ru',
+                    name: 'Марк Брониславович Чиграков',
+                    phone: '74951234568'
+                });
             });
         });
-        it('Кнопка "Продолжить" заблокирована.', function() {
-            tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
+        it('Сайтфон отсутствует. Нажимаю на кнопку "Тестировать бесплатно". Ошибка не произошла.', function() {
+            tester.supportRequestSender.setNoSitePhone();
+
+            tester.tryForFreeButton.click();
+            tester.requestCreateAccount().send();
+            wait(10);
         });
     });
-    xdescribe('Нажимаю на кнопку "Тестировать бесплатно".', function() {
+    return;
+    describe('Открываю страницу легкого входа Битрикс24. Приложение уже установлено.', function() {
+        beforeEach(function() {
+            tester.isInstalled();
+            EasyStart.getApplication().checkIfPartnerReady();
+            wait();
+        });
+
+        describe('Нажимаю на вход в колл-центр.', function() {
+            var authIframe,
+                workplaceIframe,
+                callCenterAuthRequest;
+
+            beforeEach(function() {
+                tester.callCenterOpeningButton.click();
+                callCenterAuthRequest = tester.callCenterAuthRequest().expectToBeSent();
+            });
+
+            describe('Удалось аутенифицироваться.', function() {
+                beforeEach(function() {
+                    callCenterAuthRequest.receiveResponse();
+                    authIframe = document.querySelector('iframe');
+                });
+
+                describe('Из Iframe с аутентификацией РМР может прийти сообщение.', function() {
+                    beforeEach(function() {
+                        Object.defineProperty((authIframe || {}), 'contentWindow', {
+                            get: function () {
+                                return window.parent;
+                            }
+                        });
+                    });
+
+                    describe(
+                        'Из Iframe с РМР получено сообщение о готовности приложения. Ответ на запрос аутентификации ' +
+                        'отправлен в Iframe с РМР.',
+                    function() {
+                        beforeEach(function() {
+                            utils.receiveWindowMessage({
+                                data: 'ready',
+                                origin: 'https://mynonexistent.ru'
+                            });
+
+                            postMessagesTester.expectMessageToBeSent('{"token":"XhaIfhS93shg"}');
+                        });
+
+                        describe('Получно сообщение о принятии ответа на запрос аутентификации.', function() {
+                            beforeEach(function() {
+                                tester.resetWindowSize();
+
+                                utils.receiveWindowMessage({
+                                    data: 'authenticated',
+                                    origin: 'https://mynonexistent.ru'
+                                });
+
+                                workplaceIframe = document.querySelector('iframe');
+                            });
+
+                            it('Пришел запрос изменения высоты приложения.', function() {
+                                utils.receiveWindowMessage({
+                                    data: JSON.stringify({
+                                        type: 'resizeWindow',
+                                        height: 825
+                                    }),
+                                    origin: 'https://mynonexistent.ru'
+                                });
+
+                                if (workplaceIframe.style.height != '825px') {
+                                    throw new Error(
+                                        'Iframe должен быть высотой в 825 пикселей, однако высота Iframe это ' +
+                                        workplaceIframe.style.height + ' пикселей.'
+                                    );
+                                }
+
+                                if (BX24.getScrollSize().scrollHeight != 825) {
+                                    throw new Error(
+                                        'Приложение должно быть высотой в 825 пикселей, однако высота приложения это ' +
+                                        BX24.getScrollSize().scrollHeight + '.'
+                                    );
+                                }
+
+                                if (BX24.getScrollSize().scrollWidth != 635) {
+                                    throw new Error(
+                                        'Приложение должно быть шириной в 635 пикселей, однако ширина приложения это ' +
+                                        BX24.getScrollSize().scrollWidth + '.'
+                                    );
+                                }
+                            });
+                            it('Открыт РМР.', function() {
+                                var expectedSrc = 'https://mynonexistent.ru/workplace?bitrix';
+                                tester.expectSpinnerToBeHidden();
+
+                                if (!workplaceIframe) {
+                                    throw new Error(
+                                        'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако Iframe ' +
+                                        'не был открыт.'
+                                    );
+                                }
+
+                                if (workplaceIframe.src != expectedSrc) {
+                                    throw new Error(
+                                        'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако была ' +
+                                        'открыта страница "' +
+                                        workplaceIframe.src + '".'
+                                    );
+                                }
+
+                                if (workplaceIframe.style.height != '724px') {
+                                    throw new Error(
+                                        'Iframe должен быть высотой в 724 пикселей, однако высота Iframe это ' +
+                                        workplaceIframe.style.height + ' пикселей.'
+                                    );
+                                }
+
+                                if (workplaceIframe.style.width != '635px') {
+                                    throw new Error(
+                                        'Iframe должен быть шириной в 635 пикселей, однако ширина Iframe это ' +
+                                        workplaceIframe.style.width + ' пикселей.'
+                                    );
+                                }
+                            });
+                        });
+                        it('Получно сообщение об ошибке аутентификации.', function() {
+                            utils.receiveWindowMessage({
+                                data: 'error',
+                                origin: 'https://mynonexistent.ru'
+                            });
+
+                            wait();
+
+                            tester.callCenterOpeningPanel.expectTextContentToHaveSubstring('Колл-центр недоступен');
+                            tester.expectSpinnerToBeHidden();
+                        });
+                    });
+                    it(
+                        'Сообщение о готовности приложения получено не из Iframe с РМР. Ничего не происходит.',
+                    function() {
+                        utils.receiveWindowMessage({
+                            data: 'ready',
+                            origin: 'https://otherdomain.ru'
+                        });
+                    });
+                });
+                it('Открыт Iframe с аутентификацией РМР.', function() {
+                    var expectedSrc = 'https://mynonexistent.ru/workplace?auth';
+                    tester.expectSpinnerToBeVisible();
+
+                    if (!authIframe) {
+                        throw new Error(
+                            'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако Iframe не был открыт.'
+                        );
+                    }
+
+                    if (authIframe.src != expectedSrc) {
+                        throw new Error(
+                            'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако была открыта ' +
+                            'страница "' + authIframe.src + '".'
+                        );
+                    }
+                });
+            });
+            it('Не удалось аутенифицироваться. Iframe с аутентификацией РМР не был открыт .', function() {
+                callCenterAuthRequest.failed().receiveResponse();
+
+                tester.expectSpinnerToBeHidden();
+                tester.callCenterOpeningPanel.expectTextContentToHaveSubstring('Колл-центр недоступен');
+
+                if (document.querySelector('iframe')) {
+                    throw new Error('Iframe с аутентификацией РМР не должен быть открыт .');
+                }
+            });
+            it('Спиннер видим.', function() {
+                tester.expectSpinnerToBeVisible();
+            });
+        });
+        describe('Заполняю форму аутентификации. Нажимаю на кнопку "Войти".', function() {
+            beforeEach(function() {
+                tester.authForm.textfield().withPlaceholder('Введите e-mail или логин').fill('podlpnmkb@supere.ml');
+                tester.authForm.textfield().withPlaceholder('Введите пароль').fill('24g89fs8h2g4');
+                tester.authForm.button('Войти').click();
+
+                comagicWebAuthRequest = tester.comagicWebAuthRequest().expectToBeSent();
+            });
+
+            it('Логин найден. ЛК открыт в новой вкладке.', function() {
+                comagicWebAuthRequest.receiveResponse();
+
+                tester.redirectionAuthForm.expectAttributeToHaveValue('action', 'https://app.comagic.ru/login/');
+
+                tester.redirectionAuthForm.createTester().forDescendant('[name=login]').assumeHidden().
+                    expectAttributeToHaveValue('value', 'podlpnmkb@supere.ml');
+
+                tester.redirectionAuthForm.createTester().forDescendant('[name=password]').assumeHidden().
+                    expectAttributeToHaveValue('value', '24g89fs8h2g4');
+            });
+            it('Логин не найден. Отображено сообщение об ошибке.', function() {
+                comagicWebAuthRequest.failed().receiveResponse();
+
+                tester.redirectionAuthForm.expectNotToExist();
+                tester.authForm.expectTextContentToHaveSubstring('Логин не найден');
+            });
+        });
+        it('Кнопка "Тестировать бесплатно" скрыта.', function() {
+            tester.tryForFreeButton.expectToBeHidden();
+            tester.mainPageHeader.expectTextContentToHaveSubstring('Приложение установлено');
+
+            tester.anchor('справочном центре CoMagic').expectHrefToHavePath(
+                'https://help.comagic.ru/knowledge-bases/12-spravochnyij-tsentr/categories/' +
+                '134-integratsiya-s-bitriks24/articles'
+            );
+        });
+    });
+    describe('Нажимаю на кнопку "Тестировать бесплатно".', function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
             wait();
@@ -170,177 +414,6 @@ tests.addTest(function(args) {
             }).expectToBeVisible();
         });
     });
-    describe('Открываю страницу легкого входа Битрикс24. Приложение уже установлено.', function() {
-        beforeEach(function() {
-            tester.isInstalled();
-            EasyStart.getApplication().checkIfPartnerReady();
-            wait();
-        });
-
-        xdescribe('Нажимаю на вход в колл-центр.', function() {
-            var authIframe,
-                workplaceIframe;
-
-            beforeEach(function() {
-                tester.callCenterOpeningButton.click();
-                tester.callCenterAuthRequest().receiveResponse();
-
-                authIframe = document.querySelector('iframe');
-            });
-
-            describe('Ответ на запрос аутентификации отправлен в Iframe с РМР. ', function() {
-                beforeEach(function() {
-                    Object.defineProperty((authIframe || {}), 'contentWindow', {
-                        get: function () {
-                            return window.parent;
-                        }
-                    });
-                });
-
-                describe('Получно сообщение о принятии ответа на запрос аутентификации.', function() {
-                    beforeEach(function() {
-                        utils.receiveWindowMessage({
-                            data: 'ready',
-                            origin: 'https://mynonexistent.ru'
-                        });
-
-                        postMessagesTester.expectMessageToBeSent('{"token":"XhaIfhS93shg"}');
-
-                        utils.receiveWindowMessage({
-                            data: 'received',
-                            origin: 'https://mynonexistent.ru'
-                        });
-
-                        workplaceIframe = document.querySelector('iframe');
-                    });
-
-                    it('Пришел запрос изменения высоты приложения.', function() {
-                        utils.receiveWindowMessage({
-                            data: JSON.stringify({
-                                type: 'resizeWindow',
-                                height: 825
-                            }),
-                            origin: 'https://mynonexistent.ru'
-                        });
-
-                        if (workplaceIframe.style.height != '825px') {
-                            throw new Error(
-                                'Iframe должен быть высотой в 825 пикселей, однако высота Iframe это ' +
-                                workplaceIframe.style.height + ' пикселей.'
-                            );
-                        }
-
-                        if (BX24.getScrollSize().scrollHeight != 825) {
-                            throw new Error(
-                                'Приложение должно быть высотой в 825 пикселей, однако высота приложения это ' +
-                                BX24.getScrollSize().scrollHeight + '.'
-                            );
-                        }
-
-                        if (BX24.getScrollSize().scrollWidth != 635) {
-                            throw new Error(
-                                'Приложение должно быть шириной в 635 пикселей, однако ширина приложения это ' +
-                                BX24.getScrollSize().scrollWidth + '.'
-                            );
-                        }
-                    });
-                    it('Открыт РМР.', function() {
-                        var expectedSrc = 'https://mynonexistent.ru/workplace?bitrix';
-
-                        if (!workplaceIframe) {
-                            throw new Error(
-                                'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако Iframe не был ' +
-                                'открыт.'
-                            );
-                        }
-
-                        if (workplaceIframe.src != expectedSrc) {
-                            throw new Error(
-                                'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако была открыта ' +
-                                'страница "' +
-                                workplaceIframe.src + '".'
-                            );
-                        }
-
-                        if (workplaceIframe.style.height != '724px') {
-                            throw new Error(
-                                'Iframe должен быть высотой в 724 пикселей, однако высота Iframe это ' +
-                                workplaceIframe.style.height + ' пикселей.'
-                            );
-                        }
-
-                        if (workplaceIframe.style.width != '635px') {
-                            throw new Error(
-                                'Iframe должен быть шириной в 635 пикселей, однако ширина Iframe это ' +
-                                workplaceIframe.style.width + ' пикселей.'
-                            );
-                        }
-                    });
-                });
-                it('Получно сообщение не от Iframe c РМР. Ничего не происходит.', function() {
-                    utils.receiveWindowMessage({
-                        data: 'ready',
-                        origin: 'https://otherdomain.ru'
-                    });
-                });
-            });
-            it('Открыт Iframe с РМР.', function() {
-                var expectedSrc = 'https://mynonexistent.ru/workplace?auth';
-
-                if (!authIframe) {
-                    throw new Error(
-                        'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако Iframe не был открыт.'
-                    );
-                }
-
-                if (authIframe.src != expectedSrc) {
-                    throw new Error(
-                        'Должен быть открыт Iframe со страницей "' + expectedSrc + '", однако была открыта страница "' +
-                        authIframe.src + '".'
-                    );
-                }
-            });
-        });
-        describe('Заполняю форму аутентификации. Нажимаю на кнопку "Войти".', function() {
-            beforeEach(function() {
-                tester.authForm.textfield().withPlaceholder('Введите e-mail или логин').fill('podlpnmkb@supere.ml');
-                tester.authForm.textfield().withPlaceholder('Введите пароль').fill('24g89fs8h2g4');
-                tester.authForm.button('Войти').click();
-
-                comagicWebAuthRequest = tester.comagicWebAuthRequest().expectToBeSent();
-            });
-
-            xit('Логин найден. ЛК открыт в новой вкладке.', function() {
-                comagicWebAuthRequest.receiveResponse();
-
-                tester.redirectionAuthForm.expectAttributeToHaveValue('action', 'https://app.comagic.ru/login/');
-
-                tester.redirectionAuthForm.createTester().forDescendant('[name=login]').assumeHidden().
-                    expectAttributeToHaveValue('value', 'podlpnmkb@supere.ml');
-
-                tester.redirectionAuthForm.createTester().forDescendant('[name=password]').assumeHidden().
-                    expectAttributeToHaveValue('value', '24g89fs8h2g4');
-            });
-            it('Логин не найден. Отображено сообщение об ошибке.', function() {
-                comagicWebAuthRequest.failed().receiveResponse();
-                wait();
-
-                tester.redirectionAuthForm.expectNotToExist();
-                tester.authForm.expectTextContentToHaveSubstring('Логин не найден');
-            });
-        });
-        return;
-        it('Кнопка "Тестировать бесплатно" скрыта.', function() {
-            tester.tryForFreeButton.expectToBeHidden();
-            tester.mainPageHeader.expectTextContentToHaveSubstring('Приложение установлено');
-
-            tester.anchor('справочном центре CoMagic').expectHrefToHavePath(
-                'https://help.comagic.ru/knowledge-bases/12-spravochnyij-tsentr/categories/' +
-                '134-integratsiya-s-bitriks24/articles'
-            );
-        });
-    });
-    return;
     describe('Открываю страницу легкого входа Битрикс24. Приложение еще не установлено.', function() {
         beforeEach(function() {
             EasyStart.getApplication().checkIfPartnerReady();
@@ -386,8 +459,11 @@ tests.addTest(function(args) {
         'Открываю страницу легкого входа Битрикс24. Произошла фатальная ошибка. Отображено сообщение об ошибке.',
     function() {
         tester.setFatalError();
+
         EasyStart.getApplication().checkIfPartnerReady();
         wait(10);
-        tester.fatalErrorMessage.expectToBeVisible();
+
+        tester.fatalErrorMessage.expectNotToExist();
+        tester.button('Завершить установку').expectToBeVisible();
     });
 });

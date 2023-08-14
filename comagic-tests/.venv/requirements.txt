@@ -28,8 +28,6 @@ tzlocal==1.1.1
 webassets==0.7
 wsgiref==0.1.2
 xmltodict==0.8.3
--e hg+ssh://hg@hg.dev.uiscom.ru/ulib@3bceb7a807a0#egg=ulib-stable
--e git+ssh://git@gitlab.uis.dev/lib/rtu_api.git#egg=rtu_moa
 pycrypto==2.6.1
 smtpapi==0.2.0
 pydub==0.15.0

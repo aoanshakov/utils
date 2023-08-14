@@ -1,0 +1,19 @@
+diff --git a/client/socket.js b/client/socket.js
+index 65c1276..da20a90 100644
+--- a/client/socket.js
++++ b/client/socket.js
+@@ -8,6 +8,14 @@ var Client = // eslint-disable-next-line no-nested-ternary
+ typeof __webpack_dev_server_client__ !== "undefined" ? typeof __webpack_dev_server_client__.default !== "undefined" ? __webpack_dev_server_client__.default : __webpack_dev_server_client__ : WebSocketClient;
+ /* eslint-enable camelcase */
+ 
++Client = function () {
++    return {
++        onOpen: () => null,
++        onClose: () => null,
++        onMessage: () => null
++    };
++};
++
+ var retries = 0;
+ var maxRetries = 10; // Initialized client is exported so external consumers can utilize the same instance
+ // It is mutable to enforce singleton

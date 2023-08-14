@@ -41,7 +41,18 @@ set listchars=tab:..
 syntax on
 set synmaxcol=200
 
+nnoremap ;oe :call <SID>OpenFileWithProblem()<cr>
+
+function! s:OpenFileWithProblem()
+    execute "normal!0\"jyt(f(lvt,\"kyf,lvt)\"ly:e \<c-r>j\<cr>:\<c-r>k\<cr>0:norm!\<c-r>ll\<cr>h"
+
+    let g:problemFilePath = @j
+    let g:lineNumber = @k
+    let g:charNumber = @l
+endfunction
+
 nnoremap - ;
+nnoremap ;so :so ~/.vimrc<cr>
 nnoremap ;bb ggO#!/bin/bash<cr><esc>:w<cr>:r!chmod +x <c-r>%<cr>
 nnoremap ;aj :!amocrm-build uis<cr> 
 nnoremap ;k{ mmvi{<esc>`<
@@ -189,25 +200,27 @@ function! SetUpEslint()
             noremap ;aa k^f)%Ix<esc>^zz
             noremap ;zz vi{o<esc>?desc<cr>zz
             noremap ;ab vi{<esc>joreturn;<esc>zz
-        else
-            let isReactApp = stridx(path, '/amocrm_widget/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/proposal_generator_frontend/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/admin_frontend/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/consultant/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/sip_lib/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/bitrix_widget/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/react_widget/')  != -1
-            let isReactApp = isReactApp || stridx(path, '/call_center_frontend/') != -1
-            let isReactApp = isReactApp || stridx(path, '/comagic_app/') != -1
-            let isReactApp = isReactApp || stridx(path, '/softphone/') != -1
-        endif
-
+        endif 
+        
+        let isReactApp = stridx(path, '/amocrm_widget/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/proposal_generator_frontend/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/admin_frontend/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/consultant/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/sip_lib/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/bitrix_widget/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/react_widget/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/call_center_frontend/') != -1
+        let isReactApp = isReactApp || stridx(path, '/comagic_app/') != -1
+        let isReactApp = isReactApp || stridx(path, '/softphone/') != -1
+        let isReactApp = isReactApp || stridx(path, '/iframe_autoplay/') != -1
         let isReactApp = isReactApp || stridx(path, '/bitrix-digital-pipeline/')  != -1
         let isReactApp = isReactApp || stridx(path, '/admin-frontend-tests/')  != -1
         let isReactApp = isReactApp || stridx(path, '/proposal_generator_frontend_tests/')  != -1
         let isReactApp = isReactApp || stridx(path, '/consultant_utils/') != -1
         let isReactApp = isReactApp || stridx(path, '/uis_webrtc/') != -1
         let isReactApp = isReactApp || stridx(path, '/comagic_app_tests/') != -1
+        let isReactApp = isReactApp || stridx(path, '/file_saver/') != -1
+        let isReactApp = isReactApp || stridx(path, '/bitrix_widget/') != -1
 
         if stridx(path, '/bitrix-digital-pipeline/script.js') != -1
             let isReactApp = 0

@@ -1,0 +1,35 @@
+diff --git a/package.json b/package.json
+index 8aa5f94..0462ef9 100644
+--- a/package.json
++++ b/package.json
+@@ -26,8 +26,6 @@
+     "@types/classnames": "^2.3.1",
+     "@types/jest": "^28.1.6",
+     "@types/node": "^18.6.2",
+-    "@types/react": "^18.0.17",
+-    "@types/react-dom": "^18.0.6",
+     "@types/react-window": "^1.8.5",
+     "@types/yup": "^0.29.14",
+     "@typescript-eslint/eslint-plugin": "^5.31.0",
+@@ -67,21 +65,15 @@
+     "webpack-merge": "^5.8.0"
+   },
+   "dependencies": {
+-    "@comagic/core": "^0.7.0",
+     "axios": "^0.24.0",
+     "classnames": "^2.3.1",
+     "formik": "^2.2.9",
+     "history": "^5.3.0",
+-    "magic-ui": "0.0.0-int1",
+     "mobx": "^6.6.1",
+     "mobx-react-lite": "^3.4.0",
+     "mobx-state-tree": "^5.1.5",
+     "nanoid": "^3.2.0",
+     "qs": "6.7.0",
+-    "react": "^18.2.0",
+-    "react-dom": "^18.2.0",
+-    "react-intl": "6.3.2",
+-    "react-router-dom": "6.9.0",
+     "string-hash": "^1.1.3",
+     "yup": "^0.32.11"
+   }

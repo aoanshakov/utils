@@ -1,0 +1,35 @@
+#!/bin/bash
+
+arguments=""
+nodeVersion="11"
+shouldExit=0
+
+while [ -n "$1" ]
+do
+    if [ "$1" = "--exit" ]
+    then
+        shouldExit=1
+    elif [ "$1" = "--owner" ]
+    then
+        export APPLICATION_OWNER=$2
+        shift
+    elif [ "$1" = "--node-version" ]
+    then
+        nodeVersion=$2
+        shift
+    else
+        arguments="$arguments $1"
+    fi
+
+    shift
+done
+
+source ~/.bashrc
+nvm use $nodeVersion
+cd /usr/local/src/utils && node index.js $arguments
+
+if [ -z "$NESTED_BASH_IS_RUNNING" ] && [ $shouldExit -eq 0 ]
+then
+    export NESTED_BASH_IS_RUNNING="1"
+    bash
+fi

@@ -4,7 +4,13 @@ tests.requireClass('Comagic.account.integration.bitrix24.store.AdditionalFields'
 tests.requireClass('Comagic.account.integration.bitrix24.store.Record');
 tests.requireClass('Comagic.account.integration.bitrix24.controller.Page');
 
-function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
+function AccountIntegrationBitrix24(args) {
+    var requestsManager = args.requestsManager,
+        testersFactory = args.testersFactory,
+        utils = args.utils;
+    
+    Comagic.account.features = args.features || [];
+
     AccountIntegrationBitrix24.makeOverrides = function () {
         Ext.define('Comagic.test.account.integration.bitrix24.view.Page', {
             override: 'Comagic.account.integration.bitrix24.view.Page',
@@ -39,8 +45,8 @@ function AccountIntegrationBitrix24(requestsManager, testersFactory, utils) {
             access_token: '24937851083',
             refresh_token: 3600,
             bitrix_app_state: 'active',
-            user_sync_time: 1565940570,
-            user_sync_state: 'inactive',
+            user_sync_time: null,
+            user_sync_state: 'ok',
             user_sync_error: 'null',
             components: 'bitrix24',
             call_responsible_user_id: 37293,

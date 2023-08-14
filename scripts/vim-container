@@ -16,7 +16,7 @@ then
     arguments="$arguments -v $profileDir:/$HOME"
     arguments="$arguments --mount type=bind,source=/etc/passwd,target=/etc/passwd"
     arguments="$arguments --mount type=bind,source=/etc/group,target=/etc/group"
-    arguments="$arguments --mount type=bind,source=$HOME/.ssh/id_rsa,target=$HOME/.ssh/id_rsa"
+    arguments="$arguments --mount type=bind,source=$HOME/.ssh/id_ed25519,target=$HOME/.ssh/id_ed25519"
 else
     arguments="$arguments -v $profileDir/.config:/root/.config"
     arguments="$arguments -v $profileDir/.gitconfig:/root/.gitconfig"
@@ -26,7 +26,7 @@ else
     arguments="$arguments --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa"
 fi
 
-docker run -it --rm \
+docker run --network=host -it --rm \
     $arguments \
     -w /usr/local/src \
     vim-container

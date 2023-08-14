@@ -73,6 +73,7 @@ fi
 #    exit 1
 #fi
 
+mv ./pip.conf ~/pip.conf
 pip install -r $REQUIREMENTS_PATH
 
 if [ $? -ne 0 ]

@@ -1,0 +1,103 @@
+diff --git a/config/webpack.config.js b/config/webpack.config.js
+index bdd8667..527a864 100644
+--- a/config/webpack.config.js
++++ b/config/webpack.config.js
+@@ -134,6 +134,7 @@ const plugins = () => {
+             filename: 'static/css/[name].[fullhash:8].css',
+             ignoreOrder: true,
+         }),
++        /*
+         new ModuleFederationPlugin({
+             name: 'softphone',
+             filename: 'remoteEntry.js',
+@@ -150,6 +151,10 @@ const plugins = () => {
+                 return shared;
+             }, {}),
+         }),
++        */
++        new webpack.optimize.LimitChunkCountPlugin({
++            maxChunks: 1,
++        }),
+     ];
+ };
+ 
+diff --git a/package.json b/package.json
+index c03e187..4e2d5a1 100644
+--- a/package.json
++++ b/package.json
+@@ -79,6 +79,6 @@
+     "short-uuid": "^4.2.0",
+     "uuid": "^8.3.2",
+     "yup": "^0.32.9",
+-    "uis-softphone": "0.0.124"
++    "uis-softphone": "./misc/sip_lib"
+   }
+ }
+diff --git a/public/index.html b/public/index.html
+index 61ad137..2a5b161 100644
+--- a/public/index.html
++++ b/public/index.html
+@@ -4,9 +4,28 @@
+     <base href="/">
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
++    <script>
++        var windowLoadHandler = window.onload;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/boot.js"></script>
++    <script>
++        window.onload = windowLoadHandler;
++    </script>
++    <script src="/tests/utils/jasmine/lib/jasmine-ajax/lib/mock-ajax.js"></script>
++    <script src="/tests/utils/jasmine/console-reporter.js"></script>
++    <script src="/tests/utils/js-tester.js"></script>
++    <script type="text/javascript">
++        var tests = new JsTester_Tests(new JsTester_Factory());
++        tests.exposeDebugUtils('jsTestDebug');
++    </script>
+ </head>
+ <body>
+     <noscript>You need to enable JavaScript to run this app.</noscript>
+     <div id="root"></div>
++    <script src="/tests/utils/require.js"></script>
++    <script src="/tests/tests.js"></script>
++    <script src="/tests/utils/tests.js"></script>
+ </body>
+ </html>
+\ No newline at end of file
+diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
+index cb243c1..8f2d0a0 100644
+--- a/src/bootstrap.tsx
++++ b/src/bootstrap.tsx
+@@ -3,4 +3,28 @@ import ReactDOM from 'react-dom';
+ import Root from './Root';
+ import { RootStore } from '@models/RootStore';
+ 
+-ReactDOM.render(<Root rootStore={RootStore.create({})} />, document.getElementById('root'));
++window.application = {
++    run(args) {
++        this.exit();
++
++        const callback = args?.callback || (() => null),
++            container = document.createElement('div'),
++            rootStore = RootStore.create({});
++        container.id = 'root';
++        document.body.appendChild(container);
++
++        callback(rootStore);
++        ReactDOM.render(<Root rootStore={rootStore} />, container);
++    },
++
++    exit() {
++        const container = document.getElementById('root');
++
++        if (!container) {
++            return;
++        }
++
++        container.firstChild && ReactDOM.unmountComponentAtNode(container);
++        container.remove();
++    }
++};

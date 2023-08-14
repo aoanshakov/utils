@@ -1,25 +1,400 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 69d3cf1e..f93e5025 100644
+index 54d57668..036753a8 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
-@@ -153,6 +153,9 @@ const plugins = () => {
-             filename: 'static/css/[name].[fullhash:8].css',
+@@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+ const TerserPlugin = require('terser-webpack-plugin');
+-const ExternalRemotesPlugin = require('external-remotes-plugin');
++//const ExternalRemotesPlugin = require('external-remotes-plugin');
+ const CopyPlugin = require('copy-webpack-plugin');
++const hash = require('string-hash');
+ 
+ const { ModuleFederationPlugin } = webpack.container;
+ const pkgJson = require('../package.json');
+@@ -18,6 +19,8 @@ const BUILD_PLATFORM = process.env.BUILD_PLATFORM || 'windows';
+ const REACT_APP = /^REACT_APP_/i;
+ 
+ const appDirectory = fs.realpathSync(process.cwd());
++const miscDirectory = `${appDirectory}/misc`;
++const magicUIDirectory = `${miscDirectory}/magic_ui`;
+ const publicDir = path.resolve(appDirectory, 'public');
+ const buildDir = path.resolve(appDirectory, 'build');
+ const dotenv = path.resolve(appDirectory, '.env');
+@@ -25,9 +28,20 @@ const isProductionMode = NODE_ENV !== 'development';
+ const webpackMode = isProductionMode ? 'production' : 'development';
+ const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
+ const isBundleAnalyzerPlugin = false;
++const subModules = ['chats'];
+ 
+ const lessLoader = {
+     loader: 'less-loader',
++    options: {
++        lessOptions: {
++            modifyVars: {
++                'hack': `true; ${
++                    subModules.map(module => `@import "${miscDirectory}/${module}/theme/theme.less"`).join('; ')
++                }`,
++            },
++            javascriptEnabled: true,
++        },
++    },
+ };
+ 
+ const fontsOptions = isProductionMode
+@@ -104,10 +118,11 @@ const webpackDefinePlugin = () => {
+     return opts;
+ };
+ 
+-const cssLoaders = extra => {
++const cssLoaders = (extra, loaderParams = {}) => {
+     const loaders = [
+         {
+             loader: isProductionMode ? MiniCssExtractPlugin.loader : 'style-loader',
++            ...loaderParams
+         },
+         {
+             loader: 'css-loader',
+@@ -214,7 +229,7 @@ const plugins = () => {
              ignoreOrder: true,
          }),
+ 
+-        new ModuleFederationPlugin({
++        /*new ModuleFederationPlugin({
+             name: 'shell',
+             shared: getSharedDeps(),
+             remotes: {
+@@ -256,6 +271,11 @@ const plugins = () => {
+             },
+         }),
+         new ExternalRemotesPlugin(),
++        }),*/
++
 +        new webpack.optimize.LimitChunkCountPlugin({
 +            maxChunks: 1
 +        })
      ];
  
-     if (isBundleAnalyzerPlugin) {
+     if (isProductionMode) {
+@@ -279,6 +299,17 @@ const plugins = () => {
+     return pluginsList;
+ };
+ 
++const createAliases = appDirectory => ({
++    '@': path.resolve(appDirectory, './src'),
++    '@models': path.resolve(appDirectory, './src/models'),
++    '@lib': path.resolve(appDirectory, './src/components/lib'),
++    '@hooks': path.resolve(appDirectory, './src/hooks'),
++});
++
++const iconsRegExp = new RegExp(
++    ['', '(softphone|softphone', 'src|call_history|uis_webrtc', 'src)', 'icons', ''].join('\\' + path.sep)
++);
++
+ module.exports = {
+     entry: './src/index.tsx',
+     target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
+@@ -300,6 +331,21 @@ module.exports = {
+     module: {
+         rules: [
+             {
++                test: /\.js$/,
++                exclude: /node_modules(?!\/(uis-softphone|magic-ui)\/)/,
++                use: [{
++                    loader: 'babel-loader',
++                    options: {
++                        presets: ['@babel/preset-react', '@babel/preset-env'],
++                        comments: false,
++                        plugins: [
++                            '@babel/plugin-proposal-private-methods',
++                            '@babel/plugin-proposal-class-properties',
++                        ]
++                    }
++                }]
++            },
++            {
+                 test: /\.(ts|tsx)$/,
+                 use: {
+                     loader: 'ts-loader',
+@@ -307,7 +353,7 @@ module.exports = {
+                         transpileOnly: true,
+                     },
+                 },
+-                exclude: /node_modules/,
++                exclude: /node_modules(?!\/(uis-softphone|magic-ui)\/)/,
+             },
+             {
+                 test: /\.css$/,
+@@ -318,6 +364,29 @@ module.exports = {
+                 use: cssLoaders(lessLoader),
+             },
+             {
++                test: /\.(sa|sc|c)ss$/,
++                include: `${magicUIDirectory}/src`,
++                use: [
++                    {
++                        loader: 'style-loader',
++                    },
++                    {
++                        loader: 'css-loader',
++                    },
++                    {
++                        loader: 'resolve-url-loader',
++                    },
++                    {
++                        loader: 'sass-loader',
++                        options: {
++                            sassOptions: {
++                                includePaths: [magicUIDirectory]
++                            }
++                        }
++                    },
++                ],
++            },
++            {
+                 test: /\.(png|jpg)$/,
+                 loader: 'url-loader',
+                 options: {
+@@ -327,12 +396,13 @@ module.exports = {
+                 },
+             },
+             {
+-                test: /\.(woff|woff2)$/,
++                test: /\.(woff|woff2|otf)$/,
+                 loader: 'file-loader',
+                 options: fontsOptions,
+             },
+             {
+                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
++                exclude: iconsRegExp,
+                 use: [
+                     {
+                         loader: '@svgr/webpack',
+@@ -348,17 +418,152 @@ module.exports = {
+                     },
+                 ],
+             },
++            {
++                test: iconsRegExp,
++                use: ({resource}) => [{
++                    loader: 'babel-loader',
++                    options: {
++                        presets: ['@babel/preset-react', '@babel/preset-env'],
++                        comments: false
++                    }
++                }, {
++                    loader: '@svgr/webpack',
++                    options: {
++                        babel: false,
++                        icon: true,
++                        svgoConfig: {
++                            plugins: [{
++                                cleanupIDs: {
++                                    prefix: `svg${hash(path.relative(__dirname, resource))}`,
++                                    force: true
++                                }
++                            }]
++                        }
++                    }
++                }]
++            },
++            {
++                test: require.resolve('janus-gateway'),
++                loader: 'exports-loader',
++                options: {
++                    exports: 'Janus'
++                }
++            },
+         ],
+     },
+     resolve: {
+         extensions: ['.tsx', '.ts', '.js'],
+ 
+         alias: {
+-            '@': path.resolve(appDirectory, './src'),
+-            '@models': path.resolve(appDirectory, './src/models'),
+-            '@lib': path.resolve(appDirectory, './src/components/lib'),
+-            '@hooks': path.resolve(appDirectory, './src/hooks'),
++            '@comagic/core/lib': `${miscDirectory}/core/src`,
++            ...createAliases(appDirectory),
++            'contacts/Root': `${miscDirectory}/contacts/src/Root.tsx`,
++            'contacts/ContactBar': `${miscDirectory}/contacts/src/components/contact-bar/ContactBarWrapper.tsx`,
++            'contacts/ContactSelect':
++                `${miscDirectory}/contacts/src/components/contact-bar/whatsapp-channel-select/ContactSelectWrapper.tsx`,
++            'leadgen/Root': `${miscDirectory}/Stub.js`,
++            'softphone/Root': 'softphone/src/Root.tsx',
++            'softphone/Account': 'softphone/src/Account.tsx',
++            'softphone/Settings': 'softphone/src/Settings.tsx',
++            'softphone/CallHistory': 'softphone/src/call_history/index.tsx',
++            'softphone/CallStats': 'softphone/src/call_stats/index.tsx',
++            'softphone/LostCallsCount': 'softphone/src/call_history/counter.tsx',
++            'softphone/FeedbackWebModal': 'softphone/src/feedback/feedbackWeb/index.tsx',
++            'chats/Root': 'chats/src/Root.tsx',
++            'chats/Account': 'chats/src/components/account/index.tsx',
++            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
++            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
++            'chats/HistoryLogWrapped': 'chats/src/components/chats/chat-panel/HistoryLogWrapped.tsx',
++            'chats/AudioPlayerWrapped': 'chats/src/components/chats/chat-panel/AudioPlayerWrapped.tsx',
++            'chats/MessageWrapped': 'chats/src/components/chats/chat-panel/MessageWrapped.tsx',
++            'chats/QuoteWrapped': 'chats/src/components/chats/chat-panel/QuoteWrapped.tsx',
++            'chats/HistoryItemWrapped': 'chats/src/components/offline-messages/panel/HistoryItemWrapped.tsx',
++            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
++            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
++            'chats/Counter': 'chats/src/components/chats/chat-panel/Counter.tsx',
++            'chats/MenuItemCounter': 'chats/src/components/main/menu/counter.tsx',
++            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,
++            'callTracking/CalltrackingSubstitutionControl': `${miscDirectory}/Stub.js`,
++            'callTracking/CalltrackingTrafficControl': `${miscDirectory}/Stub.js`,
++            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
++            'callTracking/CalltrackingSubstitutionRules': `${miscDirectory}/Stub.js`,
++            'callTracking/NumberPools': `${miscDirectory}/Stub.js`,
++            'callTracking/Sites': `${miscDirectory}/Stub.js`,
++            'callTracking/SitesV3': `${miscDirectory}/Stub.js`,
++            'callTracking/Root': `${miscDirectory}/Stub.js`,
++            'callTracking/SiteForm': `${miscDirectory}/Stub.js`,
++            'analytics/CreateDashboardButton': `${miscDirectory}/Stub.js`,
++            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
++            'analytics/CreateReport': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/ChiefDashboard': `${miscDirectory}/Stub.js`,
++            'analytics/Communications': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/Dashboard': `${miscDirectory}/Stub.js`,
++            'analytics/DealsAnalytics': `${miscDirectory}/Stub.js`,
++            'analytics/Deals': `${miscDirectory}/Stub.js`,
++            'analytics/Leads': `${miscDirectory}/Stub.js`,
++            'analytics/Dashboards/MarketerDashboard': `${miscDirectory}/Stub.js`,
++            'analytics/SharedReport': `${miscDirectory}/Stub.js`,
++            'analytics/cancelPendingRequests': `${miscDirectory}/Stub.js`,
++            'analytics/ReportTable': `${miscDirectory}/Stub.js`,
++            'analytics/CalendarButton': `${miscDirectory}/Stub.js`,
++            'analytics/RadioButton': `${miscDirectory}/Stub.js`,
++            'analytics/RadioGroup': `${miscDirectory}/Stub.js`,
++            'analytics/Monitoring': `${miscDirectory}/Stub.js`,
++            'analytics/Visits': `${miscDirectory}/Stub.js`,
++            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
++            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
++            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`,
++            'marketplace/Auth': `${miscDirectory}/Stub.js`,
++            'marketplace/Root': `${miscDirectory}/Stub.js`
+         },
++
++        plugins: [{
++            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
++                request,
++                resolveContext,
++                callback
++            ) =>  {
++                const target = resolver.ensureHook('resolve'),
++                    requestPath = request.request,
++                    splitted = requestPath.split('/');
++
++                if (['@comagic/ui', 'magic-ui'].some(path => requestPath.indexOf(`${path}/lib`) === 0)) {
++                    splitted[1] = 'src';
++                } else if (['~magic-ui/lib/styles.css', '~@comagic/core/lib/styles.css'].includes(requestPath)) {
++                    splitted.splice(0, splitted.length);
++                    splitted.push(miscDirectory, 'stub.css');
++                } else {
++                    const {
++                        directory,
++                        aliases
++                    } = subModules.concat(['softphone', 'contacts']).map(module => {
++                        const directory = `${miscDirectory}/${module}`;
++
++                        return {
++                            directory,
++                            aliases: createAliases(directory)
++                        };
++                    }).find(({
++                        directory,
++                        aliases
++                    }) => request.path.indexOf(directory) === 0 && Object.keys(aliases).some(
++                        alias => splitted[0] == alias
++                    )) || {};
++
++                    if (!directory) {
++                        callback();
++                        return;
++                    }
++
++                    splitted[0] = aliases[splitted[0]]
++                }
++
++                return resolver.doResolve(target, {
++                    ...request,
++                    request: splitted.join('/') 
++                }, null, resolveContext, callback);
++            }),
++        }],
+     },
+     output: {
+         clean: true,
+diff --git a/package.json b/package.json
+index 16944c78..171a458f 100644
+--- a/package.json
++++ b/package.json
+@@ -67,13 +67,18 @@
+     "webpack-merge": "^5.7.3"
+   },
+   "dependencies": {
+-    "@comagic/core": "1.5.0",
+-    "@comagic/logger": "^1.0.4",
+-    "@sentry/react": "^6.17.6",
+-    "@sentry/tracing": "^6.17.6",
++    "@comagic/core": "./misc/core",
++    "@comagic/softphone-widget": "./misc/softphone/misc/sip_lib",
++    "@comagic/softphone-core": "./misc/softphone/misc/sip_lib/uis_webrtc",
++    "@comagic/ui": "./misc/ui",
++    "@sentry/react": "^6.19.4",
++    "@sentry/tracing": "^6.19.4",
++    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
+     "archiver": "^5.3.0",
+     "auto-launch": "^5.0.5",
+     "axios": "^0.24.0",
++    "babel-loader": "^8.0.4",
++    "chats": "./misc/chats",
+     "classnames": "^2.2.6",
+     "dotenv": "^8.2.0",
+     "dotenv-expand": "^5.1.0",
+@@ -86,7 +91,7 @@
+     "formik": "^2.2.9",
+     "history": "^5.3.0",
+     "lodash.clonedeep": "^4.5.0",
+-    "magic-ui": "0.0.0-int1",
++    "magic-ui": "./misc/magic_ui",
+     "mobx": "^6.6.1",
+     "mobx-react-lite": "^3.4.0",
+     "mobx-state-tree": "^5.1.6",
+@@ -96,6 +101,11 @@
+     "react-dom": "^18.2.0",
+     "react-intl": "^6.0.5",
+     "react-router-dom": "6.9.0",
++    "simplebar-react": "^2.4.1",
++    "softphone": "./misc/softphone",
++    "uis-softphone": "./misc/softphone/misc/sip_lib",
++    "string-hash": "^1.1.3",
++    "contacts": "./misc/contacts",
+     "stream-buffers": "^3.0.2",
+     "yup": "^0.28.1"
+   },
 diff --git a/public/index.html b/public/index.html
-index 98e0c107..0fe0c90f 100644
+index a82eebad..98306245 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -22,6 +22,22 @@
+@@ -5,7 +5,8 @@
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+     <title>Loading...</title>
+-    <link rel="icon" href="">
++    <link rel="icon" href="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js">
++    <link rel="stylesheet" href="/tests/css/style.css">
+     <% if (htmlWebpackPlugin.options.env.production) { %>
+     <!-- Google Tag Manager -->
+     <script>(function(w, d, s, l, i) {
+@@ -23,7 +24,29 @@
      })(window, document, 'script', 'dataLayer', 'GTM-TJXG5CR');</script>
      <!-- End Google Tag Manager -->
      <% } %>
+-    <script>window.rootConfig = <%= rootConfig %>;</script>
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine-html.js"></script>
 +    <script>
@@ -36,63 +411,314 @@ index 98e0c107..0fe0c90f 100644
 +        var tests = new JsTester_Tests(new JsTester_Factory());
 +        tests.exposeDebugUtils('jsTestDebug');
 +    </script>
++    <script src="/tests/utils/require.js"></script>
++    <script src="/tests/{script}.js"></script>
++    <style>
++        #root {
++            position: static !important;
++        }
++    </style>
  </head>
- <body>
+ <body class="cm-body">
      <% if (htmlWebpackPlugin.options.env.production) { %>
-@@ -33,5 +49,8 @@
+@@ -35,5 +58,6 @@
      <% } %>
      <noscript>You need to enable JavaScript to run this app.</noscript>
      <div id="root"></div>
-+    <script src="/tests/utils/require.js"></script>
-+    <script src="/tests/tests.js"></script>
 +    <script src="/tests/utils/tests.js"></script>
  </body>
  </html>
 \ No newline at end of file
-diff --git a/src/history.ts b/src/history.ts
-index 33bf6a02..dceaff1c 100644
---- a/src/history.ts
-+++ b/src/history.ts
-@@ -1,6 +1,6 @@
--import { createBrowserHistory } from 'history';
-+import { createMemoryHistory } from 'history';
+diff --git a/scripts/dev.js b/scripts/dev.js
+index eb9c62ef..5fb7fee9 100644
+--- a/scripts/dev.js
++++ b/scripts/dev.js
+@@ -2,8 +2,6 @@
  
--const history = createBrowserHistory();
-+const history = createMemoryHistory();
+ process.env.NODE_ENV = 'development';
  
- //TODO: может заменить на location.reload()?
- export const reloadPage = (): void => {
-diff --git a/src/index.tsx b/src/index.tsx
-index e2360abd..a07843d5 100644
---- a/src/index.tsx
-+++ b/src/index.tsx
-@@ -48,4 +48,28 @@ const Root: React.FC = observer(() => {
+-const fs = require('fs');
+-const path = require('path');
+ const webpack = require('webpack');
+ const WebpackDevServer = require('webpack-dev-server');
+ 
+@@ -11,21 +9,11 @@ const configFactory = require('../config/webpack.config.js');
+ 
+ const compiler = webpack(configFactory);
+ 
+-const certsDir = `${path.dirname(require.main.filename)}/certs`;
+-
+ const devServer = new WebpackDevServer(
+     {
+-        allowedHosts: ['.localhost.uis.st'],
+-        server: {
+-            type: 'https',
+-            options: {
+-                key: fs.readFileSync(`${certsDir}/_wildcard.localhost.uis.st+5-key.pem`),
+-                cert: fs.readFileSync(`${certsDir}/_wildcard.localhost.uis.st+5.pem`),
+-                ca: fs.readFileSync(`${certsDir}/rootCA.cer`),
+-            },
+-        },
+         port: parseInt(process.env.PORT, 10) || 8080,
+-        hot: true,
++        hot: false,
++        liveReload: false,
+         headers: { 'Access-Control-Allow-Origin': '*' },
+         historyApiFallback: true,
+         // для проксирования запросов на production
+diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
+index abb1f850..45c41d80 100644
+--- a/src/bootstrap.tsx
++++ b/src/bootstrap.tsx
+@@ -1,13 +1,19 @@
+-import { CoreProvider } from '@comagic/core';
++import { CoreProvider, eventBus } from '@comagic/core';
+ import * as Sentry from '@sentry/react';
+ import { Integrations } from '@sentry/tracing';
+ import { observer } from 'mobx-react-lite';
+ import React, { useEffect } from 'react';
++import ReactDOM from 'react-dom';
+ import { createRoot } from 'react-dom/client';
+ import { IntlProvider } from 'react-intl';
+ import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
++import { notification, Modal } from 'magic-ui';
++import createIconFactory from '@/utils/createIcon';
+ 
+-import { Provider, rootStore } from '@models/RootStore';
++import { Provider, rootStore, createRootStore } from '@models/RootStore';
++import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
++import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
++import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
+ 
+ import history from '@/history';
+ 
+@@ -79,7 +85,99 @@ const Root: React.FC = observer(props => {
      );
  });
  
--ReactDOM.render(<Root />, document.getElementById('root'));
+-const container = document.getElementById('root');
+-const root = createRoot(container);
++const TestBody = ({children}) => <div className="cm-test-body">{children}</div>;
+ 
+-root.render(<Root {...(window.rootConfig || {})}/>);
++const platforms = {
++    mac: {
++        height: 88,
++        callback: () => {
++            const img = document.createElement('img');
++
++            img.src = '/tests/img/osx-icon.png'
++            img.className = 'cmg-osx-icon-screenshot';
++
++            document.body.appendChild(img);
++        },
++    },
++    windows: {
++        height: 16,
++        callback: () => {},
++    },
++};
++
++const Icon = () => {
++    useEffect(() => {
++        (async function () {
++            const os = 'windows';
++
++            const {
++                height,
++                callback,
++            } = platforms[os];
++
++            const src = await createIconFactory(os)(4),
++                img = document.createElement('img');
++
++            callback();
++
++            img.style.width = img.style.height = `${height}px`;
++            img.src = src;
++            img.className = `cmg-app-${os}-icon`;
++
++            document.body.appendChild(img);
++        })();
++    }, []);
++    return <></>;
++};
++
++const units = {
++    icon: Icon,
++};
++
++let root;
++
 +window.application = {
 +    run({
-+        setHistory = () => null
++        setReactDOM = () => null,
++        setEventBus = () => null,
++        setHistory = () => null,
++        setChatsRootStore = () => null,
++        setNotification = () => null,
++        setModal = () => null,
++        appName = ''
 +    }) {
-+        setHistory(history);
++        const Unit = units[appName];
++
++        if (!Unit) {
++            setReactDOM(ReactDOM);
++            setEventBus(eventBus);
++            createRootStore();
++            setChatsRootStore(createChatsRootStore());
++            createSoftphoneRootStore();
++            createContactsRootStore();
++            setHistory(history);
++            setNotification(notification);
++            setModal(Modal);
++        }
++         
 +        this.exit();
 +
 +        const container = document.createElement('div');
 +        container.id = 'root';
 +        document.body.appendChild(container);
 +
-+        ReactDOM.render(<Root />, container);
++        root = createRoot(container);
++        root.render(Unit ? <TestBody><Unit /></TestBody> : <Root appName={appName} />);
 +    },
 +
 +    exit() {
 +        const container = document.getElementById('root');
 +
-+        if (!container || !container.firstChild) {
++        if (!container) {
 +            return;
 +        }
 +
-+        ReactDOM.unmountComponentAtNode(container);
++        container.firstChild && root && root.unmount();
 +        container.remove();
 +    }
 +};
+diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
+index d5e90998..68fe7c72 100644
+--- a/src/models/RootStore.ts
++++ b/src/models/RootStore.ts
+@@ -162,7 +162,6 @@ export const RootStore = types
+         const logger = new Logger(loggerStrategy);
+ 
+         logger.filter(filterPassword);
+-        logger.applyToAxios(axios);
+ 
+         const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
+             const auth = getToken();
+@@ -243,7 +242,7 @@ export const RootStore = types
+                 }
+             );
+ 
+-            axios.interceptors.response.use(
++            window.axiosInterceptors = [axios.interceptors.response.use(
+                 response => {
+                     if (response.data.error) {
+                         const {
+@@ -300,7 +299,7 @@ export const RootStore = types
+ 
+                     return Promise.reject(error);
+                 }
+-            );
++            ), logger.applyToAxios(axios)];
+         };
+ 
+         const collectLogs = callback => {
+@@ -317,6 +316,10 @@ export const RootStore = types
+         };
+ 
+         const afterCreate = () => {
++            window.axiosInterceptors !== undefined && window.axiosInterceptors.forEach(
++                interceptor => axios.interceptors.response.eject(interceptor)
++            );
++
+             let isMaximizedCurrently = false,
+                 isVisible,
+                 counter = 0;
+@@ -459,7 +462,8 @@ export type DependencyInjection = {
+ export type RootInstance = Instance<typeof RootStore>;
+ export const RootStoreContext = React.createContext<null | RootInstance>(null);
+ export const Provider = RootStoreContext.Provider;
+-export const rootStore = RootStore.create({}, { httpRpc, httpRpcAuth });
++export let rootStore;
++export const createRootStore = () => (rootStore = RootStore.create({}, { httpRpc, httpRpcAuth }));
+ 
+ type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+ 
+diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
+index 36901238..4c43c0ea 100644
+--- a/src/models/auth/AuthStore.ts
++++ b/src/models/auth/AuthStore.ts
+@@ -93,7 +93,7 @@ const removeToken = (skipLocalStorage = false) => {
+ export const AuthStore = Loader.named('AuthStore')
+     .props({
+         dontKeepMeSignedIn: types.optional(types.boolean, false),
+-        isAuthorized: types.optional(types.boolean, Boolean(getToken())),
++        isAuthorized: types.optional(types.boolean, false),
+         isTokenRefreshing: types.optional(types.boolean, false),
+         windowId: types.optional(types.string, generateTraceId('local')),
+     })
+@@ -191,6 +191,8 @@ export const AuthStore = Loader.named('AuthStore')
+         });
+ 
+         const afterCreate = () => {
++            setAuthorized(Boolean(getToken()));
++
+             window.addEventListener('doLogoutUser', (event: CustomEvent) => {
+                 const eventWindowId = event.detail;
+                 if (eventWindowId !== authStore.windowId) {
+diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
+index 8c0a28d7..ce190fe9 100644
+--- a/src/rpc/httpRpc.ts
++++ b/src/rpc/httpRpc.ts
+@@ -25,10 +25,11 @@ export type HttpRpc = <T>(
+ 
+ const baseUrl: string = process.env.REACT_APP_BASE_URL || '$REACT_APP_BASE_URL';
+ 
+-let cancelTokenSource: CancelTokenSource = axios.CancelToken.source();
++let cancelTokenSource: CancelTokenSource = null;
++const getCancelTokenSource = () => cancelTokenSource || (cancelTokenSource = axios.CancelToken.source());
+ 
+ export const cancelPendingRequests = (message?: string): void => {
+-    cancelTokenSource.cancel(message);
++    getCancelTokenSource().cancel(message);
+     cancelTokenSource = axios.CancelToken.source();
+ };
+ 
+@@ -45,7 +46,7 @@ const httpRpc: HttpRpc = async <T>(method: string, params = {}, headers = {}, ur
+         data: rpcParams,
+         url: `${url}?method=${method}`,
+         headers,
+-        cancelToken: cancelTokenSource.token,
++        cancelToken: getCancelTokenSource().token,
+     };
+ 
+     try {
+diff --git a/src/utils/cookie.ts b/src/utils/cookie.ts
+index 3442fbf5..41a232d5 100644
+--- a/src/utils/cookie.ts
++++ b/src/utils/cookie.ts
+@@ -39,6 +39,7 @@ const resetElectronCookiesManager = () => {
+     return electronCookiesManager;
+ };
+ 
++window.resetElectronCookiesManager = resetElectronCookiesManager;
+ window.getElectronCookiesManager = resetElectronCookiesManager;
+ const prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
+ 
+diff --git a/src/utils/index.ts b/src/utils/index.ts
+index 67cd0fbf..3d827b26 100644
+--- a/src/utils/index.ts
++++ b/src/utils/index.ts
+@@ -7,6 +7,8 @@ export { default as setAxiosGlobalInterceptors } from './setAxiosGlobalIntercept
+ export { default as getWorkplaceAvailability } from './getWorkplaceAvailability';
+ export { default as isSoftphoneAvailable } from './isSoftphoneAvailable';
+ export { default as isManager } from './isManager';
+-export { default as createIconFactory } from './createIcon';
+-import createIconFactory from './createIcon';
++
++export const createIconFactory = (os = 'windows') => counter =>
++    new Promise(resolve => resolve([os, counter].join(', ')));
++
+ export const createIcon = createIconFactory(window.rootConfig?.platform == 'mac' ? 'mac' : 'windows');

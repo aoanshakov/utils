@@ -1,6 +1,7 @@
 #!/bin/bash
 
 action="initialize"
+distDirectory=""
 applicationDirectory=""
 farg=""
 isOsX=0
@@ -8,15 +9,18 @@ dockerArguments=""
 entrypointArguments=""
 buildImage=0
 noCache=""
+imageTag="comagic_app_tests"
 
 if [ $(uname | grep Darwin | wc -l) -eq 0 ]
 then
     dockerArguments="$dockerArguments --mount type=bind,source=/etc/passwd,target=/etc/passwd"
     dockerArguments="$dockerArguments --mount type=bind,source=/etc/group,target=/etc/group"
+    dockerArguments="$dockerArguments --mount type=bind,source=$HOME/.ssh/id_ed25519,target=/root/.ssh/id_ed25519"
     entrypointArguments="$entrypointArguments --owner $USER"
     farg="-f"
 else
     isOsX=1
+    dockerArguments="$dockerArguments --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa"
 fi
 
 function getAbsolutePath {
@@ -50,9 +54,17 @@ do
         dockerArguments="$dockerArguments -p $2:443"
         action="run-server"
         shift
+    elif [ "$1" = "--dist-directory" ]
+    then
+        distDirectory=$2
+        shift
     elif [ "$1" = "--application-directory" ]
     then
         applicationDirectory=$2
+        shift
+    elif [ "$1" = "--network=host" ]
+    then
+        dockerArguments="$dockerArguments $1"
         shift
     else
         entrypointArguments="$entrypointArguments $1"
@@ -87,11 +99,15 @@ then
     exit 1
 fi
 
-imageTag='comagic_app_tests'
-
 if [ $buildImage -eq 1 ]
 then
+    if [ $updater -eq 1 ]
+    then
+        sed -i '' 's/setup_14/setup_11/g' $buildDir/Dockerfile
+    fi
+
     docker build $noCache -t $imageTag $currentDirectory
+
     if [ $? -ne 0 ]
     then
         echo "Не удалось собрать образ"
@@ -133,6 +149,25 @@ else
     testsDir=$(getAbsolutePath $testsDir)
 fi
 
+if [ -z "$distDirectory" ]
+then
+    if [ -n "$COMAGIC_DIST_DIRECTORY" ]
+    then
+        distDirectory=$COMAGIC_DIST_DIRECTORY
+    fi
+fi
+
+if [ -n "$distDirectory" ]
+then
+    if [ ! -d $distDirectory ]
+    then
+        echo "Директория $distDirectory не существует"
+        exit 1
+    fi
+
+    dockerArguments="$dockerArguments -v $distDirectory:/usr/local/src/electron"
+fi
+
 if [ -z "$applicationDirectory" ]
 then
     if [ -n "$COMAGIC_APP_DIRECTORY" ]
@@ -149,7 +184,7 @@ then
         exit 1
     fi
 
-    dockerArguments="$dockerArguments -v $applicationDirectory:/usr/local/src/admin_frontend"
+    dockerArguments="$dockerArguments -v $applicationDirectory:/usr/local/src/comagic_app"
 fi
 
 if [ -z "$applicationDirectory" ]
@@ -159,10 +194,8 @@ then
 fi
 
 docker run -it --rm \
-    -v $applicationDirectory:/usr/local/src/comagic_app \
     -v $testsDir:/usr/local/src/tests \
     --mount type=bind,source=$HOME/.ssh/known_hosts,target=/root/.ssh/known_hosts \
-    --mount type=bind,source=$HOME/.ssh/id_rsa,target=/root/.ssh/id_rsa \
     $dockerArguments \
     $imageTag \
     --action $action \
