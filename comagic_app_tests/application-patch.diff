@@ -467,7 +467,7 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index abb1f850..45c41d80 100644
+index abb1f850..9513b53a 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,19 @@
@@ -492,7 +492,7 @@ index abb1f850..45c41d80 100644
  
  import history from '@/history';
  
-@@ -79,7 +85,99 @@ const Root: React.FC = observer(props => {
+@@ -79,7 +85,73 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -501,45 +501,19 @@ index abb1f850..45c41d80 100644
 +const TestBody = ({children}) => <div className="cm-test-body">{children}</div>;
  
 -root.render(<Root {...(window.rootConfig || {})}/>);
-+const platforms = {
-+    mac: {
-+        height: 88,
-+        callback: () => {
-+            const img = document.createElement('img');
-+
-+            img.src = '/tests/img/osx-icon.png'
-+            img.className = 'cmg-osx-icon-screenshot';
-+
-+            document.body.appendChild(img);
-+        },
-+    },
-+    windows: {
-+        height: 16,
-+        callback: () => {},
-+    },
-+};
-+
 +const Icon = () => {
 +    useEffect(() => {
-+        (async function () {
-+            const os = 'windows';
++        const os = 'windows',
++            height = 16;
 +
-+            const {
-+                height,
-+                callback,
-+            } = platforms[os];
++        const src = createIconFactory(os)(4),
++            img = document.createElement('img');
 +
-+            const src = await createIconFactory(os)(4),
-+                img = document.createElement('img');
++        img.style.width = img.style.height = `${height}px`;
++        img.src = src;
++        img.className = `cmg-app-${os}-icon`;
 +
-+            callback();
-+
-+            img.style.width = img.style.height = `${height}px`;
-+            img.src = src;
-+            img.className = `cmg-app-${os}-icon`;
-+
-+            document.body.appendChild(img);
-+        })();
++        document.body.appendChild(img);
 +    }, []);
 +    return <></>;
 +};
@@ -596,10 +570,10 @@ index abb1f850..45c41d80 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index d5e90998..68fe7c72 100644
+index 0519b4be..de631631 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -162,7 +162,6 @@ export const RootStore = types
+@@ -151,7 +151,6 @@ export const RootStore = types
          const logger = new Logger(loggerStrategy);
  
          logger.filter(filterPassword);
@@ -607,7 +581,7 @@ index d5e90998..68fe7c72 100644
  
          const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
              const auth = getToken();
-@@ -243,7 +242,7 @@ export const RootStore = types
+@@ -232,7 +231,7 @@ export const RootStore = types
                  }
              );
  
@@ -616,7 +590,7 @@ index d5e90998..68fe7c72 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -300,7 +299,7 @@ export const RootStore = types
+@@ -289,7 +288,7 @@ export const RootStore = types
  
                      return Promise.reject(error);
                  }
@@ -625,7 +599,7 @@ index d5e90998..68fe7c72 100644
          };
  
          const collectLogs = callback => {
-@@ -317,6 +316,10 @@ export const RootStore = types
+@@ -306,6 +305,10 @@ export const RootStore = types
          };
  
          const afterCreate = () => {
@@ -633,10 +607,10 @@ index d5e90998..68fe7c72 100644
 +                interceptor => axios.interceptors.response.eject(interceptor)
 +            );
 +
-             let isMaximizedCurrently = false,
-                 isVisible,
-                 counter = 0;
-@@ -459,7 +462,8 @@ export type DependencyInjection = {
+             let isMaximizedCurrently = false;
+ 
+             const counters = {
+@@ -439,7 +442,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -708,17 +682,14 @@ index 3442fbf5..41a232d5 100644
  const prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
  
 diff --git a/src/utils/index.ts b/src/utils/index.ts
-index 67cd0fbf..3d827b26 100644
+index 09650fcc..a3ffff1d 100644
 --- a/src/utils/index.ts
 +++ b/src/utils/index.ts
-@@ -7,6 +7,8 @@ export { default as setAxiosGlobalInterceptors } from './setAxiosGlobalIntercept
+@@ -7,4 +7,6 @@ export { default as setAxiosGlobalInterceptors } from './setAxiosGlobalIntercept
  export { default as getWorkplaceAvailability } from './getWorkplaceAvailability';
  export { default as isSoftphoneAvailable } from './isSoftphoneAvailable';
  export { default as isManager } from './isManager';
 -export { default as createIconFactory } from './createIcon';
--import createIconFactory from './createIcon';
 +
 +export const createIconFactory = (os = 'windows') => counter =>
 +    new Promise(resolve => resolve([os, counter].join(', ')));
-+
- export const createIcon = createIconFactory(window.rootConfig?.platform == 'mac' ? 'mac' : 'windows');

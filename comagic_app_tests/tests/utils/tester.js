@@ -9,6 +9,7 @@ define(() => function ({
     softphoneTester: me,
     isAlreadyAuthenticated = false,
     appName = '',
+    platform = 'windows',
     webSockets,
     path = '/',
     intersectionObservable,
@@ -49,7 +50,7 @@ define(() => function ({
 
     window.resetElectronCookiesManager?.();
 
-    window.rootConfig = {appName};
+    window.rootConfig = { appName, platform };
     window.crossTabCommunicatorCache = {};
     window.softphoneCrossTabCommunicatorCache = {};
 
