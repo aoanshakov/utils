@@ -324,12 +324,7 @@ define(() => function ({
 
                     tester.click = () => {
                         click();
-
-                        spendTime(1000);
-                        spendTime(1000);
-                        spendTime(1000);
-                        spendTime(1000);
-                        spendTime(1000);
+                        spendTime(0);
                     };
 
                     return tester;
@@ -3052,6 +3047,19 @@ define(() => function ({
                 name: 'init',
                 params: { jwt }
             })
+        };
+    };
+
+    me.employeesPing = () => {
+        const createMessage = () => ({});
+
+        return {
+            receive: () => {
+                me.employeesWebSocket.receive(createMessage());
+                spendTime(0);
+            },
+
+            expectToBeSent: () => me.employeesWebSocket.expectSentMessageToContain(createMessage())
         };
     };
 

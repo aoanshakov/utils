@@ -465,6 +465,7 @@ tests.addTest(options => {
                                                 function() {
                                                     spendTime(5000);
                                                     tester.expectPingToBeSent();
+                                                    tester.employeesPing().expectToBeSent();
                                                     spendTime(2000);
                                                     spendTime(0);
 

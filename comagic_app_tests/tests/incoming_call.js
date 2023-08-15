@@ -544,7 +544,9 @@ tests.addTest(options => {
                                 spendTime(32000);
 
                                 tester.expectPingToBeSent();
+                                tester.employeesPing().expectToBeSent();
                                 tester.receivePong();
+                                tester.employeesPing().receive();
 
                                 incomingCall.expectByeToBeSent();
 

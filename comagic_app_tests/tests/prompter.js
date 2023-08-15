@@ -284,7 +284,9 @@ tests.addTest(options => {
                                 new Array(6).fill(null).forEach(function () {
                                     spendTime(5000);
                                     tester.expectPingToBeSent();
+                                    tester.employeesPing().expectToBeSent();
                                     tester.receivePong();
+                                    tester.employeesPing().receive();
                                 });
 
                                 incomingCall = tester.incomingCall().receive();

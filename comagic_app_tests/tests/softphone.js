@@ -1376,11 +1376,14 @@ tests.addTest(options => {
                                                     beforeEach(function() {
                                                         spendTime(5000);
                                                         tester.expectPingToBeSent();
+                                                        tester.employeesPing().expectToBeSent();
                                                         spendTime(1000);
                                                         tester.receivePong();
+                                                        tester.employeesPing().receive();
 
                                                         spendTime(5000);
                                                         tester.expectPingToBeSent();
+                                                        tester.employeesPing().expectToBeSent();
                                                         spendTime(2000);
                                                         spendTime(0);
 
@@ -1398,11 +1401,6 @@ tests.addTest(options => {
                                                         'логе отсутствует пинг-понг.',
                                                     function() {
                                                         tester.receivePong();
-
-                                                        tester.slavesNotification().
-                                                            twoChannels().
-                                                            available().
-                                                            expectToBeSent();
 
                                                         tester.slavesNotification().
                                                             twoChannels().
@@ -1498,6 +1496,7 @@ tests.addTest(options => {
                                                 function() {
                                                     spendTime(5000);
                                                     tester.expectPingToBeSent();
+                                                    tester.employeesPing().expectToBeSent();
                                                     spendTime(2000);
                                                     spendTime(0);
 

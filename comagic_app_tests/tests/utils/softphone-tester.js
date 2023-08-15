@@ -4885,6 +4885,16 @@ define(function () {
             spendTime(0);
         };
 
+        this.spendFiveSeconds = function (times) {
+            let i = 0;
+
+            for (i = 0; i < times; i ++) {
+                spendTime(5000);
+                this.expectPingToBeSent();
+                this.receivePong();
+            }
+        };
+
         this.startTryingToPingUnavailableSocket = function () {
             // 1-ая попытка
             spendTime(1000);
