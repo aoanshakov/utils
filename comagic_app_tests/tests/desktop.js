@@ -273,82 +273,56 @@ tests.addTest(options => {
 
                                                     const requests = ajax.inAnyOrder();
 
-                                                    tester.accountRequest().
-                                                        operatorWorkplaceAvailable().
-                                                        forChats().
-                                                        receiveResponse();
-
-                                                    const countersRequest = tester.countersRequest().
-                                                        expectToBeSent(requests);
-
-                                                    const offlineMessageCountersRequest = tester.
-                                                        offlineMessageCountersRequest().
-                                                        expectToBeSent(requests);
-
-                                                    const chatChannelListRequest = tester.chatChannelListRequest().
-                                                        expectToBeSent(requests);
-
-                                                    const siteListRequest = tester.siteListRequest().
-                                                        expectToBeSent(requests);
-
-                                                    const markListRequest = tester.markListRequest().
-                                                        expectToBeSent(requests);
-
-                                                    const newChatListRequest = tester.chatListRequest().
-                                                        forCurrentEmployee().
-                                                        secondPage().
-                                                        expectToBeSent(requests);
-
-                                                    const activeChatListRequest = tester.chatListRequest().
-                                                        forCurrentEmployee().
-                                                        secondPage().
-                                                        active().
-                                                        expectToBeSent(requests);
-
-                                                    const closedChatListRequest = tester.chatListRequest().
-                                                        forCurrentEmployee().
-                                                        secondPage().
-                                                        closed().
-                                                        expectToBeSent(requests);
-
-                                                    const chatChannelTypeListRequest =
-                                                        tester.chatChannelTypeListRequest().
-                                                        expectToBeSent(requests);
-
-                                                    const notProcessedOfflineMessageListRequest = tester.
-                                                        offlineMessageListRequest().
-                                                        notProcessed().
-                                                        expectToBeSent(requests);
-
-                                                    const processingOfflineMessageListRequest = tester.
-                                                        offlineMessageListRequest().
-                                                        processing().
-                                                        expectToBeSent(requests);
-
-                                                    const processedOfflineMessageListRequest = tester.
-                                                        offlineMessageListRequest().
-                                                        processed().
-                                                        expectToBeSent(requests);
-
                                                     const accountRequest = tester.accountRequest().
                                                         operatorWorkplaceAvailable().
                                                         expectToBeSent(requests);
 
+                                                    const secondAccountRequest = tester.accountRequest().
+                                                        operatorWorkplaceAvailable().
+                                                        forChats().
+                                                        expectToBeSent(requests);
+
                                                     requests.expectToBeSent();
 
-                                                    countersRequest.receiveResponse();
-                                                    offlineMessageCountersRequest.receiveResponse();
-                                                    chatChannelListRequest.receiveResponse();
-                                                    siteListRequest.receiveResponse();
-                                                    markListRequest.receiveResponse();
-                                                    newChatListRequest.receiveResponse();
-                                                    activeChatListRequest.receiveResponse();
-                                                    closedChatListRequest.receiveResponse();
-                                                    chatChannelTypeListRequest.receiveResponse();
-                                                    notProcessedOfflineMessageListRequest.receiveResponse();
-                                                    processingOfflineMessageListRequest.receiveResponse();
-                                                    processedOfflineMessageListRequest.receiveResponse();
                                                     accountRequest.receiveResponse();
+                                                    secondAccountRequest.receiveResponse();
+
+                                                    tester.countersRequest().receiveResponse();
+                                                    tester.offlineMessageCountersRequest().receiveResponse();
+                                                    tester.chatChannelListRequest().receiveResponse();
+                                                    tester.siteListRequest().receiveResponse();
+                                                    tester.markListRequest().receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        forCurrentEmployee().
+                                                        secondPage().
+                                                        receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        forCurrentEmployee().
+                                                        secondPage().
+                                                        active().
+                                                        receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        forCurrentEmployee().
+                                                        secondPage().
+                                                        closed().
+                                                        receiveResponse();
+
+                                                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                    tester.offlineMessageListRequest().
+                                                        notProcessed().
+                                                        receiveResponse();
+
+                                                    tester.offlineMessageListRequest().
+                                                        processing().
+                                                        receiveResponse();
+
+                                                    tester.offlineMessageListRequest().
+                                                        processed().
+                                                        receiveResponse();
 
                                                     tester.button('Автозапуск приложения').expectToBeVisible();
                                                     tester.dialpadButton(1).expectToBeVisible();
@@ -687,7 +661,6 @@ tests.addTest(options => {
 
                                                         tester.chatSettingsRequest().receiveResponse();
                                                         tester.chatChannelListRequest().receiveResponse();
-                                                        tester.statusListRequest().receiveResponse();
                                                         tester.listRequest().receiveResponse();
                                                         tester.siteListRequest().receiveResponse();
                                                         tester.messageTemplateListRequest().receiveResponse();
@@ -1376,17 +1349,21 @@ tests.addTest(options => {
                                                         anotherAuthorizationToken().
                                                         receiveResponse();
 
-                                                    tester.accountRequest().
-                                                        forChats().
-                                                        operatorWorkplaceAvailable().
-                                                        anotherAuthorizationToken().
-                                                        receiveResponse();
-
                                                     tester.employeesWebSocket.connect();
 
                                                     tester.employeesInitMessage().
                                                         anotherAuthorizationToken().
                                                         expectToBeSent();
+
+                                                    tester.authCheckRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
+
+                                                    tester.accountRequest().
+                                                        forChats().
+                                                        operatorWorkplaceAvailable().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
 
                                                     tester.chatsWebSocket.connect();
 
@@ -1394,21 +1371,35 @@ tests.addTest(options => {
                                                         anotherAuthorizationToken().
                                                         expectToBeSent();
 
-                                                    const requests = ajax.inAnyOrder();
-
-                                                    const accountRequest = tester.accountRequest().
+                                                    tester.accountRequest().
                                                         operatorWorkplaceAvailable().
                                                         anotherAuthorizationToken().
-                                                        expectToBeSent(requests);
+                                                        receiveResponse();
 
-                                                    const authCheckRequest = tester.authCheckRequest().
+                                                    tester.talkOptionsRequest().receiveResponse();
+
+                                                    tester.permissionsRequest().
+                                                        allowNumberCapacitySelect().
+                                                        allowNumberCapacityUpdate().
+                                                        receiveResponse();
+
+                                                    tester.settingsRequest().
                                                         anotherAuthorizationToken().
-                                                        expectToBeSent(requests);
+                                                        receiveResponse();
 
-                                                    requests.expectToBeSent();
+                                                    tester.employeeStatusesRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
 
-                                                    accountRequest.receiveResponse();
-                                                    authCheckRequest.receiveResponse();
+                                                    tester.connectEventsWebSocket(1);
+                                                    tester.connectSIPWebSocket(1);
+
+                                                    notificationTester.grantPermission();
+                                                    tester.allowMediaInput();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        receiveResponse();
 
                                                     tester.countersRequest().receiveResponse();
 
@@ -1438,37 +1429,23 @@ tests.addTest(options => {
 
                                                     tester.chatChannelTypeListRequest().receiveResponse();
 
-                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                    tester.talkOptionsRequest().receiveResponse();
-
-                                                    tester.permissionsRequest().
-                                                        allowNumberCapacitySelect().
-                                                        allowNumberCapacityUpdate().
+                                                    tester.offlineMessageListRequest().
+                                                        notProcessed().
                                                         receiveResponse();
 
-                                                    tester.settingsRequest().
-                                                        anotherAuthorizationToken().
+                                                    tester.offlineMessageListRequest().
+                                                        processing().
                                                         receiveResponse();
 
-                                                    tester.employeeStatusesRequest().
-                                                        anotherAuthorizationToken().
+                                                    tester.offlineMessageListRequest().
+                                                        processed().
                                                         receiveResponse();
-
-                                                    tester.connectEventsWebSocket(1);
-                                                    tester.connectSIPWebSocket(1);
-
-                                                    notificationTester.grantPermission();
-                                                    tester.allowMediaInput();
 
                                                     tester.employeeRequest().
                                                         anotherAuthorizationToken().
                                                         receiveResponse();
 
                                                     tester.authenticatedUserRequest().receiveResponse();
-                                                    tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                                                     setFocus(false);
                                                     tester.transferCreatingMessage().receive();
@@ -1582,30 +1559,45 @@ tests.addTest(options => {
                                                     tester.usersInGroupsRequest().receiveResponse();
                                                     tester.groupsRequest().receiveResponse();
 
+                                                    tester.authCheckRequest().receiveResponse();
+
+                                                    tester.employeesWebSocket.connect();
+                                                    tester.employeesInitMessage().expectToBeSent();
+
                                                     tester.accountRequest().
                                                         forChats().
                                                         operatorWorkplaceAvailable().
                                                         receiveResponse();
 
-                                                    tester.employeesWebSocket.connect();
-                                                    tester.employeesInitMessage().expectToBeSent();
-
                                                     tester.chatsWebSocket.connect();
                                                     tester.chatsInitMessage().expectToBeSent();
 
-                                                    const requests = ajax.inAnyOrder();
-
-                                                    const accountRequest = tester.accountRequest().
+                                                    tester.accountRequest().
                                                         operatorWorkplaceAvailable().
-                                                        expectToBeSent(requests);
+                                                        receiveResponse();
 
-                                                    const authCheckRequest = tester.authCheckRequest().
-                                                        expectToBeSent(requests);
+                                                    tester.talkOptionsRequest().receiveResponse();
 
-                                                    requests.expectToBeSent();
+                                                    tester.permissionsRequest().
+                                                        allowNumberCapacitySelect().
+                                                        allowNumberCapacityUpdate().
+                                                        receiveResponse();
 
-                                                    accountRequest.receiveResponse();
-                                                    authCheckRequest.receiveResponse();
+                                                    tester.settingsRequest().
+                                                        allowNumberCapacitySelect().
+                                                        receiveResponse();
+
+                                                    tester.employeeStatusesRequest().receiveResponse();
+
+                                                    tester.connectEventsWebSocket(1);
+                                                    tester.connectSIPWebSocket(1);
+
+                                                    notificationTester.grantPermission();
+                                                    tester.allowMediaInput();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        receiveResponse();
 
                                                     tester.countersRequest().receiveResponse();
 
@@ -1635,36 +1627,21 @@ tests.addTest(options => {
 
                                                     tester.chatChannelTypeListRequest().receiveResponse();
 
-                                                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                                                    tester.offlineMessageListRequest().processing().receiveResponse();
-                                                    tester.offlineMessageListRequest().processed().receiveResponse();
-
-                                                    tester.talkOptionsRequest().receiveResponse();
-
-                                                    tester.permissionsRequest().
-                                                        allowNumberCapacitySelect().
-                                                        allowNumberCapacityUpdate().
+                                                    tester.offlineMessageListRequest().
+                                                        notProcessed().
                                                         receiveResponse();
 
-                                                    tester.settingsRequest().
-                                                        allowNumberCapacitySelect().
+                                                    tester.offlineMessageListRequest().
+                                                        processing().
                                                         receiveResponse();
 
-                                                    tester.employeeStatusesRequest().receiveResponse();
-
-                                                    tester.connectEventsWebSocket(1);
-                                                    tester.connectSIPWebSocket(1);
-
-                                                    notificationTester.grantPermission();
-                                                    tester.allowMediaInput();
+                                                    tester.offlineMessageListRequest().
+                                                        processed().
+                                                        receiveResponse();
 
                                                     tester.numberCapacityRequest().receiveResponse();
                                                     tester.employeeRequest().receiveResponse();
                                                     tester.authenticatedUserRequest().receiveResponse();
-
-                                                    tester.registrationRequest().
-                                                        desktopSoftphone().
-                                                        receiveResponse();
 
                                                     tester.userName.click();
                                                     tester.statusesList.item('Нет на месте').click();
@@ -1956,39 +1933,54 @@ tests.addTest(options => {
                                                     anotherAuthorizationToken().
                                                     receiveResponse();
 
-                                                tester.accountRequest().
-                                                    forChats().
-                                                    operatorWorkplaceAvailable().
-                                                    anotherAuthorizationToken().
-                                                    receiveResponse();
-
                                                 tester.employeesWebSocket.connect();
 
                                                 tester.employeesInitMessage().
                                                     anotherAuthorizationToken().
                                                     expectToBeSent();
 
+                                                tester.authCheckRequest().
+                                                    anotherAuthorizationToken().
+                                                    receiveResponse();
+
+                                                tester.accountRequest().
+                                                    forChats().
+                                                    operatorWorkplaceAvailable().
+                                                    anotherAuthorizationToken().
+                                                    receiveResponse();
+                                                
                                                 tester.chatsWebSocket.connect();
 
                                                 tester.chatsInitMessage().
                                                     anotherAuthorizationToken().
                                                     expectToBeSent();
 
-                                                const requests = ajax.inAnyOrder();
-
-                                                const accountRequest = tester.accountRequest().
+                                                tester.accountRequest().
                                                     operatorWorkplaceAvailable().
                                                     anotherAuthorizationToken().
-                                                    expectToBeSent(requests);
+                                                    receiveResponse();
 
-                                                const authCheckRequest = tester.authCheckRequest().
+                                                tester.talkOptionsRequest().receiveResponse();
+
+                                                tester.permissionsRequest().
+                                                    allowNumberCapacitySelect().
+                                                    allowNumberCapacityUpdate().
+                                                    receiveResponse();
+
+                                                tester.settingsRequest().
                                                     anotherAuthorizationToken().
-                                                    expectToBeSent(requests);
+                                                    receiveResponse();
 
-                                                requests.expectToBeSent();
+                                                tester.employeeStatusesRequest().
+                                                    anotherAuthorizationToken().
+                                                    receiveResponse();
 
-                                                accountRequest.receiveResponse();
-                                                authCheckRequest.receiveResponse();
+                                                tester.connectEventsWebSocket(1);
+                                                tester.connectSIPWebSocket(1);
+
+                                                notificationTester.grantPermission();
+                                                tester.allowMediaInput();
+                                                tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                                                 tester.countersRequest().receiveResponse();
 
@@ -2022,34 +2014,11 @@ tests.addTest(options => {
                                                 tester.offlineMessageListRequest().processing().receiveResponse();
                                                 tester.offlineMessageListRequest().processed().receiveResponse();
 
-                                                tester.talkOptionsRequest().receiveResponse();
-
-                                                tester.permissionsRequest().
-                                                    allowNumberCapacitySelect().
-                                                    allowNumberCapacityUpdate().
-                                                    receiveResponse();
-
-                                                tester.settingsRequest().
-                                                    anotherAuthorizationToken().
-                                                    receiveResponse();
-
-                                                tester.employeeStatusesRequest().
-                                                    anotherAuthorizationToken().
-                                                    receiveResponse();
-
-                                                tester.connectEventsWebSocket(1);
-                                                tester.connectSIPWebSocket(1);
-
-                                                notificationTester.grantPermission();
-                                                tester.allowMediaInput();
-
                                                 tester.employeeRequest().
                                                     anotherAuthorizationToken().
                                                     receiveResponse();
 
                                                 tester.authenticatedUserRequest().receiveResponse();
-
-                                                tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                                                 tester.phoneField.fill('79161234567');
                                                 tester.callStartingButton.expectNotToHaveAttribute('disabled');
@@ -2150,15 +2119,16 @@ tests.addTest(options => {
 
                                                 const chatSettingsRequest = tester.chatSettingsRequest().
                                                     expectToBeSent(requests);
+
                                                 const chatChannelListRequest = tester.chatChannelListRequest().
                                                     expectToBeSent(requests);
 
-                                                const statusListRequest = tester.statusListRequest().
+                                                const listRequest = tester.listRequest().
                                                     expectToBeSent(requests);
 
-                                                const listRequest = tester.listRequest().expectToBeSent(requests);
                                                 const siteListRequest = tester.siteListRequest().
                                                     expectToBeSent(requests);
+
                                                 const messageTemplateListRequest = tester.messageTemplateListRequest().
                                                     expectToBeSent(requests);
                                                 
@@ -2177,7 +2147,6 @@ tests.addTest(options => {
                                                 accountRequest.receiveResponse();
                                                 chatSettingsRequest.receiveResponse();
                                                 chatChannelListRequest.receiveResponse();
-                                                statusListRequest.receiveResponse();
                                                 listRequest.receiveResponse();
                                                 siteListRequest.receiveResponse();
                                                 messageTemplateListRequest.receiveResponse();
@@ -2442,28 +2411,36 @@ tests.addTest(options => {
                                                         operatorWorkplaceAvailable().
                                                         receiveResponse();
 
+                                                    tester.employeesWebSocket.connect();
+                                                    tester.employeesInitMessage().expectToBeSent();
+
+                                                    //
+                                                    
+                                                    tester.authCheckRequest().
+                                                        receiveResponse();
+
                                                     tester.accountRequest().
                                                         forChats().
                                                         operatorWorkplaceAvailable().
                                                         receiveResponse();
-
-                                                    tester.employeesWebSocket.connect();
-                                                    tester.employeesInitMessage().expectToBeSent();
-
+                                                        
                                                     tester.chatsWebSocket.connect();
                                                     tester.chatsInitMessage().expectToBeSent();
 
-                                                    const requests = ajax.inAnyOrder();
-
-                                                    accountRequest = tester.accountRequest().
+                                                    tester.accountRequest().
                                                         operatorWorkplaceAvailable().
-                                                        expectToBeSent(requests);
+                                                        receiveResponse();
 
-                                                    const authCheckRequest = tester.authCheckRequest().
-                                                        expectToBeSent(requests);
+                                                    tester.talkOptionsRequest().receiveResponse();
+                                                    tester.permissionsRequest().receiveResponse();
+                                                    tester.settingsRequest().receiveResponse();
+                                                    tester.employeeStatusesRequest().receiveResponse();
 
-                                                    requests.expectToBeSent();
-                                                    accountRequest.receiveResponse();
+                                                    tester.connectEventsWebSocket(1);
+                                                    tester.connectSIPWebSocket(1);
+
+                                                    tester.allowMediaInput();
+                                                    tester.registrationRequest().desktopSoftphone().receiveResponse();
 
                                                     tester.countersRequest().
                                                         noNewChatsWithUnreadMessages().
@@ -2509,20 +2486,8 @@ tests.addTest(options => {
                                                         processed().
                                                         receiveResponse();
 
-                                                    authCheckRequest.receiveResponse();
-                                                    tester.talkOptionsRequest().receiveResponse();
-                                                    tester.permissionsRequest().receiveResponse();
-                                                    tester.settingsRequest().receiveResponse();
-                                                    tester.employeeStatusesRequest().receiveResponse();
-
-                                                    tester.connectEventsWebSocket(1);
-                                                    tester.connectSIPWebSocket(1);
-
                                                     tester.employeeRequest().receiveResponse();
                                                     tester.authenticatedUserRequest().receiveResponse();
-
-                                                    tester.registrationRequest().desktopSoftphone().receiveResponse();
-                                                    tester.allowMediaInput();
                                                 });
 
                                                 it(
@@ -2902,9 +2867,6 @@ tests.addTest(options => {
                                             const chatChannelListRequest = tester.chatChannelListRequest().
                                                 expectToBeSent(requests);
 
-                                            const statusListRequest = tester.statusListRequest().
-                                                expectToBeSent(requests);
-
                                             const listRequest = tester.listRequest().expectToBeSent(requests),
                                                 siteListRequest = tester.siteListRequest().expectToBeSent(requests);
 
@@ -2929,7 +2891,6 @@ tests.addTest(options => {
 
                                             chatSettingsRequest.receiveResponse();
                                             chatChannelListRequest.receiveResponse();
-                                            statusListRequest.receiveResponse();
                                             listRequest.receiveResponse();
                                             siteListRequest.receiveResponse();
                                             messageTemplateListRequest.receiveResponse();
@@ -3009,10 +2970,12 @@ tests.addTest(options => {
 
                                             const chatChannelListRequest = tester.chatChannelListRequest().
                                                 expectToBeSent(requests);
-                                            const statusListRequest = tester.statusListRequest().
+
+                                            const listRequest = tester.listRequest().
                                                 expectToBeSent(requests);
-                                            const listRequest = tester.listRequest().expectToBeSent(requests);
-                                            const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+                                            
+                                            const siteListRequest = tester.siteListRequest().
+                                                expectToBeSent(requests);
 
                                             const messageTemplateListRequest = tester.messageTemplateListRequest().
                                                 expectToBeSent(requests);
@@ -3032,7 +2995,6 @@ tests.addTest(options => {
                                             accountRequest.receiveResponse();
                                             chatSettingsRequest.receiveResponse();
                                             chatChannelListRequest.receiveResponse();
-                                            statusListRequest.receiveResponse();
                                             listRequest.receiveResponse();
                                             siteListRequest.receiveResponse();
                                             messageTemplateListRequest.receiveResponse();
@@ -3123,9 +3085,6 @@ tests.addTest(options => {
                                             const chatChannelListRequest = tester.chatChannelListRequest().
                                                 expectToBeSent(requests);
 
-                                            const statusListRequest = tester.statusListRequest().
-                                                expectToBeSent(requests);
-
                                             const listRequest = tester.listRequest().expectToBeSent(requests),
                                                 siteListRequest = tester.siteListRequest().expectToBeSent(requests);
 
@@ -3157,7 +3116,6 @@ tests.addTest(options => {
 
                                             chatSettingsRequest.receiveResponse();
                                             chatChannelListRequest.receiveResponse();
-                                            statusListRequest.receiveResponse();
                                             listRequest.receiveResponse();
                                             siteListRequest.receiveResponse();
                                             messageTemplateListRequest.receiveResponse();
@@ -3281,9 +3239,6 @@ tests.addTest(options => {
                                                 const chatChannelListRequest = tester.chatChannelListRequest().
                                                     expectToBeSent(requests);
 
-                                                const statusListRequest = tester.statusListRequest().
-                                                    expectToBeSent(requests);
-
                                                 const listRequest = tester.listRequest().
                                                     expectToBeSent(requests);
 
@@ -3315,7 +3270,6 @@ tests.addTest(options => {
 
                                                 chatSettingsRequest.receiveResponse();
                                                 chatChannelListRequest.receiveResponse();
-                                                statusListRequest.receiveResponse();
                                                 listRequest.receiveResponse();
                                                 siteListRequest.receiveResponse();
                                                 messageTemplateListRequest.receiveResponse();
@@ -3569,7 +3523,6 @@ tests.addTest(options => {
 
                                                 tester.chatSettingsRequest().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
-                                                tester.statusListRequest().receiveResponse();
                                                 tester.listRequest().receiveResponse();
                                                 tester.siteListRequest().receiveResponse();
                                                 tester.messageTemplateListRequest().receiveResponse();
@@ -3687,7 +3640,6 @@ tests.addTest(options => {
 
                                             tester.chatSettingsRequest().receiveResponse();
                                             tester.chatChannelListRequest().receiveResponse();
-                                            tester.statusListRequest().receiveResponse();
                                             tester.listRequest().receiveResponse();
                                             tester.siteListRequest().receiveResponse();
                                             tester.messageTemplateListRequest().receiveResponse();
@@ -3836,15 +3788,6 @@ tests.addTest(options => {
                                             operatorWorkplaceAvailable().
                                             expectToBeSent(requests);
 
-                                        const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
-                                        const chatChannelListRequest = tester.chatChannelListRequest().
-                                            expectToBeSent(requests);
-                                        const statusListRequest = tester.statusListRequest().expectToBeSent(requests);
-                                        const listRequest = tester.listRequest().expectToBeSent(requests);
-                                        const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
-                                        const messageTemplateListRequest = tester.messageTemplateListRequest().
-                                            expectToBeSent(requests);
-                                        
                                         const secondAccountRequest = tester.accountRequest().
                                             operatorWorkplaceAvailable().
                                             forChats().
@@ -3855,17 +3798,31 @@ tests.addTest(options => {
                                             forChats().
                                             expectToBeSent(requests);
 
+                                        const chatSettingsRequest = tester.chatSettingsRequest().
+                                            expectToBeSent(requests);
+
+                                        const chatChannelListRequest = tester.chatChannelListRequest().
+                                            expectToBeSent(requests);
+
+                                        const listRequest = tester.listRequest().
+                                            expectToBeSent(requests);
+
+                                        const siteListRequest = tester.siteListRequest().
+                                            expectToBeSent(requests);
+
+                                        const messageTemplateListRequest = tester.messageTemplateListRequest().
+                                            expectToBeSent(requests);
+
                                         requests.expectToBeSent();
 
                                         accountRequest.receiveResponse();
+                                        secondAccountRequest.receiveResponse();
+                                        thirdAccountRequest.receiveResponse();
                                         chatSettingsRequest.receiveResponse();
                                         chatChannelListRequest.receiveResponse();
-                                        statusListRequest.receiveResponse();
                                         listRequest.receiveResponse();
                                         siteListRequest.receiveResponse();
                                         messageTemplateListRequest.receiveResponse();
-                                        secondAccountRequest.receiveResponse();
-                                        thirdAccountRequest.receiveResponse();
 
                                         tester.countersRequest().noUnreadMessages().receiveResponse();
 
@@ -4148,7 +4105,8 @@ tests.addTest(options => {
                                     expectToBeSent(requests);
 
                                 const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
-                                const statusListRequest = tester.statusListRequest().expectToBeSent(requests);
+                                const employeeStatusesRequest = tester.employeeStatusesRequest().
+                                    expectToBeSent(requests);
                                 const listRequest = tester.listRequest().expectToBeSent(requests);
                                 const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
                                 const messageTemplateListRequest = tester.messageTemplateListRequest().
@@ -4160,7 +4118,7 @@ tests.addTest(options => {
                                 accountRequest.receiveResponse()
                                 secondAccountRequest.receiveResponse();
                                 chatChannelListRequest.receiveResponse();
-                                statusListRequest.receiveResponse();
+                                employeeStatusesRequest.receiveResponse();
                                 listRequest.receiveResponse();
                                 siteListRequest.receiveResponse();
                                 messageTemplateListRequest.receiveResponse();
@@ -4187,6 +4145,8 @@ tests.addTest(options => {
                                 tester.offlineMessageListRequest().notProcessed().receiveResponse();
                                 tester.offlineMessageListRequest().processing().receiveResponse();
                                 tester.offlineMessageListRequest().processed().receiveResponse();
+
+                                tester.employeeRequest().receiveResponse();
                             });
 
                             describe('Нажимаю на кнопку аккаунта.', function() {
@@ -4271,7 +4231,7 @@ tests.addTest(options => {
 
                                         tester.chatSettingsRequest().receiveResponse();
                                         tester.chatChannelListRequest().receiveResponse();
-                                        tester.statusListRequest().receiveResponse();
+                                        tester.employeeStatusesRequest().receiveResponse();
                                         tester.listRequest().receiveResponse();
                                         tester.siteListRequest().receiveResponse();
                                         tester.messageTemplateListRequest().receiveResponse();
@@ -4309,6 +4269,8 @@ tests.addTest(options => {
                                         tester.offlineMessageListRequest().notProcessed().receiveResponse();
                                         tester.offlineMessageListRequest().processing().receiveResponse();
                                         tester.offlineMessageListRequest().processed().receiveResponse();
+
+                                        tester.employeeRequest().receiveResponse();
                                     });
 
                                     it('Есть только один новый чат.', function() {
@@ -4654,7 +4616,7 @@ tests.addTest(options => {
                                     const chatChannelListRequest = tester.chatChannelListRequest().
                                         expectToBeSent(requests);
 
-                                    const statusListRequest = tester.statusListRequest().
+                                    const employeeStatusesRequest = tester.employeeStatusesRequest().
                                         expectToBeSent(requests);
 
                                     const listRequest = tester.listRequest().
@@ -4676,7 +4638,7 @@ tests.addTest(options => {
 
                                     chatSettingsRequest.receiveResponse();
                                     chatChannelListRequest.receiveResponse();
-                                    statusListRequest.receiveResponse();
+                                    employeeStatusesRequest.receiveResponse();
                                     listRequest.receiveResponse();
                                     siteListRequest.receiveResponse();
                                     messageTemplateListRequest.receiveResponse();
@@ -4703,6 +4665,8 @@ tests.addTest(options => {
                                     tester.offlineMessageListRequest().notProcessed().receiveResponse();
                                     tester.offlineMessageListRequest().processing().receiveResponse();
                                     tester.offlineMessageListRequest().processed().receiveResponse();
+
+                                    tester.employeeRequest().receiveResponse();
                                         
                                     tester.leftMenu.userName.click();
                                     tester.statusesList.item('Выход').click();

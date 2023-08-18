@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 54d57668..38754c42 100644
+index 54d57668..469ba49d 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -171,7 +171,7 @@ index 54d57668..38754c42 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -348,17 +418,153 @@ module.exports = {
+@@ -348,17 +418,154 @@ module.exports = {
                      },
                  ],
              },
@@ -277,6 +277,7 @@ index 54d57668..38754c42 100644
 +            'marketplace/Auth': `${miscDirectory}/Stub.js`,
 +            'marketplace/Root': `${miscDirectory}/Stub.js`,
 +            'employees/getStore': 'employees/src/utils/getStore',
++            'employees/Root': 'employees/src/Root.tsx',
          },
 +
 +        plugins: [{
@@ -330,10 +331,10 @@ index 54d57668..38754c42 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 16944c78..2bccd698 100644
+index 16944c78..ad3239ec 100644
 --- a/package.json
 +++ b/package.json
-@@ -67,13 +67,20 @@
+@@ -67,13 +67,21 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -345,6 +346,7 @@ index 16944c78..2bccd698 100644
 +    "@comagic/softphone-widget": "./misc/softphone/misc/sip_lib",
 +    "@comagic/softphone-core": "./misc/softphone/misc/sip_lib/uis_webrtc",
 +    "@comagic/ui": "./misc/ui",
++    "@comagic/workplace-utils": "./misc/logger",
 +    "@comagic/logger": "./misc/logger",
 +    "@comagic/broadcast-channel": "./misc/broadcast-channel",
 +    "@sentry/react": "^6.19.4",
@@ -358,7 +360,7 @@ index 16944c78..2bccd698 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -81,12 +88,13 @@
+@@ -81,12 +89,13 @@
      "electron-notarize": "1.2.2",
      "electron-store": "^6.0.1",
      "electron-updater": "^5.0.3",
@@ -373,7 +375,7 @@ index 16944c78..2bccd698 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -96,6 +104,11 @@
+@@ -96,6 +105,11 @@
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "6.9.0",
@@ -476,10 +478,10 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 4693ca56..a5a22f34 100644
+index 4693ca56..d62aca37 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,13 +1,18 @@
+@@ -1,13 +1,17 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
@@ -495,12 +497,11 @@ index 4693ca56..a5a22f34 100644
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
-+import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
 +import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
  
  import history from '@/history';
  
-@@ -80,7 +85,98 @@ const Root: React.FC = observer(props => {
+@@ -80,7 +84,97 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -574,7 +575,6 @@ index 4693ca56..a5a22f34 100644
 +            setReactDOM(ReactDOM);
 +            setEventBus(eventBus);
 +            createRootStore();
-+            setChatsRootStore(createChatsRootStore());
 +            createContactsRootStore();
 +            setHistory(history);
 +            setNotification(notification);
@@ -603,7 +603,7 @@ index 4693ca56..a5a22f34 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index ebd68228..d55b0055 100644
+index b2757409..fea3f6da 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -162,7 +162,6 @@ export const RootStore = types

@@ -53,6 +53,7 @@ define(() => function ({
     window.broadcastChannelCache = {};
     window.employeesStore = null;
     window.softphoneStore = null;
+    window.chatsStore = null;
     window.softphoneBroadcastChannelCache = {};
 
     me.getUserAgent = softphoneType => 'UIS Softphone ' + softphoneType;
@@ -1678,8 +1679,8 @@ define(() => function ({
         };
 
         return addResponseModifiers({
-            expectToBeSent() {
-                const request = ajax.recentRequest().
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
                     expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816').
                     expectToHaveHeaders(headers);
@@ -1689,8 +1690,8 @@ define(() => function ({
                         request.respondSuccessfullyWith({
                             data: {
                                 id: 20816,
-                                first_name: 'string',
-                                last_name: 'string',
+                                first_name: 'Стефка',
+                                last_name: 'Ганева',
                                 position_id: 0,
                                 status_id: 1
                             },
@@ -2636,22 +2637,22 @@ define(() => function ({
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), me);
 
             me.unableToTransferChat = () => {
-                data[0].is_able_to_transfer_chat = false;
+                data[1].is_able_to_transfer_chat = false;
                 return me;
             };
 
             me.unableToAcceptChat = () => {
-                data[0].is_able_to_accept_chat = false;
+                data[1].is_able_to_accept_chat = false;
                 return me;
             };
 
             me.unableToCloseChatOfflineMessage = () => {
-                data[0].is_able_to_close_chat_offline_message = false;
+                data[1].is_able_to_close_chat_offline_message = false;
                 return me;
             };
 
             me.unableToSendChatMessages = () => {
-                data[0].is_able_to_send_chat_messages = false;
+                data[1].is_able_to_send_chat_messages = false;
                 return me;
             };
 
@@ -3061,6 +3062,48 @@ define(() => function ({
 
             expectToBeSent: () => me.employeesWebSocket.expectSentMessageToContain(createMessage())
         };
+    };
+
+    me.entityChangeEvent = () => {
+        const params = {
+            name: 'employee',
+            action: 'update',
+            app_id: 4735,
+            data: {
+                id: 20816,
+                first_name: 'Стевка',
+                last_name: 'Гонева',
+                position_id: 0,
+                status_id: 2,
+            },
+        };
+
+        const createMessage = () => ({
+            type: 'event',
+            name: 'entity_changed',
+            params
+        });
+
+        return {
+            slavesNotification: function () {
+                return {
+                    expectToBeSent: function () {
+                        me.recentCrosstabMessage().expectToContain({
+                            type: 'message',
+                            data: {
+                                type: 'employees_websocket_message',
+                                data: createMessage(),
+                            }
+                        });
+                    }
+                };
+            },
+
+            receive: () => {
+                me.employeesWebSocket.receive(createMessage());
+                spendTime(0);
+            }
+        }
     };
 
     me.statusChangedEvent = () => {
@@ -13765,7 +13808,7 @@ define(() => function ({
             buttonTester = testersFactory.createDomElementTester('.cmg-maximization-button');
 
         const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0), spendTime(0));
+        tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0), spendTime(0));
 
         tester.expectToBeMaximized = () => buttonTester.expectToHaveClass('cmg-maximized');
         tester.expectToBeUnmaximized = () => buttonTester.expectNotToHaveClass('cmg-maximized');

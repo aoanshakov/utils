@@ -3065,7 +3065,6 @@ tests.addTest(options => {
 
                         const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
                         const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
-                        const statusListRequest = tester.statusListRequest().expectToBeSent(requests);
                         const listRequest = tester.listRequest().expectToBeSent(requests);
                         const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
                         const messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
@@ -3079,7 +3078,6 @@ tests.addTest(options => {
 
                         chatSettingsRequest.receiveResponse();
                         chatChannelListRequest.receiveResponse();
-                        statusListRequest.receiveResponse();
                         listRequest.receiveResponse();
                         siteListRequest.receiveResponse();
                         messageTemplateListRequest.receiveResponse();
@@ -3169,7 +3167,6 @@ tests.addTest(options => {
                             expectToBeSent(requests);
 
                         const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
-                            statusListRequest = tester.statusListRequest().expectToBeSent(requests),
                             listRequest = tester.listRequest().expectToBeSent(requests),
                             siteListRequest = tester.siteListRequest().expectToBeSent(requests),
                             messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests),
@@ -3193,7 +3190,6 @@ tests.addTest(options => {
                         chatListRequest.receiveResponse();
                         searchResultsRequest.receiveResponse();
                         chatChannelListRequest.receiveResponse();
-                        statusListRequest.receiveResponse();
                         listRequest.receiveResponse();
                         siteListRequest.receiveResponse();
                         messageTemplateListRequest.receiveResponse();
@@ -3289,7 +3285,6 @@ tests.addTest(options => {
                             expectToBeSent(requests);
 
                         const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
-                            statusListRequest = tester.statusListRequest().expectToBeSent(requests),
                             listRequest = tester.listRequest().expectToBeSent(requests),
                             siteListRequest = tester.siteListRequest().expectToBeSent(requests),
                             messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests),
@@ -3313,7 +3308,6 @@ tests.addTest(options => {
                         chatListRequest.receiveResponse();
                         searchResultsRequest.receiveResponse();
                         chatChannelListRequest.receiveResponse();
-                        statusListRequest.receiveResponse();
                         listRequest.receiveResponse();
                         siteListRequest.receiveResponse();
                         messageTemplateListRequest.receiveResponse();
@@ -3325,9 +3319,7 @@ tests.addTest(options => {
                         tester.chatsInitMessage().expectToBeSent();
                         
                         tester.chatListRequest().thirdChat().receiveResponse();
-
                         tester.countersRequest().receiveResponse();
-
                         tester.offlineMessageCountersRequest().receiveResponse();
                         tester.chatChannelListRequest().receiveResponse();
                         tester.siteListRequest().receiveResponse();

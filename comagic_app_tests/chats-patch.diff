@@ -135,29 +135,35 @@ index 9dfa539..b4d98a4 100644
        width: 100%;
        height: 100%;
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 6719d21..bb84988 100644
+index 6cdbd6e..3236921 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -163,7 +163,8 @@ export const RootStore = types
- export type RootInstance = Instance<typeof RootStore>;
- export const RootStoreContext = React.createContext<null | RootInstance>(null);
- export const Provider = RootStoreContext.Provider;
--export const rootStore = RootStore.create({});
-+export let rootStore;
-+export const createRootStore = () => (rootStore = RootStore.create({}));
+@@ -186,7 +186,12 @@ export const RootStore = types
+         self.authHttpRpc = getHttpRpc(process.env.REACT_APP_AUTH_URL || '$REACT_APP_AUTH_URL', self);
+         self.chatApiRest = getHttpRest(process.env.REACT_APP_BASE_URL || '$REACT_APP_BASE_URL', self);
  
- if (process.env.NODE_ENV === 'development') {
-     window.chatsRootStore = rootStore;
+-        return { afterCreate, resetStore, resetAfterError, init };
++        return {
++            afterCreate,
++            resetStore,
++            resetAfterError,
++            init,
++        };
+     });
+ 
+ export type RootInstance = Instance<typeof RootStore>;
 diff --git a/src/models/account/AccountStore.ts b/src/models/account/AccountStore.ts
-index e4d6837..578a942 100644
+index d11e9b2..f59384a 100644
 --- a/src/models/account/AccountStore.ts
 +++ b/src/models/account/AccountStore.ts
-@@ -1,4 +1,4 @@
+@@ -1,5 +1,5 @@
 -import { flow, Instance, getParent, types, cast } from 'mobx-state-tree';
+-import { httpRpc, DataApiResponseResult } from '@/httpRpc';
 +import { flow, Instance, getParent, types, cast, getSnapshot } from 'mobx-state-tree';
- import { httpRpc, DataApiResponseResult } from '@/httpRpc';
++import { DataApiResponseResult } from '@/httpRpc';
  import { intl } from '@/i18n';
  import { RootStore } from '@models/RootStore';
+ 
 @@ -56,12 +56,18 @@ export const AccountStore = types
      })
      .views(self => ({
@@ -182,10 +188,10 @@ index e4d6837..578a942 100644
      }))
      .actions(self => {
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index c7e79a2..37ed1fd 100644
+index 3d3976b..f166261 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -37,7 +37,7 @@ const addEventListener = (() => {
+@@ -36,7 +36,7 @@ const addEventListener = (() => {
  
  export const AuthStore = types
      .model('AuthStore', {

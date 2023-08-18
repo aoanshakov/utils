@@ -1,12 +1,16 @@
 diff --git a/package.json b/package.json
-index a9fba19..bd4e8df 100644
+index a9fba19..f8b2cb2 100644
 --- a/package.json
 +++ b/package.json
-@@ -2,7 +2,7 @@
-   "name": "@comagic/logger",
-   "version": "1.0.4",
-   "description": "Logger",
+@@ -1,8 +1,8 @@
+ {
+-  "name": "@comagic/logger",
+-  "version": "1.0.4",
+-  "description": "Logger",
 -  "main": "lib/index.js",
++  "name": "@comagic/workplace-utils",
++  "version": "1.0.0",
++  "description": "Operator workplace utils",
 +  "main": "src/index.js",
    "typings": "src/index.d.ts",
    "author": "UIS",
