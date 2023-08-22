@@ -1283,9 +1283,23 @@ tests.addTest(options => {
                         });
                         it('', function() {
                             tester.userName.putMouseOver();
+
+                            tester.statusesList.
+                                item('Нет на месте').
+                                click();
+
+                            tester.employeeUpdatingRequest().receiveResponse();
+
+                            tester.entityChangeEvent().receive();
+                            tester.entityChangeEvent().slavesNotification().expectToBeSent();
                         });
                         return;
                         it('Отображен список чатов.', function() {
+                            tester.userName.expectToHaveTextContent(
+                                'Ганева Стефка ' +
+                                'Доступен'
+                            );
+
                             tester.body.expectTextContentToHaveSubstring(
                                 'Помакова Бисерка Драгановна 21 янв 2022 ' +
                                 'Привет 3'

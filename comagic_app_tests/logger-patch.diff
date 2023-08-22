@@ -1,28 +1,14 @@
 diff --git a/package.json b/package.json
-index a9fba19..f8b2cb2 100644
+index 9d0e4a2..58c6c69 100644
 --- a/package.json
 +++ b/package.json
-@@ -1,8 +1,8 @@
- {
--  "name": "@comagic/logger",
--  "version": "1.0.4",
--  "description": "Logger",
--  "main": "lib/index.js",
-+  "name": "@comagic/workplace-utils",
-+  "version": "1.0.0",
-+  "description": "Operator workplace utils",
-+  "main": "src/index.js",
-   "typings": "src/index.d.ts",
-   "author": "UIS",
-   "license": "ISC",
-@@ -21,10 +21,5 @@
-     "webpack": "^5.75.0",
-     "webpack-cli": "^5.0.1",
-     "webpack-dev-server": "^4.11.1"
--  },
--  "peerDependencies": {
--    "axios": "^0.24.0",
--    "moment": "^2.29.4",
--    "file-saver": "^2.0.5"
-   }
- }
+@@ -23,8 +23,7 @@
+     "webpack-dev-server": "^4.11.1",
+     "broadcast-channel": "4.20.2"
+   },
+-  "dependencies": {
+-    "@types/moment": "^2.13.0",
++  "peerDependencies": {
+     "broadcast-channel": "4.20.2",
+     "file-saver": "^2.0.5",
+     "moment": "^2.29.4"

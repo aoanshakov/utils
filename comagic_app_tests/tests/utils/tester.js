@@ -3073,7 +3073,6 @@ define(() => function ({
                 id: 20816,
                 first_name: 'Стевка',
                 last_name: 'Гонева',
-                position_id: 0,
                 status_id: 2,
             },
         };
