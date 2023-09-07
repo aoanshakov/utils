@@ -283,7 +283,8 @@ define(function () {
                 });
 
                 const tester = testersFactory.createDomElementTester(domElement),
-                    click = tester.click.bind(tester);
+                    click = tester.click.bind(tester),
+                    putMouseOver = tester.putMouseOver.bind(tester);
 
                 const isSwitch = (() => {
                     try {
@@ -292,6 +293,8 @@ define(function () {
                         return false;
                     }
                 })();
+
+                tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
                 tester.click = () => {
                     isSwitch ? fieldTester.click() : click();
@@ -357,8 +360,14 @@ define(function () {
                 return tester;
             };
 
-            me.button.atIndex = index => testersFactory.createDomElementTester(() =>
-                utils.element(getRootElement()).querySelectorAll(buttonSelector)[index] || new JsTester_NoElement());
+            me.fileField = testersFactory.createFileFieldTester(function () {
+                return getRootElement().querySelector('input[type=file]');
+            });
+
+            me.button.atIndex = index => testersFactory.createDomElementTester(() => {
+                return utils.element(getRootElement()).querySelectorAll(buttonSelector)[index] ||
+                    new JsTester_NoElement();
+            });
 
             me.button.first = me.button.atIndex(0);
 

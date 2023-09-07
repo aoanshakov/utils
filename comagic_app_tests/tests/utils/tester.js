@@ -179,12 +179,24 @@ define(() => function ({
     spendTime(0);
     spendTime(0);
 
+    me.redirectEmployeeSelectCover = testersFactory.
+        createDomElementTester('.cm-chats--redirect-employee-select-cover');
+
     me.callStatsButton = me.createBottomButtonTester('.cmg-call-stats-button');
     me.chatsButton = me.createBottomButtonTester('.cmg-chats-button');
     me.callsHistoryButton = me.createBottomButtonTester('.cmg-calls-history-button');
 
     me.chatMessageSendingButton = (() => {
         const tester = testersFactory.createDomElementTester('.cm-chats--chat-panel-footer-toolbar-send-button');
+
+        tester.expectToBeDisabled = () => tester.expectToHaveAttribute('disabled');
+        tester.expectToBeEnabled = () => tester.expectNotToHaveAttribute('disabled');
+
+        return tester;
+    })();
+    
+    me.chatsVoiceRecorderButton = (() => {
+        const tester = testersFactory.createDomElementTester('.cm-chats--voice-recorder--record-button');
 
         tester.expectToBeDisabled = () => tester.expectToHaveAttribute('disabled');
         tester.expectToBeEnabled = () => tester.expectNotToHaveAttribute('disabled');
@@ -406,7 +418,7 @@ define(() => function ({
 
         me.userName = me.accountButton = (tester => {
             const putMouseOver = tester.putMouseOver.bind(tester);
-            tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100));
+            tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100), spendTime(0), spendTime(0));
 
             return softphoneTester.createBottomButtonTester(tester);
         })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector(
@@ -931,6 +943,23 @@ define(() => function ({
         return me;
     };
 
+    me.chatTemplateMenu = (() => {
+        let getDomElement = () => utils.querySelector('.cm-chats--chat-template-menu-popup'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        tester = addTesters(tester, getDomElement)
+        const first = tester.button.first,
+            click = first.click.bind(first);
+
+        first.click = () => {
+            click();
+            spendTime(0);
+            me.modalWindow.endTransition('transform');
+        };
+
+        return tester;
+    })();
+
     me.whatsAppChannelSelect = (() => {
         const getDomElement = () => utils.querySelector('.cm-chats--whatsapp-channel-select'),
             tester = testersFactory.createDomElementTester(getDomElement);
@@ -940,7 +969,10 @@ define(() => function ({
 
     me.chatTransferButton = (() => {
         const button = testersFactory.createDomElementTester('.cm-chats--transfer-button'),
-            click = button.click.bind(button);
+            click = button.click.bind(button),
+            putMouseOver = button.putMouseOver.bind(button);
+
+        button.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
         button.click = () => {
             click();
@@ -1105,6 +1137,14 @@ define(() => function ({
             me.logAttached = () => {
                 bodyParams.files = {
                     name: '20191219.121007.000.log.txt'
+                };
+
+                return me;
+            };
+
+            me.anotherLogAttached = () => {
+                bodyParams.files = {
+                    name: '20191219.121006.000.log.txt'
                 };
 
                 return me;
@@ -1296,6 +1336,47 @@ define(() => function ({
         });
     };
 
+    me.resourceRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectPathToContain('$REACT_APP_BASE_URL/resource').
+                    expectBodyToContain({
+                        file: {
+                            name: 'some-file.zip',
+                        },
+                        mime: 'application/zip',
+                        type: 'document',
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            id: 5829574,
+                            mime: 'application/zip',
+                            type: 'document',
+                            filename: 'some-file.zip',
+                            size: 925,
+                            width: null,
+                            height: null,
+                            duration: 42820
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.resourcePayloadRequest = () => {
         const addResponseModifiers = me => me;
 
@@ -1359,10 +1440,10 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
-                                result: {
-                                    data: true,
-                                }
-                            });
+                            result: {
+                                data: true,
+                            }
+                        });
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -1668,7 +1749,6 @@ define(() => function ({
     me.employeeRequest = () => {
         const headers = {
             Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-            'X-Auth-Type': 'jwt'
         };
 
         const addResponseModifiers = me => {
@@ -1688,13 +1768,11 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
-                            data: {
-                                id: 20816,
-                                first_name: 'Стефка',
-                                last_name: 'Ганева',
-                                position_id: 0,
-                                status_id: 1
-                            },
+                            id: 20816,
+                            first_name: 'Стефка',
+                            last_name: 'Ганева',
+                            position_id: 0,
+                            status_id: 1
                         });
 
                         Promise.runAll(false, true);
@@ -1835,7 +1913,7 @@ define(() => function ({
 
             is_able_to_accept_chat_transfer: true,
             is_able_to_transfer_chat: true,
-            is_able_to_accept_chat: true,
+            is_able_to_accept_chat: false,
             is_able_to_close_chat_offline_message: true,
             is_able_in_forwarding_scenario: true,
             is_able_to_send_chat_messages: true,
@@ -1972,7 +2050,6 @@ define(() => function ({
 
         const headers = {
             Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-            'X-Auth-Type': 'jwt'
         };
 
         const addResponseModifiers = me => {
@@ -2641,6 +2718,11 @@ define(() => function ({
                 return me;
             };
 
+            me.unableToAcceptChatTransfer = () => {
+                data[1].is_able_to_accept_chat_transfer = false;
+                return me;
+            };
+
             me.unableToAcceptChat = () => {
                 data[1].is_able_to_accept_chat = false;
                 return me;
@@ -2668,7 +2750,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith({ data });
+                        request.respondSuccessfullyWith(data);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -2732,8 +2814,8 @@ define(() => function ({
                 return this;
             },
 
-            expectToBeSent() {
-                const request = ajax.recentRequest().
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL').
                     expectBodyToContain({
                         method: 'change_message_status',
@@ -3065,7 +3147,9 @@ define(() => function ({
     };
 
     me.entityChangeEvent = () => {
-        const params = {
+        let entityName = 'employee';
+        
+        let params = {
             name: 'employee',
             action: 'update',
             app_id: 4735,
@@ -3077,24 +3161,127 @@ define(() => function ({
             },
         };
 
-        const createMessage = () => ({
+        let createMessage = () => ({
             type: 'event',
             name: 'entity_changed',
             params
         });
 
+        const setStatus = () => (params = {
+            name: 'status',
+            action: 'insert',
+            app_id: 4735,
+            data: {
+                id: 848593,
+                icon: 'funnel',
+                name: 'Воронка',
+                color: '#ff8f00',
+                comment: null,
+                mnemonic: null,
+                priority: 18,
+                is_removed: false,
+                description: '',
+                is_worktime: true,
+                is_different: true,
+                is_select_allowed: true,
+                allowed_phone_protocols: [
+                    'PSTN',
+                    'SIP',
+                    'SIP_TRUNK',
+                    'FMC'
+                ],
+                is_auto_out_calls_ready: true,
+                is_use_availability_in_group: true,
+                in_external_allowed_call_directions: [
+                    'in',
+                    'out'
+                ],
+                in_internal_allowed_call_directions: [
+                    'in',
+                    'out'
+                ],
+                out_external_allowed_call_directions: [
+                    'in',
+                    'out'
+                ],
+                out_internal_allowed_call_directions: [
+                    'in',
+                    'out'
+                ]
+            }
+        });
+
+        const createNotification = () => ({
+            type: 'message',
+            data: {
+                type: 'employees_websocket_message',
+                data: createMessage(),
+            }
+        });
+
         return {
+            insertStatus() {
+                setStatus();
+                return this;
+            },
+
+            updateRemovedStatus() {
+                setStatus();
+                params.action = 'update';
+
+                params.data = {
+                    id: 7,
+                    name: 'Ненужный'
+                };
+
+                return this;
+            },
+
+            updateStatus() {
+                setStatus();
+                params.action = 'update';
+
+                params.data = {
+                    id: 2,
+                    name: 'Пауза'
+                };
+
+                return this;
+            },
+
+            removeStatus() {
+                setStatus();
+                params.action = 'delete';
+
+                params.data = {
+                    id: 2,
+                    is_removed: true
+                };
+
+                return this;
+            },
+
+            anotherEmployee() {
+                params.data = {
+                    id: 20818,
+                    status_id: 1,
+                };
+
+                return this;
+            },
+
+            anotherStatus() {
+                params.data.status_id = 4;
+                return this;
+            },
+
             slavesNotification: function () {
                 return {
-                    expectToBeSent: function () {
-                        me.recentCrosstabMessage().expectToContain({
-                            type: 'message',
-                            data: {
-                                type: 'employees_websocket_message',
-                                data: createMessage(),
-                            }
-                        });
-                    }
+                    expectToBeSent: () => {
+                        const notification = createNotification();
+                        me.recentCrosstabMessage().expectToContain(notification);
+                    },
+                    receive: () => (me.receiveCrosstabMessage(createNotification()), spendTime(0)),
                 };
             },
 
@@ -3105,6 +3292,7 @@ define(() => function ({
         }
     };
 
+/*
     me.statusChangedEvent = () => {
         const params = {
             name: 'status',
@@ -3223,6 +3411,7 @@ define(() => function ({
             }
         }
     };
+    */
 
     me.chatsInitMessage = () => {
         let access_token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
@@ -3241,6 +3430,43 @@ define(() => function ({
                     employee_id: 20816
                 }
             })
+        };
+    };
+
+    me.forcedTransferMessage = () => {
+        const params = {
+            chat: {
+                chat_channel_id: 101,
+                chat_channel_type: 'telegram',
+                date_time: '2022-01-23T16:24:21.098210',
+                id: 2718936,
+                last_message: {
+                    message: 'Больше не могу разговаривать с тобой, дай мне Веску!',
+                    date: '2022-03-24T14:08:23.000Z',
+                    is_operator: false,
+                    resource_type: null
+                },
+                mark_ids: ['587', '213'],
+                phone: null,
+                site_id: 4663,
+                status: 'active',
+                visitor_id: 16479304,
+                visitor_name: 'Върбанова Илиана Милановна',
+                visitor_type: 'omni'
+            },
+            comment: 'Поговори с ней сама, я уже устала',
+            from_employee_id: 20817
+        };
+
+        return {
+            receive: () => {
+                me.chatsWebSocket.receive(JSON.stringify({
+                    method: 'forced_transfer',
+                    params 
+                }));
+
+                spendTime(0);
+            } 
         };
     };
 
@@ -4780,11 +5006,19 @@ define(() => function ({
                 expectPathToContain('$REACT_APP_BASE_URL/settings').
                 expectToHaveMethod('GET');
 
+            const response = {
+                is_contact_form_available: false,
+                is_chat_acceptance_confirmation: true,
+            };
+
             return {
+                disabledChatAcceptanceConfirmation() {
+                    response.is_chat_acceptance_confirmation = false;
+                    return this;
+                },
+
                 receiveResponse() {
-                    request.respondSuccessfullyWith({
-                        is_contact_form_available: false
-                    });
+                    request.respondSuccessfullyWith(response);
 
                     Promise.runAll(false, true);
                     spendTime(0)
@@ -5640,6 +5874,36 @@ define(() => function ({
         }
     });
 
+    me.messageTemplateCreationRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('$REACT_APP_BASE_URL/message_template/list').
+                expectBodyToContain({
+                    title: 'Шаблон 1',
+                    text: '',
+                    resources: [5829574],
+                }).
+                expectToHaveMethod('POST');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({
+                            result: {
+                                data: true,
+                            },
+                        });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
     me.messageTemplateListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
@@ -5805,6 +6069,7 @@ define(() => function ({
                     });
 
                     Promise.runAll(false, true);
+                    spendTime(0)
                     spendTime(0)
                 }
             };
@@ -13845,8 +14110,10 @@ define(() => function ({
         });
 
         const click = clickAreaTester.click.bind(clickAreaTester),
-            scrollIntoView = tester.scrollIntoView.bind(tester);
+            scrollIntoView = tester.scrollIntoView.bind(tester),
+            putMouseOver = tester.putMouseOver.bind(tester);
 
+        tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
         tester.expectToBeSelected = () => tester.expectToHaveClass('cm-chats--chats-list-item__selected');
         tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-chats--chats-list-item__selected');
 

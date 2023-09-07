@@ -16,7 +16,7 @@ const src = '/usr/local/src',
     publisherDir = `${tests}/publisher`,
     softphone = `${misc}/softphone`,
     contacts = `${misc}/contacts`,
-    employees = `${misc}/employees`,
+    employees = `${misc}/operator-workplace`,
     chats = `${misc}/chats`;
 
 module.exports = {

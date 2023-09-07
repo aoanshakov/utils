@@ -2708,6 +2708,7 @@ function JsTester_DecodedTracksTester (args) {
 
 function JsTester_FileLoading () {
     var handler = function () {},
+        me = this,
         blob = '';
 
     var maybeGetBlob = function () {
@@ -2719,7 +2720,9 @@ function JsTester_FileLoading () {
             return 'data:audio/wav;base64,' + blob;
         };
 
-        handler();
+        handler({
+            target: me.getBlob(),
+        });
 
         runHandler = function () {
             throw new Error('Файл уже загружен.');
@@ -2769,13 +2772,18 @@ function JsTester_FileReader (files) {
     };
 }
 
-function JsTester_FileReaderTester (files) {
+function JsTester_FileReaderTester ({ files, spendTime }) {
     function getFile (blob) {
-        if (!files.has(blob)) {
-            throw new Error('Файл не загружается.');
+        var file = files.get(blob);
+
+        if (!file && Array.from(files.entries())?.[0]?.[0]?.name == blob) {
+            blob = Array.from(files.entries())?.[0]?.[0];
+            file = Array.from(files.entries())?.[0]?.[1];
         }
 
-        var file = files.get(blob);
+        if (!file) {
+            throw new Error('Файл не загружается.');
+        }
 
         files.delete(blob);
         return file;
@@ -2793,6 +2801,9 @@ function JsTester_FileReaderTester (files) {
 
     this.accomplishFileLoading = function (blob) {
         getFile(blob).runHandler();
+
+        spendTime(0);
+        spendTime(0);
     };
 }
 
@@ -3593,6 +3604,13 @@ function JsTester_FileField (
         });
 
         var fileList = [new File([], fileName)];
+
+        Object.defineProperty(fileList[0], 'type', {
+            set: function () {},
+            get: function () {
+                return 'application/zip';
+            }
+        });     
 
         Object.defineProperty(getDomElement(), 'files', {
             set: function () {},
@@ -7896,8 +7914,6 @@ function JsTester_Tests (factory) {
         testRunners = [],
         requiredClasses = [],
         files = new Map(),
-        fileReaderTester = new JsTester_FileReaderTester(files),
-        fileReaderMocker = new JsTester_FileReaderMocker(files),
         cookie = new JsTester_RWVariable(''),
         cookieTester = new JsTester_CookieTester(cookie),
         storageMocker = new JsTester_StorageMocker(),
@@ -7924,6 +7940,9 @@ function JsTester_Tests (factory) {
         interval.spendTime(time);
         Promise.runAll(false, true);
     };
+
+    var fileReaderTester = new JsTester_FileReaderTester({ files, spendTime }),
+        fileReaderMocker = new JsTester_FileReaderMocker(files);
 
     var windowSize = new JsTester_WindowSize(spendTime),
         utils = factory.createUtils({

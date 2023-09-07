@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 54d57668..469ba49d 100644
+index 54d57668..08a37228 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -22,11 +22,12 @@ index 54d57668..469ba49d 100644
  const publicDir = path.resolve(appDirectory, 'public');
  const buildDir = path.resolve(appDirectory, 'build');
  const dotenv = path.resolve(appDirectory, '.env');
-@@ -25,9 +28,20 @@ const isProductionMode = NODE_ENV !== 'development';
+@@ -25,9 +28,21 @@ const isProductionMode = NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
 +const subModules = ['chats'];
++const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
  
  const lessLoader = {
      loader: 'less-loader',
@@ -43,7 +44,7 @@ index 54d57668..469ba49d 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -104,10 +118,11 @@ const webpackDefinePlugin = () => {
+@@ -104,10 +119,11 @@ const webpackDefinePlugin = () => {
      return opts;
  };
  
@@ -56,16 +57,18 @@ index 54d57668..469ba49d 100644
          },
          {
              loader: 'css-loader',
-@@ -214,7 +229,7 @@ const plugins = () => {
+@@ -214,7 +230,9 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
 -        new ModuleFederationPlugin({
++        new NodePolyfillPlugin(),
++
 +        /*new ModuleFederationPlugin({
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -256,6 +271,11 @@ const plugins = () => {
+@@ -256,6 +274,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -77,7 +80,7 @@ index 54d57668..469ba49d 100644
      ];
  
      if (isProductionMode) {
-@@ -279,6 +299,17 @@ const plugins = () => {
+@@ -279,6 +302,17 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -95,7 +98,7 @@ index 54d57668..469ba49d 100644
  module.exports = {
      entry: './src/index.tsx',
      target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
-@@ -300,6 +331,21 @@ module.exports = {
+@@ -300,6 +334,21 @@ module.exports = {
      module: {
          rules: [
              {
@@ -117,7 +120,7 @@ index 54d57668..469ba49d 100644
                  test: /\.(ts|tsx)$/,
                  use: {
                      loader: 'ts-loader',
-@@ -307,7 +353,7 @@ module.exports = {
+@@ -307,7 +356,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -126,7 +129,7 @@ index 54d57668..469ba49d 100644
              },
              {
                  test: /\.css$/,
-@@ -318,6 +364,29 @@ module.exports = {
+@@ -318,6 +367,29 @@ module.exports = {
                  use: cssLoaders(lessLoader),
              },
              {
@@ -156,7 +159,7 @@ index 54d57668..469ba49d 100644
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
                  options: {
-@@ -327,12 +396,13 @@ module.exports = {
+@@ -327,12 +399,13 @@ module.exports = {
                  },
              },
              {
@@ -171,7 +174,7 @@ index 54d57668..469ba49d 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -348,17 +418,154 @@ module.exports = {
+@@ -348,17 +421,159 @@ module.exports = {
                      },
                  ],
              },
@@ -224,7 +227,7 @@ index 54d57668..469ba49d 100644
 +                `${miscDirectory}/contacts/src/components/contact-bar/whatsapp-channel-select/ContactSelectWrapper.tsx`,
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'softphone/Root': 'softphone/src/Root.tsx',
-+            'softphone/Account': 'softphone/src/Account.tsx',
++            'softphone/AccountHeader': 'softphone/src/AccountHeader.tsx',
 +            'softphone/Settings': 'softphone/src/Settings.tsx',
 +            'softphone/CallHistory': 'softphone/src/call_history/index.tsx',
 +            'softphone/CallStats': 'softphone/src/call_stats/index.tsx',
@@ -278,7 +281,7 @@ index 54d57668..469ba49d 100644
 +            'marketplace/Root': `${miscDirectory}/Stub.js`,
 +            'employees/getStore': 'employees/src/utils/getStore',
 +            'employees/Root': 'employees/src/Root.tsx',
-         },
++        },
 +
 +        plugins: [{
 +            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
@@ -299,7 +302,7 @@ index 54d57668..469ba49d 100644
 +                    const {
 +                        directory,
 +                        aliases
-+                    } = subModules.concat(['softphone', 'contacts', 'employees']).map(module => {
++                    } = subModules.concat(['softphone', 'contacts', 'operator-workplace']).map(module => {
 +                        const directory = `${miscDirectory}/${module}`;
 +
 +                        return {
@@ -327,30 +330,41 @@ index 54d57668..469ba49d 100644
 +                }, null, resolveContext, callback);
 +            }),
 +        }],
++
++        fallback: {
++            fs: false,
+         },
++
      },
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 16944c78..ad3239ec 100644
+index d05e3195..785b1986 100644
 --- a/package.json
 +++ b/package.json
-@@ -67,13 +67,21 @@
+@@ -22,7 +22,6 @@
+   "author": "",
+   "license": "ISC",
+   "devDependencies": {
+-    "@sentry/webpack-plugin": "^1.18.5",
+     "@svgr/webpack": "^5.1.0",
+     "@trivago/prettier-plugin-sort-imports": "^3.3.0",
+     "@types/classnames": "^2.2.9",
+@@ -67,36 +66,52 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
 -    "@comagic/core": "1.5.0",
--    "@comagic/logger": "^1.0.4",
--    "@sentry/react": "^6.17.6",
--    "@sentry/tracing": "^6.17.6",
+-    "@comagic/workplace-utils": "1.0.1",
++    "@comagic/broadcast-channel": "./misc/broadcast-channel",
 +    "@comagic/core": "./misc/core",
-+    "@comagic/softphone-widget": "./misc/softphone/misc/sip_lib",
++    "@comagic/logger": "./misc/logger",
 +    "@comagic/softphone-core": "./misc/softphone/misc/sip_lib/uis_webrtc",
++    "@comagic/softphone-widget": "./misc/softphone/misc/sip_lib",
 +    "@comagic/ui": "./misc/ui",
 +    "@comagic/workplace-utils": "./misc/logger",
-+    "@comagic/logger": "./misc/logger",
-+    "@comagic/broadcast-channel": "./misc/broadcast-channel",
-+    "@sentry/react": "^6.19.4",
-+    "@sentry/tracing": "^6.19.4",
+     "@sentry/react": "^6.17.6",
+     "@sentry/tracing": "^6.17.6",
 +    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
      "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
@@ -358,13 +372,14 @@ index 16944c78..ad3239ec 100644
 +    "babel-loader": "^8.0.4",
 +    "chats": "./misc/chats",
      "classnames": "^2.2.6",
++    "contacts": "./misc/contacts",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -81,12 +89,13 @@
+     "electron-log": "^4.3.0",
      "electron-notarize": "1.2.2",
      "electron-store": "^6.0.1",
      "electron-updater": "^5.0.3",
-+    "employees": "./misc/employees",
++    "employees": "./misc/operator-workplace",
      "file-saver": "^2.0.5",
      "form-data": "^4.0.0",
      "formik": "^2.2.9",
@@ -375,18 +390,22 @@ index 16944c78..ad3239ec 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -96,6 +105,11 @@
+     "moment": "^2.29.4",
+     "nanoid": "^3.2.0",
++    "node-polyfill-webpack-plugin": "2.0.1",
++    "opus-recorder": "8.0.5",
+     "react": "^18.2.0",
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "6.9.0",
 +    "simplebar-react": "^2.4.1",
 +    "softphone": "./misc/softphone",
-+    "uis-softphone": "./misc/softphone/misc/sip_lib",
-+    "string-hash": "^1.1.3",
-+    "contacts": "./misc/contacts",
      "stream-buffers": "^3.0.2",
++    "string-hash": "^1.1.3",
++    "uis-softphone": "./misc/softphone/misc/sip_lib",
      "yup": "^0.28.1"
    },
+   "optionalDependencies": {
 diff --git a/public/index.html b/public/index.html
 index a82eebad..98306245 100644
 --- a/public/index.html
@@ -478,7 +497,7 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 4693ca56..d62aca37 100644
+index 4693ca56..2f01dff4 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,17 @@
@@ -501,7 +520,15 @@ index 4693ca56..d62aca37 100644
  
  import history from '@/history';
  
-@@ -80,7 +84,97 @@ const Root: React.FC = observer(props => {
+@@ -64,7 +68,6 @@ const Root: React.FC = observer(props => {
+             <CoreProvider
+                 isHostApp
+                 isGodMode={isGodMode}
+-                rootStore={rootStore}
+                 accountStore={accountStore}
+                 locale={locale}
+                 history={history}
+@@ -80,7 +83,97 @@ const Root: React.FC = observer(props => {
      );
  });
  
@@ -603,7 +630,7 @@ index 4693ca56..d62aca37 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index b2757409..fea3f6da 100644
+index b2757409..3b10ba06 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -162,7 +162,6 @@ export const RootStore = types
@@ -643,7 +670,30 @@ index b2757409..fea3f6da 100644
              let isMaximizedCurrently = false;
  
              const counters = {
-@@ -460,7 +463,8 @@ export type DependencyInjection = {
+@@ -405,6 +408,9 @@ export const RootStore = types
+             getIpcRender().on('credentials', (event, data) => self.setCredentials(data));
+ 
+             addClickListener(() => (clicked = true));
++
++            eventBus.subscribe('get-clicked', callback => callback(clicked));
++            eventBus.subscribe('set-not-clicked', () => (clicked = false));
+         };
+ 
+         const resetStore = () => {
+@@ -432,12 +438,6 @@ export const RootStore = types
+         };
+ 
+         return {
+-            getClicked() {
+-                return clicked;
+-            },
+-            setNotClicked() {
+-                clicked = false;
+-            },
+             afterCreate,
+             resetStore,
+             deleteLogin,
+@@ -460,7 +460,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

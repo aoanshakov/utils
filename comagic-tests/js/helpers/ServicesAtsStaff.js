@@ -319,7 +319,15 @@ function ServicesAtsStaff({ requestsManager, testersFactory, utils, wait }) {
                     expectToHavePath('/directory/comagic:staff:status/').
                     respondSuccessfullyWith({
                         success: true,
-                        data: []
+                        data: [{
+                            color: '#48b882',
+                            icon: 'tick',
+                            id: 5829,
+                            is_removed: false,
+                            is_select_allowed: true,
+                            mnemonic: 'available',
+                            name: 'Доступен',
+                        }]
                     });
             }
         };
@@ -346,6 +354,46 @@ function ServicesAtsStaff({ requestsManager, testersFactory, utils, wait }) {
                                     }, {
                                         id: true,
                                         name: 'Да',
+                                    }],
+                                    'comagic:staff:status_preset': [{
+                                        is_worktime: true,
+                                        name: 'Доступен',
+                                        mnemonic: 'available',
+                                        is_select_allowed: true,
+                                        description: 'все вызовы',
+                                        color: '#48b882',
+                                        icon: 'tick',
+                                        priority: 1,
+                                        in_external_allowed_call_directions: [
+                                            'in',
+                                            'out'
+                                        ],
+                                        in_internal_allowed_call_directions: [
+                                            'in',
+                                            'out'
+                                        ],
+                                        out_external_allowed_call_directions: [
+                                            'in',
+                                            'out'
+                                        ],
+                                        out_internal_allowed_call_directions: [
+                                            'in',
+                                            'out'
+                                        ],
+                                        allowed_phone_protocols: [
+                                            'SIP'
+                                        ],
+                                        is_auto_out_calls_ready: true,
+                                        is_use_availability_in_group: true,
+                                    }],
+                                    'comagic:staff:status': [{
+                                        color: '#48b882',
+                                        icon: 'tick',
+                                        id: 5829,
+                                        is_removed: false,
+                                        is_select_allowed: true,
+                                        mnemonic: 'available',
+                                        name: 'Доступен',
                                     }],
                                 } 
                             });
@@ -376,14 +424,22 @@ function ServicesAtsStaff({ requestsManager, testersFactory, utils, wait }) {
 
             tester.item = function (text) {
                 const tester = testersFactory.createDomElementTester(function () {
-                    return utils.descendantOf(getMenuElement()).matchesSelector('.x-menu-item').textEquals(text).find();
+                    return utils.descendantOfBody().
+                        matchesSelector('.x-menu-item-text').
+                        textEquals(text).find();
                 });
 
-                const click = tester.click.bind(tester);
+                const click = tester.click.bind(tester),
+                    putMouseOver = tester.putMouseOver.bind(tester);
 
                 tester.click = () => {
                     click();
                     wait();
+                };
+
+                tester.putMouseOver = () => {
+                    putMouseOver();
+                    wait(200);
                 };
 
                 return tester;
