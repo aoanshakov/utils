@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 2fa4551..fbafd42 100644
+index d77549f..34adbee 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,8 +22,6 @@
@@ -11,20 +11,22 @@ index 2fa4551..fbafd42 100644
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
      "clean-webpack-plugin": "^4.0.0",
-@@ -46,24 +44,6 @@
+@@ -45,25 +43,9 @@
+     "mini-css-extract-plugin": "^2.6.1",
      "prettier": "^2.7.1",
      "style-loader": "^3.3.1",
-     "ts-loader": "^9.3.1",
+-    "ts-loader": "^9.3.1",
 -    "typescript": "^4.7.4",
 -    "url-loader": "^4.1.1",
 -    "webpack": "^5.74.0",
 -    "webpack-bundle-analyzer": "^4.5.0",
 -    "webpack-cli": "^4.10.0",
 -    "webpack-dev-server": "^4.9.3"
--  },
--  "dependencies": {
++    "ts-loader": "^9.3.1"
+   },
+   "dependencies": {
 -    "@comagic/core": "^0.7.0",
--    "@comagic/workplace-utils": "1.0.1",
+-    "@comagic/workplace-utils": "^1.0.8",
 -    "axios": "^0.24.0",
 -    "mobx": "^6.6.1",
 -    "mobx-react-lite": "^3.4.0",
@@ -37,51 +39,3 @@ index 2fa4551..fbafd42 100644
 +    "url-loader": "^4.1.1"
    }
  }
-diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index af0f73e..7c3b89d 100644
---- a/src/models/RootStore.ts
-+++ b/src/models/RootStore.ts
-@@ -5,6 +5,7 @@ import { AxiosRequestConfig } from 'axios';
- import { getIntlMessages } from '../i18n';
- import { EmployeesStore } from './employees/EmployeesStore';
- import { WebsocketStore } from './websocket/WebsocketStore';
-+import { AuthStore } from './auth/AuthStore';
- 
- export const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
- export const REFRESH_TOKEN_EXPIRED = 'refresh_token_expired';
-@@ -12,6 +13,7 @@ export const ACCESS_TOKEN_INVALID = 'access_token_invalid';
- 
- export const RootStore = types
-     .model('RootStore', {
-+        authStore: types.optional(AuthStore, {}),
-         websocketStore: types.optional(WebsocketStore, {}),
-         employeesStore: types.optional(EmployeesStore, {}),
-         locale: types.optional(types.string, 'en'),
-@@ -34,8 +36,6 @@ export const RootStore = types
-             applySnapshot(self, initialState);
-         };
- 
--        self.hostRootStore = getEnv(self).hostRootStore;
--
-         return {
-             afterCreate,
-             resetStore,
-@@ -57,16 +57,9 @@ const cache = process.env.REACT_APP_TEST_MODE == 'true' ? {
-     setValue: value => (rootStore = value),
- };
- 
--export const getRootStore = hostRootStore => {
-+export const getRootStore = accountStore => {
-     const rootStore = cache.getValue();
- 
--    if (rootStore) {
--        if (rootStore.hostRootStore !== hostRootStore) {
--            throw new Error('Host root store inexplicably changed');
--        }
--    } else {
--        cache.setValue(RootStore.create({}, { hostRootStore }));
--    }
--
-+    !rootStore && cache.setValue(RootStore.create({}, { accountStore }));
-     return cache.getValue(rootStore);
- };

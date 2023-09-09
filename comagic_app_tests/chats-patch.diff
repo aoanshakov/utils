@@ -64,10 +64,10 @@ index 069025a..fca5671 100644
  
  export default App;
 diff --git a/src/components/chats/chat-panel/styles.less b/src/components/chats/chat-panel/styles.less
-index 345ef4f..0ed5039 100644
+index b601710..750c258 100644
 --- a/src/components/chats/chat-panel/styles.less
 +++ b/src/components/chats/chat-panel/styles.less
-@@ -197,7 +197,7 @@
+@@ -196,7 +196,7 @@
            }
          }
  
@@ -76,16 +76,20 @@ index 345ef4f..0ed5039 100644
            grid-column: 3;
            grid-row: 1 / 3;
          }
-@@ -211,7 +211,7 @@
-       min-height: 42px;
-       gap: 4px;
+@@ -214,7 +214,11 @@
+           width: 100%;
+       }
  
 -      .ui-textarea {
++      &-wrapper {
++          width: 100%;
++      }
++
 +      .ui-textarea, .cmgui-textarea {
          box-shadow: none;
          border: none;
          background: white;
-@@ -1011,15 +1011,15 @@
+@@ -1014,15 +1018,15 @@
  
  .@{p}audio-download-popup {
  
@@ -104,7 +108,7 @@ index 345ef4f..0ed5039 100644
      position: relative;
      left: 10px;
      top: 9px;
-@@ -1032,7 +1032,7 @@
+@@ -1035,7 +1039,7 @@
        background-color: @surfaces-highlight;
      }
  
@@ -113,7 +117,7 @@ index 345ef4f..0ed5039 100644
        color: @fonts-primary;
      }
    }
-@@ -1042,18 +1042,18 @@
+@@ -1045,18 +1049,18 @@
    width: 100%;
    height: 100%;
  
@@ -135,43 +139,6 @@ index 345ef4f..0ed5039 100644
        margin: 0;
        width: 100%;
        height: 100%;
-diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index ef9bb48..f432ede 100644
---- a/src/models/RootStore.ts
-+++ b/src/models/RootStore.ts
-@@ -24,7 +24,7 @@ import ContactsIntegraionStore from '@models/contacts-integration/ContactsIntegr
- import createNotificationSender, { NotificationSender } from '@/services/notifications';
- import getHttpRpc, { HttpRpc } from '@/httpRpc';
- import getHttpRest, { HttpRest } from '@/httpRest';
--import { EmployeesStoreInstance } from '@/types';
-+import { EmployeesStoreInstance } from '@/types/EmployeesStore';
- 
- export const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
- export const REFRESH_TOKEN_EXPIRED = 'refresh_token_expired';
-@@ -231,12 +231,12 @@ const cache = process.env.REACT_APP_TEST_MODE == 'true' ? {
-     setValue: (value: RootInstance) => (rootStore = value),
- };
- 
--export const getRootStore = (hostRootStore: IModelType<{}, {}>): RootInstance => {
-+export const getRootStore = (accountStore: IModelType<{}, {}>): RootInstance => {
-     const rootStore = cache.getValue();
- 
-     if (rootStore) {
-         if (rootStore instanceof Promise) {
--            return rootStore.then(() => getRootStore(hostRootStore));
-+            return rootStore.then(() => getRootStore(accountStore));
-         }
- 
-         return Promise.resolve(rootStore);
-@@ -252,7 +252,7 @@ export const getRootStore = (hostRootStore: IModelType<{}, {}>): RootInstance =>
- 
-         import('employees/getStore').
-             then(exported => {
--                const rootStore = exported.default(hostRootStore);
-+                const rootStore = exported.default(accountStore);
-                 createRootStore(rootStore.employeesStore);
-             }).
-             catch(e => {
 diff --git a/src/models/account/AccountStore.ts b/src/models/account/AccountStore.ts
 index 978b478..f59384a 100644
 --- a/src/models/account/AccountStore.ts

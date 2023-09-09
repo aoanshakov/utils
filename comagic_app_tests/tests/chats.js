@@ -1634,72 +1634,174 @@ tests.addTest(options => {
                             expectTextContentNotToHaveSubstring('Чакърова Райна Илковна');
                     });
                 });
-                it('Переписка в чате недоступна для текущего статуса. Открываю чат.', function() {
-                    employeeStatusesRequest.
-                        unableToSendChatMessages().
-                        receiveResponse();
+                describe('Переписка в чате недоступна для текущего статуса.', function() {
+                    let searchResultsRequest;
 
-                    countersRequest.receiveResponse();
-                    chatListRequest.receiveResponse();
-                    secondChatListRequest.receiveResponse();
-                    thirdChatListRequest.receiveResponse();
+                    beforeEach(function() {
+                        employeeStatusesRequest.
+                            unableToSendChatMessages().
+                            receiveResponse();
 
-                    tester.input.fill('Сообщение #75');
+                        countersRequest.receiveResponse();
+                        chatListRequest.receiveResponse();
+                        secondChatListRequest.receiveResponse();
+                        thirdChatListRequest.receiveResponse();
 
-                    tester.input.pressEnter();
-                    tester.searchResultsRequest().receiveResponse();
+                        tester.input.fill('Сообщение #75');
 
-                    tester.chatListItem('Сообщение #75').click();
+                        tester.input.pressEnter();
+                        searchResultsRequest = tester.searchResultsRequest().expectToBeSent();
+                    });
 
-                    tester.chatListRequest().
-                        thirdChat().
-                        noVisitorName().
-                        extIdSpecified().
-                        receiveResponse();
+                    describe('Открываю чат.', function() {
+                        beforeEach(function() {
+                            searchResultsRequest.receiveResponse();
+                            tester.chatListItem('Сообщение #75').click();
 
-                    tester.visitorCardRequest().receiveResponse();
-                    tester.messageListRequest().receiveResponse();
-                    tester.usersRequest().forContacts().receiveResponse();
+                            tester.chatListRequest().
+                                thirdChat().
+                                noVisitorName().
+                                extIdSpecified().
+                                receiveResponse();
 
-                    tester.button('Принять обращение в работу').click();
-                    tester.acceptChatRequest().receiveResponse();
+                            tester.visitorCardRequest().receiveResponse();
+                            tester.messageListRequest().receiveResponse();
+                            tester.usersRequest().forContacts().receiveResponse();
 
-                    tester.textarea.withPlaceholder('Введите сообщение...').expectToHaveAttribute('disabled');
-                    tester.chatsVoiceRecorderButton.expectToBeDisabled();
+                            tester.button('Принять обращение в работу').click();
+                            tester.acceptChatRequest().receiveResponse();
+                        });
+
+                        it('Отображена подсказка рядом с кнопкой добавления файла.', function() {
+                            tester.chatPanelFooterToolbar.button.first.closest('div').putMouseOver();
+                            spendTime(100);
+                            spendTime(0);
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Невозможно вести переписку в текущем статусе'
+                            );
+                        });
+                        it('Отображена подсказка рядом с полем.', function() {
+                            tester.textarea.withPlaceholder('Введите сообщение...').expectToHaveAttribute('disabled');
+
+                            tester.textarea.withPlaceholder('Введите сообщение...').putMouseOver();
+                            spendTime(100);
+                            spendTime(0);
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Невозможно вести переписку в текущем статусе'
+                            );
+                        });
+                        it('Отображена подсказка рядом с кнопкой очистки.', function() {
+                            tester.button('Очистить').expectToBeDisabled();
+
+                            tester.button('Очистить').closest('div').putMouseOver();
+                            spendTime(100);
+                            spendTime(0);
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Невозможно вести переписку в текущем статусе'
+                            );
+                        });
+                        it('Отображена подсказка рядом с кнопкой шаблона.', function() {
+                            tester.button('Шаблон').expectToBeDisabled();
+
+                            tester.button('Шаблон').closest('div').putMouseOver();
+                            spendTime(100);
+                            spendTime(0);
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Невозможно вести переписку в текущем статусе'
+                            );
+                        });
+                        it('Отображена подсказка рядом с кнопкой добавления файла.', function() {
+                            tester.chatPanelFooterToolbar.button.atIndex(3).closest('div').putMouseOver();
+                            spendTime(100);
+                            spendTime(0);
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Невозможно вести переписку в текущем статусе'
+                            );
+                        });
+                        it('Отображена подсказка рядом с кнопкой голосового сообщения.', function() {
+                            tester.chatsVoiceRecorderButton.expectToBeDisabled();
+
+                            tester.chatsVoiceRecorderButton.closest('div').putMouseOver();
+                            spendTime(100);
+                            spendTime(0);
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Невозможно вести переписку в текущем статусе'
+                            );
+                        });
+                    });
+                    it('Кнопка "Начать чат" заблокирована.', function() {
+                        searchResultsRequest.newVisitor().whatsApp().receiveResponse();
+
+                        tester.button('Начать чат').expectToBeDisabled();
+                        tester.button('Начать чат').putMouseOver();
+
+                        tester.body.expectTextContentToHaveSubstring(
+                            'Невозможно вести переписку в текущем статусе'
+                        );
+                    });
                 });
-                it(
-                    'Прием чата недоступен для текущего статуса. Открываю чат. Кнопка приема чата заблокирована.',
-                function() {
-                    employeeStatusesRequest.
-                        unableToAcceptChat().
-                        receiveResponse();
+                describe('Прием чата недоступен для текущего статуса.', function() {
+                    beforeEach(function() {
+                        employeeStatusesRequest.
+                            unableToAcceptChat().
+                            receiveResponse();
+                    });
 
-                    countersRequest.receiveResponse();
-                    chatListRequest.receiveResponse();
-                    secondChatListRequest.receiveResponse();
-                    thirdChatListRequest.receiveResponse();
+                    it('Чаты есть. Открываю чат. Кнопка приема чата заблокирована.', function() {
+                        countersRequest.receiveResponse();
+                        chatListRequest.receiveResponse();
+                        secondChatListRequest.receiveResponse();
+                        thirdChatListRequest.receiveResponse();
 
-                    tester.input.fill('Сообщение #75');
+                        tester.input.fill('Сообщение #75');
 
-                    tester.input.pressEnter();
-                    tester.searchResultsRequest().receiveResponse();
+                        tester.input.pressEnter();
+                        tester.searchResultsRequest().receiveResponse();
 
-                    tester.chatListItem('Сообщение #75').click();
+                        tester.chatListItem('Сообщение #75').click();
 
-                    tester.chatListRequest().
-                        thirdChat().
-                        noVisitorName().
-                        extIdSpecified().
-                        receiveResponse();
+                        tester.chatListRequest().
+                            thirdChat().
+                            noVisitorName().
+                            extIdSpecified().
+                            receiveResponse();
 
-                    tester.visitorCardRequest().receiveResponse();
-                    tester.messageListRequest().receiveResponse();
-                    tester.usersRequest().forContacts().receiveResponse();
+                        tester.visitorCardRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+                        tester.usersRequest().forContacts().receiveResponse();
 
-                    tester.button('Принять обращение в работу').putMouseOver();
-                    tester.button('Принять обращение в работу').click();
+                        tester.button('Принять обращение в работу').putMouseOver();
+                        tester.button('Принять обращение в работу').click();
 
-                    tester.body.expectTextContentToHaveSubstring('Невозможно взять в работу чат в текущем статусе');
+                        tester.body.expectTextContentToHaveSubstring('Невозможно взять в работу чат в текущем статусе');
+                    });
+                    it(
+                        'Пока нет ни одного чата. Нажимаю на уведомление о новом сообщение. Чат был открыт.',
+                    function() {
+                        countersRequest.noData().receiveResponse();
+                        chatListRequest.noData().receiveResponse();
+                        secondChatListRequest.noData().receiveResponse();
+                        thirdChatListRequest.noData().receiveResponse();
+
+                        tester.newChatCreatingMessage().receive();
+                        tester.newMessage().thirdChat().receive();
+
+                        tester.countersRequest().receiveResponse();
+
+                        notificationTester.grantPermission();
+                        tester.chatListRequest().fifthChat().receiveResponse();
+
+                        tester.notificationSection.message.click();
+
+                        tester.visitorCardRequest().anotherVisitor().expectToBeSent();
+                        tester.employeesRequest().expectToBeSent();
+                    });
                 });
                 it(
                     'Трансфер чата недоступен для текущего статуса. Открываю чат. Кнопка трансфера заблокирована.',
@@ -1742,76 +1844,173 @@ tests.addTest(options => {
                     chatSettingsRequest.
                         disabledChatAcceptanceConfirmation().
                         receiveResponse();
+                });
 
-                    countersRequest.receiveResponse();
-                    chatListRequest.receiveResponse();
+                describe('Пока нет ни одного чата.', function() {
+                    beforeEach(function() {
+                        countersRequest.noData().receiveResponse();
+                        chatListRequest.noData().receiveResponse();
+                        secondChatListRequest.noData().receiveResponse();
+                        thirdChatListRequest.noData().receiveResponse();
+                    });
+
+                    it(
+                        'Принятие чата запрещено для текущего статуса. Нажимаю на уведомление о новом сообщение. Чат ' +
+                        'не был открыт.',
+                    function() {
+                        employeeStatusesRequest.
+                            unableToAcceptChat().
+                            receiveResponse();
+
+                        tester.newChatCreatingMessage().receive();
+                        tester.newMessage().thirdChat().receive();
+
+                        tester.countersRequest().receiveResponse();
+
+                        notificationTester.grantPermission();
+                        tester.chatListRequest().fifthChat().receiveResponse();
+
+                        tester.notificationSection.message.click();
+                        tester.notificationSection.message.putMouseOver();
+
+                        tester.body.expectTextContentToHaveSubstring('Невозможно взять в работу чат в текущем статусе');
+                    });
+                    it(
+                        'Принятие чата для текущего статуса. Нажимаю на уведомление о новом сообщение. Чат был открыт.',
+                    function() {
+                        employeeStatusesRequest.receiveResponse();
+
+                        tester.newChatCreatingMessage().receive();
+                        tester.newMessage().thirdChat().receive();
+
+                        tester.countersRequest().receiveResponse();
+
+                        notificationTester.grantPermission();
+                        tester.chatListRequest().fifthChat().receiveResponse();
+
+                        tester.notificationSection.message.click();
+
+                        tester.acceptChatRequest().
+                            thirdChat().
+                            anotherVisitor().
+                            expectToBeSent();
+
+                        tester.visitorCardRequest().anotherVisitor().expectToBeSent();
+                        tester.employeesRequest().expectToBeSent();
+                    });
+                });
+                describe('Чаты есть.', function() {
+                    beforeEach(function() {
+                        countersRequest.receiveResponse();
+                        chatListRequest.receiveResponse();
+                        secondChatListRequest.receiveResponse();
+                        thirdChatListRequest.receiveResponse();
+                    });
+
+                    it(
+                        'Принятие чата доступно для текущего статуса. Нажимаю на элемент списка чатов. Отправлен ' +
+                        'запрос принятия чата.',
+                    function() {
+                        employeeStatusesRequest.receiveResponse();
+
+                        tester.input.fill('Сообщение #75');
+
+                        tester.input.pressEnter();
+                        tester.searchResultsRequest().receiveResponse();
+
+                        tester.chatListItem('Сообщение #75').click();
+
+                        tester.chatListRequest().
+                            thirdChat().
+                            noVisitorName().
+                            extIdSpecified().
+                            receiveResponse();
+
+                        tester.acceptChatRequest().receiveResponse();
+                        tester.visitorCardRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+                        tester.usersRequest().forContacts().receiveResponse();
+                        
+                        tester.changeMessageStatusRequest().
+                            anotherChat().
+                            anotherMessage().
+                            read().
+                            receiveResponse();
+
+                        tester.changeMessageStatusRequest().
+                            anotherChat().
+                            anotherMessage().
+                            read().
+                            receiveResponse();
+                            
+                        tester.changeMessageStatusRequest().
+                            anotherChat().
+                            anotherMessage().
+                            read().
+                            receiveResponse();
+
+                        tester.statusChangedMessage().receive();
+                        tester.countersRequest().readMessage().fewUnreadMessages().receiveResponse();
+                    });
+                    it(
+                        'Принятие чата запрещено для текущего статуса. Помещаю курсор мыши над элементом списка ' +
+                        'чатов. Отображено сообщение о невозможности принять чат.',
+                    function() {
+                        employeeStatusesRequest.
+                            unableToAcceptChat().
+                            receiveResponse();
+
+                        tester.chatListItem('Привет').click();
+                        tester.chatListItem('Привет').putMouseOver();
+
+                        tester.body.expectTextContentToHaveSubstring(
+                            'Невозможно взять в работу чат в текущем статусе'
+                        );
+                    });
+                });
+                it(
+                    'Есть только активные чаты. Открываю вкладку "В работе". Нажимаю на чат. Чат открывается.',
+                function() {
+                    countersRequest.
+                        noNewChatsWithUnreadMessages().
+                        noClosedChats().
+                        receiveResponse();
+
+                    chatListRequest.noData().receiveResponse();
                     secondChatListRequest.receiveResponse();
-                    thirdChatListRequest.receiveResponse();
-                });
-                
-                it(
-                    'Принятие чата запрещено для текущего статуса. Помещаю курсор мыши над элементом списка чатов. ' +
-                    'Отображено сообщение о невозможности принять чат.',
-                function() {
-                    employeeStatusesRequest.
-                        unableToAcceptChat().
-                        receiveResponse();
+                    thirdChatListRequest.noData().receiveResponse();
 
-                    tester.input.fill('Сообщение #75');
+                    employeeStatusesRequest.unableToAcceptChat().receiveResponse();
 
-                    tester.input.pressEnter();
-                    tester.searchResultsRequest().receiveResponse();
+                    tester.button('В работе 75').click();
+                    tester.chatListItem('Здравствуй').click();
 
-                    tester.chatListItem('Сообщение #75').click();
-                    tester.chatListItem('Сообщение #75').putMouseOver();
-
-                    tester.body.expectTextContentToHaveSubstring('Невозможно взять в работу чат в текущем статусе');
-                });
-                it(
-                    'Принятие чата доступно для текущего статуса. Нажимаю на элемент списка чатов. Отправлен запрос ' +
-                    'принятия чата.',
-                function() {
-                    employeeStatusesRequest.receiveResponse();
-
-                    tester.input.fill('Сообщение #75');
-
-                    tester.input.pressEnter();
-                    tester.searchResultsRequest().receiveResponse();
-
-                    tester.chatListItem('Сообщение #75').click();
-
-                    tester.chatListRequest().
-                        thirdChat().
-                        noVisitorName().
-                        extIdSpecified().
-                        receiveResponse();
-
-                    tester.acceptChatRequest().receiveResponse();
                     tester.visitorCardRequest().receiveResponse();
                     tester.messageListRequest().receiveResponse();
-                    tester.usersRequest().forContacts().receiveResponse();
                     tester.employeesRequest().receiveResponse();
 
                     tester.changeMessageStatusRequest().
-                        anotherChat().
+                        fourthChat().
                         anotherMessage().
                         read().
                         receiveResponse();
 
                     tester.changeMessageStatusRequest().
-                        anotherChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
-                        
-                    tester.changeMessageStatusRequest().
-                        anotherChat().
+                        fourthChat().
                         anotherMessage().
                         read().
                         receiveResponse();
 
-                    tester.statusChangedMessage().receive();
-                    tester.countersRequest().readMessage().fewUnreadMessages().receiveResponse();
+                    tester.changeMessageStatusRequest().
+                        fourthChat().
+                        anotherMessage().
+                        read().
+                        receiveResponse();
+
+                    tester.countersRequest().
+                        noNewChatsWithUnreadMessages().
+                        noClosedChats().
+                        receiveResponse();
                 });
             });
         });

@@ -1468,7 +1468,10 @@ tests.addTest(options => {
                                                         grantPermission().
                                                         recentNotification().
                                                         expectToHaveTitle('Входящий трансфер чата').
-                                                        expectToHaveBody('Върбанова Илиана Милановна').
+                                                        expectToHaveBody(
+                                                            "От оператора: \n" +
+                                                            "Комментарий: Поговори с ней сама, я уже устала"
+                                                        ).
                                                         expectToBeOpened();
                                                 });
                                                 it('Выбираю статус. Список статусов скрыт.', function() {
@@ -2370,16 +2373,16 @@ tests.addTest(options => {
 
                                                     getPackage('electron').ipcRenderer.
                                                         recentlySentMessage().
-                                                        expectToBeSentToChannel('set-icon').
-                                                        expectToBeSentWithArguments('windows, 150');
-
-                                                    getPackage('electron').ipcRenderer.
-                                                        recentlySentMessage().
                                                         expectToBeSentToChannel('resize').
                                                         expectToBeSentWithArguments({
                                                             width: 300,
                                                             height: 350
                                                         });
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 150');
 
                                                     tester.input.withFieldLabel('Логин').fill('botusharova');
                                                     tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -3382,7 +3385,6 @@ tests.addTest(options => {
 
                                                 tester.visitorCardRequest().receiveResponse();
                                                 tester.messageListRequest().receiveResponse();
-                                                tester.employeesRequest().receiveResponse();
                                                 tester.employeesRequest().receiveResponse();
 
                                                 tester.chatList.item('Привет').expectToBeSelected();

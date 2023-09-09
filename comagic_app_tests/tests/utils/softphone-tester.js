@@ -2062,6 +2062,7 @@ define(function () {
                             respond(request);
                             Promise.runAll(false, true);
                             spendTime(0);
+                            spendTime(0);
                             //maybeTriggerScrollRecalculation();
                         }
                     });

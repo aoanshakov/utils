@@ -334,14 +334,14 @@ tests.addTest(options => {
                                                                 differentNames().
                                                                 receiveResponse();
 
-                                                            tester.contactCommunicationsRequest().
-                                                                receiveResponse();
-
                                                             tester.usersRequest().
                                                                 forContacts().
                                                                 receiveResponse();
 
                                                             tester.contactRequest().receiveResponse();
+
+                                                            tester.contactCommunicationsRequest().
+                                                                receiveResponse();
                                                         });
                                                         it(
                                                             'Нажимаю на кнопку сворачивания софтфона. Отображено ' +

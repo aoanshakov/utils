@@ -54,6 +54,7 @@ define(() => function ({
     window.employeesStore = null;
     window.softphoneStore = null;
     window.chatsStore = null;
+    window.contactStore = null;
     window.softphoneBroadcastChannelCache = {};
 
     me.getUserAgent = softphoneType => 'UIS Softphone ' + softphoneType;
@@ -197,6 +198,9 @@ define(() => function ({
     
     me.chatsVoiceRecorderButton = (() => {
         const tester = testersFactory.createDomElementTester('.cm-chats--voice-recorder--record-button');
+
+        const putMouseOver = tester.putMouseOver.bind(tester);
+        tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
         tester.expectToBeDisabled = () => tester.expectToHaveAttribute('disabled');
         tester.expectToBeEnabled = () => tester.expectNotToHaveAttribute('disabled');
@@ -942,6 +946,13 @@ define(() => function ({
 
         return me;
     };
+
+    me.chatPanelFooterToolbar = (() => {
+        const getDomElement = () => utils.querySelector('.cm-chats--chat-panel-footer-toolbar'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
 
     me.chatTemplateMenu = (() => {
         let getDomElement = () => utils.querySelector('.cm-chats--chat-template-menu-popup'),
@@ -1737,6 +1748,7 @@ define(() => function ({
 
                         Promise.runAll(false, true);
                         spendTime(0)
+                        spendTime(0)
                     }
                 });
             },
@@ -1842,6 +1854,14 @@ define(() => function ({
             color: '#000',
             priority: 8,
             is_removed: true,
+
+            is_able_to_accept_chat_transfer: true,
+            is_able_to_transfer_chat: true,
+            is_able_to_accept_chat: true,
+            is_able_to_close_chat_offline_message: true,
+            is_able_in_forwarding_scenario: true,
+            is_able_to_send_chat_messages: true,
+
             in_external_allowed_call_directions: [
                 'in',
                 'out'
@@ -2799,6 +2819,11 @@ define(() => function ({
                 return this;
             },
 
+            fourthChat() {
+                params.chat_id = 2718936;
+                return this;
+            },
+
             anotherMessage() {
                 params.message_id = 482057;
                 return this;
@@ -3532,6 +3557,15 @@ define(() => function ({
         };
 
         return {
+            thirdChat() {
+                params.chat_id = 2718937;
+                params.message.chat_id = 2718937;
+                params.visitor_id = 16479305;
+                params.message.visitor_name = 'Томова Денка Райчовна';
+
+                return this;
+            },
+
             anotherChat() {
                 params.chat_id = 582103;
                 params.message.chat_id = 582103;
@@ -5108,6 +5142,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.active = () => {
+                response.result.data.found_list[0].status = 'active';
+                return me;
+            };
+
             me.noVisitorType = () => {
                 response.result.data.found_list[0].visitor_type = null;
                 return me;
@@ -5299,6 +5338,7 @@ define(() => function ({
             me.addSecondPhoneNumber = () => (result.phones.push('79164725824'), me);
             me.noPhone = () => (result.phones = [], me);
             me.noEmail = () => (result.emails = [], me);
+            me.anotherVisitor = () => (params.visitor_id = 16479305, me);
 
             return me;
         };
@@ -5319,6 +5359,7 @@ define(() => function ({
 
                         Promise.runAll(false, true);
                         spendTime(0)
+                        spendTime(0)
                     }
                 });
             },
@@ -5338,6 +5379,16 @@ define(() => function ({
         const addResponseModifiers = me => {
             me.anotherChat = () => {
                 params.chat_id = 2718935;
+                return me;
+            };
+
+            me.thirdChat = () => {
+                params.chat_id = 2718937;
+                return me;
+            };
+
+            me.anotherVisitor = () => {
+                params.visitor_id = 16479305;
                 return me;
             };
 
@@ -5768,6 +5819,43 @@ define(() => function ({
                 chat(582103);
                 return this;
             },
+
+            fifthChat() {
+                chat(2718937);
+
+                getData = () => [{
+                    context: {
+                        phone: '79283810928'
+                    },
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 2718937,
+                    employee_id: null,
+                    is_chat_channel_active: false,
+                    last_message: {
+                        message: 'Я люблю тебя',
+                        date: '2021-02-21T12:24:53.000Z',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: null,
+                    name: 'Помакова Бисерка Драгановна',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479305,
+                    visitor_name: 'Томова Денка Райчовна',
+                    visitor_type: 'omni',
+                    account_id: null,
+                    is_phone_auto_filled: false,
+                    unread_message_count: 1
+                }];
+
+                return this;
+            },
             
             chat() {
                 chat(2718935);
@@ -5940,6 +6028,14 @@ define(() => function ({
             me.newMessage = () => (processors.push(() => (data.active_with_unread_count ++)), me);
             me.readMessage = () => (processors.push(() => (data.active_with_unread_count --)), me);
 
+            me.noData = () => {
+                data.new_chat_count = 0;
+                data.active_chat_count = 0;
+                data.active_with_unread_count = 0;
+                data.closed_chat_count = 0;
+                return me;
+            };
+
             me.noActiveChats = () => {
                 data.active_chat_count = 0;
                 data.active_with_unread_count = 0;
@@ -5953,6 +6049,11 @@ define(() => function ({
 
             me.noNewChatsWithUnreadMessages = () => {
                 data.new_chat_count = 0;
+                return me;
+            };
+
+            me.noClosedChats = () => {
+                data.closed_chat_count = 0;
                 return me;
             };
 
@@ -14169,8 +14270,21 @@ define(() => function ({
     me.largeSizeButton = createCollapsedessButton('cmg-large-size-button');
     me.middleSizeButton = createCollapsedessButton('cmg-middle-size-button');
     me.smallSizeButton = createCollapsedessButton('cmg-small-size-button');
-    me.notificationSection = testersFactory.createDomElementTester('.cm-chats--chat-notifications');
     me.statusDurations = testersFactory.createDomElementTester('.cmg-softphone--call-stats-statuses-duration');
+
+    me.notificationSection = (tester => {
+        tester.message = (tester => {
+            const putMouseOver = tester.putMouseOver.bind(tester);
+            tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0), spendTime(0));
+
+            return tester;
+        })(testersFactory.createDomElementTester('.cm-chats--chat-notifications .cm-chats--message-row'));
+
+        return tester;
+    })(testersFactory.createDomElementTester('.cm-chats--chat-notifications'));
 
     me.playerButton = (() => {
         const tester = testersFactory.createDomElementTester('.clct-audio-button');

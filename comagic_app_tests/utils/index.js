@@ -88,7 +88,7 @@ const cda = `cd ${application} &&`,
     contactsOverridenFiles = packageJson,
     rootStoreAndPackageJsonFiles = 'src/models/RootStore.ts package.json',
     softphoneOverridenFiles = packageJson,
-    employeesOverridenFiles = rootStoreAndPackageJsonFiles,
+    employeesOverridenFiles = packageJson,
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
 
