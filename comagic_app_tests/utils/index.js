@@ -92,8 +92,7 @@ const cda = `cd ${application} &&`,
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
 
-const chatOverridenFiles = 'src/models/RootStore.ts ' +
-    'package.json ' +
+const chatOverridenFiles = 'package.json ' +
     'src/App.tsx ' +
     'src/models/auth/AuthStore.ts ' +
     'src/models/account/AccountStore.ts ' +

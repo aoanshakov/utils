@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0579dd31..e216d9bf 100644
+index 0579dd31..09813e4c 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -174,7 +174,7 @@ index 0579dd31..e216d9bf 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -352,17 +425,159 @@ module.exports = {
+@@ -352,17 +425,160 @@ module.exports = {
                      },
                  ],
              },
@@ -227,6 +227,7 @@ index 0579dd31..e216d9bf 100644
 +                `${miscDirectory}/contacts/src/components/contact-bar/whatsapp-channel-select/ContactSelectWrapper.tsx`,
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'softphone/Root': 'softphone/src/Root.tsx',
++            'softphone/Account': 'softphone/src/Account.tsx',
 +            'softphone/AccountHeader': 'softphone/src/AccountHeader.tsx',
 +            'softphone/Settings': 'softphone/src/Settings.tsx',
 +            'softphone/CallHistory': 'softphone/src/call_history/index.tsx',

@@ -52,14 +52,16 @@ tests.addTest(options => {
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.noData().receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
@@ -78,7 +80,6 @@ tests.addTest(options => {
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
-            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent();
 
             notificationTester.grantPermission();
 
@@ -103,9 +104,7 @@ tests.addTest(options => {
                 softphoneServerConnected().
                 expectToBeSent();
 
-            tester.employeeRequest().receiveResponse();
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
             registrationRequest = tester.registrationRequest().expectToBeSent();
 
             tester.allowMediaInput();
@@ -126,8 +125,6 @@ tests.addTest(options => {
                 microphoneAccessGranted().
                 userDataFetched().
                 expectToBeSent();
-
-            employeeStatusesRequest.receiveResponse();
 
             tester.button('Софтфон').click();
 
@@ -384,7 +381,7 @@ tests.addTest(options => {
                                         );
                                     
                                     tester.body.expectTextContentToHaveSubstring(
-                                        'karadimova Не беспокоить'
+                                        'Ганева Стефка Доступен'
                                     );
                                 });
                             });

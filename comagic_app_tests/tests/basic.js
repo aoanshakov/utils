@@ -40,14 +40,16 @@ tests.addTest(options => {
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             reportGroupsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
@@ -64,7 +66,6 @@ tests.addTest(options => {
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
-            tester.employeeStatusesRequest().receiveResponse();
 
             tester.slavesNotification().
                 twoChannels().
@@ -88,9 +89,7 @@ tests.addTest(options => {
                 webRTCServerConnected().
                 expectToBeSent();
 
-            tester.employeeRequest().receiveResponse();
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
             tester.registrationRequest().receiveResponse();
 
             tester.slavesNotification().
@@ -600,50 +599,6 @@ tests.addTest(options => {
                 tester.softphone.expectTextContentNotToHaveSubstring('Устанавливается соединение...');
             });
         });
-        describe('Получено событие изменения сотрудника. Статус сотрудника изменился.', function() {
-            let employeeChangedEvent;
-
-            beforeEach(function() {
-                employeeChangedEvent = tester.employeeChangedEvent().secondStatus();
-                ticketsContactsRequest.receiveResponse();
-            });
-
-            it('Структура некорректна. Отображен новый статус сотрудника.', function() {
-                employeeChangedEvent.wrongStructure().receive();
-
-                tester.employeeChangedEvent().
-                    secondStatus().
-                    wrongStructure().
-                    slavesNotification().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    userDataFetched().
-                    twoChannels().
-                    available().
-                    anotherStatus().
-                    expectToBeSent();
-
-                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
-            });
-            it('Структура корректна. Отображен новый статус сотрудника.', function() {
-                employeeChangedEvent.receive();
-
-                tester.employeeChangedEvent().
-                    secondStatus().
-                    slavesNotification().
-                    expectToBeSent();
-
-                tester.slavesNotification().
-                    userDataFetched().
-                    twoChannels().
-                    available().
-                    anotherStatus().
-                    expectToBeSent();
-
-                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
-            });
-        });
         it('Токен авторизации в инфопине истек.', function() {
             ticketsContactsRequest.accessTokenExpired().receiveResponse();
             tester.refreshRequest().receiveResponse();
@@ -651,7 +606,7 @@ tests.addTest(options => {
             tester.ticketsContactsRequest().receiveResponse();
         });
         it('Отображен статус сотрудника.', function() {
-            tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
+            tester.body.expectTextContentToHaveSubstring('Ганева Стефка Доступен');
         });
     });
     describe('Открываю лк. Ни лидген, ни РМО, ни аналитика не доступны.', function() {
@@ -688,14 +643,16 @@ tests.addTest(options => {
                     ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                     authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                    employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 ticketsContactsRequest.receiveResponse();
                 reportsListRequest.noData().receiveResponse();
                 reportTypesRequest.receiveResponse();
-                secondAccountRequest.receiveResponse();
+                employeeStatusesRequest.receiveResponse();
+                employeeRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
@@ -714,7 +671,6 @@ tests.addTest(options => {
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
-                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent();
 
                 notificationTester.grantPermission();
 
@@ -739,9 +695,7 @@ tests.addTest(options => {
                     softphoneServerConnected().
                     expectToBeSent();
 
-                tester.employeeRequest().receiveResponse();
                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
                 registrationRequest = tester.registrationRequest().expectToBeSent();
 
                 tester.allowMediaInput();
@@ -769,8 +723,6 @@ tests.addTest(options => {
                     twoChannels().
                     available().
                     expectToBeSent();
-
-                employeeStatusesRequest.receiveResponse();
             });
 
             it('Кнопка софтфона видима.', function() {
@@ -809,14 +761,16 @@ tests.addTest(options => {
             reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
             reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-            accountRequest = tester.accountRequest().expectToBeSent(requests);
+            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+            employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
         requests.expectToBeSent();
 
         ticketsContactsRequest.receiveResponse();
         reportsListRequest.receiveResponse();
         reportTypesRequest.receiveResponse();
-        accountRequest.receiveResponse();
+        employeeStatusesRequest.receiveResponse();
+        employeeRequest.receiveResponse();
         reportGroupsRequest.receiveResponse();
 
         tester.masterInfoMessage().receive();
@@ -838,8 +792,6 @@ tests.addTest(options => {
             secondRingtone().
             isNeedDisconnectSignal().
             receiveResponse();
-
-        tester.employeeStatusesRequest().receiveResponse();
 
         tester.slavesNotification().
             twoChannels().
@@ -874,7 +826,6 @@ tests.addTest(options => {
             softphoneServerConnected().
             expectToBeSent();
 
-        tester.employeeRequest().receiveResponse();
         tester.authenticatedUserRequest().receiveResponse();
 
         tester.slavesNotification().
@@ -936,14 +887,16 @@ tests.addTest(options => {
             reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
             reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-            accountRequest = tester.accountRequest().expectToBeSent(requests);
+            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+            employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
         requests.expectToBeSent();
 
         ticketsContactsRequest.receiveResponse();
         reportsListRequest.receiveResponse();
         reportTypesRequest.receiveResponse();
-        accountRequest.receiveResponse();
+        employeeStatusesRequest.receiveResponse();
+        employeeRequest.receiveResponse();
         reportGroupsRequest.receiveResponse();
 
         tester.masterInfoMessage().receive();
@@ -965,8 +918,6 @@ tests.addTest(options => {
             secondRingtone().
             isNeedDisconnectSignal().
             receiveResponse();
-
-        tester.employeeStatusesRequest().receiveResponse();
 
         tester.slavesNotification().
             twoChannels().
@@ -1001,7 +952,6 @@ tests.addTest(options => {
             softphoneServerConnected().
             expectToBeSent();
 
-        tester.employeeRequest().receiveResponse();
         tester.authenticatedUserRequest().receiveResponse();
 
         tester.slavesNotification().
@@ -1063,14 +1013,16 @@ tests.addTest(options => {
             reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
             reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
             authCheckRequest = tester.authCheckRequest().knownWidgetId().expectToBeSent(requests),
-            accountRequest = tester.accountRequest().expectToBeSent(requests);
+            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+            employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
         requests.expectToBeSent();
 
         ticketsContactsRequest.receiveResponse();
         reportsListRequest.receiveResponse();
         reportTypesRequest.receiveResponse();
-        accountRequest.receiveResponse();
+        employeeStatusesRequest.receiveResponse();
+        employeeRequest.receiveResponse();
         reportGroupsRequest.receiveResponse();
 
         tester.masterInfoMessage().receive();
@@ -1092,8 +1044,6 @@ tests.addTest(options => {
             secondRingtone().
             isNeedDisconnectSignal().
             receiveResponse();
-
-        tester.employeeStatusesRequest().receiveResponse();
 
         tester.slavesNotification().
             twoChannels().
@@ -1128,7 +1078,6 @@ tests.addTest(options => {
             softphoneServerConnected().
             expectToBeSent();
 
-        tester.employeeRequest().receiveResponse();
         tester.authenticatedUserRequest().receiveResponse();
 
         tester.slavesNotification().
@@ -1182,7 +1131,8 @@ tests.addTest(options => {
         const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
             ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
             reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-            secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+            employeeRequest = tester.employeeRequest().expectToBeSent(requests);
         authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
         requests.expectToBeSent();
@@ -1190,7 +1140,8 @@ tests.addTest(options => {
         ticketsContactsRequest.receiveResponse();
         reportsListRequest.receiveResponse();
         reportTypesRequest.receiveResponse();
-        secondAccountRequest.receiveResponse();
+        employeeStatusesRequest.receiveResponse();
+        employeeRequest.receiveResponse();
 
         tester.masterInfoMessage().receive();
         tester.slavesNotification().additional().expectToBeSent();
@@ -1207,7 +1158,6 @@ tests.addTest(options => {
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
         tester.settingsRequest().receiveResponse();
-        tester.employeeStatusesRequest().receiveResponse(); 
 
         notificationTester.grantPermission();
 
@@ -1232,10 +1182,9 @@ tests.addTest(options => {
             softphoneServerConnected().
             expectToBeSent();
 
-        tester.employeeRequest().receiveResponse();
         authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
         registrationRequest = tester.registrationRequest().expectToBeSent();
+
         tester.allowMediaInput();
 
         tester.slavesNotification().

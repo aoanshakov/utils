@@ -57,14 +57,15 @@ tests.addTest(options => {
                     ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                     authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                    employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 ticketsContactsRequest.receiveResponse();
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
-                secondAccountRequest.receiveResponse();
+                employeeRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
@@ -83,7 +84,6 @@ tests.addTest(options => {
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
-                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -108,9 +108,7 @@ tests.addTest(options => {
 
                 notificationTester.grantPermission();
 
-                tester.employeeRequest().receiveResponse();
                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
                 registrationRequest = tester.registrationRequest().expectToBeSent();
 
                 tester.allowMediaInput();
@@ -195,6 +193,14 @@ tests.addTest(options => {
                     tester.slavesNotification().expectToBeSent();
                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
+                    tester.employeeStatusesRequest().
+                        anotherAuthorizationToken().
+                        receiveResponse();
+
+                    tester.employeeRequest().
+                        anotherAuthorizationToken().
+                        receiveResponse();
+
                     tester.authCheckRequest().anotherAuthorizationToken().receiveResponse();
 
                     tester.reportGroupsRequest().anotherAuthorizationToken().receiveResponse();
@@ -203,16 +209,10 @@ tests.addTest(options => {
 
                     tester.ticketsContactsRequest().receiveResponse()
                     tester.statsRequest().anotherAuthorizationToken().receiveResponse();
-                    tester.accountRequest().anotherAuthorizationToken().receiveResponse();
-
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
 
                     tester.settingsRequest().
-                        anotherAuthorizationToken().
-                        receiveResponse();
-
-                    tester.employeeStatusesRequest().
                         anotherAuthorizationToken().
                         receiveResponse();
 
@@ -236,10 +236,6 @@ tests.addTest(options => {
                         softphoneServerConnected().
                         webRTCServerConnected().
                         expectToBeSent();
-
-                    tester.employeeRequest().
-                        anotherAuthorizationToken().
-                        receiveResponse();
 
                     tester.authenticatedUserRequest().receiveResponse();
 
@@ -411,14 +407,16 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.manager().receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
@@ -437,7 +435,6 @@ tests.addTest(options => {
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
-            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent();
 
             tester.slavesNotification().
                 twoChannels().
@@ -462,9 +459,7 @@ tests.addTest(options => {
 
             notificationTester.grantPermission();
 
-            tester.employeeRequest().receiveResponse();
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
             registrationRequest = tester.registrationRequest().expectToBeSent();
 
             tester.allowMediaInput();
@@ -493,7 +488,6 @@ tests.addTest(options => {
                 available().
                 expectToBeSent();
 
-            employeeStatusesRequest.receiveResponse();
             tester.button('Статистика').click();
 
             tester.statsRequest().receiveResponse();
@@ -509,14 +503,16 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.callStatsFeatureFlagDisabled().receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
@@ -535,7 +531,6 @@ tests.addTest(options => {
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
-            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent();
 
             tester.slavesNotification().
                 twoChannels().
@@ -560,9 +555,7 @@ tests.addTest(options => {
 
             notificationTester.grantPermission();
 
-            tester.employeeRequest().receiveResponse();
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
             registrationRequest = tester.registrationRequest().expectToBeSent();
 
             tester.allowMediaInput();
@@ -590,8 +583,6 @@ tests.addTest(options => {
                 twoChannels().
                 available().
                 expectToBeSent();
-
-            employeeStatusesRequest.receiveResponse();
 
             tester.button('Статистика').expectNotToExist();
         });

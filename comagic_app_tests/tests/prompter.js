@@ -47,7 +47,8 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
@@ -56,7 +57,8 @@ tests.addTest(options => {
             reportGroupsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
         });
 
         afterEach(function() {
@@ -83,7 +85,6 @@ tests.addTest(options => {
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
-                tester.employeeStatusesRequest().receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -107,7 +108,6 @@ tests.addTest(options => {
                     softphoneServerConnected().
                     expectToBeSent();
 
-                tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.slavesNotification().
@@ -1124,14 +1124,11 @@ tests.addTest(options => {
                     receiveResponse();
 
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
-                tester.employeeStatusesRequest().receiveResponse();
 
                 tester.notificationChannel().applyLeader().expectToBeSent();
                 notificationTester.grantPermission();
 
                 tester.numberCapacityRequest().receiveResponse();
-
-                tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.slavesNotification().

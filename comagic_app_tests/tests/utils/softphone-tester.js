@@ -3870,6 +3870,8 @@ define(function () {
                                 response().
                                 setForbidden().
                                 send();
+
+                            spendTime(0);
                         },
                         receiveResponse: function () {
                             doSomething();

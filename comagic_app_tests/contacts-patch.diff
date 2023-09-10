@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index fa62751..0462ef9 100644
+index 0a5486f..0462ef9 100644
 --- a/package.json
 +++ b/package.json
 @@ -26,8 +26,6 @@
@@ -16,7 +16,7 @@ index fa62751..0462ef9 100644
    },
    "dependencies": {
 -    "@comagic/core": "^0.7.0",
--    "@comagic/logger": "^1.0.0",
+-    "@comagic/workplace-utils": "^1.0.8",
      "axios": "^0.24.0",
      "classnames": "^2.3.1",
      "formik": "^2.2.9",

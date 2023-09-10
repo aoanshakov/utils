@@ -1482,6 +1482,7 @@ tests.addTest(options => {
                                                 });
                                                 it('Отображены статусы.', function() {
                                                     tester.statusesList.item('Не беспокоить').expectToBeSelected();
+                                                    tester.statusesList.item('Доступен').expectNotToBeSelected();
                                                     tester.statusesList.item('Неизвестно').expectNotToExist();
 
                                                     tester.body.expectTextContentNotToHaveSubstring(
@@ -1799,6 +1800,34 @@ tests.addTest(options => {
                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                         'Гигова Петранка Входящий (2-ая линия)...'
                                                     );
+                                                });
+                                            });
+                                            describe(
+                                                'Получено событие изменения сотрудника. Статус сотрудника изменился.',
+                                            function() {
+                                                let employeeChangedEvent;
+
+                                                beforeEach(function() {
+                                                    employeeChangedEvent = tester.employeeChangedEvent().secondStatus();
+                                                });
+
+                                                it(
+                                                    'Структура некорректна. Отображен новый статус сотрудника.',
+                                                function() {
+                                                    employeeChangedEvent.wrongStructure().receive();
+                                                    tester.userName.click();
+
+                                                    tester.statusesList.item('Нет на месте').expectToBeSelected();
+                                                    tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
+                                                });
+                                                it(
+                                                    'Структура корректна. Отображен новый статус сотрудника.',
+                                                function() {
+                                                    employeeChangedEvent.receive();
+                                                    tester.userName.click();
+
+                                                    tester.statusesList.item('Нет на месте').expectToBeSelected();
+                                                    tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
                                                 });
                                             });
                                             describe('Открываю список номеров.', function() {
@@ -2207,6 +2236,16 @@ tests.addTest(options => {
 
                                                 tester.body.
                                                     expectTextContentNotToHaveSubstring('karadimova Не беспокоить');
+                                            });
+                                            it(
+                                                'Получено событие смены статуса. В списке статусов отмечен новый ' +
+                                                'статус.',
+                                            function() {
+                                                tester.entityChangeEvent().anotherStatus().receive();
+                                                tester.userName.click();
+
+                                                tester.statusesList.item('Нет на месте').expectToBeSelected();
+                                                tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
                                             });
                                             it(
                                                 'Помещаю курсор над иконкой аккаунта. Список статусов не открывается.',

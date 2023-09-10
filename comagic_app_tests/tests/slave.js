@@ -50,7 +50,8 @@ tests.addTest(options => {
             const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
@@ -58,7 +59,8 @@ tests.addTest(options => {
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
         });
 
         describe('Вкладка является ведомой. Открываю софтфон.', function() {
@@ -79,11 +81,9 @@ tests.addTest(options => {
                     allowNumberCapacitySelect().
                     receiveResponse();
 
-                tester.employeeStatusesRequest().receiveResponse();
                 notificationTester.grantPermission();
 
                 tester.numberCapacityRequest().receiveResponse();
-                tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
@@ -415,14 +415,13 @@ tests.addTest(options => {
 
                 const requests = ajax.inAnyOrder();
                     ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 ticketsContactsRequest.receiveResponse();
-                secondAccountRequest.receiveResponse();
+                employeeRequest.receiveResponse();
 
-                tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.slavesNotification().
@@ -516,10 +515,15 @@ tests.addTest(options => {
 
                 notificationTester.grantPermission();
 
-                tester.ticketsContactsRequest().receiveResponse();
-                tester.accountRequest().receiveResponse();
+                const requests = ajax.inAnyOrder();
+                    ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                    employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
-                tester.employeeRequest().receiveResponse();
+                requests.expectToBeSent();
+
+                ticketsContactsRequest.receiveResponse();
+                employeeRequest.receiveResponse();
+
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.slavesNotification().
@@ -582,13 +586,12 @@ tests.addTest(options => {
                 tester.select.expectToHaveTextContent('+7 (916) 123-89-29');
             });
             it('Выбран другой статус. Отображен выбранный статус.', function() {
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
+                tester.entityChangeEvent().
                     anotherStatus().
+                    slavesNotification().
                     receive();
 
-                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+                tester.body.expectTextContentToHaveSubstring('Гонева Стевка Нет на месте');
             });
             it('Окно свернуто. В ведущую вкладку отправлено сообщение о том, что окно свернуто.', function() {
                 setDocumentVisible(false);
@@ -640,7 +643,7 @@ tests.addTest(options => {
                 tester.expectNoWebsocketConnecting();
 
                 tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
-                tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
+                tester.body.expectTextContentToHaveSubstring('Ганева Стефка Доступен');
             });
         });
         describe(
@@ -665,11 +668,9 @@ tests.addTest(options => {
                     allowNumberCapacitySelect().
                     receiveResponse();
 
-                tester.employeeStatusesRequest().receiveResponse();
                 notificationTester.grantPermission();
 
                 tester.numberCapacityRequest().receiveResponse();
-                tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
                 reportGroupsRequest.receiveResponse();
             });

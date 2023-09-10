@@ -1879,6 +1879,17 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
+                                            it('Не удалось зарегистрировать SIP-линию.', function() {
+                                                registrationRequest.receiveForbidden();
+
+                                                tester.slavesNotification().
+                                                    twoChannels().
+                                                    enabled().
+                                                    registrationFailed().
+                                                    microphoneAccessGranted().
+                                                    userDataFetched().
+                                                    expectToBeSent();
+                                            });
                                             it('Нажимаю на кнопку скрытия софтфона. Сотфтфон скрыт.', function() {
                                                 tester.hideButton.click();
                                                 tester.slavesNotification().additional().expectToBeSent();
