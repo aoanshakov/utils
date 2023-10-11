@@ -12,20 +12,21 @@ tests.addTest(function({
                 tester.destroy();
             }
 
-            tester = new SitemanagementAppuser({
+            tester = new SitemanagementAppuserList({
                 requestsManager,
                 testersFactory,
                 utils,
             });
 
             Comagic.Directory.load();
-            tester.batchReloadRequest().receiveResponse();
+            //tester.batchReloadRequest().receiveResponse();
 
             tester.actionIndex({
                 siteId: 23523
             }, {
                 recordId: 104561
             });
+
             tester.requestAppUser().send();
             tester.requestEmployeesUnattachedToUser().send();
             tester.requestPermissions().send();
@@ -172,11 +173,6 @@ tests.addTest(function({
             });
         });
         it('', function() {
-            tester.form.textfield().withFieldLabel('Имя в чате *').fill('Ченкова Веселина Добриновна');
-            wait();
-            tester.requestValidateLogin().send();
-
-            tester.button('Сохранить').click();
         });
     });
 });

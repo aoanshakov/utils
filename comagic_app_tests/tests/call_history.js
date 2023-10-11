@@ -25,7 +25,7 @@ tests.addTest(options => {
         let tester,
             reportGroupsRequest,
             settingsRequest,
-            accountRequest,
+           accountRequest,
             permissionsRequest;
 
         beforeEach(function() {
@@ -236,7 +236,10 @@ tests.addTest(options => {
                                         });
                                     });
                                     it('Оторажен номер.', function() {
-                                        tester.table.row.first.column.withHeader('ФИО контакта').link.
+                                        tester.table.
+                                            row.first.
+                                            column.withHeader('ФИО контакта').
+                                            link.
                                             expectToHaveTextContent('+7 (495) 023-06-25');
                                     });
                                 });

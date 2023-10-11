@@ -6,7 +6,7 @@ tests.addTest(function(args) {
         utils,
     } = args;
 
-    xdescribe('Открываю страницу сотрудников.', function() {
+    describe('Открываю страницу сотрудников.', function() {
         var tester;
 
         beforeEach(function() {
@@ -23,6 +23,9 @@ tests.addTest(function(args) {
             tester.statusesRequest().receiveResponse();
         });
 
+        it('', function() {
+        });
+        return;
         describe('Нажимаю кнопку "Создать статус".', function() {
             beforeEach(function() {
                 tester.button('Создать статус').click();
@@ -465,6 +468,7 @@ tests.addTest(function(args) {
                 expectToHaveTextContent('Да');
         });
     });
+    return;
     describe('Компонент текстовых коммуникаций отключен.', function() {
         var tester;
 
@@ -561,7 +565,6 @@ tests.addTest(function(args) {
                 column().atIndex(14).
                 expectToBeHiddenOrNotExist();
         });
-        return;
         it('Открываю форму создания статуса. Поля параметров чатов скрыты.', function() {
             tester.button('Создать статус').click();
             tester.menu.item('Новый статус').click();

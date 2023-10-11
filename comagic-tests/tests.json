@@ -94,6 +94,10 @@
             "helpers/SitemanagementAppuser.js",
             "tests/sitemanagement.appuser.js"
         ],
+        "sitemanagement.appuser.list": [
+            "helpers/SitemanagementAppuserList.js",
+            "tests/sitemanagement.appuser.list.js"
+        ],
         "sitemanagement.sitesettings": [
             "helpers/SitemanagementSitesettings.js",
             "tests/sitemanagement.sitesettings.js"

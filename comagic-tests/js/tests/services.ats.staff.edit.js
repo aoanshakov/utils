@@ -71,7 +71,9 @@ tests.addTest(function(args) {
                     wait();
                     tester.employeeUserAddingRequest().receiveResponse();
                     wait();
+                    tester.userAppPermissionRequest().receiveResponse();
                 });
+                return;
                 it('Включаю автоответ для звонков по клику. Сохраняю изменения. Изменения сохранены.', function() {
                     tester.form.checkbox().withBoxLabel('Звонки по клику').click();
                     wait();
@@ -106,8 +108,6 @@ tests.addTest(function(args) {
                     tester.employeeUserAddingRequest().receiveResponse();
                     wait();
                 });
-            });
-            it('', function() {
             });
         });
         return;

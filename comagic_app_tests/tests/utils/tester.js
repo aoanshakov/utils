@@ -188,8 +188,10 @@ define(() => function ({
     me.callsHistoryButton = me.createBottomButtonTester('.cmg-calls-history-button');
 
     me.chatMessageSendingButton = (() => {
-        const tester = testersFactory.createDomElementTester('.cm-chats--chat-panel-footer-toolbar-send-button');
+        const tester = testersFactory.createDomElementTester('.cm-chats--chat-panel-footer-toolbar-send-button'),
+            click = tester.click.bind(tester);
 
+        tester.click = () => (click(), spendTime(0));
         tester.expectToBeDisabled = () => tester.expectToHaveAttribute('disabled');
         tester.expectToBeEnabled = () => tester.expectNotToHaveAttribute('disabled');
 
@@ -1436,7 +1438,38 @@ define(() => function ({
             },
         };
 
-        const addResponseModifiers = me => me;
+        let response = {
+            result: {
+                data: true,
+            },
+        };
+
+        let respond = request => request.respondSuccessfullyWith(response);
+
+        const addResponseModifiers = me => {
+            me.networkError = () => {
+                respond = request => request.respond({
+                    status: 500,
+                    responseText: JSON.stringify({
+                        message: 'Network Error',
+                    }),
+                });
+
+                return me;
+            };
+
+            me.accessTokenExpired = () => {
+                response = {
+                    error: {
+                        message: 'access_token_expired',
+                    },
+                };
+
+                return me;
+            };
+
+            return me;
+        };
 
         return addResponseModifiers({
             expectToBeSent() {
@@ -1450,12 +1483,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith({
-                            result: {
-                                data: true,
-                            }
-                        });
-
+                        respond(request);
                         Promise.runAll(false, true);
                         spendTime(0)
                     }
@@ -3197,43 +3225,46 @@ define(() => function ({
             action: 'insert',
             app_id: 4735,
             data: {
-                id: 848593,
-                icon: 'funnel',
-                name: 'Воронка',
-                color: '#ff8f00',
-                comment: null,
-                mnemonic: null,
-                priority: 18,
-                is_removed: false,
-                description: '',
-                is_worktime: true,
-                is_different: true,
-                is_select_allowed: true,
-                allowed_phone_protocols: [
-                    'PSTN',
-                    'SIP',
-                    'SIP_TRUNK',
-                    'FMC'
-                ],
-                is_auto_out_calls_ready: true,
-                is_use_availability_in_group: true,
-                in_external_allowed_call_directions: [
-                    'in',
-                    'out'
-                ],
-                in_internal_allowed_call_directions: [
-                    'in',
-                    'out'
-                ],
-                out_external_allowed_call_directions: [
-                    'in',
-                    'out'
-                ],
-                out_internal_allowed_call_directions: [
-                    'in',
-                    'out'
-                ]
-            }
+                app_id: 4735,
+                data: [{
+                    id: 848593,
+                    icon: 'funnel',
+                    name: 'Воронка',
+                    color: '#ff8f00',
+                    comment: null,
+                    mnemonic: null,
+                    priority: 18,
+                    is_removed: false,
+                    description: '',
+                    is_worktime: true,
+                    is_different: true,
+                    is_select_allowed: true,
+                    allowed_phone_protocols: [
+                        'PSTN',
+                        'SIP',
+                        'SIP_TRUNK',
+                        'FMC'
+                    ],
+                    is_auto_out_calls_ready: true,
+                    is_use_availability_in_group: true,
+                    in_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    in_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_external_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                    out_internal_allowed_call_directions: [
+                        'in',
+                        'out'
+                    ],
+                }],
+            },
         });
 
         const createNotification = () => ({
@@ -3254,7 +3285,7 @@ define(() => function ({
                 setStatus();
                 params.action = 'update';
 
-                params.data = {
+                params.data.data[0] = {
                     id: 7,
                     name: 'Ненужный'
                 };
@@ -3266,7 +3297,7 @@ define(() => function ({
                 setStatus();
                 params.action = 'update';
 
-                params.data = {
+                params.data.data[0] = {
                     id: 2,
                     name: 'Пауза'
                 };
@@ -3278,7 +3309,7 @@ define(() => function ({
                 setStatus();
                 params.action = 'delete';
 
-                params.data = {
+                params.data.data[0] = {
                     id: 2,
                     is_removed: true
                 };
@@ -11581,6 +11612,8 @@ define(() => function ({
                         request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
+                        spendTime(0);
+                        spendTime(0);
                         spendTime(0);
                         spendTime(0);
                         spendTime(0);

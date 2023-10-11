@@ -1,17 +1,17 @@
 tests.requireClass('Comagic.services.ats.staff.store.ContactRecord');
 tests.requireClass('Comagic.services.ats.staff.controller.ContactEditPage');
 
-function ServicesAtsStaff({ requestsManager, testersFactory, utils }) {
-    ServicesAtsStaff.makeOverrides = function () {
+function ServicesAtsStaffContactEditPage({ requestsManager, testersFactory, utils }) {
+    ServicesAtsStaffContactEditPage.makeOverrides = function () {
         Ext.define('Comagic.test.services.ats.staff.view.ContactEditPage', {
             override: 'Comagic.services.ats.staff.view.ContactEditPage',
             autoScroll: true
         });
 
-        ServicesAtsStaff.makeOverrides = Ext.emptyFn;
+        ServicesAtsStaffContactEditPage.makeOverrides = Ext.emptyFn;
     };
 
-    ServicesAtsStaff.makeOverrides();
+    ServicesAtsStaffContactEditPage.makeOverrides();
 
     var controller = Comagic.getApplication().getController('Comagic.services.ats.staff.controller.ContactEditPage');
 
@@ -36,7 +36,20 @@ function ServicesAtsStaff({ requestsManager, testersFactory, utils }) {
                         id: 104561,
                         data: {
                             login: 'chenkova',
-                            password: 'Qwerty123'
+                            password: 'Qwerty123',
+                            permissions: utils.expectToInclude([{
+                                permission_unit_id: 'chats',
+                                is_insert: true,
+                                is_select: true,
+                                is_update: true,
+                                is_delete: true,
+                            }, {
+                                permission_unit_id: 'channel_management',
+                                is_insert: true,
+                                is_select: true,
+                                is_update: true,
+                                is_delete: true,
+                            }]),
                         }
                     }).
                     respondSuccessfullyWith({
@@ -72,7 +85,23 @@ function ServicesAtsStaff({ requestsManager, testersFactory, utils }) {
                     respondSuccessfullyWith({
                         success: true,
                         data: {
-                            limit: {
+                            manager_limit: {
+                                real_value: 1,
+                                max_value: 50,
+                                is_max_limit_reached: false,
+                                top_value: 4,
+                                user_charge_diff: 0,
+                                is_limit_reached: false
+                            },
+                            employee_limit: {
+                                real_value: 1,
+                                max_value: 50,
+                                is_max_limit_reached: false,
+                                top_value: 4,
+                                user_charge_diff: 0,
+                                is_limit_reached: false
+                            },
+                            operators_limit: {
                                 real_value: 1,
                                 max_value: 50,
                                 is_max_limit_reached: false,
@@ -443,6 +472,20 @@ function ServicesAtsStaff({ requestsManager, testersFactory, utils }) {
                             name: 'short_phone',
                             has_many: []
                         }]
+                    });
+            }
+        };
+    };
+
+    this.userAppPermissionRequest = function () {
+        return {
+            receiveResponse: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/directory/comagic:permission:app_user/').
+                    expectToHaveMethod('GET').
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: [],
                     });
             }
         };

@@ -675,6 +675,12 @@ function JsTester_Utils (debug) {
             throw new Error('Найдено ' + count + ' видимых элементов, тогда как видимым должен быть только один.');
         });
     };
+    this.expectToInclude = function (expectedSubset) {
+        return new JsTests_ArrayInclusionExpectation({
+            expectedSubset,
+            utils: this,
+        });
+    };
 }
 
 function JsTester_OpenedWindow (path, query) {
@@ -1700,7 +1706,10 @@ function JsTests_StringExpectaion () {
     };
 }
 
-function JsTests_SetInclusionExpectation (expectedSubset) {
+function JsTests_ArrayInclusionExpectation ({
+    expectedSubset,
+    utils,
+}) {
     this.maybeThrowError = function (actualValue, keyDescription) {
         if (!Array.isArray(actualValue)) {
             throw new Error(
@@ -1714,6 +1723,23 @@ function JsTests_SetInclusionExpectation (expectedSubset) {
         }
 
         if (expectedSubset.some(function (item) {
+            if (typeof item == 'object') {
+                return !expectedSubset.every(function (item) {
+                    return actualValue.some(function (actualItem) {
+                        var isContained = true;
+
+                        try {
+                            utils.expectToContain(actualItem, item);
+                        } catch (e) {
+                            isContained = false;
+                        }
+
+                        return isContained;
+                    });
+
+                });
+            }
+
             return !actualValue.includes(item);
         })) {
             throw new Error(
@@ -1769,7 +1795,7 @@ function JsTests_UniqueValueExpectationFactory () {
 JsTests_EmptyObjectExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_PrefixExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_StringExpectaion.prototype = JsTests_ParamExpectationPrototype;
-JsTests_SetInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
+JsTests_ArrayInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
 JsTests_UniqueValueExpectation.prototype = JsTests_ParamExpectationPrototype;
 
 function JsTester_ParamsContainingExpectation (actualParams, paramsDescription) {

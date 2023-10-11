@@ -260,7 +260,8 @@ define(function () {
                 '.cm-chats--title, ' +
                 '.src-components-main-menu-nav-item-styles-module__label, ' +
                 '.src-components-main-menu-settings-styles-module__label, ' +
-                '.src-components-main-menu-menu-link-styles-module__item a';
+                '.src-components-main-menu-menu-link-styles-module__item a, ' + 
+                '.cm-chats--chats-menu-link-text';
 
             me.button = (text, logEnabled) => {
                 let domElement = utils.descendantOf(getRootElement()).
@@ -326,6 +327,7 @@ define(function () {
                     'active',
                     'ui-tab-active',
                     'cmgui-tab-active',
+                    'item-hovered',
                 ];
 
 
@@ -334,7 +336,8 @@ define(function () {
                     '.misc-core-src-component-styles-module__item, ' +
                     '.cm-chats--left-menu--item, ' +
                     '.ui-tab, ' +
-                    '.cmgui-tab'
+                    '.cmgui-tab, ' +
+                    '.cm-chats--chats-menu-item'
                 );
 
                 const pressednessTester = testersFactory.createDomElementTester(getPressableElement);
