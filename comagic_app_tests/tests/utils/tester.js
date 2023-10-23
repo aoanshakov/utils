@@ -183,6 +183,7 @@ define(() => function ({
     me.redirectEmployeeSelectCover = testersFactory.
         createDomElementTester('.cm-chats--redirect-employee-select-cover');
 
+    me.chatsMenu = testersFactory.createDomElementTester('.cm-chats--chats-menu');
     me.callStatsButton = me.createBottomButtonTester('.cmg-call-stats-button');
     me.chatsButton = me.createBottomButtonTester('.cmg-chats-button');
     me.callsHistoryButton = me.createBottomButtonTester('.cmg-calls-history-button');
@@ -1675,6 +1676,13 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.link = () => {
+                data[0].text = "Привет. Это ссылка на медузу - https://meduza.io, но здесь она уже кончилась. Это " +
+                    "ссылка на гугл - https://google.com\nsdfsfsdflisdjfldjf, она должна была кончиться чуть раньше.";
+
+                return me;
+            };
+
             me.firstPage = () => {
                 data = getPage({
                     end: 100,
@@ -1834,11 +1842,11 @@ define(() => function ({
 
         const addResponseModifiers = me => {
             me.accessTokenExpired = () => {
-                respond = request => request.respond({
-                    status: 401,
-                    statusText: 'access_token_expired',
-                    responseText: ''
-                });
+                respond = request => request.respondUnauthorizedWith([{
+                    loc: ['__root__'],
+                    msg: 'Token has been expired',
+                    type: 'value_error.auth',
+                }]);
 
                 return me;
             };
@@ -10890,6 +10898,14 @@ define(() => function ({
             secondProcessors = [];
 
         const addResponseModifiers = me => {
+            me.longName = () => {
+                processors.push(() => {
+                    response.patronymic = response.patronymic + 'aycffbymxgipxtvnrjmhmnmrzymmaxxt';
+                });
+
+                return me;
+            };
+
             me.anotherName = () => {
                 processors.push(() => {
                     response.first_name = 'Роза';
@@ -10993,6 +11009,16 @@ define(() => function ({
 
             me.emptyEmailList = () => {
                 processors.push(() => (response.email_list[0] = ''));
+                return me;
+            };
+            
+            me.invalidEmail = () => {
+                processors.push(() => (response.email_list[0] = 'belezhkova gmail.com'));
+                return me;
+            };
+
+            me.addInvalidEmail = () => {
+                processors.push(() => (response.email_list.push('belezhkova gmail.com')));
                 return me;
             };
 

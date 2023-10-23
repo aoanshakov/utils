@@ -183,7 +183,7 @@ define(function () {
                     tester.clear = () => (clear(), spendTime(0), spendTime(0));
                     tester.click = () => (click(), spendTime(0), spendTime(0), tester);
                     tester.fill = value => (clear(), spendTime(0), fill(value), spendTime(0), spendTime(0), tester);
-                    tester.input = value => (input(value), spendTime(0), tester); 
+                    tester.input = value => (input(value), spendTime(0), spendTime(0), tester); 
                     tester.pressEnter = () => (pressEnter(), spendTime(0), tester);
 
                     tester.expectNotToHaveError = () => uiInputTester.expectToHaveNoneOfClasses([
@@ -261,7 +261,8 @@ define(function () {
                 '.src-components-main-menu-nav-item-styles-module__label, ' +
                 '.src-components-main-menu-settings-styles-module__label, ' +
                 '.src-components-main-menu-menu-link-styles-module__item a, ' + 
-                '.cm-chats--chats-menu-link-text';
+                //'.cm-chats--chats-menu-link-text, ' +
+                '.cm-chats--chats-menu-item > .label';
 
             me.button = (text, logEnabled) => {
                 let domElement = utils.descendantOf(getRootElement()).
@@ -2372,6 +2373,17 @@ define(function () {
             var sipLogin = '077368';
 
             function addMethods (me) {
+                me.addMore = function () {
+                    for (i = 0; i < 2070; i ++) {
+                        data.push({
+                            id: 124835 + i,
+                            numb: 79161238939 + i + '',
+                        });
+                    }
+
+                    return me;
+                };
+
                 me.withComment = function () {
                     data.find(item => item.id == 124824).comment = 'Отдел консалтинга';
                     return me;
@@ -2538,17 +2550,24 @@ define(function () {
                     data.sip_line_number_capacity.is_update = true;
                     return this;
                 },
+                numberCapacityUndefined: function () {
+                    delete(data.sip_line_number_capacity);
+                    return  this;
+                },
                 receiveChangeEvent: function () {
-                    me.eventsWebSocket.receiveMessage({
+                    softphoneTester.eventsWebSocket.receiveMessage({
                         name: 'permissions_changed',
                         type: 'event',
                         params: {
                             data: data
                         } 
                     });
+
+                    spendTime(0);
                 },
                 expectToBeSent: function (requests) {
-                    var request = (requests ? requests.someRequest() : ajax.recentRequest()).expectPathToContain('/sup/api/v1/permissions/me');
+                    var request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                        expectPathToContain('/sup/api/v1/permissions/me');
 
                     var requestSender = {
                         receiveResponse: function () {

@@ -1,4 +1,4 @@
-FROM debian:stretch
+FROM debian:bullseye
 
 RUN apt-get update -y
 RUN apt-get upgrade -y
@@ -18,11 +18,11 @@ RUN curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
 RUN apt-get update -y
 RUN apt-get install nginx
 
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install -y nodejs
 RUN curl -L https://npmjs.org/install.sh | sh
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-RUN /bin/bash -c "source ~/.bashrc && nvm install 11 && nvm install 14 && nvm install 15 && nvm use 14"
+RUN /bin/bash -c "source ~/.bashrc && nvm install 11 && nvm install 14 && nvm install 15 && nvm install 18 && nvm use 18"
 
 ADD utils /usr/local/bin/utils
 ENTRYPOINT [ "/usr/local/bin/utils" ]

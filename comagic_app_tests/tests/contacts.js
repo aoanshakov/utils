@@ -509,24 +509,41 @@ tests.addTest(options => {
                                                     tester.modalWindow.endTransition('transform');
                                                 });
 
-                                                it(
-                                                    'Нажимаю на кнопку "Удалить" в окне подтверждения. Номер удален.',
+                                                describe(
+                                                    'Нажимаю на кнопку "Удалить" в окне подтверждения.',
                                                 function() {
-                                                    tester.modalWindow.button('Удалить').click();
+                                                    beforeEach(function() {
+                                                        tester.modalWindow.button('Удалить').click();
 
-                                                    tester.contactUpdatingRequest().
-                                                        completeData().
-                                                        noPhoneNumbers().
-                                                        receiveResponse();
+                                                        tester.contactUpdatingRequest().
+                                                            completeData().
+                                                            noPhoneNumbers().
+                                                            receiveResponse();
 
-                                                    tester.contactRequest().
-                                                        noPhoneNumbers().
-                                                        receiveResponse();
+                                                        tester.contactRequest().
+                                                            noPhoneNumbers().
+                                                            receiveResponse();
+                                                    });
 
-                                                    tester.contactBar.
-                                                        section('Телефоны').
-                                                        option('79162729533').
-                                                        expectNotToExist();
+                                                    it('Нажимаю на кнопку добавления номера телефона.', function() {
+                                                        tester.contactBar.
+                                                            section('Телефоны').
+                                                            plusButton.
+                                                            click();
+
+                                                        tester.modalWindow.expectNotToExist();
+
+                                                        tester.contactBar.
+                                                            section('Телефоны').
+                                                            input.
+                                                            expectToBeVisible();
+                                                    });
+                                                    it('Номер удален.', function() {
+                                                        tester.contactBar.
+                                                            section('Телефоны').
+                                                            option('79162729533').
+                                                            expectNotToExist();
+                                                    });
                                                 });
                                                 it('Отображено окно подтверждения.', function() {
                                                     tester.modalWindow.expectToHaveTextContent(
@@ -696,9 +713,52 @@ tests.addTest(options => {
                                                 'Нажимаю на кнопку "Сохранить". Пустая строка в качестве E-Mail не ' +
                                                 'сохранилась.',
                                             function() {
-                                                tester.contactBar.section('E-Mail').button('Сохранить').click();
-                                                tester.contactUpdatingRequest().completeData().receiveResponse();
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    button('Сохранить').
+                                                    click();
+
+                                                tester.contactUpdatingRequest().
+                                                    completeData().
+                                                    receiveResponse();
+
                                                 tester.contactRequest().receiveResponse();
+                                            });
+                                            it(
+                                                'Ввожу слишком длинный E-Mail. Отображено сообщение об ошибке.',
+                                            function() {
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    input.
+                                                    fill('ydwjbrehzzxvixizydtuvxrpxwxuuymztqgndrfinjdncket@gmail.com');
+
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    button('Сохранить').
+                                                    click();
+
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    expectTextContentToHaveSubstring(
+                                                        'Количество символов, введенных в поле не должно привышать 48'
+                                                    );
+                                            });
+                                            it(
+                                                'Ввожу некорректный E-Mail. Отображено сообщение об ошибке.',
+                                            function() {
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    input.
+                                                    fill('belezhkova gmail.com');
+
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    button('Сохранить').
+                                                    click();
+
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    expectTextContentToHaveSubstring('Некорректный E-Mail');
                                             });
                                         });
                                         describe(
@@ -900,6 +960,19 @@ tests.addTest(options => {
                                                 tester.input.withPlaceholder('Отчество').fill('Ангеловна');
                                             });
 
+                                            it('Ввожу слишком длинное имя.', function() {
+                                                tester.input.
+                                                    withPlaceholder('Отчество').
+                                                    input('aycffbymxgipxtvnrjmhmnmrzymmaxxt');
+
+                                                tester.contactBar.
+                                                    section('ФИО').
+                                                    expectTextContentToHaveSubstring(
+                                                        'Количество символов, введенных в поле не должно привышать 32'
+                                                    );
+
+                                                tester.button('Сохранить').click();
+                                            });
                                             it('Открываю другой контакт. Поля ввода имени скрыты.', function() {
                                                 tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
 
@@ -930,28 +1003,86 @@ tests.addTest(options => {
                                                     receiveResponse();
                                             });
                                         });
-                                        it(
-                                            'Добавляю поле для ввода номера телефона. Ввожу номер телефона. ' +
-                                            'Отправлен запрос обновления контакта.',
-                                        function() {
-                                            tester.contactBar.section('Телефоны').svg.click();
-                                            tester.contactBar.section('Телефоны').input.fill('79162729534');
-                                            tester.contactBar.section('Телефоны').button('Сохранить').click();
+                                        describe('Добавляю поле для ввода номера телефона.', function() {
+                                            beforeEach(function() {
+                                                tester.contactBar.section('Телефоны').svg.click();
+                                            });
 
-                                            tester.contactsRequest().
-                                                phoneSearching().
-                                                noData().
-                                                receiveResponse();
+                                            describe('Ввожу номер телефона.', function() {
+                                                beforeEach(function() {
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        input.fill('79162729534');
+                                                });
 
-                                            tester.contactUpdatingRequest().
-                                                completeData().
-                                                twoPhoneNumbers().
-                                                thirdNewChannel().
-                                                receiveResponse();
+                                                it(
+                                                    'Нажимаю на кнопку "Сохранить". Отправлен запрос обновления ' +
+                                                    'контакта.',
+                                                function() {
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        button('Сохранить').click();
 
-                                            tester.contactRequest().
-                                                addPhoneNumber().
-                                                receiveResponse();
+                                                    tester.contactsRequest().
+                                                        phoneSearching().
+                                                        noData().
+                                                        receiveResponse();
+
+                                                    tester.contactUpdatingRequest().
+                                                        completeData().
+                                                        twoPhoneNumbers().
+                                                        thirdNewChannel().
+                                                        receiveResponse();
+
+                                                    tester.contactRequest().
+                                                        addPhoneNumber().
+                                                        receiveResponse();
+                                                });
+                                                it('Редактирование полей доступно.', function() {
+                                                    tester.contactBar.
+                                                        section('Персональный менеджер').
+                                                        option('Господинова Николина').
+                                                        putMouseOver();
+
+                                                    tester.contactBar.
+                                                        section('Персональный менеджер').
+                                                        option('Господинова Николина').
+                                                        toolsIcon.
+                                                        expectToBeVisible();
+
+                                                    tester.contactBar.section('ФИО').svg.expectToBeVisible();
+                                                });
+                                            });
+                                            it(
+                                                'Ввожу слишком длинный номер телефона. Отображено сообщение об ошибке.',
+                                            function() {
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    input.fill('79161234567890123456');
+
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    button('Сохранить').click();
+
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    expectTextContentToHaveSubstring(
+                                                        'Количество символов, введенных в поле не должно привышать 16'
+                                                    );
+
+                                                tester.contactBar.
+                                                    section('Персональный менеджер').
+                                                    option('Господинова Николина').
+                                                    putMouseOver();
+
+                                                tester.contactBar.
+                                                    section('Персональный менеджер').
+                                                    option('Господинова Николина').
+                                                    toolsIcon.
+                                                    expectNotToExist();
+
+                                                tester.contactBar.section('ФИО').svg.expectNotToExist();
+                                            });
                                         });
                                         it('Нажимаю на номер телефона. Совершается звонок.', function() {
                                             tester.contactBar.section('Телефоны').anchor('79162729533').click();
@@ -1661,6 +1792,7 @@ tests.addTest(options => {
                                                         'Телефоны (3) ' +
                                                         '79162729533 ' +
 
+                                                        'Поле должно быть заполнено ' +
                                                         'Отменить Сохранить'
                                                     );
                                                 });
@@ -1857,6 +1989,7 @@ tests.addTest(options => {
                                                         '79162729533 ' +
                                                         '79162729535 ' +
 
+                                                        'Поле должно быть заполнено ' +
                                                         'Отменить Сохранить'
                                                     );
                                                 });
@@ -2069,6 +2202,130 @@ tests.addTest(options => {
                                                 expectNotToExist();
                                         });
                                     });
+                                    describe('В данных контакта сохранен некоррекнтый E-Mail.', function() {
+                                        beforeEach(function() {
+                                            contactRequest = contactRequest.addInvalidEmail();
+                                        });
+
+                                        describe('Персональный менеджер выбран.', function() {
+                                            beforeEach(function() {
+                                                contactRequest.receiveResponse();
+                                            });
+
+                                            describe('Открываю поле редактирования E-Mail.', function() {
+                                                beforeEach(function() {
+                                                    tester.contactBar.
+                                                        section('E-Mail').
+                                                        option('belezhkova gmail.com').
+                                                        putMouseOver();
+
+                                                    tester.contactBar.
+                                                        section('E-Mail').
+                                                        option('belezhkova gmail.com').
+                                                        toolsIcon.
+                                                        click();
+
+                                                    tester.select.
+                                                        option('Редактировать').
+                                                        click();
+                                                });
+
+                                                it('Исправляю E-Mail, сохраняю контакт. Контакт сохранен.', function() {
+                                                    tester.contactBar.
+                                                        section('E-Mail').
+                                                        input.
+                                                        fill('belezhkova@gmail.com');
+
+                                                    tester.button('Сохранить').click();
+
+                                                    tester.contactsRequest().
+                                                        emailSearching().
+                                                        noData().
+                                                        receiveResponse();
+
+                                                    tester.contactUpdatingRequest().receiveResponse();
+                                                    tester.contactRequest().receiveResponse();
+                                                });
+                                                it('Кнопка сохранения заблокирована.', function() {
+                                                    tester.button('Сохранить').click();
+                                                });
+                                            });
+                                            it(
+                                                'Изменяю корректный E-Mail, сохраняю контакт. Контакт сохранен.',
+                                            function() {
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    option('endlesssprinп.of@comagic.dev').
+                                                    putMouseOver();
+
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    option('endlesssprinп.of@comagic.dev').
+                                                    toolsIcon.
+                                                    click();
+
+                                                tester.select.
+                                                    option('Редактировать').
+                                                    click();
+
+                                                tester.contactBar.
+                                                    section('E-Mail').
+                                                    input.
+                                                    fill('belezhkova@gmail.com');
+
+                                                tester.button('Сохранить').click();
+
+                                                tester.contactsRequest().
+                                                    emailSearching().
+                                                    noData().
+                                                    receiveResponse();
+
+                                                tester.contactUpdatingRequest().receiveResponse();
+                                                tester.contactRequest().receiveResponse();
+                                            });
+                                            it(
+                                                'Выбераю опцию "Не выбрано" в выпадающем списке персональных ' +
+                                                'менеджеров. Контакт сохранен.',
+                                            function() {
+                                                tester.contactBar.
+                                                    section('Персональный менеджер').
+                                                    option('Господинова Николина').
+                                                    putMouseOver();
+
+                                                tester.contactBar.
+                                                    section('Персональный менеджер').
+                                                    option('Господинова Николина').
+                                                    toolsIcon.
+                                                    click();
+
+                                                tester.select.click();
+                                                tester.select.option('Не выбрано').click();
+                                                tester.button('Сохранить').click();
+
+                                                tester.contactUpdatingRequest().
+                                                    noPersonalManager().
+                                                    receiveResponse();
+
+                                                tester.contactRequest().
+                                                    noPersonalManager().
+                                                    receiveResponse();
+                                            });
+                                            it('Кнопки добавления видимы.', function() {
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    plusButton.
+                                                    expectToBeVisible();
+                                            });
+                                        });
+                                        it('Персональный менеджер не выбран.', function() {
+                                            contactRequest.noPersonalManager().receiveResponse();
+
+                                            tester.contactBar.
+                                                section('Персональный менеджер').
+                                                plusButton.
+                                                expectToBeVisible();
+                                        });
+                                    });
                                     it(
                                         'В качестве E-Mail используется пустая строка. Поле для ввода почты скрыто.',
                                     function() {
@@ -2076,6 +2333,20 @@ tests.addTest(options => {
 
                                         tester.contactBar.section('E-Mail').input.expectNotToExist(); 
                                         tester.contactBar.section('E-Mail').option('').expectNotToExist();
+                                    });
+                                    it(
+                                        'В данных контакта сохранен некоррекнтое имя контакта. Исправляю имя ' +
+                                        'контакта, сохраняю контакт. Контакт сохранен.',
+                                    function() {
+                                        contactRequest.longName().receiveResponse();
+
+                                        tester.contactBar.section('ФИО').svg.click();
+                                        tester.input.withPlaceholder('Отчество').fill('Ервиновна');
+
+                                        tester.button('Сохранить').click();
+
+                                        tester.contactUpdatingRequest().receiveResponse();
+                                        tester.contactRequest().receiveResponse();
                                     });
                                     it('В цитате отображено имя контакта.', function() {
                                         contactRequest.receiveResponse();
@@ -2674,8 +2945,15 @@ tests.addTest(options => {
                                         tester.input.withPlaceholder('Фамилия (Обязательное поле)').expectToHaveError();
                                         tester.input.withPlaceholder('Имя').expectNotToHaveError();
 
-                                        tester.contactBar.section('Телефоны').svg.expectNotToExist();
-                                        tester.contactBar.section('E-Mail').svg.expectNotToExist();
+                                        tester.contactBar.
+                                            section('Телефоны').
+                                            plusButton.
+                                            expectNotToExist();
+
+                                        tester.contactBar.
+                                            section('Персональный менеджер').
+                                            plusButton.
+                                            expectNotToExist();
 
                                         tester.button('Создать контакт').expectToBeDisabled();
                                     });
@@ -3263,6 +3541,7 @@ tests.addTest(options => {
                         messageTemplateListRequest.receiveResponse();
                         accountRequest.receiveResponse();
 
+                        tester.reportsListRequest().receiveResponse();
                         tester.chatListRequest().thirdChat().receiveResponse();
                         tester.countersRequest().receiveResponse();
                         tester.offlineMessageCountersRequest().receiveResponse();
@@ -3376,6 +3655,7 @@ tests.addTest(options => {
                         chatSettingsRequest.receiveResponse();
                         accountRequest.receiveResponse();
                         secondAccountRequest.receiveResponse();
+                        tester.reportsListRequest().receiveResponse();
 
                         tester.chatsWebSocket.connect();
                         tester.chatsInitMessage().expectToBeSent();
@@ -3498,6 +3778,7 @@ tests.addTest(options => {
                         tester.chatsWebSocket.connect();
                         tester.chatsInitMessage().expectToBeSent();
                         
+                        tester.reportsListRequest().receiveResponse();
                         tester.chatListRequest().thirdChat().receiveResponse();
                         tester.countersRequest().receiveResponse();
                         tester.offlineMessageCountersRequest().receiveResponse();

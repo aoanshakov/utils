@@ -288,6 +288,7 @@ actions['create-patch'] = params => getOverriding(params).reduce((result, {
     overridenFiles,
     applicationPatch
 }) => result.concat(fs.existsSync(application) ? [
+    `git config --global --add safe.directory ${application}`,
     `cd ${application} && git diff -- ${overridenFiles} > ${applicationPatch}`
 ] : []), []).concat([
     [shadowContentTsxTarget, shadowContentTsxSource],
@@ -301,13 +302,13 @@ actions['create-magic-ui-lib-patch'] = params => [
 actions['restore-code'] = params => getOverriding(params).reduce((result, {
     application,
     overridenFiles
-}) => result.concat([
+}) => [`git config --global --add safe.directory ${application}`].concat(result.concat([
     `if [ -d ${application} ]; ` +
         `then cd ${application} && git checkout ${overridenFiles}; ` +
     `fi`,
 
     rmVerbose(shadowContentTsxTarget)
-]), []).concat([
+])), []).concat([
     rmVerbose(testsEntripointTarget)
 ]);
 
@@ -353,18 +354,21 @@ actions['copy-magic-ui'] = [
 
 const standInt0Branch = '--branch stand-int0';
 
-actions['initialize'] = params => [
+actions['initialize'] = params => [`git config --global --add safe.directory ${application}`].concat([
     appModule(['chats', chats, standInt0Branch]),
     appModule(['softphone', softphone, standInt0Branch]),
     appModule(['contacts', contacts, standInt0Branch]),
     appModule(['core', core, '']),
+    appModule(['operator-workplace', employees, standInt0Branch]),
+    appModule(['logger', logger, standInt0Branch]),
     ['web/magic_ui', magicUi, 'feature/softphone', misc],
     ['web/sip_lib', sipLib, 'multitab-local', softphoneMisc],
     ['web/uis_webrtc', uisWebRTC, 'stand-int0', sipLib]
-].map(([module, path, args, misc]) => (!fs.existsSync(path) ? [
-    () => mkdir(misc),
-    `cd ${misc} && git clone${args} git@gitlab.uis.dev:${module}.git`
-] : [])).reduce((result, item) => result.concat(item), []).concat(
+].map(([module, path, args, misc]) => [`git config --global --add safe.directory ${path}`].
+    concat(!fs.existsSync(path) ? [
+        () => mkdir(misc),
+        `cd ${misc} && git clone${args} git@gitlab.uis.dev:${module}.git`
+    ] : [])).reduce((result, item) => result.concat(item), [])).concat(
     actions['modify-code'](params)
 ).concat(!fs.existsSync(nodeModules) ?  [
     //`chown -Rv root:root ${application}`,

@@ -4163,6 +4163,9 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
     this.pressEnter = function (target) {
         this.pressSpecialKey(target, 13, undefined, undefined, 'Enter');
     };
+    this.pressSpace = function (target) {
+        this.pressSpecialKey(target, 32, undefined, undefined, 'Space');
+    };
     this.pressRight = function (target, repetitions) {
         this.repeat(repetitions, function () {
             me.pressSpecialKey(target, 39);

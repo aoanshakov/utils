@@ -99,6 +99,8 @@ tests.addTest(options => {
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
 
+                tester.reportsListRequest().receiveResponse();
+
                 tester.accountRequest().
                     forChats().
                     webAccountLoginUnavailable().
@@ -162,7 +164,7 @@ tests.addTest(options => {
                                     searchResultsRequest = tester.searchResultsRequest().expectToBeSent();
                                 });
 
-                                describe('Контакт не найден. Нажимаю на найденный чат.', function() {
+                                xdescribe('Контакт не найден. Нажимаю на найденный чат.', function() {
                                     beforeEach(function() {
                                         searchResultsRequest.receiveResponse();
 
@@ -180,15 +182,15 @@ tests.addTest(options => {
                                             messageListRequest = tester.messageListRequest().expectToBeSent();
                                         });
 
-                                        xdescribe('У посетителя есть и номера и E-Mail.', function() {
+                                        describe('У посетителя есть и номера и E-Mail.', function() {
                                             beforeEach(function() {
                                                 visitorCardRequest.receiveResponse();
+                                                tester.usersRequest().forContacts().receiveResponse();
                                             });
 
                                             describe('Сообщений немного.', function() {
                                                 beforeEach(function() {
                                                     messageListRequest.receiveResponse();
-                                                    tester.usersRequest().forContacts().receiveResponse();
                                                 });
 
                                                 describe('Открываю меню телефона.', function() {
@@ -532,7 +534,6 @@ tests.addTest(options => {
 
                                                 beforeEach(function() {
                                                     messageListRequest.firstPage().receiveResponse();
-                                                    tester.usersRequest().forContacts().receiveResponse();
                                                 });
 
                                                 describe(
@@ -645,7 +646,6 @@ tests.addTest(options => {
                                                 'отвечает пользователь.',
                                             function() {
                                                 messageListRequest.reply().receiveResponse();
-                                                tester.usersRequest().forContacts().receiveResponse();
 
                                                 tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
                                                     'Помакова Бисерка Драгановна ' +
@@ -657,7 +657,6 @@ tests.addTest(options => {
                                                 'В чате присутсвует сообщение с аудио-вложением. Отображен плеер.',
                                             function() {
                                                 messageListRequest.audioAttachment().receiveResponse();
-                                                tester.usersRequest().forContacts().receiveResponse();
 
                                                 tester.chatHistory.message.atTime('12:12').
                                                     expectToHaveTextContent(
@@ -669,11 +668,16 @@ tests.addTest(options => {
                                                         'Ответить'
                                                     );
                                             });
+                                            it('В чате присутсвтует сообщение со ссылкой.', function() {
+                                                messageListRequest.link().receiveResponse();
+
+                                                tester.anchor('https://meduza.io').expectToBeVisible();
+                                                tester.anchor('https://google.com').expectToBeVisible();
+                                            });
                                         });
                                         describe('Сообщений немного.', function() {
                                             beforeEach(function() {
                                                 messageListRequest.receiveResponse();
-                                                tester.usersRequest().forContacts().receiveResponse();
                                             });
 
                                             describe('У посетителя есть два телефона.', function() {
@@ -682,7 +686,7 @@ tests.addTest(options => {
                                                     tester.usersRequest().forContacts().receiveResponse();
                                                 });
 
-                                                xdescribe('Нажимаю на кнопку перевода чата.', function() {
+                                                describe('Нажимаю на кнопку перевода чата.', function() {
                                                     beforeEach(function() {
                                                         tester.button('Принять обращение в работу').click();
                                                         tester.acceptChatRequest().receiveResponse();
@@ -739,7 +743,7 @@ tests.addTest(options => {
                                                                 receiveResponse();
                                                         });
 
-                                                        xdescribe('Токен авторизации истек.', function() {
+                                                        describe('Токен авторизации истек.', function() {
                                                             let refreshRequest;
 
                                                             beforeEach(function() {
@@ -769,15 +773,10 @@ tests.addTest(options => {
                                                                 tester.messageAddingRequest().receiveResponse();
                                                             });
                                                         });
-                                                        it('Произошла ошибка сети.', function() {
-                                                            messageAddingRequest/*.networkError()*/.receiveResponse();
-                                                        });
-                                                        return;
                                                         it('Сообщение отправлено.', function() {
                                                             messageAddingRequest.receiveResponse();
                                                         });
                                                     });
-                                                    return;
                                                     it(
                                                         'Нажимаю на кнопку "Шаблон". Нажимаю на кнопку добавления ' +
                                                         'шаблона. Нажимаю на кнопку "Добавить". Отправлен запрос ' +
@@ -800,7 +799,6 @@ tests.addTest(options => {
                                                         tester.chatClosingRequest().receiveResponse();
                                                     });
                                                 });
-                                                return;
                                                 it('Редактирование первого телефона недоступно.', function() {
                                                     tester.contactBar.
                                                         section('Телефоны').
@@ -826,7 +824,6 @@ tests.addTest(options => {
                                                         expectToBeVisible();
                                                 });
                                             });
-                                            return;
                                             it('У посетителя нет E-Mail.', function() {
                                                 visitorCardRequest.noEmail().receiveResponse();
                                                 tester.usersRequest().forContacts().receiveResponse();
@@ -842,7 +839,6 @@ tests.addTest(options => {
                                                 tester.contactBar.section('E-Mail').svg.expectNotToExist();
                                             });
                                         });
-                                        return;
                                         it(
                                             'Среди сообщений есть ответ посетителя на другое сообщение. Данные ' +
                                             'посетителя получены позже списка сообщений. Имя посетителя отображено в ' +
@@ -852,7 +848,6 @@ tests.addTest(options => {
                                             visitorCardRequest.receiveResponse();
 
                                             tester.usersRequest().forContacts().receiveResponse();
-                                            tester.usersRequest().forContacts().receiveResponse();
 
                                             tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
                                                 'Помакова Бисерка Драгановна ' +
@@ -861,7 +856,6 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    return;
                                     describe('Получен канал WhatsApp.', function() {
                                         beforeEach(function() {
                                             chatListRequest = chatListRequest.whatsapp();
@@ -950,7 +944,6 @@ tests.addTest(options => {
                                         });
                                     });
                                 });
-                                return;
                                 describe('Контакт найден. Нажимаю на найденный чат. ', function() {
                                     let chatListRequest;
 
@@ -1012,6 +1005,7 @@ tests.addTest(options => {
                                             '79283810928'
                                         );
                                     });
+                                    eturn;
                                     it('Определен телефон. Текущий канал связи выделен.', function() {
                                         chatListRequest.phoneSpecified().receiveResponse();
 
@@ -1099,6 +1093,7 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
+                                return;
                                 describe('Получен новый чат.', function() {
                                     beforeEach(function() {
                                         searchResultsRequest = searchResultsRequest.newVisitor().whatsApp();

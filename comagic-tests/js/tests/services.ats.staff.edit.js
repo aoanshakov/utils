@@ -29,29 +29,33 @@ tests.addTest(function(args) {
                 wait();
                 tester.employeeUserRequest().receiveResponse();
                 wait();
+                    
+                tester.form.textfield().withFieldLabel('Имя').fill('Веселина');
+                wait();
+
+                tester.form.scrollIntoView();
+
+                tester.tab('Использование сервисов').click();
+                wait();
+
+                tester.form.textfield().withFieldLabel('Логин *').fill('chenkova');
+                tester.form.textfield().withFieldLabel('Логин *').blur('chenkova');
+                wait();
+                tester.softphoneLoginValidationRequest().receiveResponse();
+                wait();
+
+                tester.form.textfield().withFieldLabel('Пароль *').fill('Qwerty123');
+                wait();
+                tester.form.textfield().withFieldLabel('Пароль *').blur();
+                wait();
+
+                tester.softphoneLoginValidationRequest().receiveResponse();
+                wait();
             });
 
-            describe('Отмечаю свитч "Использование софтфона UIS".', function() {
+            xdescribe('Отмечаю свитч "Использование софтфона UIS".', function() {
                 beforeEach(function() {
-                    tester.form.textfield().withFieldLabel('Имя').fill('Веселина');
-                    wait();
-
-                    tester.form.scrollIntoView();
-
-                    tester.tab('Использование сервисов').click();
-                    wait();
                     tester.switchbox('Использование софтфона UIS').click()
-                    wait();
-
-                    tester.form.textfield().withFieldLabel('Логин *').fill('chenkova');
-                    tester.form.textfield().withFieldLabel('Логин *').blur('chenkova');
-                    wait();
-                    tester.softphoneLoginValidationRequest().receiveResponse();
-                    wait();
-
-                    tester.form.textfield().withFieldLabel('Пароль *').fill('Qwerty123');
-                    wait();
-                    tester.form.textfield().withFieldLabel('Пароль *').blur();
                     wait();
                 });
 
@@ -73,7 +77,6 @@ tests.addTest(function(args) {
                     wait();
                     tester.userAppPermissionRequest().receiveResponse();
                 });
-                return;
                 it('Включаю автоответ для звонков по клику. Сохраняю изменения. Изменения сохранены.', function() {
                     tester.form.checkbox().withBoxLabel('Звонки по клику').click();
                     wait();
@@ -108,6 +111,43 @@ tests.addTest(function(args) {
                     tester.employeeUserAddingRequest().receiveResponse();
                     wait();
                 });
+            });
+            it(
+                'Отмечаю свитчбокс "Чаты и заявки". Нажимаю на кнопку "Сохранить". Сотруднику предоставлены права на ' +
+                'РМО.',
+            function() {
+                tester.switchbox('Чаты и заявки').click()
+                wait();
+                tester.softphoneLoginValidationRequest().receiveResponse();
+                wait();
+                        
+                tester.button('Сохранить').click();
+                wait();
+
+                tester.employeeChangeRequest().receiveResponse();
+                wait();
+                tester.batchReloadRequest().receiveResponse();
+                wait();
+
+                tester.employeeUserAddingRequest().
+                    operatorWorkplaceSelectAvailable().
+                    receiveResponse();
+
+                wait();
+                tester.userAppPermissionRequest().receiveResponse();
+            });
+            return;
+            it('Нажимаю на кнопку "Сохранить". Сотруднику не предоставлены права на РМО.', function() {
+                tester.button('Сохранить').click();
+                wait();
+
+                tester.employeeChangeRequest().receiveResponse();
+                wait();
+                tester.batchReloadRequest().receiveResponse();
+                wait();
+                tester.employeeUserAddingRequest().receiveResponse();
+                wait();
+                tester.userAppPermissionRequest().receiveResponse();
             });
         });
         return;

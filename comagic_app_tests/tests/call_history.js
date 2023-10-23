@@ -2640,7 +2640,15 @@ tests.addTest(options => {
                 available().
                 expectToBeSent();
 
-            tester.button('История звонков').expectToBeVisible();
+            tester.button('История звонков').click();
+
+            tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+            tester.marksRequest().receiveResponse();
+
+            tester.table.
+                row.first.
+                column.withHeader('Запись').
+                expectNotToExist();
         });
         it('У пользователя нет роли. Вкладки "Все" и "Необработанные" заблокированы.', function() {
             accountRequest.noCallCenterRole().receiveResponse();

@@ -27,9 +27,38 @@ function ServicesAtsStaffContactEditPage({ requestsManager, testersFactory, util
     };
 
     this.employeeUserAddingRequest = function () {
-        return {
-            receiveResponse: function () {
-                requestsManager.recentRequest().
+        const permissions = [{
+            permission_unit_id: 'operator_workplace_access',
+            is_insert: false,
+            is_select: false,
+            is_update: false,
+            is_delete: false,
+        }, {
+            permission_unit_id: 'chats',
+            is_insert: true,
+            is_select: true,
+            is_update: true,
+            is_delete: true,
+        }, {
+            permission_unit_id: 'channel_management',
+            is_insert: true,
+            is_select: true,
+            is_update: true,
+            is_delete: true,
+        }];
+
+        function addResponseModifiers (me) {
+            me.operatorWorkplaceSelectAvailable = function () {
+                permissions[0].is_select = true;
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent: function () {
+                const request = requestsManager.recentRequest().
                     expectToHavePath('/services/ats__staff/add_employee_user/').
                     expectToHaveMethod('POST').
                     expectBodyToContain({
@@ -37,27 +66,23 @@ function ServicesAtsStaffContactEditPage({ requestsManager, testersFactory, util
                         data: {
                             login: 'chenkova',
                             password: 'Qwerty123',
-                            permissions: utils.expectToInclude([{
-                                permission_unit_id: 'chats',
-                                is_insert: true,
-                                is_select: true,
-                                is_update: true,
-                                is_delete: true,
-                            }, {
-                                permission_unit_id: 'channel_management',
-                                is_insert: true,
-                                is_select: true,
-                                is_update: true,
-                                is_delete: true,
-                            }]),
-                        }
-                    }).
-                    respondSuccessfullyWith({
-                        data: [],
-                        success: true
+                            permissions: utils.expectToInclude(permissions),
+                        },
                     });
-            }
-        };
+
+                return addResponseModifiers({
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith({
+                            data: [],
+                            success: true,
+                        });
+                    },
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            },
+        });
     };
 
     this.softphoneLoginValidationRequest = function () {

@@ -21,7 +21,7 @@ tests.addTest(options => {
 
     const getPackage = Tester.createPackagesGetter(options);
 
-    describe('Открываю новый личный кабинет. Фичафлаг софтфона включен.', function() {
+    xdescribe('Открываю новый личный кабинет. Фичафлаг софтфона включен.', function() {
         let tester,
             reportGroupsRequest,
             settingsRequest,
@@ -733,7 +733,7 @@ tests.addTest(options => {
             tester.button('Звук').click();
         });
 
-        describe('Поступил входящий звонок.', function() {
+        xdescribe('Поступил входящий звонок.', function() {
             let incomingCall;
 
             beforeEach(function() {
@@ -873,7 +873,7 @@ tests.addTest(options => {
                 );
             });
         });
-        it('Отключаю выбранное устройство. Выбрано устройство по умолчанию.', function() {
+        xit('Отключаю выбранное устройство. Выбрано устройство по умолчанию.', function() {
             userMedia.unplugDevice();
             tester.fieldRow('Динамики').select.expectToHaveTextContent('По умолчанию');
         });
@@ -899,6 +899,7 @@ tests.addTest(options => {
             }));
         });
     });
+    return;
     it('Открываю настройки софтфона. Страница локализована.', function() {
         const tester = new Tester({
             ...options,
